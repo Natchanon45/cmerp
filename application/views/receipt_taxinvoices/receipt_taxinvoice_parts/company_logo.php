@@ -1,0 +1,1 @@
+<img src="<?php echo get_file_from_setting('receipt_taxinvoice_logo', get_setting('only_file_path')); ?>" />

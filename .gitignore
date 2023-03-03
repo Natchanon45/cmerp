@@ -1,3 +1,4 @@
+application/logs/*
 assets
 env.php
 files
@@ -8,3 +9,4 @@ run_node_js
 system
 updates
 vendor
+.DS_Store
