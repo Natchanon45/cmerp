@@ -60,6 +60,7 @@ $lang["state"] = "จังหวัด";
 $lang["zip"] = "รหัสไปรษณีย์";
 $lang["country"] = "ประเทศ";
 $lang["phone"] = "เบอร์โทร";
+$lang["phone_number"] = "เบอร์โทรศัพท์";
 $lang["private"] = "ส่วนตัว";
 $lang["website"] = "เว็บไซต์";
 

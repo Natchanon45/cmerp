@@ -27,8 +27,8 @@
             source: '<?php echo_uri("leads/list_data") ?>',
             columns: [
                 {title: "<?php echo lang("company_name") ?>"},
-                {title: "ที่อยู่"},
-                {title: "เบอร์โทรศัพท์"},
+                {title: "<?php echo lang("address");?>"},
+                {title: "<?php echo lang("phone_number");?>"},
                 {title: "<?php echo lang("primary_contact") ?>"},
                 {title: "<?php echo lang("owner") ?>"},
                 {title: "<?php echo lang("status") ?>"}

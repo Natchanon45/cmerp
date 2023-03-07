@@ -215,6 +215,7 @@ class Leads extends MY_Controller {
         $options = array(
             "custom_fields" => $custom_fields,
             "leads_only" => true,
+            "remains_only" => true,
             "status" => $this->input->post('status'),
             "source" => $this->input->post('source'),
             "owner_id" => $show_own_leads_only_user_id ? $show_own_leads_only_user_id : $this->input->post('owner_id')
