@@ -34,6 +34,11 @@ class Clients_model extends Crud_model {
             $where .= " AND $clients_table.is_lead=1";
         }
 
+        $remains_only = get_array_value($options, "remains_only");
+        if ($remains_only) {
+            $where .= " AND $clients_table.deleted=0";
+        }
+
         $status = get_array_value($options, "status");
         if ($status) {
             $where .= " AND $clients_table.lead_status_id='$status'";
