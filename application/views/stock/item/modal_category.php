@@ -94,7 +94,7 @@
     $("#category-delete-btn").click(function () {
       appLoader.show({container: ".label-modal-body", css: "left:0;"});
       $.ajax({
-        url: "<?php echo get_uri('stock/material_category_delete') ?>",
+        url: "<?php echo get_uri('stock/item_category_delete') ?>",
         type: 'POST',
         dataType: 'json',
         data: { id: $("#category_id").val() },
