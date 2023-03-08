@@ -431,11 +431,11 @@ $view_data["buttonTop"] = implode( '', $buttonTop );
     }
 
     function income_vs_expenses_chart_data() {
-
- //arr( $this->getRolePermission['filters']);
+        
+        // arr( $this->getRolePermission['filters']);
         $year = $this->input->post("year");
         $project_id = $this->input->post("project_id");
-// $year = 2022;
+
         if ( $year ) {
 			
             $expenses_data = $this->Expenses_model->get_yearly_expenses_chart( $year, $project_id );
@@ -479,11 +479,13 @@ $view_data["buttonTop"] = implode( '', $buttonTop );
 
     function income_vs_expenses_summary_list_data() {
 
-        $year = explode("-", $this->input->post("start_date"));
+        $year = $this->input->post("start_date") ? explode("-", $this->input->post("start_date")) : explode("-", date("Y-m-d"));
+
         $project_id = $this->input->post("project_id");
 
         if ($year) {
             $expenses_data = $this->Expenses_model->get_yearly_expenses_chart($year[0], $project_id);
+
             $payments_data = $this->Invoice_payments_model->get_yearly_payments_chart($year[0], "", $project_id);
 
             $payments = array();
@@ -506,7 +508,7 @@ $view_data["buttonTop"] = implode( '', $buttonTop );
             for ($i = 1; $i <= 12; $i++) {
                 $result[] = $this->_row_data_of_summary($i, $payments[$i], $expenses[$i]);
             }
-
+            
             echo json_encode(array("data" => $result));
         }
     }

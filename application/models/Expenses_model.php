@@ -133,31 +133,22 @@ class Expenses_model extends Crud_model {
             $where = " AND $expenses_table.project_id=$project_id";
         }
 
-        $sql = "
-			SELECT 
-				SUM($expenses_table.amount + IFNULL(tax_table.percentage,0)/100*IFNULL($expenses_table.amount,0) + IFNULL(tax_table2.percentage,0)/100*IFNULL($expenses_table.amount,0)) AS total, MONTH($expenses_table.expense_date) AS month
-        FROM $expenses_table
+        $sql = "SELECT SUM($expenses_table.amount + IFNULL(tax_table.percentage,0)/100*IFNULL($expenses_table.amount,0) + IFNULL(tax_table2.percentage,0)/100*IFNULL($expenses_table.amount,0)) AS total, MONTH($expenses_table.expense_date) AS month 
+        FROM $expenses_table 
         LEFT JOIN (
 			SELECT $taxes_table.id, $taxes_table.percentage FROM $taxes_table
-			
-		) AS tax_table ON tax_table.id = $expenses_table.tax_id
+		) AS tax_table ON tax_table.id = $expenses_table.tax_id 
         LEFT JOIN (
-			SELECT 
-				$taxes_table.id, 
-				$taxes_table.percentage 
+			SELECT $taxes_table.id, $taxes_table.percentage 
 			FROM $taxes_table
-			
-		) AS tax_table2 ON tax_table2.id = $expenses_table.tax_id2
+		) AS tax_table2 ON tax_table2.id = $expenses_table.tax_id2 
 		
 		[WHERE]
 		
-		AND YEAR( $expenses_table.expense_date )= $year $where
-        GROUP BY 
-			MONTH( $expenses_table.expense_date )
-		";
+		AND YEAR( $expenses_table.expense_date ) = $year $where
+        GROUP BY MONTH( $expenses_table.expense_date )";
 		
 		$filters = array();
-		
 		if( isset( $this->getRolePermission['filters'] ) ) {
 			$filters = $this->getRolePermission['filters'];
 		}
@@ -165,9 +156,7 @@ class Expenses_model extends Crud_model {
 		$filters['WHERE'][] = "$expenses_table.deleted = 0";
 		$sql = gencond_( $sql, $filters );
 		$sql = str_replace( 'income_vs_expenses', $expenses_table, $sql  );
-		
-		
- //arr( $sql );
+        
         return $this->db->query( $sql )->result();
     }
 
