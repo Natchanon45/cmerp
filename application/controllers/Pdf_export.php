@@ -5913,6 +5913,7 @@ class Pdf_export extends CI_Controller {
                             $trs[] = '
                             <tr>
                                 <td style="width: 10%; ">'.$i++.'</td>
+                                <td style="width: 10%; ">'.$vvpage->code.'</td>
                                 <td style="text-align: left; width: 70%; ">'.$vvpage->title.'</td>
                                 <td style=" width: 20%; ">'.number_format($vvpage->quantity,0,'.',',').'</td>
                             </tr>
@@ -5973,7 +5974,7 @@ class Pdf_export extends CI_Controller {
                                 <td style="text-align: left;"><span class="label"><br/>ผู้ขอเบิก</span> '.$created_by_user.'</td>
                             </tr>
                             <tr>
-                                <td style="text-align: left;">'.$buyer->first_name.' '.$buyer->last_name.'<br/> ตำแหน่ง : '.$buyer->job_title.'<br/> อีเมล : '.$buyer->email.'<br/></td>
+                                <td style="text-align: left;">'.$buyer->first_name.' '.$buyer->last_name.'<br/> ตำแหน่ง : '.$buyer->job_title.'<br/>อีเมล : '.$buyer->email.'<br/></td>
                             </tr>
                         </table>
                     </div>
@@ -6052,6 +6053,7 @@ class Pdf_export extends CI_Controller {
                         <table>
                             <tr>
                                 <td class="thStyle">#</td>
+                                <td class="thStyle">รหัสวัตถุดิบ</td>
                                 <td class="thStyle">รายละเอียด</td>
                                 <td class="thStyle">จำนวน</td>
                             </tr>
