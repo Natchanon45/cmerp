@@ -56,6 +56,7 @@ $lang["title"] = "Title";
 $lang["reset"] = "Reset";
 $lang["share_with"] = "Share with";
 $lang["company_name"] = "Company name";
+$lang["company_client_name"] = "Company/Client name";
 $lang["address"] = "Address";
 $lang["city"] = "City";
 $lang["state"] = "State";

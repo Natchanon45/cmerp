@@ -26,7 +26,7 @@
         $("#lead-table").appTable({
             source: '<?php echo_uri("leads/list_data") ?>',
             columns: [
-                {title: "<?php echo lang("company_name") ?>"},
+                {title: "<?php echo lang("company_client_name") ?>"},
                 {title: "<?php echo lang("address");?>"},
                 {title: "<?php echo lang("phone_number");?>"},
                 {title: "<?php echo lang("primary_contact") ?>"},

@@ -1,7 +1,7 @@
 <input type="hidden" name="id" value="<?php echo $model_info->id; ?>" />
 <input type="hidden" name="view" value="<?php echo isset($view) ? $view : ""; ?>" />
 <div class="form-group">
-    <label for="company_name" class="<?php echo $label_column; ?>"><?php echo lang('company_name'); ?></label>
+    <label for="company_name" class="<?php echo $label_column; ?>"><?php echo lang('company_client_name'); ?></label>
     <div class="<?php echo $field_column; ?>">
         <?php
         echo form_input(array(
@@ -9,7 +9,7 @@
             "name" => "company_name",
             "value" => $model_info->company_name,
             "class" => "form-control",
-            "placeholder" => lang('company_name'),
+            "placeholder" => lang('company_client_name'),
             "autofocus" => true,
             "data-rule-required" => true,
             "data-msg-required" => lang("field_required"),
