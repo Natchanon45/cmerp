@@ -48,7 +48,7 @@
             columns: [
                 {title: '', "class": "w50 text-center"},
                 {title: "<?php echo lang("name") ?>", "class": "w150"},
-                {visible: showCompanyName, title: "<?php echo lang("company_name") ?>", "class": "w150"},
+                {visible: showCompanyName, title: "<?php echo lang("company_client_name") ?>", "class": "w150"},
                 {title: "<?php echo lang("job_title") ?>", "class": "w15p"},
                 {title: "<?php echo lang("email") ?>", "class": "w20p"},
                 {title: "<?php echo lang("phone") ?>", "class": "w100"},

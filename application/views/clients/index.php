@@ -48,7 +48,7 @@
             ],
             columns: [
                 {title: "<?php echo lang("id") ?>", "class": "text-center w50"},
-                {title: "<?php echo lang("company_name") ?>"},
+                {title: "<?php echo lang("company_client_name") ?>"},
                 {title: "<?php echo lang("primary_contact") ?>"},
                 {title: "<?php echo lang("client_groups") ?>"},
                 {title: "<?php echo lang("projects") ?>"},

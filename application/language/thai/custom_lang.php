@@ -54,6 +54,7 @@ $lang["title"] = "หัวเรื่อง";
 $lang["reset"] = "รีเซ็ต";
 $lang["share_with"] = "แชร์ให้";
 $lang["company_name"] = "ชื่อบริษัท";
+$lang["company_client_name"] = "ชื่อบริษัท/ชื่อบุคคล";
 $lang["address"] = "ที่อยู่";
 $lang["city"] = "อำเภอ/เขต";
 $lang["state"] = "จังหวัด";
