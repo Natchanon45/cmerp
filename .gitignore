@@ -11,3 +11,4 @@ system
 updates
 vendor
 .DS_Store
+.gitignore
