@@ -26,11 +26,11 @@
                     </h4>
                     <div class="title-button-group">
                         <?php
-                        if ($type == "client_default" && get_setting("default_client_left_menu")) {
-                            echo anchor(get_uri("left_menus/restore/client_default"), "<span class='fa fa-refresh'></span> " . lang("restore_to_default"), array("class" => "btn btn-danger"));
-                        } else if (get_setting("default_left_menu")) {
-                            echo anchor(get_uri("left_menus/restore"), "<span class='fa fa-refresh'></span> " . lang("restore_to_default"), array("class" => "btn btn-danger"));
-                        }
+                        // if ($type == "client_default" && get_setting("default_client_left_menu")) {
+                        //     echo anchor(get_uri("left_menus/restore/client_default"), "<span class='fa fa-refresh'></span> " . lang("restore_to_default"), array("class" => "btn btn-danger"));
+                        // } else if (get_setting("default_left_menu")) {
+                        //     echo anchor(get_uri("left_menus/restore"), "<span class='fa fa-refresh'></span> " . lang("restore_to_default"), array("class" => "btn btn-danger"));
+                        // }
                         ?>
                         <button type="submit" class="btn btn-primary"><span class="fa fa-check-circle"></span> <?php echo lang('save'); ?></button>
                     </div>
