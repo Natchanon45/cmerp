@@ -75,26 +75,28 @@ class Invoice_payments_model extends Crud_model {
             $where .= " AND $payments_table.invoice_id IN(SELECT $invoices_table.id FROM $invoices_table WHERE $invoices_table.deleted=0 AND $invoices_table.project_id=$project_id)";
         }
 
-        $sql = "SELECT SUM($payments_table.amount) AS total, MONTH($payments_table.payment_date) AS month
-            FROM $payments_table
-            LEFT JOIN $invoices_table ON $invoices_table.id=$payments_table.invoice_id
+        $sql = "SELECT SUM($payments_table.amount) AS total, MONTH($payments_table.payment_date) AS month 
+            FROM $payments_table 
+            LEFT JOIN $invoices_table ON $invoices_table.id=$payments_table.invoice_id 
+
             [WHERE] 
 				 
-			AND YEAR($payments_table.payment_date)= $year AND $invoices_table.deleted=0 $where
+			AND YEAR($payments_table.payment_date) = $year AND $invoices_table.deleted=0 $where 
             GROUP BY MONTH($payments_table.payment_date)";
-			
-			
+
 		$filters = array();
 		
-		if( isset( $this->getRolePermission['filters'] ) ) {
-			$filters = $this->getRolePermission['filters'];
-		}
+		// if( isset( $this->getRolePermission['filters'] ) ) {
+		// 	$filters = $this->getRolePermission['filters'];
+		// }
 		 
 		$filters['WHERE'][] = "$payments_table.deleted = 0";
+        // var_dump($filters);
+
 		$sql = gencond_( $sql, $filters );
 		$sql = str_replace( 'income_vs_expenses', $payments_table, $sql  );
-		
-//arr( $sql );			
+        
+        // arr( $sql );
         return $this->db->query($sql)->result();
     }
 
