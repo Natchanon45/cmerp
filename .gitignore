@@ -3,6 +3,7 @@ assets
 env.php
 files
 /index.php
+/deploy.php
 O-files
 pdf_Template
 run_node_js
@@ -10,3 +11,4 @@ system
 updates
 vendor
 .DS_Store
+.gitignore
