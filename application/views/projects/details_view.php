@@ -108,7 +108,7 @@ if (!function_exists("make_project_tabs_data")) {
             </div>
             <ul id="project-tabs" data-toggle="ajax-tab" class="nav nav-tabs classic" role="tablist">
                 <?php if(!$mr_proved){
-                    echo '<div class="alert alert-danger" role="alert">'.lang('wait_for_material').'</div>';
+                    /*echo '<div class="alert alert-danger" role="alert">'.lang('wait_for_material').'</div>';*/
                 }?>
                 <?php
                 if ($this->login_user->user_type === "staff") {
