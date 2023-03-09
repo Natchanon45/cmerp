@@ -1907,7 +1907,7 @@ class Stock extends MY_Controller {
     $this->template->rander("stock/material/report", $view_data);
   }
 
-  function material_report_list() { //dev2
+  function material_report_list() {
     //$this->check_module_availability("module_stock");
     if(!$this->cop('view_row') || !$this->bom_can_access_material() || !$this->bom_can_access_restock()) {
       redirect("forbidden");

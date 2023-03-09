@@ -31,11 +31,12 @@ class Materialrequests extends MY_Controller {
         $this->load->model('Items_model');
         $this->load->model('Permission_m');
         $this->load->model('Materialrequest_m');
+        $this->load->model('Pr_categories_model');
     }
 
     function approve($mrid){
 
-        $items = $this->Mr_items_model->get_details(['mr_id'=>$doc_id,"item_type"=>"all"])->result();
+        $items = $this->Mr_items_model->get_details(['mr_id'=>$mrid,"item_type"=>"all"])->result();
         //var_dump($items);exit;
         $resources = [];
         $restock_item_ids = [];
@@ -1393,7 +1394,6 @@ class Materialrequests extends MY_Controller {
         foreach ($list_data as $data ) {
             $result[] = $this->_make_category_row($data);
         }
-
         echo json_encode( array("data" => $result ) );
     }
 
