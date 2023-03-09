@@ -1602,6 +1602,7 @@ class Clients extends MY_Controller {
         foreach ($list_data as $data) {
             $result[] = $this->_make_row($data, $custom_fields);
         }
+
         echo json_encode(array("data" => $result));
     }
 	
@@ -1721,11 +1722,11 @@ class Clients extends MY_Controller {
             $data->primary_contact ? $primary_contact : "",
             $group_list,
             to_decimal_format($data->total_projects),
-            to_currency($data->invoice_value, $data->currency_symbol),
-            to_currency($data->payment_received, $data->currency_symbol),
-            to_currency($due, $data->currency_symbol)
+            to_decimal_format3($data->invoice_value, 2),
+            to_decimal_format3($data->payment_received, 2),
+            to_decimal_format3($due, 2),
+            !empty($data->currency) && isset($data->currency) ? lang($data->currency) : lang("THB")
         );
-
 
 
         foreach ( $custom_fields as $field ) {

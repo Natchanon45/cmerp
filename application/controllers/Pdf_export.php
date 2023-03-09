@@ -2305,6 +2305,7 @@ class Pdf_export extends CI_Controller {
                                                 <table class="sub_mat" style="width: 100%" >
                                                 <tr>
                                                     <th class="sub_thStyle" style="text-align: center;">'.lang('stock_material').'</th>
+                                                    <th class="sub_thStyle" style="text-align: center;">'.lang('stock_material_name').'</th>
                                                     <th class="sub_thStyle" style="text-align: center;">'.lang('stock_restock_name').'</th>
                                                     <th class="sub_thStyle" style="text-align: center;">'.lang('quantity').'</th>
                                                     <th class="sub_thStyle" style="text-align: center;">'.lang('stock_calculator_value').'</th>
@@ -2325,6 +2326,7 @@ class Pdf_export extends CI_Controller {
                                     $trs_materials[] = '                                    
                                         <tr>                                            
                                             <td>'.$rk->material_name.'</td>
+                                            <td>'.$rk->material_desc.'</td>
                                             <td>'.$stock_name.'</td>
                                             <td style="text-align: right; color:'.$classer.'">'.to_decimal_format2($rk->ratio).' '.$rk->material_unit.'</td>
                                                                
@@ -2347,7 +2349,7 @@ class Pdf_export extends CI_Controller {
                              
                             $trs_materials[] = '
                                 <tr>
-                                    <th colspan="2"></th>
+                                    <th colspan="3"></th>
                                     <th style="text-align: right;">'.lang('total').'</th>
                                     <td style="text-align: right;">'.to_currency($total).'</td>
                                 </tr>
