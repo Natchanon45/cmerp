@@ -442,7 +442,7 @@ class Bom_item_mixing_groups_model extends Crud_model {
             $sql = "
                 SELECT bm.id,bpim.from_mixing, bpim.ratio, 
                 bsg.name stock_name, bsg.created_date stock_created_date, 
-                bm.name material_name, bm.unit material_unit, bm.noti_threshold,
+                bm.name material_name, bm.production_name material_desc, bm.unit material_unit, bm.noti_threshold,
                 bs.stock, bs.price, bs.remaining,bpim.project_item_id as bpim_Pid,
                 IF(bmp.price IS NULL,'0',bmp.price) as price2,
                 IF(sup.id IS NULL, 0, sup.id) as supplier_id,

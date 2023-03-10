@@ -91,6 +91,17 @@ if (!function_exists('to_decimal_format2')) {
     }
 }
 
+if (!function_exists('to_decimal_format3')) {
+    function to_decimal_format3($number = 0, $digits = 2) {
+        $decimal_separator = get_setting("decimal_separator");
+        if ($decimal_separator === ",") {
+            return number_format($number, $digits, ",", ".");
+        } else {
+            return number_format($number, $digits, ".", ",");
+        }
+    }
+}
+
 /**
  * convert a currency value to data format
  *  
