@@ -1688,6 +1688,7 @@ class Db_model extends CI_Model {
 
 				if( !empty( $allowed['member'] ) ) {
 					if( in_array( $va->user_id, $allowed['member'] ) ) {
+						if($this->login_user->id == $va->user_id) continue;
 						$keep['users'][$va->user_id] = '<i class="fa fa-user"></i> <input type="checkbox" name="userCheckboxs[]" value="'. $va->user_id .'" /> '. $va->first_name.' '.$va->last_name;
 
 					}
@@ -1735,6 +1736,7 @@ class Db_model extends CI_Model {
 						r.title
 					FROM users u
 					LEFT JOIN roles r ON u.role_id = r.id
+					WHERE user_type = 'staff' AND u.id != '".$this->login_user->id."'
 				";
 
 				foreach( $this->fetchAll( $sql ) as $ka => $va ) {
