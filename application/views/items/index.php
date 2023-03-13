@@ -30,7 +30,7 @@
             ],
             columns: [
                 {title: "<?php echo lang('preview_image') ?> ", "class": "w100"},
-                {title: "<?php echo lang('title') ?> ", "class": "w20p"},
+                {title: "<?php echo lang('stock_products') ?> ", "class": "w20p"},
                 {title: "<?php echo lang('description') ?>"},
                 {title: "<?php echo lang('category') ?>"},
                 {title: "<?php echo lang('unit_type') ?>", "class": "w100"},
