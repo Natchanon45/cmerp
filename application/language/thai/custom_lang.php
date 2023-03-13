@@ -227,7 +227,7 @@ $lang["events_today"] = "กิจกรรมวันนี้";
 
 /* announcement */
 $lang["add_announcement"] = "เพิ่มประกาศ";
-$lang["edit_announcement"] = "Eแก้ไขประกาศ";
+$lang["edit_announcement"] = "แก้ไขประกาศ";
 $lang["delete_announcement"] = "ลบประกาศ";
 $lang["announcement"] = "ประกาศ";
 $lang["announcements"] = "ประกาศ";
