@@ -87,20 +87,21 @@
         {title: '<?php echo lang("stock_material"); ?>'},
         {title: '<?php echo lang("created_date"); ?>', class: 'w90'},
         {title: '<?php echo lang("expiration_date"); ?>', class: 'w90'},
-        {title: '<?php echo lang("stock_restock_quantity"); ?>', class: 'w110 text-right'},
-        {title: '<?php echo lang("stock_material_remaining"); ?>', class: 'w110 text-right'},
-        {title: '<?php echo lang("stock_material_unit"); ?>', class: 'w110 text-right'},
+        {title: '<?php echo lang("stock_restock_quantity"); ?>', class: 'w90 text-right'},
+        {title: '<?php echo lang("stock_material_remaining"); ?>', class: 'w90 text-right'},
+        {title: '<?php echo lang("stock_material_unit"); ?>', class: 'w90 text-right'},
         <?php if ($can_read_price) :?>
           {title: '<?php echo lang("stock_restock_price"); ?>', class: 'w110 text-right'},
           {title: '<?php echo lang("stock_restock_remining_value"); ?>', class: 'w110 text-right'},
-          {title: '<?php echo lang("currency"); ?>', class: 'w110 text-right'},
+          {title: '<?php echo lang("rate"); ?>', class: 'w90 text-right'},
+          {title: '<?php echo lang("currency"); ?>', class: 'w90 text-right'},
         <?php endif; ?>
         // {title: '<i class="fa fa-bars"></i>', "class": "text-center option w125"}
       ],
       <?php if ($can_read_price) :?>
         <?php if (isset($is_admin) && $is_admin) :?>
-          printColumns: combineCustomFieldsColumns([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]),
-          xlsColumns: combineCustomFieldsColumns([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]),
+          printColumns: combineCustomFieldsColumns([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]),
+          xlsColumns: combineCustomFieldsColumns([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]),
           summation: [
             {column: 8, dataType: 'currency'},
             {column: 9, dataType: 'currency'}

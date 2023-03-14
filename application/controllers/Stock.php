@@ -1942,9 +1942,10 @@ class Stock extends MY_Controller {
       '<span class="'.($is_lack?'lacked_material':'').'" data-material-id="'.$data->id.'" data-lacked-amount="'.($is_lack?$lack:0).'" data-unit="'.$data->material_unit.'" data-supplier-id="'.$data->supplier_id.'" data-supplier-name="'.$data->supplier_name.'" data-price="'.$data->price.'" data-currency="'.$data->currency.'" data-currency-symbol="'.$data->currency_symbol.'">'.to_decimal_format2($data->remaining).'</span>',
       strtoupper($data->material_unit)
     );
-    if($this->check_permission('bom_restock_read_price')) {
+    if($this->check_permission('bom_restock_read_price')) { // dev2
       $row_data[] = to_decimal_format3($data->price, 2);
       $row_data[] = to_decimal_format3($remaining_value, 2);
+      $row_data[] = to_decimal_format3($data->price / $data->stock);
       $row_data[] = !empty($data->currency) && isset($data->currency) ? lang($data->currency) : lang("THB");
     }
     
@@ -4177,6 +4178,7 @@ function item_report_list() {
     $options['created_by'] = $this->login_user->id;
   }
   $list_data = $this->Bom_item_groups_model->get_restocks2($options)->result(); 
+  // var_dump(arr($list_data)); exit;
   $result = array();
   foreach ($list_data as $data) {
     $result[] = $this->_item_report_make_row($data);
@@ -4197,13 +4199,15 @@ private function _item_report_make_row($data) {
     anchor(get_uri('stock/item_view/' . $data->item_id), $data->item_name),
     format_to_date($data->created_date),
     is_date_exists($data->expiration_date)? format_to_date($data->expiration_date, false): '-',
-    to_decimal_format2($data->stock).' '.$data->item_unit,
-    '<span class="'.($is_lack?'lacked_material':'').'" data-item-id="'.$data->item_id.'" data-lacked-amount="'.($is_lack?$lack:0).'" data-unit="'.$data->item_unit.'" data-supplier-id="'.$data->supplier_id.'" data-supplier-name="'.$data->supplier_name.'" data-price="'.$data->price.'" data-currency="'.$data->currency.'" data-currency-symbol="'.$data->currency_symbol.'">'.to_decimal_format2($data->remaining).' '.$data->item_unit.'</span>'
+    to_decimal_format2($data->stock),
+    '<span class="'.($is_lack?'lacked_material':'').'" data-item-id="'.$data->item_id.'" data-lacked-amount="'.($is_lack?$lack:0).'" data-unit="'.$data->item_unit.'" data-supplier-id="'.$data->supplier_id.'" data-supplier-name="'.$data->supplier_name.'" data-price="'.$data->price.'" data-currency="'.$data->currency.'" data-currency-symbol="'.$data->currency_symbol.'">'.to_decimal_format2($data->remaining).'</span>',
+    strtoupper($data->item_unit)
   );
-  if($this->check_permission('bom_restock_read_price')) {
-    $row_data[] = to_currency($data->price);
-    $row_data[] = to_currency($remaining_value);
-
+  if($this->check_permission('bom_restock_read_price')) { // dev2
+      $row_data[] = to_decimal_format3($data->price, 2);
+      $row_data[] = to_decimal_format3($remaining_value, 2);
+      $row_data[] = to_decimal_format3($data->price / $data->stock);
+      $row_data[] = !empty($data->currency) && isset($data->currency) ? lang($data->currency) : lang("THB");
   }
   
   // $options = '';
