@@ -1918,6 +1918,7 @@ class Stock extends MY_Controller {
       $options['created_by'] = $this->login_user->id;
     }
     $list_data = $this->Bom_stock_groups_model->get_restocks2($options)->result(); 
+    // var_dump(arr($list_data)); exit;
     $result = array();
     foreach ($list_data as $data) {
       $result[] = $this->_material_report_make_row($data);
@@ -1936,6 +1937,7 @@ class Stock extends MY_Controller {
       $data->id,
       anchor(get_uri('stock/restock_view/' . $data->group_id), $data->group_name),
       anchor(get_uri('stock/material_view/' . $data->material_id), $data->material_name),
+      $data->material_desc,
       format_to_date($data->created_date),
       is_date_exists($data->expiration_date)? format_to_date($data->expiration_date, false): '-',
       to_decimal_format2($data->stock),
@@ -4197,6 +4199,7 @@ private function _item_report_make_row($data) {
     $data->id,
     anchor(get_uri('stock/restock_item_view/' . $data->group_id), $data->group_name),
     anchor(get_uri('stock/item_view/' . $data->item_id), $data->item_name),
+    $data->item_desc,
     format_to_date($data->created_date),
     is_date_exists($data->expiration_date)? format_to_date($data->expiration_date, false): '-',
     to_decimal_format2($data->stock),
