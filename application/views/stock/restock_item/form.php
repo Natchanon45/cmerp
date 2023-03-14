@@ -103,6 +103,7 @@
           <th><?php echo lang('stock_restock_quantity'); ?></th>
           <?php if($can_read_price){?>
             <th><?php echo lang('stock_restock_price'); ?></th>
+            <th><?php echo lang('rate'); ?></th>
           <?php }?>
           <?php if(!$readonly){?>
             <th class="w70">
@@ -114,7 +115,10 @@
         </tr>
       </thead>
       <tbody id="table-body">
-        <?php foreach($item_restocks as $k){?>
+        <?php 
+        foreach($item_restocks as $k) {
+          $pricePerUnit = number_format($k->price / $k->stock, 2, ".", "");
+        ?>
           <tr>
             <td>
               <input type="hidden" name="restock_id[]" value="<?= $k->id ?>" />
@@ -138,7 +142,7 @@
               <div class="input-suffix">
                 <input 
                   type="number" name="stock[]" required <?php if($readonly)echo 'readonly'; ?> 
-                  class="form-control" min="0" step="0.0001" value="<?= $k->stock ?>" 
+                  class="form-control stock-calc" min="0" step="0.0001" value="<?= $k->stock ?>" 
                 />
                 <div class="input-tag"><?= $k->item_unit ?></div>
               </div>
@@ -147,7 +151,12 @@
               <td>
                 <input 
                   type="number" name="price[]" required <?php if($readonly)echo 'readonly'; ?> 
-                  class="form-control" min="0" step="0.01" value="<?= $k->price ?>" 
+                  class="form-control price-calc" min="0" step="0.01" value="<?= $k->price ?>" 
+                />
+            </td><td>
+                <input 
+                  type="number" name="priceunit[]" readonly 
+                  class="form-control price-per-unit" min="0" value="<?php echo $pricePerUnit; ?>"
                 />
               </td>
             <?php }?>
@@ -199,7 +208,7 @@
               <div class="input-suffix">
                 <input 
                   type="number" name="stock[]" required 
-                  class="form-control" min="0" step="0.0001" value="0" 
+                  class="form-control stock-calc" min="0" step="0.0001" value="0" 
                 />
                 <div class="input-tag"></div>
               </div>
@@ -208,7 +217,13 @@
               <td>
                 <input 
                   type="number" name="price[]" required 
-                  class="form-control" min="0" step="0.01" value="0" 
+                  class="form-control price-calc" min="0" step="0.01" value="0" 
+                />
+              </td>
+              <td>
+              <input 
+                  type="number" name="priceunit[]" readonly 
+                  class="form-control price-per-unit" min="0" step="0.01" value="0" 
                 />
               </td>
             <?php }?>
@@ -229,6 +244,24 @@
           $(this).closest('tr').remove();
           processBinding();
         });
+
+        typeContainer.find('.stock-calc').unbind();
+        typeContainer.find('.stock-calc').change(function(e) {
+          e.preventDefault();
+          let stock = parseInt($(this).closest('tr').find('.stock-calc').val());
+          let price = parseInt($(this).closest('tr').find('.price-calc').val());
+
+          $(this).closest('tr').find('.price-per-unit').val(priceUnitCalc(stock, price));
+        });
+
+        typeContainer.find('.price-calc').unbind();
+        typeContainer.find('.price-calc').change(function(e) {
+          e.preventDefault();
+          let stock = parseInt($(this).closest('tr').find('.stock-calc').val());
+          let price = parseInt($(this).closest('tr').find('.price-calc').val());
+          
+          $(this).closest('tr').find('.price-per-unit').val(priceUnitCalc(stock, price));
+        });
         
         typeContainer.find('.select-material').select2('destroy');
         typeContainer.find('.select-material').select2();
@@ -239,6 +272,14 @@
           let option = $(this).find('[value="'+this.value+'"]');
           self.closest('tr').find('.input-tag').html(option.data('unit'));
         });
+      }
+
+      function priceUnitCalc(stock = 0, price = 0) {
+        if (stock === 0 || price === 0) {
+          return 0;
+        } else {
+          return (price / stock).toFixed(2);
+        }
       }
     <?php }?>
 
