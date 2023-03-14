@@ -565,7 +565,7 @@ class Left_menu {
 
         // var_dump($menus);
         // exit;
-        return $menus;
+        // return $menus;
         $dashboard_menu = array("name" => "dashboard", "url" => "dashboard", "class" => "fa-desktop dashboard-menu");
 
         $selected_dashboard_id = get_setting("user_" . $this->ci->login_user->id . "_dashboard");
@@ -738,6 +738,8 @@ class Left_menu {
 
             if (get_array_value($this->ci->login_user->permissions, "hide_team_members_list") != "1") {
                 $sidebar_menu["team_members"] = array("name" => "team_members", "url" => "team_members", "class" => "fa-user font-16");
+            } else {
+                unset($menus["team_members"]);
             }
 
 
@@ -896,7 +898,10 @@ $sidebar_menu[] = array("name" => "payment_vouchers", "url" => "payment_vouchers
 		
 		//exit;
 
-        return $sidebar_menu;
+        return $menus;
+        // return $sidebar_menu;
+
+        // var_dump(arr($menus)); exit;
     }
 
 }
