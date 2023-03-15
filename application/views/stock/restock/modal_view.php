@@ -28,11 +28,13 @@
           <option value="" data-unit=""></option>
           <?php
             foreach($material_dropdown as $d){
+              $material_name = $d->name;
+              if($bom_material_read_production_name == true){
+                $material_name .= " - ".$d->production_name;
+              }
               $selected = '';
               if($d->id == $model_info->material_id) $selected = 'selected';
-              echo '<option value="'.$d->id.'" data-unit="'.$d->unit.'" '.$selected.'>'
-                  .$d->name
-                .'</option>';
+              echo '<option value="'.$d->id.'" data-unit="'.$d->unit.'" '.$selected.'>'.$material_name.'</option>';
             }
           ?>
         </select>

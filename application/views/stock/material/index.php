@@ -47,10 +47,10 @@
       columns: [
         {title: "<?php echo lang("id") ?>", "class": "text-center w50"},
         {title: '<?php echo lang("stock_material_name"); ?>', "class": "w200"},
-        {title: '<?php echo lang("stock_material_barcode"); ?>',"class": "w200"},
         <?php if($can_read_production_name){?>
           {title: '<?php echo lang("stock_material_production_name"); ?>', "class": "w200"},
         <?php }?>
+        {title: '<?php echo lang("stock_material_barcode"); ?>',"class": "w200"},
         {title: '<?php echo lang("stock_material_category"); ?>', "class": "w150"},
         {title: '<?php echo lang("description"); ?>'},
         
@@ -60,11 +60,11 @@
       ],
       <?php if(isset($is_admin) && $is_admin){?>
         <?php if($can_read_production_name){?>
-          printColumns: combineCustomFieldsColumns([0, 1, 2, 3, 4, 5, 6]),
-          xlsColumns: combineCustomFieldsColumns([0, 1, 2, 3, 4, 5, 6]),
+            printColumns: combineCustomFieldsColumns([0, 1, 2, 3, 4, 5, 6, 7]),
+            xlsColumns: combineCustomFieldsColumns([0, 1, 2, 3, 4, 5, 6, 7]),
         <?php }else{?>
-          printColumns: combineCustomFieldsColumns([0, 1, 2, 3, 4, 5]),
-          xlsColumns: combineCustomFieldsColumns([0, 1, 2, 3, 4, 5]),
+            printColumns: combineCustomFieldsColumns([0, 1, 2, 3, 4, 5, 6]),
+            xlsColumns: combineCustomFieldsColumns([0, 1, 2, 3, 4, 5, 6]),
         <?php }?>
       <?php }?>
     });

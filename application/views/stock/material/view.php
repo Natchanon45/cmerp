@@ -9,9 +9,7 @@
 <div id="page-content" class="clearfix">
 
   <ul id="client-tabs" data-toggle="ajax-tab" class="nav nav-tabs" role="tablist" style="background:#ffffff;">
-    <li><a role="presentation" href="<?php echo_uri("stock/material_info/".$material_info->id); ?>" data-target="#material-info">
-      <?php echo lang('stock_material_info'); ?>
-    </a></li>
+
     <?php if(!isset($hidden_menu) || !in_array('material-mixing', $hidden_menu)){?>
       <li><a role="presentation" href="<?php echo_uri("stock/material_mixings/".$material_info->id); ?>" data-target="#material-mixing">
         <?php echo lang('stock_material_mixing'); ?>

@@ -891,6 +891,8 @@ class Items extends MY_Controller {
 
         $view_data['material_mixings'] = [];
         $view_data['material_cat_mixings'] = [];
+        $view_data['bom_material_read_production_name'] = $this->check_permission('bom_material_read_production_name');
+        
         if(!empty($id)) {
             $view_data['material_mixings'] = $this->Bom_item_mixing_groups_model->get_mixings(['group_id' => $id])->result();
             foreach($view_data['material_mixings'] as $mx) {

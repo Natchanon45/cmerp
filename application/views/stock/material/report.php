@@ -82,18 +82,18 @@
     $("#report-table").appTable({
       source: '<?php echo_uri("stock/material_report_list") ?>',
       columns: [
-        {title: "<?php echo lang("id") ?>", "class": "text-center w50"},
+        {title: "<?php echo lang("id") ?>", "class": "text-center w10"},
         {title: '<?php echo lang("stock_restock_name"); ?>'},
         {title: '<?php echo lang("stock_material"); ?>'},
-        {title: '<?php echo lang("created_date"); ?>', class: 'w90'},
-        {title: '<?php echo lang("expiration_date"); ?>', class: 'w90'},
-        {title: '<?php echo lang("stock_restock_quantity"); ?>', class: 'w110 text-right'},
-        {title: '<?php echo lang("stock_material_remaining"); ?>', class: 'w110 text-right'},
-        {title: '<?php echo lang("stock_material_unit"); ?>', class: 'w110 text-right'},
+        {title: '<?php echo lang("created_date"); ?>', class: 'w10'},
+        {title: '<?php echo lang("expiration_date"); ?>', class: 'w10'},
+        {title: '<?php echo lang("stock_restock_quantity"); ?>', class: 'w10 text-right'},
+        {title: '<?php echo lang("stock_material_remaining"); ?>', class: 'w10 text-right'},
+        {title: '<?php echo lang("stock_material_unit"); ?>', class: 'w10 text-right'},
         <?php if ($can_read_price) :?>
-          {title: '<?php echo lang("stock_restock_price"); ?>', class: 'w110 text-right'},
-          {title: '<?php echo lang("stock_restock_remining_value"); ?>', class: 'w110 text-right'},
-          {title: '<?php echo lang("currency"); ?>', class: 'w110 text-right'},
+          {title: '<?php echo lang("stock_restock_price"); ?>', class: 'w20 text-right'},
+          {title: '<?php echo lang("stock_restock_remining_value"); ?>', class: 'w20 text-right'},
+          {title: '<?php echo lang("currency"); ?>', class: 'w20 text-right'},
         <?php endif; ?>
         // {title: '<i class="fa fa-bars"></i>', "class": "text-center option w125"}
       ],

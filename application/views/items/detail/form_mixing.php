@@ -181,16 +181,17 @@
                 <tr>
                   <td>
                     <select name="material_id[<?php echo $temp_cat_id;?>][]" class="form-control select-material" required>
-                      <option value="" data-unit=""><?php echo lang('select_material');?></option>
-                      <?php
-                        foreach($material_dropdown as $d){
-                          $selected = '';
-                          if($d->id == $material->material_id) $selected = 'selected';
-                          echo '<option value="'.$d->id.'" data-unit="'.$d->unit.'" '.$selected.'>'
-                              .$d->name.' - '.$d->production_name
-                            .'</option>';
-                        }
-                      ?>
+                        <option value="" data-unit=""><?php echo lang('select_material');?></option>
+                        <?php
+                            foreach($material_dropdown as $d){
+                                $material_name = $d->name;
+                                if($bom_material_read_production_name == true) $material_name .= " - ".$d->production_name;
+
+                                $selected = '';
+                                if($d->id == $material->material_id) $selected = 'selected';
+                                echo '<option value="'.$d->id.'" data-unit="'.$d->unit.'" '.$selected.'>'.$material_name.'</option>';
+                            }
+                        ?>
                     </select>
                   </td>
                   <td>
@@ -319,9 +320,10 @@
               <option value="" data-unit=""><?php echo lang('select_material');?></option>
               <?php
                 foreach($material_dropdown as $d){
-                  echo '<option value="'.$d->id.'" data-unit="'.$d->unit.'">'
-                      .$d->name.' - '.$d->production_name
-                    .'</option>';
+                    $material_name = $d->name;
+                    if($bom_material_read_production_name == true) $material_name .= " - ".$d->production_name;
+                  
+                    echo '<option value="'.$d->id.'" data-unit="'.$d->unit.'">'.$material_name.'</option>';
                 }
               ?>
             </select>

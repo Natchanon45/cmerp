@@ -469,9 +469,11 @@ class Stock extends MY_Controller {
     echo json_encode(array("data" => $result));
   }
   private function _supplier_pricing_make_row($data) {
+    $material_name = $data->material_name;
+    if($this->check_permission("bom_material_read_production_name") == true) $material_name .= " - ".$data->production_name;
     $row_data = array(
       $data->id,
-      anchor(get_uri('stock/material_view/'.$data->material_id), $data->material_name),
+      anchor(get_uri('stock/material_view/'.$data->material_id), $material_name),
       $data->category? $data->category: '-',
       $data->description? $data->description: '-',
       to_decimal_format2($data->ratio).' '.$data->unit,
@@ -825,9 +827,9 @@ class Stock extends MY_Controller {
       $row_data = array(
         $data->id,
         anchor(get_uri('stock/material_view/' . $data->id), $data->name),
+        $data->production_name? $data->production_name: '-',
         $data->barcode? '<div style="text-align:center"><a href="'.$src.'" class="barcode_img" download><img src="'.$src.'" /><div class="text">Click to download</div></a></div>': '-',
         //$data->barcode? Barcode::render( 'code128', 'image', @$databarcode, @$rendererOptions ): '-',
-        $data->production_name? $data->production_name: '-',
         $data->category? $data->category: '-',
         $data->description? $data->description: '-',
         $data->remaining? to_decimal_format2($data->remaining): 0,
@@ -1031,9 +1033,13 @@ class Stock extends MY_Controller {
     if(!$this->bom_can_access_material()) {
       echo json_encode(array("success" => false, 'message' => lang('no_permissions'))); exit;
     }
+
+    $file_name = "import-materials-sample.xlsx";
+    //if($this->check_permission("bom_material_read_production_name") == true) $file_name = "import_inc_name-materials-sample.xlsx";
+
     download_app_files(
       get_setting("system_file_path"), 
-      serialize(array(array("file_name" => "import-materials-sample.xlsx")))
+      serialize(array(array("file_name" => $file_name)))
     );
   }
   function material_upload_excel_file() {
@@ -1072,7 +1078,7 @@ class Stock extends MY_Controller {
     $got_error_table_data = false;
 
     $file_name = $this->input->post("file_name");
-
+log_message("error", 1);
     require_once(APPPATH . "third_party/php-excel-reader/SpreadsheetReader.php");
 
     $temp_file_path = get_setting("temp_file_path");
@@ -1082,8 +1088,8 @@ class Stock extends MY_Controller {
 
     $table_data_header_array = array();
     $table_data_body_array = array();
-
-    foreach ($excel_file as $row_key => $value) {
+log_message("error", $temp_file_path.",".$file_name);
+    foreach ($excel_file as $row_key => $value) {log_message("error", 3);
       if ($row_key == 0) { //validate headers
         $headers = $this->_material_store_headers_position($value);
 
@@ -1129,7 +1135,7 @@ class Stock extends MY_Controller {
         }
       }
     }
-
+log_message("error", 4);
     //return false if any error found on submitting file
     if ($check_on_submit) {
       return ($got_error_header || $got_error_table_data) ? false : true;
@@ -1930,12 +1936,14 @@ class Stock extends MY_Controller {
     if (!empty($data->price) && !empty($data->stock) && $data->stock > 0) {
       $remaining_value = $data->price * $data->remaining / $data->stock;
     }
+    $material_name = $data->material_name;
+    if($this->check_permission("bom_material_read_production_name") == true) $material_name .= " - ".$data->production_name;
     $lack = $data->noti_threshold-$data->remaining;
     $is_lack = $lack>0?true:false;
     $row_data = array(
       $data->id,
       anchor(get_uri('stock/restock_view/' . $data->group_id), $data->group_name),
-      anchor(get_uri('stock/material_view/' . $data->material_id), $data->material_name),
+      anchor(get_uri('stock/material_view/' . $data->material_id), $material_name),
       format_to_date($data->created_date),
       is_date_exists($data->expiration_date)? format_to_date($data->expiration_date, false): '-',
       to_decimal_format2($data->stock),
@@ -2245,9 +2253,14 @@ class Stock extends MY_Controller {
       }
     }
 
+    $material_name = $data->material_name;
+    if($this->check_permission("bom_material_read_production_name") == true){
+        $material_name .= " - ".$data->production_name;
+    }
+
     $row_data = array(
       $data->id,
-      anchor(get_uri('stock/material_view/' . $data->material_id), $data->material_name),
+      anchor(get_uri('stock/material_view/' . $data->material_id), $material_name),
       $files_link,
       is_date_exists($data->expiration_date)? format_to_date($data->expiration_date, false): '-',
       to_decimal_format2($data->stock).' '.$data->material_unit,
@@ -2287,6 +2300,7 @@ class Stock extends MY_Controller {
     $view_data['can_read_price'] = $this->check_permission('bom_restock_read_price');
     $view_data['can_create'] = $this->check_permission('bom_restock_create');
     $view_data['can_update'] = $this->check_permission('bom_restock_update');
+    $view_data['bom_material_read_production_name'] = $this->check_permission('bom_material_read_production_name');
 
     $restock_id = $this->input->post('id');
     validate_submitted_data(array(
@@ -2551,9 +2565,14 @@ class Stock extends MY_Controller {
       $used_value = $data->price * $data->ratio / $data->stock;
     }
 
+    $material_name = $data->material_name;
+    if($this->check_permission("bom_material_read_production_name") == true){
+        $material_name .= " - ".$data->production_name;
+    }
+
     $row_data = array(
       $data->id,
-      anchor(get_uri('stock/material_view/' . $data->material_id), $data->material_name),
+      anchor(get_uri('stock/material_view/' . $data->material_id), $material_name),
       !empty($data->project_title)? anchor(get_uri('projects/view/' . $data->project_id), $data->project_title): '-',
       is_date_exists($data->created_at)? format_to_date($data->created_at, false): '-',
       !empty($data->note)? $data->note: '-',

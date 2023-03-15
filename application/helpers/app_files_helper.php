@@ -214,6 +214,8 @@ if (!function_exists('upload_file_to_temp')) {
                     }
                 }
                 $target_file = $target_path . $file_name;
+
+                
                 copy($temp_file, $target_file);
             }
         }
@@ -671,12 +673,10 @@ if (!function_exists('download_app_files')) {
 
                         //if there exists only one file then don't archive the file otherwise archive the file
                         if ($total_files === 1) {
-
                             $data = file_get_contents($path);
                             force_download($output_filename, $data);
                             exit();
                         } else {
-
                             $ci->zip->read_file($path, $output_filename);
                             $file_exists = true;
                         }

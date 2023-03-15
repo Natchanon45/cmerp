@@ -81,7 +81,7 @@
 
 <script type="text/javascript">
 	$(document).ready(function () {
-		
+		;
 		$('[data-toggle="tooltip"]').tooltip();
 		$("#pricing-form").appForm({
 			onSuccess: function (result) {
@@ -97,9 +97,10 @@
 		});
 
 		var materials = JSON.parse('<?php echo json_encode($material_dropdown); ?>');
+
 		$('#material_id').select2({
 			data: materials,
-			placeholder: '<?= lang('stock_material') ?>'
+			placeholder: '<?php lang('stock_material') ?>'
 		});
 		$('#material_id').change(function(){
 			var temp = materials.filter(d => d.id == this.value);
