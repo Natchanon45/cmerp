@@ -52,6 +52,8 @@ class Tickets extends MY_Controller {
 
             $view_data['ticket_types_dropdown'] = json_encode($this->_get_ticket_types_dropdown_list_for_filter());
 
+            $view_data['ticket_clients_dropdown'] = json_encode($this->_get_ticket_clients_dropdown_list_for_filter());
+
             $this->template->rander("tickets/tickets_list", $view_data);
         } else {
             $view_data['client_id'] = $this->login_user->client_id;
@@ -291,6 +293,7 @@ class Tickets extends MY_Controller {
         $status = $this->input->post("status");
         $ticket_label = $this->input->post("ticket_label");
         $assigned_to = $this->input->post("assigned_to");
+        $clients_id = $this->input->post("clients_id");
         $ticket_type_id = $this->input->post('ticket_type_id');
         $options = array("status" => $status,
             "ticket_types" => $this->allowed_ticket_types,
@@ -298,6 +301,7 @@ class Tickets extends MY_Controller {
             "assigned_to" => $assigned_to,
             "custom_fields" => $custom_fields,
             "created_at" => $this->input->post('created_at'),
+            "client_id" => $clients_id,
             "ticket_type_id" => $ticket_type_id,
             "show_assigned_tickets_only_user_id" => $this->show_assigned_tickets_only_user_id()
         );
@@ -962,6 +966,17 @@ class Tickets extends MY_Controller {
             $ticket_type_dropdown[] = array("id" => $id, "text" => $name);
         }
         return $ticket_type_dropdown;
+    }
+
+    private function _get_ticket_clients_dropdown_list_for_filter() {
+        
+        $ticket_clients = $this->Clients_model->get_dropdown_list(array("company_name"), "id", array("is_lead" => 0));
+        $ticket_clients_dropdown = array(array("id" => "", "text" => "- " . lang("clients") . " -"));
+        foreach ($ticket_clients as $id => $name) {
+            $ticket_clients_dropdown[] = array("id" => $id, "text" => $name);
+        }
+        return $ticket_clients_dropdown;
+
     }
 
 }
