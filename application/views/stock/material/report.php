@@ -94,17 +94,6 @@
           {title: '<?php echo lang("stock_restock_price"); ?>', class: 'w20 text-right'},
           {title: '<?php echo lang("stock_restock_remining_value"); ?>', class: 'w20 text-right'},
           {title: '<?php echo lang("currency"); ?>', class: 'w20 text-right'},
-        {title: '<?php echo lang("stock_material_description"); ?>'},
-        {title: '<?php echo lang("created_date"); ?>', class: 'w70'},
-        {title: '<?php echo lang("expiration_date"); ?>', class: 'w70'},
-        {title: '<?php echo lang("stock_restock_quantity"); ?>', class: 'w70 text-right'},
-        {title: '<?php echo lang("stock_material_remaining"); ?>', class: 'w70 text-right'},
-        {title: '<?php echo lang("stock_material_unit"); ?>', class: 'w70 text-right'},
-        <?php if ($can_read_price) :?>
-          {title: '<?php echo lang("stock_restock_price"); ?>', class: 'w100 text-right'},
-          {title: '<?php echo lang("stock_restock_remining_value"); ?>', class: 'w90 text-right'},
-          {title: '<?php echo lang("rate"); ?>', class: 'w90 text-right'},
-          {title: '<?php echo lang("currency"); ?>', class: 'w70 text-right'},
         <?php endif; ?>
         // {title: '<i class="fa fa-bars"></i>', "class": "text-center option w125"}
       ],

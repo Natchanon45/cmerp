@@ -1087,6 +1087,7 @@ class Stock extends MY_Controller {
 
     $table_data_header_array = array();
     $table_data_body_array = array();
+
     foreach ($excel_file as $row_key => $value) {
       if ($row_key == 0) { //validate headers
         $headers = $this->_material_store_headers_position($value);
@@ -1133,7 +1134,7 @@ class Stock extends MY_Controller {
         }
       }
     }
-
+log_message("error", 4);
     //return false if any error found on submitting file
     if ($check_on_submit) {
       return ($got_error_header || $got_error_table_data) ? false : true;
@@ -1943,8 +1944,6 @@ class Stock extends MY_Controller {
       $data->id,
       anchor(get_uri('stock/restock_view/' . $data->group_id), $data->group_name),
       anchor(get_uri('stock/material_view/' . $data->material_id), $material_name),
-      anchor(get_uri('stock/material_view/' . $data->material_id), $data->material_name),
-      $data->material_desc,
       format_to_date($data->created_date),
       is_date_exists($data->expiration_date)? format_to_date($data->expiration_date, false): '-',
       to_decimal_format2($data->stock),
@@ -1954,7 +1953,9 @@ class Stock extends MY_Controller {
     if($this->check_permission('bom_restock_read_price')) { // dev2
       $row_data[] = to_decimal_format3($data->price, 2);
       $row_data[] = to_decimal_format3($remaining_value, 2);
-      $row_data[] = to_decimal_format3($data->price / $data->stock);
+      $price_per_stock = 0;
+      if($data->stock != 0) $price_per_stock = $data->price / $data->stock;
+      $row_data[] = to_decimal_format3($price_per_stock);
       $row_data[] = !empty($data->currency) && isset($data->currency) ? lang($data->currency) : lang("THB");
     }
     
