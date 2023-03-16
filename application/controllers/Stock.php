@@ -1134,7 +1134,7 @@ class Stock extends MY_Controller {
         }
       }
     }
-log_message("error", 4);
+
     //return false if any error found on submitting file
     if ($check_on_submit) {
       return ($got_error_header || $got_error_table_data) ? false : true;
