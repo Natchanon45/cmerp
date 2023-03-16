@@ -80,36 +80,40 @@
     });
 
     $("#report-table").appTable({
-      source: '<?php echo_uri("stock/item_report_list/") ?>',
+      source: '<?php echo_uri("stock/item_report_list") ?>',
       columns: [
         {title: "<?php echo lang("id") ?>", "class": "text-center w50"},
         {title: '<?php echo lang("stock_item_name"); ?>'},
         {title: '<?php echo lang("stock_item"); ?>'},
-        {title: '<?php echo lang("created_date"); ?>', class: 'w90'},
-        {title: '<?php echo lang("expiration_date"); ?>', class: 'w90'},
-        {title: '<?php echo lang("stock_restock_quantity"); ?>', class: 'w110 text-right'},
-        {title: '<?php echo lang("stock_item_remaining"); ?>', class: 'w110 text-right'},
-        <?php if($can_read_price){?>
-          {title: '<?php echo lang("stock_restock_price"); ?>', class: 'w110 text-right'},
-          {title: '<?php echo lang("stock_restock_remining_value"); ?>', class: 'w110 text-right'},
-        <?php }?>
+        {title: '<?php echo lang("stock_item_delete"); ?>'},
+        {title: '<?php echo lang("created_date"); ?>', class: 'w70'},
+        {title: '<?php echo lang("expiration_date"); ?>', class: 'w70'},
+        {title: '<?php echo lang("stock_restock_quantity"); ?>', class: 'w70 text-right'},
+        {title: '<?php echo lang("stock_item_remaining"); ?>', class: 'w70 text-right'},
+        {title: '<?php echo lang("stock_item_unit"); ?>', class: 'w70 text-right'},
+        <?php if ($can_read_price) :?>
+          {title: '<?php echo lang("stock_restock_price"); ?>', class: 'w100 text-right'},
+          {title: '<?php echo lang("stock_restock_remining_value"); ?>', class: 'w90 text-right'},
+          {title: '<?php echo lang("rate"); ?>', class: 'w90 text-right'},
+          {title: '<?php echo lang("currency"); ?>', class: 'w70 text-right'},
+        <?php endif; ?>
         // {title: '<i class="fa fa-bars"></i>', "class": "text-center option w125"}
       ],
-      <?php if($can_read_price){?>
-        <?php if(isset($is_admin) && $is_admin){?>
+      <?php if ($can_read_price) :?>
+        <?php if (isset($is_admin) && $is_admin) :?>
+          printColumns: combineCustomFieldsColumns([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]),
+          xlsColumns: combineCustomFieldsColumns([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]),
+          summation: [
+            {column: 9, dataType: 'currency'},
+            {column: 10, dataType: 'currency'}
+          ],
+        <?php endif; ?>
+      <?php else: ?>
+        <?php if (isset($is_admin) && $is_admin) :?>
           printColumns: combineCustomFieldsColumns([0, 1, 2, 3, 4, 5, 6, 7, 8]),
           xlsColumns: combineCustomFieldsColumns([0, 1, 2, 3, 4, 5, 6, 7, 8]),
-        <?php }?>
-        summation: [
-          {column: 7, dataType: 'currency'},
-          {column: 8, dataType: 'currency'}
-        ],
-      <?php }else{?>
-        <?php if(isset($is_admin) && $is_admin){?>
-          printColumns: combineCustomFieldsColumns([0, 1, 2, 3, 4, 5, 6]),
-          xlsColumns: combineCustomFieldsColumns([0, 1, 2, 3, 4, 5, 6]),
-        <?php }?>
-      <?php }?>
+        <?php endif; ?>
+      <?php endif; ?>
     });
   });
 </script>

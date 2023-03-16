@@ -94,22 +94,33 @@
           {title: '<?php echo lang("stock_restock_price"); ?>', class: 'w20 text-right'},
           {title: '<?php echo lang("stock_restock_remining_value"); ?>', class: 'w20 text-right'},
           {title: '<?php echo lang("currency"); ?>', class: 'w20 text-right'},
+        {title: '<?php echo lang("stock_material_description"); ?>'},
+        {title: '<?php echo lang("created_date"); ?>', class: 'w70'},
+        {title: '<?php echo lang("expiration_date"); ?>', class: 'w70'},
+        {title: '<?php echo lang("stock_restock_quantity"); ?>', class: 'w70 text-right'},
+        {title: '<?php echo lang("stock_material_remaining"); ?>', class: 'w70 text-right'},
+        {title: '<?php echo lang("stock_material_unit"); ?>', class: 'w70 text-right'},
+        <?php if ($can_read_price) :?>
+          {title: '<?php echo lang("stock_restock_price"); ?>', class: 'w100 text-right'},
+          {title: '<?php echo lang("stock_restock_remining_value"); ?>', class: 'w90 text-right'},
+          {title: '<?php echo lang("rate"); ?>', class: 'w90 text-right'},
+          {title: '<?php echo lang("currency"); ?>', class: 'w70 text-right'},
         <?php endif; ?>
         // {title: '<i class="fa fa-bars"></i>', "class": "text-center option w125"}
       ],
       <?php if ($can_read_price) :?>
         <?php if (isset($is_admin) && $is_admin) :?>
-          printColumns: combineCustomFieldsColumns([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]),
-          xlsColumns: combineCustomFieldsColumns([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]),
+          printColumns: combineCustomFieldsColumns([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]),
+          xlsColumns: combineCustomFieldsColumns([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]),
           summation: [
-            {column: 8, dataType: 'currency'},
-            {column: 9, dataType: 'currency'}
+            {column: 9, dataType: 'currency'},
+            {column: 10, dataType: 'currency'}
           ],
         <?php endif; ?>
       <?php else: ?>
         <?php if (isset($is_admin) && $is_admin) :?>
-          printColumns: combineCustomFieldsColumns([0, 1, 2, 3, 4, 5, 6, 7]),
-          xlsColumns: combineCustomFieldsColumns([0, 1, 2, 3, 4, 5, 6, 7]),
+          printColumns: combineCustomFieldsColumns([0, 1, 2, 3, 4, 5, 6, 7, 8]),
+          xlsColumns: combineCustomFieldsColumns([0, 1, 2, 3, 4, 5, 6, 7, 8]),
         <?php endif; ?>
       <?php endif; ?>
     });
