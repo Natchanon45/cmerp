@@ -106,7 +106,7 @@ class Bom_item_groups_model extends Crud_model {
         }
         $sql = "
             SELECT bs.*, 
-            bm.title `item_name`, bm.unit_type `item_unit`, bm.noti_threshold, 
+            bm.title `item_name`, bm.description `item_desc`, bm.unit_type `item_unit`, bm.noti_threshold, 
             bsg.name `group_name`, bsg.created_date, 
             IF(bmp.price IS NULL,'0',bmp.price) as bmpprice,
             IF(sup.id IS NULL,0, sup.id) as supplier_id,

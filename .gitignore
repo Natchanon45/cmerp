@@ -2,6 +2,7 @@ application/logs/*
 assets
 env.php
 files
+!files/system/*.xlsx
 /index.php
 /deploy.php
 O-files

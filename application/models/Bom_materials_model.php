@@ -108,7 +108,7 @@ class Bom_materials_model extends Crud_model {
 
         return $this->db->query("
             SELECT bmp.*, bmc.title category, 
-            bm.name material_name, bm.unit, bm.description, 
+            bm.name material_name, bm.unit, bm.description,bm.production_name, 
             bs.company_name, bs.currency_symbol currency_symbol, 
             bsc.first_name contact_first_name, bsc.last_name contact_last_name, 
             bsc.email contact_email, bsc.phone contact_phone 

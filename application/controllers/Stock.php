@@ -469,9 +469,11 @@ class Stock extends MY_Controller {
     echo json_encode(array("data" => $result));
   }
   private function _supplier_pricing_make_row($data) {
+    $material_name = $data->material_name;
+    if($this->check_permission("bom_material_read_production_name") == true) $material_name .= " - ".$data->production_name;
     $row_data = array(
       $data->id,
-      anchor(get_uri('stock/material_view/'.$data->material_id), $data->material_name),
+      anchor(get_uri('stock/material_view/'.$data->material_id), $material_name),
       $data->category? $data->category: '-',
       $data->description? $data->description: '-',
       to_decimal_format2($data->ratio).' '.$data->unit,
@@ -825,9 +827,9 @@ class Stock extends MY_Controller {
       $row_data = array(
         $data->id,
         anchor(get_uri('stock/material_view/' . $data->id), $data->name),
+        $data->production_name? $data->production_name: '-',
         $data->barcode? '<div style="text-align:center"><a href="'.$src.'" class="barcode_img" download><img src="'.$src.'" /><div class="text">Click to download</div></a></div>': '-',
         //$data->barcode? Barcode::render( 'code128', 'image', @$databarcode, @$rendererOptions ): '-',
-        $data->production_name? $data->production_name: '-',
         $data->category? $data->category: '-',
         $data->description? $data->description: '-',
         $data->remaining? to_decimal_format2($data->remaining): 0,
@@ -1031,9 +1033,13 @@ class Stock extends MY_Controller {
     if(!$this->bom_can_access_material()) {
       echo json_encode(array("success" => false, 'message' => lang('no_permissions'))); exit;
     }
+
+    $file_name = "import-materials-sample.xlsx";
+    //if($this->check_permission("bom_material_read_production_name") == true) $file_name = "import_inc_name-materials-sample.xlsx";
+
     download_app_files(
       get_setting("system_file_path"), 
-      serialize(array(array("file_name" => "import-materials-sample.xlsx")))
+      serialize(array(array("file_name" => $file_name)))
     );
   }
   function material_upload_excel_file() {
@@ -1072,7 +1078,6 @@ class Stock extends MY_Controller {
     $got_error_table_data = false;
 
     $file_name = $this->input->post("file_name");
-
     require_once(APPPATH . "third_party/php-excel-reader/SpreadsheetReader.php");
 
     $temp_file_path = get_setting("temp_file_path");
@@ -1918,6 +1923,7 @@ class Stock extends MY_Controller {
       $options['created_by'] = $this->login_user->id;
     }
     $list_data = $this->Bom_stock_groups_model->get_restocks2($options)->result(); 
+    // var_dump(arr($list_data)); exit;
     $result = array();
     foreach ($list_data as $data) {
       $result[] = $this->_material_report_make_row($data);
@@ -1930,21 +1936,26 @@ class Stock extends MY_Controller {
     if (!empty($data->price) && !empty($data->stock) && $data->stock > 0) {
       $remaining_value = $data->price * $data->remaining / $data->stock;
     }
+    $material_name = $data->material_name;
+    if($this->check_permission("bom_material_read_production_name") == true) $material_name .= " - ".$data->production_name;
     $lack = $data->noti_threshold-$data->remaining;
     $is_lack = $lack>0?true:false;
     $row_data = array(
       $data->id,
       anchor(get_uri('stock/restock_view/' . $data->group_id), $data->group_name),
-      anchor(get_uri('stock/material_view/' . $data->material_id), $data->material_name),
+      anchor(get_uri('stock/material_view/' . $data->material_id), $material_name),
       format_to_date($data->created_date),
       is_date_exists($data->expiration_date)? format_to_date($data->expiration_date, false): '-',
       to_decimal_format2($data->stock),
       '<span class="'.($is_lack?'lacked_material':'').'" data-material-id="'.$data->id.'" data-lacked-amount="'.($is_lack?$lack:0).'" data-unit="'.$data->material_unit.'" data-supplier-id="'.$data->supplier_id.'" data-supplier-name="'.$data->supplier_name.'" data-price="'.$data->price.'" data-currency="'.$data->currency.'" data-currency-symbol="'.$data->currency_symbol.'">'.to_decimal_format2($data->remaining).'</span>',
       strtoupper($data->material_unit)
     );
-    if($this->check_permission('bom_restock_read_price')) {
+    if($this->check_permission('bom_restock_read_price')) { // dev2
       $row_data[] = to_decimal_format3($data->price, 2);
       $row_data[] = to_decimal_format3($remaining_value, 2);
+      $price_per_stock = 0;
+      if($data->stock != 0) $price_per_stock = $data->price / $data->stock;
+      $row_data[] = to_decimal_format3($price_per_stock);
       $row_data[] = !empty($data->currency) && isset($data->currency) ? lang($data->currency) : lang("THB");
     }
     
@@ -2245,9 +2256,14 @@ class Stock extends MY_Controller {
       }
     }
 
+    $material_name = $data->material_name;
+    if($this->check_permission("bom_material_read_production_name") == true){
+        $material_name .= " - ".$data->production_name;
+    }
+
     $row_data = array(
       $data->id,
-      anchor(get_uri('stock/material_view/' . $data->material_id), $data->material_name),
+      anchor(get_uri('stock/material_view/' . $data->material_id), $material_name),
       $files_link,
       is_date_exists($data->expiration_date)? format_to_date($data->expiration_date, false): '-',
       to_decimal_format2($data->stock).' '.$data->material_unit,
@@ -2287,6 +2303,7 @@ class Stock extends MY_Controller {
     $view_data['can_read_price'] = $this->check_permission('bom_restock_read_price');
     $view_data['can_create'] = $this->check_permission('bom_restock_create');
     $view_data['can_update'] = $this->check_permission('bom_restock_update');
+    $view_data['bom_material_read_production_name'] = $this->check_permission('bom_material_read_production_name');
 
     $restock_id = $this->input->post('id');
     validate_submitted_data(array(
@@ -2551,9 +2568,14 @@ class Stock extends MY_Controller {
       $used_value = $data->price * $data->ratio / $data->stock;
     }
 
+    $material_name = $data->material_name;
+    if($this->check_permission("bom_material_read_production_name") == true){
+        $material_name .= " - ".$data->production_name;
+    }
+
     $row_data = array(
       $data->id,
-      anchor(get_uri('stock/material_view/' . $data->material_id), $data->material_name),
+      anchor(get_uri('stock/material_view/' . $data->material_id), $material_name),
       !empty($data->project_title)? anchor(get_uri('projects/view/' . $data->project_id), $data->project_title): '-',
       is_date_exists($data->created_at)? format_to_date($data->created_at, false): '-',
       !empty($data->note)? $data->note: '-',
@@ -4177,6 +4199,7 @@ function item_report_list() {
     $options['created_by'] = $this->login_user->id;
   }
   $list_data = $this->Bom_item_groups_model->get_restocks2($options)->result(); 
+  // var_dump(arr($list_data)); exit;
   $result = array();
   foreach ($list_data as $data) {
     $result[] = $this->_item_report_make_row($data);
@@ -4195,15 +4218,18 @@ private function _item_report_make_row($data) {
     $data->id,
     anchor(get_uri('stock/restock_item_view/' . $data->group_id), $data->group_name),
     anchor(get_uri('stock/item_view/' . $data->item_id), $data->item_name),
+    $data->item_desc,
     format_to_date($data->created_date),
     is_date_exists($data->expiration_date)? format_to_date($data->expiration_date, false): '-',
-    to_decimal_format2($data->stock).' '.$data->item_unit,
-    '<span class="'.($is_lack?'lacked_material':'').'" data-item-id="'.$data->item_id.'" data-lacked-amount="'.($is_lack?$lack:0).'" data-unit="'.$data->item_unit.'" data-supplier-id="'.$data->supplier_id.'" data-supplier-name="'.$data->supplier_name.'" data-price="'.$data->price.'" data-currency="'.$data->currency.'" data-currency-symbol="'.$data->currency_symbol.'">'.to_decimal_format2($data->remaining).' '.$data->item_unit.'</span>'
+    to_decimal_format2($data->stock),
+    '<span class="'.($is_lack?'lacked_material':'').'" data-item-id="'.$data->item_id.'" data-lacked-amount="'.($is_lack?$lack:0).'" data-unit="'.$data->item_unit.'" data-supplier-id="'.$data->supplier_id.'" data-supplier-name="'.$data->supplier_name.'" data-price="'.$data->price.'" data-currency="'.$data->currency.'" data-currency-symbol="'.$data->currency_symbol.'">'.to_decimal_format2($data->remaining).'</span>',
+    strtoupper($data->item_unit)
   );
-  if($this->check_permission('bom_restock_read_price')) {
-    $row_data[] = to_currency($data->price);
-    $row_data[] = to_currency($remaining_value);
-
+  if($this->check_permission('bom_restock_read_price')) { // dev2
+      $row_data[] = to_decimal_format3($data->price, 2);
+      $row_data[] = to_decimal_format3($remaining_value, 2);
+      $row_data[] = to_decimal_format3($data->price / $data->stock);
+      $row_data[] = !empty($data->currency) && isset($data->currency) ? lang($data->currency) : lang("THB");
   }
   
   // $options = '';

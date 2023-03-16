@@ -47,12 +47,12 @@
             selectOpenStatus = false;
             selectClosedStatus = true;
         <?php } ?>
-
+        
         $("#ticket-table").appTable({
             source: '<?php echo_uri("tickets/list_data") ?>',
             order: [[6, "desc"]],
             radioButtons: [{text: '<?php echo lang("open") ?>', name: "status", value: "open", isChecked: selectOpenStatus}, {text: '<?php echo lang("closed") ?>', name: "status", value: "closed", isChecked: selectClosedStatus}],
-            filterDropdown: [{name: "ticket_type_id", class: "w200", options: <?php echo $ticket_types_dropdown; ?>}, {name: "ticket_label", class: "w200", options: <?php echo $ticket_labels_dropdown; ?>}, {name: "assigned_to", class: "w200", options: <?php echo $assigned_to_dropdown; ?>}],
+            filterDropdown: [{name: "ticket_type_id", class: "w200", options: <?php echo $ticket_types_dropdown; ?>}, {name: "clients_id", class: "w200", options: <?php echo $ticket_clients_dropdown; ?>}, {name: "ticket_label", class: "w200", options: <?php echo $ticket_labels_dropdown; ?>}, {name: "assigned_to", class: "w200", options: <?php echo $assigned_to_dropdown; ?>}],
             singleDatepicker: [{name: "created_at", defaultText: "<?php echo lang('created') ?>",
                     options: [
                         {value: moment().subtract(2, 'days').format("YYYY-MM-DD"), text: "<?php echo sprintf(lang('in_last_number_of_days'), 2); ?>"},
