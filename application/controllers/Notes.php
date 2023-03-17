@@ -54,20 +54,13 @@ class Notes extends MY_Controller {
 
 
     function modal_form() {
-		
 		$id = !empty( $this->input->post('id') )? $this->input->post('id'): NULL;
 		
         $view_data['model_info'] = $this->Notes_model->get_one( $id );
 		
-        $view_data['project_id'] = $this->input->post('project_id') ? $this->input->post('project_id') : $view_data['model_info']->project_id;
+        $view_data['project_id'] = $this->input->post('project_id') ? (int)$this->input->post('project_id') : (int)$view_data['model_info']->project_id;
         $view_data['client_id'] = $this->input->post('client_id') ? $this->input->post('client_id') : $view_data['model_info']->client_id;
         $view_data['user_id'] = $this->input->post('user_id') ? $this->input->post('user_id') : $view_data['model_info']->user_id;
-
-
-        //check permission for saved note
-        if ($view_data['model_info']->id) {
-          //  $this->validate_access_to_note($view_data['model_info'], true);
-        }
 
         $view_data['label_suggestions'] = $this->make_labels_dropdown("note", $view_data['model_info']->labels, false);
 
@@ -444,7 +437,9 @@ class Notes extends MY_Controller {
 		$this->buttonTop[] = modal_anchor(get_uri("labels/modal_form"), "<i class='fa fa-tags'></i> " . lang('manage_labels'), array("class" => "btn btn-default", "title" => lang('manage_labels'), "data-post-type" => "note"));
 	
 			
-		$this->buttonTop[] = modal_anchor(get_uri("notes/modal_form"), "<i class='fa fa-plus-circle'></i> " . lang('add_note'), array("class" => "btn btn-default", "title" => lang('add_note')));
+		$this->buttonTop[] = modal_anchor(get_uri("notes/modal_form"), "<i class='fa fa-plus-circle'></i> " . lang('add_note'), array("class" => "btn btn-default", "title" => lang('add_note'), "data-post-project_id" => 0));
+
+        //data-post-project_id="1"
 	
         $this->labeltest();
         
