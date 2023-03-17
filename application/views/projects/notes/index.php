@@ -1,6 +1,6 @@
 <div class="panel">
     <div class="tab-title clearfix">
-        <h4><?php echo lang('notes') . " (" . lang('private') . ")"; ?></h4>
+        <h4><?php echo lang('notes'); ?></h4>
         <div class="title-button-group">
             <?php echo modal_anchor(get_uri("notes/modal_form"), "<i class='fa fa-plus-circle'></i> " . lang('add_note'), array("class" => "btn btn-default", "title" => lang('add_note'), "data-post-project_id" => $project_id)); ?>           
         </div>
@@ -18,11 +18,11 @@
             source: '<?php echo_uri("notes/list_data/project/" . $project_id) ?>',
             order: [[0, 'desc']],
             columns: [
-                {targets: [1], visible: false},
-                {title: '<?php echo lang("created_date"); ?>', "class": "w200"},
+                {title: '<?php echo lang("created_date"); ?>', "class": "w180"},
                 {title: '<?php echo lang("title"); ?>'},
-                {title: '<?php echo lang("files"); ?>', "class": "w250"},
-                {title: '<i class="fa fa-bars"></i>', "class": "text-center option w100"}
+                {title: '<?php echo lang("created_by"); ?>'},
+                {title: '<?php echo lang("files"); ?>', "class": "w180"},
+                {title: '<i class="fa fa-bars"></i>', "class": "text-center option w120"}
             ]
         });
     });
