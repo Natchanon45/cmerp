@@ -27,10 +27,12 @@
             </div>
         </div>
 
-        <div class="form-group">
-            <label for="note_type_id" class=" col-md-3">ประเภทเอกสาร</label>
-            <div class="col-md-9"><?php echo form_dropdown("note_type_id", $note_types_dropdown, $model_info->note_type_id, "class='select2 validate-hidden' id='note_type_id' data-rule-required='true', data-msg-required='" . lang('field_required') . "'"); ?></div>
-        </div>
+        <?php if($project_id == 0): ?>
+            <div class="form-group">
+                <label for="note_type_id" class=" col-md-3">ประเภทเอกสาร</label>
+                <div class="col-md-9"><?php echo form_dropdown("note_type_id", $note_types_dropdown, $model_info->note_type_id, "class='select2 validate-hidden' id='note_type_id' data-rule-required='true', data-msg-required='" . lang('field_required') . "'"); ?></div>
+            </div>
+        <?php endif; ?>
 
         <div class="form-group">
             <label for="description" class=" col-md-3">คำบรรยาย</label>

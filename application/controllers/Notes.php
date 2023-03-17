@@ -63,6 +63,7 @@ class Notes extends MY_Controller {
         $view_data['client_id'] = $this->input->post('client_id') ? $this->input->post('client_id') : $view_data['model_info']->client_id;
         $view_data['user_id'] = $this->input->post('user_id') ? $this->input->post('user_id') : $view_data['model_info']->user_id;
 
+
         //check permission for saved note
         if ($view_data['model_info']->id) {
           //  $this->validate_access_to_note($view_data['model_info'], true);
@@ -74,25 +75,14 @@ class Notes extends MY_Controller {
 
         $view_data['note_types_dropdown'] = array(null => "-");
 
-        //print_r($view_data['note_types_dropdown']);
 
         $note_types_dropdown = [];
         $note_types = $this->Note_types_model->get_dropdown_list(array("title"), "id");
 
-        if($this->login_user->is_admin == 1){
-            foreach ($note_types as $id => $name) {
-                $view_data['note_types_dropdown'][$id] = $name;
-            }
-        }else{
-            if($this->Permission_m->access_note == "all" || $this->Permission_m->access_note == "specific"){
-                $available_note_types = explode(",", $this->Permission_m->access_note_specific);
-
-                foreach ($note_types as $id => $name) {
-                    if(in_array($id, $available_note_types)) $view_data['note_types_dropdown'][$id] = $name;
-                }
-            }
+        foreach ($note_types as $id => $name) {
+            $view_data['note_types_dropdown'][$id] = $name;
         }
-		
+
         $this->load->view('notes/modal_form', $view_data);
     }
 
@@ -125,10 +115,18 @@ class Notes extends MY_Controller {
     }
 
 
-    private function _row_data($id) {
-        $options = array("id" => $id);
-        $data = $this->Notes_model->get_details($options)->row();
-        return $this->_make_row($data);
+    private function _row_data($id, $project_id) {
+        $data = null;
+        if($project_id == 0){
+            $options = array("id" => $id);
+            $data = $this->Notes_model->get_details($options)->row();
+        }else{
+            $data = $this->Notes_model->get_note_in_project($project_id, $id)->row();
+        }
+
+        return $this->_make_row($data, $project_id);
+        
+        
     }
 
 	function view() {
@@ -141,6 +139,21 @@ class Notes extends MY_Controller {
         $this->validate_access_to_note($model_info);
         
         $view_data['model_info'] = $model_info;
+
+        $this->load->view('notes/view', $view_data);
+    }
+
+    function view_note_in_project($project_id, $note_id) {
+        validate_submitted_data(array(
+            "id" => "required|numeric"
+        ));
+
+        $model_info = $this->Notes_model->get_note_in_project($project_id, $note_id)->row();
+        
+        $this->validate_access_to_note($model_info);
+        
+        $view_data['model_info'] = $model_info;
+
         $this->load->view('notes/view', $view_data);
     }
 
@@ -178,41 +191,45 @@ class Notes extends MY_Controller {
         return validate_post_file($this->input->post("file_name"));
     }
 	
-    function list_data($type = "", $id = 0) {
+    function list_data($type = "", $project_id = 0) {
 		$options = array();
-
-        if($this->Permission_m->access_note == false){
-            echo json_encode(["data"=>[]]);
-            return;
-        }elseif($this->Permission_m->access_note == "assigned_only"){
-            $options['created_by'] =  $this->login_user->id;
-        }elseif($this->Permission_m->access_note == "specific"){
-            $options['note_type_ids'] =  "0,".$this->Permission_m->access_note_specific;
-        }
-
-		if( !empty( $_POST['label'] ) ) {
-			$options['label'] = $_POST['label'];
-		}
-        
-
-        if(!empty( $_POST['note_type_id'] )) {
-            //log_message("error", "Controller->".$_POST['note_type_id']);
-            $options['note_type_id'] = $_POST['note_type_id'];
-        }
-
-        if($type=="client") {
-            $options['client_id'] = $id;
-        }
-
-        $list_data = $this->Notes_model->get_details( $options )->result();
-        
         $result = array();
-		
-        foreach( $list_data as $data ) {
-            $result[] = $this->_make_row( $data );
+
+        if($type == "project"){
+            $list_data = [];
+            if($this->Notes_model->has_permission($project_id)) $list_data = $this->Notes_model->get_note_in_project($project_id)->result();
+            
+        }else{
+            if($this->Permission_m->access_note == false){
+                echo json_encode(["data"=>[]]);
+                return;
+            }elseif($this->Permission_m->access_note == "assigned_only"){
+                $options['created_by'] =  $this->login_user->id;
+            }elseif($this->Permission_m->access_note == "specific"){
+                $options['note_type_ids'] =  "0,".$this->Permission_m->access_note_specific;
+            }
+
+            if( !empty( $_POST['label'] ) ) {
+                $options['label'] = $_POST['label'];
+            }
+
+            if(!empty( $_POST['note_type_id'] )) {
+                $options['note_type_id'] = $_POST['note_type_id'];
+            }
+
+            if($type=="client") {
+                $options['client_id'] = $project_id;
+            }
+
+            $list_data = $this->Notes_model->get_details( $options )->result();
         }
-		
+
+        foreach( $list_data as $data ) {
+            $result[] = $this->_make_row($data, $project_id);
+        }
+
         echo json_encode(array("data" => $result));
+
     }
 
     public function labeltest()
@@ -223,18 +240,23 @@ class Notes extends MY_Controller {
         // $this->load->view("notes/note_label", $view_data);
     }
 	
-    private function _make_row($data) {
+    private function _make_row($data, $project_id=0) {
 		
         $public_icon = "";
         if ($data->is_public) {
             $public_icon = "<i class='fa fa-globe'></i> ";
         }
 
-        $title = modal_anchor(get_uri("notes/view/" . $data->id), $public_icon . $data->title, array("title" => lang('note'), "data-post-id" => $data->id));
+        $view_target = get_uri("notes/view/" . $data->id);
+        if($project_id != "0") $view_target = get_uri("notes/view_note_in_project/" . $project_id."/".$data->id);
 
-        if ($data->labels_list) {
-            $note_labels = make_labels_view_data($data->labels_list, true);
-            $title .= "<br />" . $note_labels;
+        $title = modal_anchor($view_target, $public_icon . $data->title, array("title" => lang('note'), "data-post-id" => $data->id));
+
+        if(isset($data->labels_list)){
+            if ($data->labels_list) {
+                $note_labels = make_labels_view_data($data->labels_list, true);
+                $title .= "<br />" . $note_labels;
+            }    
         }
 
         $files_link = "";
@@ -251,12 +273,12 @@ class Notes extends MY_Controller {
 
         //only creator and admin can edit/delete notes
         
-        $actions = [];
+        $actions = "";
 		
 		
 		if ($this->login_user->is_admin == "1") {
 
-            $actions = modal_anchor( get_uri("notes/view/" . $data->id), "<i class='fa fa-bolt'></i>", array("class" => "edit", "title" => lang('note_details'), "data-modal-title" => lang("note"), "data-post-id" => $data->id));
+            $actions = modal_anchor($view_target, "<i class='fa fa-bolt'></i>", array("class" => "edit", "title" => lang('note_details'), "data-modal-title" => lang("note"), "data-post-id" => $data->id));
 		
 			$buttons[] = modal_anchor( get_uri("notes/modal_form"), "<i class='fa fa-pencil'></i>", array("class" => "edit", "title" => lang('edit_note'), "data-post-id" => $data->id ));
 		
@@ -296,6 +318,7 @@ class Notes extends MY_Controller {
 
         $id = $this->input->post('id');
 
+        $project_id = $this->input->post('project_id') ? $this->input->post('project_id') : 0;
         $target_path = get_setting("timeline_file_path");
         $files_data = move_files_from_temp_dir_to_permanent_dir($target_path, "note");
         $new_files = unserialize($files_data);
@@ -332,11 +355,15 @@ class Notes extends MY_Controller {
             $data['created_at'] = get_current_utc_time();
         }
 
+        
+
         $data = clean_data($data);
 
+
         $save_id = $this->Notes_model->save($data, $id);
+
         if ($save_id) {
-            echo json_encode(array("success" => true, "data" => $this->_row_data($save_id), 'id' => $save_id, 'message' => lang('record_saved')));
+            echo json_encode(array("success" => true, "data" => $this->_row_data($save_id, $project_id), 'id' => $save_id, 'message' => lang('record_saved')));
         } else {
             echo json_encode(array("success" => false, 'message' => lang('error_occurred')));
         }
