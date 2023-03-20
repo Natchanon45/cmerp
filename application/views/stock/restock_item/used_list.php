@@ -18,23 +18,25 @@
         {title: '<?php echo lang("date"); ?>', class: 'w150'},
         {title: '<?php echo lang("note_real"); ?>'},
         {title: '<?php echo lang("stock_restock_used_quantity"); ?>', class: 'w125 text-right'},
+        {title: '<?php echo lang("stock_material_unit"); ?>', class: 'w125 text-right'},
         <?php if($can_read_price){?>
-          {title: '<?php echo lang("stock_restock_used_value"); ?>', class: 'w125 text-right'}
+          {title: '<?php echo lang("stock_restock_used_value"); ?>', class: 'w125 text-right'},
+          {title: '<?php echo lang("currency"); ?>', class: 'w125 text-right'}
         <?php }?>
       ],
       order: [[ 1, 'asc' ]],
       <?php if($can_read_price){?>
         <?php if(isset($is_admin) && $is_admin){?>
-          printColumns: combineCustomFieldsColumns([0, 1, 3, 4, 5, 6]),
-          xlsColumns: combineCustomFieldsColumns([0, 1, 3, 4, 5, 6]),
+          printColumns: combineCustomFieldsColumns([0, 1, 3, 4, 5, 6, 7, 8]),
+          xlsColumns: combineCustomFieldsColumns([0, 1, 3, 4, 5, 6, 7, 8]),
         <?php }?>
         summation: [
-          {column: 6, dataType: 'currency'}
+          {column: 7, dataType: 'currency'}
         ]
       <?php }else{?>
         <?php if(isset($is_admin) && $is_admin){?>
-          printColumns: combineCustomFieldsColumns([0, 1, 3, 4, 5]),
-          xlsColumns: combineCustomFieldsColumns([0, 1, 3, 4, 5])
+          printColumns: combineCustomFieldsColumns([0, 1, 3, 4, 5, 6]),
+          xlsColumns: combineCustomFieldsColumns([0, 1, 3, 4, 5, 6])
         <?php }?>
       <?php }?>
     });

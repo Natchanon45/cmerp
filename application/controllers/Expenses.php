@@ -347,10 +347,11 @@ $view_data["buttonTop"] = implode( '', $buttonTop );
             $data->title,
             $description,
             $files_link,
-            to_currency($data->amount),
-            to_currency($tax),
-            to_currency($tax2),
-            to_currency($data->amount + $tax + $tax2)
+            to_decimal_format3($data->amount),
+            to_decimal_format3($tax),
+            to_decimal_format3($tax2),
+            to_decimal_format3($data->amount + $tax + $tax2),
+            !empty($data->currency) ? lang($data->currency) : lang('THB')
         );
 
         foreach ($custom_fields as $field) {
@@ -604,6 +605,7 @@ $view_data["buttonTop"] = implode( '', $buttonTop );
         foreach ($list_data as $data) {
             $result[] = $this->_make_row($data, $custom_fields);
         }
+        // var_dump(arr($result)); exit;
         echo json_encode(array("data" => $result));
     }
 

@@ -66,7 +66,8 @@ class Expenses_model extends Crud_model {
                  $clients_table.company_name AS linked_client_name,
                  $projects_table.title AS project_title,
                  tax_table.percentage AS tax_percentage,
-                 tax_table2.percentage AS tax_percentage2
+                 tax_table2.percentage AS tax_percentage2,
+                 $clients_table.currency
                  $select_custom_fields
         FROM $expenses_table
         LEFT JOIN $expense_categories_table ON $expense_categories_table.id= $expenses_table.category_id
