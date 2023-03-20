@@ -509,6 +509,7 @@ $view_data["buttonTop"] = implode( '', $buttonTop );
             for ($i = 1; $i <= 12; $i++) {
                 $result[] = $this->_row_data_of_summary($i, $payments[$i], $expenses[$i]);
             }
+            // var_dump(arr($result)); exit;
             
             echo json_encode(array("data" => $result));
         }
@@ -527,9 +528,10 @@ $view_data["buttonTop"] = implode( '', $buttonTop );
         return array(
             $month_index,
             $month_name,
-            to_currency($payments),
-            to_currency($expenses),
-            to_currency($profit)
+            to_decimal_format3($payments),
+            to_decimal_format3($expenses),
+            to_decimal_format3($profit),
+            lang('THB')
         );
     }
 
