@@ -65,7 +65,8 @@
             {visible: false, searchable: false},
             {title: "<?php echo lang("due_date") ?>", "class": "w10p", "iDataSort": 5},
             {title: "<?php echo lang("invoice_value") ?>", "class": "w10p text-right"},
-            {title: "<?php echo lang("payment_received") ?>", "class": "w10p text-right"},
+            {title: "<?php echo lang("payment_received") ?>", "class": "w11p text-right"},
+            {title: "<?php echo lang("currency") ?>", "class": "w6p text-right"},
             {title: "<?php echo lang("status") ?>", "class": "w10p text-center"}
 <?php echo $custom_field_headers; ?>,
             {title: '<i class="fa fa-bars"></i>', "class": "text-center dropdown-option w100", visible: optionVisibility}

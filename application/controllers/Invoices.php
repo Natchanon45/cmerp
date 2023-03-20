@@ -1208,11 +1208,12 @@ class Invoices extends MY_Controller
             format_to_date($data->bill_date, false),
             $data->due_date,
             format_to_date($data->due_date, false),
-            to_currency($ture_val, $data->currency_symbol),
-            to_currency($data->payment_received, $data->currency_symbol),
+            to_decimal_format3($ture_val),
+            to_decimal_format3($data->payment_received),
+            !empty($data->currency_symbol) ? lang($data->currency_symbol) : lang('THB'),
             get_invoice_status_label($data, true)
         );
-        //. $invoice_labels
+        //. $invoice_labels $data->currency_symbol
         foreach ($custom_fields as $field) {
             $cf_id = "cfv_" . $field->id;
             $row_data[] = $this->load->view("custom_fields/output_" . $field->field_type, array("value" => $data->$cf_id), true);

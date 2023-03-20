@@ -66,13 +66,14 @@
                 {title: '<?php echo lang("amount") ?>', "class": "text-right"},
                 {title: '<?php echo lang("tax") ?>', "class": "text-right"},
                 {title: '<?php echo lang("second_tax") ?>', "class": "text-right"},
-                {title: '<?php echo lang("total") ?>', "class": "text-right"}
+                {title: '<?php echo lang("total") ?>', "class": "text-right"},
+                {title: '<?php echo lang("currency") ?>', "class": "text-right"}
                 <?php echo $custom_field_headers; ?>,
                 {title: '<i class="fa fa-bars"></i>', "class": "text-center option w100"}
             ],
-            printColumns: [1, 2, 3, 4, 6, 7, 8, 9],
-            xlsColumns: [1, 2, 3, 4, 6, 7, 8, 9],
-            summation: [{column: 6, dataType: 'currency'}, {column: 7, dataType: 'currency'}, {column: 8, dataType: 'currency'}, {column: 9, dataType: 'currency'}]
+            printColumns: [1, 2, 3, 4, 6, 7, 8, 9, 10],
+            xlsColumns: [1, 2, 3, 4, 6, 7, 8, 9, 10],
+            summation: [{column: 6, dataType: 'number'}, {column: 7, dataType: 'number'}, {column: 8, dataType: 'number'}, {column: 9, dataType: 'number'}]
         });
     };
 
