@@ -10,6 +10,8 @@ class Stock extends MY_Controller {
   function __construct() {
     parent::__construct();
     $this->load->model("Permission_m");
+
+    require_once(APPPATH . "third_party/php-excel-writer/src/ExcelWriter.php");
   }
 
   function index() {
@@ -1078,7 +1080,7 @@ class Stock extends MY_Controller {
     $got_error_table_data = false;
 
     $file_name = $this->input->post("file_name");
-    require_once(APPPATH . "third_party/php-excel-reader/SpreadsheetReader.php");
+    require_once(APPPATH . "third_party/php-excel-reader/SpreadsheetReader.php"); //dev2
 
     $temp_file_path = get_setting("temp_file_path");
     $excel_file = new SpreadsheetReader($temp_file_path . $file_name);
@@ -2615,18 +2617,77 @@ class Stock extends MY_Controller {
       unset($item->description);
     }
     
-    $view_data['item_mixings'] = $this->Bom_item_mixing_groups_model
-      ->get_detail_items([])->result();
+    $view_data['item_mixings'] = $this->Bom_item_mixing_groups_model->get_detail_items([])->result();
     
     $items = $this->input->post('item_id[]');
     $item_mixings = $this->input->post('item_mixing[]');
     $quantities = $this->input->post('quantity[]');
     if(!empty($items) && !empty($item_mixings) && !empty($quantities)){
-      $view_data['project_materials'] = $this->Bom_item_mixing_groups_model
-        ->calculate($items, $item_mixings, $quantities);
+      $view_data['project_materials'] = $this->Bom_item_mixing_groups_model->calculate($items, $item_mixings, $quantities);
     }
 
     $this->template->rander("stock/calculator/index", $view_data);
+  }
+
+  function calculator_create_excel() { //dev2
+    $this->remove_excel_file();
+
+    $data = $this->input->post('data');
+    $filename = 'downloads_' . date('is') . $data['id'] . '.xlsx';
+
+    $header = [
+      lang('item') => 'text',
+      lang('item_mixing_name') => 'text',
+      lang('quantity') => 'text',
+      '' => 'text'
+    ];
+
+    $headerData = [
+      'title' => $data['title'], 
+      'mixing_name' => $data['mixing_name'], 
+      'quantity' => $data['quantity'] . ' ' . $data['unit_type']
+    ];
+
+    $headerSpace = [
+      'title' => '', 
+      'mixing_name' => '', 
+      'quantity' => ''
+    ];
+
+    $detail = [
+      'stock_material' => lang('stock_material'), 
+      'stock_restock_name' => lang('stock_restock_name'), 
+      'quantity' => lang('quantity'), 
+      'stock_calculator_value' => lang('stock_calculator_value')
+    ];
+    
+    $wExcel = new Ellumilel\ExcelWriter();
+    $wExcel->writeSheetHeader('Sheet1', $header);
+    $wExcel->writeSheetRow('Sheet1', $headerData);
+    $wExcel->writeSheetRow('Sheet1', $headerSpace);
+    $wExcel->writeSheetRow('Sheet1', $detail);
+
+    for ($i = 0; $i < sizeof($data['result']); $i++) {
+      $item = $data['result'][$i];
+      $wExcel->writeSheetRow('Sheet1', [
+        $item['material_name'], 
+        !empty($item['stock_name']) ? $item['stock_name'] : '-', 
+        !empty($item['stock']) ? to_decimal_format3($item['stock']) : '0.00', 
+        !empty($item['value']) ? to_decimal_format3($item['value']) : '0.00'
+      ]);
+    }
+
+    $wExcel->writeToFile($filename);
+
+    $result = array(
+      'file' => BASE_URL . '/' .$filename
+    );
+    echo json_encode($result);
+  }
+
+  private function remove_excel_file() {
+    $mask = 'downloads_*.xlsx';
+    array_map('unlink', glob($mask));
   }
   // End: Calculator
 
