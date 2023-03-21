@@ -78,8 +78,10 @@
                               <th class="w250"><?php echo lang('stock_material'); ?></th>
                               <th class="w200"><?php echo lang('stock_restock_name'); ?></th>
                               <th class="w125 text-right"><?php echo lang('quantity'); ?></th>
+                              <th class="w125 text-right"><?php echo lang('stock_material_unit'); ?></th>
                               <?php if($can_read_price){?>
                                 <th class="w150 text-right"><?php echo lang('stock_calculator_value'); ?></th>
+                                <th class="w100 text-right"><?php echo lang('currency'); ?></th>
                               <?php }?>
                             </tr>
                           </thead>
@@ -94,37 +96,40 @@
                                     $classer = 'color-red';
                                     if($s->ratio > 0) $classer = 'color-green';
                                     echo '<div class="'.$classer.'">'
-                                        .to_decimal_format2($s->ratio).' '.$s->material_unit
+                                        .to_decimal_format2($s->ratio)
                                       .'</div>' 
                                   ?>
                                 </td>
+                                <td class="text-right"><?php echo !empty($s->material_unit) ? strtoupper($s->material_unit) : '-'; ?></td>
                                 <?php if($can_read_price){?>
                                   <td class="w150 text-right">
                                     <?php 
-                                      if(!empty($s->value)){
+                                      if(!empty($s->value)) {
                                         $total += $s->value;
-                                        echo to_currency($s->value);
-                                      }else echo '-';
+                                        echo to_decimal_format3($s->value);
+                                      } else echo '-';
                                     ?>
                                   </td>
+                                  <td class="text-right"><?php echo !empty($s->currency) ? lang($s->currency) : lang('THB'); ?></td>
                                 <?php }?>
                               </tr>
                             <?php }?>
                           </tbody>
-                          <?php if($can_read_price){?>
+                          <?php if($can_read_price) { ?>
                             <tfoot>
                               <tr>
-                                <td colspan="2"></td>
+                                <td colspan="3"></td>
                                 <th class="text-right"><?= lang('total') ?></th>
-                                <th class="text-right"><?= to_currency($total) ?></th>
+                                <th class="text-right"><?= to_decimal_format3($total) ?></th>
+                                <th class="text-right"><?= lang('THB') ?></th>
                               </tr>
                             </tfoot>
-                          <?php }?>
+                          <?php } ?>
                         </table>
                       </div>
                     </td>
                   </tr>
-                <?php }?>
+                <?php } ?>
               <?php 
               $i_btn++; }}
               ?>

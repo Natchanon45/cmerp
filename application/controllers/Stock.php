@@ -2639,7 +2639,9 @@ class Stock extends MY_Controller {
       lang('item') => 'text',
       lang('item_mixing_name') => 'text',
       lang('quantity') => 'text',
-      '' => 'text'
+      '!' => 'text',
+      '/' => 'text',
+      '[' => 'text'
     ];
 
     $headerData = [
@@ -2658,7 +2660,9 @@ class Stock extends MY_Controller {
       'stock_material' => lang('stock_material'), 
       'stock_restock_name' => lang('stock_restock_name'), 
       'quantity' => lang('quantity'), 
-      'stock_calculator_value' => lang('stock_calculator_value')
+      'unit' => lang('stock_material_unit'), 
+      'stock_calculator_value' => lang('stock_calculator_value'), 
+      'currency' => lang('currency')
     ];
     
     $wExcel = new Ellumilel\ExcelWriter();
@@ -2672,8 +2676,10 @@ class Stock extends MY_Controller {
       $wExcel->writeSheetRow('Sheet1', [
         $item['material_name'], 
         !empty($item['stock_name']) ? $item['stock_name'] : '-', 
-        !empty($item['stock']) ? to_decimal_format3($item['stock']) : '0.00', 
-        !empty($item['value']) ? to_decimal_format3($item['value']) : '0.00'
+        !empty($item['stock']) ? to_decimal_format2($item['stock']) : '0.00', 
+        !empty($item['material_unit']) ? strtoupper($item['material_unit']) : '-',
+        !empty($item['value']) ? to_decimal_format3($item['value']) : '0.00',
+        !empty($item['currency']) ? lang($item['currency']) : lang('THB')
       ]);
     }
 
