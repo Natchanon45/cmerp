@@ -33,25 +33,27 @@
         {title: '<?php echo lang("expiration_date"); ?>', class: 'w125'},
         {title: '<?php echo lang("stock_restock_quantity"); ?>', class: 'w125 text-right'},
         {title: '<?php echo lang("stock_material_remaining"); ?>', class: 'w125 text-right'},
+        {title: '<?php echo lang("stock_material_unit"); ?>', class: 'w80 text-right'},
         <?php if($can_read_price){?>
           {title: '<?php echo lang("stock_restock_price"); ?>', class: 'w125 text-right'},
           {title: '<?php echo lang("stock_restock_remining_value"); ?>', class: 'w125 text-right'},
+          {title: '<?php echo lang("currency"); ?>', class: 'w80 text-right'},
         <?php }?>
         {title: '<i class="fa fa-bars"></i>', "class": "text-center option w125"}
       ],
       <?php if($can_read_price){?>
         <?php if(isset($is_admin) && $is_admin){?>
-          printColumns: combineCustomFieldsColumns([0, 1, 3, 4, 5, 6, 7]),
-          xlsColumns: combineCustomFieldsColumns([0, 1, 3, 4, 5, 6, 7]),
+          printColumns: combineCustomFieldsColumns([0, 1, 3, 4, 5, 6, 7, 8, 9]),
+          xlsColumns: combineCustomFieldsColumns([0, 1, 3, 4, 5, 6, 7, 8, 9]),
         <?php }?>
         summation: [
-          {column: 6, dataType: 'currency'}, 
-          {column: 7, dataType: 'currency'}
+          {column: 7, dataType: 'number'}, 
+          {column: 8, dataType: 'number'}
         ]
       <?php }else{?>
         <?php if(isset($is_admin) && $is_admin){?>
-          printColumns: combineCustomFieldsColumns([0, 1, 3, 4, 5]),
-          xlsColumns: combineCustomFieldsColumns([0, 1, 3, 4, 5])
+          printColumns: combineCustomFieldsColumns([0, 1, 3, 4, 5, 6]),
+          xlsColumns: combineCustomFieldsColumns([0, 1, 3, 4, 5, 6])
         <?php }?>
       <?php }?>
     });

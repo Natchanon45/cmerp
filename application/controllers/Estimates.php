@@ -780,7 +780,8 @@ class Estimates extends MY_Controller {
             $client,
             $data->estimate_date,
             format_to_date($data->estimate_date, false),
-            to_currency($data->estimate_value, $data->currency_symbol),
+            to_decimal_format3($data->estimate_value),
+            !empty($data->currency) ? lang($data->currency) : lang('THB'),
 			$this->_get_estimate_status_label( $data ),
         );
 		 //$data->status

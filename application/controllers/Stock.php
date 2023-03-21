@@ -10,6 +10,8 @@ class Stock extends MY_Controller {
   function __construct() {
     parent::__construct();
     $this->load->model("Permission_m");
+
+    require_once(APPPATH . "third_party/php-excel-writer/src/ExcelWriter.php");
   }
 
   function index() {
@@ -1078,7 +1080,7 @@ class Stock extends MY_Controller {
     $got_error_table_data = false;
 
     $file_name = $this->input->post("file_name");
-    require_once(APPPATH . "third_party/php-excel-reader/SpreadsheetReader.php");
+    require_once(APPPATH . "third_party/php-excel-reader/SpreadsheetReader.php"); //dev2
 
     $temp_file_path = get_setting("temp_file_path");
     $excel_file = new SpreadsheetReader($temp_file_path . $file_name);
@@ -1960,7 +1962,7 @@ class Stock extends MY_Controller {
     }
     
     // $options = '';
-    // if($this->bom_can_access_restock() && $this->check_permission('bom_restock_update')) {
+    // if($this->bom_can_access_restock() && $this->check_permission('bom_restock_update')) 
     //   $options .= modal_anchor(get_uri("stock/restock_view_modal"), "<i class='fa fa-pencil'></i>", array("class" => "edit", "title" => lang('stock_restock_edit'), "data-post-id" => $data->id, "data-post-view" => "material"))
     //     . modal_anchor(get_uri("stock/restock_withdraw_modal"), "<i class='fa fa-share-square-o'></i>", array("class" => "edit", "title" => lang('stock_restock_withdraw'), "data-post-id" => $data->id, "data-post-view" => "material"));
     // } else {
@@ -2266,12 +2268,14 @@ class Stock extends MY_Controller {
       anchor(get_uri('stock/material_view/' . $data->material_id), $material_name),
       $files_link,
       is_date_exists($data->expiration_date)? format_to_date($data->expiration_date, false): '-',
-      to_decimal_format2($data->stock).' '.$data->material_unit,
-      to_decimal_format2($data->remaining).' '.$data->material_unit,
+      to_decimal_format2($data->stock),
+      to_decimal_format2($data->remaining),
+      $data->material_unit
     );
     if($this->check_permission('bom_restock_read_price')) {
-      $row_data[] = to_currency($data->price);
-      $row_data[] = to_currency($remaining_value);
+      $row_data[] = to_decimal_format3($data->price);
+      $row_data[] = to_decimal_format3($remaining_value);
+      $row_data[] = !empty($data->currency_symbol) ? lang($data->currency_symbol) : lang('THB');
     }
     
     $options = '';
@@ -2563,6 +2567,7 @@ class Stock extends MY_Controller {
     echo json_encode(array("data" => $result));
   }
   private function _restock_used_make_row($data) {
+    // var_dump(arr($data));
     $used_value = 0;
     if (!empty($data->price) && !empty($data->stock) && $data->stock > 0) {
       $used_value = $data->price * $data->ratio / $data->stock;
@@ -2579,10 +2584,12 @@ class Stock extends MY_Controller {
       !empty($data->project_title)? anchor(get_uri('projects/view/' . $data->project_id), $data->project_title): '-',
       is_date_exists($data->created_at)? format_to_date($data->created_at, false): '-',
       !empty($data->note)? $data->note: '-',
-      to_decimal_format2($data->ratio).' '.$data->material_unit,
+      to_decimal_format2($data->ratio),
+      $data->material_unit
     );
     if($this->check_permission('bom_restock_read_price')) {
-      $row_data[] = to_currency($used_value);
+      $row_data[] = to_decimal_format2($used_value);
+      $row_data[] = !empty($data->currency_symbol) ? lang($data->currency_symbol) : lang('THB');
     }
 
     return $row_data;
@@ -2610,18 +2617,83 @@ class Stock extends MY_Controller {
       unset($item->description);
     }
     
-    $view_data['item_mixings'] = $this->Bom_item_mixing_groups_model
-      ->get_detail_items([])->result();
+    $view_data['item_mixings'] = $this->Bom_item_mixing_groups_model->get_detail_items([])->result();
     
     $items = $this->input->post('item_id[]');
     $item_mixings = $this->input->post('item_mixing[]');
     $quantities = $this->input->post('quantity[]');
     if(!empty($items) && !empty($item_mixings) && !empty($quantities)){
-      $view_data['project_materials'] = $this->Bom_item_mixing_groups_model
-        ->calculate($items, $item_mixings, $quantities);
+      $view_data['project_materials'] = $this->Bom_item_mixing_groups_model->calculate($items, $item_mixings, $quantities);
     }
 
     $this->template->rander("stock/calculator/index", $view_data);
+  }
+
+  function calculator_create_excel() { //dev2
+    $this->remove_excel_file();
+
+    $data = $this->input->post('data');
+    $filename = 'downloads_' . date('is') . $data['id'] . '.xlsx';
+
+    $header = [
+      lang('item') => 'text',
+      lang('item_mixing_name') => 'text',
+      lang('quantity') => 'text',
+      '!' => 'text',
+      '/' => 'text',
+      '[' => 'text'
+    ];
+
+    $headerData = [
+      'title' => $data['title'], 
+      'mixing_name' => $data['mixing_name'], 
+      'quantity' => $data['quantity'] . ' ' . $data['unit_type']
+    ];
+
+    $headerSpace = [
+      'title' => '', 
+      'mixing_name' => '', 
+      'quantity' => ''
+    ];
+
+    $detail = [
+      'stock_material' => lang('stock_material'), 
+      'stock_restock_name' => lang('stock_restock_name'), 
+      'quantity' => lang('quantity'), 
+      'unit' => lang('stock_material_unit'), 
+      'stock_calculator_value' => lang('stock_calculator_value'), 
+      'currency' => lang('currency')
+    ];
+    
+    $wExcel = new Ellumilel\ExcelWriter();
+    $wExcel->writeSheetHeader('Sheet1', $header);
+    $wExcel->writeSheetRow('Sheet1', $headerData);
+    $wExcel->writeSheetRow('Sheet1', $headerSpace);
+    $wExcel->writeSheetRow('Sheet1', $detail);
+
+    for ($i = 0; $i < sizeof($data['result']); $i++) {
+      $item = $data['result'][$i];
+      $wExcel->writeSheetRow('Sheet1', [
+        $item['material_name'], 
+        !empty($item['stock_name']) ? $item['stock_name'] : '-', 
+        !empty($item['stock']) ? to_decimal_format2($item['stock']) : '0.00', 
+        !empty($item['material_unit']) ? strtoupper($item['material_unit']) : '-',
+        !empty($item['value']) ? to_decimal_format3($item['value']) : '0.00',
+        !empty($item['currency']) ? lang($item['currency']) : lang('THB')
+      ]);
+    }
+
+    $wExcel->writeToFile($filename);
+
+    $result = array(
+      'file' => BASE_URL . '/' .$filename
+    );
+    echo json_encode($result);
+  }
+
+  private function remove_excel_file() {
+    $mask = 'downloads_*.xlsx';
+    array_map('unlink', glob($mask));
   }
   // End: Calculator
 
@@ -2919,12 +2991,14 @@ class Stock extends MY_Controller {
       anchor(get_uri('items/detail/' . $data->item_id), $data->item_name),
       $files_link,
       is_date_exists($data->expiration_date)? format_to_date($data->expiration_date, false): '-',
-      to_decimal_format2($data->stock).' '.$data->item_unit,
-      to_decimal_format2($data->remaining).' '.$data->item_unit,
+      to_decimal_format2($data->stock),
+      to_decimal_format2($data->remaining),
+      $data->item_unit
     );
     if($this->check_permission('bom_restock_read_price')) {
-      $row_data[] = to_currency($data->price);
-      $row_data[] = to_currency($remaining_value);
+      $row_data[] = to_decimal_format2($data->price);
+      $row_data[] = to_decimal_format2($remaining_value);
+      $row_data[] = !empty($data->currency_symbol) ? lang($data->currency_symbol) : lang('THB');
     }
     
     $options = '';
@@ -3225,10 +3299,12 @@ class Stock extends MY_Controller {
       !empty($data->project_title)? anchor(get_uri('projects/view/' . $data->project_id), $data->project_title): '-',
       is_date_exists($data->created_at)? format_to_date($data->created_at, false): '-',
       !empty($data->note)? $data->note: '-',
-      to_decimal_format2($data->ratio).' '.$data->item_unit,
+      to_decimal_format2($data->ratio),
+      $data->item_unit
     );
     if($this->check_permission('bom_restock_read_price')) {
-      $row_data[] = to_currency($used_value);
+      $row_data[] = to_decimal_format3($used_value);
+      $row_data[] = !empty($data->currency_symbol) ? lang($data->currency_symbol) : lang('THB');
     }
 
     return $row_data;
@@ -4228,7 +4304,7 @@ private function _item_report_make_row($data) {
   if($this->check_permission('bom_restock_read_price')) { // dev2
       $row_data[] = to_decimal_format3($data->price, 2);
       $row_data[] = to_decimal_format3($remaining_value, 2);
-      $row_data[] = to_decimal_format3($data->price / $data->stock);
+      $row_data[] = $data->stock < 0.01 ? '0.00' : to_decimal_format3($data->price / $data->stock);
       $row_data[] = !empty($data->currency) && isset($data->currency) ? lang($data->currency) : lang("THB");
   }
   

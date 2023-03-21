@@ -90,12 +90,14 @@
                 {visible: false, searchable: false},
                 {title: "<?php echo lang("pr_date") ?>", "iDataSort": 2, "class": "w10p"},
                 {title: "<?php echo lang("amount") ?>", "class": "text-right w10p"},
-                {title: "<?php echo lang("status") ?>", "class": "text-center w10p"},
+                {title: "<?php echo lang("currency") ?>", "class": "text-right"},
+                {title: "<?php echo lang("status") ?>", "class": "text-center w10p"}
+                <?php echo $custom_field_headers; ?>,
                 {title: "<i class='fa fa-bars'></i>", "class": "text-center option w10p"}
             ],
             printColumns: combineCustomFieldsColumns([0, 1, 3, 4, 5], '<?php echo $custom_field_headers; ?>'),
             xlsColumns: combineCustomFieldsColumns([0, 1, 3, 4, 5], '<?php echo $custom_field_headers; ?>'),
-            summation: [{column: 7, dataType: 'currency', currencySymbol: AppHelper.settings.currencySymbol}]
+            summation: [{column: 7, dataType: 'number', currencySymbol: AppHelper.settings.currencySymbol}]
         });
     };
     <?php if($add_row){?>
