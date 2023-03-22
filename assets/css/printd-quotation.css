@@ -1,0 +1,28 @@
+#printd .body td:nth-child(1){
+    width: 30px;
+    text-align: left;
+}
+
+#printd .body td:nth-child(2){
+    width: calc(100% - 480px);
+    text-align: left;
+}
+
+#printd .body td:nth-child(3){
+    width: 150px;
+    text-align: right;
+}
+
+#printd .body td:nth-child(4){
+    width: 150px;
+    text-align: right;
+}
+
+#printd .body td:nth-child(5){
+    width: 150px;
+    text-align: right;
+}
+
+#printd .body td .description1{
+    font-weight: bold;
+}
