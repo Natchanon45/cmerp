@@ -1801,6 +1801,8 @@ if (!function_exists('get_estimate_making_data')) {
         if ($estimate_info) {
             $data['estimate_info'] = $estimate_info;
             $data['client_info'] = $ci->Clients_model->get_one($data['estimate_info']->client_id);
+            $data['client_contact'] = $ci->Clients_model->get_primary_contact($data['estimate_info']->client_id, true);
+            $data['users_info'] = $ci->Users_model->get_one($data['estimate_info']->created_by);
             $data['estimate_items'] = $ci->Estimate_items_model->get_details(array("estimate_id" => $estimate_id))->result();
             $data["estimate_total_summary"] = $ci->Estimates_model->get_estimate_total_summary($estimate_id);
 

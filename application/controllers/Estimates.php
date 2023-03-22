@@ -17,8 +17,6 @@ class Estimates extends MY_Controller {
     /* load estimate list view */
 
     function index() {
-		
-		 
         $this->check_module_availability("module_estimate");
         $view_data['can_request_estimate'] = false;
 
@@ -665,14 +663,11 @@ class Estimates extends MY_Controller {
 	
 	
     function view($estimate_id = 0) {
-		
-	
         $this->access_only_allowed_members();
  
         if ( $estimate_id ) {
-//echo 'dsfaafsd';exit;
+
             $view_data = get_estimate_making_data($estimate_id);
-        // arr($view_data);exit;
 
             if ( $view_data ) {
 				
@@ -693,7 +688,7 @@ class Estimates extends MY_Controller {
 				
 				///$param['status'] = $this->_get_estimate_status_label( $view_data )
 
-                $this->template->rander( "". $this->className ."/view", $view_data );
+                $this->template->rander($this->className ."/view", $view_data);
 				
 				
             } else {
@@ -702,7 +697,7 @@ class Estimates extends MY_Controller {
         }
     }
 
-    /*function view2($estimate_id = 0) {
+    function view2($estimate_id = 0) {
         $view_data["kpage"] = true;
 
         $this->access_only_allowed_members();
@@ -730,11 +725,9 @@ class Estimates extends MY_Controller {
                 $view_data["proveButton"] = $this->dao->getProveButton( $param );
 
                 $this->template->rander( "". $this->className ."/view2", $view_data );
-
-                return;   
             }
         }
-    }*/
+    }
 	
     function list_data() {
         $this->access_only_allowed_members();

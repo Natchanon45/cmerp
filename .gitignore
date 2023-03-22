@@ -1,5 +1,7 @@
 application/logs/*
 assets
+!assets/css/*
+!assets/js/*
 env.php
 files
 !files/system/*.xlsx
