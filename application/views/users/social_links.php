@@ -180,10 +180,8 @@
             </div>
         </div>
         
-        <?php if ($can_edit_clients) :?>
-            <div class="panel-footer">
-                <button type="submit" class="btn btn-primary"><span class="fa fa-check-circle"></span> <?php echo lang('save'); ?></button>
-            </div>
+        <?php if (isset($button) || !empty($button)) :?>
+            <?php echo $button; ?>
         <?php endif; ?>
        
     </div>
