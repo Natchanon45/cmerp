@@ -3851,6 +3851,7 @@ class Stock extends MY_Controller
                 foreach ($list_data as $data) {
                         $result[] = $this->_item_make_row($data);
                 }
+                // var_dump(arr($result)); exit;
                 echo json_encode(array("data" => $result));
         }
 
@@ -3886,9 +3887,18 @@ class Stock extends MY_Controller
                 //echo $src;
                 //exit;
 
+                $preview = '<img class="product-preview" src="' . base_url('assets/images/file_preview.jpg') . '" />';
+                if ($data->files) {
+                        $images = @unserialize($data->files);
+                        if (is_array($images) && sizeof($images)) {
+                                $preview = '<img class="product-preview" src="' . base_url('files/timeline_files/' . $images[sizeof($images) - 1]['file_name']) . '" />';
+                        }
+                }
+
                 if ($this->check_permission('bom_material_read_production_name')) {
                         $row_data = array(
                                 $data->id,
+                                $preview,
                                 $data->item_code ? $data->item_code : '-',
                                 anchor(get_uri('stock/item_view/' . $data->id), $data->title),
                                 $data->barcode ? '<div style="text-align:center"><a href="' . $src . '" class="barcode_img" download><img src="' . $src . '" /><div class="text">Click to download</div></a></div>' : '-',
@@ -3902,6 +3912,7 @@ class Stock extends MY_Controller
                 } else {
                         $row_data = array(
                                 $data->id,
+                                $preview,
                                 $data->item_code ? $data->item_code : '-',
                                 anchor(get_uri('stock/item_view/' . $data->id), $data->title),
                                 $data->barcode ? '<div style="text-align:center"><a href="' . $src . '" class="barcode_img" download><img src="' . $src . '" /><div class="text">Click to download</div></a></div>' : '-',
