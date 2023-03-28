@@ -62,6 +62,36 @@ class Tickets extends MY_Controller {
         }
     }
 
+    function ticket_own($status = "") {
+        // var_dump(arr($this->login_user));
+
+        $this->check_module_availability("module_ticket");
+	
+        $view_data["custom_field_headers"] = $this->Custom_fields_model->get_custom_field_headers_for_table("tickets", $this->login_user->is_admin, $this->login_user->user_type);
+        $view_data['show_project_reference'] = get_setting('project_reference_in_tickets');
+        $view_data['status'] = $status;
+        $view_data['client_id'] = $this->login_user->client_id;
+        $view_data['page_type'] = "full";
+
+            // Prepare ticket label filter list
+            $view_data['ticket_labels_dropdown'] = json_encode($this->make_labels_dropdown("ticket", "", true));
+
+            // Prepare assign to filter list
+            $assigned_to_dropdown = array(array("id" => "", "text" => "- " . lang("assigned_to") . " -"));
+
+            $assigned_to_list = $this->Users_model->get_dropdown_list(array("first_name", "last_name"), "id", array("deleted" => 0, "user_type" => "staff"));
+            foreach ($assigned_to_list as $key => $value) {
+                $assigned_to_dropdown[] = array("id" => $key, "text" => $value);
+            }
+
+            $view_data['show_options_column'] = true; // Team members can view the options column
+            $view_data['assigned_to_dropdown'] = json_encode($assigned_to_dropdown);
+            $view_data['ticket_types_dropdown'] = json_encode($this->_get_ticket_types_dropdown_list_for_filter());
+            $view_data['ticket_clients_dropdown'] = json_encode($this->_get_ticket_clients_dropdown_list_for_filter());
+
+            $this->template->rander("tickets/tickets_own_list", $view_data);
+    }
+
     //load new tickt modal 
     function modal_form() {
 		
@@ -315,6 +345,45 @@ class Tickets extends MY_Controller {
         }
 
         $list_data = $this->Tickets_model->get_details($options, $this->getRolePermission['filters'] )->result();
+		
+        $result = array();
+        foreach ($list_data as $data) {
+            $result[] = $this->_make_row($data, $custom_fields);
+        }
+		
+        echo json_encode(array("data" => $result));
+    }
+
+    function list_data_own($is_widget = 0) {
+        $this->access_only_allowed_members();
+
+        $custom_fields = $this->Custom_fields_model->get_available_fields_for_table("tickets", $this->login_user->is_admin, $this->login_user->user_type);
+
+        $status = $this->input->post("status");
+        $ticket_label = $this->input->post("ticket_label");
+        $assigned_to = $this->input->post("assigned_to");
+        $clients_id = $this->input->post("clients_id");
+        $ticket_type_id = $this->input->post('ticket_type_id');
+        $options = array("status" => $status,
+            "ticket_types" => $this->allowed_ticket_types,
+            "ticket_label" => $ticket_label,
+            "assigned_to" => $assigned_to,
+            "custom_fields" => $custom_fields,
+            "created_at" => $this->input->post('created_at'),
+            "client_id" => $clients_id,
+            "ticket_type_id" => $ticket_type_id,
+            "show_assigned_tickets_only_user_id" => $this->show_assigned_tickets_only_user_id()
+        );
+
+        if ($is_widget) {
+            $options = array(
+                "status" => "open",
+                "ticket_types" => $this->allowed_ticket_types,
+                "custom_fields" => $custom_fields
+            );
+        }
+
+        $list_data = $this->Tickets_model->get_details_own($options, $this->getRolePermission['filters'] )->result();
 		
         $result = array();
         foreach ($list_data as $data) {

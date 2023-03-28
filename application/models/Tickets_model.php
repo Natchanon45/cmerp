@@ -22,14 +22,17 @@ class Tickets_model extends Crud_model {
         if ($id) {
             $where .= " AND $tickets_table.id=$id";
         }
+        
         $client_id = get_array_value($options, "client_id");
         if ($client_id) {
             $where .= " AND $tickets_table.client_id=$client_id";
         }
+
         $project_id = get_array_value($options, "project_id");
         if ($project_id) {
             $where .= " AND $project_table.id=$project_id";
         }
+
         $task_id = get_array_value($options, "task_id");
         if ($task_id) {
             $where .= " AND $task_table.id=$task_id";
@@ -83,14 +86,11 @@ class Tickets_model extends Crud_model {
 
         //prepare custom fild binding query
         $custom_fields = get_array_value($options, "custom_fields");
-		
         $custom_field_query_info = $this->prepare_custom_field_query_string("tickets", $custom_fields, $tickets_table);
 		
         $select_custom_fieds = get_array_value($custom_field_query_info, "select_string");
         $join_custom_fieds = get_array_value($custom_field_query_info, "join_string");
-
-
-
+        
         $sql = "
 			SELECT 
 				$tickets_table.*, 
@@ -108,19 +108,16 @@ class Tickets_model extends Crud_model {
 			$join_custom_fieds    
 			[WHERE]
 		";
-		
-		
+        
 		$filters = array();
-		//arr($this->getRolePermission['filters']);
 		if( isset( $this->getRolePermission['filters'] ) ) {
-			$filters = $this->getRolePermission['filters'];
+			// $filters = $this->getRolePermission['filters'];
 		}
-		
+        
+        $filters['WHERE'][] = "tickets.deleted = 0";
  
 		if( !empty( $options['id'] ) ) {
-			
 			$filters['WHERE'][] = $tickets_table .".id = ". $options['id'] ."";
-			
 		}
 
         if($where) {
@@ -129,7 +126,108 @@ class Tickets_model extends Crud_model {
 		
 		$sql = gencond_( $sql, $filters );	
 
-		//arr( $sql );
+		// var_dump(arr($sql)); exit;
+        return $this->db->query($sql);
+    }
+
+    function get_details_own( $options = array(), $filters = array() ) {
+        $tickets_table = $this->db->dbprefix('tickets');
+        $ticket_types_table = $this->db->dbprefix('ticket_types');
+        $clients_table = $this->db->dbprefix('clients');
+        $users_table = $this->db->dbprefix('users');
+        $project_table = $this->db->dbprefix("projects");
+        $task_table = $this->db->dbprefix("tasks");
+
+        $where = "";
+        $id = get_array_value($options, "id");
+        if ($id) {
+            $where .= " AND $tickets_table.id=$id";
+        }
+        $client_id = get_array_value($options, "client_id");
+        if ($client_id) {
+            $where .= " AND $tickets_table.client_id=$client_id";
+        }
+        $project_id = get_array_value($options, "project_id");
+        if ($project_id) {
+            $where .= " AND $project_table.id=$project_id";
+        }
+        $task_id = get_array_value($options, "task_id");
+        if ($task_id) {
+            $where .= " AND $task_table.id=$task_id";
+        }
+        $status = get_array_value($options, "status");
+        if ($status === "closed") {
+            $where .= " AND $tickets_table.status='$status'";
+        } if ($status === "open") {
+            $where .= " AND FIND_IN_SET($tickets_table.status, 'new,open,client_replied')";
+        }
+        $ticket_label = get_array_value($options, "ticket_label");
+        if ($ticket_label) {
+            $where .= " AND (FIND_IN_SET('$ticket_label', $tickets_table.labels)) ";
+        }
+        $assigned_to = get_array_value($options, "assigned_to");
+        if ($assigned_to) {
+            $where .= " AND $tickets_table.assigned_to=$assigned_to";
+        }
+        $ticket_types = get_array_value($options, "ticket_types");
+        if ($ticket_types && count($ticket_types)) {
+            $ticket_types = implode(",", $ticket_types); // Prepare comma separated value
+            $where .= " AND FIND_IN_SET($ticket_types_table.id, '$ticket_types')";
+        }
+        $ticket_type_id = get_array_value($options, "ticket_type_id");
+        if ($ticket_type_id) {
+            $where .= " AND $tickets_table.ticket_type_id=$ticket_type_id";
+        }
+        $created_at = get_array_value($options, "created_at");
+        if ($created_at) {
+            $where .= " AND ($tickets_table.created_at IS NOT NULL AND $tickets_table.created_at>='$created_at')";
+        }
+        $select_labels_data_query = $this->get_labels_data_query();
+        $last_activity_date_or_before = get_array_value($options, "last_activity_date_or_before");
+        if ($last_activity_date_or_before) {
+            $where .= " AND ($tickets_table.last_activity_at IS NOT NULL AND DATE($tickets_table.last_activity_at)<='$last_activity_date_or_before')";
+        }
+
+        // Prepare custom fild binding query
+        $custom_fields = get_array_value($options, "custom_fields");
+        $custom_field_query_info = $this->prepare_custom_field_query_string("tickets", $custom_fields, $tickets_table);
+        $select_custom_fieds = get_array_value($custom_field_query_info, "select_string");
+        $join_custom_fieds = get_array_value($custom_field_query_info, "join_string");
+        
+        $sql = "
+			SELECT 
+				$tickets_table.*, 
+				$ticket_types_table.title AS ticket_type, 
+				$clients_table.company_name, $project_table.title AS project_title, $task_table.title AS task_title,
+				CONCAT(assigned_table.first_name, ' ',assigned_table.last_name) AS assigned_to_user, assigned_table.image as assigned_to_avatar, $select_labels_data_query $select_custom_fieds,
+				CONCAT(requested_table.first_name, ' ',requested_table.last_name) AS requested_by_name
+			FROM $tickets_table
+			LEFT JOIN $ticket_types_table ON $ticket_types_table.id= $tickets_table.ticket_type_id
+			LEFT JOIN $clients_table ON $clients_table.id= $tickets_table.client_id
+			LEFT JOIN $users_table AS assigned_table ON assigned_table.id= $tickets_table.assigned_to
+			LEFT JOIN $users_table AS requested_table ON requested_table.id= $tickets_table.requested_by
+			LEFT JOIN $project_table ON $project_table.id= $tickets_table.project_id
+			LEFT JOIN $task_table ON $task_table.id= $tickets_table.task_id
+			$join_custom_fieds    
+			[WHERE]
+		";
+        
+		$filters = array();
+		if( isset( $this->getRolePermission['filters'] ) ) {
+			$filters = $this->getRolePermission['filters'];
+		}
+        
+		if( !empty( $options['id'] ) ) {
+			$filters['WHERE'][] = $tickets_table .".id = ". $options['id'] ."";
+		}
+
+        if($where) {
+            $filters['WHERE'][] = " 1 ".$where;
+        }
+		
+		$sql = gencond_( $sql, $filters );	
+
+		// var_dump(arr($sql)); exit;
         return $this->db->query($sql);
     }
 
