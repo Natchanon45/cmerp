@@ -1,4 +1,5 @@
 <head>
+<script src="https://unpkg.com/axios@1.1.2/dist/axios.min.js"></script>
 <?php $this->load->view('includes/meta'); ?>
 <?php $this->load->view('includes/helper_js'); ?>
 <?php $this->load->view('includes/plugin_language_js'); ?>

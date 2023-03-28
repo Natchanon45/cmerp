@@ -1,10 +1,5 @@
 <?php
-
-
 echo form_open(get_uri("estimates/save"), array("id" => "estimate-form", "class" => "general-form", "role" => "form", "method" => "post"));
-
-
-//echo form_open( '', array("id" => "estimate-form", "class" => "general-form", "role" => "form")); 
 ?>
 <div class="modal-body clearfix">
     <input type="hidden" name="id" value="<?php echo $model_info->id; ?>" />
@@ -210,31 +205,6 @@ echo form_open(get_uri("estimates/save"), array("id" => "estimate-form", "class"
             }
 
         });
-
-        // $("#pay_sp").keyup(function(){
-
-        //     q = {};
-        //     q.val = document.getElementById("pay_sp").value;
-        //     q.pay_type = $('[name="pay_type"]').val();
-
-        //     if(q.pay_type == "time"){
-        //         for(i=1;i<=q.val;i++){
-        //             console.log(i);
-        //         }
-
-        //         // $.getJSON('<?php //echo get_uri('estimates/modal_form/')
-                                    ?>',q,function(data){
-        //         // // alert(data.vat_B);
-        //         // // alert(data.after_vat);
-        //         // $('.load_pay_vat').html(data.text);
-        //         // });
-
-        //     }
-
-
-        //     });
-
-
 
         $("#estimate-form").appForm({
             onSuccess: function(result) {

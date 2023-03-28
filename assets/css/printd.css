@@ -4,19 +4,19 @@
     content:'';
 }
 
-#docheader{
+#dcontroller{
     max-width: 1000px;
     margin: auto;
     margin-bottom: 14px;
 }
 
-#docheader h1{
+#dcontroller h1{
     padding-top: 18px;
     padding-bottom: 0;
 }
 
 
-#docheader .page-title{
+#dcontroller .page-title{
     padding-top: 8px;
     padding-bottom: 8px;
 }
@@ -32,37 +32,37 @@
     margin: 0;
 }
 
-#printd .page{
+#printd{
     background: #fff;
-    padding: 22px 28px;
+    padding: 32px;
 }
 
-#printd .head .l{
+#printd .docheader .l{
     float: left;
     width: 49%;
 }
 
-#printd .head .l .logo{
+#printd .docheader .l .logo{
     width: 300px;
     height: 100px;
     text-align: left;
 }
 
-#printd .head .l .logo img{
+#printd .docheader .l .logo img{
     display: block;
     height: 80px;
     width: auto;
 }
 
-#printd .head .l .company{
+#printd .docheader .l .company{
 
 }
 
-#printd .head .l .customer{
+#printd .docheader .l .customer{
     margin-top: 12px;
 }
 
-#printd .head .r{
+#printd .docheader .r{
     float: right;
     width: 49%;
     padding-top: 32px;
@@ -70,34 +70,34 @@
     padding-right: 32px;
 }
 
-#printd .head .r h1{
-    font-size: 1.6em;
+#printd .docheader .r h1{
+    font-size: 1.8em;
     text-align: center;
     margin: 0;
 }
 
-#printd .head .r table td:nth-child(1){
+#printd .docheader .r table td:nth-child(1){
     width: 100px;
     padding-left: 4px;
 }
 
-#printd .head .r table td:nth-child(2){
+#printd .docheader .r table td:nth-child(2){
     width: calc(100% - 100px);
 }
 
-#printd .head .r .about_company{
+#printd .docheader .r .about_company{
     border-top: 1px solid #ccc;
     padding-top: 12px;
     margin-top: 12px;
 }
 
-#printd .head .r .about_customer{
+#printd .docheader .r .about_customer{
     border-top: 1px solid #ccc;
     margin-top: 12px;
     padding-top: 12px;
 }
 
-#printd .head .r .document_name .docno{
+#printd .docheader .r .document_name .docno{
     background: #2ba384;
     color: #fff;
     font-weight: bold;
@@ -108,48 +108,230 @@
     margin-bottom: 28px;
 }
 
-#printd .head .r .to .clabel{
+#printd .docheader .company_name,
+#printd .docheader .customer_name{
     font-weight: bold;
 }
 
-#printd .head .r .to .customer_name{
-    font-weight: bold;
-}
-
-#printd .body{
+#printd .docitem{
     margin-top:12px;
 }
 
-#printd .body tr td{
+#printd .docitem td.notfound{
+    display: table-cell;
+    padding-top: 20px;
+    padding-bottom: 20px;
+}
+
+#printd .docitem table{
+    width: 100%;
+}
+
+#printd .docitem tr td{
     border-top: 1px solid #f2f2f2;
     border-bottom: 1px solid #f2f2f2;
     vertical-align: top;
     padding: 8px;
 }
 
-#printd .body thead tr td{
+#printd .docitem td.edititem{
+    padding: 0;
+    padding-top: 8px;
+}
+
+#printd .docitem td.edititem a{
+    cursor: pointer;
+    min-width: 28px;
+    background: #fff;
+    color: #a1a3a5;
+    border-radius: 50%;
+    display: inline-block;
+    position: relative;
+    vertical-align: central;
+    text-align: center;
+    margin: 0 2px;
+    padding: 4px 0px;
+    border: 1px solid #e2e7f1;
+}
+
+#printd .docitem td.edititem a.edit:hover{
+    background: #2ac2d4;
+    color: #fff;
+}
+
+#printd .docitem td.edititem a.delete:hover{
+    background: #d9534f;
+    color: #fff;
+}
+
+#printd .docitem thead tr td{
     font-weight: bold;
     padding-top: 8px;
     padding-bottom: 8px;
 }
 
-#printd .body tfoot td{
-    border-top: 0;
-    border-bottom: 0;
-}
-
-#printd .body tfoot td.l{
-    text-align: right;
-}
-
-#printd .body tfoot td.r{
-    text-align: right;
-}
-
-
-#printd .body tfoot td.inchar{
+#printd .docitem tfoot td{
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
     border: 0;
 }
+
+#printd .docitem tfoot td.summary{
+    vertical-align: middle;
+}
+
+#printd .docitem tfoot input[type="text"],
+#printd .docitem tfoot input[type="text"]:focus{
+    outline: none;
+    width: 100%;
+    padding: 0;
+    margin: 0;
+    text-align: right;
+    height: 22px;
+    border: 0;
+}
+
+#printd .docitem tfoot td #total_in_text{
+    text-align: left;
+    width: 460px;
+    margin-top: 20px;
+}
+
+#printd .docitem tfoot td.summary{
+    text-align: right;
+}
+
+#printd .docitem tfoot td.summary p{
+    line-height: 30px;
+    display: inline-block;
+}
+
+#printd .docitem tfoot td.summary span{
+    display: inline-block;
+}
+
+#printd .docitem tfoot td.summary span.c1{
+    text-align: left;
+    width: 160px;
+}
+
+#printd .docitem tfoot td.summary #discount_percent{
+    width: 50px;
+    height: 28px;
+    border: 1px solid #ccc;
+    margin-left: 4px;
+    padding: 4px;
+    text-align: right;
+    border-radius: 4px;
+    outline: none;
+}
+
+#printd .docitem tfoot td.summary .edit_discount a{
+    cursor: pointer;
+    width: 28px;
+    height: 28px;
+    margin-left: 8px;
+    background: #fff;
+    color: #a1a3a5;
+    border-radius: 50%;
+    display: inline-block;
+    vertical-align: central;
+    text-align: center;
+    border: 1px solid #e2e7f1;
+}
+
+#printd .docitem tfoot td.summary .edit_discount a.edit:hover{
+    background: #2ac2d4;
+    color: #fff;
+}
+
+#printd .docitem tfoot td.summary span.c2{
+    width: 80px;
+}
+
+#printd .docitem tfoot td.summary span.c2 input[type="text"]{
+    width: 80px;
+}
+
+#printd .docitem tfoot td.summary span.c3{
+    width: 70px;
+    text-align: left;
+}
+
+#printd .docitem tfoot td.summary span.c3 .currency{
+    display: none;
+}
+
+#printd .docitem tfoot p.withholding_tax{
+    border-top: 1px solid #ccc;
+    width: 320px;
+    margin-top: 14px;
+    padding-top: 14px;
+}
+
+#printd .docitem tfoot td.summary #has_vat,
+#printd .docitem tfoot td.summary #has_withholding_tax{
+    margin-right: 4px;
+}
+
+#printd .docsignature{
+    margin-top: 60px;
+    page-break-inside: avoid;
+}
+
+#printd .docsignature .customer{
+    float: left;
+    width: 45%;
+}
+
+#printd .docsignature .company{
+    float: right;
+    width: 45%;
+}
+
+#printd .docsignature .on_behalf_of{
+    text-align: center;
+}
+
+#printd .docsignature .name{
+    float: left;
+    width: 48%;
+}
+
+#printd .docsignature .date{
+    float: right;
+    width: 48%;
+}
+
+#printd .docsignature .l1{
+    display: block;
+    position: relative;
+    height: 60px;
+    border-bottom: 1px solid #000;
+    text-align: center;
+    margin-bottom: 4px;
+}
+
+#printd .docsignature .l1 .signature{
+    position: absolute;
+    width: 100%;
+    text-align: center;
+    left: 0;
+    bottom: 1px;
+}
+
+#printd .docsignature .l1 .signature img{
+    display: inline-block;
+    width: auto;
+    height: 32px;
+}
+
+#printd .docsignature .l2{
+    height: 22px;
+    display: block;
+    text-align: center;
+}
+
 
 @media print {
     body{
@@ -158,11 +340,12 @@
     }
 
     @page {
-        margin: 0 !important;
-        padding: 0 !important;
+        margin: 22px 28px;
+        margin-bottom: 12px;
+        padding: 0;
     }
 
-    #default-navbar, #sidebar, #js-init-chat-icon, #js-rise-chat-wrapper, #docheader, #add_item{
+    #default-navbar, #sidebar, #js-init-chat-icon, #js-rise-chat-wrapper, #dcontroller, #add_item_button{
         display: none !important;
     }
 
@@ -177,29 +360,56 @@
     #printd{
         display: block;
         overflow: visible;
-        padding: 32px;
-        padding-bottom: 0;
-        margin-bottom: 0;
-    }
-
-    #printd .page{
         padding: 0;
-        margin-bottom: 0;
     }
 
     #printd .buttons{
         display: none !important;
     }
 
-    #printd .page .body thead{
+    #printd .docitem thead{
         display: table-row-group;
     }
 
-    #printd .page .body tfoot{
+    #printd .docitem thead td:last-child,
+    #printd .docitem tbody td:last-child{
+        display: none;
+    }
+
+    #printd .docitem tfoot{
         display: table-row-group;
     }
 
-    #printd .remark{
-        
+    #printd .docitem tfoot td.summary{
+        padding-right: 0;
+    }
+
+    #printd .docitem tfoot td.summary .edit_discount{
+        display: none;
+    }
+
+    #printd .docitem tfoot td.summary span.c1{
+        width: 120px;
+    }
+
+    #printd .docitem tfoot td.summary span.c2 input{
+        width: 70px;
+    }
+
+    #printd .docitem tfoot td.summary span.c3{
+        width: 30px;
+    }
+
+    #printd .docitem tfoot td.summary span.c3 .currency{
+        display: inline-block;
+    }
+
+    #printd .docitem tfoot td.summary p.withholding_tax{
+        width: 100%;
+    }
+
+    #printd .docitem tfoot td.summary #discount_percent{
+        border: 0;
+        outline: none;
     }
 }

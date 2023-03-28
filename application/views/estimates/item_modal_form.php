@@ -1,7 +1,7 @@
 <?php echo form_open(get_uri("estimates/save_item"), array("id" => "estimate-item-form", "class" => "general-form", "role" => "form")); ?>
 <div class="modal-body clearfix">
-    <input type="hidden" name="id" value="<?php echo $model_info->id; ?>" />
-    <input type="hidden" name="estimate_id" value="<?php echo $estimate_id; ?>" />
+    <input type="hidden" name="item_id" value="<?php echo $item_id; ?>" />
+    <input type="hidden" name="doc_id" value="<?php echo $doc_id; ?>" />
     <input type="hidden" name="add_new_item_to_library" value="" id="add_new_item_to_library" />
     <div class="form-group">
         <label for="estimate_item_title" class=" col-md-3"><?php echo lang('item'); ?></label>
@@ -10,7 +10,7 @@
             echo form_input(array(
                 "id" => "estimate_item_title",
                 "name" => "estimate_item_title",
-                "value" => $model_info->title,
+                "value" => $title,
                 "class" => "form-control validate-hidden",
                 "placeholder" => lang('select_or_create_new_item'),
                 "data-rule-required" => true,
@@ -27,7 +27,7 @@
             echo form_textarea(array(
                 "id" => "estimate_item_description",
                 "name" => "estimate_item_description",
-                "value" => $model_info->description ? $model_info->description : "",
+                "value" => $description,
                 "class" => "form-control",
                 "placeholder" => lang('description'),
                 "data-rich-text-editor" => true
@@ -42,7 +42,7 @@
             echo form_input(array(
                 "id" => "estimate_item_quantity",
                 "name" => "estimate_item_quantity",
-                "value" => $model_info->quantity ? to_decimal_format($model_info->quantity) : "",
+                "value" => $quantity,
                 "class" => "form-control",
                 "placeholder" => lang('quantity'),
                 "data-rule-required" => true,
@@ -58,7 +58,7 @@
             echo form_input(array(
                 "id" => "estimate_unit_type",
                 "name" => "estimate_unit_type",
-                "value" => $model_info->unit_type,
+                "value" => $unit_type,
                 "class" => "form-control",
                 "placeholder" => lang('unit_type') . ' (Ex: hours, pc, etc.)'
             ));
@@ -72,13 +72,23 @@
             echo form_input(array(
                 "id" => "estimate_item_rate",
                 "name" => "estimate_item_rate",
-                "value" => $model_info->rate ? to_decimal_format($model_info->rate) : "",
+                "value" => to_decimal_format($rate),
                 "class" => "form-control",
                 "placeholder" => lang('rate'),
                 "data-rule-required" => true,
                 "data-msg-required" => lang("field_required"),
             ));
             ?>
+        </div>
+    </div>
+    <div class="form-group">
+        <label for="estimate_item_rate" class=" col-md-3">ภาษีมูลค่าเพิ่ม</label>
+        <div class="col-md-9">
+            <select name="vat_type" class="form-control">
+                <option value="1" <?php if($vat_type == 1) echo "selected"; ?>>ราคายังไม่รวม VAT</option>
+                <option value="2" <?php if($vat_type == 2) echo "selected"; ?>>ราคารวม VAT แล้ว</option>
+                <option value="3" <?php if($vat_type == 3) echo "selected"; ?>>VAT 0%</option>
+            </select>
         </div>
     </div>
 </div>
@@ -90,85 +100,83 @@
 <?php echo form_close(); ?>
 
 <script type="text/javascript">
-    $(document).ready(function () {
-        $("#estimate-item-form").appForm({
-            onSuccess: function (result) {
-                $("#estimate-item-table").appTable({newData: result.data, dataId: result.id});
-                $("#estimate-total-section").html(result.estimate_total_view);
-                if (typeof updateInvoiceStatusBar == 'function') {
-                    updateInvoiceStatusBar(result.estimate_id);
-                }
-            }
-        });
 
-        //show item suggestion dropdown when adding new item
-        var isUpdate = "<?php echo $model_info->id; ?>";
-        if (!isUpdate) {
-            applySelect2OnItemTitle();
+$(document).ready(function () {
+    $("#estimate-item-form").appForm({
+        onSuccess: function (data) {
+            window.parent.loadItems();
+            /*$("#estimate-item-table").appTable({newData: result.data, dataId: result.id});
+            $("#estimate-total-section").html(result.estimate_total_view);
+            if (typeof updateInvoiceStatusBar == 'function') {
+                updateInvoiceStatusBar(result.estimate_id);
+            }*/
+        },onError: function () {
+            return true;
         }
-
-        //re-initialize item suggestion dropdown on request
-        $("#estimate_item_title_dropdwon_icon").click(function () {
-            applySelect2OnItemTitle();
-        })
-
     });
+    
 
-    function applySelect2OnItemTitle() {
-        $("#estimate_item_title").select2({
-            showSearchBox: true,
-            ajax: {
-                url: "<?php echo get_uri("estimates/get_estimate_item_suggestion"); ?>",
-                dataType: 'json',
-                quietMillis: 250,
-                data: function (term, page) {
-                    return {
-                        q: term // search term
-                    };
-                },
-                results: function (data, page) {
-                    return {results: data};
-                }
-            }
-        }).change(function (e) {
-            if (e.val === "+") {
-                //show simple textbox to input the new item
-                $("#estimate_item_title").select2("destroy").val("").focus();
-                $("#add_new_item_to_library").val(1); //set the flag to add new item in library
-            } else if (e.val) {
-                //get existing item info
-                $("#add_new_item_to_library").val(""); //reset the flag to add new item in library
-                $.ajax({
-                    url: "<?php echo get_uri("estimates/get_estimate_item_info_suggestion"); ?>",
-                    data: {item_name: e.val},
-                    cache: false,
-                    type: 'POST',
-                    dataType: "json",
-                    success: function (response) {
-
-                        //auto fill the description, unit type and rate fields.
-                        if (response && response.success) {
-
-                            if (!$("#estimate_item_description").val()) {
-                                $("#estimate_item_description").val(response.item_info.description);
-                            }
-
-                            if (!$("#estimate_unit_type").val()) {
-                                $("#estimate_unit_type").val(response.item_info.unit_type);
-                            }
-
-                            if (!$("#estimate_item_rate").val()) {
-                                $("#estimate_item_rate").val(response.item_info.rate);
-                            }
-                        }
-                    }
-                });
-            }
-
-        });
+    //show item suggestion dropdown when adding new item
+    var isUpdate = "<?php echo $item_id; ?>";
+    if (!isUpdate) {
+        applySelect2OnItemTitle();
     }
 
+    //re-initialize item suggestion dropdown on request
+    $("#estimate_item_title_dropdwon_icon").click(function () {
+        applySelect2OnItemTitle();
+    })
+});
 
+function applySelect2OnItemTitle() {
+    $("#estimate_item_title").select2({
+        showSearchBox: true,
+        ajax: {
+            url: "<?php echo get_uri("estimates/get_estimate_item_suggestion"); ?>",
+            dataType: 'json',
+            quietMillis: 250,
+            data: function (term, page) {
+                return {
+                    q: term // search term
+                };
+            },
+            results: function (data, page) {
+                return {results: data};
+            }
+        }
+    }).change(function (e) {
+        if (e.val === "+") {
+            //show simple textbox to input the new item
+            $("#estimate_item_title").select2("destroy").val("").focus();
+            $("#add_new_item_to_library").val(1); //set the flag to add new item in library
+        } else if (e.val) {
+            //get existing item info
+            $("#add_new_item_to_library").val(""); //reset the flag to add new item in library
+            $.ajax({
+                url: "<?php echo get_uri("estimates/get_estimate_item_info_suggestion"); ?>",
+                data: {item_name: e.val},
+                cache: false,
+                type: 'POST',
+                dataType: "json",
+                success: function (response) {
+                    //auto fill the description, unit type and rate fields.
+                    if (response && response.success) {
 
+                        if (!$("#estimate_item_description").val()) {
+                            $("#estimate_item_description").val(response.item_info.description);
+                        }
 
+                        if (!$("#estimate_unit_type").val()) {
+                            $("#estimate_unit_type").val(response.item_info.unit_type);
+                        }
+
+                        if (!$("#estimate_item_rate").val()) {
+                            $("#estimate_item_rate").val(response.item_info.rate);
+                        }
+                    }
+                }
+            });
+        }
+    });
+}
 </script>

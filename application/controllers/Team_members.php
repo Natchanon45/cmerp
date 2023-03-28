@@ -855,7 +855,6 @@ class Team_members extends MY_Controller {
 	
     //show team member's details view
     function view($id = 0, $tab = "") {
-
         if ( intval($id) ) {
 
             //if team member's list is disabled, but the user can see his/her own profile.
@@ -867,6 +866,7 @@ class Team_members extends MY_Controller {
             $options = array("id" => $id, "user_type" => "staff");
            
             $user_info = $this->Users_model->get_details($options)->row();
+            
             if ( $user_info ) {
 
                 //check which tabs are viewable for current logged in user
@@ -906,11 +906,9 @@ class Team_members extends MY_Controller {
                     }
                 }
 
-
                 //check module availability
                 $view_data['show_attendance'] = $show_attendance && get_setting("module_attendance") ? true : false;
                 $view_data['show_leave'] = $show_leave && get_setting("module_leave") ? true : false;
-
 
                 //check contact info view permissions
                 $show_cotact_info = $this->can_view_team_members_contact_info();
