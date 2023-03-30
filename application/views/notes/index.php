@@ -16,10 +16,10 @@ foreach($label as $k => $v){
     $note_label_dropdown[] = array("id" => $v->title, "text" => $v->title);
 }
 
-if(isset($clients)){
-    $note_clients_dropdown = array(array("id" => "", "text" => "- เจ้าของ -"));
-    foreach($clients as $kc => $vc){
-        $note_clients_dropdown[] = array("id" => $vc->id, "text" => $vc->first_name.' '.$vc->last_name);
+if(isset($created_by)){
+    $created_by_dropdown = array(array("id" => "", "text" => "- เจ้าของ -"));
+    foreach($created_by as $kc => $vc){
+        $created_by_dropdown[] = array("id" => $vc->id, "text" => $vc->first_name.' '.$vc->last_name);
     }
 }
 ?>
@@ -47,8 +47,8 @@ let filters = [];
 <?php endif; ?>
 
 filters.push({name: "label", class: "w150", options: <?php echo json_encode( $note_label_dropdown ); ?>});
-<?php if(isset($clients)): ?>
-filters.push({name: "client", class: "w150", options: <?php echo json_encode( $note_clients_dropdown ); ?>});
+<?php if(isset($created_by)): ?>
+filters.push({name: "created_by", class: "w150", options: <?php echo json_encode( $created_by_dropdown ); ?>});
 <?php endif; ?>
 $(document).ready(function () {
     $("#note-table").appTable({

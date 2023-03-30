@@ -210,8 +210,8 @@ class Notes extends MY_Controller {
                 $options['note_type_id'] = $_POST['note_type_id'];
             }
 
-            if($type=="client") {
-                $options['client_id'] = $project_id;
+            if(!empty( $_POST['created_by'] )) {
+                $options['created_by'] = $_POST['created_by'];
             }
 
             $list_data = $this->Notes_model->get_details( $options )->result();
@@ -457,7 +457,7 @@ class Notes extends MY_Controller {
         $view_data['label'] = $this->dao->fetchAll( $sql );
 
         if($this->login_user->is_admin == 1 || $this->getRolePermission['view_row'] == "2"){
-            $view_data['clients'] = $this->dao->fetchAll("SELECT id, first_name, last_name FROM users WHERE user_type = 'staff' AND deleted = 0");
+            $view_data['created_by'] = $this->dao->fetchAll("SELECT id, first_name, last_name FROM users WHERE user_type = 'staff' AND deleted = 0");
         }
 
 		$this->buttonTop = implode( '', $this->buttonTop );

@@ -20,11 +20,6 @@ class Notes_model extends Crud_model {
             $where .= " AND $notes_table.id=$id";
         }
 
-        $client_id = get_array_value($options, "client_id");
-        if ($client_id) {
-            $where .= " AND $notes_table.client_id=$client_id";
-        }
-
         $created_by = get_array_value($options, "created_by");
         if ($created_by) {
             $where .= " AND $notes_table.created_by=$created_by";
