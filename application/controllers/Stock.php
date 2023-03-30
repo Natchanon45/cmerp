@@ -541,14 +541,17 @@ class Stock extends MY_Controller
                         redirect("forbidden");
                 }
 
-                $view_data['can_update'] = $this->check_permission('bom_supplier_update');
-                $view_data['can_update_material'] = $this->bom_can_access_material()
-                        && $this->check_permission('bom_material_update');
+                $view_data['can_update_supplier'] = $this->check_permission('bom_supplier_update');
+
+                $view_data['can_access_material'] = $this->bom_can_access_material();
+                $view_data['can_update_material'] = $this->check_permission('bom_material_update');
 
                 $view_data['supplier_id'] = $supplier_id;
                 $view_data["category_dropdown"] = $this->Bom_materials_model->get_category_dropdown();
 
                 $view_data['is_admin'] = $this->login_user->is_admin;
+
+                // var_dump(arr($view_data)); exit;
                 $this->load->view("stock/supplier/pricing", $view_data);
         }
 
@@ -639,6 +642,8 @@ class Stock extends MY_Controller
                         $view_data['material_dropdown'] = $this->Bom_suppliers_model->get_material_pricing_dropdown();
                 }
                 $view_data['material'] = $this->Bom_materials_model->get_one($view_data['model_info']->material_id);
+
+                // var_dump(arr($view_data)); exit;
 
                 $this->load->view('stock/supplier/modal_pricing', $view_data);
         }
