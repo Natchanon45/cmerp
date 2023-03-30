@@ -1690,6 +1690,7 @@ $lang["notification_invited_client_contact_signed_up"] = "Invited client contact
 $lang["ticket_templates"] = "Ticket templates";
 $lang["ticket_template"] = "Ticket template";
 $lang["tickets_list"] = "Tickets list";
+$lang["tickets_own_list"] = "My tickets list";
 $lang["add_template"] = "Add template";
 $lang["edit_template"] = "Edit template";
 $lang["insert_template"] = "Insert template";

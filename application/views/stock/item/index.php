@@ -46,6 +46,7 @@
       ],
       columns: [
         {title: "<?php echo lang("id") ?>", "class": "text-center w50"},
+        { title: "<?php echo lang('preview_image') ?> ", "class": "w100" },
         {title: '<?php echo lang("stock_item_code"); ?>', "class": "w100"},
         {title: '<?php echo lang("stock_item_name"); ?>', "class": "w200"},
         {title: '<?php echo lang("stock_item_barcode"); ?>',"class": "w200"},

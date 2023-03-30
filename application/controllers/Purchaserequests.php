@@ -1625,7 +1625,8 @@ class PurchaseRequests extends MY_Controller {
             $client,
             $data->pr_date,
             format_to_date($data->pr_date, false),
-            to_currency($data->pr_value, $data->currency_symbol)
+            to_decimal_format3($data->pr_value),
+            !empty($data->currency) ? lang($data->currency) : lang('THB')
         );
 
         if ($this->login_user->user_type == "staff") {

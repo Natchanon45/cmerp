@@ -39,6 +39,7 @@
             <tbody id="table-body">
               <?php 
                 if(isset($project_materials) && sizeof($project_materials)){
+                  $i_btn = 0;
                   foreach($project_materials as $n=>$k){
               ?>
                 <tr>
@@ -61,7 +62,11 @@
                     <input type="hidden" name="quantity[]" value="<?= !empty($k->quantity)? $k->quantity: '' ?>" />
                     <?= to_decimal_format2($k->quantity).' '.$k->unit_type ?>
                   </td>
-                  <td style="font-weight:600;"></td>
+                  <td style="font-weight:600;">
+                    <button type="button" class="btn btn-primary" id="btn-excel-<?php echo $i_btn; ?>">
+                    <span class="fa fa-table"></span> <?php echo lang('excel'); ?>
+                    </button>
+                  </td>
                 </tr>
                 <?php if(isset($k->result) && sizeof($k->result)){?>
                   <tr class="row-target" data-row="<?= $n ?>">
@@ -73,8 +78,10 @@
                               <th class="w250"><?php echo lang('stock_material'); ?></th>
                               <th class="w200"><?php echo lang('stock_restock_name'); ?></th>
                               <th class="w125 text-right"><?php echo lang('quantity'); ?></th>
+                              <th class="w125 text-right"><?php echo lang('stock_material_unit'); ?></th>
                               <?php if($can_read_price){?>
                                 <th class="w150 text-right"><?php echo lang('stock_calculator_value'); ?></th>
+                                <th class="w100 text-right"><?php echo lang('currency'); ?></th>
                               <?php }?>
                             </tr>
                           </thead>
@@ -89,38 +96,43 @@
                                     $classer = 'color-red';
                                     if($s->ratio > 0) $classer = 'color-green';
                                     echo '<div class="'.$classer.'">'
-                                        .to_decimal_format2($s->ratio).' '.$s->material_unit
+                                        .to_decimal_format2($s->ratio)
                                       .'</div>' 
                                   ?>
                                 </td>
+                                <td class="text-right"><?php echo !empty($s->material_unit) ? strtoupper($s->material_unit) : '-'; ?></td>
                                 <?php if($can_read_price){?>
                                   <td class="w150 text-right">
                                     <?php 
-                                      if(!empty($s->value)){
+                                      if(!empty($s->value)) {
                                         $total += $s->value;
-                                        echo to_currency($s->value);
-                                      }else echo '-';
+                                        echo to_decimal_format3($s->value);
+                                      } else echo '-';
                                     ?>
                                   </td>
+                                  <td class="text-right"><?php echo !empty($s->currency) ? lang($s->currency) : lang('THB'); ?></td>
                                 <?php }?>
                               </tr>
                             <?php }?>
                           </tbody>
-                          <?php if($can_read_price){?>
+                          <?php if($can_read_price) { ?>
                             <tfoot>
                               <tr>
-                                <th colspan="2"></th>
+                                <td colspan="3"></td>
                                 <th class="text-right"><?= lang('total') ?></th>
-                                <td class="text-right"><?= to_currency($total) ?></td>
+                                <th class="text-right"><?= to_decimal_format3($total) ?></th>
+                                <th class="text-right"><?= lang('THB') ?></th>
                               </tr>
                             </tfoot>
-                          <?php }?>
+                          <?php } ?>
                         </table>
                       </div>
                     </td>
                   </tr>
-                <?php }?>
-              <?php }}?>
+                <?php } ?>
+              <?php 
+              $i_btn++; }}
+              ?>
             </tbody>
           </table>
         </div>
@@ -156,12 +168,11 @@
 <script type="text/javascript">
   $(document).ready(function () {
     
-    var items = <?= json_encode($items) ?>;
-    
-    var itemMixings = <?php echo json_encode($item_mixings) ?>;
+    var items = <?php echo json_encode($items); ?>;
+
+    var itemMixings = <?php echo json_encode($item_mixings); ?>;
     var typeContainer = $('#type-container');
-    var tableBody = typeContainer.find('#table-body'),
-        btnAdd = typeContainer.find('#btn-add-material');
+    var tableBody = typeContainer.find('#table-body'), btnAdd = typeContainer.find('#btn-add-material');
     btnAdd.click(function(e){
       e.preventDefault();
       tableBody.prepend(`
@@ -232,6 +243,30 @@
         }
       });
     }
+    
+    <?php if (isset($project_materials) && sizeof($project_materials)) :?>
+    for (let i = 0; i < <?php echo count($project_materials); ?>; i++) {
+      $(`#btn-excel-${i}`).click(function(e) {
+        e.preventDefault();
+
+        let projectMaterial = <?php echo json_encode($project_materials); ?>;
+        let url = '<?php echo get_uri("stock/calculator_create_excel"); ?>';
+
+        $.ajax({
+          url: url,
+          type: 'POST',
+          dataType: 'json',
+          data: {data: projectMaterial[i]},
+          success: function(result) {
+            window.location.assign(result.file);
+          },
+          error: function(error) {
+            console.log(error);
+          }
+        });
+      });
+    }
+    <?php endif; ?>
 
     typeContainer.find('.btn-expand').click(function(e){
       e.preventDefault();

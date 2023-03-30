@@ -1813,6 +1813,7 @@ $lang["notification_invited_client_contact_signed_up"] = "ลูกค้าไ�
 $lang["ticket_templates"] = "เทมเพลต Ticket";
 $lang["ticket_template"] = "เทมเพลต Ticket";
 $lang["tickets_list"] = "รายการ Ticket";
+$lang["tickets_own_list"] = "รายการ Ticket ของฉัน";
 $lang["add_template"] = "เพิ่มเทมเพลต";
 $lang["edit_template"] = "แก้ไขเทมเพลต";
 $lang["insert_template"] = "เพิ่มเทมเพลต";

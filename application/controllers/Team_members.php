@@ -963,7 +963,7 @@ $tabs[] = '<li><a  role="presentation" class="active" href="javascript:;" data-t
 
 if( !empty( $this->getRolePermission['p']['can_view_team_members_contact_info']   ) ) {
 	
-	$tabs[] = '<li><a  role="presentation" href="'.base_url("team_members/general_info/" . $user_info->id).'" data-target="#tab-general-info"> '.lang('general_info').'</a></li>';
+	$tabs[] = '<li><a  role="presentation" href="'.get_uri("team_members/general_info/" . $user_info->id).'" data-target="#tab-general-info"> '.lang('general_info').'</a></li>';
 }
 
 
@@ -971,24 +971,24 @@ if( !empty( $this->getRolePermission['p']['can_view_team_members_contact_info'] 
 
 
 if( !empty( $this->getRolePermission['p']['can_view_team_members_social_links']   ) ) {
-	$tabs[] = '<li><a  role="presentation" href="'.base_url("team_members/social_links/" . $user_info->id).'" data-target="#tab-social-links"> '.lang('social_links').'</a></li>';
+	$tabs[] = '<li><a  role="presentation" href="'.get_uri("team_members/social_links/" . $user_info->id).'" data-target="#tab-social-links"> '.lang('social_links').'</a></li>';
 }	
 // echo 'asdada';
 // exit;
 //
 
 
-$tabs[] = '<li><a  role="presentation" href="'.base_url("team_members/job_info/" . $user_info->id).'" data-target="#tab-job-info"> '.lang('job_info').'</a></li>';
+$tabs[] = '<li><a  role="presentation" href="'.get_uri("team_members/job_info/" . $user_info->id).'" data-target="#tab-job-info"> '.lang('job_info').'</a></li>';
 
-$tabs[] = '<li><a role="presentation" href="'. base_url("team_members/account_settings/" . $user_info->id ).'" data-target="#tab-account-settings"> '.lang('account_settings').'</a></li>';
+$tabs[] = '<li><a role="presentation" href="'. get_uri("team_members/account_settings/" . $user_info->id ).'" data-target="#tab-account-settings"> '.lang('account_settings').'</a></li>';
 
-$tabs[] = '<li><a  role="presentation" href="'.base_url("team_members/files/" . $user_info->id).'" data-target="#tab-files"> '.lang('files').'</a></li>';
+$tabs[] = '<li><a  role="presentation" href="'.get_uri("team_members/files/" . $user_info->id).'" data-target="#tab-files"> '.lang('files').'</a></li>';
 
-$tabs[] = '<li><a role="presentation" href="'.base_url("team_members/projects_info/" . $user_info->id).'" data-target="#tab-projects-info">'.lang('projects').'</a></li>';
-$tabs[] = '<li><a role="presentation" href="'.base_url("team_members/attendance_info/" . $user_info->id).'" data-target="#tab-attendance-info"> '.lang('attendance').'</a></li>';
-$tabs[] = ' <li><a role="presentation" href="'.base_url("team_members/leave_info/" . $user_info->id).'" data-target="#tab-leave-info">'.lang('leaves').'</a></li>';
+$tabs[] = '<li><a role="presentation" href="'.get_uri("team_members/projects_info/" . $user_info->id).'" data-target="#tab-projects-info">'.lang('projects').'</a></li>';
+$tabs[] = '<li><a role="presentation" href="'.get_uri("team_members/attendance_info/" . $user_info->id).'" data-target="#tab-attendance-info"> '.lang('attendance').'</a></li>';
+$tabs[] = ' <li><a role="presentation" href="'.get_uri("team_members/leave_info/" . $user_info->id).'" data-target="#tab-leave-info">'.lang('leaves').'</a></li>';
 
-$tabs[] = '<li><a role="presentation" href="'.base_url("team_members/expense_info/" . $user_info->id).'" data-target="#tab-expense-info">'.lang('expenses').'</a></li>';
+$tabs[] = '<li><a role="presentation" href="'.get_uri("team_members/expense_info/" . $user_info->id).'" data-target="#tab-expense-info">'.lang('expenses').'</a></li>';
 
 
 $view_data['tabs'] = implode( '', $tabs );

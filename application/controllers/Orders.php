@@ -305,14 +305,14 @@ class Orders extends MY_Controller {
 
         $list_data = $this->Orders_model->get_details($options)->result();
 
-        //var_dump($list_data);exit;
+        // var_dump(arr($list_data)); exit;
         
         $result = array();
         foreach ($list_data as $data) {
             $result[] = $this->_make_row($data, $custom_fields);
         }
         
-        //var_dump($result);exit;
+        // var_dump(arr($result)); exit;
 
         echo json_encode(array("data" => $result));
     }
@@ -335,7 +335,8 @@ class Orders extends MY_Controller {
             $client,
             $data->order_date,
             format_to_date($data->order_date, false),
-            to_currency($data->order_value, $data->currency_symbol)
+            to_decimal_format3($data->order_value),
+            !empty($data->currency) ? lang($data->currency) : lang('THB')
         );
 
         if ($this->login_user->user_type == "staff") {

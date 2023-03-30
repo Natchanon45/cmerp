@@ -37,13 +37,14 @@
                 {visible: false, searchable: false},
                 {title: "<?php echo lang("order_date") ?>", "iDataSort": 2, "class": "w20p"},
                 {title: "<?php echo lang("amount") ?>", "class": "text-right w20p"},
+                {title: "<?php echo lang("currency") ?>", "class": "text-right"},
                 {title: "<?php echo lang("status") ?>", "class": "text-center"}
 <?php echo $custom_field_headers; ?>,
                 {title: "<i class='fa fa-bars'></i>", "class": "text-center option w100"}
             ],
-            printColumns: combineCustomFieldsColumns([0, 1, 3, 4, 5], '<?php echo $custom_field_headers; ?>'),
-            xlsColumns: combineCustomFieldsColumns([0, 1, 3, 4, 5], '<?php echo $custom_field_headers; ?>'),
-            summation: [{column: 4, dataType: 'currency', currencySymbol: AppHelper.settings.currencySymbol}]
+            printColumns: combineCustomFieldsColumns([0, 1, 3, 4, 5, 6], '<?php echo $custom_field_headers; ?>'),
+            xlsColumns: combineCustomFieldsColumns([0, 1, 3, 4, 5, 6], '<?php echo $custom_field_headers; ?>'),
+            summation: [{column: 4, dataType: 'number', currencySymbol: AppHelper.settings.currencySymbol}]
         });
     };
 

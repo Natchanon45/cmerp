@@ -27,11 +27,12 @@
                 {visible: false, searchable: false},
                 {title: "<?php echo lang("order_date") ?>", "iDataSort": 2, "class": "w20p"},
                 {title: "<?php echo lang("amount") ?>", "class": "text-right w20p"},
+                {title: "<?php echo lang("currency") ?>", "class": "text-right"},
                 {title: "<?php echo lang("status") ?>", "class": "text-center w20p"}
 <?php echo $custom_field_headers; ?>,
                 {visible: false}
             ],
-            summation: [{column: 4, dataType: 'currency', currencySymbol: currencySymbol}]
+            summation: [{column: 4, dataType: 'number', currencySymbol: currencySymbol}]
         });
     });
 </script>

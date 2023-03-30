@@ -18,10 +18,11 @@
             {title: '<?php echo lang("month") ?>', "class": "w30p", "iDataSort": 0},
             {title: '<?php echo lang("income") ?>', "class": "w20p text-right"},
             {title: '<?php echo lang("expenses") ?>', "class": "w20p text-right"},
-            {title: '<?php echo lang("profit") ?>', "class": "w20p text-right"}
+            {title: '<?php echo lang("profit") ?>', "class": "w20p text-right"},
+            {title: '<?php echo lang("currency") ?>', "class": "w20p text-right"}
             ],
-            printColumns: [1, 2, 3, 4], 
-            xlsColumns: [1, 2, 3, 4], 
-            summation: [{column:2, dataType: 'currency'}, {column:3, dataType: 'currency'}, {column:4, dataType: 'currency'}]
+            printColumns: [1, 2, 3, 4, 5], 
+            xlsColumns: [1, 2, 3, 4, 5], 
+            summation: [{column:2, dataType: 'number'}, {column:3, dataType: 'number'}, {column:4, dataType: 'number'}]
     });
 </script>
