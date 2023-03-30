@@ -216,10 +216,11 @@
 }
 
 #printd .docitem tfoot td.summary #discount_percent{
-    width: 50px;
+    width: 56px;
     height: 28px;
     border: 1px solid #ccc;
     margin-left: 4px;
+    margin-right: 4px;
     padding: 4px;
     text-align: right;
     border-radius: 4px;

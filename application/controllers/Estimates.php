@@ -387,11 +387,11 @@ class Estimates extends MY_Controller {
     }*/
 
     function load_doc(){
-        echo json_encode($this->Estimate_m->loadDoc($this->input->get("doc_id")));
+        echo json_encode($this->Estimate_m->loadDoc());
     }
 
     function load_items(){
-        echo json_encode($this->Estimate_m->loadItems($this->input->get("doc_id")));
+        echo json_encode($this->Estimate_m->loadItems());
     }
 
     function save_item(){
@@ -428,7 +428,7 @@ class Estimates extends MY_Controller {
             $item,
             to_decimal_format($data->quantity) . " " . $type,
             to_currency($data->rate, $data->currency_symbol),
-            to_currency($data->total, $data->currency_symbol),
+            to_currency($data->price_inc_vat, $data->currency_symbol),
             modal_anchor(get_uri("estimates/item_modal_form"), "<i class='fa fa-pencil'></i>", array("class" => "edit", "title" => lang('edit_estimate'), "data-post-id" => $data->id))
             . js_anchor("<i class='fa fa-times fa-fw'></i>", array('title' => lang('delete'), "class" => "delete", "data-id" => $data->id, "data-action-url" => get_uri("estimates/delete_item"), "data-action" => "delete"))
         );
@@ -1117,7 +1117,7 @@ class Estimates extends MY_Controller {
                         "quantity" => $data->quantity ? $data->quantity : 0,
                         "unit_type" => $data->unit_type ? $data->unit_type : "",
                         "rate" => $data->rate ? $data->rate : 0,
-                        "total" => $data->total ? $data->total : 0,
+                        "price_inc_vat" => $data->price_inc_vat ? $data->price_inc_vat : 0,
                     );
 
                     $this->Estimate_items_model->save($estimate_item_data);

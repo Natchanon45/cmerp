@@ -1,7 +1,27 @@
 <?php
 
-if (!function_exists('number_to_text')) {
-    function number_to_text($amount_number){
+if (!function_exists('roundUp')){
+    function roundUp($num, $digit=2){
+        return ceil(floor($num * 1000) / 10) / 100;
+    }   
+}
+
+if (!function_exists('getNumber')){
+    function getNumber($number){
+        $cleanString = preg_replace('/([^0-9\.,])/i', '', $money);
+        $onlyNumbersString = preg_replace('/([^0-9])/i', '', $money);
+
+        $separatorsCountToBeErased = strlen($cleanString) - strlen($onlyNumbersString) - 1;
+
+        $stringWithCommaOrDot = preg_replace('/([,\.])/', '', $cleanString, $separatorsCountToBeErased);
+        $removedThousandSeparator = preg_replace('/(\.|,)(?=[0-9]{3,}$)/', '',  $stringWithCommaOrDot);
+
+        return (float) str_replace(',', '.', $removedThousandSeparator);
+    }
+}    
+
+if (!function_exists('numberToText')) {
+    function numberToText($amount_number){
         function sub($number){
             $position_call = array("แสน", "หมื่น", "พัน", "ร้อย", "สิบ", "");
             $number_call = array("", "หนึ่ง", "สอง", "สาม", "สี่", "ห้า", "หก", "เจ็ด", "แปด", "เก้า");
@@ -34,10 +54,9 @@ if (!function_exists('number_to_text')) {
         $amount_number = number_format($amount_number, 2, ".","");
         $pt = strpos($amount_number , ".");
         $number = $fraction = "";
-        if ($pt === false) 
+        if ($pt === false){
             $number = $amount_number;
-        else
-        {
+        }else{
             $number = substr($amount_number, 0, $pt);
             $fraction = substr($amount_number, $pt + 1);
         }

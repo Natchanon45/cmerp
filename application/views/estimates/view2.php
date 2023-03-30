@@ -115,12 +115,12 @@
                     <td colspan="4" class="summary">
                         <p>
                             <span class="c1 custom-color">รวมเป็นเงิน</span>
-                            <span class="c2"><input type="text" id="sub_total" readonly></span>
+                            <span class="c2"><input type="text" id="sub_total_before_discount" readonly></span>
                             <span class="c3"><span class="currency">บาท</span></span>
                         </p>
                         <p>
                             <span class="c1 custom-color">ส่วนลด<input id="discount_percent">%</span>
-                            <span class="c2"><input type="text" id="sub_total" readonly></span>
+                            <span class="c2"><input type="text" id="discount_amount" readonly></span>
                             <span class="c3">
                                 <span class="edit_discount"><a><i class='fa fa-pencil'></i></a></span>
                                 <span class="currency">บาท</span>
@@ -132,24 +132,24 @@
                             <span class="c3"><span class="currency">บาท</span></span>
                         </p>
                         <p>
-                            <span class="c1 custom-color"><input type="checkbox" id="has_vat">ภาษีมูลค่าเพิ่ม 7%</span>
-                            <span class="c2"><input type="text" id="sub_total" readonly></span>
+                            <span class="c1 custom-color"><input type="checkbox" id="has_vat">ภาษีมูลค่าเพิ่ม <?php echo $this->Taxes_m->getVatPercent(); ?>%</span>
+                            <span class="c2"><input type="text" id="vat" readonly></span>
                             <span class="c3"><span class="currency">บาท</span></span>
                         </p>
                         <p class="total">
                             <span class="c1 custom-color">จำนวนเงินรวมทั้งสิ้น</span>
-                            <span class="c2"><input type="text" id="sub_total" readonly value="3,000.00"></span>
+                            <span class="c2"><input type="text" id="total" readonly ></span>
                             <span class="c3"><span class="currency">บาท</span></span>
                         </p>
                         <p class="withholding_tax">
                             <span>
                                 <span class="c1 custom-color"><input type="checkbox" id="has_withholding_tax">หักภาษี ณ ที่จ่าย</span>
-                                <span class="c2"><input type="text" id="sub_total" readonly value="3,000.00"></span>
+                                <span class="c2"><input type="text" id="withholding_tax" readonly ></span>
                                 <span class="c3"><span class="currency">บาท</span></span>
                             </span>
                             <span class="payment_amount">
                                 <span class="c1 custom-color">ยอดชำระ</span>
-                                <span class="c2"><input type="text" id="sub_total" readonly value="3,000.00"></span>
+                                <span class="c2"><input type="text" id="payment_amount" readonly></span>
                                 <span class="c3"><span class="currency">บาท</span></span>
                             </span>
                         </p>
@@ -196,6 +196,9 @@
 <script type="text/javascript">
 $(document).ready(function() {
     loadItems();
+    $("#discount_percent").blur(function(){
+        loadDoc();
+    });
 });
 
 function loadItems(){
@@ -220,7 +223,7 @@ function loadItems(){
                     tbody += "</td>";
                     tbody += "<td>"+items[i]["quantity"]+"</td>"; 
                     tbody += "<td>"+items[i]["rate"]+"</td>";
-                    tbody += "<td>"+items[i]["total"]+"</td>";
+                    tbody += "<td>"+items[i]["price"]+"</td>";
                     tbody += "<td class='edititem'>";
                         tbody += "<a class='edit' data-post-id='"+items[i]["id"]+"' data-post-doc_id='<?php echo $esrow->id; ?>' data-post-item_id='"+items[i]["id"]+"' data-act='ajax-modal' data-action-url='<?php echo_uri("estimates/item_modal_form"); ?>' ><i class='fa fa-pencil'></i></a>";
                         tbody += "<a class='delete' data-id='"+items[i]["id"]+"'><i class='fa fa-times fa-fw'></i></a>";
@@ -243,15 +246,25 @@ function loadItems(){
 }
 
 function loadDoc(){
-    axios.get('<?php echo_uri("estimates/load_doc") ?>', {
-        params: {
-            doc_id: '<?php echo $esrow->id; ?>'
-        }
-    }).then(function(response) {
+    axios.post('<?php echo_uri("estimates/load_doc") ?>', {
+        doc_id: '<?php echo $esrow->id; ?>',
+        discount_percent: $("#discount_percent").val()
+    },{
+        headers: {
+            'Content-Type': 'multipart/form-data'
+        },
+    }).then(function(response) { 
+        //tonum
         data = response.data;
+
+        $("#sub_total_before_discount").val(data.sub_total_before_discount);
+        $("#discount_percent").val(data.discount_percent);
+        $("#discount_amount").val(data.sub_total);
         $("#sub_total").val(data.sub_total);
         $("#total").val(data.total);
         $("#total_in_text").val(data.total_in_text);
+    }).catch(function (error) {
+        alert(error);
     });
 }
 
