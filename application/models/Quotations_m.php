@@ -1,30 +1,64 @@
 <?php
 
-class Estimate_m extends CI_Model {
+class Quotations_m extends CI_Model {
 
     function __construct() {}
 
-    function doc($estimate_id){
+    function jisource() {
+        $db = $this->db;
+
+        $db->select("*")->from("quotation");
+
+
+        if($this->input->post("status") != null){
+            $db->where("status", $this->input->post("status"));
+        }
+
+        if($this->input->post("start_date") != null && $this->input->post("end_date")){
+            $db->where("doc_date >=", $this->input->post("start_date"));
+            $db->where("doc_date <=", $this->input->post("end_date"));
+        }
+
+        $qrows = $db->get()->result();
+
+        $docs = [];
+
+        foreach($qrows as $qrow){
+            $doc = [];
+            $doc[0] = "<a href='".get_uri("quotations/view/".$qrow->id)."'>".$qrow->doc_no."</a>";
+            $doc[1] = "<a href='".get_uri("clients/view/".$qrow->client_id)."'>".$this->Clients_m->getCompanyName($qrow->client_id)."</a>";
+            $doc[2] = $qrow->doc_date;
+            $doc[3] = $qrow->total;
+            $doc[4] = $qrow->status;
+            $doc[5] = "<a data-post-id='".$qrow->id."' data-action-url='".get_uri("estimates/modal_form")."' data-act='ajax-modal' class='edit'><i class='fa fa-pencil'></i></a>";
+            $doc[5] .= "<a data-id='".$qrow->id."' data-action-url='".get_uri("estimates/delete")."' data-action='delete' class='delete'><i class='fa fa-times fa-fw'></i></a>";
+         
+            $docs[] = $doc;
+        }
+
+        return json_encode(["data"=>$docs]);
+    }
+
+    function doc($doc_id){
         $db = $this->db;
         $data["status"] = "fail";
         $data["success"] = false;
 
-        $esrow = $db->select("*")
-                        ->from("estimates")
-                        ->where("id", $estimate_id)
-                        ->where("deleted", 0)
+        $qrow = $db->select("*")
+                        ->from("quotation")
+                        ->where("id", $doc_id)
                         ->get()->row();
 
-        if(empty($esrow)) return $data;
+        if(empty($qrow)) return $data;
 
-        $data["esrow"] = $esrow;
+        $data["qrow"] = $qrow;
         $data["status"] = "success";
         $data["success"] = true;
 
         return $data;
     }
 
-    function loadDoc(){
+    function jDoc(){
         $db = $this->db;
         $doc_id = $this->input->post("doc_id");
         $data["status"] = "fail";
@@ -63,7 +97,7 @@ class Estimate_m extends CI_Model {
 
         $data["total_in_text"] = "(".numberToText($esrow->sub_total_estimate).")";
 
-        return $data;
+        return json_encode($data);
     }
 
     function item(){
@@ -118,7 +152,7 @@ class Estimate_m extends CI_Model {
         return $data;
     }
 
-    function loadItems(){
+    function jItems(){
     	$db = $this->db;
     	$data["status"] = "fail";
         $data["success"] = false;
@@ -164,7 +198,7 @@ class Estimate_m extends CI_Model {
     	$data["status"] = "success";
         $data["success"] = true;
 
-    	return $data;
+    	return json_encode($data);
     }
 
     function saveItem(){

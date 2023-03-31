@@ -11,7 +11,7 @@ class Estimates extends MY_Controller {
 		$this->init_permission_checker("estimate");
 		
 		$this->className = 'estimates';
-        $this->load->model("Estimate_m");
+        $this->load->model("Quotations_m");
         $this->load->model("Clients_m");
         $this->load->model("Users_m");
     }
@@ -287,7 +287,7 @@ class Estimates extends MY_Controller {
     /* load item modal */
 
     function item_modal_form() {
-        $data = $this->Estimate_m->item();
+        $data = $this->Quotations_m->item();
 
         /*$estimate_id = $this->input->post('estimate_id');
 
@@ -387,19 +387,19 @@ class Estimates extends MY_Controller {
     }*/
 
     function load_doc(){
-        echo json_encode($this->Estimate_m->loadDoc());
+        echo $this->Quotations_m->jDoc();
     }
 
     function load_items(){
-        echo json_encode($this->Estimate_m->loadItems());
+        echo $this->Quotations_m->jItems();
     }
 
     function save_item(){
-        echo json_encode($this->Estimate_m->saveItem());
+        echo json_encode($this->Quotations_m->saveItem());
     }
 
     function delete_item(){
-        echo json_encode($this->Estimate_m->deleteItem());
+        echo json_encode($this->Quotations_m->deleteItem());
     }
 
     /* list of estimate items, prepared for datatable  */
@@ -689,7 +689,7 @@ class Estimates extends MY_Controller {
     }
 
     function view2($estimate_id) {
-        $data = $this->Estimate_m->doc($estimate_id);
+        $data = $this->Quotations_m->doc($estimate_id);
         if ($data["success"] == true) {
 
             $data["created"] = $this->Users_m->getInfo($data["esrow"]->created_by);

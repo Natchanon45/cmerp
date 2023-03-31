@@ -4,6 +4,20 @@ class Clients_m extends CI_Model {
 
     function __construct() {}
 
+    function getCompanyName($client_id){
+        $db = $this->db;
+
+        $crow = $db->select("company_name")
+                        ->from("clients")
+                        ->where("id", $client_id)
+                        ->where("deleted", 0)
+                        ->get()->row();
+
+        if(empty($crow)) return null;
+
+        return $crow->company_name;
+    }
+
     function getInfo($client_id){
         $db = $this->db;
         
