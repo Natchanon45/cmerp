@@ -238,7 +238,6 @@
  </div>
 
 
-
  <script type="text/javascript">
      //RELOAD_VIEW_AFTER_UPDATE = true;
      $(document).ready(function() {
@@ -331,16 +330,7 @@
          });
      });
 
-     updateInvoiceStatusBar = function(estimateId) {
-         $.ajax({
-             url: "<?php echo get_uri("estimates/get_estimate_status_bar"); ?>/" + estimateId,
-             success: function(result) {
-                 if (result) {
-                     $("#estimate-status-bar").html(result);
-                 }
-             }
-         });
-     };
+    
  </script>
 
  <?php

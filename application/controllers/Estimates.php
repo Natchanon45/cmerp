@@ -11,14 +11,15 @@ class Estimates extends MY_Controller {
 		$this->init_permission_checker("estimate");
 		
 		$this->className = 'estimates';
+        $this->load->model("Quotations_m");
+        $this->load->model("Clients_m");
+        $this->load->model("Users_m");
     }
 	
 
     /* load estimate list view */
 
     function index() {
-		
-		 
         $this->check_module_availability("module_estimate");
         $view_data['can_request_estimate'] = false;
 
@@ -286,30 +287,18 @@ class Estimates extends MY_Controller {
     /* load item modal */
 
     function item_modal_form() {
-		
-		if( empty( $this->getRolePermission['edit_row'] ) ) {
-			
-			echo permissionBlock();
-			
-			return;
-			 
-		}
-		
-		
-       // $this->access_only_allowed_members();
+        $data = $this->Quotations_m->item();
 
-        validate_submitted_data(array(
-            "id" => "numeric"
-        ));
-
-        $estimate_id = $this->input->post('estimate_id');
+        /*$estimate_id = $this->input->post('estimate_id');
 
         $view_data['model_info'] = $this->Estimate_items_model->get_one($this->input->post('id'));
         if (!$estimate_id) {
             $estimate_id = $view_data['model_info']->estimate_id;
         }
-        $view_data['estimate_id'] = $estimate_id;
-        $this->load->view('estimates/item_modal_form', $view_data);
+        $view_data['estimate_id'] = $estimate_id;*/
+
+
+        $this->load->view('estimates/item_modal_form', $data);
     }
 
     /* Change Address Form */
@@ -334,7 +323,7 @@ class Estimates extends MY_Controller {
 
     /* add or edit an estimate item */
 
-    function save_item() {
+    /*function save_item() {
         $this->access_only_allowed_members();
 
         validate_submitted_data(array(
@@ -361,32 +350,17 @@ class Estimates extends MY_Controller {
         $estimate_item_id = $this->Estimate_items_model->save($estimate_item_data, $id);
         if ($estimate_item_id) {
 
-
-            //check if the add_new_item flag is on, if so, add the item to libary. 
-            /*$add_new_item_to_library = $this->input->post('add_new_item_to_library');
-            if ($add_new_item_to_library) {
-                $library_item_data = array(
-                    "title" => $this->input->post('estimate_item_title'),
-                    "description" => $this->input->post('estimate_item_description'),
-                    "unit_type" => $this->input->post('estimate_unit_type'),
-                    "rate" => unformat_currency($this->input->post('estimate_item_rate'))
-                );
-                $this->Items_model->save($library_item_data);
-            }*/
-
-
-
             $options = array("id" => $estimate_item_id);
             $item_info = $this->Estimate_items_model->get_details($options)->row();
             echo json_encode(array("success" => true, "estimate_id" => $item_info->estimate_id, "data" => $this->_make_item_row($item_info), "estimate_total_view" => $this->_get_estimate_total_view($item_info->estimate_id), 'id' => $estimate_item_id, 'message' => lang('record_saved')));
         } else {
             echo json_encode(array("success" => false, 'message' => lang('error_occurred')));
         }
-    }
+    }*/
 
     /* delete or undo an estimate item */
 
-    function delete_item() {
+    /*function delete_item() {
         $this->access_only_allowed_members();
 
         validate_submitted_data(array(
@@ -410,10 +384,25 @@ class Estimates extends MY_Controller {
                 echo json_encode(array("success" => false, 'message' => lang('record_cannot_be_deleted')));
             }
         }
+    }*/
+
+    function load_doc(){
+        echo $this->Quotations_m->jDoc();
+    }
+
+    function load_items(){
+        echo $this->Quotations_m->jItems();
+    }
+
+    function save_item(){
+        echo json_encode($this->Quotations_m->saveItem());
+    }
+
+    function delete_item(){
+        echo json_encode($this->Quotations_m->deleteItem());
     }
 
     /* list of estimate items, prepared for datatable  */
-
     function item_list_data($estimate_id = 0) {
         $this->access_only_allowed_members();
 
@@ -439,7 +428,7 @@ class Estimates extends MY_Controller {
             $item,
             to_decimal_format($data->quantity) . " " . $type,
             to_currency($data->rate, $data->currency_symbol),
-            to_currency($data->total, $data->currency_symbol),
+            to_currency($data->price_inc_vat, $data->currency_symbol),
             modal_anchor(get_uri("estimates/item_modal_form"), "<i class='fa fa-pencil'></i>", array("class" => "edit", "title" => lang('edit_estimate'), "data-post-id" => $data->id))
             . js_anchor("<i class='fa fa-times fa-fw'></i>", array('title' => lang('delete'), "class" => "delete", "data-id" => $data->id, "data-action-url" => get_uri("estimates/delete_item"), "data-action" => "delete"))
         );
@@ -665,14 +654,11 @@ class Estimates extends MY_Controller {
 	
 	
     function view($estimate_id = 0) {
-		
-	
         $this->access_only_allowed_members();
  
         if ( $estimate_id ) {
-//echo 'dsfaafsd';exit;
+
             $view_data = get_estimate_making_data($estimate_id);
-        // arr($view_data);exit;
 
             if ( $view_data ) {
 				
@@ -693,7 +679,7 @@ class Estimates extends MY_Controller {
 				
 				///$param['status'] = $this->_get_estimate_status_label( $view_data )
 
-                $this->template->rander( "". $this->className ."/view", $view_data );
+                $this->template->rander($this->className ."/view", $view_data);
 				
 				
             } else {
@@ -702,39 +688,25 @@ class Estimates extends MY_Controller {
         }
     }
 
-    /*function view2($estimate_id = 0) {
-        $view_data["kpage"] = true;
+    function view2($estimate_id) {
+        $data = $this->Quotations_m->doc($estimate_id);
+        if ($data["success"] == true) {
 
-        $this->access_only_allowed_members();
- 
-        if ( $estimate_id ) {
+            $data["created"] = $this->Users_m->getInfo($data["esrow"]->created_by);
+            $data["client"] = $this->Clients_m->getInfo($data["esrow"]->client_id);
+            $data["client_contact"] = $this->Clients_m->getContactInfo($data["esrow"]->client_id);
+            if($data["client"] != null) $data["client_contact"] = $this->Clients_m->getContactInfo($data["esrow"]->client_id);
+            
+            $data['estimate_status_label'] = $this->_get_estimate_status_label($data["esrow"]);
+            $data['estimate_status'] = $this->_get_estimate_status_label($data["esrow"], true);
 
-            $view_data = get_estimate_making_data($estimate_id);
-        
+            $param['id'] = $data["esrow"]->id;            
+            $param['tbName'] = $this->className;
+            $data["proveButton"] = $this->dao->getProveButton( $param );
 
-            if ( $view_data ) {
-                
-                $view_data['estimate_status_label'] = $this->_get_estimate_status_label($view_data["estimate_info"]);
-                $view_data['estimate_status'] = $this->_get_estimate_status_label($view_data["estimate_info"], true);
-
-                $access_info = $this->get_access_info("invoice");
-                $view_data["show_invoice_option"] = (get_setting("module_invoice") && $access_info->access_type == "all") ? true : false;
-
-                $view_data["can_create_projects"] = $this->can_create_projects();
-
-                $view_data["estimate_id"] = $estimate_id;
-
-                $param['id'] = $estimate_id;
-                
-                $param['tbName'] = $this->className;
-                $view_data["proveButton"] = $this->dao->getProveButton( $param );
-
-                $this->template->rander( "". $this->className ."/view2", $view_data );
-
-                return;   
-            }
+            $this->template->rander( "". $this->className ."/view2", $data );
         }
-    }*/
+    }
 	
     function list_data() {
         $this->access_only_allowed_members();
@@ -1146,7 +1118,7 @@ class Estimates extends MY_Controller {
                         "quantity" => $data->quantity ? $data->quantity : 0,
                         "unit_type" => $data->unit_type ? $data->unit_type : "",
                         "rate" => $data->rate ? $data->rate : 0,
-                        "total" => $data->total ? $data->total : 0,
+                        "price_inc_vat" => $data->price_inc_vat ? $data->price_inc_vat : 0,
                     );
 
                     $this->Estimate_items_model->save($estimate_item_data);

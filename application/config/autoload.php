@@ -84,7 +84,7 @@ $autoload['drivers'] = array();
   |
   |	$autoload['helper'] = array('url', 'file');
  */
-$autoload['helper'] = array('url', 'file', 'form', 'language', 'general', 'date_time', 'app_files', 'widget', 'activity_logs', 'currency');
+$autoload['helper'] = array('url', 'file', 'form', 'language', 'general', 'date_time', 'app_files', 'widget', 'activity_logs', 'currency', 'util');
 
 /*
   | -------------------------------------------------------------------
@@ -163,6 +163,7 @@ $autoload['model'] = array(
     'Expenses_model',
     'Expense_categories_model',
     'Taxes_model',
+    'Taxes_m',
     'Social_links_model',
     'Notification_settings_model',
     'Notifications_model',

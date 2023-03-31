@@ -1,10 +1,9 @@
-application/logs/*
-assets
-env.php
-files
-!files/system/*.xlsx
+/application/logs/*
+/env.php
+/files
 /index.php
 /deploy.php
+<<<<<<< HEAD
 O-files
 pdf_Template
 run_node_js
@@ -13,3 +12,12 @@ updates
 vendor
 .DS_Store
 /*.xlsx
+=======
+/O-files
+/pdf_Template
+/run_node_js
+/system
+/updates
+/vendor
+.DS_Store
+>>>>>>> #136

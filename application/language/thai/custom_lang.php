@@ -530,6 +530,7 @@ $lang["edit_invoice"] = "แก้ไขใบแจ้งหนี้";
 $lang["delete_invoice"] = "ลบใบแจ้งหนี้";
 $lang["item"] = "รายการสินค้า";
 $lang["add_item"] = "เพิ่มรายการ";
+$lang["add_item_product"] = "เพิ่มรายการสินค้า";
 $lang["create_new_item"] = "สร้างรายการใหม่";
 $lang["select_or_create_new_item"] = "เลือกจากรายการหรือสร้างรายการใหม่...";
 $lang["quantity"] = "จำนวน";

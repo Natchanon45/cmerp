@@ -182,7 +182,7 @@ class Clients_model extends Crud_model {
     function get_primary_contact($client_id = 0, $info = false) {
         $users_table = $this->db->dbprefix('users');
 
-        $sql = "SELECT $users_table.id, $users_table.first_name, $users_table.last_name
+        $sql = "SELECT $users_table.id, $users_table.first_name, $users_table.last_name, $users_table.phone, $users_table.email
         FROM $users_table
         WHERE $users_table.deleted=0 AND $users_table.client_id=$client_id AND $users_table.is_primary_contact=1";
         $result = $this->db->query($sql);
@@ -193,6 +193,8 @@ class Clients_model extends Crud_model {
                 return $result->row()->id;
             }
         }
+
+        return null;
     }
 
     function add_remove_star($project_id, $user_id, $type = "add") {

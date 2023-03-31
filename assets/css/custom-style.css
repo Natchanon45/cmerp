@@ -1,0 +1,117 @@
+/* Write your custom css in this file. */
+@import url('https://fonts.googleapis.com/css2?family=Prompt:ital,wght@0,200;0,300;0,400;0,500;0,600;0,700;1,200;1,300;1,400;1,500;1,600;1,700&display=swap');
+html, body, 
+.select2-container .select2-choice, .select2-container .select2-choices, 
+.select2-container .select2-choices .select2-search-field input{
+    font-family:'Open Sans', 'Helvetica Neue', Helvetica, 'Prompt', Arial, sans-serif;
+    font-size:14px;
+}
+#sidebar-menu li a i{width:18px!important;}
+#sidebar-menu li a{padding:10px 16px 12px 16px; white-space:nowrap;}
+
+
+/* Fixes */
+.timeline-images img{filter:grayscale(0)!important;}
+span.help-block{color:#ec5855;}
+
+
+/* Input */
+.input-suffix{position:relative;}
+.input-suffix > input{padding-right:4rem!important;}
+.input-suffix > .input-tag{
+    position:absolute; top:0; right:0; padding:6px 8px; font-size:15px;
+}
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button{-webkit-appearance:none; margin:0;}
+input[type=number]{-moz-appearance:textfield;}
+
+
+/* Box Card 01 */
+.box-card-01{
+    display:block; width:100%; padding:30px 15px; text-align:center; color:#333333;
+    background:#ffffff; border-radius:8px;
+}
+.box-card-01 .icon{font-size:40px; line-height:1; transition:color .25s;}
+.box-card-01 .icon + *{margin:15px 0 0 0; color:#333333;}
+
+
+/* Custom */
+.panel-default > .panel-heading{display:flex; align-items:center; justify-content:center;}
+.panel-default > .panel-heading > img{
+    display:block; width:auto; max-width:280px; height:auto; max-height:90px;
+}
+.navbar-default .navbar-brand{display:flex; align-items:center;}
+.navbar-brand > img.dashboard-image{
+    display:block; width:auto; max-width:160px; height:auto; max-height:40px;
+}
+img#invoice-logo-preview, .invoice-preview-header-row img, img#estimate-logo-preview{
+    display:block; width:auto; max-width:240px; height:auto; max-height:80px;
+}
+.navbar-nav > li.user-language-option > .dropdown-menu{height:70px!important;}
+.title-back{
+    display:inline-block; font-size:14px; margin:0 2px 0 0; border-radius:50%; 
+    text-align:center; width:26px; line-height:26px; transition:background .25s;
+}
+.title-back:hover{background:#eeeeee;}
+.title-back > i{transform:translateX(-1px);}
+
+.gantt .bar-label{color:#000000; font-size:13px; font-weight:400;}
+
+.product-preview{
+    display:block; width:auto; max-width:7rem; height:auto; max-height:5rem;
+    border-radius:.25rem;
+}
+
+
+/* Label */
+.label.cate-large{font-size:100%; font-weight:400; padding:5px 10px;}
+
+
+/* Utility */
+.d-block{display:block!important;}
+.d-flex{display:flex!important;}
+
+.jc-start{justify-content:flex-start!important;}
+.jc-center{justify-content:center!important;}
+.jc-end{justify-content:flex-end!important;}
+.jc-space-between{justify-content:space-between!important;}
+.jc-space-evenly{justify-content:space-evenly!important;}
+.ai-center{align-items:center!important;}
+.ai-start{align-items:flex-start!important;}
+.ai-end{align-items:flex-end!important;}
+.ai-unset{align-items:unset!important;}
+.fw-wrap{flex-wrap:wrap!important;}
+.fw-unset{flex-wrap:unset!important;}
+
+.w-auto{width:auto!important;}
+.w-full{width:100%!important; max-width:100%!important;}
+.h-auto{height:auto!important;}
+.h-full{height:100%!important; max-height:100%!important;}
+
+.fw-100{font-weight:100!important;}
+.fw-200{font-weight:200!important;}
+.fw-300{font-weight:300!important;}
+.fw-400{font-weight:400!important;}
+.fw-500{font-weight:500!important;}
+.fw-600{font-weight:600!important;}
+.fw-700{font-weight:700!important;}
+.fw-800{font-weight:800!important;}
+.fw-900{font-weight:900!important;}
+
+.ovf-hidden{overflow:hidden!important;}
+
+.w200{width:200px; min-width:200px;}
+.w150{width:150px; min-width:150px;}
+.w125{width:125px; min-width:125px;}
+.w120{width:120px; min-width:120px;}
+.w110{width:110px; min-width:110px;}
+.w100{width:100px; min-width:100px;}
+.w90{width:90px; min-width:90px;}
+
+.ws-nowrap{white-space:nowrap!important;}
+.ws-normal{white-space:normal!important;}
+.no-br > br{display:none;}
+
+.bradius{border-radius:6px!important;}
+
+.bshadow{box-shadow:0px 3px 6px 3px rgb(0 0 0 / 3%)!important;}
