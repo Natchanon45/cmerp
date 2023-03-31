@@ -1976,3 +1976,7 @@ $lang["ประเภทสินค้า"] = "Product Categories";
 $lang["วิจัยและการผลิต"] = "Production";
 $lang["พนักงาน"] = "Employees";
 $lang["expiration_date"] = "Expiration date";
+
+$lang["text_waiting_approve"] = "Waiting for approve";
+$lang["text_approved"] = "Approved";
+$lang["text_rejected"] = "Not approved";

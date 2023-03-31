@@ -4937,7 +4937,7 @@ class Stock extends MY_Controller
                         '<span class="' . ($is_lack ? 'lacked_material' : '') . '" data-item-id="' . $data->item_id . '" data-lacked-amount="' . ($is_lack ? $lack : 0) . '" data-unit="' . $data->item_unit . '" data-supplier-id="' . $data->supplier_id . '" data-supplier-name="' . $data->supplier_name . '" data-price="' . $data->price . '" data-currency="' . $data->currency . '" data-currency-symbol="' . $data->currency_symbol . '">' . to_decimal_format2($data->remaining) . '</span>',
                         strtoupper($data->item_unit)
                 );
-//dev2
+
                 if ($this->check_permission('bom_restock_read_price')) {
                         $price_per_stock = 0;
                         if ($data->stock != 0) {
