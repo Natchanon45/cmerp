@@ -541,14 +541,17 @@ class Stock extends MY_Controller
                         redirect("forbidden");
                 }
 
-                $view_data['can_update'] = $this->check_permission('bom_supplier_update');
-                $view_data['can_update_material'] = $this->bom_can_access_material()
-                        && $this->check_permission('bom_material_update');
+                $view_data['can_update_supplier'] = $this->check_permission('bom_supplier_update');
+
+                $view_data['can_access_material'] = $this->bom_can_access_material();
+                $view_data['can_update_material'] = $this->check_permission('bom_material_update');
 
                 $view_data['supplier_id'] = $supplier_id;
                 $view_data["category_dropdown"] = $this->Bom_materials_model->get_category_dropdown();
 
                 $view_data['is_admin'] = $this->login_user->is_admin;
+
+                // var_dump(arr($view_data)); exit;
                 $this->load->view("stock/supplier/pricing", $view_data);
         }
 
@@ -639,6 +642,8 @@ class Stock extends MY_Controller
                         $view_data['material_dropdown'] = $this->Bom_suppliers_model->get_material_pricing_dropdown();
                 }
                 $view_data['material'] = $this->Bom_materials_model->get_one($view_data['model_info']->material_id);
+
+                // var_dump(arr($view_data)); exit;
 
                 $this->load->view('stock/supplier/modal_pricing', $view_data);
         }
@@ -2217,7 +2222,7 @@ class Stock extends MY_Controller
 
         function material_report_list()
         {
-                //$this->check_module_availability("module_stock");
+                // $this->check_module_availability("module_stock");
                 if (!$this->cop('view_row') || !$this->bom_can_access_material() || !$this->bom_can_access_restock()) {
                         redirect("forbidden");
                 }
@@ -2243,28 +2248,31 @@ class Stock extends MY_Controller
                 }
                 $material_name = $data->material_name;
 
-                if ($this->check_permission("bom_material_read_production_name") == true)
+                if ($this->check_permission("bom_material_read_production_name") == true) {
                         $material_name .= " - " . $data->production_name;
-                $lack = $data->noti_threshold - $data->remaining;
-                $is_lack = $lack > 0 ? true : false;
-                $row_data = array(
-                        $data->id,
-                        anchor(get_uri('stock/restock_view/' . $data->group_id), $data->group_name),
-                        anchor(get_uri('stock/material_view/' . $data->material_id), $material_name),
-                        format_to_date($data->created_date),
-                        is_date_exists($data->expiration_date) ? format_to_date($data->expiration_date, false) : '-',
-                        to_decimal_format2($data->stock),
-                        '<span class="' . ($is_lack ? 'lacked_material' : '') . '" data-material-id="' . $data->id . '" data-lacked-amount="' . ($is_lack ? $lack : 0) . '" data-unit="' . $data->material_unit . '" data-supplier-id="' . $data->supplier_id . '" data-supplier-name="' . $data->supplier_name . '" data-price="' . $data->price . '" data-currency="' . $data->currency . '" data-currency-symbol="' . $data->currency_symbol . '">' . to_decimal_format2($data->remaining) . '</span>',
-                        strtoupper($data->material_unit)
-                );
-
+                        $lack = $data->noti_threshold - $data->remaining;
+                        $is_lack = $lack > 0 ? true : false;
+                        $row_data = array(
+                                $data->id,
+                                anchor(get_uri('stock/restock_view/' . $data->group_id), $data->group_name),
+                                anchor(get_uri('stock/material_view/' . $data->material_id), $material_name),
+                                format_to_date($data->created_date),
+                                is_date_exists($data->expiration_date) ? format_to_date($data->expiration_date, false) : '-',
+                                to_decimal_format2($data->stock),
+                                '<span class="' . ($is_lack ? 'lacked_material' : '') . '" data-material-id="' . $data->id . '" data-lacked-amount="' . ($is_lack ? $lack : 0) . '" data-unit="' . $data->material_unit . '" data-supplier-id="' . $data->supplier_id . '" data-supplier-name="' . $data->supplier_name . '" data-price="' . $data->price . '" data-currency="' . $data->currency . '" data-currency-symbol="' . $data->currency_symbol . '">' . to_decimal_format2($data->remaining) . '</span>',
+                                strtoupper($data->material_unit)
+                        );
+                }
+                
                 if ($this->check_permission('bom_restock_read_price')) {
-                        $row_data[] = to_decimal_format3($data->price, 2);
-                        $row_data[] = to_decimal_format3($remaining_value, 2);
                         $price_per_stock = 0;
-                        if ($data->stock != 0)
+                        if ($data->stock != 0) {
                                 $price_per_stock = $data->price / $data->stock;
+                        }
+
+                        $row_data[] = to_decimal_format3($data->price, 2);
                         $row_data[] = to_decimal_format3($price_per_stock);
+                        $row_data[] = to_decimal_format3($remaining_value, 2);
                         $row_data[] = !empty($data->currency) && isset($data->currency) ? lang($data->currency) : lang("THB");
                 }
 
@@ -4931,9 +4939,14 @@ class Stock extends MY_Controller
                 );
 
                 if ($this->check_permission('bom_restock_read_price')) {
+                        $price_per_stock = 0;
+                        if ($data->stock != 0) {
+                                $price_per_stock = $data->price / $data->stock;
+                        }
+
                         $row_data[] = to_decimal_format3($data->price, 2);
+                        $row_data[] = to_decimal_format3($price_per_stock);
                         $row_data[] = to_decimal_format3($remaining_value, 2);
-                        $row_data[] = $data->stock < 0.01 ? '0.00' : to_decimal_format3($data->price / $data->stock);
                         $row_data[] = !empty($data->currency) && isset($data->currency) ? lang($data->currency) : lang("THB");
                 }
 

@@ -98,10 +98,6 @@ class MaterialRequests_model extends Crud_model {
                 'บาท' as currency_symbol,
                 concat( requester.first_name,' ',requester.last_name ) as requester_name,
                 concat( requester.first_name,' ',requester.last_name ) as buyer_name,
-
-                
-				
-
                 CONCAT($users_table.first_name, ' ', $users_table.last_name) AS created_by_user, $users_table.user_type AS created_by_user_type $select_custom_fieds
                 FROM $mr_table
                 $innerjoin
@@ -117,6 +113,8 @@ class MaterialRequests_model extends Crud_model {
             LEFT JOIN $users_table ON $users_table.id=$mr_table.created_by
             $join_custom_fieds
             WHERE $mr_table.deleted=0 $where";
+
+            // var_dump(arr($sql)); exit;
       
         return $this->db->query($sql);
     }
