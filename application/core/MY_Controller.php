@@ -4,6 +4,7 @@
 class MY_Controller extends CI_Controller {
 
     public $login_user;
+    protected $json = null;
     protected $access_type = "";
     protected $allowed_members = array();
     protected $allowed_ticket_types = array();

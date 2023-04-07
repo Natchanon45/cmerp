@@ -1,9 +1,20 @@
 <?php
-class Project_m extends CI_Model {
-
+class Projects_m extends MY_Model {
 
     function __construct() {
-		$this->load->model("Permission_m");
+		parent::__construct();
+    }
+
+
+    function getRows(){
+        $db = $this->db;
+
+        $prows = $db->select("*")
+                    ->from("projects")
+                    ->where("deleted", 0)
+                    ->get()->result();
+
+        return $prows;
     }
 
     function getName($project_id){

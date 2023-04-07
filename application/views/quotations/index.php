@@ -6,7 +6,7 @@
             <li><a role="presentation" href="<?php echo_uri("estimates/yearly/"); ?>" data-target="#yearly-estimates"><?php echo lang('yearly'); ?></a></li>
             <div class="tab-title clearfix no-border">
                 <div class="title-button-group">
-                    <?php echo modal_anchor(get_uri("quotations/modal_form"), "<i class='fa fa-plus-circle'></i> " . lang('add_estimate'), array("class" => "btn btn-default", "title" => lang('add_estimate'))); ?>
+                    <a data-action-url='<?php echo get_uri("quotations/doc"); ?>' data-act='ajax-modal' class='btn btn-default'><i class='fa fa-plus-circle'></i> <?php echo lang('add_estimate'); ?></a>
                 </div>
             </div>
         </ul>
@@ -23,7 +23,6 @@
         </div>
     </div>
 </div>
-
 <script type="text/javascript">
 let fstatus = [
             {id:"", text:"-<?php echo lang("status"); ?>-"},
@@ -35,7 +34,7 @@ let fstatus = [
 
 $(document).ready(function () {
     $("#monthly-estimate-table").appTable({
-        source: '<?php echo_uri("quotations/index/jisource") ?>',
+        source: '<?php echo_uri("quotations/index/source") ?>',
         order: [[0, "desc"]],
         dateRangeType: "monthly",
         filterDropdown: [{name: "status", class: "w150", options: fstatus}],

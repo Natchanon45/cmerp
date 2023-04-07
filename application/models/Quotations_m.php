@@ -1,14 +1,39 @@
 <?php
 
-class Quotations_m extends CI_Model {
+class Quotations_m extends MY_Model {
+    private $code = "QT";
 
-    function __construct() {}
+    function __construct() {
+        parent::__construct();
+    }
 
-    function jisource() {
+    function getCode(){
+        return $this->code;
+    }
+
+    function getStatusName($status_code){
+        if($status_code == "W"){
+            return "รออณุมัต";
+        }
+    }
+
+    function getIGrid($qrow){
+        $data = [
+                    "<a href='".get_uri("quotations/view/".$qrow->id)."'>".$qrow->doc_number."</a>",
+                    "<a href='".get_uri("clients/view/".$qrow->client_id)."'>".$this->Clients_m->getCompanyName($qrow->client_id)."</a>",
+                    $qrow->doc_date,
+                    $qrow->total,
+                    $this->getStatusName($qrow->status),
+                    "<a data-post-id='".$qrow->id."' data-action-url='".get_uri("quotations/doc")."' data-act='ajax-modal' class='edit'><i class='fa fa-pencil'></i></a><a data-id='".$qrow->id."' data-action-url='".get_uri("quotations/delete")."' data-action='delete' class='delete'><i class='fa fa-times fa-fw'></i></a>"
+                ];
+
+        return $data;
+    }
+
+    function source() {
         $db = $this->db;
 
         $db->select("*")->from("quotation");
-
 
         if($this->input->post("status") != null){
             $db->where("status", $this->input->post("status"));
@@ -19,62 +44,53 @@ class Quotations_m extends CI_Model {
             $db->where("doc_date <=", $this->input->post("end_date"));
         }
 
+        $db->where("deleted", 0);
+
         $qrows = $db->get()->result();
 
-        $docs = [];
+        $data = [];
 
         foreach($qrows as $qrow){
-            $doc = [];
-            $doc[0] = "<a href='".get_uri("quotations/view/".$qrow->id)."'>".$qrow->doc_no."</a>";
-            $doc[1] = "<a href='".get_uri("clients/view/".$qrow->client_id)."'>".$this->Clients_m->getCompanyName($qrow->client_id)."</a>";
-            $doc[2] = $qrow->doc_date;
-            $doc[3] = $qrow->total;
-            $doc[4] = $qrow->status;
-            $doc[5] = "<a data-post-id='".$qrow->id."' data-action-url='".get_uri("estimates/modal_form")."' data-act='ajax-modal' class='edit'><i class='fa fa-pencil'></i></a>";
-            $doc[5] .= "<a data-id='".$qrow->id."' data-action-url='".get_uri("estimates/delete")."' data-action='delete' class='delete'><i class='fa fa-times fa-fw'></i></a>";
-         
-            $docs[] = $doc;
+            $data[] = $this->getIGrid($qrow);
         }
 
-        return json_encode(["data"=>$docs]);
+        return $data;
     }
 
-    function doc($doc_id){
+    function doc($docId){
         $db = $this->db;
         $data["status"] = "fail";
         $data["success"] = false;
 
         $qrow = $db->select("*")
                         ->from("quotation")
-                        ->where("id", $doc_id)
+                        ->where("id", $docId)
                         ->get()->row();
 
-        if(empty($qrow)) return $data;
+        if(empty($qrow)) return $this->data;
 
-        $data["qrow"] = $qrow;
-        $data["status"] = "success";
-        $data["success"] = true;
 
-        return $data;
+        $this->data["qrow"] = $qrow;
+        $this->data["status"] = "success";
+
+        return $this->data;
     }
 
-    function jDoc(){
+    /*function doc(){
         $db = $this->db;
-        $doc_id = $this->input->post("doc_id");
+        $docId = $this->input->post("docId");
         $data["status"] = "fail";
         $data["success"] = false;
 
         $esrow = $db->select("*")
                         ->from("estimates")
-                        ->where("id", $doc_id)
+                        ->where("id", $docId)
                         ->where("deleted", 0)
                         ->get()->row();
 
         if(empty($esrow)){
             return $data;
         }
-
-
 
         $discount_percent = $this->input->post("discount_percent");
 
@@ -97,7 +113,121 @@ class Quotations_m extends CI_Model {
 
         $data["total_in_text"] = "(".numberToText($esrow->sub_total_estimate).")";
 
-        return json_encode($data);
+        return $data;
+    }*/
+
+
+    function validateDoc(){
+        $this->form_validation->set_rules([
+                                            [
+                                                "field"=>"quotation_date",
+                                                'label' => '',
+                                                'rules' => 'required'
+                                            ],
+                                            [
+                                                "field"=>"quotation_valid_until_date",
+                                                'label' => '',
+                                                'rules' => 'required'
+                                            ]
+                                        ]);
+
+        if ($this->form_validation->run() == FALSE){
+            $this->data["status"] = "validate";
+            if(form_error('quotation_date') != null) $this->data["messages"]["quotation_date"] = form_error('quotation_date');
+            if(form_error('quotation_valid_until_date') != null) $this->data["messages"]["quotation_valid_until_date"] = form_error('quotation_valid_until_date');
+        }
+
+    }
+
+    function saveDoc(){
+        $db = $this->db;
+        $_POST = json_decode(file_get_contents('php://input'), true);
+
+        $this->validateDoc();
+        if($this->data["status"] == "validate") return $this->data;
+
+        $docId = $this->input->post("doc_id");
+        $doc_date = converDate($this->input->post("quotation_date"));
+        $credit = $this->input->post("credit");
+        $doc_valid_until_date = converDate($this->input->post("quotation_valid_until_date"));
+        $reference_number = $this->input->post("reference_number");
+        $client_id = $this->input->post("client_id");
+        $project_id = $this->input->post("project_id");
+        $remark = $this->input->post("remark");
+
+
+        if($docId != ""){
+            $db->where("id", $docId);
+            $db->where("deleted", 0);
+            $db->update("quotation", [
+                                        "doc_date"=>$doc_date,
+                                        "credit"=>$credit,
+                                        "doc_valid_until_date"=>$doc_valid_until_date,
+                                        "reference_number"=>$reference_number,
+                                        "client_id"=>$client_id,
+                                        "project_id"=>$project_id,
+                                        "remark"=>$remark,
+                                    ]);
+        }else{
+            $db->where("DATE_FORMAT(crreated_datetime,'%Y-%m')", date("Y-m"));
+            $running_number = $db->get("quotation")->num_rows() + 1;
+
+            $doc_number = $this->getCode().date("Ym").sprintf("%04d", $running_number);
+            
+            $db->insert("quotation", [
+                                        "doc_number"=>$doc_number,
+                                        "doc_date"=>$doc_date,
+                                        "credit"=>$credit,
+                                        "doc_valid_until_date"=>$doc_valid_until_date,
+                                        "reference_number"=>$reference_number,
+                                        "client_id"=>$client_id,
+                                        "project_id"=>$project_id,
+                                        "remark"=>$remark,
+                                        "created_by"=>$this->login_user->id,
+                                        "crreated_datetime"=>date("Y-m-d H:i:s"),
+                                        "status"=>"W"
+                                    ]);
+
+            $docId = $db->insert_id();
+        }
+        
+        $this->data["target"] = get_uri("quotations/view/". $docId);
+        $this->data["status"] = "success";
+        $this->data["message"] = "success";
+
+        return $this->data;
+    }
+
+    function deleteDoc(){
+        $db = $this->db;
+        $docId = $this->input->post("id");
+
+        $db->where("id", $docId);
+        $db->update("quotation", ["deleted"=>1]);
+
+        $data["success"] = true;
+        $data["message"] = lang('record_deleted');
+
+        return $data;
+    }
+
+    function undoDoc(){
+        $db = $this->db;
+        $docId = $this->input->post("id");
+
+        $db->where("id", $docId);
+        $db->update("quotation", ["deleted"=>0]);
+
+        $qrow = $db->select("*")
+                    ->from("quotation")
+                    ->where("id", $docId)
+                    ->get()->row();
+
+        $data["success"] = true;
+        $data["data"] = $this->getIGrid($qrow);
+        $data["message"] = lang('record_undone');
+
+        return $data;
     }
 
     function item(){

@@ -22,18 +22,20 @@ class Permission_m extends Crud_model {
 	public $approve_purchase_request = false;
 
 	function __construct() {
-		if($this->login_user->is_admin == 1){
-			$this->setAdmin();
-		}else{
-	        $prow = $this->db->select("permissions")
-						        			->from("roles")
-						        			->where("id", $this->login_user->role_id)
-						        			->where("deleted", 0)
-						        			->get()->row();
+		if(isset($this->login_user)){
+			if($this->login_user->is_admin == 1){
+				$this->setAdmin();
+			}else{
+		        $prow = $this->db->select("permissions")
+							        			->from("roles")
+							        			->where("id", $this->login_user->role_id)
+							        			->where("deleted", 0)
+							        			->get()->row();
 
-			if(!empty($prow)){
-				$this->permissions = json_decode(json_encode(unserialize($prow->permissions)));
-				$this->setPermission();
+				if(!empty($prow)){
+					$this->permissions = json_decode(json_encode(unserialize($prow->permissions)));
+					$this->setPermission();
+				}
 			}
 		}
 	}

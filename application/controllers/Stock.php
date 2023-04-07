@@ -11,8 +11,6 @@ class Stock extends MY_Controller
         function __construct()
         {
                 parent::__construct();
-                $this->load->model("Permission_m");
-
                 require_once(APPPATH . "third_party/php-excel-writer/src/ExcelWriter.php");
         }
 

@@ -3,9 +3,9 @@
 
 <div id="dcontroller" class="clearfix">
     <div class="page-title clearfix mt15">
-        <h1>ใบเสนอราคา <?php echo $esrow->doc_no;?></h1>
+        <h1>ใบเสนอราคา <?php echo $qrow->doc_number;?></h1>
         <div class="title-button-group">
-            <a style="margin-left: 15px;" class="btn btn-default mt0 mb0 back-to-index-btn"  href="'. base_url( 'index.php/'. $param['tbName']  ) .'" ><i class="fa fa-hand-o-left" aria-hidden="true"></i> ย้อนกลับไปตารางรายการ</a>
+            <a style="margin-left: 15px;" class="btn btn-default mt0 mb0 back-to-index-btn"  href="<?php echo get_uri("quotations")?>" ><i class="fa fa-hand-o-left" aria-hidden="true"></i> ย้อนกลับไปตารางรายการ</a>
             <a class="btn btn-info mt0 mb0 approval-btn approve-btn">อนุมัติ</a>
             <a class="btn btn-danger mt0 mb0 approval-btn reject-btn">ไม่อนุมัติ </a>
             <a class="btn btn-default" onclick="window.print();">พิมพ์</a>
@@ -60,15 +60,15 @@
                 <table>
                     <tr>
                         <td class="custom-color">เลขที่</td>
-                        <td><?php echo $esrow->doc_no; ?></td>
+                        <td><?php echo $qrow->doc_number; ?></td>
                     </tr>
                     <tr>
                         <td class="custom-color">เลขที่อ้างอิง</td>
-                        <td><?php echo $esrow->reference_number; ?></td>
+                        <td><?php echo $qrow->reference_number; ?></td>
                     </tr>
                     <tr>
                         <td class="custom-color">วันที่</td>
-                        <td><?php echo format_to_date($esrow->estimate_date, false); ?></td>
+                        <td><?php echo format_to_date($qrow->doc_date, false); ?></td>
                     </tr>
                     <tr>
                         <td class="custom-color">ผู้ขาย</td>
@@ -111,7 +111,7 @@
                 <tr><td colspan="6">&nbsp;</td></tr>
                 <tr>
                     <td colspan="2">
-                        <p><?php echo modal_anchor(get_uri("estimates/item_modal_form"), "<i class='fa fa-plus-circle'></i> " . lang('add_item_product'), array("id"=>"add_item_button", "class" => "btn btn-default", "title" => lang('add_item_product'), "data-post-estimate_id" => $esrow->id, "data-post-doc_id" => $esrow->id)); ?></p>
+                        <p><?php echo modal_anchor(get_uri("estimates/item_modal_form"), "<i class='fa fa-plus-circle'></i> " . lang('add_item_product'), array("id"=>"add_item_button", "class" => "btn btn-default", "title" => lang('add_item_product'), "data-post-estimate_id" => $qrow->id, "data-post-doc_id" => $qrow->id)); ?></p>
                         <p><input type="text" id="total_in_text" readonly></p>
                     </td>
                     <td colspan="4" class="summary">
@@ -161,7 +161,7 @@
         </table>
         <div class="remark clear">
             <p class="custom-color">หมายเหตุ</p>
-            <p><?php echo nl2br($esrow->note); ?></p>
+            <p><?php echo nl2br($qrow->remark); ?></p>
         </div><!--.remark-->
     </div><!--.docitem-->
     <div class="docsignature clear">

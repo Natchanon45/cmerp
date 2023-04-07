@@ -1,4 +1,5 @@
 <head>
+<link rel="stylesheet" href="/assets/css/style2.css?time=<?php echo time(); ?>">
 <script src="https://unpkg.com/axios@1.1.2/dist/axios.min.js"></script>
 <script src="/assets/js/util.js"></script>
 <?php $this->load->view('includes/meta'); ?>

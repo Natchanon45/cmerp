@@ -1,5 +1,13 @@
 <?php
 
+if (!function_exists('convertDate')){
+    function converDate($date){
+        if($date == "") return "";
+        list($dd, $mm, $yy) = explode("/", $date);
+        return $yy."-".$mm."-".$dd;
+    }   
+}
+
 if (!function_exists('roundUp')){
     function roundUp($num, $digit=2){
         return ceil(floor($num * 1000) / 10) / 100;

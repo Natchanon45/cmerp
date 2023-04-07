@@ -24,7 +24,6 @@ class Projects extends MY_Controller {
         $this->load->model('Permission_m');
         $this->load->model('Materialrequest_m');
         $this->load->model('Stock_m');
-        $this->load->model('Project_m');
         //$this->load->library('../controllers/Action');
     }
 
@@ -791,7 +790,7 @@ class Projects extends MY_Controller {
             }
         }
 
-        if ($this->Project_m->delete($this->input->post('id'))) {
+        if ($this->Projects_m->delete($this->input->post('id'))) {
             echo json_encode(array("success" => true, 'message' => lang('record_deleted')));
         } else {
             echo json_encode(array("success" => false, 'message' => lang('record_cannot_be_deleted')));
