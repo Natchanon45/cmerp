@@ -2,7 +2,7 @@
     <div class="panel clearfix">
         <ul id="client-tabs" data-toggle="ajax-tab" class="nav nav-tabs bg-white title" role="tablist">
             <li><a id="clients-button" class="active" role="presentation" href="javascript:;" data-target="#clients"><?php echo lang('clients'); ?></a></li>
-            <li><a role="presentation" href="<?php echo_uri("clients/contacts/"); ?>" data-target="#contacts"><?php echo lang('contacts'); ?></a></li>
+            <!-- <li><a role="presentation" href="<?php // echo_uri("clients/contacts/"); ?>" data-target="#contacts"><?php // echo lang('contacts'); ?></a></li> -->
             <div class="tab-title clearfix no-border">
                 <div class="title-button-group">
                     <?php if ($can_edit_clients) { ?>
