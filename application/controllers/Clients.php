@@ -19,7 +19,7 @@ class Clients extends MY_Controller {
     private function can_edit_clients() {
         $authReadOnly = array("", "read_only");
 
-        if ($this->login_user->user_type == "staff") {
+        if (!$this->login_user->is_admin) {
             if (in_array(get_array_value($this->login_user->permissions, "client"), $authReadOnly)) {
                 return false;
             }

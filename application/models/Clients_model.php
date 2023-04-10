@@ -127,8 +127,10 @@ class Clients_model extends Crud_model {
 			$filters['WHERE'][] = "". $clients_table .".id = ". $options['id'] ."";
 		}
 
-        if (get_array_value($this->login_user->permissions, "client") == "") {
-            $filters['WHERE'][] = " 1 = 0";
+        if (!$this->login_user->is_admin) {
+            if (get_array_value($this->login_user->permissions, "client") == "") {
+                $filters['WHERE'][] = " 1 = 0";
+            }
         }
 
         if($where) {
@@ -138,6 +140,7 @@ class Clients_model extends Crud_model {
 		$sql = genCond_X( $sql, $filters );	
 		// $sql = str_replace( 'leads', $clients_table, $sql );	
 
+        // var_dump(arr($sql)); exit;
         return $this->db->query($sql);
     }
 
