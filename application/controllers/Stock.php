@@ -2222,6 +2222,8 @@ class Stock extends MY_Controller
 
         function material_report_list()
         {
+                $is_zero = $this->input->post("is_zero");
+
                 // $this->check_module_availability("module_stock");
                 if (!$this->cop('view_row') || !$this->bom_can_access_material() || !$this->bom_can_access_restock()) {
                         redirect("forbidden");
@@ -2231,6 +2233,11 @@ class Stock extends MY_Controller
                 if ($this->check_permission('bom_restock_read_self') && !$this->check_permission('bom_restock_read')) {
                         $options['created_by'] = $this->login_user->id;
                 }
+
+                if (isset($is_zero) && !empty($is_zero)) {
+                        $options["is_zero"] = $is_zero;
+                }
+
                 $list_data = $this->Bom_stock_groups_model->get_restocks2($options)->result();
                 // var_dump(arr($list_data)); exit;
                 $result = array();
@@ -4896,6 +4903,7 @@ class Stock extends MY_Controller
 
         function item_report_list()
         {
+                $is_zero = $this->input->post("is_zero");
                 //$this->check_module_availability("module_stock");
                 if (!$this->cop('view_row') || !$this->bom_can_access_material() || !$this->bom_can_access_restock()) {
                         redirect("forbidden");
@@ -4904,6 +4912,10 @@ class Stock extends MY_Controller
                 $options = array();
                 if ($this->check_permission('bom_restock_read_self') && !$this->check_permission('bom_restock_read')) {
                         $options['created_by'] = $this->login_user->id;
+                }
+
+                if (isset($is_zero) && !empty($is_zero)) {
+                        $options["is_zero"] = $is_zero;
                 }
 
                 $list_data = $this->Bom_item_groups_model->get_restocks2($options)->result();

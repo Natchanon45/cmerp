@@ -104,6 +104,10 @@ class Bom_item_groups_model extends Crud_model {
         if ($created_by) {
             $where .= " AND bsg.created_by = $created_by";
         }
+        $is_zero = get_array_value($options, "is_zero");
+        if ($is_zero == 0) {
+            $where .= " AND bs.remaining > 0";
+        }
         $sql = "
             SELECT bs.*, 
             bm.title `item_name`, bm.description `item_desc`, bm.unit_type `item_unit`, bm.noti_threshold, 

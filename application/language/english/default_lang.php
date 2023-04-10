@@ -1980,3 +1980,5 @@ $lang["expiration_date"] = "Expiration date";
 $lang["text_waiting_approve"] = "Waiting for approve";
 $lang["text_approved"] = "Approved";
 $lang["text_rejected"] = "Not approved";
+$lang["remain_only"] = "Remain only";
+$lang["all_add_stock"] = "All add stock";

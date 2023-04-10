@@ -2395,3 +2395,6 @@ $lang["create_new_projects_automatically_when_rt_gets_accepted"] = "สร้า
 $lang["text_waiting_approve"] = "รออนุมัติ";
 $lang["text_approved"] = "อนุมัติ";
 $lang["text_rejected"] = "ไม่อนุมัติ";
+
+$lang["remain_only"] = "คงคลังเท่านั้น";
+$lang["all_add_stock"] = "ทั้งหมดที่นำเข้า";

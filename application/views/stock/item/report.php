@@ -88,6 +88,9 @@
                 
                 $("#report-table").appTable({
                         source: '<?php echo_uri("stock/item_report_list") ?>',
+                        filterDropdown: [
+				{ name: "is_zero", options: [ { "id": 0, "text": "<?php echo lang("remain_only"); ?>" }, { "id": 1, "text": "<?php echo lang("all_add_stock"); ?>" } ], class: "w150" }
+			],
                         columns: [
                                 {title: "<?php echo lang("id") ?>", "class": "text-center w10"},
                                 {title: '<?php echo lang("stock_item_name"); ?>'},
