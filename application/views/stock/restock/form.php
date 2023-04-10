@@ -156,7 +156,7 @@
               </td>
               <td>
                 <input 
-                type="number" name="priceunit[]" readonly 
+                type="number" name="priceunit[]" <?php if($readonly)echo 'readonly'; ?> 
                 class="form-control price-per-unit" min="0" step="0.01" value="<?php echo $pricePerUnit; ?>"
                 />
               </td>
@@ -222,7 +222,7 @@
                 />
                 </td><td>
                 <input 
-                  type="number" name="priceunit[]" readonly 
+                  type="number" name="priceunit[]" required 
                   class="form-control price-per-unit" min="0" step="0.01" value="0" 
                 />
               </td>
@@ -246,21 +246,57 @@
         });
 
         typeContainer.find('.stock-calc').unbind();
-        typeContainer.find('.stock-calc').change(function(e) {
-          e.preventDefault();
-          let stock = parseInt($(this).closest('tr').find('.stock-calc').val());
-          let price = parseInt($(this).closest('tr').find('.price-calc').val());
+        typeContainer.find('.stock-calc').click(function (e) {
+          e.target.select();
+        });
+        typeContainer.find('.stock-calc').keypress(function (e) {
+          if (e.key == "Enter") {
+            e.preventDefault();
+            $(this).closest('tr').find('.price-calc').select();
+          }
+        });
+        // typeContainer.find('.stock-calc').change(function(e) {
+        //   e.preventDefault();
+        //   let stock = parseFloat($(this).closest('tr').find('.stock-calc').val());
+        //   let price = parseFloat($(this).closest('tr').find('.price-calc').val());
 
+        //   $(this).closest('tr').find('.price-per-unit').val(priceUnitCalc(stock, price));
+        // });
+
+        typeContainer.find('.price-calc').unbind();
+        typeContainer.find('.price-calc').click(function (e) {
+          e.target.select();
+        });
+        typeContainer.find('.price-calc').keypress(function (e) {
+          if (e.key == "Enter") {
+            e.preventDefault();
+            $(this).closest('tr').find('.price-per-unit').select();
+          }
+        });
+        typeContainer.find('.price-calc').change(function(e) {
+          e.preventDefault();
+          let stock = parseFloat($(this).closest('tr').find('.stock-calc').val());
+          let price = parseFloat($(this).closest('tr').find('.price-calc').val());
+          
           $(this).closest('tr').find('.price-per-unit').val(priceUnitCalc(stock, price));
         });
 
-        typeContainer.find('.price-calc').unbind();
-        typeContainer.find('.price-calc').change(function(e) {
+        typeContainer.find('.price-per-unit').unbind();
+        typeContainer.find('.price-per-unit').click(function (e) {
+          e.target.select();
+        });
+        typeContainer.find('.price-per-unit').keypress(function (e) {
+          if (e.key == "Enter") {
+            e.preventDefault();
+            $(this).closest('tr').find('.price-calc').select();
+          }
+        });
+        typeContainer.find('.price-per-unit').change(function(e) {
           e.preventDefault();
-          let stock = parseInt($(this).closest('tr').find('.stock-calc').val());
-          let price = parseInt($(this).closest('tr').find('.price-calc').val());
+          let stock = parseFloat($(this).closest('tr').find('.stock-calc').val());
+          let price = parseFloat($(this).closest('tr').find('.price-per-unit').val());
           
-          $(this).closest('tr').find('.price-per-unit').val(priceUnitCalc(stock, price));
+          $(this).closest('tr').find('.price-calc').val(priceTotalCalc(stock, price));
         });
         
         typeContainer.find('.select-material').select2('destroy');
@@ -279,6 +315,14 @@
           return 0;
         } else {
           return (price / stock).toFixed(2);
+        }
+      }
+
+      function priceTotalCalc(stock = 0, price = 0) {
+        if (stock === 0 || price === 0) {
+          return 0;
+        } else {
+          return (price * stock).toFixed(2);
         }
       }
     <?php }?>
