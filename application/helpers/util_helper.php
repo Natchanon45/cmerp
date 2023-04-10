@@ -26,7 +26,7 @@ if (!function_exists('getNumber')){
 
         return (float) str_replace(',', '.', $removedThousandSeparator);
     }
-}    
+}
 
 if (!function_exists('numberToText')) {
     function numberToText($amount_number){

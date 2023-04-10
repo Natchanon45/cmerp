@@ -34,7 +34,7 @@ let fstatus = [
 
 $(document).ready(function () {
     $("#monthly-estimate-table").appTable({
-        source: '<?php echo_uri("quotations/index/source") ?>',
+        source: '<?php echo_uri("quotations/index/igrid") ?>',
         order: [[0, "desc"]],
         dateRangeType: "monthly",
         filterDropdown: [{name: "status", class: "w150", options: fstatus}],

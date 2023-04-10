@@ -20,6 +20,8 @@ class MY_Controller extends CI_Controller {
 
 		global $class;
 
+        $this->json = json_decode(file_get_contents('php://input'));
+
         $login_user_id = $this->Users_model->login_user_id();
 
         if (!$login_user_id) {

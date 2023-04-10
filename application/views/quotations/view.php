@@ -111,7 +111,7 @@
                 <tr><td colspan="6">&nbsp;</td></tr>
                 <tr>
                     <td colspan="2">
-                        <p><?php echo modal_anchor(get_uri("estimates/item_modal_form"), "<i class='fa fa-plus-circle'></i> " . lang('add_item_product'), array("id"=>"add_item_button", "class" => "btn btn-default", "title" => lang('add_item_product'), "data-post-estimate_id" => $qrow->id, "data-post-doc_id" => $qrow->id)); ?></p>
+                        <p><?php echo modal_anchor(get_uri("quotations/item"), "<i class='fa fa-plus-circle'></i> " . lang('add_item_product'), array("id"=>"add_item_button", "class" => "btn btn-default", "title" => lang('add_item_product'), "data-post-doc_id" => $qrow->id)); ?></p>
                         <p><input type="text" id="total_in_text" readonly></p>
                     </td>
                     <td colspan="4" class="summary">
@@ -204,10 +204,9 @@ $(document).ready(function() {
 });
 
 function loadItems(){
-    axios.get('<?php echo_uri("estimates/jitems") ?>', {
-        params: {
-            doc_id: '<?php echo $esrow->id; ?>'
-        }
+    axios.post('<?php echo current_url(); ?>', {
+        task: 'load_items',
+        doc_id: '<?php echo $qrow->id; ?>'
     }).then(function (response) {
         data = response.data;
         if(data.status == "notfound"){
@@ -227,7 +226,7 @@ function loadItems(){
                     tbody += "<td>"+items[i]["rate"]+"</td>";
                     tbody += "<td>"+items[i]["price"]+"</td>";
                     tbody += "<td class='edititem'>";
-                        tbody += "<a class='edit' data-post-id='"+items[i]["id"]+"' data-post-doc_id='<?php echo $esrow->id; ?>' data-post-item_id='"+items[i]["id"]+"' data-act='ajax-modal' data-action-url='<?php echo_uri("estimates/item_modal_form"); ?>' ><i class='fa fa-pencil'></i></a>";
+                        tbody += "<a class='edit' data-post-id='"+items[i]["id"]+"' data-post-doc_id='<?php echo $qrow->id; ?>' data-post-item_id='"+items[i]["id"]+"' data-act='ajax-modal' data-action-url='<?php echo_uri("quotations/item_modal_form"); ?>' ><i class='fa fa-pencil'></i></a>";
                         tbody += "<a class='delete' data-id='"+items[i]["id"]+"'><i class='fa fa-times fa-fw'></i></a>";
                     tbody += "</td>";
 
@@ -249,7 +248,7 @@ function loadItems(){
 
 function loadDoc(){
     axios.post('<?php echo_uri("quotations/jdoc") ?>', {
-        doc_id: '<?php echo $esrow->id; ?>',
+        doc_id: '<?php echo $qrow->id; ?>',
         discount_percent: $("#discount_percent").val()
     },{
         headers: {
@@ -271,9 +270,9 @@ function loadDoc(){
 }
 
 function deleteItem(item_id){
-    axios.get('<?php echo_uri("estimates/jdelete_item") ?>', {
+    axios.get('<?php echo_uri("quotations/jdelete_item") ?>', {
         params: {
-            doc_id: '<?php echo $esrow->id; ?>',
+            doc_id: '<?php echo $qrow->id; ?>',
             item_id: item_id
         }
     }).then(function (response) {

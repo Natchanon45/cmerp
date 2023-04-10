@@ -3,7 +3,7 @@
     <div class="form-group">
         <label for="quotation_date" class=" col-md-3"><?php echo lang('estimate_date'); ?></label>
         <div class="col-md-9">
-            <input type="text" id="quotation_date" name="quotation_date" value="<?php echo !empty($qrow)?$qrow->doc_date:''; ?>" class="form-control" placeholder="<?php echo lang('estimate_date'); ?>" autocomplete="off">
+            <input type="text" id="quotation_date" value="<?php echo !empty($qrow)?$qrow->doc_date:''; ?>" class="form-control" placeholder="<?php echo lang('estimate_date'); ?>" autocomplete="off">
         </div>
     </div>
 
@@ -71,7 +71,7 @@
 </div>
 <div class="modal-footer">
     <button type="button" class="btn btn-default" data-dismiss="modal"><span class="fa fa-close"></span> <?php echo lang('close'); ?></button>
-    <button type="submit" id="btnSubmit" class="btn btn-primary"><span class="fa fa-check-circle"></span> <?php echo lang('save'); ?></button>
+    <button type="button" id="btnSubmit" class="btn btn-primary"><span class="fa fa-check-circle"></span> <?php echo lang('save'); ?></button>
 </div>
 <script type="text/javascript">
 $(document).ready(function() {

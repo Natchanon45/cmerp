@@ -216,6 +216,7 @@ $autoload['model'] = array(
     'Bom_item_files_model',
     'Permission_m',
     'Projects_m',
+    'Products_m',
     'Quotations_m',
     'Clients_m',
     'Users_m'
