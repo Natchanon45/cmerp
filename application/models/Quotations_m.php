@@ -60,59 +60,122 @@ class Quotations_m extends MY_Model {
     function doc($docId){
         $db = $this->db;
 
-        $qrow = $db->select("*")
+        $this->data["doc_id"] = $docId;
+        $this->data["doc_date"] = date("Y-m-d");
+        $this->data["credit"] = "0";
+        $this->data["doc_valid_until_date"] = date("Y-m-d");
+        $this->data["reference_number"] = "";
+        $this->data["vat_inc"] = "N";
+        $this->data["project_id"] = null;
+        $this->data["client_id"] = null;
+        $this->data["remark"] = "";
+
+        if(!empty($docId)){
+            $qrow = $db->select("*")
                         ->from("quotation")
-                        ->where("id", $docId)
-                        ->get()->row();
-
-        if(empty($qrow)) return $this->data;
-
-
-        $this->data["qrow"] = $qrow;
-        $this->data["status"] = "success";
-
-        return $this->data;
-    }
-
-    /*function doc(){
-        $db = $this->db;
-        $docId = $this->input->post("docId");
-        $data["status"] = "fail";
-        $data["success"] = false;
-
-        $esrow = $db->select("*")
-                        ->from("estimates")
                         ->where("id", $docId)
                         ->where("deleted", 0)
                         ->get()->row();
 
-        if(empty($esrow)){
-            return $data;
+            if(empty($qrow)) return $this->data;
+
+            $this->data["doc_number"] = $qrow->doc_number;
+            $this->data["doc_date"] = $qrow->doc_date;
+            $this->data["credit"] = $qrow->credit;
+            $this->data["doc_valid_until_date"] = $qrow->doc_valid_until_date;
+            $this->data["reference_number"] = $qrow->reference_number;
+            $this->data["vat_inc"] = $qrow->vat_inc;
+            $this->data["project_id"] = $qrow->project_id;
+            $this->data["client_id"] = $qrow->client_id;
+            $this->data["remark"] = $qrow->remark;
+            $this->data["created_by"] = $qrow->created_by;
         }
 
-        $discount_percent = $this->input->post("discount_percent");
+        $this->data["status"] = "success";
+        return $this->data;
+    }
 
-        $data["sub_total_before_discount"] = number_format($esrow->sub_total_before_discount, 2);
-        
-        $data["discount_amount_type"] = $esrow->discount_amount_type == "percentage" ? "P":"F";
-        $data["discount_percent"] = number_format($esrow->discount_percent > 99.99 ? 99.00 : $esrow->discount_percent, 2);
-        $data["discount_amount"] = number_format($esrow->discount_amount, 2);
+    function docUpdate(){
+        $db = $this->db;
+        $docId = isset($this->json->doc_id) ? $this->json->doc_id : null;
+
+        $qrow = $db->select("*")
+                    ->from("quotation")
+                    ->where("id", $docId)
+                    ->where("deleted", 0)
+                    ->get()->row();
+
+        if(empty($qrow)) return $this->data;
+
+        $sub_total_before_discount = $db->select("SUM(price) AS total_price")
+                                        ->from("quotation_items")
+                                        ->where("quotation_id", $docId)
+                                        ->get()->row()->total_price;
+
+        if($sub_total_before_discount == null) $sub_total_before_discount = 0;
 
 
-        $data["sub_total"] = number_format($esrow->sub_total_estimate, 2);
-        $data["vat_inc"] = $esrow->vat_inc;
-        $data["vat_percent"] = $esrow->vat_percent;
-        $data["vat_value"] = number_format($esrow->vat_value, 2);
-        $data["total"] = number_format($esrow->total_estimate, 2);
-        $data["wht_inc"] = $esrow->wht_inc;
-        $data["wht_percent"] = $esrow->wht_percent;
-        $data["wht_value"] = $esrow->wht_value;
-        $data["payment_amount"] = $esrow->payment_amount;
+        $discount_type = $qrow->discount_type;
+        $discount_percent = $qrow->discount_percent;
+        $discount_amount = $qrow->discount_amount;
 
-        $data["total_in_text"] = "(".numberToText($esrow->sub_total_estimate).")";
 
-        return $data;
-    }*/
+        if($discount_type == "P" && $discount_percent > 0){
+            $discount_amount = ($sub_total_before_discount * $discount_percent)/100;
+        }
+
+        $sub_total = $sub_total_before_discount - $discount_amount;
+
+
+        $vat_inc = $qrow->vat_inc;
+        $vat_percent = 0;
+        $vat_value = 0;
+        if($vat_inc == "Y"){
+            $vat_percent = $this->Taxes_m->getVatPercent();
+            $vat_value = $sub_total * $this->Taxes_m->getVat();
+        }
+
+        $total = $sub_total + $vat_value;
+
+        $wht_inc = $qrow->wht_inc;
+        $wht_percent = $qrow->wht_percent;
+        $wht_value = 0;
+
+        if($wht_inc == "Y"){
+            $wht_value = ($total * $wht_percent) / 100;
+        }
+
+        $payment_amount = $total - $wht_value;
+
+        $db->where("id", $docId);
+        $db->update("quotation", [
+                                    "sub_total_before_discount"=>$sub_total_before_discount,
+                                    "discount_type"=>$discount_type,
+                                    "discount_percent"=>$discount_percent,
+                                    "discount_amount"=>$discount_amount,
+                                    "sub_total"=>$sub_total,
+                                    "vat_inc"=>$vat_inc,
+                                    "vat_percent"=>$vat_percent,
+                                    "vat_value"=>$vat_value,
+                                    "total"=>$total,
+                                    "wht_inc"=>$wht_inc,
+                                    "wht_percent"=>$wht_percent,
+                                    "wht_value"=>$wht_value,
+                                    "payment_amount"=>$payment_amount
+                                ]);
+
+        $this->data["status"] = "success";
+        $this->data["sub_total_before_discount"] = $sub_total_before_discount;
+        $this->data["discount_percent"] = $discount_percent;
+        $this->data["sub_total"] = $sub_total;
+        $this->data["vat_value"] = $vat_value;
+        $this->data["total"] = $total;
+        $this->data["wht_value"] = $wht_value;
+        $this->data["payment_amount"] = $payment_amount;
+        $this->data["payment_amount_in_text"] = numberToText(0);
+
+        return $this->data;
+    }
 
 
     function validateDoc(){
@@ -192,7 +255,6 @@ class Quotations_m extends MY_Model {
         
         $this->data["target"] = get_uri("quotations/view/". $docId);
         $this->data["status"] = "success";
-        $this->data["message"] = "success";
 
         return $this->data;
     }
@@ -273,52 +335,50 @@ class Quotations_m extends MY_Model {
 
     function item(){
         $db = $this->db;
-        $doc_id = $this->input->post("doc_id");
-        $item_id = $this->input->post("item_id");
+        $docId = $this->input->post("doc_id");
+        $itemId = $this->input->post("item_id");
 
-        $esrow = $db->select("id")
-                        ->from("estimates")
-                        ->where("id", $doc_id)
+        $qrow = $db->select("id")
+                        ->from("quotation")
+                        ->where("id", $docId)
                         ->where("deleted", 0)
                         ->get()->row();
 
-        if(empty($esrow)) return $data;
+        if(empty($qrow)) return $this->data;
 
-        $data["doc_id"] = $doc_id;
-        $data["item_id"] = "";
-        $data["title"] = "";
-        $data["description"] = "";
-        $data["quantity"] = "0";
-        $data["unit_type"] = "";
-        $data["rate"] = "0";
-        $data["vat_type"] = "1";
+        $this->data["doc_id"] = $docId;
+        $this->data["item_id"] = "";
+        $this->data["product_id"] = "";
+        $this->data["product_name"] = "";
+        $this->data["product_description"] = "";
+        $this->data["quantity"] = "0";
+        $this->data["unit"] = "";
+        $this->data["price"] = "0";
+        $this->data["total_price"] = "1";
 
-
-        if(!empty($item_id)){
-            $esirow = $db->select("*")
-                        ->from("estimate_items")
-                        ->where("id", $item_id)
+        if(!empty($itemId)){
+            $qirow = $db->select("*")
+                        ->from("quotation_items")
+                        ->where("id", $itemId)
                         ->get()->row();
 
                         
 
-            if(empty($esirow)){
-                return $data;
-            }
+            if(empty($qirow)) return $this->data;
 
-            $data["item_id"] = $esirow->id;
-            $data["title"] = $esirow->title;
-            $data["description"] = $esirow->description;
-            $data["quantity"] = $esirow->quantity;
-            $data["unit_type"] = $esirow->unit_type;
-            $data["rate"] = $esirow->rate;
-            $data["vat_type"] = $esirow->vat_type;
+            $this->data["item_id"] = $qirow->id;
+            $this->data["product_id"] = $qirow->product_id;
+            $this->data["product_name"] = $qirow->product_name;
+            $this->data["product_description"] = $qirow->product_description;
+            $this->data["quantity"] = $qirow->quantity;
+            $this->data["unit"] = $qirow->unit;
+            $this->data["price"] = $qirow->price;
+            $this->data["total_price"] = $qirow->total_price;
         }
 
-        $data["status"] = "success";
-        $data["success"] = true;
+        $this->data["status"] = "success";
 
-        return $data;
+        return $this->data;
     }
 
     function validateItem(){
@@ -326,12 +386,22 @@ class Quotations_m extends MY_Model {
 
         $this->form_validation->set_rules([
                                             [
-                                                "field"=>"quotation_date",
+                                                "field"=>"product_id",
                                                 'label' => '',
                                                 'rules' => 'required'
                                             ],
                                             [
-                                                "field"=>"quotation_valid_until_date",
+                                                "field"=>"quantity",
+                                                'label' => '',
+                                                'rules' => 'required'
+                                            ],
+                                            [
+                                                "field"=>"unit",
+                                                'label' => '',
+                                                'rules' => 'required'
+                                            ],
+                                            [
+                                                "field"=>"price",
                                                 'label' => '',
                                                 'rules' => 'required'
                                             ]
@@ -339,27 +409,30 @@ class Quotations_m extends MY_Model {
 
         if ($this->form_validation->run() == FALSE){
             $this->data["status"] = "validate";
-            if(form_error('quotation_date') != null) $this->data["messages"]["quotation_date"] = form_error('quotation_date');
-            if(form_error('quotation_valid_until_date') != null) $this->data["messages"]["quotation_valid_until_date"] = form_error('quotation_valid_until_date');
+            if(form_error('product_name') != null) $this->data["messages"]["product_name"] = form_error('product_name');
+            if(form_error('quantity') != null) $this->data["messages"]["quantity"] = form_error('quantity');
+            if(form_error('unit') != null) $this->data["messages"]["unit"] = form_error('unit');
+            if(form_error('price') != null) $this->data["messages"]["price"] = form_error('price');
         }
 
     }
 
     function saveItem(){
         $db = $this->db;
+        $docId = isset($this->json->doc_id)?$this->json->doc_id:null;
 
         $qrow = $db->select("id")
                     ->from("quotation")
-                    ->where("id", $doc_id)
+                    ->where("id", $docId)
                     ->where("deleted", 0)
                     ->get()->row();
+                    log_message("error", $db->last_query());
 
         if(empty($qrow)) return $this->data;
         
         $this->validateItem();
         if($this->data["status"] == "validate") return $this->data;
 
-        $docId = $this->json->id;
         $itemId = $this->json->item_id;
         $product_id = $this->json->project_id;
         $product_name = $this->json->product_name;
@@ -400,9 +473,6 @@ class Quotations_m extends MY_Model {
             $db->where("quotation_id", $docId);
             $db->update("quotation_items", $fdata);
         }
-        
-
-        $this->updateDoc($docId);
 
         
         if ($db->trans_status() === FALSE){
@@ -416,73 +486,6 @@ class Quotations_m extends MY_Model {
 
         return $data;
 
-    }
-
-    function updateDoc($docId){
-        $db = $this->db;
-
-        $qrow = $db->select("*")
-                    ->from("quotation")
-                    ->where("id", $docId)
-                    ->where("deleted", 0)
-                    ->get()->row();
-
-        if(empty($qrow)) return false;
-
-        $sub_total_before_discount = $db->select("SUM(price) AS total_price")
-                                        ->from("quotation_items")
-                                        ->where("quotation_id", $docId)
-                                        ->get()->row()->total_price;
-
-
-        $discount_type = $qrow->discount_type;
-        $discount_percent = $qrow->discount_percent;
-        $discount_amount = $qrow->discount_amount;
-
-
-        if($discount_type == "P" && $discount_percent > 0){
-            $discount_amount = ($sub_total_before_discount * $discount_percent)/100;
-        }
-
-        $sub_total = $sub_total_before_discount - $discount_amount;
-
-
-        $vat_inc = $qrow->vat_inc;
-        $vat_percent = 0;
-        $vat_value = 0;
-        if($vat_inc == "Y"){
-            $vat_percent = $this->Taxes_m->getVatPercent();
-            $vat_value = $sub_total * $this->Taxes_m->getVat();
-        }
-
-        $total = $sub_total + $vat_value;
-
-        $wht_inc = $qrow->wht_inc;
-        $wht_percent = $qrow->wht_percent;
-        $wht_value = 0;
-
-        if($wht_inc == "Y"){
-            $wht_value = ($total * $wht_percent) / 100;
-        }
-
-        $payment_amount = $total - $wht_value;
-
-        $db->where("id", $docId);
-        $db->update("quotation", [
-                                    "sub_total_before_discount"=>$sub_total_before_discount,
-                                    "discount_type"=>$discount_type,
-                                    "discount_percent"=>$discount_percent,
-                                    "discount_amount"=>$discount_amount,
-                                    "sub_total"=>$sub_total,
-                                    "vat_inc"=>$vat_inc,
-                                    "vat_percent"=>$vat_percent,
-                                    "vat_value"=>$vat_value,
-                                    "total"=>$total,
-                                    "wht_inc"=>$wht_inc,
-                                    "wht_percent"=>$wht_percent,
-                                    "wht_value"=>$wht_value,
-                                    "payment_amount"=>$payment_amount
-                                ]);
     }
 
     function deleteItem(){

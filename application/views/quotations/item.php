@@ -2,33 +2,33 @@
     <div class="form-group">
         <label for="product_name" class=" col-md-3"><?php echo lang('item'); ?></label>
         <div class="col-md-9">
-            <input type="hidden" id="product_id" value="<?php echo !empty($qirow)?$qirow->product_id:''; ?>" />
-            <input type="text" id="product_name" value="<?php echo !empty($qirow)?$qirow->product_name:''; ?>" placeholder="<?php echo lang('select_or_create_new_item'); ?>" class="form-control" >
+            <input type="hidden" id="product_id" value="<?php echo $product_id ?>" />
+            <input type="text" id="product_name" value="<?php echo $product_name; ?>" placeholder="<?php echo lang('select_or_create_new_item'); ?>" class="form-control" >
             <!--<a id="product_name_dropdwon_icon" tabindex="-1" href="javascript:void(0);" style="color: #B3B3B3;float: right; padding: 5px 7px; margin-top: -35px; font-size: 18px;"><span>×</span></a>-->
         </div>
     </div>
     <div class="form-group">
         <label for="product_description" class="col-md-3"><?php echo lang('description'); ?></label>
         <div class=" col-md-9">
-            <textarea id="product_description" class="form-control"><?php echo !empty($qirow)?$qirow->product_description:''; ?></textarea>
+            <textarea id="product_description" class="form-control"><?php echo $product_description; ?></textarea>
         </div>
     </div>
     <div class="form-group">
         <label for="quantity" class=" col-md-3"><?php echo lang('quantity'); ?></label>
         <div class="col-md-9">
-            <input type="text" id="quantity" value="<?php echo !empty($qirow)?$qirow->quantity:''; ?>" placeholder="<?php echo lang('quantity'); ?>" class="form-control" >
+            <input type="text" id="quantity" value="<?php echo $quantity; ?>" placeholder="<?php echo lang('quantity'); ?>" class="form-control" >
         </div>
     </div>
     <div class="form-group">
         <label for="unit" class=" col-md-3"><?php echo lang('unit_type'); ?></label>
         <div class="col-md-9">
-            <input type="text" id="unit" value="<?php echo !empty($qirow)?$qirow->unit:''; ?>" placeholder="<?php echo lang('quantity'); ?>" class="form-control" >
+            <input type="text" id="unit" value="<?php echo $unit; ?>" placeholder="หน่วย" class="form-control" >
         </div>
     </div>
     <div class="form-group">
         <label for="price" class=" col-md-3"><?php echo lang('rate'); ?></label>
         <div class="col-md-9">
-            <input type="text" id="price" value="<?php echo !empty($qirow)?to_decimal_format($qirow->price):'0.00'; ?>" placeholder="<?php echo lang('rate'); ?>" class="form-control" >
+            <input type="text" id="price" value="<?php echo $price; ?>" placeholder="<?php echo lang('rate'); ?>" class="form-control" >
         </div>
     </div>
 </div>
@@ -42,8 +42,8 @@ $(document).ready(function () {
     $("#btnSubmit").click(function() {
         axios.post('<?php echo current_url(); ?>', {
             task: 'save',
-            doc_id : "<?php echo (!empty($qirow)?$qirow->id:'')?>",
-            item_id : "<?php echo (!empty($qirow)?$qirow->item_id:'')?>",
+            doc_id : "<?php echo $doc_id; ?>",
+            item_id : "<?php echo $item_id; ?>",
             product_id:$("#product_id").val(),
             product_name:$("#product_name").val(),
             product_description: $("#product_description").val(),

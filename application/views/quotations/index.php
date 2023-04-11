@@ -6,7 +6,7 @@
             <li><a role="presentation" href="<?php echo_uri("estimates/yearly/"); ?>" data-target="#yearly-estimates"><?php echo lang('yearly'); ?></a></li>
             <div class="tab-title clearfix no-border">
                 <div class="title-button-group">
-                    <a data-action-url='<?php echo get_uri("quotations/doc"); ?>' data-act='ajax-modal' class='btn btn-default'><i class='fa fa-plus-circle'></i> <?php echo lang('add_estimate'); ?></a>
+                    <a data-action-url='<?php echo get_uri("quotations/doc"); ?>' data-act='ajax-modal' class='btn btn-default'><i class='fa fa-plus-circle'></i>เพิ่มใบเสนอราคา</a>
                 </div>
             </div>
         </ul>

@@ -8,8 +8,6 @@ class MY_Model extends CI_Model{
     function __construct(){
         parent::__construct();
         $this->data["status"] = "fail";
-        $this->data["message"] = "fail";
-        $this->data["messages"] = [];
         $this->json = json_decode(file_get_contents('php://input'));
     }
 }

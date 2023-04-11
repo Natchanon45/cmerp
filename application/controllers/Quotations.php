@@ -8,7 +8,7 @@ class Quotations extends MY_Controller {
 
     function index() {
         if($this->uri->segment(3) == "igrid"){
-            echo json_encode(["data"=>$this->Quotations_m->igrid()]);
+            jout(["data"=>$this->Quotations_m->igrid()]);
             return;
         }
 
@@ -18,7 +18,7 @@ class Quotations extends MY_Controller {
 
     function doc(){
         if(isset($this->json->task)){
-            if($this->json->task == "save") echo json_encode($this->Quotations_m->saveDoc());
+            if($this->json->task == "save") jout($this->Quotations_m->saveDoc());
             return;   
         }
 
@@ -29,42 +29,40 @@ class Quotations extends MY_Controller {
 
     function view() {
         if(isset($this->json->task)){
-            if($this->json->task == "load_items") echo json_encode($this->Quotations_m->items());
+            if($this->json->task == "load_items") jout($this->Quotations_m->items());
+            if($this->json->task == "doc_update") jout($this->Quotations_m->docUpdate());
             return;
         }
 
+        if(empty($this->uri->segment(3))) redirect('/quotations');
         $data = $this->Quotations_m->doc($this->uri->segment(3));
-        if ($data["status"] == "success") {
-            $data["created"] = $this->Users_m->getInfo($data["qrow"]->created_by);
-            $data["client"] = $this->Clients_m->getInfo($data["qrow"]->client_id);
-            $data["client_contact"] = $this->Clients_m->getContactInfo($data["qrow"]->client_id);
-            if($data["client"] != null) $data["client_contact"] = $this->Clients_m->getContactInfo($data["qrow"]->client_id);
+        if ($data["status"] != "success") redirect('/quotations');
 
-            $this->template->rander("quotations/view", $data );
-            return;
-        }
 
-        redirect('/quotations');
+        $data["created"] = $this->Users_m->getInfo($data["created_by"]);
+        $data["client"] = $this->Clients_m->getInfo($data["client_id"]);
+        if($data["client"] != null) $data["client_contact"] = $this->Clients_m->getContactInfo($data["client_id"]);
+
+        $this->template->rander("quotations/view", $data );
     }
 
 
     function delete_doc() {
         if($this->input->post('undo') == true){
-            echo json_encode($this->Quotations_m->undoDoc());
+            jout($this->Quotations_m->undoDoc());
             return;
         }
 
-        echo json_encode($this->Quotations_m->deleteDoc());
-        return;
+        jout($this->Quotations_m->deleteDoc());
     }
 
     function items(){
-        echo json_encode($this->Quotations_m->items());
+        jout($this->Quotations_m->items());
     }
 
     function item() {
         if(isset($this->json->task)){
-            if($this->json->task == "save") echo json_encode($this->Quotations_m->saveItem());
+            if($this->json->task == "save") jout($this->Quotations_m->saveItem());
             return;   
         }
 
@@ -77,7 +75,7 @@ class Quotations extends MY_Controller {
                     }
                 }
                 //$suggestion[] = array("id" => "", "text" => "+ " . lang("create_new_item"));
-                echo json_encode($suggestion);
+                jout($suggestion);
             }
             return;
         }
@@ -85,21 +83,10 @@ class Quotations extends MY_Controller {
         $data = $this->Quotations_m->item();
 
         $this->load->view('quotations/item', $data);
-    }
-
-
-    
-
-    function jdoc(){
-        echo json_encode($this->Quotations_m->jDoc());
-    }
-
-    
-
-    
+    }    
 
     function jdelete_item(){
-        echo json_encode($this->Estimate_m->deleteItem());
+        jout($this->Estimate_m->deleteItem());
     }
 	
 	

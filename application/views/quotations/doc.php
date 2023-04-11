@@ -3,7 +3,7 @@
     <div class="form-group">
         <label for="quotation_date" class=" col-md-3"><?php echo lang('estimate_date'); ?></label>
         <div class="col-md-9">
-            <input type="text" id="quotation_date" value="<?php echo !empty($qrow)?$qrow->doc_date:''; ?>" class="form-control" placeholder="<?php echo lang('estimate_date'); ?>" autocomplete="off">
+            <input type="text" id="quotation_date" value="<?php echo $doc_date; ?>" class="form-control" placeholder="<?php echo lang('estimate_date'); ?>" autocomplete="off">
         </div>
     </div>
 
@@ -17,21 +17,21 @@
 
     <div class="form-group">
         <label for="quotation_valid_until_date" class=" col-md-3"><?php echo lang('valid_until'); ?></label>
-        <div class="col-md-9"><input type="text" id="quotation_valid_until_date" name="quotation_valid_until_date" value="<?php echo !empty($qrow)?$qrow->doc_valid_until_date:''; ?>" class="form-control" placeholder="<?php echo lang('valid_until'); ?>" autocomplete="off">
+        <div class="col-md-9"><input type="text" id="quotation_valid_until_date" value="<?php echo $doc_valid_until_date; ?>" class="form-control" placeholder="<?php echo lang('valid_until'); ?>" autocomplete="off">
         </div>
     </div>
 
     <div class="form-group">
         <label for="reference_number" class=" col-md-3">เลขที่อ้างอิง</label>
-        <div class="col-md-9"><input type="text" id="reference_number" name="reference_number" placeholder="#" class="form-control"></div>
+        <div class="col-md-9"><input type="text" id="reference_number" placeholder="#" <?php echo $reference_number; ?> class="form-control"></div>
     </div>
 
     <div class="form-group">
         <label for="vat_inc" class=" col-md-3">ราคาสินค้า</label>
         <div class="col-md-9">
             <select id="vat_inc" name="vat_inc" class="form-control">
-                <option value="N" <?php if(!empty($qrow)) if($qrow->vat_inc == "N") echo "selected" ?>>ราคาไม่รวมภาษี</option>
-                <option value="Y" <?php if(!empty($qrow)) if($qrow->vat_inc == "Y") echo "selected" ?>>ราคารวมภาษี</option>
+                <option value="N" <?php if($vat_inc == "N") echo "selected" ?>>ราคาไม่รวมภาษี</option>
+                <option value="Y" <?php if($vat_inc == "Y") echo "selected" ?>>ราคารวมภาษี</option>
             </select>
         </div>
     </div>
@@ -43,7 +43,7 @@
             <select id="client_id" class="form-control">
                 <option value="-1">-</option>
                 <?php foreach($crows as $crow): ?>
-                    <option value="<?php echo $crow->id; ?>" <?php if(!empty($qrow)) if($qrow->client_id == $crow->id) echo "selected"?>><?php echo $crow->company_name; ?></option>
+                    <option value="<?php echo $crow->id; ?>" <?php if($client_id == $crow->id) echo "selected"?>><?php echo $crow->company_name; ?></option>
                 <?php endforeach; ?>
             </select>
         </div>
@@ -56,7 +56,7 @@
             <select id="project_id" class="form-control">
                 <option value="-1">-</option>
                 <?php foreach($prows as $prow): ?>
-                    <option value="<?php echo $prow->id; ?>" <?php if(!empty($qrow)) if($qrow->project_id == $prow->id) echo "selected"?>><?php echo $prow->title; ?></option>
+                    <option value="<?php echo $prow->id; ?>" <?php if($project_id == $prow->id) echo "selected"?>><?php echo $prow->title; ?></option>
                 <?php endforeach; ?>
             </select>
         </div>
@@ -65,7 +65,7 @@
     <div class="form-group">
         <label for="remark" class=" col-md-3">หมายเหตุ</label>
         <div class=" col-md-9">
-            <textarea id="remark" name="remark" placeholder="หมายเหตุ" class="form-control"><?php echo !empty($qrow)?$qrow->remark:''; ?></textarea>
+            <textarea id="remark" name="remark" placeholder="หมายเหตุ" class="form-control"><?php echo $remark; ?></textarea>
         </div>
     </div>
 </div>

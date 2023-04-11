@@ -3,7 +3,7 @@
 
 <div id="dcontroller" class="clearfix">
     <div class="page-title clearfix mt15">
-        <h1>ใบเสนอราคา <?php echo $qrow->doc_number;?></h1>
+        <h1>ใบเสนอราคา <?php echo $doc_number;?></h1>
         <div class="title-button-group">
             <a style="margin-left: 15px;" class="btn btn-default mt0 mb0 back-to-index-btn"  href="<?php echo get_uri("quotations")?>" ><i class="fa fa-hand-o-left" aria-hidden="true"></i> ย้อนกลับไปตารางรายการ</a>
             <a class="btn btn-info mt0 mb0 approval-btn approve-btn">อนุมัติ</a>
@@ -39,7 +39,7 @@
                         <?php
                             $client_address = $client["city"];
                             if($client_address != "" && $client["state"] != "")$client_address .= ", ".$client["city"];
-                            elseif($client_address == "" && $$client["state"] != "")$client_address .= $client["city"];
+                            elseif($client_address == "" && $client["state"] != "")$client_address .= $client["city"];
                             if($client_address != "" && $client["zip"] != "") $client_address .= " ".$client["zip"];
                             elseif($client_address == "" && $client["zip"] != "") $client_address .= $client["zip"];
                             echo $client_address;
@@ -60,15 +60,15 @@
                 <table>
                     <tr>
                         <td class="custom-color">เลขที่</td>
-                        <td><?php echo $qrow->doc_number; ?></td>
+                        <td><?php echo $doc_number; ?></td>
                     </tr>
                     <tr>
                         <td class="custom-color">เลขที่อ้างอิง</td>
-                        <td><?php echo $qrow->reference_number; ?></td>
+                        <td><?php echo $reference_number; ?></td>
                     </tr>
                     <tr>
                         <td class="custom-color">วันที่</td>
-                        <td><?php echo format_to_date($qrow->doc_date, false); ?></td>
+                        <td><?php echo $doc_date; ?></td>
                     </tr>
                     <tr>
                         <td class="custom-color">ผู้ขาย</td>
@@ -80,15 +80,15 @@
                 <table>
                     <tr>
                         <td class="custom-color">ผู้ติดต่อ</td>
-                        <td><?php if($client_contact != null) echo $client_contact["first_name"]." ".$client_contact["last_name"]; ?></td>
+                        <td><?php if(isset($client_contact)) echo $client_contact["first_name"]." ".$client_contact["last_name"]; ?></td>
                     </tr>
                     <tr>
                         <td class="custom-color">เบอร์โทร</td>
-                        <td><?php if($client_contact != null) echo $client_contact["phone"]; ?></td>
+                        <td><?php if(isset($client_contact)) echo $client_contact["phone"]; ?></td>
                     </tr>
                     <tr>
                         <td class="custom-color">อีเมล์</td>
-                        <td><?php if($client_contact != null) echo $client_contact["email"]; ?></td>
+                        <td><?php if(isset($client_contact)) echo $client_contact["email"]; ?></td>
                     </tr>
                 </table>
             </div>
@@ -111,8 +111,8 @@
                 <tr><td colspan="6">&nbsp;</td></tr>
                 <tr>
                     <td colspan="2">
-                        <p><?php echo modal_anchor(get_uri("quotations/item"), "<i class='fa fa-plus-circle'></i> " . lang('add_item_product'), array("id"=>"add_item_button", "class" => "btn btn-default", "title" => lang('add_item_product'), "data-post-doc_id" => $qrow->id)); ?></p>
-                        <p><input type="text" id="total_in_text" readonly></p>
+                        <p><?php echo modal_anchor(get_uri("quotations/item"), "<i class='fa fa-plus-circle'></i> " . lang('add_item_product'), array("id"=>"add_item_button", "class" => "btn btn-default", "title" => lang('add_item_product'), "data-post-doc_id" => $doc_id)); ?></p>
+                        <p><input type="text" id="number_in_text" readonly></p>
                     </td>
                     <td colspan="4" class="summary">
                         <p>
@@ -135,7 +135,7 @@
                         </p>
                         <p>
                             <span class="c1 custom-color"><input type="checkbox" id="has_vat">ภาษีมูลค่าเพิ่ม <?php echo $this->Taxes_m->getVatPercent(); ?>%</span>
-                            <span class="c2"><input type="text" id="vat" readonly></span>
+                            <span class="c2"><input type="text" id="vat_value" readonly></span>
                             <span class="c3"><span class="currency">บาท</span></span>
                         </p>
                         <p class="total">
@@ -161,7 +161,7 @@
         </table>
         <div class="remark clear">
             <p class="custom-color">หมายเหตุ</p>
-            <p><?php echo nl2br($qrow->remark); ?></p>
+            <p><?php echo nl2br($remark); ?></p>
         </div><!--.remark-->
     </div><!--.docitem-->
     <div class="docsignature clear">
@@ -198,15 +198,16 @@
 <script type="text/javascript">
 $(document).ready(function() {
     loadItems();
+    loadDocSummary();
     $("#discount_percent").blur(function(){
-        loadDoc();
+        loadDocSummary();
     });
 });
 
 function loadItems(){
     axios.post('<?php echo current_url(); ?>', {
         task: 'load_items',
-        doc_id: '<?php echo $qrow->id; ?>'
+        doc_id: '<?php echo $doc_id; ?>'
     }).then(function (response) {
         data = response.data;
         if(data.status == "notfound"){
@@ -226,7 +227,7 @@ function loadItems(){
                     tbody += "<td>"+items[i]["rate"]+"</td>";
                     tbody += "<td>"+items[i]["price"]+"</td>";
                     tbody += "<td class='edititem'>";
-                        tbody += "<a class='edit' data-post-id='"+items[i]["id"]+"' data-post-doc_id='<?php echo $qrow->id; ?>' data-post-item_id='"+items[i]["id"]+"' data-act='ajax-modal' data-action-url='<?php echo_uri("quotations/item_modal_form"); ?>' ><i class='fa fa-pencil'></i></a>";
+                        tbody += "<a class='edit' data-post-id='"+items[i]["id"]+"' data-post-doc_id='<?php echo $doc_id; ?>' data-post-item_id='"+items[i]["id"]+"' data-act='ajax-modal' data-action-url='<?php echo_uri("quotations/item_modal_form"); ?>' ><i class='fa fa-pencil'></i></a>";
                         tbody += "<a class='delete' data-id='"+items[i]["id"]+"'><i class='fa fa-times fa-fw'></i></a>";
                     tbody += "</td>";
 
@@ -235,7 +236,7 @@ function loadItems(){
             }
 
             $(".docitem tbody").empty().append(tbody);
-            loadDoc();
+            loadDocSummary();
 
             $(".edititem .delete").click(function() {
                 deleteItem($(this).data("id"));
@@ -246,24 +247,24 @@ function loadItems(){
     });
 }
 
-function loadDoc(){
-    axios.post('<?php echo_uri("quotations/jdoc") ?>', {
-        doc_id: '<?php echo $qrow->id; ?>',
+function loadDocSummary(){
+    axios.post('<?php echo current_url(); ?>', {
+        task: 'doc_update',
+        doc_id: '<?php echo $doc_id; ?>',
         discount_percent: $("#discount_percent").val()
-    },{
-        headers: {
-            'Content-Type': 'multipart/form-data'
-        },
     }).then(function(response) { 
-        //tonum
         data = response.data;
 
         $("#sub_total_before_discount").val(data.sub_total_before_discount);
         $("#discount_percent").val(data.discount_percent);
         $("#discount_amount").val(data.sub_total);
         $("#sub_total").val(data.sub_total);
+        $("#vat_value").val(data.vat_value);
         $("#total").val(data.total);
-        $("#total_in_text").val(data.total_in_text);
+        $("#wht_value").val(data.wht_value);
+        $("#payment_amount").val(data.payment_amount);
+        $("#number_in_text").val(data.payment_amount_in_text);
+
     }).catch(function (error) {
         alert(error);
     });
@@ -272,7 +273,7 @@ function loadDoc(){
 function deleteItem(item_id){
     axios.get('<?php echo_uri("quotations/jdelete_item") ?>', {
         params: {
-            doc_id: '<?php echo $qrow->id; ?>',
+            doc_id: '<?php echo $doc_id; ?>',
             item_id: item_id
         }
     }).then(function (response) {

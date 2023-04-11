@@ -1,5 +1,12 @@
 <?php
 
+if (!function_exists('jout')){
+    function jout($data){
+        $ci = get_instance();
+        $ci->output->set_content_type('application/json', "UTF-8")->set_output(json_encode($data));
+    }   
+}
+
 if (!function_exists('convertDate')){
     function converDate($date){
         if($date == "") return "";
@@ -57,6 +64,8 @@ if (!function_exists('numberToText')) {
             }
             return $ret;
         }
+
+        if($amount_number == 0) return "ศูนย์บาทถ้วน";
 
 
         $amount_number = number_format($amount_number, 2, ".","");
