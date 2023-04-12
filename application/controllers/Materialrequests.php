@@ -34,7 +34,7 @@ class Materialrequests extends MY_Controller
 	function approve($mrid)
 	{
 		$items = $this->Mr_items_model->get_details(['mr_id' => $mrid, "item_type" => "all"])->result();
-		
+
 		$resources = [];
 		$restock_item_ids = [];
 		$item_ids = [];
@@ -56,7 +56,7 @@ class Materialrequests extends MY_Controller
 				$mr_posible = $this->Bom_stocks_model->check_posibility($item->material_id, $item->quantity);
 			}
 		}
-		
+
 		// If possible, reduce the stock
 		if ($mr_posible) {
 			foreach ($items as $item) {
@@ -553,7 +553,7 @@ class Materialrequests extends MY_Controller
 	}
 
 	/* load new order modal */
-	function modal_form()
+	function modal_form() // dev2
 	{
 		if (!$this->cp('materialrequests', 'edit_row')) {
 			redirect("forbidden");
@@ -1075,7 +1075,8 @@ class Materialrequests extends MY_Controller
 			$suggestion[] = array(
 				"id" => $item->supplier_name,
 				"text" => $item->supplier_name . (@$item->price ? "(" . $item->price . $item->currency_symbol . ")" : ""),
-				"supplier_id" => $item->id, //supplier_id
+				"supplier_id" => $item->id,
+				//supplier_id
 				"supplier_name" => $item->supplier_name,
 				"price" => intval(@$item->price),
 				"currency" => $item->currency ? $item->currency : 'THB',
@@ -1308,32 +1309,32 @@ class Materialrequests extends MY_Controller
 			}
 		}
 		// var_dump(arr($auth)); exit;
-		
+
 		$view_data["custom_field_headers"] = $this->Custom_fields_model->get_custom_field_headers_for_table("materialrequests", $auth->is_admin, $auth->user_type);
 		$view_data["create_material_request"] = $auth->is_admin ? $auth->is_admin : $auth->permissions["create_material_request"];
 
 		$buttonTops = array();
 		if ($auth->is_admin) {
-			$buttonTops[] = js_anchor("<i class='fa fa-bars'></i> " . lang('category_manager'), array("class" => "btn btn-primary", "title" => lang('category_manager'), "id" => "cat-mng-btn"));
+			$buttonTops[] = js_anchor("<i class='fa fa-bars'></i> " . lang('category_management'), array("class" => "btn btn-primary", "title" => lang('category_management'), "id" => "cat-mng-btn"));
 			$buttonTops[] = js_anchor("<i class='fa fa-shopping-cart'></i> " . lang('add_materialrequests'), array("class" => "btn btn-primary", "title" => lang('add_materialrequests'), "id" => "add-pr-btn"));
 		} else {
 			if ($auth->permissions["update_material_request"]) {
-				$buttonTops[] = js_anchor("<i class='fa fa-bars'></i> " . lang('category_manager'), array("class" => "btn btn-primary", "title" => lang('category_manager'), "id" => "cat-mng-btn"));
+				$buttonTops[] = js_anchor("<i class='fa fa-bars'></i> " . lang('category_management'), array("class" => "btn btn-primary", "title" => lang('category_management'), "id" => "cat-mng-btn"));
 			}
 			if ($auth->permissions["create_material_request"]) {
 				$buttonTops[] = js_anchor("<i class='fa fa-shopping-cart'></i> " . lang('add_materialrequests'), array("class" => "btn btn-primary", "title" => lang('add_materialrequests'), "id" => "add-pr-btn"));
 			}
 		}
 		$view_data['buttonTops'] = implode('', $buttonTops);
-		
+
 		$options = [];
 		/*if(!$this->cp('materialrequests', 'prove_row')) {
 		$options['where'] = " pr_status.id!='3' AND pr_status.id!='4' ";
 		}*/
-		
+
 		$view_data['mr_statuses'] = $this->Mr_status_model->get_details($options)->result();
 		$view_data['pr_suppliers'] = $this->Bom_suppliers_model->get_options()->result();
-		
+
 		$view_data['view_row'] = $this->cp('materialrequests', 'view_row');
 		$view_data['add_row'] = $this->cp('materialrequests', 'add_row');
 		$view_data['edit_row'] = $this->cp('materialrequests', 'edit_row');
@@ -1370,16 +1371,16 @@ class Materialrequests extends MY_Controller
 		);
 
 		$pr_status_color = "#efc050";
-		$pr_status_title = lang("text_waiting_approve");
+		$pr_status_title = lang("status_waiting_for_approve");
 
 		if ($data->status_id == 3) {
 			$pr_status_color = "#009b77";
-			$pr_status_title = lang("text_approved");
+			$pr_status_title = lang("status_already_approved");
 		}
 
 		if ($data->status_id == 4) {
 			$pr_status_color = "#ff1a1a";
-			$pr_status_title = lang("text_rejected");
+			$pr_status_title = lang("status_already_rejected");
 		}
 
 
@@ -1420,7 +1421,7 @@ class Materialrequests extends MY_Controller
 
 		if (!empty($this->getRolePermission['add_row'])) {
 			//$buttonTops[] = '<a href="'.get_uri("materialrequests").'" class="btn btn-default">'.lang('back_to_purchases').'</a>';
-			$buttonTops[] = js_anchor("<i class='fa fa-bars'></i> " . lang('back_to_purchases'), array("data-action-url" => get_uri("materialrequests"), "class" => "btn btn-default", "title" => lang('back_to_purchases'), "id" => "back-to-pr-btn"));
+			$buttonTops[] = js_anchor("<i class='fa fa-bars'></i> " . lang('back_to_materialrequest'), array("data-action-url" => get_uri("materialrequests"), "class" => "btn btn-default", "title" => lang('back_to_materialrequest'), "id" => "back-to-pr-btn"));
 			//$buttonTops[] = anchor(get_uri("materialrequests/categories"), "<i class='fa fa-bars'></i> ".lang('category_manager'), array("class" => "btn btn-primary", "title" => lang('category_manager'), "id" => "cat-mng-btn"));
 			//$buttonTops[] = modal_anchor( get_uri("materialrequests/category_form"), "<i class='fa fa-plus-circle'></i> ".lang('add_category'), array("class" => "btn btn-primary", "title" => lang('add_category'), "id" => "add-cat-btn"));
 			$buttonTops[] = js_anchor("<i class='fa fa-plus-circle'></i> " . lang('add_category'), array("data-action-url" => get_uri("materialrequests/category_form"), "class" => "btn btn-primary", "title" => lang('add_category'), "id" => "add-cat-btn"));
@@ -1801,8 +1802,6 @@ class Materialrequests extends MY_Controller
 
 	function list_data()
 	{
-		$auth = $this->Permission_m->get();
-
 		if ($this->Permission_m->access_material_request != true) {
 			redirect("forbidden");
 			return;
@@ -1911,22 +1910,19 @@ class Materialrequests extends MY_Controller
 
 	function list_lacked_stock_item()
 	{
-		$sql = "
-            SELECT bs.*, 
-            bm.title `item_name`, bm.unit_type `item_unit`, bm.noti_threshold,
-            bsg.name as importname,
-            IF(bmp.supplier_id IS NULL, 0, bmp.supplier_id) as supplier_id,
-            IF(bmp.price IS NULL, 0, bmp.price) as price,
-            IF(bsp.company_name IS NULL, '', bsp.company_name) as supplier_name,bsp.currency,bsp.currency_symbol
-            FROM bom_item_stocks bs 
-            INNER JOIN items bm ON bm.id = bs.item_id 
-            INNER JOIN bom_item_groups bsg ON bsg.id = bs.group_id 
-            LEFT JOIN (SELECT item_id,supplier_id,price/ratio as price FROM bom_item_pricings ORDER BY price ASC LIMIT 0,1) as bmp ON bmp.item_id=bm.id
-            LEFT JOIN bom_suppliers as bsp ON bmp.supplier_id=bsp.id
-            WHERE bs.remaining<bm.noti_threshold
-            GROUP BY bs.id  
-        ";
+		$sql = "SELECT bs.*, bm.title `item_name`, bm.unit_type `item_unit`, bm.noti_threshold, bsg.name AS importname, 
+		IF(bmp.supplier_id IS NULL, 0, bmp.supplier_id) AS supplier_id, 
+		IF(bmp.price IS NULL, 0, bmp.price) as price, 
+		IF(bsp.company_name IS NULL, '', bsp.company_name) AS supplier_name,bsp.currency,bsp.currency_symbol 
+		FROM bom_item_stocks bs 
+		INNER JOIN items bm ON bm.id = bs.item_id 
+		INNER JOIN bom_item_groups bsg ON bsg.id = bs.group_id 
+		LEFT JOIN (SELECT item_id,supplier_id,price/ratio AS price FROM bom_item_pricings ORDER BY price ASC LIMIT 0,1) AS bmp ON bmp.item_id = bm.id 
+		LEFT JOIN bom_suppliers AS bsp ON bmp.supplier_id = bsp.id 
+		WHERE bs.remaining < bm.noti_threshold GROUP BY bs.id ";
+
 		$rows = $this->db->query($sql)->result();
+
 		$imports = [];
 		foreach ($rows as $row) {
 			$row->ratio = abs($row->noti_threshold - $row->remaining);
@@ -1947,9 +1943,184 @@ class Materialrequests extends MY_Controller
 				$imports[$row->group_id] = $import;
 			}
 		}
-
 		echo json_encode(array("data" => array_values($imports), "success" => 1, "message" => "Success"));
 	}
+
+	function category_list() // dev2
+	{
+		$id = $this->input->post("id") ? $this->input->post("id") : 0;
+		$result = array();
+		$row = array();
+
+		if ($id === 0) {
+			$result = $this->Pr_categories_model->getRequestCategoryList();
+		} else {
+			$result = $this->Pr_categories_model->getRequestCategoryById($id);
+		}
+
+		if (sizeof($result)) {
+			foreach ($result as $data) {
+				if ($data->id == 1) {
+					$operation = '';
+					$title = $data->title;
+				} else {
+					$title = modal_anchor(get_uri("materialrequests/category_form/" . $data->id), $data->title, array("class" => "edit", "title" => lang("edit_category"), "data-post-id" => $data->id, "data-act" => "ajax-modal"));
+					$operation = (modal_anchor(get_uri("materialrequests/category_form/" . $data->id), "<i class='fa fa-pencil'></i>", array("class" => "edit", "title" => lang("edit_category"), "data-post-id" => $data->id, "data-act" => "ajax-modal"))) . (js_anchor("<i class='fa fa-times fa-fw'></i>", array("title" => lang("delete_category"), "class" => "delete", "data-id" => $data->id, "data-action-url" => get_uri("materialrequests/category_delete"), "data-action" => "delete-confirmation")));
+				}
+
+				$row[] = array(
+					"id" => $data->id,
+					"title" => $title,
+					"description" => $data->description,
+					"created_date" => format_to_date($data->created_date),
+					"created_by" => $data->first_name . " " . $data->last_name,
+					"operation" => $operation
+				);
+			}
+		}
+
+		echo json_encode(array("data" => $row));
+	}
+
+	function category_delete() // dev2
+	{
+		$this->check_module_availability("module_stock");
+
+		$id = $this->input->post("id");
+
+		validate_submitted_data(
+			array(
+				"id" => "required|numeric"
+			)
+		);
+
+		if ($this->Pr_categories_model->deleteRequestCategoryById($id)) {
+			echo json_encode(
+				array(
+					"success" => true,
+					"message" => lang("record_deleted")
+				)
+			);
+		} else {
+			echo json_encode(
+				array(
+					"success" => true,
+					"message" => lang("record_cannot_be_deleted")
+				)
+			);
+		}
+	}
+
+	function material_request_list() // dev2
+	{
+		$row = array();
+
+		$options = array(
+			"status_id" => $this->input->post("status_id"),
+			"start_date" => $this->input->post("start_date"),
+			"end_date" => $this->input->post("end_date")
+		);
+
+		$result = $this->Materialrequests_model->get_meterial_request_list($options);
+
+		if (sizeof($result)) {
+			foreach ($result as $data) {
+				$status_color = "#efc050";
+				$status_text = lang("status_waiting_for_approve");
+				$operation = "<a href='javascript:void();' data-action-url='" . get_uri("materialrequests/modal_form") . "' data-post-id='" . $data->id . "' title='" . lang('edit_materialrequest') . "' class='edit' data-act='ajax-modal'><i class='fa fa-pencil'></i></a>";
+				$operation .= "<a href='javascript:void();' data-action-url='" . get_uri("materialrequests/delete") . "' class='delete' data-action='delete-confirmation' data-id='" . $data->id . "' title='" . lang('delete_materialrequests') . "'><i class='fa fa-times fa-fw'></i></a>";
+
+				if ($data->status_id == 3) {
+					$status_color = "#009b77";
+					$status_text = lang("status_already_approved");
+					$operation = "";
+				}
+
+				if ($data->status_id == 4) {
+					$status_color = "#ff1a1a";
+					$status_text = lang("status_already_rejected");
+					$operation = "";
+				}
+				
+				$row[] = array(
+					"id" => $data->id,
+					"doc_no" => $data->doc_no ? anchor(get_uri("materialrequests/view/" . $data->id), $data->doc_no) : lang("have_no_document_number"),
+					"category_name" => $data->title,
+					"project_name" => $data->project_id ? anchor(get_uri("projects/view/" . $data->project_id), $data->project_name ? $data->project_name : $data->project_names) : lang("have_no_project_name"),
+					"client_name" => $data->company_name,
+					"user_name" => $data->first_name . " " . $data->last_name,
+					"request_date" => format_to_date($data->mr_date),
+					"status" => "<span style='background-color: $status_color;' class='label'>$status_text</span>",
+					"operation" => $operation
+				);
+			}
+		}
+
+		echo json_encode(array("data" => $row));
+	}
+
+	function material_request_modal() // dev2
+	{
+		$request = $this->input->post();
+
+		$category_list = $this->Pr_categories_model->getRequestCategoryList();
+		foreach ($category_list as $item) {
+			$view_data["category_dropdown"][$item->id] = $item->title;
+		}
+
+		$view_data["model_info"] = $this->Materialrequests_model->get_one($request["id"]);
+		$view_data["taxes_dropdown"] = array("0" => lang("tax")) + $this->Taxes_model->get_dropdown_list(array("title"));
+		
+		var_dump(arr($view_data));
+	}
+
+	function save_header() // dev2
+	{
+		$post = $this->input->post();
+
+		if ($this->Permission_m->update_material_request != true) {
+			echo json_encode(array("success" => false, 'message' => lang('error_occurred')));
+			return;
+		}
+
+		validate_submitted_data(
+			array(
+				"id" => "numeric",
+				"mr_date" => "required",
+				"status_id" => "required"
+			)
+		);
+
+		$id = intval($post["id"]);
+		$mr_date = $post["mr_date"];
+		$credit = $post["credit"];
+
+		$sql_date = "SELECT DATE_FORMAT( ADDDATE( '" . $mr_date . "', INTERVAL " . $credit . " day ), '%Y-%m-%d' ) AS expired FROM materialrequests WHERE materialrequests.id=$id";
+		$credit_date = $this->db->query($sql_date)->row();
+
+		$mr_data = array(
+			"id" => $id,
+			"doc_no" => $post["doc_no"],
+			"project_name" => $post["project_name"],
+			"catid" => $post["catid"],
+			"payment" => $post["payment"],
+			"credit" => $credit,
+			"expired" => $credit_date->expired,
+			"mr_date" => $mr_date,
+			"note" => $post["mr_note"],
+			"status_id" => $post["status_id"],
+			"tax_id" => $this->input->post("tax_id") ? $this->input->post("tax_id") : 0,
+			"tax_id2" => $this->input->post("tax_id2") ? $this->input->post("tax_id2") : 0
+		);
+
+		$affected = $this->Materialrequests_model->save_header($mr_data);
+		if ($affected === 1) {
+			echo json_encode(array("success" => true, "data" => $mr_data, "message" => lang("record_saved")));
+		} else {
+			echo json_encode(array("success" => false, 'message' => lang('error_occurred')));
+		}
+	}
+
 }
 
 /* End of file materialrequests.php */
