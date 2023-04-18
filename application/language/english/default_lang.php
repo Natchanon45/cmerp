@@ -1977,6 +1977,26 @@ $lang["วิจัยและการผลิต"] = "Production";
 $lang["พนักงาน"] = "Employees";
 $lang["expiration_date"] = "Expiration date";
 
+// dev2
+$lang["status_waiting_for_approve"] = "Waiting for approve";
+$lang["status_already_approved"] = "Approved";
+$lang["status_already_rejected"] = "Not approved";
+$lang["back_to_materialrequest"] = "Back to Material Request";
+$lang["category_management"] = "Category Management";
+$lang["materialrequests"] = "Material Request Document";
+$lang["document_number"] = "Document No.";
+$lang["add_materialrequests"] = "Add New Request";
+$lang["delete_materialrequests"] = "Delete Request";
+$lang["edit_materialrequest"] = "Edit Request";
+$lang["category_name"] = "Category Name";
+$lang["project_name"] = "Project Name";
+$lang["buyer_org"] = "Buyer Name";
+$lang["pr_date"] = "Request Date";
+$lang["client_name"] = "Client Name";
+$lang["have_no_document_number"] = "Have no document number";
+$lang["have_no_project_name"] = "Have no project name";
+$lang["material_request_date"] = "Request Date";
+$lang["material_request_person"] = "Request Person";
 $lang["text_waiting_approve"] = "Waiting for approve";
 $lang["text_approved"] = "Approved";
 $lang["text_rejected"] = "Not approved";
