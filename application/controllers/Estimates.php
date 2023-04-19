@@ -20,30 +20,32 @@ class Estimates extends MY_Controller {
     /* load estimate list view */
 
     function index() {
-        $this->check_module_availability("module_estimate");
-        $view_data['can_request_estimate'] = false;
+        redirect("forbidden");
 
-        $view_data["custom_field_headers"] = $this->Custom_fields_model->get_custom_field_headers_for_table("estimates", $this->login_user->is_admin, $this->login_user->user_type );
+        // $this->check_module_availability("module_estimate");
+        // $view_data['can_request_estimate'] = false;
 
-        if ( $this->login_user->user_type === "staff" ) {
+        // $view_data["custom_field_headers"] = $this->Custom_fields_model->get_custom_field_headers_for_table("estimates", $this->login_user->is_admin, $this->login_user->user_type );
+
+        // if ( $this->login_user->user_type === "staff" ) {
             
-			$this->access_only_allowed_members();
+		// 	$this->access_only_allowed_members();
 
-            $this->template->rander( "estimates/index", $view_data );
+        //     $this->template->rander( "estimates/index", $view_data );
 			
-        } else {
-            //client view
-            $view_data["client_info"] = $this->Clients_model->get_one($this->login_user->client_id);
-            $view_data['client_id'] = $this->login_user->client_id;
-            $view_data['page_type'] = "full";
+        // } else {
+        //     //client view
+        //     $view_data["client_info"] = $this->Clients_model->get_one($this->login_user->client_id);
+        //     $view_data['client_id'] = $this->login_user->client_id;
+        //     $view_data['page_type'] = "full";
 
 
-            if ( get_setting( "module_estimate_request" ) == "1" ) {
-                $view_data['can_request_estimate'] = true;
-            }
+        //     if ( get_setting( "module_estimate_request" ) == "1" ) {
+        //         $view_data['can_request_estimate'] = true;
+        //     }
 
-            $this->template->rander("clients/estimates/client_portal", $view_data);
-        }
+        //     $this->template->rander("clients/estimates/client_portal", $view_data);
+        // }
     }
 
     //load the yearly view of estimate list
