@@ -89,6 +89,7 @@ class MY_Controller extends CI_Controller {
  
 		}
 
+
 		$sql = "
 			SELECT
 				*
@@ -133,10 +134,10 @@ class MY_Controller extends CI_Controller {
 
 		$param['url'] = $url;
 
-		$this->getRolePermission = $this->db_model->getRolePermission( $param );
-
-		$this->getRolePermissions = $this->db_model->getRolePermissions();
-        
+        if($this->router->fetch_class() != "quotations"){
+            $this->getRolePermission = $this->db_model->getRolePermission( $param );
+            $this->getRolePermissions = $this->db_model->getRolePermissions();
+        }
 
 		if( $insert == true ) {
 

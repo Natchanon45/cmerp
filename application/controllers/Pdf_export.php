@@ -149,12 +149,7 @@ class Pdf_export extends CI_Controller {
             LEFT JOIN clients ON estimates.client_id = clients.id            
             LEFT JOIN users ON clients.id = users.client_id AND users.is_primary_contact = 1
             LEFT JOIN projects ON projects.id = estimates.project_id
-            WHERE estimates.id = $estimate_id;";  
-
-
-
-            
-           
+            WHERE estimates.id = $estimate_id;";
             
             
             $data = $this->Db_model->creatBy($estimate_id, "estimates");

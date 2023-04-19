@@ -115,7 +115,7 @@ class Estimates_model extends Crud_model {
 				SELECT $taxes_table.* FROM $taxes_table
 			) AS tax_table2 ON tax_table2.id = $estimates_table.tax_id2
 			LEFT JOIN (
-				SELECT estimate_id, SUM(total) AS estimate_value FROM $estimate_items_table WHERE deleted=0 GROUP BY estimate_id
+				SELECT estimate_id, SUM(price_inc_vat) AS estimate_value FROM $estimate_items_table WHERE deleted=0 GROUP BY estimate_id
 			) AS items_table ON items_table.estimate_id = $estimates_table.id
 			$join_custom_fieds
 			[WHERE]
@@ -161,7 +161,7 @@ class Estimates_model extends Crud_model {
         $clients_table = $this->db->dbprefix('clients');
         $taxes_table = $this->db->dbprefix('taxes');
 
-        $item_sql = "SELECT SUM($estimate_items_table.total) AS estimate_subtotal
+        $item_sql = "SELECT SUM($estimate_items_table.price_inc_vat) AS estimate_subtotal
         FROM $estimate_items_table
         LEFT JOIN $estimates_table ON $estimates_table.id= $estimate_items_table.estimate_id
         WHERE $estimate_items_table.deleted=0 AND $estimate_items_table.estimate_id=$estimate_id AND $estimates_table.deleted=0";

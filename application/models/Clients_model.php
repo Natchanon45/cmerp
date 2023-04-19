@@ -116,23 +116,31 @@ class Clients_model extends Crud_model {
         LEFT JOIN (SELECT $users_table.id, CONCAT($users_table.first_name, ' ', $users_table.last_name) AS owner_name, $users_table.image AS owner_avatar FROM $users_table WHERE $users_table.deleted=0 AND $users_table.user_type='staff') AS owner_details ON owner_details.id=$clients_table.owner_id
         $join_custom_fieds
         [WHERE]
-        ";//[WHERE]
+        "; // [WHERE]
 		
 		$filters = array();
 		if( isset( $getRolePermission['filters'] ) ) {
-			$filters =  $getRolePermission['filters'];
-            $filters['WHERE'] =  $filters['WHERE'];
+			// $filters =  $getRolePermission['filters'];
+            // $filters['WHERE'] =  $filters['WHERE'];
 		}
 		if( !empty( $options['id'] ) ) {
 			$filters['WHERE'][] = "". $clients_table .".id = ". $options['id'] ."";
 		}
+
+        if (!$this->login_user->is_admin) {
+            if (get_array_value($this->login_user->permissions, "client") == "") {
+                $filters['WHERE'][] = " 1 = 0";
+            }
+        }
+
         if($where) {
             $filters['WHERE'][] = " 1 ".$where;
         }
 	
 		$sql = genCond_X( $sql, $filters );	
-		//$sql = str_replace( 'leads', $clients_table, $sql );	
+		// $sql = str_replace( 'leads', $clients_table, $sql );	
 
+        // var_dump(arr($sql)); exit;
         return $this->db->query($sql);
     }
 
@@ -177,7 +185,7 @@ class Clients_model extends Crud_model {
     function get_primary_contact($client_id = 0, $info = false) {
         $users_table = $this->db->dbprefix('users');
 
-        $sql = "SELECT $users_table.id, $users_table.first_name, $users_table.last_name
+        $sql = "SELECT $users_table.id, $users_table.first_name, $users_table.last_name, $users_table.phone, $users_table.email
         FROM $users_table
         WHERE $users_table.deleted=0 AND $users_table.client_id=$client_id AND $users_table.is_primary_contact=1";
         $result = $this->db->query($sql);
@@ -188,6 +196,8 @@ class Clients_model extends Crud_model {
                 return $result->row()->id;
             }
         }
+
+        return null;
     }
 
     function add_remove_star($project_id, $user_id, $type = "add") {

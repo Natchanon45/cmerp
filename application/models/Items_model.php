@@ -1,154 +1,171 @@
 <?php
 
-class Items_model extends Crud_model {
+class Items_model extends Crud_model
+{
+	private $table = null;
 
-    private $table = null;
+	function __construct()
+	{
+		$this->table = 'items';
+		parent::__construct($this->table);
+	}
 
-    function __construct() {
-        $this->table = 'items';
-        parent::__construct($this->table);
-    }
+	function get_details($options = array())
+	{
+		$items_table = $this->db->dbprefix('items');
+		$order_items_table = $this->db->dbprefix('order_items');
+		$item_categories_table = $this->db->dbprefix('item_categories');
 
-    function get_details($options = array()) {
-        $items_table = $this->db->dbprefix('items');
-        $order_items_table = $this->db->dbprefix('order_items');
-        $item_categories_table = $this->db->dbprefix('item_categories');
+		$where = "";
+		$id = get_array_value($options, "id");
+		if ($id) {
+			$where .= " AND $items_table.id=$id";
+		}
 
-        $where = "";
-        $id = get_array_value($options, "id");
-        if ($id) {
-            $where .= " AND $items_table.id=$id";
-        }
+		$search = get_array_value($options, "search");
+		if ($search) {
+			$search = $this->db->escape_str($search);
+			$where .= " AND ($items_table.title LIKE '%$search%' OR $items_table.description LIKE '%$search%')";
+		}
 
-        $search = get_array_value($options, "search");
-        if ($search) {
-            $search = $this->db->escape_str($search);
-            $where .= " AND ($items_table.title LIKE '%$search%' OR $items_table.description LIKE '%$search%')";
-        }
+		$show_in_client_portal = get_array_value($options, "show_in_client_portal");
+		if ($show_in_client_portal) {
+			$where .= " AND $items_table.show_in_client_portal=1";
+		}
 
-        $show_in_client_portal = get_array_value($options, "show_in_client_portal");
-        if ($show_in_client_portal) {
-            $where .= " AND $items_table.show_in_client_portal=1";
-        }
+		$category_id = get_array_value($options, "category_id");
+		if ($category_id) {
+			$where .= " AND $items_table.category_id=$category_id";
+		}
 
-        $category_id = get_array_value($options, "category_id");
-        if ($category_id) {
-            $where .= " AND $items_table.category_id=$category_id";
-        }
+		$extra_select = "";
+		$login_user_id = get_array_value($options, "login_user_id");
+		if ($login_user_id) {
+			$extra_select = ", (SELECT COUNT($order_items_table.id) FROM $order_items_table WHERE $order_items_table.deleted=0 AND $order_items_table.order_id=0 AND $order_items_table.created_by=$login_user_id AND $order_items_table.item_id=$items_table.id) AS added_to_cart";
+		}
 
-        $extra_select = "";
-        $login_user_id = get_array_value($options, "login_user_id");
-        if ($login_user_id) {
-            $extra_select = ", (SELECT COUNT($order_items_table.id) FROM $order_items_table WHERE $order_items_table.deleted=0 AND $order_items_table.order_id=0 AND $order_items_table.created_by=$login_user_id AND $order_items_table.item_id=$items_table.id) AS added_to_cart";
-        }
+		$limit_query = "";
+		$limit = get_array_value($options, "limit");
+		if ($limit) {
+			$offset = get_array_value($options, "offset");
+			$limit_query = "LIMIT $offset, $limit";
+		}
 
-        $limit_query = "";
-        $limit = get_array_value($options, "limit");
-        if ($limit) {
-            $offset = get_array_value($options, "offset");
-            $limit_query = "LIMIT $offset, $limit";
-        }
+		$sql = "SELECT $items_table.*, $item_categories_table.title as category_title $extra_select
+			FROM $items_table
+			LEFT JOIN $item_categories_table ON $item_categories_table.id= $items_table.category_id
+			WHERE $items_table.deleted=0 $where
+			ORDER BY $items_table.title ASC
+			$limit_query";
+			
+		return $this->db->query($sql);
+	}
 
-        $sql = "SELECT $items_table.*, $item_categories_table.title as category_title $extra_select
-        FROM $items_table
-        LEFT JOIN $item_categories_table ON $item_categories_table.id= $items_table.category_id
-        WHERE $items_table.deleted=0 $where
-        ORDER BY $items_table.title ASC
-        $limit_query";
-        return $this->db->query($sql);
-    }
+	function get_items($options = array())
+	{
+		$items_table = $this->db->dbprefix('items');
+		$order_items_table = $this->db->dbprefix('order_items');
+		$item_categories_table = $this->db->dbprefix('item_categories');
 
-    function get_items($options = array()) {
-        $items_table = $this->db->dbprefix('items');
-        $order_items_table = $this->db->dbprefix('order_items');
-        $item_categories_table = $this->db->dbprefix('item_categories');
+		$where = "";
+		$id = get_array_value($options, "id");
+		if ($id) {
+			$where .= " AND $items_table.id=$id";
+		}
 
-        $where = "";
-        $id = get_array_value($options, "id");
-        if ($id) {
-            $where .= " AND $items_table.id=$id";
-        }
+		return $this->db->query(
+			"SELECT $items_table.id, $items_table.title, $items_table.unit_type 
+			FROM $items_table 
+			WHERE $items_table.deleted=0 $where 
+			ORDER BY $items_table.title ASC"
+		);
+	}
 
-        return $this->db->query(
-            "SELECT $items_table.id, $items_table.title, $items_table.unit_type 
-            FROM $items_table 
-            WHERE $items_table.deleted=0 $where 
-            ORDER BY $items_table.title ASC"
-        );
-    }
-    function get_categories($options = array()) {
-        $where = "";
-        
-        $id = get_array_value($options, "id");
-        if ($id) {
-            $where .= " AND bmc.id = $id";
-        }
+	function get_categories($options = array())
+	{
+		$where = "";
+		$id = get_array_value($options, "id");
+		if ($id) {
+			$where .= " AND bmc.id = $id";
+		}
 
-        return $this->db->query("
-            SELECT bmc.* 
-            FROM item_categories bmc 
-            WHERE 1 $where 
-        ");
-    }
-    function category_create($data) {
-        $this->db->insert('item_categories', $data);
-        return $this->db->insert_id();
-    }
-    function category_update($data) {
-        $this->db->replace('item_categories', $data);
-        return $data['id'];
-    }
-    function category_delete($id = 0) {
-        $this->db->query("UPDATE items SET category_id = NULL WHERE category_id = $id");
-        $this->db->delete('item_categories', [ 'id' => $id ]);
-        return true;
-    }
-    function get_category_dropdown($options = array()) {
-        $data = $this->get_categories($options)->result();
-        $result = [
-            [ 'id' => '', 'text' => '- '.lang('stock_material_category').' -' ]
-        ];
-        foreach($data as $d){
-            $result[] = [ 'id' => $d->id, 'text' => $d->title ];
-        }
-        return $result;
-    }
+		return $this->db->query(
+			"SELECT bmc.* 
+			FROM item_categories bmc 
+			WHERE 1 $where "
+		);
+	}
 
-    function get_item_request_suggestion($keyword = "") {
-        $item_table = $this->db->dbprefix('items');
+	function category_create($data)
+	{
+		$this->db->insert('item_categories', $data);
+		return $this->db->insert_id();
+	}
 
-        $keyword = $this->db->escape_str($keyword);
+	function category_update($data)
+	{
+		$this->db->replace('item_categories', $data);
+		return $data['id'];
+	}
 
-        $sql = "SELECT $item_table.`id`,concat($item_table.`title`,'  ',' (',FORMAT(SUM(bs.remaining), 'N2'),' ',$item_table.`unit_type`,')') as `text` , SUM(bs.item_id) AS 'remaining'
-        FROM $item_table
-        LEFT JOIN bom_item_stocks bs ON $item_table.id = bs.item_id  
-        WHERE bs.remaining > 0 
-        AND $item_table.`title` LIKE '%$keyword%'
-        GROUP BY bs.item_id
-        LIMIT 10 
-        ";
-        //arr($sql);
-        return $this->db->query($sql)->result();
-    }
+	function category_delete($id = 0)
+	{
+		$this->db->query("UPDATE items SET category_id = NULL WHERE category_id = $id");
+		$this->db->delete('item_categories', ['id' => $id]);
+		return true;
+	}
 
-    function get_item_info_suggestion($material_id) {
-        $materials_table = $this->db->dbprefix('items');
+	function get_category_dropdown($options = array())
+	{
+		$data = $this->get_categories($options)->result();
+		$result = [
+			['id' => '', 'text' => '- ' . lang('stock_material_category') . ' -']
+		];
+		foreach ($data as $d) {
+			$result[] = ['id' => $d->id, 'text' => $d->title];
+		}
+		return $result;
+	}
 
-        $material_id = $this->db->escape_str($material_id);
+	function get_item_request_suggestion($keyword = "")
+	{
+		$item_table = $this->db->dbprefix('items');
 
-        $sql = "SELECT $materials_table.*, SUM(bs.remaining) AS remaining
-        FROM $materials_table
-        LEFT JOIN bom_item_stocks bs ON $materials_table.id = bs.item_id  
-        WHERE $materials_table.`id` = '$material_id'
-        AND bs.remaining > 0 
-        GROUP BY bs.item_id
-        ";
-        //arr($sql);
-        $result = $this->db->query($sql);
+		$keyword = $this->db->escape_str($keyword);
 
-        if ($result->num_rows()) {
-            return $result->row();
-        }
-    }
+		$sql = "SELECT $item_table.`id`,concat($item_table.`title`,'  ',' (',FORMAT(SUM(bs.remaining), 'N2'),' ',$item_table.`unit_type`,')') as `text` , SUM(bs.item_id) AS 'remaining'
+			FROM $item_table
+			LEFT JOIN bom_item_stocks bs ON $item_table.id = bs.item_id  
+			WHERE bs.remaining > 0 
+			AND $item_table.`title` LIKE '%$keyword%'
+			GROUP BY bs.item_id
+			LIMIT 10 
+		";
+		
+		// arr($sql);
+		return $this->db->query($sql)->result();
+	}
 
+	function get_item_info_suggestion($material_id)
+	{
+		$materials_table = $this->db->dbprefix('items');
+
+		$material_id = $this->db->escape_str($material_id);
+
+		$sql = "SELECT $materials_table.*, SUM(bs.remaining) AS remaining
+			FROM $materials_table
+			LEFT JOIN bom_item_stocks bs ON $materials_table.id = bs.item_id  
+			WHERE $materials_table.`id` = '$material_id'
+			AND bs.remaining > 0 
+			GROUP BY bs.item_id
+        	";
+
+		// arr($sql);
+		$result = $this->db->query($sql);
+
+		if ($result->num_rows()) {
+			return $result->row();
+		}
+	}
+	
 }

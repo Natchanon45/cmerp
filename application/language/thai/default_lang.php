@@ -517,6 +517,7 @@ $lang["edit_invoice"] = "Edit invoice";
 $lang["delete_invoice"] = "Delete invoice";
 $lang["item"] = "Item";
 $lang["add_item"] = "Add item";
+$lang["add_item_product"] = "Add Product";
 $lang["create_new_item"] = "Create new item";
 $lang["select_or_create_new_item"] = "Select from list or create new item...";
 $lang["quantity"] = "Quantity";

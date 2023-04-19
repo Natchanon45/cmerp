@@ -17,10 +17,14 @@ class Clients extends MY_Controller {
 
     //for team members, check only read_only permission here, since other permission will be checked accordingly
     private function can_edit_clients() {
-        if ($this->login_user->user_type == "staff" && get_array_value($this->login_user->permissions, "client") === "read_only") {
-            return false;
-        }
+        $authReadOnly = array("", "read_only");
 
+        if (!$this->login_user->is_admin) {
+            if (in_array(get_array_value($this->login_user->permissions, "client"), $authReadOnly)) {
+                return false;
+            }
+        }
+        
         return true;
     }
 
@@ -55,29 +59,29 @@ class Clients extends MY_Controller {
     /* load client add/edit modal */
 
     function modal_form() {
-		
+		$this->load->model("Permission_m");
+        $permission_m = $this->Permission_m->get();
+
+        // var_dump($permission_m->client);
+        // var_dump(arr($this->Permission_m->get()));
+        // exit;
 		
         $client_id = $this->input->post('id');
 		
-		if( empty( $client_id ) ) {
-			
+		if (empty( $client_id )) {
 			if( empty( $this->getRolePermission['add_row'] ) ) {
 			
 				echo permissionBlock();
-				
 				return;
+
 			}
-		}
-		else {
-			
-			if( empty( $this->getRolePermission['edit_row'] ) ) {
+		} else {
+			if($permission_m->client === "read_only") {
 				
 				echo permissionBlock();
-				
 				return;
 				 
 			}
-			
 		}
 		
 		//echo 'dfsadfadfsd';

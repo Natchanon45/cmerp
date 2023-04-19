@@ -98,6 +98,10 @@ class Bom_stock_groups_model extends Crud_model {
         if ($created_by) {
             $where .= " AND bsg.created_by = $created_by";
         }
+        $is_zero = get_array_value($options, "is_zero");
+        if ($is_zero == 0) {
+            $where .= " AND bs.remaining > 0";
+        }
         $sql = "
             SELECT bs.*,
             bm.name `material_name`, bm.unit `material_unit`, bm.noti_threshold, bm.production_name,
@@ -120,6 +124,8 @@ class Bom_stock_groups_model extends Crud_model {
             WHERE 1 $where 
             GROUP BY bs.id 
         ";
+
+        // var_dump(arr($sql)); exit;
         return $this->db->query($sql);
     }
     

@@ -104,6 +104,7 @@ class Bom_suppliers_model extends Crud_model {
     }
     function get_material_pricing_dropdown($supplier_id = 0) {
         $permissions = json_decode(json_encode($this->login_user->permissions));
+        // var_dump(arr($this->login_user->is_admin)); exit;
 
         $where = "";
         if($supplier_id) {
@@ -133,7 +134,9 @@ class Bom_suppliers_model extends Crud_model {
         foreach($data as $d){
             $material_name = $d->name;
 
-            if($permissions->bom_material_read_production_name == "1" && $d->production_name != ""){
+            if ($this->login_user->is_admin && $d->production_name != "") {
+                $material_name .= " - ".str_replace("\"", "`", $d->production_name);
+            } elseif ($permissions->bom_material_read_production_name == "1" && $d->production_name != "") {
                 $material_name .= " - ".str_replace("\"", "`", $d->production_name);
             }
 

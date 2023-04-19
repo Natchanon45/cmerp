@@ -689,7 +689,10 @@ class roles extends MY_Controller {
 				ORDER BY
 					l.order_number ASC
 			";
-			
+			// var_dump($sql); 
+			// $tryFetchAll = $this->dao->fetchAll( $sql );
+			// var_dump($tryFetchAll);
+			// exit;
 
 			$view_data['lis'] = $this->getTable( $this->dao->fetchAll( $sql ) );
 
@@ -734,6 +737,10 @@ class roles extends MY_Controller {
 					continue;
 				}
 				if( $vg->class_name == 'events' ) {
+
+					continue;
+				}
+				if( $vg->class_name == 'clients' ) {
 
 					continue;
 				}
