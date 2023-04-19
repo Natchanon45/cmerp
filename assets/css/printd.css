@@ -125,6 +125,7 @@
 
 #printd .docitem table{
     width: 100%;
+    table-layout: fixed;
 }
 
 #printd .docitem tr td{
@@ -135,8 +136,8 @@
 }
 
 #printd .docitem td.edititem{
-    padding: 0;
-    padding-top: 8px;
+    padding-left: 0;
+    padding-right: 0;
 }
 
 #printd .docitem td.edititem a{
@@ -188,12 +189,12 @@
     margin: 0;
     text-align: right;
     height: 22px;
-    /*border: 0;*/
+    border: 0;
 }
 
 #printd .docitem tfoot td #number_in_text{
     text-align: left;
-    width: 460px;
+    width: 380px;
     margin-top: 20px;
 }
 
@@ -212,10 +213,11 @@
 
 #printd .docitem tfoot td.summary span.c1{
     text-align: left;
-    width: 160px;
+    width: 200px;
 }
 
-#printd .docitem tfoot td.summary #discount_percent{
+#printd .docitem tfoot td.summary #discount_percent,
+#printd .docitem tfoot td.summary #wht_percent{
     width: 56px;
     height: 28px;
     border: 1px solid #ccc;
@@ -225,6 +227,11 @@
     text-align: right;
     border-radius: 4px;
     outline: none;
+}
+
+#printd .docitem tfoot td.summary #wht_percent{
+    width: 68px;
+    text-align: left;
 }
 
 #printd .docitem tfoot td.summary .edit_discount a{
@@ -263,15 +270,15 @@
     display: none;
 }
 
-#printd .docitem tfoot p.withholding_tax{
+#printd .docitem tfoot p.withholding{
     border-top: 1px solid #ccc;
-    width: 320px;
+    /*width: 320px;*/
     margin-top: 14px;
     padding-top: 14px;
 }
 
-#printd .docitem tfoot td.summary #has_vat,
-#printd .docitem tfoot td.summary #has_withholding_tax{
+#printd .docitem tfoot td.summary #vat_inc,
+#printd .docitem tfoot td.summary #wht_inc{
     margin-right: 4px;
 }
 
@@ -368,6 +375,11 @@
         display: none !important;
     }
 
+    #printd .docitem table{
+        width: 100%;
+        table-layout:auto;
+    }
+
     #printd .docitem thead{
         display: table-row-group;
     }
@@ -405,12 +417,30 @@
         display: inline-block;
     }
 
-    #printd .docitem tfoot td.summary p.withholding_tax{
-        width: 100%;
+    #printd .docitem tfoot td.summary #discount_percent,
+    #printd .docitem tfoot td.summary #wht_percent{
+        border: 0;
+        text-align: left;
+        height: 22px;
+        line-height: 22px;
+        padding: 0;
+        padding-left: 4px;
+        margin: 0;
+        outline: none;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        text-indent: 1px;
+        text-overflow: '';
     }
 
-    #printd .docitem tfoot td.summary #discount_percent{
-        border: 0;
-        outline: none;
+    #printd .docitem tfoot td.summary #wht_percent{
+        width: 40px;
     }
+
+    #printd .docitem tfoot td.summary #vat_inc,
+    #printd .docitem tfoot td.summary #wht_inc{
+        display: none;
+
+    }
+
 }

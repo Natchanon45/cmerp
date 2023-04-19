@@ -8,10 +8,17 @@ if (!function_exists('jout')){
 }
 
 if (!function_exists('convertDate')){
-    function converDate($date){
+    function converDate($date, $cm_format = false){
         if($date == "") return "";
-        list($dd, $mm, $yy) = explode("/", $date);
-        return $yy."-".$mm."-".$dd;
+
+        if($cm_format == false){
+            list($dd, $mm, $yy) = explode("/", $date);
+            return $yy."-".$mm."-".$dd;
+        }
+
+        list($yy, $mm, $dd) = explode("-", $date);
+        return $dd."/".$mm."/".$yy;
+        
     }   
 }
 
@@ -23,8 +30,8 @@ if (!function_exists('roundUp')){
 
 if (!function_exists('getNumber')){
     function getNumber($number){
-        $cleanString = preg_replace('/([^0-9\.,])/i', '', $money);
-        $onlyNumbersString = preg_replace('/([^0-9])/i', '', $money);
+        $cleanString = preg_replace('/([^0-9\.,])/i', '', $number);
+        $onlyNumbersString = preg_replace('/([^0-9])/i', '', $number);
 
         $separatorsCountToBeErased = strlen($cleanString) - strlen($onlyNumbersString) - 1;
 

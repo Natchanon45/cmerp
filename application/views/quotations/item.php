@@ -2,7 +2,7 @@
     <div class="form-group">
         <label for="product_name" class=" col-md-3"><?php echo lang('item'); ?></label>
         <div class="col-md-9">
-            <input type="hidden" id="product_id" value="<?php echo $product_id ?>" />
+            <input type="hidden" id="product_id" value="<?php echo $product_id; ?>">
             <input type="text" id="product_name" value="<?php echo $product_name; ?>" placeholder="<?php echo lang('select_or_create_new_item'); ?>" class="form-control" >
             <!--<a id="product_name_dropdwon_icon" tabindex="-1" href="javascript:void(0);" style="color: #B3B3B3;float: right; padding: 5px 7px; margin-top: -35px; font-size: 18px;"><span>×</span></a>-->
         </div>
@@ -16,19 +16,25 @@
     <div class="form-group">
         <label for="quantity" class=" col-md-3"><?php echo lang('quantity'); ?></label>
         <div class="col-md-9">
-            <input type="text" id="quantity" value="<?php echo $quantity; ?>" placeholder="<?php echo lang('quantity'); ?>" class="form-control" >
+            <input type="text" id="quantity" value="<?php echo $quantity; ?>" placeholder="<?php echo lang('quantity'); ?>" class="form-control numb" >
         </div>
     </div>
     <div class="form-group">
         <label for="unit" class=" col-md-3"><?php echo lang('unit_type'); ?></label>
         <div class="col-md-9">
-            <input type="text" id="unit" value="<?php echo $unit; ?>" placeholder="หน่วย" class="form-control" >
+            <input type="text" id="unit" value="<?php echo $unit; ?>" placeholder="หน่วย" class="form-control">
         </div>
     </div>
     <div class="form-group">
         <label for="price" class=" col-md-3"><?php echo lang('rate'); ?></label>
         <div class="col-md-9">
-            <input type="text" id="price" value="<?php echo $price; ?>" placeholder="<?php echo lang('rate'); ?>" class="form-control" >
+            <input type="text" id="price" value="<?php echo $price; ?>" placeholder="<?php echo lang('rate'); ?>" class="form-control numb">
+        </div>
+    </div>
+    <div class="form-group">
+        <label for="total_price" class=" col-md-3">ราคารวม</label>
+        <div class="col-md-9">
+            <input type="text" id="total_price" value="<?php echo $total_price; ?>" placeholder="<?php echo lang('rate'); ?>" class="form-control numb" readonly>
         </div>
     </div>
 </div>
@@ -43,7 +49,7 @@ $(document).ready(function () {
         axios.post('<?php echo current_url(); ?>', {
             task: 'save',
             doc_id : "<?php echo $doc_id; ?>",
-            item_id : "<?php echo $item_id; ?>",
+            item_id : "<?php if(isset($item_id)) echo $item_id; ?>",
             product_id:$("#product_id").val(),
             product_name:$("#product_name").val(),
             product_description: $("#product_description").val(),
@@ -92,6 +98,34 @@ $(document).ready(function () {
         $("#product_id").val(e.added.id);
         $("#product_name").val(e.added.text);
         $("#product_description").val(e.added.description);
+        $("#quantity").val("1");
+        $("#unit").val(e.added.unit);
+        $("#price").val(e.added.price);
+
+        calculatePrice();
+    });
+
+    <?php if(isset($item_id)): ?>
+        $("#product_name").select2('data', {
+                                                id:"<?php echo $product_name; ?>",
+                                                text: "<?php echo $product_name; ?>"
+                                            });
+    <?php endif; ?>
+
+    $(".numb").blur(function(){
+        calculatePrice();
     });
 });
+
+function calculatePrice(){
+    let quantity = tonum($("#quantity").val());
+    let price = tonum($("#price").val());
+
+    if(quantity < 0 ) quantity = 0;
+    if(price < 0 ) price = 0;
+
+    $("#quantity").val(quantity);
+    $("#price").val(price);
+    $("#total_price").val($.number(quantity * price, 2 ));
+}
 </script>

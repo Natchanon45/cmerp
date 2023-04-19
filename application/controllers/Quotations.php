@@ -30,7 +30,9 @@ class Quotations extends MY_Controller {
     function view() {
         if(isset($this->json->task)){
             if($this->json->task == "load_items") jout($this->Quotations_m->items());
-            if($this->json->task == "doc_update") jout($this->Quotations_m->docUpdate());
+            if($this->json->task == "load_summary") jout($this->Quotations_m->summary());
+            if($this->json->task == "update_doc") jout($this->Quotations_m->updateDoc());
+            if($this->json->task == "delete_item") jout($this->Quotations_m->deleteItem());
             return;
         }
 
@@ -71,7 +73,7 @@ class Quotations extends MY_Controller {
                 $sprows = $this->Products_m->getRows();
                 if(!empty($sprows)){
                     foreach($sprows as $sprow){
-                        $suggestion[] = ["id" => $sprow->id, "text" => $sprow->title, "description"=>$sprow->description];
+                        $suggestion[] = ["id" => $sprow->id, "text" => $sprow->title, "description"=>$sprow->description, "unit"=>$sprow->unit_type, "price"=>$sprow->rate];
                     }
                 }
                 //$suggestion[] = array("id" => "", "text" => "+ " . lang("create_new_item"));
@@ -83,11 +85,5 @@ class Quotations extends MY_Controller {
         $data = $this->Quotations_m->item();
 
         $this->load->view('quotations/item', $data);
-    }    
-
-    function jdelete_item(){
-        jout($this->Estimate_m->deleteItem());
     }
-	
-	
 }

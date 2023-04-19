@@ -1,5 +1,4 @@
 <div class="general-form modal-body clearfix">
-    <input type="hidden" name="id" value="<?php echo !empty($qrow)?$qrow->id:''; ?>" />
     <div class="form-group">
         <label for="quotation_date" class=" col-md-3"><?php echo lang('estimate_date'); ?></label>
         <div class="col-md-9">
@@ -10,7 +9,7 @@
     <div class="form-group">
         <label for="credit" class=" col-md-3">เครดิต</label>
         <div class="col-md-9" style="display: grid;grid-template-columns: auto auto;align-items: center; justify-items: center;justify-content: start;">
-            <input type="number" id="credit" name="credit" value="<?php echo !empty($qrow)?$qrow->credit:''?>" class="form-control" placeholder="กรอกเลข 0 หากชำระเงินสด" autocomplete="off" >
+            <input type="number" id="credit" value="<?php echo $credit; ?>" class="form-control" placeholder="กรอกเลข 0 หากชำระเงินสด" autocomplete="off" >
             <div style="padding-left: 5px;"> วันหลังออกใบแจ้งหนี้</div>
         </div>
     </div>
@@ -23,7 +22,7 @@
 
     <div class="form-group">
         <label for="reference_number" class=" col-md-3">เลขที่อ้างอิง</label>
-        <div class="col-md-9"><input type="text" id="reference_number" placeholder="#" <?php echo $reference_number; ?> class="form-control"></div>
+        <div class="col-md-9"><input type="text" id="reference_number" value="<?php echo $reference_number; ?>" placeholder="#" class="form-control"></div>
     </div>
 
     <div class="form-group">
@@ -35,7 +34,6 @@
             </select>
         </div>
     </div>
-    
     <div class="form-group">
         <label for="client_id" class=" col-md-3"><?php echo lang('client'); ?></label>
         <div class="col-md-9">
@@ -73,16 +71,18 @@
     <button type="button" class="btn btn-default" data-dismiss="modal"><span class="fa fa-close"></span> <?php echo lang('close'); ?></button>
     <button type="button" id="btnSubmit" class="btn btn-primary"><span class="fa fa-check-circle"></span> <?php echo lang('save'); ?></button>
 </div>
+
 <script type="text/javascript">
 $(document).ready(function() {
     $("#btnSubmit").click(function() {
         axios.post('<?php echo current_url(); ?>', {
             task: 'save',
-            doc_id : "<?php echo (!empty($qrow)?$qrow->id:'')?>",
+            doc_id : "<?php if(isset($doc_id)) echo $doc_id; ?>",
             quotation_date:$("#quotation_date").val(),
             credit: $("#credit").val(),
             quotation_valid_until_date: $("#quotation_valid_until_date").val(),
             reference_number: $("#reference_number").val(),
+            vat_inc: $("#vat_inc").val(),
             client_id: $("#client_id").val(),
             project_id: $("#project_id").val(),
             remark: $("#remark").val()

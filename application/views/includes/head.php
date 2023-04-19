@@ -1,7 +1,4 @@
 <head>
-<link rel="stylesheet" href="/assets/css/style2.css?time=<?php echo time(); ?>">
-<script src="https://unpkg.com/axios@1.1.2/dist/axios.min.js"></script>
-<script src="/assets/js/util.js"></script>
 <?php $this->load->view('includes/meta'); ?>
 <?php $this->load->view('includes/helper_js'); ?>
 <?php $this->load->view('includes/plugin_language_js'); ?>
@@ -40,4 +37,8 @@ load_js(array(
 
 <?php $this->load->view("includes/csrf_ajax"); ?>
 <?php $this->load->view("includes/custom_head"); ?>
+<link rel="stylesheet" href="/assets/css/style2.css?time=<?php echo time(); ?>">
+<script src="https://unpkg.com/axios@1.1.2/dist/axios.min.js"></script>
+<script src="/assets/js/util.js"></script>
+<script src="/assets/js/jquery.number.min.js"></script>
 </head>

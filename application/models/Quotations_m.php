@@ -21,8 +21,8 @@ class Quotations_m extends MY_Model {
         $data = [
                     "<a href='".get_uri("quotations/view/".$qrow->id)."'>".$qrow->doc_number."</a>",
                     "<a href='".get_uri("clients/view/".$qrow->client_id)."'>".$this->Clients_m->getCompanyName($qrow->client_id)."</a>",
-                    $qrow->doc_date,
-                    $qrow->total,
+                    converDate($qrow->doc_date, true),
+                    number_format($qrow->total, 2),
                     $this->getStatusName($qrow->status),
                     "<a data-post-id='".$qrow->id."' data-action-url='".get_uri("quotations/doc")."' data-act='ajax-modal' class='edit'><i class='fa fa-pencil'></i></a><a data-id='".$qrow->id."' data-action-url='".get_uri("quotations/delete_doc")."' data-action='delete' class='delete'><i class='fa fa-times fa-fw'></i></a>"
                 ];
@@ -60,15 +60,16 @@ class Quotations_m extends MY_Model {
     function doc($docId){
         $db = $this->db;
 
-        $this->data["doc_id"] = $docId;
         $this->data["doc_date"] = date("Y-m-d");
         $this->data["credit"] = "0";
         $this->data["doc_valid_until_date"] = date("Y-m-d");
         $this->data["reference_number"] = "";
         $this->data["vat_inc"] = "N";
+        $this->data["wht_inc"] = "N";
         $this->data["project_id"] = null;
         $this->data["client_id"] = null;
         $this->data["remark"] = "";
+        $this->data["created_by"] = "";
 
         if(!empty($docId)){
             $qrow = $db->select("*")
@@ -79,12 +80,14 @@ class Quotations_m extends MY_Model {
 
             if(empty($qrow)) return $this->data;
 
+            $this->data["doc_id"] = $docId;
             $this->data["doc_number"] = $qrow->doc_number;
             $this->data["doc_date"] = $qrow->doc_date;
             $this->data["credit"] = $qrow->credit;
             $this->data["doc_valid_until_date"] = $qrow->doc_valid_until_date;
             $this->data["reference_number"] = $qrow->reference_number;
             $this->data["vat_inc"] = $qrow->vat_inc;
+            $this->data["wht_inc"] = $qrow->wht_inc;
             $this->data["project_id"] = $qrow->project_id;
             $this->data["client_id"] = $qrow->client_id;
             $this->data["remark"] = $qrow->remark;
@@ -92,12 +95,16 @@ class Quotations_m extends MY_Model {
         }
 
         $this->data["status"] = "success";
+
         return $this->data;
     }
 
-    function docUpdate(){
+    function updateDoc(){
         $db = $this->db;
         $docId = isset($this->json->doc_id) ? $this->json->doc_id : null;
+        $vat_inc = $this->json->vat_inc == true ? "Y":"N";
+        $wht_inc = $this->json->wht_inc == true ? "Y":"N";
+
 
         $qrow = $db->select("*")
                     ->from("quotation")
@@ -107,18 +114,16 @@ class Quotations_m extends MY_Model {
 
         if(empty($qrow)) return $this->data;
 
-        $sub_total_before_discount = $db->select("SUM(price) AS total_price")
+        $sub_total_before_discount = $db->select("SUM(total_price) AS SUB_TOTAL")
                                         ->from("quotation_items")
                                         ->where("quotation_id", $docId)
-                                        ->get()->row()->total_price;
+                                        ->get()->row()->SUB_TOTAL;
 
         if($sub_total_before_discount == null) $sub_total_before_discount = 0;
-
 
         $discount_type = $qrow->discount_type;
         $discount_percent = $qrow->discount_percent;
         $discount_amount = $qrow->discount_amount;
-
 
         if($discount_type == "P" && $discount_percent > 0){
             $discount_amount = ($sub_total_before_discount * $discount_percent)/100;
@@ -126,18 +131,16 @@ class Quotations_m extends MY_Model {
 
         $sub_total = $sub_total_before_discount - $discount_amount;
 
-
-        $vat_inc = $qrow->vat_inc;
+        
         $vat_percent = 0;
         $vat_value = 0;
         if($vat_inc == "Y"){
             $vat_percent = $this->Taxes_m->getVatPercent();
-            $vat_value = $sub_total * $this->Taxes_m->getVat();
+            $vat_value = ($sub_total * $this->Taxes_m->getVatPercent())/100;
         }
 
         $total = $sub_total + $vat_value;
 
-        $wht_inc = $qrow->wht_inc;
         $wht_percent = $qrow->wht_percent;
         $wht_value = 0;
 
@@ -164,14 +167,32 @@ class Quotations_m extends MY_Model {
                                     "payment_amount"=>$payment_amount
                                 ]);
 
+        return $this->data;
+    }
+
+    function summary(){
+        $db = $this->db;
+        $docId = isset($this->json->doc_id) ? $this->json->doc_id : null;
+        
+        $qrow = $db->select("*")
+                    ->from("quotation")
+                    ->where("id", $docId)
+                    ->where("deleted", 0)
+                    ->get()->row();
+
+        if(empty($qrow)) return $this->data;
+
         $this->data["status"] = "success";
-        $this->data["sub_total_before_discount"] = $sub_total_before_discount;
-        $this->data["discount_percent"] = $discount_percent;
-        $this->data["sub_total"] = $sub_total;
-        $this->data["vat_value"] = $vat_value;
-        $this->data["total"] = $total;
-        $this->data["wht_value"] = $wht_value;
-        $this->data["payment_amount"] = $payment_amount;
+        $this->data["sub_total_before_discount"] = number_format($qrow->sub_total_before_discount, 2);
+        $this->data["discount_percent"] = number_format($qrow->discount_percent, 2);
+        $this->data["discount_amount"] = number_format($qrow->discount_amount, 2);
+        $this->data["sub_total"] = number_format($qrow->sub_total, 2);
+        $this->data["vat_inc"] = $qrow->vat_inc;
+        $this->data["vat_value"] = number_format($qrow->vat_value, 2);
+        $this->data["total"] = number_format($qrow->total, 2);
+        $this->data["wht_inc"] = $qrow->wht_inc;
+        $this->data["wht_value"] = number_format($qrow->wht_value, 2);
+        $this->data["payment_amount"] = number_format($qrow->payment_amount, 2);
         $this->data["payment_amount_in_text"] = numberToText(0);
 
         return $this->data;
@@ -213,10 +234,10 @@ class Quotations_m extends MY_Model {
         $credit = $this->json->credit;
         $doc_valid_until_date = converDate($this->json->quotation_valid_until_date);
         $reference_number = $this->json->reference_number;
+        $vat_inc = $this->json->vat_inc;
         $client_id = $this->json->client_id;
         $project_id = $this->json->project_id;
         $remark = $this->json->remark;
-
 
         if($docId != ""){
             $db->where("id", $docId);
@@ -226,6 +247,7 @@ class Quotations_m extends MY_Model {
                                         "credit"=>$credit,
                                         "doc_valid_until_date"=>$doc_valid_until_date,
                                         "reference_number"=>$reference_number,
+                                        "vat_inc"=>$vat_inc,
                                         "client_id"=>$client_id,
                                         "project_id"=>$project_id,
                                         "remark"=>$remark,
@@ -242,6 +264,7 @@ class Quotations_m extends MY_Model {
                                         "credit"=>$credit,
                                         "doc_valid_until_date"=>$doc_valid_until_date,
                                         "reference_number"=>$reference_number,
+                                        "vat_inc"=>$vat_inc,
                                         "client_id"=>$client_id,
                                         "project_id"=>$project_id,
                                         "remark"=>$remark,
@@ -304,7 +327,8 @@ class Quotations_m extends MY_Model {
 
         $qirows = $db->select("*")
                         ->from("quotation_items")
-                        ->where("id", $this->json->doc_id)
+                        ->where("quotation_id", $this->json->doc_id)
+                        ->order_by("id", "asc")
                         ->get()->result();
 
         if(empty($qirows)){
@@ -317,12 +341,12 @@ class Quotations_m extends MY_Model {
 
         foreach($qirows as $qirow){
             $item["id"] = $qirow->id;
-            $item["title"] = $qirow->title;
-            $item["description"] = $qirow->description;
+            $item["product_name"] = $qirow->product_name;
+            $item["product_description"] = $qirow->product_description;
             $item["quantity"] = $qirow->quantity;
-            $item["unit_type"] = $qirow->unit_type;
-            $item["rate"] = number_format($qirow->rate, 2);
+            $item["unit"] = $qirow->unit;
             $item["price"] = number_format($qirow->price, 2);
+            $item["total_price"] = number_format($qirow->total_price, 2);
 
             $items[] = $item;
         }
@@ -347,22 +371,20 @@ class Quotations_m extends MY_Model {
         if(empty($qrow)) return $this->data;
 
         $this->data["doc_id"] = $docId;
-        $this->data["item_id"] = "";
         $this->data["product_id"] = "";
         $this->data["product_name"] = "";
         $this->data["product_description"] = "";
-        $this->data["quantity"] = "0";
+        $this->data["quantity"] = "1.00";
         $this->data["unit"] = "";
-        $this->data["price"] = "0";
-        $this->data["total_price"] = "1";
+        $this->data["price"] = "0.00";
+        $this->data["total_price"] = "0.00";
 
         if(!empty($itemId)){
             $qirow = $db->select("*")
                         ->from("quotation_items")
                         ->where("id", $itemId)
+                        ->where("quotation_id", $docId)
                         ->get()->row();
-
-                        
 
             if(empty($qirow)) return $this->data;
 
@@ -394,25 +416,13 @@ class Quotations_m extends MY_Model {
                                                 "field"=>"quantity",
                                                 'label' => '',
                                                 'rules' => 'required'
-                                            ],
-                                            [
-                                                "field"=>"unit",
-                                                'label' => '',
-                                                'rules' => 'required'
-                                            ],
-                                            [
-                                                "field"=>"price",
-                                                'label' => '',
-                                                'rules' => 'required'
                                             ]
                                         ]);
 
         if ($this->form_validation->run() == FALSE){
             $this->data["status"] = "validate";
-            if(form_error('product_name') != null) $this->data["messages"]["product_name"] = form_error('product_name');
+            if(form_error('product_id') != null) $this->data["messages"]["product_name"] = form_error('product_id');
             if(form_error('quantity') != null) $this->data["messages"]["quantity"] = form_error('quantity');
-            if(form_error('unit') != null) $this->data["messages"]["unit"] = form_error('unit');
-            if(form_error('price') != null) $this->data["messages"]["price"] = form_error('price');
         }
 
     }
@@ -426,20 +436,22 @@ class Quotations_m extends MY_Model {
                     ->where("id", $docId)
                     ->where("deleted", 0)
                     ->get()->row();
-                    log_message("error", $db->last_query());
 
         if(empty($qrow)) return $this->data;
         
         $this->validateItem();
         if($this->data["status"] == "validate") return $this->data;
 
+
+
         $itemId = $this->json->item_id;
-        $product_id = $this->json->project_id;
+        $product_id = $this->json->product_id;
         $product_name = $this->json->product_name;
         $product_description = $this->json->product_description;
         $quantity = getNumber($this->json->quantity);
-        $unit = getNumber($this->json->unit);
-        $price = $this->json->price;
+        $unit = $this->json->unit;
+        $price = getNumber($this->json->price);
+        $total_price = $price * $quantity;
         
         /*$vat_type = $this->json->vat_type;
         $price_inc_vat = $price = $rate * $quantity;
@@ -457,7 +469,7 @@ class Quotations_m extends MY_Model {
                     "quantity"=>$quantity,
                     "unit"=>$unit,
                     "price"=>$price,
-                    "total_price"=>$price,
+                    "total_price"=>$total_price,
                 ];
 
         $db->trans_begin();
@@ -481,35 +493,25 @@ class Quotations_m extends MY_Model {
             $db->trans_commit();
         }
 
-        $data["status"] = "success";
-        $data["success"] = true;
+        $this->data["target"] = get_uri("quotations/view/".$docId);
+        $this->data["status"] = "success";
 
-        return $data;
+        return $this->data;
 
     }
 
     function deleteItem(){
         $db = $this->db;
-        $doc_id = $this->input->get("doc_id");
-        $item_id = $this->input->get("item_id");
-        $data["success"] = false;
+        
+        $db->where("id", $this->json->item_id);
+        $db->where("quotation_id", $this->json->doc_id);
+        $db->delete("quotation_items");
 
-        $esrow = $db->select("id")
-                        ->from("estimates")
-                        ->where("id", $doc_id)
-                        ->where("deleted", 0)
-                        ->get()->row();
+        if($db->affected_rows() != 1) return $this->data;
 
-        if(empty($esrow)) return $data;
+        $this->data["status"] = "success";
 
-        $db->where("id", $item_id);
-        $db->where("estimate_id", $doc_id);
-        $db->update("estimate_items", ["deleted"=>1]);
-
-        if($db->affected_rows() != 1) return $data;
-
-        $data["process"] = true;
-        return $data;
+        return $this->data;
     }
 
 }

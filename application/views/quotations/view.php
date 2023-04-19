@@ -101,6 +101,7 @@
                     <td>#</td>
                     <td>รายละเอียด</td>
                     <td>จำนวน</td>
+                    <td>หน่วย</td>
                     <td>ราคาต่อหน่วย</td>
                     <td>ยอดรวม</td>
                     <td></td>
@@ -108,9 +109,9 @@
             </thead>
             <tbody></tbody>
             <tfoot>
-                <tr><td colspan="6">&nbsp;</td></tr>
+                <tr><td colspan="7">&nbsp;</td></tr>
                 <tr>
-                    <td colspan="2">
+                    <td colspan="3">
                         <p><?php echo modal_anchor(get_uri("quotations/item"), "<i class='fa fa-plus-circle'></i> " . lang('add_item_product'), array("id"=>"add_item_button", "class" => "btn btn-default", "title" => lang('add_item_product'), "data-post-doc_id" => $doc_id)); ?></p>
                         <p><input type="text" id="number_in_text" readonly></p>
                     </td>
@@ -121,7 +122,7 @@
                             <span class="c3"><span class="currency">บาท</span></span>
                         </p>
                         <p>
-                            <span class="c1 custom-color">ส่วนลด<input id="discount_percent">%</span>
+                            <span class="c1 custom-color">ส่วนลด<input type="text" id="discount_percent">%</span>
                             <span class="c2"><input type="text" id="discount_amount" readonly></span>
                             <span class="c3">
                                 <span class="edit_discount"><a><i class='fa fa-pencil'></i></a></span>
@@ -134,7 +135,7 @@
                             <span class="c3"><span class="currency">บาท</span></span>
                         </p>
                         <p>
-                            <span class="c1 custom-color"><input type="checkbox" id="has_vat">ภาษีมูลค่าเพิ่ม <?php echo $this->Taxes_m->getVatPercent(); ?>%</span>
+                            <span class="c1 custom-color"><input type="checkbox" id="vat_inc" <?php if($vat_inc == "Y") echo "checked" ?> >ภาษีมูลค่าเพิ่ม <?php echo $this->Taxes_m->getVatPercent(); ?>%</span>
                             <span class="c2"><input type="text" id="vat_value" readonly></span>
                             <span class="c3"><span class="currency">บาท</span></span>
                         </p>
@@ -143,17 +144,28 @@
                             <span class="c2"><input type="text" id="total" readonly ></span>
                             <span class="c3"><span class="currency">บาท</span></span>
                         </p>
-                        <p class="withholding_tax">
-                            <span>
-                                <span class="c1 custom-color"><input type="checkbox" id="has_withholding_tax">หักภาษี ณ ที่จ่าย</span>
-                                <span class="c2"><input type="text" id="withholding_tax" readonly ></span>
-                                <span class="c3"><span class="currency">บาท</span></span>
+                        <p class="withholding">
+                            <span class="c1 custom-color">
+                                <input type="checkbox" id="wht_inc" <?php if($wht_inc == "Y") echo "checked" ?>>หักภาษี ณ ที่จ่าย
+                                <select id="wht_percent" class="wht">
+                                    <option value="3">3%</option>
+                                    <option value="5">5%</option>
+                                    <option value="0.5">0.5%</option>
+                                    <option value="0.75">0.75%</option>
+                                    <option value="1">1%</option>
+                                    <option value="1.5">1.5%</option>
+                                    <option value="2">2%</option>
+                                    <option value="10">10%</option>
+                                    <option value="15">15%</option>
+                                </select>
                             </span>
-                            <span class="payment_amount">
-                                <span class="c1 custom-color">ยอดชำระ</span>
-                                <span class="c2"><input type="text" id="payment_amount" readonly></span>
-                                <span class="c3"><span class="currency">บาท</span></span>
-                            </span>
+                            <span class="c2"><input type="text" id="wht_value" class="wht" readonly ></span>
+                            <span class="c3"><span class="currency">บาท</span></span>
+                        </p>
+                        <p class="payment_amount">
+                            <span class="c1 custom-color wht">ยอดชำระ</span>
+                            <span class="c2"><input type="text" id="payment_amount" class="wht" readonly></span>
+                            <span class="c3"><span class="currency">บาท</span></span>
                         </p>
                     </td>
                 </tr>
@@ -198,9 +210,22 @@
 <script type="text/javascript">
 $(document).ready(function() {
     loadItems();
-    loadDocSummary();
+    
     $("#discount_percent").blur(function(){
-        loadDocSummary();
+        updateDoc();
+    });
+
+    $("#vat_inc").change(function() { 
+        updateDoc();
+    });
+
+    $("#wht_inc").change(function() { 
+        if($(this).is(':checked')){
+            $(".wht").css("display", "inline-block");
+        }else{
+            $(".wht").css("display", "none");
+        }
+        updateDoc();
     });
 });
 
@@ -211,7 +236,7 @@ function loadItems(){
     }).then(function (response) {
         data = response.data;
         if(data.status == "notfound"){
-            $(".docitem tbody").empty().append("<tr><td colspan='6' class='notfound'>"+data.message+"</td></tr>");
+            $(".docitem tbody").empty().append("<tr><td colspan='7' class='notfound'>"+data.message+"</td></tr>");
         }else if(data.status == "success"){
             tbody = "";
             items = data.items;
@@ -220,15 +245,16 @@ function loadItems(){
                 tbody += "<tr>"; 
                     tbody += "<td>"+(i+1)+"</td>";
                     tbody += "<td>";
-                        tbody += "<p class='desc1'>"+items[i]["title"]+"</p>";
-                        tbody += "<p class='desc2'>"+items[i]["description"]+"</p>";
+                        tbody += "<p class='desc1'>"+items[i]["product_name"]+"</p>";
+                        tbody += "<p class='desc2'>"+items[i]["product_description"]+"</p>";
                     tbody += "</td>";
                     tbody += "<td>"+items[i]["quantity"]+"</td>"; 
-                    tbody += "<td>"+items[i]["rate"]+"</td>";
+                    tbody += "<td>"+items[i]["unit"]+"</td>"; 
                     tbody += "<td>"+items[i]["price"]+"</td>";
+                    tbody += "<td>"+items[i]["total_price"]+"</td>";
                     tbody += "<td class='edititem'>";
-                        tbody += "<a class='edit' data-post-id='"+items[i]["id"]+"' data-post-doc_id='<?php echo $doc_id; ?>' data-post-item_id='"+items[i]["id"]+"' data-act='ajax-modal' data-action-url='<?php echo_uri("quotations/item_modal_form"); ?>' ><i class='fa fa-pencil'></i></a>";
-                        tbody += "<a class='delete' data-id='"+items[i]["id"]+"'><i class='fa fa-times fa-fw'></i></a>";
+                        tbody += "<a class='edit' data-post-doc_id='<?php echo $doc_id; ?>' data-post-item_id='"+items[i]["id"]+"' data-act='ajax-modal' data-action-url='<?php echo_uri("quotations/item"); ?>' ><i class='fa fa-pencil'></i></a>";
+                        tbody += "<a class='delete' data-item_id='"+items[i]["id"]+"'><i class='fa fa-times fa-fw'></i></a>";
                     tbody += "</td>";
 
                    
@@ -236,10 +262,10 @@ function loadItems(){
             }
 
             $(".docitem tbody").empty().append(tbody);
-            loadDocSummary();
+            loadSummary();
 
             $(".edititem .delete").click(function() {
-                deleteItem($(this).data("id"));
+                deleteItem($(this).data("item_id"));
             });
         }
     }).catch(function (error) {
@@ -247,17 +273,30 @@ function loadItems(){
     });
 }
 
-function loadDocSummary(){
+function updateDoc(){
     axios.post('<?php echo current_url(); ?>', {
-        task: 'doc_update',
+        task: 'update_doc',
         doc_id: '<?php echo $doc_id; ?>',
-        discount_percent: $("#discount_percent").val()
+        discount_percent: $("#discount_percent").val(),
+        vat_inc: $("#vat_inc").is(":checked"),
+        wht_inc: $("#wht_inc").is(":checked")
+    }).then(function(response) { 
+        loadSummary();
+    }).catch(function (error) {
+        alert(error);
+    });
+}
+
+function loadSummary(){
+    axios.post('<?php echo current_url(); ?>', {
+        task: 'load_summary',
+        doc_id: '<?php echo $doc_id; ?>'
     }).then(function(response) { 
         data = response.data;
 
         $("#sub_total_before_discount").val(data.sub_total_before_discount);
         $("#discount_percent").val(data.discount_percent);
-        $("#discount_amount").val(data.sub_total);
+        $("#discount_amount").val(data.discount_amount);
         $("#sub_total").val(data.sub_total);
         $("#vat_value").val(data.vat_value);
         $("#total").val(data.total);
@@ -271,11 +310,10 @@ function loadDocSummary(){
 }
 
 function deleteItem(item_id){
-    axios.get('<?php echo_uri("quotations/jdelete_item") ?>', {
-        params: {
-            doc_id: '<?php echo $doc_id; ?>',
-            item_id: item_id
-        }
+    axios.post('<?php echo current_url(); ?>', {
+        task: 'delete_item',
+        doc_id: '<?php echo $doc_id; ?>',
+        item_id: item_id
     }).then(function (response) {
         loadItems();
     });

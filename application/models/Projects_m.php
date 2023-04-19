@@ -11,8 +11,12 @@ class Projects_m extends MY_Model {
 
         $prows = $db->select("*")
                     ->from("projects")
-                    ->where("deleted", 0)
-                    ->get()->result();
+                    ->where("deleted", 0);
+
+        //if ($this->input->post("keyword")) $db->like("title", $this->input->post("keyword"));
+        //if ($this->input->get("keyword")) $db->like("title", $this->input->get("keyword"));
+
+        $prows = $db->get()->result();
 
         return $prows;
     }
