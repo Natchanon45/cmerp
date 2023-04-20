@@ -18,7 +18,7 @@ class Quotations extends MY_Controller {
 
     function doc(){
         if(isset($this->json->task)){
-            if($this->json->task == "save") jout($this->Quotations_m->saveDoc());
+            if($this->json->task == "save_doc") jout($this->Quotations_m->saveDoc());
             return;   
         }
 

@@ -192,7 +192,7 @@
     border: 0;
 }
 
-#printd .docitem tfoot td #number_in_text{
+#printd .docitem tfoot td #total_in_text{
     text-align: left;
     width: 380px;
     margin-top: 20px;
@@ -216,15 +216,15 @@
     width: 200px;
 }
 
-#printd .docitem tfoot td.summary #discount_percent,
+/*#printd .docitem tfoot td.summary #discount_percent,*/
+#printd .docitem tfoot td.summary #discount_type,
 #printd .docitem tfoot td.summary #wht_percent{
-    width: 56px;
+    width: 45px;
     height: 28px;
     border: 1px solid #ccc;
     margin-left: 4px;
     margin-right: 4px;
     padding: 4px;
-    text-align: right;
     border-radius: 4px;
     outline: none;
 }
@@ -234,7 +234,7 @@
     text-align: left;
 }
 
-#printd .docitem tfoot td.summary .edit_discount a{
+/*#printd .docitem tfoot td.summary .edit_discount a{
     cursor: pointer;
     width: 28px;
     height: 28px;
@@ -251,18 +251,18 @@
 #printd .docitem tfoot td.summary .edit_discount a.edit:hover{
     background: #2ac2d4;
     color: #fff;
-}
+}*/
 
 #printd .docitem tfoot td.summary span.c2{
-    width: 80px;
+    width: 90px;
 }
 
 #printd .docitem tfoot td.summary span.c2 input[type="text"]{
-    width: 80px;
+    width: 100%;
 }
 
 #printd .docitem tfoot td.summary span.c3{
-    width: 70px;
+    width: 76px;
     text-align: left;
 }
 
@@ -270,11 +270,20 @@
     display: none;
 }
 
-#printd .docitem tfoot p.withholding{
+#printd .docitem tfoot p.haswht{
     border-top: 1px solid #ccc;
-    /*width: 320px;*/
     margin-top: 14px;
     padding-top: 14px;
+}
+
+#printd .docitem tfoot p.haswht .wht.h,
+#printd .docitem tfoot p.payment_amount .wht.h{
+    visibility: hidden;
+}
+
+#printd .docitem tfoot p.haswht .wht.v,
+#printd .docitem tfoot p.payment_amount .wht.v{
+    visibility: visible;
 }
 
 #printd .docitem tfoot td.summary #vat_inc,

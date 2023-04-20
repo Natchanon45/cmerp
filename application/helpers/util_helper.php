@@ -42,6 +42,12 @@ if (!function_exists('getNumber')){
     }
 }
 
+if ( ! function_exists('number_format_drop_zero_decimals')){
+    function number_format_drop_zero_decimals($number, $decimals){
+        return ((floor($number) == round($number, $decimals)) ? number_format($number) : number_format($number, $decimals));
+    }
+}
+
 if (!function_exists('numberToText')) {
     function numberToText($amount_number){
         function sub($number){

@@ -113,7 +113,7 @@
                 <tr>
                     <td colspan="3">
                         <p><?php echo modal_anchor(get_uri("quotations/item"), "<i class='fa fa-plus-circle'></i> " . lang('add_item_product'), array("id"=>"add_item_button", "class" => "btn btn-default", "title" => lang('add_item_product'), "data-post-doc_id" => $doc_id)); ?></p>
-                        <p><input type="text" id="number_in_text" readonly></p>
+                        <p><input type="text" id="total_in_text" readonly></p>
                     </td>
                     <td colspan="4" class="summary">
                         <p>
@@ -122,10 +122,16 @@
                             <span class="c3"><span class="currency">บาท</span></span>
                         </p>
                         <p>
-                            <span class="c1 custom-color">ส่วนลด<input type="text" id="discount_percent">%</span>
+                            <span class="c1 custom-color">
+                                ส่วนลด<!--<input type="number" id="discount_percent">-->
+                                <select id="discount_type">
+                                    <option>%</option>
+                                    <option>฿</option>
+                                </select>
+                            </span>
                             <span class="c2"><input type="text" id="discount_amount" readonly></span>
                             <span class="c3">
-                                <span class="edit_discount"><a><i class='fa fa-pencil'></i></a></span>
+                                <!--<span class="edit_discount"><a id="dis"><i class='fa fa-pencil'></i></a></span>-->
                                 <span class="currency">บาท</span>
                             </span>
                         </p>
@@ -135,7 +141,7 @@
                             <span class="c3"><span class="currency">บาท</span></span>
                         </p>
                         <p>
-                            <span class="c1 custom-color"><input type="checkbox" id="vat_inc" <?php if($vat_inc == "Y") echo "checked" ?> >ภาษีมูลค่าเพิ่ม <?php echo $this->Taxes_m->getVatPercent(); ?>%</span>
+                            <span class="c1 custom-color"><input type="checkbox" id="vat_inc">ภาษีมูลค่าเพิ่ม <span id="vat_percent"></span>%</span>
                             <span class="c2"><input type="text" id="vat_value" readonly></span>
                             <span class="c3"><span class="currency">บาท</span></span>
                         </p>
@@ -144,10 +150,10 @@
                             <span class="c2"><input type="text" id="total" readonly ></span>
                             <span class="c3"><span class="currency">บาท</span></span>
                         </p>
-                        <p class="withholding">
+                        <p class="haswht">
                             <span class="c1 custom-color">
                                 <input type="checkbox" id="wht_inc" <?php if($wht_inc == "Y") echo "checked" ?>>หักภาษี ณ ที่จ่าย
-                                <select id="wht_percent" class="wht">
+                                <select id="wht_percent" class="wht <?php echo $wht_inc == "Y"?"v":"h"; ?>">
                                     <option value="3">3%</option>
                                     <option value="5">5%</option>
                                     <option value="0.5">0.5%</option>
@@ -159,13 +165,13 @@
                                     <option value="15">15%</option>
                                 </select>
                             </span>
-                            <span class="c2"><input type="text" id="wht_value" class="wht" readonly ></span>
-                            <span class="c3"><span class="currency">บาท</span></span>
+                            <span class="c2 wht <?php echo $wht_inc == "Y"?"v":"h"; ?>"><input type="text" id="wht_value" readonly ></span>
+                            <span class="c3 wht <?php echo $wht_inc == "Y"?"v":"h"; ?>"><span class="currency">บาท</span></span>
                         </p>
                         <p class="payment_amount">
-                            <span class="c1 custom-color wht">ยอดชำระ</span>
-                            <span class="c2"><input type="text" id="payment_amount" class="wht" readonly></span>
-                            <span class="c3"><span class="currency">บาท</span></span>
+                            <span class="c1 custom-color wht <?php echo $wht_inc == "Y"?"v":"h"; ?>">ยอดชำระ</span>
+                            <span class="c2 wht <?php echo $wht_inc == "Y"?"v":"h"; ?>"><input type="text" id="payment_amount" readonly></span>
+                            <span class="c3 wht <?php echo $wht_inc == "Y"?"v":"h"; ?>"><span class="currency">บาท</span></span>
                         </p>
                     </td>
                 </tr>
@@ -178,7 +184,7 @@
     </div><!--.docitem-->
     <div class="docsignature clear">
         <div class="customer">
-            <div class="on_behalf_of">ในนาม <?php echo $client["company_name"] ?></div>
+            <div class="on_behalf_of">ในนาม <?php if(isset($client["company_name"])) echo $client["company_name"]; ?></div>
             <div class="clear">
                 <div class="name">
                     <span class="l1"></span>
@@ -219,12 +225,19 @@ $(document).ready(function() {
         updateDoc();
     });
 
+    $("#wht_percent").change(function(){
+        updateDoc();
+    });
+
     $("#wht_inc").change(function() { 
         if($(this).is(':checked')){
-            $(".wht").css("display", "inline-block");
+            $(".haswht .wht, .payment_amount .wht").removeClass("h");
+            $(".haswht .wht, .payment_amount .wht").addClass("v");
         }else{
-            $(".wht").css("display", "none");
+            $(".haswht .wht, .payment_amount .wht").removeClass("v");
+            $(".haswht .wht, .payment_amount .wht").addClass("h");
         }
+
         updateDoc();
     });
 });
@@ -262,12 +275,13 @@ function loadItems(){
             }
 
             $(".docitem tbody").empty().append(tbody);
-            loadSummary();
-
             $(".edititem .delete").click(function() {
                 deleteItem($(this).data("item_id"));
             });
         }
+
+        loadSummary();
+
     }).catch(function (error) {
         console.log(error);
     });
@@ -279,7 +293,8 @@ function updateDoc(){
         doc_id: '<?php echo $doc_id; ?>',
         discount_percent: $("#discount_percent").val(),
         vat_inc: $("#vat_inc").is(":checked"),
-        wht_inc: $("#wht_inc").is(":checked")
+        wht_inc: $("#wht_inc").is(":checked"),
+        wht_percent: $("#wht_percent").val()
     }).then(function(response) { 
         loadSummary();
     }).catch(function (error) {
@@ -298,11 +313,23 @@ function loadSummary(){
         $("#discount_percent").val(data.discount_percent);
         $("#discount_amount").val(data.discount_amount);
         $("#sub_total").val(data.sub_total);
+        
+        if(data.vat_inc == "Y") $("#vat_inc").prop("checked", true);
+        else $("#vat_inc").prop("checked", false);
+        $("#vat_percent").empty().append(data.vat_percent);
         $("#vat_value").val(data.vat_value);
+
         $("#total").val(data.total);
+        $("#total_in_text").val(data.total_in_text);
+
+        if(data.wht_inc == "Y") $("#wht_inc").prop("checked", true);
+        else $("#wht_inc").prop("checked", false);
+
+        $("#wht_percent").val(data.wht_percent);
         $("#wht_value").val(data.wht_value);
+
         $("#payment_amount").val(data.payment_amount);
-        $("#number_in_text").val(data.payment_amount_in_text);
+        
 
     }).catch(function (error) {
         alert(error);

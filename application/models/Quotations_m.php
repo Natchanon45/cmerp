@@ -17,7 +17,7 @@ class Quotations_m extends MY_Model {
         }
     }
 
-    function getIGridData($qrow){
+    function getIGrid($qrow){
         $data = [
                     "<a href='".get_uri("quotations/view/".$qrow->id)."'>".$qrow->doc_number."</a>",
                     "<a href='".get_uri("clients/view/".$qrow->client_id)."'>".$this->Clients_m->getCompanyName($qrow->client_id)."</a>",
@@ -51,7 +51,7 @@ class Quotations_m extends MY_Model {
         $data = [];
 
         foreach($qrows as $qrow){
-            $data[] = $this->getIGridData($qrow);
+            $data[] = $this->getIGrid($qrow);
         }
 
         return $data;
@@ -99,21 +99,65 @@ class Quotations_m extends MY_Model {
         return $this->data;
     }
 
-    function updateDoc(){
+    function updateDoc($docId = null){
         $db = $this->db;
-        $docId = isset($this->json->doc_id) ? $this->json->doc_id : null;
-        $vat_inc = $this->json->vat_inc == true ? "Y":"N";
-        $wht_inc = $this->json->wht_inc == true ? "Y":"N";
+
+        $discount_percent = 0;
+        $discount_amount = 0;
+
+        $vat_inc = "N";
+        $vat_percent = $this->Taxes_m->getVatPercent();
+        $vat_value = 0;
+
+        $wht_inc = "N";
+        $wht_percent = $this->Taxes_m->getWhtPercent();
+        $wht_value = 0;
+        
+        if($docId == null && isset($this->json->doc_id)){
+            $docId = $this->json->doc_id;
+
+            $vat_inc = $this->json->vat_inc == true ? "Y":"N";
+            $wht_inc = $this->json->wht_inc == true ? "Y":"N";
+            
+            $qrow = $db->select("*")
+                        ->from("quotation")
+                        ->where("id", $docId)
+                        ->where("deleted", 0)
+                        ->get()->row();
+
+            if(empty($qrow)) return $this->data;
+
+            $discount_type = "P";
+            $discount_percent = getNumber($this->json->discount_percent);
+            if($discount_percent >= 100) $discount_percent = 99.99;
+            if($discount_percent < 0) $discount_percent = 0;
+
+            if($vat_inc == "Y") $vat_percent = $this->Taxes_m->getVatPercent();
+            if($wht_inc == "Y") $wht_percent = getNumber($this->json->wht_percent);
+
+        }else{
+            $qrow = $db->select("*")
+                        ->from("quotation")
+                        ->where("id", $docId)
+                        ->where("deleted", 0)
+                        ->get()->row();
+
+            if(empty($qrow)) return $this->data;
+
+            
+
+            $discount_type = $qrow->discount_type;
+            $discount_percent = $qrow->discount_percent;
+            $discount_amount = $qrow->discount_amount;
 
 
-        $qrow = $db->select("*")
-                    ->from("quotation")
-                    ->where("id", $docId)
-                    ->where("deleted", 0)
-                    ->get()->row();
+            $vat_inc = $qrow->vat_inc;
+            $wht_inc = $qrow->wht_inc;
 
-        if(empty($qrow)) return $this->data;
-
+            if($vat_inc == "Y") $vat_percent = $qrow->vat_percent;
+            if($wht_inc == "Y") $wht_percent = $qrow->wht_percent;
+        }
+        
         $sub_total_before_discount = $db->select("SUM(total_price) AS SUB_TOTAL")
                                         ->from("quotation_items")
                                         ->where("quotation_id", $docId)
@@ -121,9 +165,6 @@ class Quotations_m extends MY_Model {
 
         if($sub_total_before_discount == null) $sub_total_before_discount = 0;
 
-        $discount_type = $qrow->discount_type;
-        $discount_percent = $qrow->discount_percent;
-        $discount_amount = $qrow->discount_amount;
 
         if($discount_type == "P" && $discount_percent > 0){
             $discount_amount = ($sub_total_before_discount * $discount_percent)/100;
@@ -131,23 +172,10 @@ class Quotations_m extends MY_Model {
 
         $sub_total = $sub_total_before_discount - $discount_amount;
 
-        
-        $vat_percent = 0;
-        $vat_value = 0;
-        if($vat_inc == "Y"){
-            $vat_percent = $this->Taxes_m->getVatPercent();
-            $vat_value = ($sub_total * $this->Taxes_m->getVatPercent())/100;
-        }
-
+        if($vat_inc == "Y") $vat_value = ($sub_total * $vat_percent)/100;
         $total = $sub_total + $vat_value;
 
-        $wht_percent = $qrow->wht_percent;
-        $wht_value = 0;
-
-        if($wht_inc == "Y"){
-            $wht_value = ($total * $wht_percent) / 100;
-        }
-
+        if($wht_inc == "Y") $wht_value = ($sub_total * $wht_percent) / 100;
         $payment_amount = $total - $wht_value;
 
         $db->where("id", $docId);
@@ -188,13 +216,15 @@ class Quotations_m extends MY_Model {
         $this->data["discount_amount"] = number_format($qrow->discount_amount, 2);
         $this->data["sub_total"] = number_format($qrow->sub_total, 2);
         $this->data["vat_inc"] = $qrow->vat_inc;
+        $this->data["vat_percent"] = number_format_drop_zero_decimals($qrow->vat_percent, 2);
         $this->data["vat_value"] = number_format($qrow->vat_value, 2);
         $this->data["total"] = number_format($qrow->total, 2);
+        $this->data["total_in_text"] = numberToText($qrow->total);
         $this->data["wht_inc"] = $qrow->wht_inc;
+        $this->data["wht_percent"] = number_format_drop_zero_decimals($qrow->wht_percent, 2);
         $this->data["wht_value"] = number_format($qrow->wht_value, 2);
         $this->data["payment_amount"] = number_format($qrow->payment_amount, 2);
-        $this->data["payment_amount_in_text"] = numberToText(0);
-
+        
         return $this->data;
     }
 
@@ -212,6 +242,11 @@ class Quotations_m extends MY_Model {
                                                 "field"=>"quotation_valid_until_date",
                                                 'label' => '',
                                                 'rules' => 'required'
+                                            ],
+                                            [
+                                                "field"=>"client_id",
+                                                'label' => '',
+                                                'rules' => 'required'
                                             ]
                                         ]);
 
@@ -219,6 +254,7 @@ class Quotations_m extends MY_Model {
             $this->data["status"] = "validate";
             if(form_error('quotation_date') != null) $this->data["messages"]["quotation_date"] = form_error('quotation_date');
             if(form_error('quotation_valid_until_date') != null) $this->data["messages"]["quotation_valid_until_date"] = form_error('quotation_valid_until_date');
+            if(form_error('client_id') != null) $this->data["messages"]["client_id"] = form_error('client_id');
         }
 
     }
@@ -234,7 +270,6 @@ class Quotations_m extends MY_Model {
         $credit = $this->json->credit;
         $doc_valid_until_date = converDate($this->json->quotation_valid_until_date);
         $reference_number = $this->json->reference_number;
-        $vat_inc = $this->json->vat_inc;
         $client_id = $this->json->client_id;
         $project_id = $this->json->project_id;
         $remark = $this->json->remark;
@@ -247,7 +282,8 @@ class Quotations_m extends MY_Model {
                                         "credit"=>$credit,
                                         "doc_valid_until_date"=>$doc_valid_until_date,
                                         "reference_number"=>$reference_number,
-                                        "vat_inc"=>$vat_inc,
+                                        "vat_inc"=>"N",
+                                        "vat_percent"=>$this->Taxes_m->getVatPercent(),
                                         "client_id"=>$client_id,
                                         "project_id"=>$project_id,
                                         "remark"=>$remark,
@@ -264,7 +300,7 @@ class Quotations_m extends MY_Model {
                                         "credit"=>$credit,
                                         "doc_valid_until_date"=>$doc_valid_until_date,
                                         "reference_number"=>$reference_number,
-                                        "vat_inc"=>$vat_inc,
+                                        "vat_inc"=>"N",
                                         "client_id"=>$client_id,
                                         "project_id"=>$project_id,
                                         "remark"=>$remark,
@@ -308,7 +344,7 @@ class Quotations_m extends MY_Model {
                     ->get()->row();
 
         $data["success"] = true;
-        $data["data"] = $this->getIGridData($qrow);
+        $data["data"] = $this->getIGrid($qrow);
         $data["message"] = lang('record_undone');
 
         return $data;
@@ -442,8 +478,6 @@ class Quotations_m extends MY_Model {
         $this->validateItem();
         if($this->data["status"] == "validate") return $this->data;
 
-
-
         $itemId = $this->json->item_id;
         $product_id = $this->json->product_id;
         $product_name = $this->json->product_name;
@@ -493,6 +527,8 @@ class Quotations_m extends MY_Model {
             $db->trans_commit();
         }
 
+        $this->updateDoc($docId);
+
         $this->data["target"] = get_uri("quotations/view/".$docId);
         $this->data["status"] = "success";
 
@@ -502,12 +538,15 @@ class Quotations_m extends MY_Model {
 
     function deleteItem(){
         $db = $this->db;
+        $docId = $this->json->doc_id;
         
         $db->where("id", $this->json->item_id);
-        $db->where("quotation_id", $this->json->doc_id);
+        $db->where("quotation_id", $docId);
         $db->delete("quotation_items");
 
         if($db->affected_rows() != 1) return $this->data;
+
+        $this->updateDoc($docId);
 
         $this->data["status"] = "success";
 

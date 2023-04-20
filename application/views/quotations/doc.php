@@ -26,20 +26,11 @@
     </div>
 
     <div class="form-group">
-        <label for="vat_inc" class=" col-md-3">ราคาสินค้า</label>
-        <div class="col-md-9">
-            <select id="vat_inc" name="vat_inc" class="form-control">
-                <option value="N" <?php if($vat_inc == "N") echo "selected" ?>>ราคาไม่รวมภาษี</option>
-                <option value="Y" <?php if($vat_inc == "Y") echo "selected" ?>>ราคารวมภาษี</option>
-            </select>
-        </div>
-    </div>
-    <div class="form-group">
         <label for="client_id" class=" col-md-3"><?php echo lang('client'); ?></label>
         <div class="col-md-9">
             <?php $crows = $this->Clients_m->getRows(0); ?>
             <select id="client_id" class="form-control">
-                <option value="-1">-</option>
+                <option value="">-</option>
                 <?php foreach($crows as $crow): ?>
                     <option value="<?php echo $crow->id; ?>" <?php if($client_id == $crow->id) echo "selected"?>><?php echo $crow->company_name; ?></option>
                 <?php endforeach; ?>
@@ -52,7 +43,7 @@
         <div class="col-md-9">
             <?php $prows = $this->Projects_m->getRows(); ?>
             <select id="project_id" class="form-control">
-                <option value="-1">-</option>
+                <option value="">-</option>
                 <?php foreach($prows as $prow): ?>
                     <option value="<?php echo $prow->id; ?>" <?php if($project_id == $prow->id) echo "selected"?>><?php echo $prow->title; ?></option>
                 <?php endforeach; ?>
@@ -76,13 +67,12 @@
 $(document).ready(function() {
     $("#btnSubmit").click(function() {
         axios.post('<?php echo current_url(); ?>', {
-            task: 'save',
+            task: 'save_doc',
             doc_id : "<?php if(isset($doc_id)) echo $doc_id; ?>",
             quotation_date:$("#quotation_date").val(),
             credit: $("#credit").val(),
             quotation_valid_until_date: $("#quotation_valid_until_date").val(),
             reference_number: $("#reference_number").val(),
-            vat_inc: $("#vat_inc").val(),
             client_id: $("#client_id").val(),
             project_id: $("#project_id").val(),
             remark: $("#remark").val()
