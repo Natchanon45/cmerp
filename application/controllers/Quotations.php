@@ -36,9 +36,16 @@ class Quotations extends MY_Controller {
             return;
         }
 
-        if(empty($this->uri->segment(3))) redirect('/quotations');
+        if(empty($this->uri->segment(3))){
+            redirect('/quotations');
+            return;
+        }
+
         $data = $this->Quotations_m->doc($this->uri->segment(3));
-        if ($data["status"] != "success") redirect('/quotations');
+        if ($data["status"] != "success"){
+            redirect('/quotations');
+            return;
+        }
 
 
         $data["created"] = $this->Users_m->getInfo($data["created_by"]);

@@ -54,10 +54,6 @@
     width: auto;
 }
 
-#printd .docheader .l .company{
-
-}
-
 #printd .docheader .l .customer{
     margin-top: 12px;
 }
@@ -65,6 +61,7 @@
 #printd .docheader .r{
     float: right;
     width: 49%;
+    line-height: 22px;
     padding-top: 32px;
     padding-left: 32px;
     padding-right: 32px;
@@ -86,13 +83,13 @@
 }
 
 #printd .docheader .r .about_company{
-    border-top: 1px solid #ccc;
+    border-top: 1px solid #cecece;
     padding-top: 12px;
     margin-top: 12px;
 }
 
 #printd .docheader .r .about_customer{
-    border-top: 1px solid #ccc;
+    border-top: 1px solid #cecece;
     margin-top: 12px;
     padding-top: 12px;
 }
@@ -129,8 +126,8 @@
 }
 
 #printd .docitem tr td{
-    border-top: 1px solid #f2f2f2;
-    border-bottom: 1px solid #f2f2f2;
+    border-top: 1px solid #cecece;
+    border-bottom: 1px solid #cecece;
     vertical-align: top;
     padding: 8px;
 }
@@ -195,7 +192,7 @@
 #printd .docitem tfoot td #total_in_text{
     text-align: left;
     width: 380px;
-    margin-top: 20px;
+    margin-top: 60px;
 }
 
 #printd .docitem tfoot td.summary{
@@ -203,8 +200,12 @@
 }
 
 #printd .docitem tfoot td.summary p{
-    line-height: 30px;
+    line-height: 34px;
     display: inline-block;
+}
+
+#printd .docitem tfoot td.summary i{
+    font-style: normal;
 }
 
 #printd .docitem tfoot td.summary span{
@@ -216,17 +217,41 @@
     width: 200px;
 }
 
-/*#printd .docitem tfoot td.summary #discount_percent,*/
+#printd .docitem tfoot td.summary #discount_percent,
 #printd .docitem tfoot td.summary #discount_type,
 #printd .docitem tfoot td.summary #wht_percent{
-    width: 45px;
-    height: 28px;
-    border: 1px solid #ccc;
-    margin-left: 4px;
-    margin-right: 4px;
-    padding: 4px;
+    width: 40px;
+    height: 26px;
+    border: 1px solid #cecece;
+    padding: 0 4px;
     border-radius: 4px;
     outline: none;
+}
+
+#printd .docitem tfoot td.summary #discount_type{
+    padding: 0;
+    text-align: center;
+}
+
+#printd .docitem tfoot td.summary #discount_percent.v{
+    display: inline-block;
+    width: 58px;
+    text-align: right;
+}
+
+#printd .docitem tfoot td.summary #discount_percent.h{
+    display: none;
+}
+
+#printd .docitem tfoot td.summary #discount_amount.p{
+    border: 0;
+}
+
+#printd .docitem tfoot td.summary #discount_amount.f{
+    border: 1px solid #cecece;
+    border-radius: 4px;
+    padding: 4px;
+    height: 28px;
 }
 
 #printd .docitem tfoot td.summary #wht_percent{
@@ -234,24 +259,9 @@
     text-align: left;
 }
 
-/*#printd .docitem tfoot td.summary .edit_discount a{
-    cursor: pointer;
-    width: 28px;
-    height: 28px;
-    margin-left: 8px;
-    background: #fff;
-    color: #a1a3a5;
-    border-radius: 50%;
-    display: inline-block;
-    vertical-align: central;
-    text-align: center;
-    border: 1px solid #e2e7f1;
+#printd .docitem tfoot td.summary{
+    padding: 0;
 }
-
-#printd .docitem tfoot td.summary .edit_discount a.edit:hover{
-    background: #2ac2d4;
-    color: #fff;
-}*/
 
 #printd .docitem tfoot td.summary span.c2{
     width: 90px;
@@ -262,7 +272,7 @@
 }
 
 #printd .docitem tfoot td.summary span.c3{
-    width: 76px;
+    width: 84px;
     text-align: left;
 }
 
@@ -270,19 +280,36 @@
     display: none;
 }
 
-#printd .docitem tfoot p.haswht{
-    border-top: 1px solid #ccc;
-    margin-top: 14px;
-    padding-top: 14px;
+#s-sub-total i.t1{
+    display: block;
 }
 
-#printd .docitem tfoot p.haswht .wht.h,
-#printd .docitem tfoot p.payment_amount .wht.h{
+#s-sub-total i.t2{
+    display: none;
+}
+
+#s-vat .vat_percent,
+#s-vat .vat_percent_zero{
+    margin-left: 4px;
+}
+
+#s-vat .vat_percent_zero{
+    display: none !important;
+}
+
+#printd .docitem tfoot #s-wht{
+    border-top: 1px solid #cecece;
+    margin-top: 12px;
+    padding-top: 10px;
+}
+
+#printd .docitem tfoot #s-wht .wht.h,
+#printd .docitem tfoot #s-payment-amount .wht.h{
     visibility: hidden;
 }
 
-#printd .docitem tfoot p.haswht .wht.v,
-#printd .docitem tfoot p.payment_amount .wht.v{
+#printd .docitem tfoot #s-wht .wht.v,
+#printd .docitem tfoot #s-payment-amount .wht.v{
     visibility: visible;
 }
 
@@ -357,8 +384,11 @@
     }
 
     @page {
-        margin: 22px 28px;
-        margin-bottom: 12px;
+        /*margin: 22px 28px;*/
+        /*margin-bottom: 12px;*/
+        margin-top: 22px;
+        margin-left: 28px;
+        margin-right: 28px;
         padding: 0;
     }
 
@@ -406,12 +436,13 @@
         padding-right: 0;
     }
 
-    #printd .docitem tfoot td.summary .edit_discount{
-        display: none;
+    #printd .docitem tfoot td.summary p{
+        line-height: 26px;
     }
 
     #printd .docitem tfoot td.summary span.c1{
         width: 120px;
+        text-align: left;
     }
 
     #printd .docitem tfoot td.summary span.c2 input{
@@ -426,7 +457,40 @@
         display: inline-block;
     }
 
-    #printd .docitem tfoot td.summary #discount_percent,
+    #printd .docitem tfoot td.summary #discount_amount{
+        border: 0 !important;
+        padding: 0 !important;
+        border-radius: 0 !important;
+    }
+
+    #s-sub-total-before-discount.v, #s-discount.v, #s-vat.v, #s-wht.v{
+        display: block !important;
+    }
+
+    #s-sub-total-before-discount.h, #s-discount.h, #s-vat.h, #s-wht.h{
+        display: none !important;
+    }
+
+    #s-sub-total i.t1.v,
+    #s-sub-total i.t2.v,
+    #s-vat .vat_percent.v,
+    #s-vat .vat_percent_zero.v{
+        display: inline-block !important;
+    }
+
+    #s-sub-total i.t1.h,
+    #s-sub-total i.t2.h,
+    #s-vat .vat_percent.h,
+    #s-vat .vat_percent_zero.h{
+        display: none !important;
+    }
+
+    #printd .docitem tfoot #s-wht{
+        margin-top: 10px;
+        padding-top: 8px;
+    }
+
+    /*#printd .docitem tfoot td.summary #discount_percent,*/
     #printd .docitem tfoot td.summary #wht_percent{
         border: 0;
         text-align: left;
@@ -449,7 +513,11 @@
     #printd .docitem tfoot td.summary #vat_inc,
     #printd .docitem tfoot td.summary #wht_inc{
         display: none;
+    }
 
+    #printd .docitem tfoot td.summary #discount_percent,
+    #printd .docitem tfoot td.summary #discount_type{
+        display: none !important;
     }
 
 }

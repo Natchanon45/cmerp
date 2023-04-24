@@ -13,7 +13,7 @@ class Quotations_m extends MY_Model {
 
     function getStatusName($status_code){
         if($status_code == "W"){
-            return "รออณุมัต";
+            return "รออนุมัติ";
         }
     }
 
@@ -87,6 +87,7 @@ class Quotations_m extends MY_Model {
             $this->data["doc_valid_until_date"] = $qrow->doc_valid_until_date;
             $this->data["reference_number"] = $qrow->reference_number;
             $this->data["vat_inc"] = $qrow->vat_inc;
+            $this->data["vat_percent"] = number_format_drop_zero_decimals($qrow->vat_percent, 2)."%";
             $this->data["wht_inc"] = $qrow->wht_inc;
             $this->data["project_id"] = $qrow->project_id;
             $this->data["client_id"] = $qrow->client_id;
@@ -102,6 +103,7 @@ class Quotations_m extends MY_Model {
     function updateDoc($docId = null){
         $db = $this->db;
 
+        $discount_type = "P";
         $discount_percent = 0;
         $discount_amount = 0;
 
@@ -127,10 +129,16 @@ class Quotations_m extends MY_Model {
 
             if(empty($qrow)) return $this->data;
 
-            $discount_type = "P";
-            $discount_percent = getNumber($this->json->discount_percent);
-            if($discount_percent >= 100) $discount_percent = 99.99;
-            if($discount_percent < 0) $discount_percent = 0;
+            $discount_type = $this->json->discount_type;
+
+            if($discount_type == "P"){
+                $discount_percent = getNumber($this->json->discount_percent);
+                if($discount_percent >= 100) $discount_percent = 99.99;
+                if($discount_percent < 0) $discount_percent = 0;
+            }else{
+                $discount_amount = getNumber($this->json->discount_value);
+            }
+            
 
             if($vat_inc == "Y") $vat_percent = $this->Taxes_m->getVatPercent();
             if($wht_inc == "Y") $wht_percent = getNumber($this->json->wht_percent);
@@ -142,9 +150,7 @@ class Quotations_m extends MY_Model {
                         ->where("deleted", 0)
                         ->get()->row();
 
-            if(empty($qrow)) return $this->data;
-
-            
+            if(empty($qrow)) return $this->data;            
 
             $discount_type = $qrow->discount_type;
             $discount_percent = $qrow->discount_percent;
@@ -164,10 +170,13 @@ class Quotations_m extends MY_Model {
                                         ->get()->row()->SUB_TOTAL;
 
         if($sub_total_before_discount == null) $sub_total_before_discount = 0;
-
-
-        if($discount_type == "P" && $discount_percent > 0){
-            $discount_amount = ($sub_total_before_discount * $discount_percent)/100;
+        if($discount_type == "P"){
+            if($discount_percent > 0){
+                $discount_amount = ($sub_total_before_discount * $discount_percent)/100;
+            }
+        }else{
+            if($discount_amount > $sub_total_before_discount) $discount_amount = $sub_total_before_discount;
+            if($discount_amount < 0) $discount_amount = 0;
         }
 
         $sub_total = $sub_total_before_discount - $discount_amount;
@@ -212,6 +221,7 @@ class Quotations_m extends MY_Model {
 
         $this->data["status"] = "success";
         $this->data["sub_total_before_discount"] = number_format($qrow->sub_total_before_discount, 2);
+        $this->data["discount_type"] = $qrow->discount_type;
         $this->data["discount_percent"] = number_format($qrow->discount_percent, 2);
         $this->data["discount_amount"] = number_format($qrow->discount_amount, 2);
         $this->data["sub_total"] = number_format($qrow->sub_total, 2);

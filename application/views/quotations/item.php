@@ -39,7 +39,7 @@
     </div>
 </div>
 <div class="modal-footer">
-    <button type="button" class="btn btn-default" data-dismiss="modal"><span class="fa fa-close"></span> <?php echo lang('close'); ?></button>
+    <button type="button" id="x" class="btn btn-default" data-dismiss="modal"><span class="fa fa-close"></span> <?php echo lang('close'); ?></button>
     <button type="button" id="btnSubmit" class="btn btn-primary"><span class="fa fa-check-circle"></span> <?php echo lang('save'); ?></button>
 </div>
 <script type="text/javascript">
@@ -67,7 +67,8 @@ $(document).ready(function () {
                     }
                 }
             }else if(data.status == "success"){
-                window.location = data.target;
+                window.parent.loadItems();
+                $("#ajaxModal").modal("hide");
             }else{
                 alert(data.message);
             }

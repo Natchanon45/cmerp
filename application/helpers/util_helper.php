@@ -1,5 +1,4 @@
 <?php
-
 if (!function_exists('jout')){
     function jout($data){
         $ci = get_instance();
@@ -32,9 +31,7 @@ if (!function_exists('getNumber')){
     function getNumber($number){
         $cleanString = preg_replace('/([^0-9\.,])/i', '', $number);
         $onlyNumbersString = preg_replace('/([^0-9])/i', '', $number);
-
         $separatorsCountToBeErased = strlen($cleanString) - strlen($onlyNumbersString) - 1;
-
         $stringWithCommaOrDot = preg_replace('/([,\.])/', '', $cleanString, $separatorsCountToBeErased);
         $removedThousandSeparator = preg_replace('/(\.|,)(?=[0-9]{3,}$)/', '',  $stringWithCommaOrDot);
 
