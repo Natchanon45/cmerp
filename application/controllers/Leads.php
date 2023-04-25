@@ -24,6 +24,9 @@ class Leads extends MY_Controller {
         $view_data['lead_sources'] = $this->Lead_source_model->get_details()->result();
         $view_data['owners_dropdown'] = $this->_get_owners_dropdown("filter");
 
+        // var_dump(arr($view_data));
+        // exit;
+
         $this->template->rander("leads/index", $view_data);
     }
 
@@ -209,11 +212,14 @@ class Leads extends MY_Controller {
     function list_data() {
         $this->access_only_allowed_members();
         $custom_fields = $this->Custom_fields_model->get_available_fields_for_table("leads", $this->login_user->is_admin, $this->login_user->user_type);
+        // get_custom_field_headers_for_table
+        // var_dump(arr($custom_fields));
+        // exit;
 
         $show_own_leads_only_user_id = $this->show_own_leads_only_user_id();
 
         $options = array(
-            "custom_fields" => $custom_fields,
+            // "custom_fields" => $custom_fields,
             "leads_only" => true,
             "remains_only" => true,
             "status" => $this->input->post('status'),
@@ -245,6 +251,8 @@ class Leads extends MY_Controller {
     /* prepare a row of lead list table */
 
     private function _make_row($data, $custom_fields) {
+        // var_dump(arr($data));
+        // exit;
         //primary contact 
         $image_url = get_avatar($data->contact_avatar);
         $contact = "<span class='avatar avatar-xs mr10'><img src='$image_url' alt='...'></span> $data->primary_contact";
@@ -259,21 +267,28 @@ class Leads extends MY_Controller {
         }
 
         $row_data = array(
-            anchor(get_uri("leads/view/" . $data->id), $data->company_name), $data->address, $data->phone,
+            anchor(get_uri("leads/view/" . $data->id), $data->company_name),
+            $data->address ? $data->address : "",
+            $data->phone ? $data->phone : "",
             $data->primary_contact ? $primary_contact : "",
             $owner
         );
 
         $row_data[] = js_anchor($data->lead_status_title, array("style" => "background-color: $data->lead_status_color", "class" => "label", "data-id" => $data->id, "data-value" => $data->lead_status_id, "data-act" => "update-lead-status"));
+        // var_dump(arr($data));
 
-        foreach ($custom_fields as $field) {
-            $cf_id = "cfv_" . $field->id;
-            $row_data[] = $this->load->view("custom_fields/output_" . $field->field_type, array("value" => $data->$cf_id), true);
-        }
+        // foreach ($custom_fields as $field) {
+            // $cf_id = "cfv_" . $field->id;
+            // var_dump(arr($data->$cf_id));
+            // exit;
+            // $row_data[] = $this->load->view("custom_fields/output_" . $field->field_type, array("value" => $data->$cf_id), true);
+        // }
 
         $row_data[] = modal_anchor(get_uri("leads/modal_form"), "<i class='fa fa-pencil'></i>", array("class" => "edit", "title" => lang('edit_lead'), "data-post-id" => $data->id))
                 . js_anchor("<i class='fa fa-times fa-fw'></i>", array('title' => lang('delete_lead'), "class" => "delete", "data-id" => $data->id, "data-action-url" => get_uri("leads/delete"), "data-action" => "delete-confirmation"));
 
+        // var_dump(arr($row_data));
+        // exit;
         return $row_data;
     }
 
@@ -1532,6 +1547,15 @@ class Leads extends MY_Controller {
     function download_sample_excel_file() {
         $this->access_only_allowed_members();
         download_app_files(get_setting("system_file_path"), serialize(array(array("file_name" => "import-leads-sample.xlsx"))));
+    }
+
+    public function leads_index()
+    {
+        // $custom_fields = $this->Custom_fields_model->get_available_fields_for_table("leads", $this->login_user->is_admin, $this->login_user->user_type);
+        $custom_fields = $this->Custom_fields_model->get_custom_field_id("leads");
+        var_dump(arr($custom_fields));
+        // $data = $this->Clients_model->leads_for_index($custom_fields);
+        // echo json_encode(array("data" => $data));
     }
 
 }

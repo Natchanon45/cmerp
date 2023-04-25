@@ -147,4 +147,17 @@ class Custom_fields_model extends Crud_model {
         return $variables_array;
     }
 
+    public function get_custom_field_id($related)
+    {
+        $this->db->select("id")
+        ->from("custom_fields")
+        ->where("related_to", $related)
+        ->where("show_in_table", 1)
+        ->where("deleted", 0)
+        ->order_by("sort", "ASC");
+
+        $query = $this->db->get();
+        return $query->result();
+    }
+
 }

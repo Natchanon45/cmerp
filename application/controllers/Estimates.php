@@ -20,7 +20,7 @@ class Estimates extends MY_Controller {
     /* load estimate list view */
 
     function index() {
-        redirect("forbidden");
+        redirect("comingsoon");
 
         // $this->check_module_availability("module_estimate");
         // $view_data['can_request_estimate'] = false;
