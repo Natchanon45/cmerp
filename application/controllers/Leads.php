@@ -219,7 +219,7 @@ class Leads extends MY_Controller {
         $show_own_leads_only_user_id = $this->show_own_leads_only_user_id();
 
         $options = array(
-            "custom_fields" => $custom_fields,
+            // "custom_fields" => $custom_fields,
             "leads_only" => true,
             "remains_only" => true,
             "status" => $this->input->post('status'),
@@ -275,14 +275,14 @@ class Leads extends MY_Controller {
         );
 
         $row_data[] = js_anchor($data->lead_status_title, array("style" => "background-color: $data->lead_status_color", "class" => "label", "data-id" => $data->id, "data-value" => $data->lead_status_id, "data-act" => "update-lead-status"));
-        var_dump(arr($data));
+        // var_dump(arr($data));
 
-        foreach ($custom_fields as $field) {
-            $cf_id = "cfv_" . $field->id;
+        // foreach ($custom_fields as $field) {
+            // $cf_id = "cfv_" . $field->id;
             // var_dump(arr($data->$cf_id));
             // exit;
-            $row_data[] = $this->load->view("custom_fields/output_" . $field->field_type, array("value" => $data->$cf_id), true);
-        }
+            // $row_data[] = $this->load->view("custom_fields/output_" . $field->field_type, array("value" => $data->$cf_id), true);
+        // }
 
         $row_data[] = modal_anchor(get_uri("leads/modal_form"), "<i class='fa fa-pencil'></i>", array("class" => "edit", "title" => lang('edit_lead'), "data-post-id" => $data->id))
                 . js_anchor("<i class='fa fa-times fa-fw'></i>", array('title' => lang('delete_lead'), "class" => "delete", "data-id" => $data->id, "data-action-url" => get_uri("leads/delete"), "data-action" => "delete-confirmation"));
