@@ -354,4 +354,23 @@ class Clients_model extends Crud_model {
         return $this->db->query($sql)->row()->total;
     }
 
+    public function leads_for_index()
+    {
+        $sql = "SELECT `clients`.`id` AS `client_id`, `clients`.`company_name` AS `client_name`, `clients`.`address` AS `clients_address`, `clients`.`phone` AS `clients_phone`, `contact`.`id` AS `contact_id`, `contact`.`name` AS `contact_name`, `owner`.`id` AS `owner_id`, `owner`.`name` AS `owner_name` 
+        FROM `clients` 
+        LEFT JOIN(
+            SELECT `users`.`id`, `users`.`client_id`, CONCAT(`users`.`first_name`, ' ', `users`.`last_name`) AS `name` 
+            FROM `users` 
+            WHERE `users`.`deleted` = 0 AND `users`.`is_primary_contact` = 1 
+        ) AS `contact` ON `contact`.`client_id` = `clients`.`id` 
+        LEFT JOIN(
+            SELECT `users`.`id`, CONCAT(`users`.`first_name`, ' ', `users`.`last_name`) AS `name` 
+            FROM `users` WHERE `users`.`deleted` = 0
+        ) AS `owner` ON `owner`.`id` = `clients`.`owner_id` 
+        WHERE `clients`.`is_lead` = 1 AND `clients`.`deleted` = 0";
+
+        $query = $this->db->query($sql);
+        return $query->result();
+    }
+
 }
