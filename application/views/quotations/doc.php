@@ -91,18 +91,12 @@ $(document).ready(function() {
             }else{
                 alert(data.message);
             }
-
-      
-        }).catch(function (error) {
-
-        });
-
+        }).catch(function (error) {});
     });
 
     $('#project_id').select2();
     $("#client_id").select2();
 
     setDatePicker("#quotation_date, #quotation_valid_until_date");
-
 });
 </script>

@@ -10,7 +10,6 @@
             <a class="btn btn-default" onclick="window.print();">พิมพ์</a>
         </div>
     </div>
-    
 </div><!--#dcontroller-->
 <div id="printd" class="clear">
     <div class="docheader clear">
@@ -313,6 +312,14 @@ function loadSummary(){
         $("#discount_amount").val(data.discount_amount);
         $("#sub_total").val(data.sub_total);
 
+        $("#wht_percent").val(data.wht_percent);
+        $("#wht_value").val(data.wht_value);
+
+        $("#total").val(data.total);
+        $("#total_in_text").val("("+data.total_in_text+")");
+
+        $("#payment_amount").val(data.payment_amount);
+
          if(data.discount_type == "P"){
             $("#discount_type").val("P");
             $("#discount_percent").removeClass("h").addClass("v");
@@ -359,13 +366,7 @@ function loadSummary(){
             $("#s-wht").removeClass("v").addClass("h");
         }
 
-        $("#wht_percent").val(data.wht_percent);
-        $("#wht_value").val(data.wht_value);
-
-        $("#total").val(data.total);
-        $("#total_in_text").val("("+data.total_in_text+")");
-
-        $("#payment_amount").val(data.payment_amount);
+        
         
 
     }).catch(function (error) {

@@ -57,6 +57,163 @@ class Quotations_m extends MY_Model {
         return $data;
     }
 
+    function index(){
+        $db = $this->db;
+        $db->select("*")->from("quotation");
+        $db->where("deleted", 0);
+        $qrows = $db->get()->result();
+        
+        $data["draw"] = 1;
+        $data["recordsTotal"] = 10000;
+        $data["recordsFiltered"] = 10000;
+
+        foreach($qrows as $qrow){
+            $data["data"][] = [
+                        $qrow->doc_number,
+                        $this->Clients_m->getCompanyName($qrow->client_id),
+                        $qrow->created_datetime,
+                        $qrow->total,
+                        $qrow->status,
+                        "<a data-post-id='".$qrow->id."' data-action-url='".get_uri("quotations/doc")."' data-act='ajax-modal' class='edit'><i class='fa fa-pencil'></i></a><a data-id='".$qrow->id."' data-action-url='".get_uri("quotations/delete_doc")."' data-action='delete' class='delete'><i class='fa fa-times fa-fw'></i></a>"
+                    ];
+        }
+
+        return $data;
+    }
+
+    function test(){
+        $db = $this->db;
+
+        $data["draw"] = 1;
+        $data["recordsTotal"] = 10000;
+        $data["recordsFiltered"] = 10000;
+        $data["data"] = [
+                            ["10000", "Leticia", "Argile", "largilerr@google.ca", "Female"],
+                            ["9999","Etta","Attwill","eattwillrq@yelp.com","Female"],
+                            ["9998","Ira","Comber","icomberrp@msn.com","Male"],
+                            ["9997","Ryon","Haack","rhaackro@homestead.com","Male"],
+                            ["9996","Gavin","Kenvin","gkenvinrn@youtube.com","Male"],
+                            ["9995","Hercules","Edgeson","hedgesonrm@trellian.com","Male"],
+                            ["9994","Meredith","Morot","mmorotrl@wp.com","Male"],
+                            ["9993","Corrinne","Rottger","crottgerrk@networkadvertising.org","Female"],
+                            ["9992","Gallagher","Scholefield","gscholefieldrj@cdbaby.com","Male"],
+                            ["9991","Obadias","Lardez","olardezri@princeton.edu","Male"]
+                        ];
+
+        return $data;
+
+
+
+
+
+        return json_decode('{
+            "draw":1,
+            "recordsTotal":10000,
+            "recordsFiltered":10000,
+            "data":[
+                ["10000","Leticia","Argile","largilerr@google.ca","Female"],
+                ["9999","Etta","Attwill","eattwillrq@yelp.com","Female"],
+                ["9998","Ira","Comber","icomberrp@msn.com","Male"],
+
+                ["9997","Ryon","Haack","rhaackro@homestead.com","Male"],
+                ["9996","Gavin","Kenvin","gkenvinrn@youtube.com","Male"],
+                ["9995","Hercules","Edgeson","hedgesonrm@trellian.com","Male"],
+                ["9994","Meredith","Morot","mmorotrl@wp.com","Male"],
+                ["9993","Corrinne","Rottger","crottgerrk@networkadvertising.org","Female"],
+                ["9992","Gallagher","Scholefield","gscholefieldrj@cdbaby.com","Male"],
+                ["9991","Obadias","Lardez","olardezri@princeton.edu","Male"]
+            ]}', true);
+
+
+        return json_decode('{
+                    "draw": 3,
+                    "recordsTotal": 57,
+                    "recordsFiltered": 57,
+                    "data": [
+                                {
+                                  "first_name": "Airi",
+                                  "last_name": "Satou",
+                                  "position": "Accountant",
+                                  "office": "Tokyo",
+                                  "start_date": "28th Nov 08",
+                                  "salary": "$162,700"
+                                },
+                                {
+                                  "first_name": "Angelica",
+                                  "last_name": "Ramos",
+                                  "position": "Chief Executive Officer (CEO)",
+                                  "office": "London",
+                                  "start_date": "9th Oct 09",
+                                  "salary": "$1,200,000"
+                                },
+                                {
+                                  "first_name": "Ashton",
+                                  "last_name": "Cox",
+                                  "position": "Junior Technical Author",
+                                  "office": "San Francisco",
+                                  "start_date": "12th Jan 09",
+                                  "salary": "$86,000"
+                                },
+                                {
+                                  "first_name": "Bradley",
+                                  "last_name": "Greer",
+                                  "position": "Software Engineer",
+                                  "office": "London",
+                                  "start_date": "13th Oct 12",
+                                  "salary": "$132,000"
+                                },
+                                {
+                                  "first_name": "Brenden",
+                                  "last_name": "Wagner",
+                                  "position": "Software Engineer",
+                                  "office": "San Francisco",
+                                  "start_date": "7th Jun 11",
+                                  "salary": "$206,850"
+                                },
+                                {
+                                  "first_name": "Brielle",
+                                  "last_name": "Williamson",
+                                  "position": "Integration Specialist",
+                                  "office": "New York",
+                                  "start_date": "2nd Dec 12",
+                                  "salary": "$372,000"
+                                },
+                                {
+                                  "first_name": "Bruno",
+                                  "last_name": "Nash",
+                                  "position": "Software Engineer",
+                                  "office": "London",
+                                  "start_date": "3rd May 11",
+                                  "salary": "$163,500"
+                                },
+                                {
+                                  "first_name": "Caesar",
+                                  "last_name": "Vance",
+                                  "position": "Pre-Sales Support",
+                                  "office": "New York",
+                                  "start_date": "12th Dec 11",
+                                  "salary": "$106,450"
+                                },
+                                {
+                                  "first_name": "Cara",
+                                  "last_name": "Stevens",
+                                  "position": "Sales Assistant",
+                                  "office": "New York",
+                                  "start_date": "6th Dec 11",
+                                  "salary": "$145,600"
+                                },
+                                {
+                                  "first_name": "Cedric",
+                                  "last_name": "Kelly",
+                                  "position": "Senior Javascript Developer",
+                                  "office": "Edinburgh",
+                                  "start_date": "29th Mar 12",
+                                  "salary": "$433,060"
+                                }
+                            ]
+                        }', true);
+    }
+
     function doc($docId){
         $db = $this->db;
 
@@ -296,7 +453,7 @@ class Quotations_m extends MY_Model {
                                         "vat_percent"=>$this->Taxes_m->getVatPercent(),
                                         "client_id"=>$client_id,
                                         "project_id"=>$project_id,
-                                        "remark"=>$remark,
+                                        "remark"=>$remark
                                     ]);
         }else{
             $db->where("DATE_FORMAT(crreated_datetime,'%Y-%m')", date("Y-m"));

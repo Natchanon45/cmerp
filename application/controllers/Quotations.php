@@ -7,12 +7,18 @@ class Quotations extends MY_Controller {
     }
 
     function index() {
+        //log_message("error", $this->uri->segment(3));
+        //log_message("error", "p->".json_encode($_POST));
+        //log_message("error", "g->".json_encode($_GET));
         if($this->uri->segment(3) == "igrid"){
-            jout(["data"=>$this->Quotations_m->igrid()]);
+
+            //log_message("error", $_POST['start']);
+            //jout(["data"=>$this->Quotations_m->igrid()]);
+            //jout(["data"=>$this->Quotations_m->igrid()]);
+            jout($this->Quotations_m->index());
             return;
         }
 
-        
         $this->template->rander("quotations/index");
     }
 
@@ -47,12 +53,11 @@ class Quotations extends MY_Controller {
             return;
         }
 
-
         $data["created"] = $this->Users_m->getInfo($data["created_by"]);
         $data["client"] = $this->Clients_m->getInfo($data["client_id"]);
         if($data["client"] != null) $data["client_contact"] = $this->Clients_m->getContactInfo($data["client_id"]);
 
-        $this->template->rander("quotations/view", $data );
+        $this->template->rander("quotations/view", $data);
     }
 
 

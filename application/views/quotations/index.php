@@ -10,12 +10,22 @@
                 </div>
             </div>
         </ul>
-
         <div class="tab-content">
             <div role="tabpanel" class="tab-pane fade" id="monthly-estimates">
                 <div class="table-responsive">
-                    <table id="monthly-estimate-table" class="display" cellspacing="0" width="100%">
-                        
+                    <!--<table id="monthly-estimate-table" class="display" cellspacing="0" width="100%">   
+                    </table>-->
+                    <table id="datagrid" class="display" cellspacing="0" width="100%">
+                        <thead>
+                            <tr>
+                                <th>ใบเสนอราคา (QT)</th>
+                                <th>ลูกค้า</th>
+                                <th>วันที่เสนอราคา</th>
+                                <th>ราคา</th>
+                                <th>สถานะ</th>
+                                <th><i class='fa fa-bars'></i></th>
+                            </tr>
+                        </thead>
                     </table>
                 </div>
             </div>
@@ -33,7 +43,7 @@ let fstatus = [
         ];
 
 $(document).ready(function () {
-    $("#monthly-estimate-table").appTable({
+    /*$("#monthly-estimate-table").appTable({
         source: '<?php echo_uri("quotations/index/igrid") ?>',
         order: [[0, "desc"]],
         dateRangeType: "monthly",
@@ -48,6 +58,40 @@ $(document).ready(function () {
         ],
         printColumns: combineCustomFieldsColumns([0, 1, 2, 3, 4, 5]),
         xlsColumns: combineCustomFieldsColumns([0, 1, 2, 3, 4, 5])
+    });*/
+
+
+    $('#datagrid').DataTable({
+        processing : true,
+        serverSide : true,
+        order : [],
+        dateRangeType: "monthly",
+        filterDropdown: [{name: "status", class: "w150", options: fstatus}],
+        retrieve: true,
+        ajax : {
+            url:"<?php echo_uri("quotations/index/igrid") ?>",
+            type:"POST"
+        }
     });
+
 });
+
+/*function load_data(start, length)
+    {
+        var dataTable = $('#customer_table').DataTable({
+            "processing" : true,
+            "serverSide" : true,
+            "order" : [],
+            "retrieve": true,
+            "ajax" : {
+                url:"<?php echo_uri("quotations/index/igrid") ?>",
+                method:"POST",
+                data:{start:start, length:length}
+            }
+        });
+    }
+
+    load_data();*/
+
+
 </script>
