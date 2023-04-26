@@ -24,7 +24,7 @@
     $(document).ready(function () {
 
         $("#lead-table").appTable({
-            source: '<?php echo_uri("leads/list_data") ?>',
+            source: '<?php echo_uri("leads/leads_index") ?>',
             columns: [
                 {title: "<?php echo lang("company_client_name") ?>"},
                 {title: "<?php echo lang("address");?>"},
@@ -32,7 +32,7 @@
                 {title: "<?php echo lang("primary_contact") ?>"},
                 {title: "<?php echo lang("owner") ?>"},
                 {title: "<?php echo lang("status") ?>"}
-                <?php // echo $custom_field_headers; ?>,
+                <?php echo $custom_field_headers; ?>,
                 {title: '<i class="fa fa-bars"></i>', "class": "text-center option w100"}
             ],
             filterDropdown: [
@@ -42,8 +42,8 @@
                     {name: "owner_id", class: "w200", options: <?php echo json_encode($owners_dropdown); ?>}
                 <?php } ?>
             ],
-            printColumns: combineCustomFieldsColumns([0, 1, 2, 3, 4, 5, 6, 7], '<?php // echo $custom_field_headers; ?>'),
-            xlsColumns: combineCustomFieldsColumns([0, 1, 2, 3, 4, 5, 6, 7], '<?php // echo $custom_field_headers; ?>')
+            printColumns: combineCustomFieldsColumns([0, 1, 2, 3, 4, 5, 6, 7], '<?php echo $custom_field_headers; ?>'),
+            xlsColumns: combineCustomFieldsColumns([0, 1, 2, 3, 4, 5, 6, 7], '<?php echo $custom_field_headers; ?>')
         });
     });
 </script>

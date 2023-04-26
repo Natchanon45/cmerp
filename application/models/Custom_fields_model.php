@@ -149,7 +149,7 @@ class Custom_fields_model extends Crud_model {
 
     public function get_custom_field_id($related)
     {
-        $this->db->select("id")
+        $this->db->select("id, field_type")
         ->from("custom_fields")
         ->where("related_to", $related)
         ->where("show_in_table", 1)
