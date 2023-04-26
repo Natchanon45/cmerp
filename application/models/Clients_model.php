@@ -379,6 +379,7 @@ class Clients_model extends Crud_model {
         // exit;
 
         $query = $this->db->query($sql);
+
         return $query->result();
     }
 

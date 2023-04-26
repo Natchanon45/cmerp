@@ -19,12 +19,11 @@
         </div>
     </div>
 </div>
-
 <script type="text/javascript">
     $(document).ready(function () {
 
         $("#lead-table").appTable({
-            source: '<?php echo_uri("leads/leads_index") ?>',
+            source: '<?php echo_uri("leads/leads_index2") ?>',
             columns: [
                 {title: "<?php echo lang("company_client_name") ?>"},
                 {title: "<?php echo lang("address");?>"},
