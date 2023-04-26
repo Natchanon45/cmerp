@@ -1,6 +1,6 @@
 <?php
 
-class ComingSoon extends CI_Controller
+class Comingsoon extends CI_Controller
 {
 	public function index()
 	{
