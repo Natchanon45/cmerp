@@ -159,6 +159,7 @@ class Estimates extends MY_Controller {
     /* list of estimate of a specific client, prepared for datatable  */
 
     function estimate_list_data_of_client($client_id) {
+
         $this->access_only_allowed_members_or_client_contact($client_id);
 
         $custom_fields = $this->Custom_fields_model->get_available_fields_for_table("estimates", $this->login_user->is_admin, $this->login_user->user_type);
@@ -166,16 +167,17 @@ class Estimates extends MY_Controller {
         $options = array("client_id" => $client_id, "status" => $this->input->post("status"), "custom_fields" => $custom_fields);
 
         if ($this->login_user->user_type == "client") {
-            //don't show draft estimates to clients.
+            // don't show draft estimates to clients.
             $options["exclude_draft"] = true;
         }
 
-        $list_data = $this->Estimates_model->get_details($options)->result();
-        $result = array();
-        foreach ($list_data as $data) {
-            $result[] = $this->_make_row($data, $custom_fields);
-        }
-        echo json_encode(array("data" => $result));
+        // $list_data = $this->Estimates_model->get_details($options)->result();
+        // $result = array();
+        // foreach ($list_data as $data) {
+        //     $result[] = $this->_make_row($data, $custom_fields);
+        // }
+
+        echo json_encode(array("data" => array()));
     }
 
     /* return a row of estimate list table */
