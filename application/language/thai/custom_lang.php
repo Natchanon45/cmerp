@@ -2411,3 +2411,6 @@ $lang["text_rejected"] = "ไม่อนุมัติ";
 
 $lang["remain_only"] = "คงคลังเท่านั้น";
 $lang["all_add_stock"] = "ทั้งหมดที่นำเข้า";
+$lang["begin_cannot_display_vat"] = "ไม่สามารถทำรายการได้ เนื่องจากหมายเลขภาษี";
+$lang["end_cannot_display_vat"] = "ได้ถูกลงทะเบียนไว้แล้ว";
+$lang["have_no_delete_auth"] = "คุณไม่มีสิทธิ์ในการลบข้อมูล";
