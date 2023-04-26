@@ -354,9 +354,9 @@ class Clients_model extends Crud_model {
         return $this->db->query($sql)->row()->total;
     }
 
-    public function leads_for_index()
+    public function leads_for_index($custom_fields_selects, $custom_fields_joins, $status_where, $source_where, $owner_where)
     {
-        $sql = "SELECT `clients`.`id` AS `client_id`, `clients`.`company_name` AS `client_name`, `clients`.`address` AS `clients_address`, `clients`.`phone` AS `clients_phone`, `contact`.`id` AS `contact_id`, `contact`.`name` AS `contact_name`, `owner`.`id` AS `owner_id`, `owner`.`name` AS `owner_name` 
+        $sql = "SELECT `clients`.`id` AS `client_id`, `clients`.`company_name` AS `client_name`, `clients`.`address` AS `clients_address`, `clients`.`phone` AS `clients_phone`, `contact`.`id` AS `contact_id`, `contact`.`name` AS `contact_name`, `owner`.`id` AS `owner_id`, `owner`.`name` AS `owner_name`, `status`.`id` AS `status_id`, `status`.`title` AS `status_title`, `status`.`color` AS `status_color` " . $custom_fields_selects . " 
         FROM `clients` 
         LEFT JOIN(
             SELECT `users`.`id`, `users`.`client_id`, CONCAT(`users`.`first_name`, ' ', `users`.`last_name`) AS `name` 
@@ -367,7 +367,16 @@ class Clients_model extends Crud_model {
             SELECT `users`.`id`, CONCAT(`users`.`first_name`, ' ', `users`.`last_name`) AS `name` 
             FROM `users` WHERE `users`.`deleted` = 0
         ) AS `owner` ON `owner`.`id` = `clients`.`owner_id` 
-        WHERE `clients`.`is_lead` = 1 AND `clients`.`deleted` = 0";
+        LEFT JOIN(
+            SELECT `lead_status`.`id`, `lead_status`.`title`, `lead_status`.`color` 
+            FROM `lead_status` 
+            WHERE `lead_status`.`deleted` = 0 
+        ) AS `status` ON `status`.`id` = `clients`.`lead_status_id` 
+        " . $custom_fields_joins . " 
+        WHERE `clients`.`is_lead` = 1 AND `clients`.`deleted` = 0 " . $status_where . $source_where . $owner_where . "";
+        
+        // var_dump(arr($sql));
+        // exit;
 
         $query = $this->db->query($sql);
         return $query->result();

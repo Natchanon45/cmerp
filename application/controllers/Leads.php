@@ -1551,11 +1551,90 @@ class Leads extends MY_Controller {
 
     public function leads_index()
     {
-        // $custom_fields = $this->Custom_fields_model->get_available_fields_for_table("leads", $this->login_user->is_admin, $this->login_user->user_type);
+        $options = array(
+            "status_id" => $this->input->post("status") ? $this->input->post("status") : "0",
+            "source_id" => $this->input->post("source") ? $this->input->post("source") : "0",
+            "owner_id" => $this->input->post("owner_id") ? $this->input->post("owner_id") : "0"
+        );
+
+        if ($options["status_id"] == 0) {
+            $status_where = "";
+        } else {
+            $status_where = " AND `clients`.`lead_status_id` = " . $options["status_id"] . " ";
+        }
+
+        if ($options["source_id"] == 0) {
+            $source_where = "";
+        } else {
+            $source_where = " AND `clients`.`lead_source_id` = " . $options["source_id"] . " ";
+        }
+
+        if ($options["owner_id"] == 0) {
+            $owner_where = "";
+        } else {
+            $owner_where = " AND `clients`.`owner_id` = " . $options["owner_id"] . " ";
+        }
+
+        $custom_fields_selects = "";
+        $custom_fields_joins = "";
+
         $custom_fields = $this->Custom_fields_model->get_custom_field_id("leads");
-        var_dump(arr($custom_fields));
-        // $data = $this->Clients_model->leads_for_index($custom_fields);
-        // echo json_encode(array("data" => $data));
+        foreach ($custom_fields as $field)
+        {
+            $custom_fields_selects .= ", `cfv" . $field->id . "`.`field_type` AS `cfv" . $field->id . "_field_type`";
+            $custom_fields_selects .= ", `cfv" . $field->id . "`.`value` AS `cfv" . $field->id . "_value`";
+        }
+
+        foreach ($custom_fields as $field)
+        {
+            $custom_fields_joins .= " 
+            LEFT JOIN(
+                SELECT
+                    `custom_field_values`.`related_to_id`,
+                    `custom_field_values`.`value`,
+                    `custom_fields`.`field_type`
+                FROM
+                    `custom_field_values`
+                LEFT JOIN `custom_fields` ON `custom_field_values`.`custom_field_id` = `custom_fields`.`id`
+                WHERE
+                    `custom_field_values`.`related_to_type` = 'leads' AND `custom_field_values`.`deleted` = 0 AND `custom_field_values`.`custom_field_id` = " . $field->id . "
+            ) AS `cfv" . $field->id . "`
+            ON
+                `cfv" . $field->id . "`.`related_to_id` = `clients`.`id`
+            ";
+        }
+
+        $data = $this->Clients_model->leads_for_index($custom_fields_selects, $custom_fields_joins, $status_where, $source_where, $owner_where);
+        // var_dump(arr($data));
+
+        $row_data = array();
+        $index = 0;
+        $image_url = base_url("assets/images/avatar.jpg");
+        foreach ($data as $row)
+        {
+            $row_data[$index] = array(
+                anchor(get_uri("leads/view/" . $row->client_id), $row->client_name),
+                $row->clients_address ? $row->clients_address : "",
+                $row->clients_phone ? $row->clients_phone : "",
+                $row->contact_id ? get_lead_contact_profile_link($row->contact_id, "<span class='avatar avatar-xs mr10'><img src='$image_url' alt='...'></span>" . $row->contact_name) : "",
+                $row->owner_id ? get_team_member_profile_link($row->owner_id, "<span class='avatar avatar-xs mr10'><img src='$image_url' alt='...'></span>" . $row->owner_name) : "",
+                js_anchor($row->status_title, array("style" => "background-color: $row->status_color", "class" => "label", "data-id" => $row->client_id, "data-value" => $row->status_id, "data-act" => "update-lead-status"))
+            );
+
+            foreach ($custom_fields as $field)
+            {
+                $cfv_value = "cfv" . $field->id . "_value";
+                $row_data[$index][] = $this->load->view("custom_fields/output_" . $field->field_type, array("value" => $row->$cfv_value), true);
+            }
+            $row_data[$index][] = modal_anchor(get_uri("leads/modal_form"), "<i class='fa fa-pencil'></i>", array("class" => "edit", "title" => lang('edit_lead'), "data-post-id" => $row->client_id)) . js_anchor("<i class='fa fa-times fa-fw'></i>", array('title' => lang('delete_lead'), "class" => "delete", "data-id" => $row->client_id, "data-action-url" => get_uri("leads/delete"), "data-action" => "delete-confirmation"));
+
+            $index++;
+        }
+
+        // var_dump(arr($row_data));
+        // exit;
+
+        echo json_encode(array("data" => $row_data));
     }
 
 }
