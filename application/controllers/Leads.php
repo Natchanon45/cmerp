@@ -54,8 +54,7 @@ class Leads extends MY_Controller {
 				
 				return;
 				 
-			}
-			
+			}	
 		}
 		
 		
@@ -1634,7 +1633,8 @@ class Leads extends MY_Controller {
         // var_dump(arr($row_data));
         // exit;
 
-        echo json_encode(array("data" => $row_data));
+        //echo json_encode(array("data" => $row_data));
+        echo jout(array("data" => $row_data));
     }
 
 
@@ -1646,92 +1646,126 @@ class Leads extends MY_Controller {
             "owner_id" => $this->input->post("owner_id") ? $this->input->post("owner_id") : "0"
         );
 
+
         if ($options["status_id"] == 0) {
             $status_where = "";
         } else {
-            $status_where = " AND `clients`.`lead_status_id` = " . $options["status_id"] . " ";
+            //$status_where = " AND `clients`.`lead_status_id` = " . $options["status_id"] . " ";
+            $this->db->where("lead_status_id", $options["status_id"]);
         }
 
         if ($options["source_id"] == 0) {
             $source_where = "";
         } else {
-            $source_where = " AND `clients`.`lead_source_id` = " . $options["source_id"] . " ";
+            //$source_where = " AND `clients`.`lead_source_id` = " . $options["source_id"] . " ";
+            $this->db->where("lead_source_id", $options["source_id"]);
         }
 
         if ($options["owner_id"] == 0) {
             $owner_where = "";
         } else {
-            $owner_where = " AND `clients`.`owner_id` = " . $options["owner_id"] . " ";
+            //$owner_where = " AND `clients`.`owner_id` = " . $options["owner_id"] . " ";
+            $this->db->where("owner_id", $options["owner_id"]);
         }
 
-        $custom_fields_selects = "";
-        $custom_fields_joins = "";
-
-        $custom_fields = $this->Custom_fields_model->get_custom_field_id("leads");
-        foreach ($custom_fields as $field)
-        {
-            $custom_fields_selects .= ", `cfv" . $field->id . "`.`field_type` AS `cfv" . $field->id . "_field_type`";
-            $custom_fields_selects .= ", `cfv" . $field->id . "`.`value` AS `cfv" . $field->id . "_value`";
-        }
-
-        foreach ($custom_fields as $field)
-        {
-            $custom_fields_joins .= " 
-            LEFT JOIN(
-                SELECT
-                    `custom_field_values`.`related_to_id`,
-                    `custom_field_values`.`value`,
-                    `custom_fields`.`field_type`
-                FROM
-                    `custom_field_values`
-                LEFT JOIN `custom_fields` ON `custom_field_values`.`custom_field_id` = `custom_fields`.`id`
-                WHERE
-                    `custom_field_values`.`related_to_type` = 'leads' AND `custom_field_values`.`deleted` = 0 AND `custom_field_values`.`custom_field_id` = " . $field->id . "
-            ) AS `cfv" . $field->id . "`
-            ON
-                `cfv" . $field->id . "`.`related_to_id` = `clients`.`id`
-            ";
-        }
-
-        $data = $this->Clients_model->leads_for_index($custom_fields_selects, $custom_fields_joins, $status_where, $source_where, $owner_where);
-        // var_dump(arr($data));
-
-        $row_data = array();
-        $index = 0;
-        $image_url = base_url("assets/images/avatar.jpg");
-        foreach ($data as $row)
-        {
-            $row_data[$index] = array(
-                anchor(get_uri("leads/view/" . $row->client_id), $row->client_name),
-                $row->clients_address ? $row->clients_address : "",
-                $row->clients_phone ? $row->clients_phone : "",
-                $row->contact_id ? get_lead_contact_profile_link($row->contact_id, "<span class='avatar avatar-xs mr10'><img src='$image_url' alt='...'></span>" . $row->contact_name) : "",
-                $row->owner_id ? get_team_member_profile_link($row->owner_id, "<span class='avatar avatar-xs mr10'><img src='$image_url' alt='...'></span>" . $row->owner_name) : "",
-                js_anchor($row->status_title, array("style" => "background-color: $row->status_color", "class" => "label", "data-id" => $row->client_id, "data-value" => $row->status_id, "data-act" => "update-lead-status"))
-            );
-
-            foreach ($custom_fields as $field)
-            {
-                $cfv_value = "cfv" . $field->id . "_value";
-                $row_data[$index][] = $this->load->view("custom_fields/output_" . $field->field_type, array("value" => $row->$cfv_value), true);
+        $status_ids = $status_info = [];
+        $lsrows = $this->db->select("id, title, color")
+                            ->from("lead_status")
+                            ->where("deleted", 0)
+                            ->get()->result();
+        if(!empty($lsrows)){
+            foreach($lsrows as $lsrow){
+                $status_ids[] = $lsrow->id;
+                $status_info[$lsrow->id]["title"] = $lsrow->title;
+                $status_info[$lsrow->id]["color"] = $lsrow->color;
             }
-            $row_data[$index][] = modal_anchor(get_uri("leads/modal_form"), "<i class='fa fa-pencil'></i>", array("class" => "edit", "title" => lang('edit_lead'), "data-post-id" => $row->client_id)) . js_anchor("<i class='fa fa-times fa-fw'></i>", array('title' => lang('delete_lead'), "class" => "delete", "data-id" => $row->client_id, "data-action-url" => get_uri("leads/delete"), "data-action" => "delete-confirmation"));
-
-            $index++;
         }
 
-        // var_dump(arr($row_data));
-        // exit;
 
-        echo json_encode(array("data" => $row_data));
+
+
+        $lcfrows = $this->db->select("*")
+                            ->from("leads_custom_field")
+                            ->order_by("sort", "ASC")
+                            ->get()->result();
+
+        $custom_fields = null;
+
+        if(!empty($lcfrows)){
+            foreach($lcfrows as $lcfrow){
+                $custom_fields[$lcfrow->code]["show_in_table"] = $lcfrow->show_in_table;
+                $custom_fields[$lcfrow->code]["status"] = $lcfrow->status;
+            }
+        }
+
+        $lrows = $this->db->select("*")
+                            ->from("leads")
+                            ->where("is_lead", 1)
+                            ->where("deleted", 0)
+                            ->where_in("lead_status_id", $status_ids)
+                            ->get()->result();
+
+        $j = null;
+
+        foreach($lrows as $lrow){
+            $owner_info = $contact_info = "";
+            $owner_image = $contact_image = base_url("assets/images/avatar.jpg");
+
+            $u = $this->Users_m->getInfoByLeadId($lrow->id);
+            if($u != null){
+                $contact_info = $u["first_name"]." ".$u["last_name"];
+                $image_data =  @unserialize($u["image"]);
+                if($u["image"] === 'b:0;' || $image_data !== false){
+                    $contact_image = json_decode(json_encode($image_data))->file_name;
+                }   
+            }
+
+            $u = $this->Users_m->getInfo($lrow->id);
+            if($u != null){
+                $owner_info = $u["first_name"]." ".$u["last_name"];
+                $image_data =  @unserialize($u["image"]);
+                if($u["image"] === 'b:0;' || $image_data !== false){
+                    $owner_image = json_decode(json_encode(unserialize($u["image"])))->file_name;
+                }   
+            }
+
+            $data = [
+                    "<a href='".get_uri("leads/view/" . $lrow->id)."'>".($lrow->company_name != null ? $lrow->company_name:'')."</a>",
+                    $lrow->address,
+                    $lrow->phone,
+                    "<a href='".get_uri("leads/contact_profile/". $lrow->id)."'><span class='avatar avatar-xs mr10'><img src='".$contact_image."'></span>".$contact_info."</a>",
+                    "<a href='".get_uri("leads/team_members/view/". $lrow->id)."'><span class='avatar avatar-xs mr10'><img src='".$owner_image."'></span>".$owner_info."</a>",
+                    "<a style='background-color: ".$status_info[$lrow->lead_status_id]['color']."' class='label' data-id='10' data-value='6' data-act='update-lead-status'>".$status_info[$lrow->lead_status_id]['title']."</a>"
+                ];
+
+                //return anchor("leads/contact_profile/" . $id, $name, $attributes);
+
+            for($i = 1; $i <= 12; $i++){
+                if($custom_fields["cf".$i]["show_in_table"] == "Y" && $custom_fields["cf".$i]["status"] == "E"){
+                    $data[] = $lrow->{"cf".$i};
+                }
+            }
+
+            $data[] = "<a class='edit' title='แก้ไขโอกาสในการขาย' data-post-id='".$lrow->id."' data-act='ajax-modal' data-title='แก้ไขโอกาสในการขาย' data-action-url='".get_uri("leads/modal_form")."'><i class='fa fa-pencil'></i></a><a title='ลบโอกาสในการขาย' class='delete' data-id='".$lrow->id."' data-action-url='".get_uri("leads/delete")."' data-action='delete-confirmation'><i class='fa fa-times fa-fw'></i></a>";
+
+            
+
+            $j[] = $data;
+        }
+
+        //echo json_encode(array("data" => $row_data));
+        echo jout(["data"=>$j]);
     }
 
-    function test(){
+    function movedata(){
         $cfrows = null;
         $cfvrow = null;
         $cfsort = null;
+        $custom_fields_table = "leads_custom_field";
 
-        $cfrows = $this->db->select("id, field_type, title")
+        $this->db->trans_begin();
+
+        $cfrows = $this->db->select("id, title, placeholder, options, field_type, required, show_in_table, show_on_kanban_card")
                                 ->from("custom_fields")
                                 ->where("related_to", "leads")
                                 ->where("deleted", 0)
@@ -1739,13 +1773,66 @@ class Leads extends MY_Controller {
                                 ->get()->result();
 
         if(!empty($cfrows)){
-            $i = 0;
+            $i = 1;
             foreach($cfrows as $cfrow){
-                $cfsort[$i]["id"] = $cfrow->id;
-                $cfsort[$i]["title"] = $cfrow->title;
+                if($i > 12) break;
+
+                $cfsort[$i-1]["id"] = $cfrow->id;
+                $code = "cf".$i;
+                $field_type = $cfrow->field_type;
+                $title = $cfrow->title;
+                $placeholder = $cfrow->placeholder;
+
+                $options = NULL;
+                if($cfrow->options != ""){
+                    $options = json_encode(explode(",", $cfrow->options));
+                }
+
+                $sort = $i;
+                $required = ($cfrow->required == 1 ? "Y":"N");
+                $show_in_table = ($cfrow->show_in_table == 1 ? "Y":"N");
+                $show_on_kanban = ($cfrow->show_on_kanban_card == 1 ? "Y":"N");
+                $status = "E";
+
+
+                $lcfrow = $this->db->select("code")
+                                    ->from($custom_fields_table)
+                                    ->where("code", $code)
+                                    ->get()->row();
+
+                if(empty($lcfrow)){
+                    $this->db->insert($custom_fields_table, [
+                                                            "code"=>$code,
+                                                            "field_type"=>$field_type,
+                                                            "title"=>$title,
+                                                            "placeholder"=>$placeholder,
+                                                            "options"=>$options,
+                                                            "sort"=>$sort,
+                                                            "required"=>$required,
+                                                            "show_in_table"=>$show_in_table,
+                                                            "show_on_kanban"=>$show_on_kanban,
+                                                            "status"=>$status
+                                                        ]);
+                }else{
+                    $this->db->where("code", $code);
+                    $this->db->update($custom_fields_table, [
+                                                                "field_type"=>$field_type,
+                                                                "title"=>$title,
+                                                                "placeholder"=>$placeholder,
+                                                                "options"=>$options,
+                                                                "sort"=>$sort,
+                                                                "required"=>$required,
+                                                                "show_in_table"=>$show_in_table,
+                                                                "show_on_kanban"=>$show_on_kanban,
+                                                                "status"=>$status
+                                                            ]);
+                }
+
+
                 $i++;
             }
         }
+
 
         $t = "<div style='overflow: scroll;'>";     
 
@@ -1754,12 +1841,19 @@ class Leads extends MY_Controller {
                 $t .= "<th>id</th>";
                 $t .= "<th>company_name</th>";
 
-                for($i = 0; $i < 12; $i++){
-                    if(!isset($cfsort[$i])){
-                        $t .= "<th width='8%''>cf".($i+1)."</th>";
+                for($i = 1; $i <= 12; $i++){
+
+                    $lcfrow = $this->db->select("*")
+                                        ->from($custom_fields_table)
+                                        ->where("code", "cf".$i)
+                                        ->order_by("sort", "ASC")
+                                        ->get()->row();
+
+                    if(empty($lcfrow)){
+                        $t .= "<th width='8%''>cf".($i)."</th>";
                         continue;
                     }
-                    $t .= "<th width='8%''>cf".($i+1)." (".$cfsort[$i]["title"].")</th>";
+                    $t .= "<th width='8%''>cf".($i)." (".$lcfrow->title.")</th>";
                 }
             $t .= "</tr>";
             
@@ -1777,6 +1871,7 @@ class Leads extends MY_Controller {
 
                 if(count($cfsort) > 0){
                     for($i = 0; $i < 12; $i++){
+                        
                         if(!isset($cfsort[$i])){
                             $t .= "<td>--empty--</td>";
                             continue;
@@ -1792,6 +1887,9 @@ class Leads extends MY_Controller {
 
                         if(!empty($cfvrow)){
                             $t .= "<td>".$cfvrow->value."</td>";
+                            $this->db->where("id", $lrow->id);
+                            $this->db->update("leads", ["cf".($i + 1)=>$cfvrow->value]);
+                            log_message("error", $this->db->last_query());
                         }else{
                             $t .= "<td>--empty--</td>";
                         }
@@ -1806,9 +1904,25 @@ class Leads extends MY_Controller {
 
         $t .= "</div>";
 
-        $t .= "<div>".count($lrows)."</div>";
+        $t .= "<br><br><div>".count($lrows)."</div>";
 
         echo $t;
+
+
+        //ในกรณีที่ลูกค้ามี custom field ไม่ครบ 12 ใ้หใส่ให้ครบ โดยค่าจะเป็น cf[n] ค่าเป็น null และ status เป็น D
+        $total_cf = $this->db->count_all_results($custom_fields_table);
+        if($total_cf < 12){
+            for($i = ($total_cf + 1); $i <=12; $i++){
+                $this->db->insert($custom_fields_table, ["code"=>"cf".$i]);
+            }
+        }
+
+        if ($this->db->trans_status() === FALSE){
+            $this->db->trans_rollback();
+        }else{
+            $this->db->trans_commit();
+        }
+
     }
 
 }

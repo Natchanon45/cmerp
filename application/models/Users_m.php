@@ -17,8 +17,27 @@ class Users_m extends CI_Model {
 
         return [
         		"first_name"=>$urow->first_name,
-        		"last_name"=>$urow->last_name
+        		"last_name"=>$urow->last_name,
+                "image"=>$urow->image
         		];
+    }
+
+    function getInfoByLeadId($lead_id){
+        $db = $this->db;
+        
+        $urow = $db->select("*")
+                        ->from("users")
+                        ->where("client_id", $lead_id)
+                        ->where("deleted", 0)
+                        ->get()->row();
+
+        if(empty($urow)) return null;
+
+        return [
+                "first_name"=>$urow->first_name,
+                "last_name"=>$urow->last_name,
+                "image"=>$urow->image
+                ];
     }
 
     

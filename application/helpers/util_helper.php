@@ -1,4 +1,25 @@
 <?php
+if (!function_exists('jout')){
+    function jout($data){
+        $ci = get_instance();
+        $ci->output->set_content_type('application/json', "UTF-8")->set_output(json_encode($data));
+    }   
+}
+
+if (!function_exists('convertDate')){
+    function converDate($date, $cm_format = false){
+        if($date == "") return "";
+
+        if($cm_format == false){
+            list($dd, $mm, $yy) = explode("/", $date);
+            return $yy."-".$mm."-".$dd;
+        }
+
+        list($yy, $mm, $dd) = explode("-", $date);
+        return $dd."/".$mm."/".$yy;
+        
+    }   
+}
 
 if (!function_exists('roundUp')){
     function roundUp($num, $digit=2){
@@ -8,17 +29,21 @@ if (!function_exists('roundUp')){
 
 if (!function_exists('getNumber')){
     function getNumber($number){
-        $cleanString = preg_replace('/([^0-9\.,])/i', '', $money);
-        $onlyNumbersString = preg_replace('/([^0-9])/i', '', $money);
-
+        $cleanString = preg_replace('/([^0-9\.,])/i', '', $number);
+        $onlyNumbersString = preg_replace('/([^0-9])/i', '', $number);
         $separatorsCountToBeErased = strlen($cleanString) - strlen($onlyNumbersString) - 1;
-
         $stringWithCommaOrDot = preg_replace('/([,\.])/', '', $cleanString, $separatorsCountToBeErased);
         $removedThousandSeparator = preg_replace('/(\.|,)(?=[0-9]{3,}$)/', '',  $stringWithCommaOrDot);
 
         return (float) str_replace(',', '.', $removedThousandSeparator);
     }
-}    
+}
+
+if ( ! function_exists('number_format_drop_zero_decimals')){
+    function number_format_drop_zero_decimals($number, $decimals){
+        return ((floor($number) == round($number, $decimals)) ? number_format($number) : number_format($number, $decimals));
+    }
+}
 
 if (!function_exists('numberToText')) {
     function numberToText($amount_number){
@@ -49,6 +74,8 @@ if (!function_exists('numberToText')) {
             }
             return $ret;
         }
+
+        if($amount_number == 0) return "ศูนย์บาทถ้วน";
 
 
         $amount_number = number_format($amount_number, 2, ".","");
