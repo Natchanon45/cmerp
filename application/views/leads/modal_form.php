@@ -15,22 +15,22 @@
 
 <script type="text/javascript">
 	$(document).ready(function () {
-		
+
 		$("#lead-form").appForm({
 			onSuccess: function (result) {
 				if (result.view === "details") {
 					appAlert.success(result.message, { duration: 10000 });
+					setTimeout(function () {
+						location.reload();
+					}, 500);
 				} else {
 					$("#lead-table").appTable({ newData: result.data, dataId: result.id });
 					$("#reload-kanban-button:visible").trigger("click");
 				}
-				setTimeout(function () {
-					location.reload();
-				}, 500);
 			}
 		});
 
 		$("#company_name").focus();
-		
+
 	});
 </script>
