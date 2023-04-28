@@ -17,15 +17,18 @@ class Leads extends MY_Controller {
     function index() {
         $this->access_only_allowed_members();
         $this->check_module_availability("module_lead");
+        
+        if($this->input->post("datatable") == true){
+            jout(["data"=>$this->Leads_m->indexDataSet()]);
+            return;
+        }
 
-        $view_data["custom_field_headers"] = $this->Custom_fields_model->get_custom_field_headers_for_table("leads", $this->login_user->is_admin, $this->login_user->user_type);
+        //$view_data["custom_field_headers"] = $this->Custom_fields_model->get_custom_field_headers_for_table("leads", $this->login_user->is_admin, $this->login_user->user_type);
+        $view_data["custom_field_headers"] = $this->Leads_m->indexHeader();
 
         $view_data['lead_statuses'] = $this->Lead_status_model->get_details()->result();
         $view_data['lead_sources'] = $this->Lead_source_model->get_details()->result();
         $view_data['owners_dropdown'] = $this->_get_owners_dropdown("filter");
-
-        // var_dump(arr($view_data));
-        // exit;
 
         $this->template->rander("leads/index", $view_data);
     }
@@ -1637,127 +1640,71 @@ class Leads extends MY_Controller {
         echo jout(array("data" => $row_data));
     }
 
-
-    public function leads_index2()
-    {
-        $options = array(
-            "status_id" => $this->input->post("status") ? $this->input->post("status") : "0",
-            "source_id" => $this->input->post("source") ? $this->input->post("source") : "0",
-            "owner_id" => $this->input->post("owner_id") ? $this->input->post("owner_id") : "0"
-        );
-
-
-        if ($options["status_id"] == 0) {
-            $status_where = "";
-        } else {
-            //$status_where = " AND `clients`.`lead_status_id` = " . $options["status_id"] . " ";
-            $this->db->where("lead_status_id", $options["status_id"]);
-        }
-
-        if ($options["source_id"] == 0) {
-            $source_where = "";
-        } else {
-            //$source_where = " AND `clients`.`lead_source_id` = " . $options["source_id"] . " ";
-            $this->db->where("lead_source_id", $options["source_id"]);
-        }
-
-        if ($options["owner_id"] == 0) {
-            $owner_where = "";
-        } else {
-            //$owner_where = " AND `clients`.`owner_id` = " . $options["owner_id"] . " ";
-            $this->db->where("owner_id", $options["owner_id"]);
-        }
-
-        $status_ids = $status_info = [];
-        $lsrows = $this->db->select("id, title, color")
-                            ->from("lead_status")
-                            ->where("deleted", 0)
-                            ->get()->result();
-        if(!empty($lsrows)){
-            foreach($lsrows as $lsrow){
-                $status_ids[] = $lsrow->id;
-                $status_info[$lsrow->id]["title"] = $lsrow->title;
-                $status_info[$lsrow->id]["color"] = $lsrow->color;
-            }
-        }
-
-
-
-
-        $lcfrows = $this->db->select("*")
-                            ->from("leads_custom_field")
-                            ->order_by("sort", "ASC")
-                            ->get()->result();
-
-        $custom_fields = null;
-
-        if(!empty($lcfrows)){
-            foreach($lcfrows as $lcfrow){
-                $custom_fields[$lcfrow->code]["show_in_table"] = $lcfrow->show_in_table;
-                $custom_fields[$lcfrow->code]["status"] = $lcfrow->status;
-            }
-        }
-
+    /*
+    * - สร้างข้อมูลจำลองไปที่ lead เพื่อทดสอบจำนวน records ที่สามารถรับได้
+    * - หลังจากทดสอบข้อมูลเรียบร้อย ท้ายสุดให้ลบ function นี้ทิ้งเลย
+    * - ควรใช้ที่เครื่องทดสอบ เท่านั้น
+    */
+    public function build_dummy_data($secret = null){
+        if($secret != "xxyyzz1234") exit;
+        
         $lrows = $this->db->select("*")
                             ->from("leads")
-                            ->where("is_lead", 1)
                             ->where("deleted", 0)
-                            ->where_in("lead_status_id", $status_ids)
                             ->get()->result();
 
-        $j = null;
-
-        foreach($lrows as $lrow){
-            $owner_info = $contact_info = "";
-            $owner_image = $contact_image = base_url("assets/images/avatar.jpg");
-
-            $u = $this->Users_m->getInfoByLeadId($lrow->id);
-            if($u != null){
-                $contact_info = $u["first_name"]." ".$u["last_name"];
-                $image_data =  @unserialize($u["image"]);
-                if($u["image"] === 'b:0;' || $image_data !== false){
-                    $contact_image = json_decode(json_encode($image_data))->file_name;
-                }   
+        for($i=0; $i<1; $i++){
+            foreach($lrows as $lrow){
+                $this->db->insert("leads", [
+                                            "company_name"=>$lrow->company_name,
+                                            "address"=>$lrow->address,
+                                            "city"=>$lrow->city,
+                                            "state"=>$lrow->state,
+                                            "zip"=>$lrow->zip,
+                                            "country"=>$lrow->country,
+                                            "created_date"=>$lrow->created_date,
+                                            "website"=>$lrow->website,
+                                            "phone"=>$lrow->phone,
+                                            "currency_symbol"=>$lrow->currency_symbol,
+                                            "starred_by"=>$lrow->starred_by,
+                                            "group_ids"=>$lrow->group_ids,
+                                            "deleted"=>$lrow->deleted,
+                                            "is_lead"=>$lrow->is_lead,
+                                            "lead_status_id"=>$lrow->lead_status_id,
+                                            "owner_id"=>$lrow->owner_id,
+                                            "created_by"=>$lrow->created_by,
+                                            "sort"=>0,
+                                            "lead_source_id"=>$lrow->lead_source_id,
+                                            "last_lead_status"=>$lrow->last_lead_status,
+                                            "client_migration_date"=>$lrow->client_migration_date,
+                                            "vat_number"=>$lrow->vat_number,
+                                            "currency"=>$lrow->currency,
+                                            "disable_online_payment"=>$lrow->disable_online_payment,
+                                            "cf1"=>$lrow->cf1,
+                                            "cf2"=>$lrow->cf2,
+                                            "cf3"=>$lrow->cf3,
+                                            "cf4"=>$lrow->cf4,
+                                            "cf5"=>$lrow->cf5,
+                                            "cf6"=>$lrow->cf6,
+                                            "cf7"=>$lrow->cf7,
+                                            "cf8"=>$lrow->cf8,
+                                            "cf9"=>$lrow->cf9,
+                                            "cf10"=>$lrow->cf10,
+                                            "cf11"=>$lrow->cf11,
+                                            "cf12"=>$lrow->cf12
+                                        ]);
             }
-
-            $u = $this->Users_m->getInfo($lrow->id);
-            if($u != null){
-                $owner_info = $u["first_name"]." ".$u["last_name"];
-                $image_data =  @unserialize($u["image"]);
-                if($u["image"] === 'b:0;' || $image_data !== false){
-                    $owner_image = json_decode(json_encode(unserialize($u["image"])))->file_name;
-                }   
-            }
-
-            $data = [
-                    "<a href='".get_uri("leads/view/" . $lrow->id)."'>".($lrow->company_name != null ? $lrow->company_name:'')."</a>",
-                    $lrow->address,
-                    $lrow->phone,
-                    "<a href='".get_uri("leads/contact_profile/". $lrow->id)."'><span class='avatar avatar-xs mr10'><img src='".$contact_image."'></span>".$contact_info."</a>",
-                    "<a href='".get_uri("leads/team_members/view/". $lrow->id)."'><span class='avatar avatar-xs mr10'><img src='".$owner_image."'></span>".$owner_info."</a>",
-                    "<a style='background-color: ".$status_info[$lrow->lead_status_id]['color']."' class='label' data-id='10' data-value='6' data-act='update-lead-status'>".$status_info[$lrow->lead_status_id]['title']."</a>"
-                ];
-
-                //return anchor("leads/contact_profile/" . $id, $name, $attributes);
-
-            for($i = 1; $i <= 12; $i++){
-                if($custom_fields["cf".$i]["show_in_table"] == "Y" && $custom_fields["cf".$i]["status"] == "E"){
-                    $data[] = $lrow->{"cf".$i};
-                }
-            }
-
-            $data[] = "<a class='edit' title='แก้ไขโอกาสในการขาย' data-post-id='".$lrow->id."' data-act='ajax-modal' data-title='แก้ไขโอกาสในการขาย' data-action-url='".get_uri("leads/modal_form")."'><i class='fa fa-pencil'></i></a><a title='ลบโอกาสในการขาย' class='delete' data-id='".$lrow->id."' data-action-url='".get_uri("leads/delete")."' data-action='delete-confirmation'><i class='fa fa-times fa-fw'></i></a>";
-
-            
-
-            $j[] = $data;
         }
-
-        //echo json_encode(array("data" => $row_data));
-        echo jout(["data"=>$j]);
     }
 
-    function movedata(){
+    /*
+    * - คัดลอกข้อมูลจาก custom_field_value ไปที่ custom_field ของ Leads ->( cf[n1...12] )
+    * - import ตาราง clients & custom_fields & custom_field_values ล่าสุดมาก่อน
+    * - copy ตาราง clients ไปสร้างเป็น leads และสร้างตาราง leads_custom_field
+    * - กดใช้ function นี้ แล้วจึงนำทั้ง 2 leads & leads_custom_field  ไป import เข้า server จริง
+    * - หลังจากทดสอบข้อมูลเรียบร้อย ท้ายสุดให้ลบ function นี้ทิ้งเลย
+    */
+    function move_from_cf_to_lcf(){
         $cfrows = null;
         $cfvrow = null;
         $cfsort = null;
@@ -1889,7 +1836,6 @@ class Leads extends MY_Controller {
                             $t .= "<td>".$cfvrow->value."</td>";
                             $this->db->where("id", $lrow->id);
                             $this->db->update("leads", ["cf".($i + 1)=>$cfvrow->value]);
-                            log_message("error", $this->db->last_query());
                         }else{
                             $t .= "<td>--empty--</td>";
                         }
@@ -1908,7 +1854,6 @@ class Leads extends MY_Controller {
 
         echo $t;
 
-
         //ในกรณีที่ลูกค้ามี custom field ไม่ครบ 12 ใ้หใส่ให้ครบ โดยค่าจะเป็น cf[n] ค่าเป็น null และ status เป็น D
         $total_cf = $this->db->count_all_results($custom_fields_table);
         if($total_cf < 12){
@@ -1917,14 +1862,15 @@ class Leads extends MY_Controller {
             }
         }
 
+        $this->db->where("is_lead", 0);
+        $this->db->delete("leads");
+
         if ($this->db->trans_status() === FALSE){
             $this->db->trans_rollback();
         }else{
             $this->db->trans_commit();
         }
-
     }
-
 }
 
 /* End of file leads.php */

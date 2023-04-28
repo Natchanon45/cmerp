@@ -7,7 +7,7 @@ class Users_m extends CI_Model {
     function getInfo($user_id){
         $db = $this->db;
         
-        $urow = $db->select("*")
+        $urow = $db->select("id, first_name, last_name, image")
                         ->from("users")
                         ->where("id", $user_id)
                         ->where("deleted", 0)
@@ -16,16 +16,17 @@ class Users_m extends CI_Model {
         if(empty($urow)) return null;
 
         return [
-        		"first_name"=>$urow->first_name,
-        		"last_name"=>$urow->last_name,
+                "id"=>$urow->id,
+		"first_name"=>$urow->first_name,
+		"last_name"=>$urow->last_name,
                 "image"=>$urow->image
-        		];
+		];
     }
 
     function getInfoByLeadId($lead_id){
         $db = $this->db;
         
-        $urow = $db->select("*")
+        $urow = $db->select("id, first_name, last_name, image")
                         ->from("users")
                         ->where("client_id", $lead_id)
                         ->where("deleted", 0)
@@ -34,6 +35,7 @@ class Users_m extends CI_Model {
         if(empty($urow)) return null;
 
         return [
+                "id"=>$urow->id,
                 "first_name"=>$urow->first_name,
                 "last_name"=>$urow->last_name,
                 "image"=>$urow->image

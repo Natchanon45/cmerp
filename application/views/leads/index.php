@@ -20,31 +20,30 @@
     </div>
 </div>
 <script type="text/javascript">
-    $(document).ready(function () {
-
-        $("#lead-table").appTable({
-            source: '<?php echo_uri("leads/leads_index2") ?>',
-            columns: [
-                {title: "<?php echo lang("company_client_name") ?>"},
-                {title: "<?php echo lang("address");?>"},
-                {title: "<?php echo lang("phone_number");?>"},
-                {title: "<?php echo lang("primary_contact") ?>"},
-                {title: "<?php echo lang("owner") ?>"},
-                {title: "<?php echo lang("status") ?>"}
-                <?php echo $custom_field_headers; ?>,
-                {title: '<i class="fa fa-bars"></i>', "class": "text-center option w100"}
-            ],
-            filterDropdown: [
-                {name: "status", class: "w200", options: <?php $this->load->view("leads/lead_statuses"); ?>},
-                {name: "source", class: "w200", options: <?php $this->load->view("leads/lead_sources"); ?>},
-                <?php if(get_array_value($this->login_user->permissions, "lead") !== "own"){ ?>
-                    {name: "owner_id", class: "w200", options: <?php echo json_encode($owners_dropdown); ?>}
-                <?php } ?>
-            ],
-            printColumns: combineCustomFieldsColumns([0, 1, 2, 3, 4, 5, 6, 7], '<?php echo $custom_field_headers; ?>'),
-            xlsColumns: combineCustomFieldsColumns([0, 1, 2, 3, 4, 5, 6, 7], '<?php echo $custom_field_headers; ?>')
-        });
+$(document).ready(function () {
+    $("#lead-table").appTable({
+        source: '<?php echo current_url(); ?>',
+        columns: [
+            {title: "<?php echo lang("company_client_name") ?>"},
+            {title: "<?php echo lang("address");?>"},
+            {title: "<?php echo lang("phone_number");?>"},
+            {title: "<?php echo lang("primary_contact") ?>"},
+            {title: "<?php echo lang("owner") ?>"},
+            {title: "<?php echo lang("status") ?>"}
+            <?php if($custom_field_headers != null) echo $custom_field_headers; ?>,
+            {title: '<i class="fa fa-bars"></i>', "class": "text-center option w100"}
+        ],
+        filterDropdown: [
+            {name: "status", class: "w200", options: <?php $this->load->view("leads/lead_statuses"); ?>},
+            {name: "source", class: "w200", options: <?php $this->load->view("leads/lead_sources"); ?>},
+            <?php if(get_array_value($this->login_user->permissions, "lead") !== "own"){ ?>
+                {name: "owner_id", class: "w200", options: <?php echo json_encode($owners_dropdown); ?>}
+            <?php } ?>
+        ],
+        printColumns: combineCustomFieldsColumns([0, 1, 2, 3, 4, 5, 6, 7], '<?php echo $custom_field_headers; ?>'),
+        xlsColumns: combineCustomFieldsColumns([0, 1, 2, 3, 4, 5, 6, 7], '<?php echo $custom_field_headers; ?>')
     });
+});
 </script>
 
 <?php $this->load->view("leads/update_lead_status_script"); ?>
