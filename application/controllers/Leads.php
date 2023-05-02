@@ -17,7 +17,7 @@ class Leads extends MY_Controller {
     function index() {
         $this->access_only_allowed_members();
         $this->check_module_availability("module_lead");
-        
+
         if($this->input->post("datatable") == true){
             jout(["data"=>$this->Leads_m->indexDataSet()]);
             return;
@@ -38,28 +38,17 @@ class Leads extends MY_Controller {
     function modal_form() {
 		$request = $this->input->post();
 		
-		if( empty( $request['id'] ) ) {
-			
+		if(empty( $request['id'] ) ){
 			if( empty( $this->getRolePermission['add_row'] ) ) {
-				
-
-				
 				echo permissionBlock();
-				
 				return;
 			}
-		}
-		else {
-			
-			if( empty( $this->getRolePermission['edit_row'] ) ) {
-				
+		}else{
+			if( empty( $this->getRolePermission['edit_row'] ) ) {	
 				echo permissionBlock();
-				
 				return;
-				 
 			}	
 		}
-		
 		
         $lead_id = $this->input->post('id');
         $this->can_access_this_lead($lead_id);
@@ -76,9 +65,11 @@ class Leads extends MY_Controller {
 
         $view_data['label_column'] = "col-md-3";
         $view_data['field_column'] = "col-md-9";
-
         $view_data["view"] = $this->input->post('view'); //view='details' needed only when loding from the lead's details view
-        $view_data['model_info'] = $this->Clients_model->get_one($lead_id);
+
+        //$view_data['model_info'] = $this->Clients_model->get_one($lead_id);
+        if($lead_id != false) $view_data['model_info'] = $this->Leads_m->row($lead_id);
+
         $view_data["currency_dropdown"] = $this->_get_currency_dropdown_select2_data();
         $view_data["owners_dropdown"] = $this->_get_owners_dropdown();
 
@@ -89,7 +80,8 @@ class Leads extends MY_Controller {
         $view_data['groups_dropdown'] = $this->_get_groups_dropdown_select2_data();
 
         //get custom fields
-        $view_data["custom_fields"] = $this->Custom_fields_model->get_combined_details("leads", $lead_id, $this->login_user->is_admin, $this->login_user->user_type)->result();
+        //$view_data["custom_fields"] = $this->Custom_fields_model->get_combined_details("leads", $lead_id, $this->login_user->is_admin, $this->login_user->user_type)->result();
+        $view_data["custom_fields"] = $this->Leads_m->customFields();
 
         return $view_data;
     }
@@ -114,11 +106,20 @@ class Leads extends MY_Controller {
     /* insert or update a lead */
 
     function save() {
-        $client_id = $this->input->post('id');
-        $this->can_access_this_lead($client_id);
+        $id = $this->input->post('id');
+        $view = $this->input->post('view');
+        $this->can_access_this_lead($id);
         $this->access_only_allowed_members();
 
-        $vat_number = trim($this->input->post('vat_number'));
+        $data = $this->Leads_m->saveRow();
+
+        if($data["success"] == true){
+            jout(["success"=>true, "data"=>$this->_row_data($data["id"]), "id"=>$data["id"], "view"=>$view, "message"=>lang('record_saved')]);
+        }else{
+            jout(["success"=>false, "message"=>lang('error_occurred')]);
+        }
+
+        /*$vat_number = trim($this->input->post('vat_number'));
         if($vat_number != ""){
             $crow = $this->db->from("clients")
                         ->where("id !=", $client_id)
@@ -168,7 +169,7 @@ class Leads extends MY_Controller {
             echo json_encode(array("success" => true, "data" => $this->_row_data($save_id), 'id' => $save_id, 'view' => $this->input->post('view'), 'message' => lang('record_saved')));
         } else {
             echo json_encode(array("success" => false, 'message' => lang('error_occurred')));
-        }
+        }*/
     }
 
     /* delete or undo a lead */
@@ -188,7 +189,7 @@ class Leads extends MY_Controller {
         $id = $this->input->post('id');
        // $this->can_access_this_lead($id);
 
-        if ($this->Clients_model->delete_client_and_sub_items($id)) {
+        if ($this->Leads_m->deleteRow($id)) {
             echo json_encode(array("success" => true, 'message' => lang('record_deleted')));
         } else {
             echo json_encode(array("success" => false, 'message' => lang('record_cannot_be_deleted')));

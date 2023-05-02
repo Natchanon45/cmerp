@@ -114,6 +114,109 @@ class Leads_m extends CI_Model {
         return $dataset;
     }
 
+    function row($id){
+        $row = $this->db->select("*")
+                        ->from("leads")
+                        ->where("id", $id)
+                        ->get()->row();
+
+        return $row;
+    }
+
+    function saveRow(){
+        $id = $this->input->post('id');
+        $vat_number = trim($this->input->post('vat_number'));
+
+        $data = array(
+            "company_name" => $this->input->post('company_name'),
+            "address" => $this->input->post('address'),
+            "city" => $this->input->post('city'),
+            "state" => $this->input->post('state'),
+            "zip" => $this->input->post('zip'),
+            "country" => $this->input->post('country'),
+            "phone" => $this->input->post('phone'),
+            "website" => $this->input->post('website'),
+            "vat_number" => $this->input->post('vat_number'),
+            "currency_symbol" => $this->input->post('currency_symbol') ? $this->input->post('currency_symbol') : "",
+            "currency" => $this->input->post('currency') ? $this->input->post('currency') : "",
+            "is_lead" => 1,
+            "lead_status_id" => $this->input->post('lead_status_id'),
+            "lead_source_id" => $this->input->post('lead_source_id'),
+            "owner_id" => $this->input->post('owner_id') ? $this->input->post('owner_id') : $this->login_user->id
+        );
+
+        if (!$id) {
+            $this->db->where("id !=", $id);
+            $this->db->where("vat_number", $vat_number);
+            if($this->db->count_all_results("leads") > 0) return ["success"=>false, "message"=>"ไม่สามารถทำรายการได้ เนื่องจากหมายเลขภาษี ".$vat_number." ได้ถูกลงทะเบียนไว้แล้ว"];
+
+            $this->db->where("vat_number", $vat_number);
+            if($this->db->count_all_results("clients") > 0) return ["success"=>false, "message"=>"ไม่สามารถทำรายการได้ เนื่องจากหมายเลขภาษี ".$vat_number." ได้ถูกลงทะเบียนไว้แล้ว"];
+
+            $this->db->where("id", $id);
+            $this->db->update("leads", $data);
+
+            
+        }else{
+            $this->db->where("vat_number", $vat_number);
+            if($this->db->count_all_results("leads") > 0) return ["success"=>false, "message"=>"ไม่สามารถทำรายการได้ เนื่องจากหมายเลขภาษี ".$vat_number." ได้ถูกลงทะเบียนไว้แล้ว"];
+
+            $this->db->where("vat_number", $vat_number);
+            if($this->db->count_all_results("clients") > 0) return ["success"=>false, "message"=>"ไม่สามารถทำรายการได้ เนื่องจากหมายเลขภาษี ".$vat_number." ได้ถูกลงทะเบียนไว้แล้ว"];
+
+            $data["created_date"] = data("Y-m-d");
+            $this->db->insert("leads", $data);
+
+            $id = $this->db->insert_id();
+        }
+
+        return ["success"=>true, "id"=>$id];
+        
+    }
+
+    function deleteRow($id) {
+        $this->db->trans_begin();
+
+        $this->db->where("id", $id);
+        $this->db->update("leads", ["deleted"=>1]);
+
+        $this->db->where("client_id", $id);
+        $this->db->update("users", ["deleted"=>1]);
+
+        $this->db->where("client_id", $id);
+        $this->db->update("general_files", ["deleted"=>1]);
+
+        if($this->db->trans_status() === FALSE){
+            $this->db->trans_rollback();
+        }
+
+        $this->db->trans_commit();
+
+        $gfrows = $this->db->select()
+                            ->from("general_files")
+                            ->where("deleted", 0)
+                            ->where("client_id", $id)
+                            ->get()->result();
+
+        $file_path = get_general_file_path("client", $id);
+        foreach ($gfrows as $gfrow) {
+            delete_app_files($file_path, array(make_array_of_file($gfrow)));
+        }
+
+        return true;
+
+    }
+
+    function customFields(){
+        $lcfrows = $this->db->select("*")
+                            ->from("leads_custom_field")
+                            ->where("status", "E")
+                            ->order_by("sort", "ASC")
+                            ->get()->result();
+
+        return $lcfrows;
+    }
+
     
 
 }
