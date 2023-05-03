@@ -23,7 +23,7 @@ class Leads_m extends CI_Model {
 		return ",".str_replace("]", "", str_replace("[", "", json_encode($header)));
     }
 
-    function indexDataSet(){
+    function indexDataSet($id = null){
     	$status_ids = $status_info = [];
 
         $lsrows = $this->db->select("id, title, color")
@@ -58,10 +58,13 @@ class Leads_m extends CI_Model {
                     ->where("deleted", 0)
                     ->where_in("lead_status_id", $status_ids);
 
-
         if($this->input->post("status")) $this->db->where("lead_status_id", $this->input->post("status"));
         if($this->input->post("source")) $this->db->where("lead_source_id", $this->input->post("source"));
         if($this->input->post("owner_id")) $this->db->where("owner_id", $this->input->post("owner_id"));
+
+        if($id != null){
+            $this->db->where("id", $id);
+        }
 
         $lrows = $this->db->get()->result();
 
@@ -76,7 +79,7 @@ class Leads_m extends CI_Model {
                 $contact_info = $u["first_name"]." ".$u["last_name"];
                 $image_data =  @unserialize($u["image"]);
                 if($u["image"] === 'b:0;' || $image_data !== false){
-                    $contact_image = json_decode(json_encode($image_data))->file_name;
+                    $contact_image = $image_data["file_name"];
                 }   
             }
 
@@ -85,7 +88,7 @@ class Leads_m extends CI_Model {
                 $owner_info = $u["first_name"]." ".$u["last_name"];
                 $image_data =  @unserialize($u["image"]);
                 if($u["image"] === 'b:0;' || $image_data !== false){
-                    $owner_image = "/assets/images/".json_decode(json_encode(unserialize($u["image"])))->file_name;
+                    $owner_image = "/files/profile_images/".unserialize($u["image"])["file_name"];
                 }   
             }
 
@@ -145,26 +148,41 @@ class Leads_m extends CI_Model {
             "owner_id" => $this->input->post('owner_id') ? $this->input->post('owner_id') : $this->login_user->id
         );
 
-        if (!$id) {
-            $this->db->where("id !=", $id);
-            $this->db->where("vat_number", $vat_number);
-            if($this->db->count_all_results("leads") > 0) return ["success"=>false, "message"=>"ไม่สามารถทำรายการได้ เนื่องจากหมายเลขภาษี ".$vat_number." ได้ถูกลงทะเบียนไว้แล้ว"];
+        for($i = 1; $i <= 12; $i++){
+            $lcfrow = $this->db->select("code, status")
+                            ->from("leads_custom_field")
+                            ->where("code", "cf".$i)
+                            ->get()->row();
 
-            $this->db->where("vat_number", $vat_number);
-            if($this->db->count_all_results("clients") > 0) return ["success"=>false, "message"=>"ไม่สามารถทำรายการได้ เนื่องจากหมายเลขภาษี ".$vat_number." ได้ถูกลงทะเบียนไว้แล้ว"];
+            if($lcfrow->status == "E"){
+                $data["cf".$i] = $this->input->post("custom_field_".$lcfrow->code);
+            }else{
+                $data["cf".$i] = NULL;
+            }
+        }
+
+
+        if ($id != false) {
+            if($vat_number != ""){
+                $this->db->where("deleted", 0);
+                $this->db->where("id !=", $id);
+                $this->db->where("vat_number", $vat_number);
+                if($this->db->count_all_results("leads") > 0) return ["success"=>false, "message"=>"ไม่สามารถทำรายการได้ เนื่องจากหมายเลขภาษี ".$vat_number." ได้ถูกลงทะเบียนไว้แล้ว"];
+            }
 
             $this->db->where("id", $id);
             $this->db->update("leads", $data);
 
-            
         }else{
-            $this->db->where("vat_number", $vat_number);
-            if($this->db->count_all_results("leads") > 0) return ["success"=>false, "message"=>"ไม่สามารถทำรายการได้ เนื่องจากหมายเลขภาษี ".$vat_number." ได้ถูกลงทะเบียนไว้แล้ว"];
+            if($vat_number != ""){
+                $this->db->where("deleted", 0);
+                $this->db->where("vat_number", $vat_number);
+                if($this->db->count_all_results("leads") > 0) return ["success"=>false, "message"=>"ไม่สามารถทำรายการได้ เนื่องจากหมายเลขภาษี ".$vat_number." ได้ถูกลงทะเบียนไว้แล้ว"];
+            }
 
-            $this->db->where("vat_number", $vat_number);
-            if($this->db->count_all_results("clients") > 0) return ["success"=>false, "message"=>"ไม่สามารถทำรายการได้ เนื่องจากหมายเลขภาษี ".$vat_number." ได้ถูกลงทะเบียนไว้แล้ว"];
+            $data["created_date"] = date("Y-m-d");
+            $data["created_by"] = $this->login_user->id;
 
-            $data["created_date"] = data("Y-m-d");
             $this->db->insert("leads", $data);
 
             $id = $this->db->insert_id();

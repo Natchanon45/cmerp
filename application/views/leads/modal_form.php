@@ -1,7 +1,10 @@
 <?php echo form_open(get_uri("leads/save"), array("id" => "lead-form", "class" => "general-form", "role" => "form")); ?>
 <div class="modal-body clearfix">
     <?php //$this->load->view("leads/lead_form_fields"); ?>
-    <input type="hidden" name="id" value="<?php echo isset($model_info->id)?$model_info->id:''; ?>" />
+    <?php if(isset($model_info)):?>
+        <input type="hidden" name="id" value="<?php echo isset($model_info->id)?$model_info->id:''; ?>" />
+    <?php endif;?>
+    
     <input type="hidden" name="view" value="<?php echo isset($view) ? $view : ""; ?>" />
     
     <div class="form-group">

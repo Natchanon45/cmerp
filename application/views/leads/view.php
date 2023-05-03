@@ -11,7 +11,7 @@
         <li><a  role="presentation" href="<?php echo_uri("leads/company_info_tab/" . $lead_info->id); ?>" data-target="#lead-info"> <?php echo lang('lead_info'); ?></a></li>
 
         <?php if ($show_estimate_info) { ?>
-            <li><a  role="presentation" href="<?php echo_uri("leads/estimates/" . $lead_info->id); ?>" data-target="#lead-estimates"> <?php echo lang('estimates'); ?></a></li>
+            <!--<li><a  role="presentation" href="<?php echo_uri("leads/estimates/" . $lead_info->id); ?>" data-target="#lead-estimates"> <?php echo lang('estimates'); ?></a></li>-->
         <?php } ?>
         <?php if ($show_estimate_request_info) { ?>
             <li><a  role="presentation" href="<?php echo_uri("leads/estimate_requests/" . $lead_info->id); ?>" data-target="#lead-estimate-requests"> <?php echo lang('estimate_requests'); ?></a></li>
@@ -33,7 +33,7 @@
         <div role="tabpanel" class="tab-pane fade" id="lead-files"></div>
         <div role="tabpanel" class="tab-pane fade" id="lead-info"></div>
         <div role="tabpanel" class="tab-pane fade" id="lead-contacts"></div>
-        <div role="tabpanel" class="tab-pane fade" id="lead-estimates"></div>
+        <!--<div role="tabpanel" class="tab-pane fade" id="lead-estimates"></div>-->
         <div role="tabpanel" class="tab-pane fade" id="lead-estimate-requests"></div>
         <div role="tabpanel" class="tab-pane fade" id="lead-tickets"></div>
         <div role="tabpanel" class="tab-pane fade" id="lead-notes"></div>

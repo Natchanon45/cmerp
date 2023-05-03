@@ -34,7 +34,6 @@ class Leads extends MY_Controller {
     }
 
     /* load lead add/edit modal */
-
     function modal_form() {
 		$request = $this->input->post();
 		
@@ -62,6 +61,7 @@ class Leads extends MY_Controller {
         validate_submitted_data(array(
             "id" => "numeric"
         ));
+
 
         $view_data['label_column'] = "col-md-3";
         $view_data['field_column'] = "col-md-9";
@@ -106,70 +106,19 @@ class Leads extends MY_Controller {
     /* insert or update a lead */
 
     function save() {
-        $id = $this->input->post('id');
+        //$id = $this->input->post('id');
         $view = $this->input->post('view');
-        $this->can_access_this_lead($id);
+        //$this->can_access_this_lead($id);
         $this->access_only_allowed_members();
 
         $data = $this->Leads_m->saveRow();
 
         if($data["success"] == true){
-            jout(["success"=>true, "data"=>$this->_row_data($data["id"]), "id"=>$data["id"], "view"=>$view, "message"=>lang('record_saved')]);
+            jout(["success"=>true, "data"=>$this->Leads_m->indexDataSet($data["id"])[0], "id"=>$data["id"], "view"=>$view, "message"=>lang('record_saved')]);
         }else{
-            jout(["success"=>false, "message"=>lang('error_occurred')]);
+            jout(["success"=>false, "message"=>$data["message"]]);
         }
 
-        /*$vat_number = trim($this->input->post('vat_number'));
-        if($vat_number != ""){
-            $crow = $this->db->from("clients")
-                        ->where("id !=", $client_id)
-                        ->where("vat_number", $vat_number)
-                        ->get()->row();
-
-            if(!empty($crow)){
-                echo json_encode(array("success" => false, "message" => "ไม่สามารถทำรายการได้ เนื่องจากหมายเลขภาษี ".$vat_number." ได้ถูกลงทะเบียนไว้แล้ว"));
-                return;
-            }
-        }
-
-        $data = array(
-            "company_name" => $this->input->post('company_name'),
-            "address" => $this->input->post('address'),
-            "city" => $this->input->post('city'),
-            "state" => $this->input->post('state'),
-            "zip" => $this->input->post('zip'),
-            "country" => $this->input->post('country'),
-            "phone" => $this->input->post('phone'),
-            "website" => $this->input->post('website'),
-            "vat_number" => $this->input->post('vat_number'),
-            "currency_symbol" => $this->input->post('currency_symbol') ? $this->input->post('currency_symbol') : "",
-            "currency" => $this->input->post('currency') ? $this->input->post('currency') : "",
-            "is_lead" => 1,
-            "lead_status_id" => $this->input->post('lead_status_id'),
-            "lead_source_id" => $this->input->post('lead_source_id'),
-            "owner_id" => $this->input->post('owner_id') ? $this->input->post('owner_id') : $this->login_user->id
-        );
-
-
-        if (!$client_id) {
-            $data["created_date"] = get_current_utc_time();
-        }
-
-
-        $data = clean_data($data);
-
-        $save_id = $this->Clients_model->save($data, $client_id);
-        if ($save_id) {
-            save_custom_fields("leads", $save_id, $this->login_user->is_admin, $this->login_user->user_type);
-
-            if (!$client_id) {
-                log_notification("lead_created", array("lead_id" => $save_id), $this->login_user->id);
-            }
-
-            echo json_encode(array("success" => true, "data" => $this->_row_data($save_id), 'id' => $save_id, 'view' => $this->input->post('view'), 'message' => lang('record_saved')));
-        } else {
-            echo json_encode(array("success" => false, 'message' => lang('error_occurred')));
-        }*/
     }
 
     /* delete or undo a lead */
@@ -672,11 +621,13 @@ class Leads extends MY_Controller {
             $this->access_only_allowed_members();
             $this->can_access_this_lead($client_id);
 
-            $view_data['model_info'] = $this->Clients_model->get_one($client_id);
+            //$view_data['model_info'] = $this->Clients_model->get_one($client_id);
+            $view_data['model_info'] = $this->Leads_m->row($client_id);
             $view_data['statuses'] = $this->Lead_status_model->get_details()->result();
             $view_data['sources'] = $this->Lead_source_model->get_details()->result();
 
-            $view_data["custom_fields"] = $this->Custom_fields_model->get_combined_details("leads", $client_id, $this->login_user->is_admin, $this->login_user->user_type)->result();
+            //$view_data["custom_fields"] = $this->Custom_fields_model->get_combined_details("leads", $client_id, $this->login_user->is_admin, $this->login_user->user_type)->result();
+            $view_data["custom_fields"] = $this->Leads_m->customFields();
 
             $view_data['label_column'] = "col-md-2";
             $view_data['field_column'] = "col-md-10";
@@ -1646,56 +1597,161 @@ class Leads extends MY_Controller {
     * - หลังจากทดสอบข้อมูลเรียบร้อย ท้ายสุดให้ลบ function นี้ทิ้งเลย
     * - ควรใช้ที่เครื่องทดสอบ เท่านั้น
     */
-    public function build_dummy_data($secret = null){
+    public function transfer_from_clients_to_leads($secret = null){
         if($secret != "xxyyzz1234") exit;
+
+        $cfsort = null;
+        $custom_fields_table = "leads_custom_field";
         
-        $lrows = $this->db->select("*")
-                            ->from("leads")
+        $crows = $this->db->select("*")
+                            ->from("clients")
+                            ->where("is_lead", 1)
                             ->where("deleted", 0)
                             ->get()->result();
 
-        for($i=0; $i<1; $i++){
-            foreach($lrows as $lrow){
-                $this->db->insert("leads", [
-                                            "company_name"=>$lrow->company_name,
-                                            "address"=>$lrow->address,
-                                            "city"=>$lrow->city,
-                                            "state"=>$lrow->state,
-                                            "zip"=>$lrow->zip,
-                                            "country"=>$lrow->country,
-                                            "created_date"=>$lrow->created_date,
-                                            "website"=>$lrow->website,
-                                            "phone"=>$lrow->phone,
-                                            "currency_symbol"=>$lrow->currency_symbol,
-                                            "starred_by"=>$lrow->starred_by,
-                                            "group_ids"=>$lrow->group_ids,
-                                            "deleted"=>$lrow->deleted,
-                                            "is_lead"=>$lrow->is_lead,
-                                            "lead_status_id"=>$lrow->lead_status_id,
-                                            "owner_id"=>$lrow->owner_id,
-                                            "created_by"=>$lrow->created_by,
-                                            "sort"=>0,
-                                            "lead_source_id"=>$lrow->lead_source_id,
-                                            "last_lead_status"=>$lrow->last_lead_status,
-                                            "client_migration_date"=>$lrow->client_migration_date,
-                                            "vat_number"=>$lrow->vat_number,
-                                            "currency"=>$lrow->currency,
-                                            "disable_online_payment"=>$lrow->disable_online_payment,
-                                            "cf1"=>$lrow->cf1,
-                                            "cf2"=>$lrow->cf2,
-                                            "cf3"=>$lrow->cf3,
-                                            "cf4"=>$lrow->cf4,
-                                            "cf5"=>$lrow->cf5,
-                                            "cf6"=>$lrow->cf6,
-                                            "cf7"=>$lrow->cf7,
-                                            "cf8"=>$lrow->cf8,
-                                            "cf9"=>$lrow->cf9,
-                                            "cf10"=>$lrow->cf10,
-                                            "cf11"=>$lrow->cf11,
-                                            "cf12"=>$lrow->cf12
-                                        ]);
+        $this->db->trans_begin();
+        
+        foreach($crows as $crow){
+            $this->db->insert("leads", [
+                                        "id"=>$crow->id,
+                                        "company_name"=>$crow->company_name,
+                                        "address"=>$crow->address,
+                                        "city"=>$crow->city,
+                                        "state"=>$crow->state,
+                                        "zip"=>$crow->zip,
+                                        "country"=>$crow->country,
+                                        "created_date"=>$crow->created_date,
+                                        "website"=>$crow->website,
+                                        "phone"=>$crow->phone,
+                                        "currency_symbol"=>$crow->currency_symbol,
+                                        "starred_by"=>$crow->starred_by,
+                                        "group_ids"=>$crow->group_ids,
+                                        "deleted"=>$crow->deleted,
+                                        "is_lead"=>$crow->is_lead,
+                                        "lead_status_id"=>$crow->lead_status_id,
+                                        "owner_id"=>$crow->owner_id,
+                                        "created_by"=>$crow->created_by,
+                                        "sort"=>$crow->sort,
+                                        "lead_source_id"=>$crow->lead_source_id,
+                                        "last_lead_status"=>NULL,
+                                        "client_migration_date"=>NULL,
+                                        "vat_number"=>$crow->vat_number,
+                                        "currency"=>$crow->currency,
+                                        "disable_online_payment"=>$crow->disable_online_payment
+                                    ]);
+        }
+
+        $cfrows = $this->db->select("id, title, placeholder, options, field_type, required, show_in_table, show_on_kanban_card")
+                                ->from("custom_fields")
+                                ->where("related_to", "leads")
+                                ->where("deleted", 0)
+                                ->order_by("sort", "ASC")
+                                ->get()->result();
+
+
+        if(!empty($cfrows)){
+            $i = 1;
+            foreach($cfrows as $cfrow){
+                if($i > 12) break;
+
+                $cfsort[$i-1]["id"] = $cfrow->id;
+                $code = "cf".$i;
+                $field_type = $cfrow->field_type;
+                $title = $cfrow->title;
+                $placeholder = $cfrow->placeholder;
+
+                $options = NULL;
+                if($cfrow->options != ""){
+                    $options = json_encode(explode(",", $cfrow->options));
+                }
+
+                $sort = $i;
+                $required = ($cfrow->required == 1 ? "Y":"N");
+                $show_in_table = ($cfrow->show_in_table == 1 ? "Y":"N");
+                $show_on_kanban = ($cfrow->show_on_kanban_card == 1 ? "Y":"N");
+                $status = "E";
+
+
+                $lcfrow = $this->db->select("code")
+                                    ->from($custom_fields_table)
+                                    ->where("code", $code)
+                                    ->get()->row();
+
+                if(empty($lcfrow)){
+                    $this->db->insert($custom_fields_table, [
+                                                            "code"=>$code,
+                                                            "field_type"=>$field_type,
+                                                            "title"=>$title,
+                                                            "placeholder"=>$placeholder,
+                                                            "options"=>$options,
+                                                            "sort"=>$sort,
+                                                            "required"=>$required,
+                                                            "show_in_table"=>$show_in_table,
+                                                            "show_on_kanban"=>$show_on_kanban,
+                                                            "status"=>$status
+                                                        ]);
+                }else{
+                    $this->db->where("code", $code);
+                    $this->db->update($custom_fields_table, [
+                                                                "field_type"=>$field_type,
+                                                                "title"=>$title,
+                                                                "placeholder"=>$placeholder,
+                                                                "options"=>$options,
+                                                                "sort"=>$sort,
+                                                                "required"=>$required,
+                                                                "show_in_table"=>$show_in_table,
+                                                                "show_on_kanban"=>$show_on_kanban,
+                                                                "status"=>$status
+                                                            ]);
+                }
+
+                $i++;
             }
         }
+
+        $lrows = $this->db->select("*")
+                            ->from("leads")
+                            ->get()->result();
+
+        foreach($lrows as $lrow){
+            if(count($cfsort) > 0){
+                for($i = 0; $i < 12; $i++){
+                    
+                    if(!isset($cfsort[$i])) continue;
+
+                    $cfvrow = $this->db->select("value")
+                                        ->from("custom_field_values")
+                                        ->where("related_to_type", "leads")
+                                        ->where("related_to_id", $lrow->id)
+                                        ->where("custom_field_id", $cfsort[$i]["id"])
+                                        ->where("deleted", 0)
+                                        ->get()->row();
+
+                    if(!empty($cfvrow)){
+                        $this->db->where("id", $lrow->id);
+                        $this->db->update("leads", ["cf".($i + 1)=>$cfvrow->value]);
+                    }
+                }
+            }
+        }
+
+        $total_cf = $this->db->count_all_results($custom_fields_table);
+        if($total_cf < 12){
+            for($i = ($total_cf + 1); $i <=12; $i++){
+                $this->db->insert($custom_fields_table, ["code"=>"cf".$i]);
+            }
+        }
+
+        if ($this->db->trans_status() === FALSE){
+            $this->db->trans_rollback();
+            echo "Not completed";
+            exit;
+        }
+
+        $this->db->trans_commit();
+        echo "Completed!";
+        exit;
+        
     }
 
     /*
@@ -1705,7 +1761,7 @@ class Leads extends MY_Controller {
     * - กดใช้ function นี้ แล้วจึงนำทั้ง 2 leads & leads_custom_field  ไป import เข้า server จริง
     * - หลังจากทดสอบข้อมูลเรียบร้อย ท้ายสุดให้ลบ function นี้ทิ้งเลย
     */
-    function move_from_cf_to_lcf(){
+    /*function move_from_cf_to_lcf(){
         $cfrows = null;
         $cfvrow = null;
         $cfsort = null;
@@ -1871,7 +1927,7 @@ class Leads extends MY_Controller {
         }else{
             $this->db->trans_commit();
         }
-    }
+    }*/
 }
 
 /* End of file leads.php */
