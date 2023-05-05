@@ -117,7 +117,7 @@ class Leads_m extends CI_Model {
         return $dataset;
     }
 
-    function row($id){
+    function getRow($id){
         $row = $this->db->select("*")
                         ->from("leads")
                         ->where("id", $id)
@@ -233,6 +233,138 @@ class Leads_m extends CI_Model {
                             ->get()->result();
 
         return $lcfrows;
+    }
+
+    function getStatusTitle($status_id){
+        $lsrow = $this->db->select("title")
+                            ->from("lead_status")
+                            ->where("id", $status_id)
+                            ->get()->row();
+
+        if(empty($lsrow)) return "";
+
+        return $lsrow->title;
+    }
+
+    function kanban($options = array()) {
+        $clients_table = $this->db->dbprefix('leads');
+        $lead_source_table = $this->db->dbprefix('lead_source');
+        $users_table = $this->db->dbprefix('users');
+        $events_table = $this->db->dbprefix('events');
+        $notes_table = $this->db->dbprefix('notes');
+        $estimates_table = $this->db->dbprefix('estimates');
+        $general_files_table = $this->db->dbprefix('general_files');
+        $estimate_requests_table = $this->db->dbprefix('estimate_requests');
+
+        $where = "";
+
+        $status = get_array_value($options, "status");
+        if ($status) {
+            $where .= " AND $clients_table.lead_status_id='$status'";
+        }
+
+        $owner_id = get_array_value($options, "owner_id");
+        if ($owner_id) {
+            $where .= " AND $clients_table.owner_id='$owner_id'";
+        }
+
+        $source = get_array_value($options, "source");
+        if ($source) {
+            $where .= " AND $clients_table.lead_source_id='$source'";
+        }
+
+        $search = get_array_value($options, "search");
+        if ($search) {
+            $search = $this->db->escape_str($search);
+            $where .= " AND $clients_table.company_name LIKE '%$search%'";
+        }
+
+        $users_where = "$users_table.client_id=$clients_table.id AND $users_table.deleted=0 AND $users_table.user_type='lead'";
+
+        $this->db->query('SET SQL_BIG_SELECTS=1');
+
+        $sql = "SELECT $clients_table.id, $clients_table.company_name, $clients_table.sort, IF($clients_table.sort!=0, $clients_table.sort, $clients_table.id) AS new_sort, $clients_table.lead_status_id, $clients_table.owner_id,
+                (SELECT $users_table.image FROM $users_table WHERE $users_where AND $users_table.is_primary_contact=1) AS primary_contact_avatar,
+                (SELECT COUNT($users_table.id) FROM $users_table WHERE $users_where) AS total_contacts_count,
+                (SELECT COUNT($events_table.id) FROM $events_table WHERE $events_table.deleted=0 AND $events_table.client_id=$clients_table.id) AS total_events_count,
+                (SELECT COUNT($notes_table.id) FROM $notes_table WHERE $notes_table.deleted=0 AND $notes_table.client_id=$clients_table.id) AS total_notes_count,
+                (SELECT COUNT($estimates_table.id) FROM $estimates_table WHERE $estimates_table.deleted=0 AND $estimates_table.client_id=$clients_table.id) AS total_estimates_count,
+                (SELECT COUNT($general_files_table.id) FROM $general_files_table WHERE $general_files_table.deleted=0 AND $general_files_table.client_id=$clients_table.id) AS total_files_count,
+                (SELECT COUNT($estimate_requests_table.id) FROM $estimate_requests_table WHERE $estimate_requests_table.deleted=0 AND $estimate_requests_table.client_id=$clients_table.id) AS total_estimate_requests_count,
+                $lead_source_table.title AS lead_source_title,
+                CONCAT($users_table.first_name, ' ', $users_table.last_name) AS owner_name
+        FROM $clients_table 
+        LEFT JOIN $lead_source_table ON $clients_table.lead_source_id = $lead_source_table.id 
+        LEFT JOIN $users_table ON $users_table.id = $clients_table.owner_id AND $users_table.deleted=0 AND $users_table.user_type='staff' 
+        WHERE $clients_table.deleted=0 AND $clients_table.is_lead=1 $where 
+        ORDER BY new_sort ASC";
+
+        return $this->db->query($sql);
+    }
+
+    function changeToClient(){
+        $db = $this->db;
+        $lead_id = $this->input->post('lead_id');
+
+        $lrow = $db->select("*")
+                    ->from("leads")
+                    ->where("id", $lead_id)
+                    ->where("deleted", 0)
+                    ->get()->row();
+
+
+        if(empty($lsrow)){
+
+        }
+
+        $this->db->trans_begin();
+
+        $data = array(
+                "company_name" => $company_name,
+                "address" => $this->input->post('address'),
+                "city" => $this->input->post('city'),
+                "state" => $this->input->post('state'),
+                "zip" => $this->input->post('zip'),
+                "country" => $this->input->post('country'),
+                "created_date"=>$lsrow->created_date,
+                "website" => $this->input->post('website'),
+                "phone" => $this->input->post('phone'),
+                "currency_symbol" => $lsrow->currency_symbol,
+                "starred_by" => $lsrow->starred_by,
+                "group_ids" => $this->input->post('group_ids') ? $this->input->post('group_ids') : "",
+                "deleted" => 0,
+                "lead_status_id" => $lsrow->lead_status_id,
+                "owner_id" => $lsrow->owner_id,
+                "created_by" => $this->input->post('created_by') ? $this->input->post('created_by') : $lsrow->owner_id,
+                "sort" => $lsrow->sort,
+                "lead_source_id" => $lsrow->lead_source_id,
+                "last_lead_status" => $lsrow->last_lead_status,
+                "client_migration_date"=>date("Y-m-d"),
+                "vat_number" => $this->input->post('vat_number'),
+                "currency" => $lsrow->currency,
+                "disable_online_payment" => $lsrow->disable_online_payment
+            );
+
+        if ($this->login_user->is_admin) {
+            $data["currency_symbol"] = $this->input->post('currency_symbol') ? $this->input->post('currency_symbol') : "";
+            $data["currency"] = $this->input->post('currency') ? $this->input->post('currency') : "";
+            $data["disable_online_payment"] = $this->input->post('disable_online_payment') ? $this->input->post('disable_online_payment') : 0;
+        }
+
+        //ตรวจสอบชื่อบริษัทซ้ำหรือไม่, เปลี่ยนเป็นตรวจสอบจากหมายเลขภาษี
+        /*if (get_setting("disallow_duplicate_client_company_name") == "1" && $this->Clients_model->is_duplicate_company_name($company_name, $client_id)) {
+                echo json_encode(array("success" => false, 'message' => lang("account_already_exists_for_your_company_name")));
+                exit();
+        }*/
+
+        if ($this->db->trans_status() === FALSE){
+            $this->db->trans_rollback();
+        }
+
+        //$this->db->trans_commit();
+
+
+
     }
 
     

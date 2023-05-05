@@ -201,7 +201,35 @@
 
 <?php } ?>
 
-<?php $this->load->view("custom_fields/form/prepare_context_fields", array("custom_fields" => $custom_fields, "label_column" => $label_column, "field_column" => $field_column)); ?> 
+<?php //$this->load->view("custom_fields/form/prepare_context_fields", array("custom_fields" => $custom_fields, "label_column" => $label_column, "field_column" => $field_column)); ?> 
+<?php if(!empty($custom_fields)): ?>
+    <?php foreach ($custom_fields as $field): ?>
+        <?php
+            $field->{"id"} = $field->code;
+            
+            if($field->field_type == "select" && $field->options != NULL){
+                $field->{"options"} = implode(",", json_decode($field->options, TRUE));
+            }
+
+            $field->{"value"} = isset($model_info)?$model_info->{$field->code}:'';
+            $field->{"required"} = $field->required == "Y"?true:false;
+        ?>
+        <div class="form-group " data-field-type="<?php echo $field->field_type; ?>">
+            <label for="custom_field_<?php echo $field->id ?>" class="<?php echo $label_column; ?>"><?php echo $field->title; ?></label>
+
+            <div class="<?php echo $field_column; ?>">
+                <?php
+                    if ($this->login_user->user_type == "client") {
+                        $this->load->view("custom_fields/output_" . $field->field_type, array("value" => $field->value));
+                    } else {
+                        $this->load->view("custom_fields/input_" . $field->field_type, array("field_info" => $field));
+                    }
+                ?>
+            </div>
+        </div>
+    <?php endforeach; ?>
+<?php endif; ?>
+
 
 <?php if ($this->login_user->is_admin && get_setting("module_invoice")) { ?>
     <div class="form-group">

@@ -1,7 +1,7 @@
 <?php echo form_open(get_uri("leads/save_as_client"), array("id" => "make-client-form", "class" => "general-form", "role" => "form")); ?>
 <div class="modal-body clearfix">
     <?php $model_info = get_array_value($lead_info, "model_info"); ?>
-    <input type="hidden" name="main_client_id" value="<?php echo $model_info->id; ?>" />
+    <input type="hidden" name="lead_id" value="<?php echo $model_info->id; ?>" />
 
     <?php if ($contacts) { ?>
         <div class="form-widget">

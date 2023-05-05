@@ -208,30 +208,32 @@
         </div>
     <?php endif; ?>
 
-    <?php foreach ($custom_fields as $field): ?>
-        <?php
-            $field->{"id"} = $field->code;
-            
-            if($field->field_type == "select" && $field->options != NULL){
-                $field->{"options"} = implode(",", json_decode($field->options, TRUE));
-            }
+    <?php if(!empty($custom_fields)): ?>
+        <?php foreach ($custom_fields as $field): ?>
+            <?php
+                $field->{"id"} = $field->code;
+                
+                if($field->field_type == "select" && $field->options != NULL){
+                    $field->{"options"} = implode(",", json_decode($field->options, TRUE));
+                }
 
-            $field->{"value"} = isset($model_info)?$model_info->{$field->code}:'';
-            $field->{"required"} = $field->required == "Y"?true:false;
-        ?>
-        <div class="form-group " data-field-type="<?php echo $field->field_type; ?>">
-            <label for="custom_field_<?php echo $field->code; ?>" class="<?php echo $label_column; ?>"><?php echo $field->title; ?></label>
-            <div class="<?php echo $field_column; ?>">
-                <?php
-                    if ($this->login_user->user_type == "client" && $field->disable_editing_by_clients){
-                        $this->load->view("custom_fields/output_" . $field->field_type, array("value" => $field->value));
-                    }else{
-                        $this->load->view("custom_fields/input_" . $field->field_type, array("field_info" => $field));
-                    }
-                ?> 
+                $field->{"value"} = isset($model_info)?$model_info->{$field->code}:'';
+                $field->{"required"} = $field->required == "Y"?true:false;
+            ?>
+            <div class="form-group " data-field-type="<?php echo $field->field_type; ?>">
+                <label for="custom_field_<?php echo $field->code; ?>" class="<?php echo $label_column; ?>"><?php echo $field->title; ?></label>
+                <div class="<?php echo $field_column; ?>">
+                    <?php
+                        if ($this->login_user->user_type == "client"){
+                            $this->load->view("custom_fields/output_" . $field->field_type, array("value" => $field->value));
+                        }else{
+                            $this->load->view("custom_fields/input_" . $field->field_type, array("field_info" => $field));
+                        }
+                    ?> 
+                </div>
             </div>
-        </div>
-    <?php endforeach; ?>
+        <?php endforeach; ?>
+    <?php endif; ?>
 </div><!--.modal-body-->
 
 <div class="modal-footer">

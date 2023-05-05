@@ -68,7 +68,7 @@ class Leads extends MY_Controller {
         $view_data["view"] = $this->input->post('view'); //view='details' needed only when loding from the lead's details view
 
         //$view_data['model_info'] = $this->Clients_model->get_one($lead_id);
-        if($lead_id != false) $view_data['model_info'] = $this->Leads_m->row($lead_id);
+        if($lead_id != false) $view_data['model_info'] = $this->Leads_m->getRow($lead_id);
 
         $view_data["currency_dropdown"] = $this->_get_currency_dropdown_select2_data();
         $view_data["owners_dropdown"] = $this->_get_owners_dropdown();
@@ -254,8 +254,9 @@ class Leads extends MY_Controller {
 
         if ($client_id) {
             $options = array("id" => $client_id);
-            $lead_info = $this->Clients_model->get_details($options)->row();
+            //$lead_info = $this->Clients_model->get_details($options)->row();
            // $this->can_access_this_lead($client_id);
+            $lead_info = $this->Leads_m->getRow($client_id);
 
             if ($lead_info ) {
 
@@ -622,7 +623,7 @@ class Leads extends MY_Controller {
             $this->can_access_this_lead($client_id);
 
             //$view_data['model_info'] = $this->Clients_model->get_one($client_id);
-            $view_data['model_info'] = $this->Leads_m->row($client_id);
+            $view_data['model_info'] = $this->Leads_m->getRow($client_id);
             $view_data['statuses'] = $this->Lead_status_model->get_details()->result();
             $view_data['sources'] = $this->Lead_source_model->get_details()->result();
 
@@ -942,7 +943,8 @@ class Leads extends MY_Controller {
             "search" => $this->input->post('search'),
         );
 
-        $view_data["leads"] = $this->Clients_model->get_leads_kanban_details($options)->result();
+        //$view_data["leads"] = $this->Clients_model->get_leads_kanban_details($options)->result();
+        $view_data["leads"] = $this->Leads_m->kanban($options)->result();
 
         $statuses = $this->Lead_status_model->get_details();
         $view_data["total_columns"] = $statuses->num_rows();
@@ -1003,8 +1005,10 @@ class Leads extends MY_Controller {
     function save_as_client() {
         $this->access_only_allowed_members();
 
-        $client_id = $this->input->post('main_client_id');
-        $this->can_access_this_lead($client_id);
+        //$client_id = $this->input->post('main_client_id');
+        //$this->can_access_this_lead($client_id);
+
+        $this->Leads_m->changeToClient();
 
         if ($client_id) {
             //save client info
@@ -1016,6 +1020,7 @@ class Leads extends MY_Controller {
             $company_name = $this->input->post('company_name');
 
             $client_info = $this->Clients_model->get_details(array("id" => $client_id))->row();
+            //$client_info = $this->Leads_m->getRow($client_id);
 
             $data = array(
                 "company_name" => $company_name,
@@ -1030,7 +1035,7 @@ class Leads extends MY_Controller {
                 "group_ids" => $this->input->post('group_ids') ? $this->input->post('group_ids') : "",
                 "is_lead" => 0,
                 "client_migration_date" => get_current_utc_time(),
-                "last_lead_status" => $client_info->lead_status_title,
+                "last_lead_status" => $client_info->lead_status_id,
                 "created_by" => $this->input->post('created_by') ? $this->input->post('created_by') : $client_info->owner_id
             );
 
