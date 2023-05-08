@@ -76,12 +76,11 @@ class Clients extends MY_Controller {
 
 			}
 		} else {
-			if($permission_m->client === "read_only") {
-				
+			/*if($permission_m->client === "read_only") {
 				echo permissionBlock();
 				return;
 				 
-			}
+			}*/
 		}
 		
 		//echo 'dfsadfadfsd';
@@ -96,7 +95,8 @@ class Clients extends MY_Controller {
 
         $view_data["view"] = $this->input->post('view'); //view='details' needed only when loading from the client's details view
         $view_data["ticket_id"] = $this->input->post('ticket_id'); //needed only when loading from the ticket's details view and created by unknown client
-        $view_data['model_info'] = $this->Clients_model->get_one($client_id);
+        //$view_data['model_info'] = $this->Clients_model->get_one($client_id);
+        if($client_id != false) $view_data['model_info'] = $this->Clients_m->getRow($client_id);
         $view_data["currency_dropdown"] = $this->_get_currency_dropdown_select2_data();
 
 
@@ -106,7 +106,8 @@ class Clients extends MY_Controller {
         $view_data["team_members_dropdown"] = $this->get_team_members_dropdown();
 
         //get custom fields
-        $view_data["custom_fields"] = $this->Custom_fields_model->get_combined_details("clients", $client_id, $this->login_user->is_admin, $this->login_user->user_type)->result();
+        //$view_data["custom_fields"] = $this->Custom_fields_model->get_combined_details("clients", $client_id, $this->login_user->is_admin, $this->login_user->user_type)->result();
+        $view_data["custom_fields"] = $this->Clients_m->customFields();
 
         $this->load->view('clients/modal_form', $view_data);
     }
@@ -167,8 +168,6 @@ class Clients extends MY_Controller {
     function view($client_id = 0, $tab = "") {
        // $this->access_only_allowed_members();
         //$this->can_access_this_client($client_id);
-
-
         if ( $client_id ) {
 			
 			
@@ -737,7 +736,9 @@ class Clients extends MY_Controller {
             $view_data['model_info'] = $this->Clients_model->get_one($client_id);
             $view_data['groups_dropdown'] = $this->_get_groups_dropdown_select2_data();
 
-            $view_data["custom_fields"] = $this->Custom_fields_model->get_combined_details("clients", $client_id, $this->login_user->is_admin, $this->login_user->user_type)->result();
+            //$view_data["custom_fields"] = $this->Custom_fields_model->get_combined_details("clients", $client_id, $this->login_user->is_admin, $this->login_user->user_type)->result();
+
+            $view_data["custom_fields"] = $this->Clients_m->customFields();
 
             $view_data['label_column'] = "col-md-2";
             $view_data['field_column'] = "col-md-10";
@@ -1576,9 +1577,15 @@ class Clients extends MY_Controller {
     function index($tab = "") {
         $this->access_only_allowed_members();
 
+        if($this->input->post("datatable") == true){
+            jout(["data"=>$this->Clients_m->indexDataSet()]);
+            return;
+        }
+
         $access_info = $this->get_access_info("invoice");
         $view_data["show_invoice_info"] = (get_setting("module_invoice") && $access_info->access_type == "all") ? true : false;
-        $view_data["custom_field_headers"] = $this->Custom_fields_model->get_custom_field_headers_for_table("clients", $this->login_user->is_admin, $this->login_user->user_type);
+        //$view_data["custom_field_headers"] = $this->Custom_fields_model->get_custom_field_headers_for_table("clients", $this->login_user->is_admin, $this->login_user->user_type);
+        $view_data["custom_field_headers"] = $this->Clients_m->indexHeader();
 
         $view_data['groups_dropdown'] = json_encode($this->_get_groups_dropdown_select2_data(true));
         $view_data['can_edit_clients'] = $this->can_edit_clients();
@@ -1611,6 +1618,15 @@ class Clients extends MY_Controller {
     }
 	
     function save() {
+        $data = $this->Clients_m->saveRow();
+
+        if($data["success"] == true){
+            jout(["success"=>true, "data"=>$this->Clients_m->indexDataSet($data["id"])[0], "id"=>$data["id"], "message"=>lang('record_saved')]);
+        }else{
+            jout(["success"=>false, "message"=>$data["message"]]);
+        }
+
+        return;
 		
         $client_id = $this->input->post('id');
         if (!$this->can_edit_clients()) {

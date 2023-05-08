@@ -7,7 +7,7 @@ class Leads_m extends CI_Model {
     function indexHeader(){
     	$header = [];
 
-        $lcfrows = $this->db->select("title")
+        $cfrows = $this->db->select("title")
 		        			->from("leads_custom_field")
 		        			->where("show_in_table", "Y")
                             ->where("show_in_lead", "Y")
@@ -15,10 +15,10 @@ class Leads_m extends CI_Model {
 		        			->order_by("sort", "ASC")
 		        			->get()->result();
 
-		if(empty($lcfrows)) return null;
+		if(empty($cfrows)) return null;
 
-		foreach($lcfrows as $lcfrow){
-			$header[] = ["title"=>$lcfrow->title];
+		foreach($cfrows as $cfrows){
+			$header[] = ["title"=>$cfrows->title];
 		}
 
 		return ",".str_replace("]", "", str_replace("[", "", json_encode($header)));
@@ -39,33 +39,17 @@ class Leads_m extends CI_Model {
             }
         }
 
-        $lcfrows = $this->db->select("code, show_in_table, show_in_lead, status")
-                            ->from("leads_custom_field")
-                            ->order_by("sort", "ASC")
-                            ->get()->result();
-
-        $custom_fields = null;
-
-        if(!empty($lcfrows)){
-            foreach($lcfrows as $lcfrow){
-                $custom_fields[$lcfrow->code]["show_in_table"] = $lcfrow->show_in_table;
-                $custom_fields[$lcfrow->code]["show_in_lead"] = $lcfrow->show_in_lead;
-                $custom_fields[$lcfrow->code]["status"] = $lcfrow->status;
-            }
-        }
-
         $this->db->select("id, company_name, address, phone, lead_status_id, owner_id, cf1, cf2, cf3, cf4, cf5, cf6, cf7, cf8, cf9, cf10, cf11, cf12")
                     ->from("clients")
-                    ->where("is_lead", 1)
                     ->where("deleted", 0)
                     ->where_in("lead_status_id", $status_ids);
 
-        if($this->input->post("status")) $this->db->where("lead_status_id", $this->input->post("status"));
-        if($this->input->post("source")) $this->db->where("lead_source_id", $this->input->post("source"));
-        if($this->input->post("owner_id")) $this->db->where("owner_id", $this->input->post("owner_id"));
-
         if($id != null){
             $this->db->where("id", $id);
+        }else{
+            if($this->input->post("status")) $this->db->where("lead_status_id", $this->input->post("status"));
+            if($this->input->post("source")) $this->db->where("lead_source_id", $this->input->post("source"));
+            if($this->input->post("owner_id")) $this->db->where("owner_id", $this->input->post("owner_id"));
         }
 
         $lrows = $this->db->get()->result();
@@ -103,11 +87,22 @@ class Leads_m extends CI_Model {
                     "<a style='background-color: ".$status_info[$lrow->lead_status_id]['color']."' class='label' data-id='10' data-value='6' data-act='update-lead-status'>".$status_info[$lrow->lead_status_id]['title']."</a>"
                 ];
 
-            for($i = 1; $i <= 12; $i++){
-                if($custom_fields["cf".$i]["show_in_table"] == "Y" && $custom_fields["cf".$i]["show_in_lead"] == "Y" && $custom_fields["cf".$i]["status"] == "E"){
-                    $data[] = $lrow->{"cf".$i};
+            
+            $cfrows = $this->db->select("code")
+                                ->from("leads_custom_field")
+                                ->where("show_in_table", "Y")
+                                ->where("show_in_lead", "Y")
+                                ->where("status", "E")
+                                ->order_by("sort", "ASC")
+                                ->get()->result();
+
+            if(!empty($cfrows)){
+                foreach($cfrows as $cfrow){
+                    $data[] = $lrow->{$cfrow->code};
                 }
             }
+
+
 
             $data[] = "<a class='edit' title='แก้ไขโอกาสในการขาย' data-post-id='".$lrow->id."' data-act='ajax-modal' data-title='แก้ไขโอกาสในการขาย' data-action-url='".get_uri("leads/modal_form")."'><i class='fa fa-pencil'></i></a><a title='ลบโอกาสในการขาย' class='delete' data-id='".$lrow->id."' data-action-url='".get_uri("leads/delete")."' data-action='delete-confirmation'><i class='fa fa-times fa-fw'></i></a>";
 
@@ -141,7 +136,7 @@ class Leads_m extends CI_Model {
             "country" => $this->input->post('country'),
             "phone" => $this->input->post('phone'),
             "website" => $this->input->post('website'),
-            "vat_number" => $this->input->post('vat_number'),
+            "vat_number" => $vat_number,
             "currency_symbol" => $this->input->post('currency_symbol') ? $this->input->post('currency_symbol') : "",
             "currency" => $this->input->post('currency') ? $this->input->post('currency') : "",
             "is_lead" => 1,
@@ -228,14 +223,14 @@ class Leads_m extends CI_Model {
     }
 
     function customFields(){
-        $lcfrows = $this->db->select("*")
+        $cfrows = $this->db->select("*")
                             ->from("leads_custom_field")
                             ->where("show_in_lead", "Y")
                             ->where("status", "E")
                             ->order_by("sort", "ASC")
                             ->get()->result();
 
-        return $lcfrows;
+        return $cfrows;
     }
 
     function getStatusTitle($status_id){

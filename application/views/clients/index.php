@@ -36,12 +36,11 @@
         if (!"<?php echo $can_edit_clients; ?>") {
             showOptions = false;
         }
-
+//{name: "quick_filter", class: "w200", options: <?php $this->load->view("clients/quick_filters_dropdown"); ?>},
         $(selector).appTable({
-            source: '<?php echo_uri("clients/list_data") ?>',
+            source: '<?php echo current_url(); ?>',
             filterDropdown: [
                 {name: "group_id", class: "w200", options: <?php echo $groups_dropdown; ?>},
-                {name: "quick_filter", class: "w200", options: <?php $this->load->view("clients/quick_filters_dropdown"); ?>},
                 <?php if($this->login_user->is_admin || get_array_value($this->login_user->permissions, "client") === "all"){ ?>
                     {name: "created_by", class: "w200", options: <?php echo $team_members_dropdown; ?>}
                 <?php } ?>
