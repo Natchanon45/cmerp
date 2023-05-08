@@ -1005,12 +1005,13 @@ class Leads extends MY_Controller {
     function save_as_client() {
         $this->access_only_allowed_members();
 
-        //$client_id = $this->input->post('main_client_id');
-        //$this->can_access_this_lead($client_id);
+        $client_id = $this->input->post('lead_id');
+        $this->can_access_this_lead($client_id);
 
-        $this->Leads_m->changeToClient();
+        //$this->Leads_m->changeToClient();
 
         if ($client_id) {
+            
             //save client info
             validate_submitted_data(array(
                 "main_client_id" => "numeric",
@@ -1021,6 +1022,7 @@ class Leads extends MY_Controller {
 
             $client_info = $this->Clients_model->get_details(array("id" => $client_id))->row();
             //$client_info = $this->Leads_m->getRow($client_id);
+
 
             $data = array(
                 "company_name" => $company_name,
@@ -1124,11 +1126,12 @@ class Leads extends MY_Controller {
                         }
                     }
                 }
-
+                
                 echo json_encode(array("success" => true, 'redirect_to' => get_uri("clients/view/$save_client_id"), "message" => lang('record_saved')));
             } else {
                 echo json_encode(array("success" => false, lang('error_occurred')));
             }
+       
         }
     }
 
@@ -1602,21 +1605,21 @@ class Leads extends MY_Controller {
     * - หลังจากทดสอบข้อมูลเรียบร้อย ท้ายสุดให้ลบ function นี้ทิ้งเลย
     * - ควรใช้ที่เครื่องทดสอบ เท่านั้น
     */
-    public function transfer_from_clients_to_leads($secret = null){
+    public function transfer_exfield_to_newfield($secret = null){
         if($secret != "xxyyzz1234") exit;
 
         $cfsort = null;
         $custom_fields_table = "leads_custom_field";
         
-        $crows = $this->db->select("*")
+        /*$crows = $this->db->select("*")
                             ->from("clients")
                             ->where("is_lead", 1)
                             ->where("deleted", 0)
-                            ->get()->result();
+                            ->get()->result();*/
 
         $this->db->trans_begin();
         
-        foreach($crows as $crow){
+        /*foreach($crows as $crow){
             $this->db->insert("leads", [
                                         "id"=>$crow->id,
                                         "company_name"=>$crow->company_name,
@@ -1644,7 +1647,7 @@ class Leads extends MY_Controller {
                                         "currency"=>$crow->currency,
                                         "disable_online_payment"=>$crow->disable_online_payment
                                     ]);
-        }
+        }*/
 
         $cfrows = $this->db->select("id, title, placeholder, options, field_type, required, show_in_table, show_on_kanban_card")
                                 ->from("custom_fields")
@@ -1715,7 +1718,7 @@ class Leads extends MY_Controller {
         }
 
         $lrows = $this->db->select("*")
-                            ->from("leads")
+                            ->from("clients")
                             ->get()->result();
 
         foreach($lrows as $lrow){
@@ -1734,7 +1737,7 @@ class Leads extends MY_Controller {
 
                     if(!empty($cfvrow)){
                         $this->db->where("id", $lrow->id);
-                        $this->db->update("leads", ["cf".($i + 1)=>$cfvrow->value]);
+                        $this->db->update("clients", ["cf".($i + 1)=>$cfvrow->value]);
                     }
                 }
             }

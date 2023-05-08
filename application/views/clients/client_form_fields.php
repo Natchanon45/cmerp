@@ -232,6 +232,7 @@
 
 
 <?php if ($this->login_user->is_admin && get_setting("module_invoice")) { ?>
+    <!--
     <div class="form-group">
         <label for="disable_online_payment" class="<?php echo $label_column; ?> col-xs-8 col-sm-6"><?php echo lang('disable_online_payment'); ?>
             <span class="help" data-container="body" data-toggle="tooltip" title="<?php echo lang('disable_online_payment_description') ?>"><i class="fa fa-question-circle"></i></span>
@@ -241,7 +242,7 @@
             echo form_checkbox("disable_online_payment", "1", $model_info->disable_online_payment ? true : false, "id='disable_online_payment'");
             ?>                       
         </div>
-    </div>
+    </div>-->
 <?php } ?>
 
 <script type="text/javascript">

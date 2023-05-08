@@ -10,6 +10,7 @@ class Leads_m extends CI_Model {
         $lcfrows = $this->db->select("title")
 		        			->from("leads_custom_field")
 		        			->where("show_in_table", "Y")
+                            ->where("show_in_lead", "Y")
 		        			->where("status", "E")
 		        			->order_by("sort", "ASC")
 		        			->get()->result();
@@ -38,7 +39,7 @@ class Leads_m extends CI_Model {
             }
         }
 
-        $lcfrows = $this->db->select("code, show_in_table, status")
+        $lcfrows = $this->db->select("code, show_in_table, show_in_lead, status")
                             ->from("leads_custom_field")
                             ->order_by("sort", "ASC")
                             ->get()->result();
@@ -48,12 +49,13 @@ class Leads_m extends CI_Model {
         if(!empty($lcfrows)){
             foreach($lcfrows as $lcfrow){
                 $custom_fields[$lcfrow->code]["show_in_table"] = $lcfrow->show_in_table;
+                $custom_fields[$lcfrow->code]["show_in_lead"] = $lcfrow->show_in_lead;
                 $custom_fields[$lcfrow->code]["status"] = $lcfrow->status;
             }
         }
 
         $this->db->select("id, company_name, address, phone, lead_status_id, owner_id, cf1, cf2, cf3, cf4, cf5, cf6, cf7, cf8, cf9, cf10, cf11, cf12")
-                    ->from("leads")
+                    ->from("clients")
                     ->where("is_lead", 1)
                     ->where("deleted", 0)
                     ->where_in("lead_status_id", $status_ids);
@@ -102,7 +104,7 @@ class Leads_m extends CI_Model {
                 ];
 
             for($i = 1; $i <= 12; $i++){
-                if($custom_fields["cf".$i]["show_in_table"] == "Y" && $custom_fields["cf".$i]["status"] == "E"){
+                if($custom_fields["cf".$i]["show_in_table"] == "Y" && $custom_fields["cf".$i]["show_in_lead"] == "Y" && $custom_fields["cf".$i]["status"] == "E"){
                     $data[] = $lrow->{"cf".$i};
                 }
             }
@@ -119,7 +121,7 @@ class Leads_m extends CI_Model {
 
     function getRow($id){
         $row = $this->db->select("*")
-                        ->from("leads")
+                        ->from("clients")
                         ->where("id", $id)
                         ->get()->row();
 
@@ -167,23 +169,23 @@ class Leads_m extends CI_Model {
                 $this->db->where("deleted", 0);
                 $this->db->where("id !=", $id);
                 $this->db->where("vat_number", $vat_number);
-                if($this->db->count_all_results("leads") > 0) return ["success"=>false, "message"=>"ไม่สามารถทำรายการได้ เนื่องจากหมายเลขภาษี ".$vat_number." ได้ถูกลงทะเบียนไว้แล้ว"];
+                if($this->db->count_all_results("clients") > 0) return ["success"=>false, "message"=>"ไม่สามารถทำรายการได้ เนื่องจากหมายเลขภาษี ".$vat_number." ได้ถูกลงทะเบียนไว้แล้ว"];
             }
 
             $this->db->where("id", $id);
-            $this->db->update("leads", $data);
+            $this->db->update("clients", $data);
 
         }else{
             if($vat_number != ""){
                 $this->db->where("deleted", 0);
                 $this->db->where("vat_number", $vat_number);
-                if($this->db->count_all_results("leads") > 0) return ["success"=>false, "message"=>"ไม่สามารถทำรายการได้ เนื่องจากหมายเลขภาษี ".$vat_number." ได้ถูกลงทะเบียนไว้แล้ว"];
+                if($this->db->count_all_results("clients") > 0) return ["success"=>false, "message"=>"ไม่สามารถทำรายการได้ เนื่องจากหมายเลขภาษี ".$vat_number." ได้ถูกลงทะเบียนไว้แล้ว"];
             }
 
             $data["created_date"] = date("Y-m-d");
             $data["created_by"] = $this->login_user->id;
 
-            $this->db->insert("leads", $data);
+            $this->db->insert("clients", $data);
 
             $id = $this->db->insert_id();
         }
@@ -196,7 +198,7 @@ class Leads_m extends CI_Model {
         $this->db->trans_begin();
 
         $this->db->where("id", $id);
-        $this->db->update("leads", ["deleted"=>1]);
+        $this->db->update("clients", ["deleted"=>1]);
 
         $this->db->where("client_id", $id);
         $this->db->update("users", ["deleted"=>1]);
@@ -228,6 +230,7 @@ class Leads_m extends CI_Model {
     function customFields(){
         $lcfrows = $this->db->select("*")
                             ->from("leads_custom_field")
+                            ->where("show_in_lead", "Y")
                             ->where("status", "E")
                             ->order_by("sort", "ASC")
                             ->get()->result();
@@ -247,7 +250,7 @@ class Leads_m extends CI_Model {
     }
 
     function kanban($options = array()) {
-        $clients_table = $this->db->dbprefix('leads');
+        $clients_table = $this->db->dbprefix('clients');
         $lead_source_table = $this->db->dbprefix('lead_source');
         $users_table = $this->db->dbprefix('users');
         $events_table = $this->db->dbprefix('events');
@@ -305,9 +308,10 @@ class Leads_m extends CI_Model {
     function changeToClient(){
         $db = $this->db;
         $lead_id = $this->input->post('lead_id');
+        $company_name = $this->input->post('company_name');
 
         $lrow = $db->select("*")
-                    ->from("leads")
+                    ->from("clients")
                     ->where("id", $lead_id)
                     ->where("deleted", 0)
                     ->get()->row();
