@@ -137,6 +137,34 @@
 				?>
 			</div>
 		</div>
+		<div class="form-group">
+			<label for="show_in_lead" class=" col-md-3">
+				<?php echo "แสดงในโอกาสในการขาย (Leads)"; ?>
+			</label>
+			<div class="col-md-9">
+				<?php
+				echo form_checkbox(
+					"show_in_lead",
+					"1", $model_info->disable_editing_by_clients, // use for show_in_lead
+					"id='show_in_lead'"
+				);
+				?>
+			</div>
+		</div>
+		<div class="form-group">
+			<label for="show_in_client" class=" col-md-3">
+				<?php echo "แสดงในลูกค้าทั้งหมด (Clients)"; ?>
+			</label>
+			<div class="col-md-9">
+				<?php
+				echo form_checkbox(
+					"show_in_client",
+					"1", $model_info->hide_from_clients, // use for show_in_client
+					"id='show_in_client'"
+				);
+				?>
+			</div>
+		</div>
 	<?php endif; ?>
 </div>
 
@@ -157,8 +185,11 @@
 		$("#custom-field-form").appForm({
 			onSuccess: function (result) {
 				// console.log(result);
-				// appAlert.success(result.message, { duration: 2000 });
-				
+				// $('<?php // echo "#custom-field-table-" . $related_to; ?>').appTable({
+				// 	newData: result.data, 
+				// 	dataId: result.id
+				// });
+
 				setTimeout(() => {
 					window.location = "<?php echo get_uri("custom_fields/view/" . $related_to); ?>";
 				}, 500);
@@ -177,7 +208,7 @@
 			$("#visible_to_admins_only_container").show();
 			$("#disable_editing_by_clients_container").show();
 
-			// if any field is visible to invoice, then it'll be availab for non-admins and clients
+			// If any field is visible to invoice, then it'll be availab for non-admins and clients
 			if ($("#show_in_invoice").is(":checked")) {
 				$("#hide_from_clients_container").hide();
 				$("#visible_to_admins_only_container").hide();
@@ -204,7 +235,6 @@
 		}
 
 		$("#example_variable_name").keydown(function(e) {
-			// don't let the user to input space
 			if (e.keyCode === 32) {
 				e.preventDefault();
 			}

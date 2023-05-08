@@ -74,8 +74,8 @@ class Custom_fields extends MY_Controller
 			$list_data[$index]->show_in_estimate = "0";
 			$list_data[$index]->show_in_order = "0";
 			$list_data[$index]->visible_to_admins_only = 0;
-			$list_data[$index]->hide_from_clients = 0;
-			$list_data[$index]->disable_editing_by_clients = 0;
+			$list_data[$index]->hide_from_clients = $field->show_in_client == "Y" ? 1 : 0;
+			$list_data[$index]->disable_editing_by_clients = $field->show_in_lead == "Y" ? 1 : 0;
 			$list_data[$index]->show_on_kanban_card = $field->show_on_kanban == "Y" ? 1 : 0;
 			$list_data[$index]->deleted = 0;
 
@@ -120,6 +120,8 @@ class Custom_fields extends MY_Controller
 				"required" => $this->input->post("required") ? "Y" : "N",
 				"show_in_table" => $this->input->post("show_in_table") ? "Y" : "N",
 				"show_on_kanban" => $this->input->post("show_on_kanban_card") ? "Y" : "N",
+				"show_in_lead" => $this->input->post("show_in_lead") ? "Y" : "N",
+				"show_in_client" => $this->input->post("show_in_client") ? "Y" : "N",
 				"status" => "E"
 			);
 		} else {

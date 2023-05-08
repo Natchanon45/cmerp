@@ -214,6 +214,8 @@ class Custom_fields_model extends Crud_model
 		$this->db->set("required", $data["required"]);
 		$this->db->set("show_in_table", $data["show_in_table"]);
 		$this->db->set("show_on_kanban", $data["show_on_kanban"]);
+		$this->db->set("show_in_lead", $data["show_in_lead"]);
+		$this->db->set("show_in_client", $data["show_in_client"]);
 		$this->db->set("status", $data["status"]);
 
 		$this->db->where("code", $id);
