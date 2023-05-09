@@ -69,7 +69,7 @@
 <script type="text/javascript">
 $(document).ready(function () {
     $("#make-client-form").appForm({
-        onSuccess: function (result) {alert("OK")
+        onSuccess: function (result) {
             if (result.success) {
                 window.location.href = result.redirect_to;
             }
