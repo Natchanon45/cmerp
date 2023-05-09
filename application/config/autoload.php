@@ -214,4 +214,7 @@ $autoload['model'] = array(
     'Items_model',
     'Bom_item_model',
     'Bom_item_files_model',
+    'Users_m',
+    'Leads_m',
+    'Clients_m'
 );
