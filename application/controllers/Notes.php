@@ -225,6 +225,23 @@ class Notes extends MY_Controller {
 
     }
 
+    function list_data_leads($id) // dev2 : use for notes in lead and client only
+    {
+        $sql = "SELECT notes.*, CONCAT(users.first_name, ' ', users.last_name) AS created_by_user_name, 
+        (SELECT GROUP_CONCAT(labels.id, '--::--', labels.title, '--::--', labels.color) FROM labels WHERE FIND_IN_SET(labels.id, notes.labels)) AS labels_list 
+        FROM notes LEFT JOIN users ON users.id = notes.created_by 
+        WHERE notes.deleted = 0 AND notes.client_id = $id";
+
+        $list_data = $this->Notes_model->sql_query($sql)->result();
+
+        $result = array();
+        foreach ($list_data as $data) {
+            $result[] = $this->_make_row($data, 0);
+        }
+
+        echo json_encode(array("data" => $result));
+    }
+
     public function labeltest()
     {
         $labels_where["context"] = "note";

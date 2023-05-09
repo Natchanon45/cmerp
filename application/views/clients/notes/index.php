@@ -11,18 +11,27 @@
     </div>
 </div>
 
+<style>
+.fit-content-15p  {
+    width: 15%;
+}
+.fit-content-20p  {
+    width: 20%;
+}
+</style>
 
 <script type="text/javascript">
     $(document).ready(function () {
         $("#note-table").appTable({
-            source: '<?php echo_uri("notes/list_data/client/" . $client_id) ?>',
+            source: '<?php echo_uri("notes/list_data_leads/" . $client_id) ?>',
             order: [[0, 'desc']],
             columns: [
-                {targets: [1], visible: false},
-                {title: '<?php echo lang("created_date"); ?>', "class": "w200"},
-                {title: '<?php echo lang("title"); ?>'},
-                {title: '<?php echo lang("files") ?>', "class": "w250"},
-                {title: '<i class="fa fa-bars"></i>', "class": "text-center option w100"}
+                // { targets: [1], visible: false },
+                { title: '<?php echo lang("created_date"); ?>', "class": "fit-content-15p" },
+                { title: '<?php echo lang("title"); ?>' },
+                { title: "<?php echo lang("created_by"); ?>", "class": "fit-content-20p" },
+                { title: "<?php echo lang("file"); ?>" },
+                { title: "<i class='fa fa-bars'></i>", "class": "text-center option w120" }
             ]
         });
     });
