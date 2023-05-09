@@ -2,7 +2,8 @@
     <h1>
         <?php echo lang('lead_details') . " - " . $lead_info->company_name ?> 
     </h1>
-    <?php echo modal_anchor(get_uri("leads/make_client_modal_form/") . $lead_info->id, "<i class='fa fa-briefcase'></i> " . lang('make_client'), array("class" => "btn btn-primary pull-right mr15", "title" => lang('make_client'))); ?>
+    <?php echo modal_anchor(get_uri("leads/make_client_modal_form/") . $lead_info->id, "<i class='fa fa-briefcase'></i> " . lang("make_client"), array("class" => "btn btn-primary pull-right mr15", "title" => lang("make_client"))); ?>
+    <a href="<?php echo get_uri("leads");?>" class="btn btn-primary pull-right"><?php echo lang("back"); ?></a>
 </div>
 
 <div id="page-content" class="clearfix">

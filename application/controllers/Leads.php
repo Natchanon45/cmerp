@@ -248,7 +248,6 @@ class Leads extends MY_Controller {
 
     function view($client_id = 0, $tab = "") {
 		
-		
         $this->check_module_availability("module_lead");
         //$this->access_only_allowed_members();
 
