@@ -176,6 +176,17 @@ class Clients_m extends CI_Model {
             $data["group_ids"] = $this->input->post('group_ids') ? $this->input->post('group_ids') : "";
         }
 
+        $cfrows = $this->db->select("code")
+                            ->from("leads_custom_field")
+                            ->where("show_in_client", "Y")
+                            ->where("status", "E")
+                            ->get()->result();
+
+        if(!empty($cfrows)){
+            foreach($cfrows as $cfrow){
+                $data[$cfrow->code] = $this->input->post("custom_field_".$cfrow->code);
+            }
+        }
 
         if ($id != false) {
             if($vat_number != ""){

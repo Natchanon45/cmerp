@@ -145,19 +145,17 @@ class Leads_m extends CI_Model {
             "owner_id" => $this->input->post('owner_id') ? $this->input->post('owner_id') : $this->login_user->id
         );
 
-        for($i = 1; $i <= 12; $i++){
-            $lcfrow = $this->db->select("code, status")
+        $cfrows = $this->db->select("code")
                             ->from("leads_custom_field")
-                            ->where("code", "cf".$i)
-                            ->get()->row();
+                            ->where("show_in_lead", "Y")
+                            ->where("status", "E")
+                            ->get()->result();
 
-            if($lcfrow->status == "E"){
-                $data["cf".$i] = $this->input->post("custom_field_".$lcfrow->code);
-            }else{
-                $data["cf".$i] = NULL;
+        if(!empty($cfrows)){
+            foreach($cfrows as $cfrow){
+                $data[$cfrow->code] = $this->input->post("custom_field_".$cfrow->code);
             }
         }
-
 
         if ($id != false) {
             if($vat_number != ""){
