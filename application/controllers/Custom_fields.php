@@ -17,7 +17,7 @@ class Custom_fields extends MY_Controller
 		redirect("custom_fields/view");
 	}
 
-	function view($tab = "client")
+	function view($tab = "leads")
 	{
 		$view_data["tab"] = $tab;
 		$this->template->rander("custom_fields/settings/index", $view_data);

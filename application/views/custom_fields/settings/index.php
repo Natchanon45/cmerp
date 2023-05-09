@@ -17,16 +17,16 @@
 							<?php echo lang("custom_fields"); ?>
 						</h4>
 					</li>
-					<li><a role="presentation" data-related_to="clients" class="active"
+					<!-- <li><a role="presentation" data-related_to="clients" class="active"
 							href="javascript:void();" data-target="#custom-field-clients">
-							<?php echo lang("clients"); ?>
-						</a></li>
+							<?php // echo lang("clients"); ?>
+						</a></li> -->
+					<li><a role="presentation" data-related_to="leads" class="active"
+							href="<?php echo_uri("custom_fields/leads/"); ?>"
+							data-target="#custom-field-leads"><?php echo lang("leads") . "/" . lang("clients"); ?></a></li>
 					<li><a role="presentation" data-related_to="client_contacts" class=""
 							href="<?php echo_uri("custom_fields/client_contacts/"); ?>"
 							data-target="#custom-field-client_contacts"><?php echo lang("client_contacts"); ?></a></li>
-					<li><a role="presentation" data-related_to="leads" class="active"
-							href="<?php echo_uri("custom_fields/leads/"); ?>"
-							data-target="#custom-field-leads"><?php echo lang("leads"); ?></a></li>
 					<li><a role="presentation" data-related_to="lead_contacts" class=""
 							href="<?php echo_uri("custom_fields/lead_contacts/"); ?>"
 							data-target="#custom-field-lead_contacts"><?php echo lang("lead_contacts"); ?></a></li>
