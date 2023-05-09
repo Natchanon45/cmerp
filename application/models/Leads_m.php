@@ -98,7 +98,7 @@ class Leads_m extends CI_Model {
 
             if(!empty($cfrows)){
                 foreach($cfrows as $cfrow){
-                    $data[] = $lrow->{$cfrow->code};
+                    $data[] = mb_strimwidth($lrow->{$cfrow->code}, 0, 50, "...");
                 }
             }
 

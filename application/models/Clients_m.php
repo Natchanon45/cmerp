@@ -128,7 +128,7 @@ class Clients_m extends CI_Model {
 
             if(!empty($cfrows)){
                 foreach($cfrows as $cfrow){
-                    $data[] = $crow->{$cfrow->code};
+                    $data[] = mb_strimwidth($crow->{$cfrow->code}, 0, 50, "...");
                 }
             }
 
