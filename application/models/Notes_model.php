@@ -58,8 +58,8 @@ class Notes_model extends Crud_model {
 			
 			$replace['HAVING'][] = "labels_list LIKE '%". $options['label'] ."%'";
 		}
-		
-		$sql = genCond_( $sql, $replace );
+
+        $sql = genCond_( $sql, $replace );
         
         return $this->db->query( $sql );
     }
@@ -108,6 +108,11 @@ class Notes_model extends Crud_model {
 			WHERE $notes_table.deleted=0 
 			AND $notes_table.created_by = $user_id";
         return $this->db->query($sql)->row()->label_groups;
+    }
+
+    function sql_query($sql)
+    {
+        return $this->db->query($sql);
     }
 
 }

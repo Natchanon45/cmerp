@@ -1,7 +1,7 @@
 <?php echo form_open(get_uri("leads/save_as_client"), array("id" => "make-client-form", "class" => "general-form", "role" => "form")); ?>
 <div class="modal-body clearfix">
     <?php $model_info = get_array_value($lead_info, "model_info"); ?>
-    <input type="hidden" name="main_client_id" value="<?php echo $model_info->id; ?>" />
+    <input type="hidden" name="lead_id" value="<?php echo $model_info->id; ?>" />
 
     <?php if ($contacts) { ?>
         <div class="form-widget">
@@ -20,7 +20,7 @@
     <div class="tab-content <?php echo $contacts ? "mt15" : ""; ?>">
         <div role="tabpanel" class="tab-pane active" id="lead-info-tab">
             <?php $this->load->view("clients/client_form_fields", $lead_info); ?>
-            <?php $this->load->view("leads/custom_field_migration", $lead_info); ?>
+            <?php //$this->load->view("leads/custom_field_migration", $lead_info); ?>
         </div>
 
         <div role="tabpanel" class="tab-pane settings" id="lead-contacts-tab">            
@@ -67,116 +67,116 @@
 <?php echo form_close(); ?>
 
 <script type="text/javascript">
-    $(document).ready(function () {
-        $("#make-client-form").appForm({
-            onSuccess: function (result) {
-                if (result.success) {
-                    window.location.href = result.redirect_to;
-                }
+$(document).ready(function () {
+    $("#make-client-form").appForm({
+        onSuccess: function (result) {
+            if (result.success) {
+                window.location.href = result.redirect_to;
             }
-        });
-
-        $("#make-client-form input").keydown(function (e) {
-            if (e.keyCode === 13) {
-                e.preventDefault();
-                if ($('#form-submit').hasClass('hide')) {
-                    $("#form-next").trigger('click');
-                } else {
-                    triggerSubmit();
-                }
-            }
-        });
-
-        function triggerSubmit() {
-            //to check required fields under the collapse panel, we've to open those first
-            $(".lead-migration-contacts div.collapse").collapse("show");
-
-            $("#make-client-form").trigger('submit');
         }
+    });
 
-        $("#form-previous").click(function () {
-            var $infoTab = $("#lead-info-tab"),
-                    $contactsTab = $("#lead-contacts-tab"),
-                    $previousButton = $("#form-previous"),
-                    $nextButton = $("#form-next"),
-                    $submitButton = $("#form-submit");
-
-            if ($contactsTab.hasClass("active")) {
-                $contactsTab.removeClass("active");
-                $infoTab.addClass("active");
-                $previousButton.addClass("hide");
-                $nextButton.removeClass("hide");
-                $submitButton.addClass("hide");
+    $("#make-client-form input").keydown(function (e) {
+        if (e.keyCode === 13) {
+            e.preventDefault();
+            if ($('#form-submit').hasClass('hide')) {
+                $("#form-next").trigger('click');
+            } else {
+                triggerSubmit();
             }
-        });
+        }
+    });
 
-        $("#form-next").click(function () {
-            var $infoTab = $("#lead-info-tab"),
-                    $contactsTab = $("#lead-contacts-tab"),
-                    $previousButton = $("#form-previous"),
-                    $nextButton = $("#form-next"),
-                    $submitButton = $("#form-submit");
-            if (!$("#make-client-form").valid()) {
-                return false;
+    function triggerSubmit() {
+        //to check required fields under the collapse panel, we've to open those first
+        $(".lead-migration-contacts div.collapse").collapse("show");
+
+        $("#make-client-form").trigger('submit');
+    }
+
+    $("#form-previous").click(function () {
+        var $infoTab = $("#lead-info-tab"),
+                $contactsTab = $("#lead-contacts-tab"),
+                $previousButton = $("#form-previous"),
+                $nextButton = $("#form-next"),
+                $submitButton = $("#form-submit");
+
+        if ($contactsTab.hasClass("active")) {
+            $contactsTab.removeClass("active");
+            $infoTab.addClass("active");
+            $previousButton.addClass("hide");
+            $nextButton.removeClass("hide");
+            $submitButton.addClass("hide");
+        }
+    });
+
+    $("#form-next").click(function () {
+        var $infoTab = $("#lead-info-tab"),
+                $contactsTab = $("#lead-contacts-tab"),
+                $previousButton = $("#form-previous"),
+                $nextButton = $("#form-next"),
+                $submitButton = $("#form-submit");
+        if (!$("#make-client-form").valid()) {
+            return false;
+        }
+        if ($infoTab.hasClass("active")) {
+            $infoTab.removeClass("active");
+            $contactsTab.addClass("active");
+            $previousButton.removeClass("hide");
+            $nextButton.addClass("hide");
+            $submitButton.removeClass("hide");
+            $("#form-progress-bar").width("50%");
+            $("#lead-info-label").find("i").removeClass("fa-circle-o").addClass("fa-check-circle");
+        }
+    });
+
+    $("#form-submit").click(function () {//alert(1);
+        triggerSubmit();
+    });
+
+    //there should be only one primary contact
+    var $isPrimaryContactCheckbox = $(".is_primary_contact_lead");
+    $isPrimaryContactCheckbox.click(function () {
+        $isPrimaryContactCheckbox.removeAttr("disabled");
+        $isPrimaryContactCheckbox.prop("checked", false);
+        $(this).prop("checked", true);
+        $(this).prop("disabled", true);
+
+        //store value
+        $(".is_primary_contact_value").val("0");
+        $(this).closest(".form-group").find("input.is_primary_contact_value").val("1");
+    });
+
+    //skip multi-selection for custom field migration
+    $(".custom-field-migration-fields input").click(function () {
+        $(this).closest(".custom-field-migration-fields").find("input").prop("checked", false);
+        $(this).prop("checked", true);
+    });
+
+    //add user id with the custom fields to get the exact value
+    $(".custom-fields-on-migration").each(function () {
+        var userId = $(this).attr("data-user-id");
+
+        $(this).find(".form-group").each(function () {
+            var finalId = $(this).find("input").attr("name") + "_" + userId;
+
+            if ($(this).attr("data-field-type") === "select") {
+                finalId = $(this).find("select").attr("name") + "_" + userId;
+                $(this).find("select").attr("name", finalId);
+
+            } else if ($(this).attr("data-field-type") === "date") {
+                $(this).find("input").attr("name", finalId);
+
+            } else if ($(this).attr("data-field-type") === "multi_select") {
+                finalId = $(this).find("label").attr("for") + "_" + userId;
+                $(this).find("input[data-custom-multi-select-input='1']").attr("name", finalId);
+
+            } else {
+                $(this).find("label").attr("for", finalId);
+                $(this).find("input").attr("name", finalId);
+                $(this).find("input").attr("id", finalId);
             }
-            if ($infoTab.hasClass("active")) {
-                $infoTab.removeClass("active");
-                $contactsTab.addClass("active");
-                $previousButton.removeClass("hide");
-                $nextButton.addClass("hide");
-                $submitButton.removeClass("hide");
-                $("#form-progress-bar").width("50%");
-                $("#lead-info-label").find("i").removeClass("fa-circle-o").addClass("fa-check-circle");
-            }
-        });
-
-        $("#form-submit").click(function () {
-            triggerSubmit();
-        });
-
-        //there should be only one primary contact
-        var $isPrimaryContactCheckbox = $(".is_primary_contact_lead");
-        $isPrimaryContactCheckbox.click(function () {
-            $isPrimaryContactCheckbox.removeAttr("disabled");
-            $isPrimaryContactCheckbox.prop("checked", false);
-            $(this).prop("checked", true);
-            $(this).prop("disabled", true);
-
-            //store value
-            $(".is_primary_contact_value").val("0");
-            $(this).closest(".form-group").find("input.is_primary_contact_value").val("1");
-        });
-
-        //skip multi-selection for custom field migration
-        $(".custom-field-migration-fields input").click(function () {
-            $(this).closest(".custom-field-migration-fields").find("input").prop("checked", false);
-            $(this).prop("checked", true);
-        });
-
-        //add user id with the custom fields to get the exact value
-        $(".custom-fields-on-migration").each(function () {
-            var userId = $(this).attr("data-user-id");
-
-            $(this).find(".form-group").each(function () {
-                var finalId = $(this).find("input").attr("name") + "_" + userId;
-
-                if ($(this).attr("data-field-type") === "select") {
-                    finalId = $(this).find("select").attr("name") + "_" + userId;
-                    $(this).find("select").attr("name", finalId);
-
-                } else if ($(this).attr("data-field-type") === "date") {
-                    $(this).find("input").attr("name", finalId);
-
-                } else if ($(this).attr("data-field-type") === "multi_select") {
-                    finalId = $(this).find("label").attr("for") + "_" + userId;
-                    $(this).find("input[data-custom-multi-select-input='1']").attr("name", finalId);
-
-                } else {
-                    $(this).find("label").attr("for", finalId);
-                    $(this).find("input").attr("name", finalId);
-                    $(this).find("input").attr("id", finalId);
-                }
-            });
         });
     });
+});
 </script>    

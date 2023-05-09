@@ -15,15 +15,15 @@
 </div>
 
 <script type="text/javascript">
-    $(document).ready(function () {
-        $("#company-form").appForm({
-            isModal: false,
-            onSuccess: function (result) {
-                appAlert.success(result.message, {duration: 10000});
-            },onError: function (result) {
-                appAlert.error(result.message, {duration: 10000});
-                appLoader.hide();
-            }
-        });
+$(document).ready(function () {
+    $("#company-form").appForm({
+        isModal: false,
+        onSuccess: function (result) {
+            appAlert.success(result.message, {duration: 10000});
+        },onError: function (result) {
+            appAlert.error(result.message, {duration: 10000});
+            appLoader.hide();
+        }
     });
+});
 </script>

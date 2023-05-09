@@ -2002,6 +2002,7 @@ $lang["text_approved"] = "Approved";
 $lang["text_rejected"] = "Not approved";
 $lang["remain_only"] = "Remain only";
 $lang["all_add_stock"] = "All add stock";
+$lang["error_leads_max_cf"] = "Sorry, The custom fields level is max <br> Cannot create a new one.";
 $lang["begin_cannot_display_vat"] = "The transaction cannot be made because the vat number";
 $lang["end_cannot_display_vat"] = "has already been registered.";
 $lang["have_no_delete_auth"] = "Have no delete authorized.";
