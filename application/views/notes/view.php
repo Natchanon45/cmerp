@@ -38,7 +38,7 @@
 
 <div class="modal-footer">
     <?php
-    if ($model_info->created_by == $this->login_user->id || $this->login_user->is_admin) {
+    if ($this->login_user->is_admin == "1") {
         echo modal_anchor(get_uri("notes/modal_form/"), "<i class='fa fa-pencil'></i> " . lang('edit_note'), array("class" => "btn btn-default", "data-post-id" => $model_info->id, "title" => lang('edit_note')));
     }
     ?>
