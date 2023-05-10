@@ -94,7 +94,6 @@ class Materialrequests extends MY_Controller
 		redirect($_SERVER['HTTP_REFERER']);
 	}
 
-
 	function process_pr($mr_id = 0)
 	{
 		if ($this->Permission_m->access_material_request != true)
@@ -114,7 +113,6 @@ class Materialrequests extends MY_Controller
 		}
 
 		$this->template->rander("materialrequests/process_pr", $view_data);
-
 	}
 
 	function item_list_data_of_login_user($mr_id = 0)
@@ -136,7 +134,6 @@ class Materialrequests extends MY_Controller
 	}
 
 	/* prepare a row of order item list table */
-
 	private function _make_item_row($pr, $prove, $data)
 	{
 		if ($data->item_id) {
@@ -176,7 +173,6 @@ class Materialrequests extends MY_Controller
 	}
 
 	/* load item modal */
-
 	function item_modal_form()
 	{
 		// temporary $this->check_access_to_store();
@@ -1328,9 +1324,9 @@ class Materialrequests extends MY_Controller
 		$view_data['buttonTops'] = implode('', $buttonTops);
 
 		$options = [];
-		/*if(!$this->cp('materialrequests', 'prove_row')) {
-		$options['where'] = " pr_status.id!='3' AND pr_status.id!='4' ";
-		}*/
+		// if (!$this->cp('materialrequests', 'prove_row')) {
+		// 	$options['where'] = " pr_status.id!='3' AND pr_status.id!='4' ";
+		// }
 
 		$view_data['mr_statuses'] = $this->Mr_status_model->get_details($options)->result();
 		$view_data['pr_suppliers'] = $this->Bom_suppliers_model->get_options()->result();
@@ -1344,10 +1340,6 @@ class Materialrequests extends MY_Controller
 
 		$this->template->rander("materialrequests/index", $view_data);
 	}
-
-
-
-
 
 	private function _make_row($data, $custom_fields)
 	{
@@ -1442,7 +1434,7 @@ class Materialrequests extends MY_Controller
 		foreach ($list_data as $data) {
 			$result[] = $this->_make_category_row($data);
 		}
-		
+
 		echo json_encode(array("data" => $result));
 	}
 
@@ -1458,17 +1450,17 @@ class Materialrequests extends MY_Controller
 			"created_date" => format_to_date($data->created_date, false),
 			"creator" => $data->creator_name
 		);
-		
+
 		$edit_row = $this->cp("materialrequests", "edit_row");
 		$delete_row = $this->cp("materialrequests", "delete_row");
-		
+
 		$can_action = ($edit_row || $delete_row);
 		// If admin return TRUE, but not will checking user auth the return.
 		if (!$can_action || $data->id == 1) {
 			$row_data["action"] = "";
 		} else {
-			$row_data["action"] = ($edit_row ? modal_anchor(get_uri("materialrequests/category_form/" . $data->id), "<i class='fa fa-pencil'></i>", array("class" => "edit", "title" => lang("edit_category"), "data-post-id" => $data->id, "data-act" => "ajax-modal")) : '') 
-			. ($delete_row && $data->count_pr == "0" ? js_anchor("<i class='fa fa-times fa-fw'></i>", array("title" => lang("delete_category"), "class" => "delete", "data-id" => $data->id, "data-action-url" => get_uri("materialrequests/category_delete"), "data-action" => "delete-confirmation")) : '');
+			$row_data["action"] = ($edit_row ? modal_anchor(get_uri("materialrequests/category_form/" . $data->id), "<i class='fa fa-pencil'></i>", array("class" => "edit", "title" => lang("edit_category"), "data-post-id" => $data->id, "data-act" => "ajax-modal")) : '')
+				. ($delete_row && $data->count_pr == "0" ? js_anchor("<i class='fa fa-times fa-fw'></i>", array("title" => lang("delete_category"), "class" => "delete", "data-id" => $data->id, "data-action-url" => get_uri("materialrequests/category_delete"), "data-action" => "delete-confirmation")) : '');
 		}
 
 		return $row_data;
@@ -2013,7 +2005,7 @@ class Materialrequests extends MY_Controller
 					$status_text = lang("status_already_rejected");
 					$operation = "";
 				}
-				
+
 				$row[] = array(
 					"id" => $data->id,
 					"doc_no" => $data->doc_no ? anchor(get_uri("materialrequests/view/" . $data->id), $data->doc_no) : lang("have_no_document_number"),
@@ -2042,7 +2034,7 @@ class Materialrequests extends MY_Controller
 
 		$view_data["model_info"] = $this->Materialrequests_model->get_one($request["id"]);
 		$view_data["taxes_dropdown"] = array("0" => lang("tax")) + $this->Taxes_model->get_dropdown_list(array("title"));
-		
+
 		var_dump(arr($view_data));
 	}
 
