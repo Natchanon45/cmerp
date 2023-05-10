@@ -1409,96 +1409,68 @@ class Materialrequests extends MY_Controller
 
 	function categories()
 	{
-		// temporary $this->check_access_to_store();
-		//$this->dump([$this->cop('prove_row'), $this->cp('materialrequests', 'prove_row')], true);
-		/*if(!$this->cp('materialrequests','view_row')) {
-		redirect("forbidden");
-		return;
-		}*/
-		$view_data["custom_field_headers"] = $this->Custom_fields_model->get_custom_field_headers_for_table("materialrequests", $this->login_user->is_admin, $this->login_user->user_type);
-
 		$buttonTops = array();
-
-		if (!empty($this->getRolePermission['add_row'])) {
-			//$buttonTops[] = '<a href="'.get_uri("materialrequests").'" class="btn btn-default">'.lang('back_to_purchases').'</a>';
-			$buttonTops[] = js_anchor("<i class='fa fa-bars'></i> " . lang('back_to_materialrequest'), array("data-action-url" => get_uri("materialrequests"), "class" => "btn btn-default", "title" => lang('back_to_materialrequest'), "id" => "back-to-pr-btn"));
-			//$buttonTops[] = anchor(get_uri("materialrequests/categories"), "<i class='fa fa-bars'></i> ".lang('category_manager'), array("class" => "btn btn-primary", "title" => lang('category_manager'), "id" => "cat-mng-btn"));
-			//$buttonTops[] = modal_anchor( get_uri("materialrequests/category_form"), "<i class='fa fa-plus-circle'></i> ".lang('add_category'), array("class" => "btn btn-primary", "title" => lang('add_category'), "id" => "add-cat-btn"));
-			$buttonTops[] = js_anchor("<i class='fa fa-plus-circle'></i> " . lang('add_category'), array("data-action-url" => get_uri("materialrequests/category_form"), "class" => "btn btn-primary", "title" => lang('add_category'), "id" => "add-cat-btn"));
-			//$buttonTops[] = js_anchor("<i class='fa fa-plus-circle'></i> " . lang('add_pr'), array("class" => "btn btn-default", "id" => "add-pr-btn"));
-			//$buttonTops[] = modal_anchor(get_uri("materialrequests/item_modal_form"), "<i class='fa fa-plus-circle'></i>" . lang('add_more_items'), array("class" => "btn btn-default pull-right", "title" => lang('add_more_items'), "data-post-id" => 0, "data-post-mr_id" => 0,'data-post-item_type'=>'oth'));
-			//$buttonTops[] = anchor(get_uri("mr_items/grid_view"), "<i class='fa fa-plus-circle'></i> " . lang('add_internal_items'), array("class" => "btn btn-default pull-right"));
-			//$buttonTops[] = modal_anchor(get_uri("materialrequests/item_modal_form"), "<i class='fa fa-plus-circle'></i>" . lang('add_materials'), array("class" => "btn btn-default pull-right", "title" => lang('add_materials'), "data-post-id" => 0, "data-post-mr_id" => 0,'data-post-item_type'=>'mtr'));
+		if (!empty($this->getRolePermission["add_row"])) {
+			$buttonTops[] = js_anchor("<i class='fa fa-bars'></i> " . lang("back_to_materialrequest"), array("data-action-url" => get_uri("materialrequests"), "class" => "btn btn-default", "title" => lang("back_to_materialrequest"), "id" => "back-to-pr-btn"));
+			$buttonTops[] = js_anchor("<i class='fa fa-plus-circle'></i> " . lang("add_category"), array("data-action-url" => get_uri("materialrequests/category_form"), "class" => "btn btn-primary", "title" => lang("add_category"), "id" => "add-cat-btn"));
 		}
 
-		$view_data['buttonTops'] = implode('', $buttonTops);
+		$view_data["buttonTops"] = implode('', $buttonTops);
+		$view_data["view_row"] = $this->cp("materialrequests", "view_row");
+		$view_data["add_row"] = $this->cp("materialrequests", "add_row");
+		$view_data["edit_row"] = $this->cp("materialrequests", "edit_row");
+		$view_data["delete_row"] = $this->cp("materialrequests", "delete_row");
+		$view_data["prove_row"] = $this->cp("materialrequests", "prove_row");
 
-		$options = [];
-		/*if(!$this->cp('materialrequests', 'prove_row')) {
-		$options['where'] = " pr_status.id!='3' AND pr_status.id!='4' ";
-		}
-		$view_data['pr_statuses'] = $this->Mr_status_model->get_details($options)->result();
-		*/
-		$view_data['view_row'] = $this->cp('materialrequests', 'view_row');
-		$view_data['add_row'] = $this->cp('materialrequests', 'add_row');
-		$view_data['edit_row'] = $this->cp('materialrequests', 'edit_row');
-		$view_data['delete_row'] = $this->cp('materialrequests', 'delete_row');
-		$view_data['prove_row'] = $this->cp('materialrequests', 'prove_row');
 		$this->template->rander("materialrequests/category/index", $view_data);
 	}
 
 	function list_categories_data()
 	{
-		// temporary $this->access_only_allowed_members();
-		if (!$this->cp('materialrequests', 'view_row')) {
+		if (!$this->cp("materialrequests", "view_row")) {
 			redirect("forbidden");
 			return;
 		}
 
 		$options = array(
-			//"status_id" => $this->input->post("status_id"),
-			//"mr_date" => $this->input->post("start_date"),
-			//"deadline" => $this->input->post("end_date"),
-			//"custom_fields" => $custom_fields
 			"count_pr" => true
 		);
 
 		$list_data = $this->Pr_categories_model->get_details($options)->result();
+
 		$result = array();
 		foreach ($list_data as $data) {
 			$result[] = $this->_make_category_row($data);
 		}
+		
 		echo json_encode(array("data" => $result));
 	}
 
 	private function _make_category_row($data)
 	{
-		//$cat_url = anchor(get_uri("materialrequests/category_form/" . $data->id), $data->title);
-		$cat_url = modal_anchor(get_uri("materialrequests/category_form/" . $data->id), $data->title, array("class" => "edit", "title" => lang('edit_category'), "data-post-id" => $data->id, 'data-act' => 'ajax-modal'));
-		$creator = $data->creator_name;
+		$cat_url = modal_anchor(get_uri("materialrequests/category_form/" . $data->id), $data->title, array("class" => "edit", "title" => lang("edit_category"), "data-post-id" => $data->id, "data-act" => "ajax-modal"));
 
 		$row_data = array(
-			$cat_url,
-			$data->description,
-			substr($data->created_date, 0, 10),
-			format_to_date($data->created_date, false),
-			$creator
+			"id" => $data->id,
+			"title" => $data->id != 1 ? $cat_url : "<a class='edit'>" . $data->title . "</>",
+			"desc" => $data->description,
+			"set_date" => substr($data->created_date, 0, 10),
+			"created_date" => format_to_date($data->created_date, false),
+			"creator" => $data->creator_name
 		);
-
-		//$view_row = $this->cp('materialrequests','view_row');
-		//$add_row = $this->cp('materialrequests','add_row');
-		$edit_row = $this->cp('materialrequests', 'edit_row');
-		$delete_row = $this->cp('materialrequests', 'delete_row');
-		//$prove_row = $this->cp('materialrequests','prove_row');
+		
+		$edit_row = $this->cp("materialrequests", "edit_row");
+		$delete_row = $this->cp("materialrequests", "delete_row");
+		
 		$can_action = ($edit_row || $delete_row);
-		if (!$can_action || $data->id == '1')
-			$row_data[] = "";
-		else {
-			$row_data[] = ($edit_row ? modal_anchor(get_uri("materialrequests/category_form/" . $data->id), "<i class='fa fa-pencil'></i>", array("class" => "edit", "title" => lang('edit_category'), "data-post-id" => $data->id, 'data-act' => 'ajax-modal')) : '')
-				//. anchor(get_uri("materialrequests/process_pr/".$data->id), "<i class='fa fa-bars'></i>", array("class" => "edit", "title" => lang('edit_mr_items'), "data-post-id" => $data->id)):'')
-				. ($delete_row && $data->count_pr == '0' ? js_anchor("<i class='fa fa-times fa-fw'></i>", array('title' => lang('delete_category'), "class" => "delete", "data-id" => $data->id, "data-action-url" => get_uri("materialrequests/delete_category"), "data-action" => "delete_category")) : '')
-			;
+		// If admin return TRUE, but not will checking user auth the return.
+		if (!$can_action || $data->id == 1) {
+			$row_data["action"] = "";
+		} else {
+			$row_data["action"] = ($edit_row ? modal_anchor(get_uri("materialrequests/category_form/" . $data->id), "<i class='fa fa-pencil'></i>", array("class" => "edit", "title" => lang("edit_category"), "data-post-id" => $data->id, "data-act" => "ajax-modal")) : '') 
+			. ($delete_row && $data->count_pr == "0" ? js_anchor("<i class='fa fa-times fa-fw'></i>", array("title" => lang("delete_category"), "class" => "delete", "data-id" => $data->id, "data-action-url" => get_uri("materialrequests/category_delete"), "data-action" => "delete-confirmation")) : '');
 		}
+
 		return $row_data;
 	}
 
@@ -1946,7 +1918,7 @@ class Materialrequests extends MY_Controller
 		echo json_encode(array("data" => array_values($imports), "success" => 1, "message" => "Success"));
 	}
 
-	function category_list() // dev2
+	function category_list()
 	{
 		$id = $this->input->post("id") ? $this->input->post("id") : 0;
 		$result = array();
@@ -1982,7 +1954,7 @@ class Materialrequests extends MY_Controller
 		echo json_encode(array("data" => $row));
 	}
 
-	function category_delete() // dev2
+	function category_delete()
 	{
 		$this->check_module_availability("module_stock");
 
@@ -1994,7 +1966,7 @@ class Materialrequests extends MY_Controller
 			)
 		);
 
-		if ($this->Pr_categories_model->deleteRequestCategoryById($id)) {
+		if ($this->Pr_categories_model->delete_by_id($id)) {
 			echo json_encode(
 				array(
 					"success" => true,
@@ -2011,7 +1983,7 @@ class Materialrequests extends MY_Controller
 		}
 	}
 
-	function material_request_list() // dev2
+	function material_request_list()
 	{
 		$row = array();
 
@@ -2059,7 +2031,7 @@ class Materialrequests extends MY_Controller
 		echo json_encode(array("data" => $row));
 	}
 
-	function material_request_modal() // dev2
+	function material_request_modal()
 	{
 		$request = $this->input->post();
 
@@ -2074,7 +2046,7 @@ class Materialrequests extends MY_Controller
 		var_dump(arr($view_data));
 	}
 
-	function save_header() // dev2
+	function save_header()
 	{
 		$post = $this->input->post();
 
