@@ -307,8 +307,8 @@ class MaterialRequests_model extends Crud_model
 	public function get_materialrequest_by_id($id = 0)
 	{
 		$this->db->select('*')
-		->from('materialrequests')
-		->where('id', $id);
+		->from("materialrequests")
+		->where("id", $id);
 
 		$query = $this->db->get();
 		return $query->row();

@@ -868,49 +868,79 @@ class Materialrequests extends MY_Controller
 	/* load pr details view */
 	function view($mr_id = 0)
 	{
-		if ($this->Permission_m->access_material_request != true)
+
+		if (!$this->Permission_m->access_material_request) {
 			redirect("forbidden");
+		}
 
-		if ($mr_id) {
+		if ($mr_id == 0) {
+			$this->load->view("error/html/error_404");
+			return;
+		}
 
+		$mat_req_info = $this->Materialrequests_model->get_materialrequest_by_id($mr_id);
+		$mat_project_info = $this->Projects_model->get_project_by_id($mat_req_info->project_id);
+		$mat_items_info = $this->Mr_items_model->get_materialrequest_item_by_id($mr_id);
+		$mat_requester_info = $this->Users_m->get_user_by_id($mat_req_info->requester_id);
+		$mat_client_info = $this->Clients_model->get_client_by_id($mat_project_info->client_id);
+		$mat_client_contact = $this->Users_m->get_user_by_cli($mat_client_info->id);
+		
+		// var_dump(arr($mat_req_info));
+		// var_dump(arr($mat_project_info));
+		// var_dump(arr($mat_items_info));
+		// var_dump(arr($mat_requester_info));
+		// var_dump(arr($mat_client_info));
+		// var_dump(arr($mat_client_contact));
+		// exit;
+
+		// if ($mr_id) {
 			$view_data = get_mr_making_data($mr_id);
-
-			//var_dump($view_data);exit;
-			if ($view_data) {
-				/*$access_info = $this->get_access_info("invoice");
+			// var_dump(arr($view_data)); exit;
+			
+			// if ($view_data) {
+				$access_info = $this->get_access_info("invoice");
 				$view_data["show_invoice_option"] = (get_setting("module_invoice") && $access_info->access_type == "all") ? true : false;
 				$access_info = $this->get_access_info("estimate");
-				$view_data["show_estimate_option"] = (get_setting("module_estimate") && $access_info->access_type == "all") ? true : false;*/
+				$view_data["show_estimate_option"] = (get_setting("module_estimate") && $access_info->access_type == "all") ? true : false;
 
 				$view_data["mr_id"] = $mr_id;
 
 				$is_approved = (!$view_data['mr_info'] || $view_data['mr_info']->status_id == 3) ? true : false;
-				//$edit_row = ($is_approved && $this->cop('prove_row')) || (!$is_approved && $this->cop('edit_row'));
-				//$delete_row = ($is_approved && $this->cop('prove_row')) || (!$is_approved && $this->cop('delete_row'));
+				$edit_row = ($is_approved && $this->cop('prove_row')) || (!$is_approved && $this->cop('edit_row'));
+				$delete_row = ($is_approved && $this->cop('prove_row')) || (!$is_approved && $this->cop('delete_row'));
 
 				$options = [];
-				/*if(!$this->cp('materialrequests', 'prove_row')) {
-				$options['where'] = " pr_status.id!='3' AND pr_status.id!='4' ";
-				}*/
+				if (!$this->cp('materialrequests', 'prove_row')) {
+					$options['where'] = " pr_status.id!='3' AND pr_status.id!='4' ";
+				}
 				$view_data['mr_statuses'] = $this->Mr_status_model->get_details($options)->result();
 
 
-				//$view_data['edit_row'] = $edit_row;
-				//$view_data['delete_row'] = $delete_row;
+				$view_data['edit_row'] = $edit_row;
+				$view_data['delete_row'] = $delete_row;
 				$view_data['prove_row'] = $this->cop('prove_row');
 				$view_data['is_approved'] = $is_approved;
 
 				$param['id'] = $mr_id;
 				$param['tbName'] = $this->className;
 				$view_data["proveButton"] = $this->dao->getProveButton($param);
+				$view_data["approve_material_request"] = $this->Permission_m->approve_material_request;
+				$view_data["update_material_request"] = $this->Permission_m->update_material_request;
 
+				$view_data["mat_req_info"] = $mat_req_info;
+				$view_data["mat_project_info"] = $mat_project_info;
+				$view_data["mat_client_info"] = $mat_client_info;
+				$view_data["mat_items_info"] = $mat_items_info;
+				$view_data["mat_client_contact"] = $mat_client_contact;
+				$view_data["mat_requester_info"] = $mat_requester_info;
 
+				// var_dump(arr($view_data)); exit;
 
 				$this->template->rander("materialrequests/view", $view_data);
-			} else {
-				show_404();
-			}
-		}
+			// } else {
+				// show_404();
+			// }
+		// }
 	}
 
 	private function check_access_to_this_mr($mr_data)
@@ -2043,7 +2073,7 @@ class Materialrequests extends MY_Controller
 		$post = $this->input->post();
 
 		if ($this->Permission_m->update_material_request != true) {
-			echo json_encode(array("success" => false, 'message' => lang('error_occurred')));
+			echo json_encode(array("success" => false, "message" => lang("error_occurred")));
 			return;
 		}
 
@@ -2081,7 +2111,7 @@ class Materialrequests extends MY_Controller
 		if ($affected === 1) {
 			echo json_encode(array("success" => true, "data" => $mr_data, "message" => lang("record_saved")));
 		} else {
-			echo json_encode(array("success" => false, 'message' => lang('error_occurred')));
+			echo json_encode(array("success" => false, "message" => lang("error_occurred")));
 		}
 	}
 

@@ -370,4 +370,12 @@ class Clients_model extends Crud_model
 		return $query->result();
 	}
 
+	public function get_client_by_id($id = 0)
+	{
+		$this->db->select("*")->from("clients")->where("id", $id);
+		$query = $this->db->get();
+
+		return $query->row();
+	}
+
 }

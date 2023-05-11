@@ -240,4 +240,13 @@ class Mr_items_model extends Crud_model {
        $q = $this->db->query($sql);
        return $q?$q->row():null;
    }
+
+   public function get_materialrequest_item_by_id($mr_id = 0)
+   {
+        $this->db->select("*")->from("mr_items")->where("mr_id", $mr_id);
+        $query = $this->db->get();
+
+        return $query->result();
+   }
+
 }

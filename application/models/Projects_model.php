@@ -374,4 +374,12 @@ class Projects_model extends Crud_model {
         return $this->db->query($sql);
     }
 
+    public function get_project_by_id($id = 0)
+    {
+        $this->db->select("*")->from("projects")->where("id", $id);
+        $query = $this->db->get();
+
+        return $query->row();
+    }
+
 }

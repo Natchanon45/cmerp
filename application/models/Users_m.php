@@ -42,6 +42,20 @@ class Users_m extends CI_Model {
                 ];
     }
 
-    
+    public function get_user_by_cli($cli = 0)
+    {
+        $this->db->select("*")->from("users")->where("client_id", $cli)->where("deleted", 0)->where("is_primary_contact")->limit(1);
+        $query = $this->db->get();
+
+        return $query->row();
+    }
+
+    public function get_user_by_id($id = 0)
+    {
+        $this->db->select("*")->from("users")->where("id", $id)->where("deleted", 0)->limit(1);
+        $query = $this->db->get();
+
+        return $query->row();
+    }
 
 }
