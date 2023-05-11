@@ -7,30 +7,31 @@ class Quotations extends MY_Controller {
     }
 
     function index() {
-        //log_message("error", $this->uri->segment(3));
-        //log_message("error", "p->".json_encode($_POST));
-        //log_message("error", "g->".json_encode($_GET));
-        if($this->uri->segment(3) == "igrid"){
-
-            //log_message("error", $_POST['start']);
-            //jout(["data"=>$this->Quotations_m->igrid()]);
-            //jout(["data"=>$this->Quotations_m->igrid()]);
-            jout($this->Quotations_m->index());
+        
+        if($this->input->post("datatable") == true){
+            jout(["data"=>$this->Quotations_m->indexDataSet()]);
             return;
+        }elseif(isset($this->json->task)){
+            if($this->json->task == "update_doc_status") jout($this->Quotations_m->updateStatus());
+            return;    
         }
 
         $this->template->rander("quotations/index");
     }
 
-    function doc(){
+    function test(){
+        //jout(["data"=>$this->Quotations_m->indexDataSet()]);
+    }
+
+    function addedit(){
         if(isset($this->json->task)){
             if($this->json->task == "save_doc") jout($this->Quotations_m->saveDoc());
             return;   
         }
 
-        $data = $this->Quotations_m->doc($this->input->post("id"));
+        $data = $this->Quotations_m->getDoc($this->input->post("id"));
 
-        $this->load->view( 'quotations/doc', $data);
+        $this->load->view( 'quotations/addedit', $data);
     }
 
     function view() {
@@ -47,7 +48,7 @@ class Quotations extends MY_Controller {
             return;
         }
 
-        $data = $this->Quotations_m->doc($this->uri->segment(3));
+        $data = $this->Quotations_m->getDoc($this->uri->segment(3));
         if ($data["status"] != "success"){
             redirect('/quotations');
             return;

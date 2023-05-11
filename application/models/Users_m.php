@@ -21,6 +21,17 @@ class Users_m extends CI_Model {
         		];
     }
 
+    function getSignature($user_id){
+        $urow = $this->db->select("signature")
+                            ->from("users")
+                            ->where("id", $user_id)
+                            ->get()->row();
+
+        if(empty($urow)) return null;
+
+        return $urow->signature;
+    }
+
     
 
 }

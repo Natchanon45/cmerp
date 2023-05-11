@@ -17,20 +17,38 @@ class Quotations_m extends MY_Model {
         }
     }
 
-    function getIGrid($qrow){
+    function getIndexDataSetHTML($qrow){
+        $doc_status = "<select class='dropdown_status' data-doc_id='".$qrow->id."'>";
+
+        if($qrow->status == "W"){
+            $doc_status .= "<option selected>รออนุมัติ</option>";
+            $doc_status .= "<option value='A'>อนุมัติ</option>";
+            $doc_status .= "<option value='R'>ไม่อนุมัติ</option>";
+        }elseif($qrow->status == "A"){
+            $doc_status .= "<option selected>อนุมัติ</option>";
+            $doc_status .= "<option value='R'>ไม่อนุมัติ</option>";
+            $doc_status .= "<option value='RESET'>รีเซ็ต</option>";
+        }elseif($qrow->status == "R"){
+            $doc_status .= "<option selected>ไม่อนุมัติ</option>";
+            $doc_status .= "<option value='RESET'>รีเซ็ต</option>";
+        }
+
+        $doc_status .= "</select>";
+
+
         $data = [
                     "<a href='".get_uri("quotations/view/".$qrow->id)."'>".$qrow->doc_number."</a>",
                     "<a href='".get_uri("clients/view/".$qrow->client_id)."'>".$this->Clients_m->getCompanyName($qrow->client_id)."</a>",
                     converDate($qrow->doc_date, true),
                     number_format($qrow->total, 2),
-                    $this->getStatusName($qrow->status),
-                    "<a data-post-id='".$qrow->id."' data-action-url='".get_uri("quotations/doc")."' data-act='ajax-modal' class='edit'><i class='fa fa-pencil'></i></a><a data-id='".$qrow->id."' data-action-url='".get_uri("quotations/delete_doc")."' data-action='delete' class='delete'><i class='fa fa-times fa-fw'></i></a>"
+                    $doc_status,
+                    "<a data-post-id='".$qrow->id."' data-action-url='".get_uri("quotations/addedit")."' data-act='ajax-modal' class='edit'><i class='fa fa-pencil'></i></a><a data-id='".$qrow->id."' data-action-url='".get_uri("quotations/delete_doc")."' data-action='delete' class='delete'><i class='fa fa-times fa-fw'></i></a>"
                 ];
 
         return $data;
     }
 
-    function igrid() {
+    function indexDataSet() {
         $db = $this->db;
 
         $db->select("*")->from("quotation");
@@ -48,173 +66,16 @@ class Quotations_m extends MY_Model {
 
         $qrows = $db->get()->result();
 
-        $data = [];
+        $dataset = [];
 
         foreach($qrows as $qrow){
-            $data[] = $this->getIGrid($qrow);
+            $dataset[] = $this->getIndexDataSetHTML($qrow);
         }
 
-        return $data;
+        return $dataset;
     }
 
-    function index(){
-        $db = $this->db;
-        $db->select("*")->from("quotation");
-        $db->where("deleted", 0);
-        $qrows = $db->get()->result();
-        
-        $data["draw"] = 1;
-        $data["recordsTotal"] = 10000;
-        $data["recordsFiltered"] = 10000;
-
-        foreach($qrows as $qrow){
-            $data["data"][] = [
-                        $qrow->doc_number,
-                        $this->Clients_m->getCompanyName($qrow->client_id),
-                        $qrow->created_datetime,
-                        $qrow->total,
-                        $qrow->status,
-                        "<a data-post-id='".$qrow->id."' data-action-url='".get_uri("quotations/doc")."' data-act='ajax-modal' class='edit'><i class='fa fa-pencil'></i></a><a data-id='".$qrow->id."' data-action-url='".get_uri("quotations/delete_doc")."' data-action='delete' class='delete'><i class='fa fa-times fa-fw'></i></a>"
-                    ];
-        }
-
-        return $data;
-    }
-
-    function test(){
-        $db = $this->db;
-
-        $data["draw"] = 1;
-        $data["recordsTotal"] = 10000;
-        $data["recordsFiltered"] = 10000;
-        $data["data"] = [
-                            ["10000", "Leticia", "Argile", "largilerr@google.ca", "Female"],
-                            ["9999","Etta","Attwill","eattwillrq@yelp.com","Female"],
-                            ["9998","Ira","Comber","icomberrp@msn.com","Male"],
-                            ["9997","Ryon","Haack","rhaackro@homestead.com","Male"],
-                            ["9996","Gavin","Kenvin","gkenvinrn@youtube.com","Male"],
-                            ["9995","Hercules","Edgeson","hedgesonrm@trellian.com","Male"],
-                            ["9994","Meredith","Morot","mmorotrl@wp.com","Male"],
-                            ["9993","Corrinne","Rottger","crottgerrk@networkadvertising.org","Female"],
-                            ["9992","Gallagher","Scholefield","gscholefieldrj@cdbaby.com","Male"],
-                            ["9991","Obadias","Lardez","olardezri@princeton.edu","Male"]
-                        ];
-
-        return $data;
-
-
-
-
-
-        return json_decode('{
-            "draw":1,
-            "recordsTotal":10000,
-            "recordsFiltered":10000,
-            "data":[
-                ["10000","Leticia","Argile","largilerr@google.ca","Female"],
-                ["9999","Etta","Attwill","eattwillrq@yelp.com","Female"],
-                ["9998","Ira","Comber","icomberrp@msn.com","Male"],
-
-                ["9997","Ryon","Haack","rhaackro@homestead.com","Male"],
-                ["9996","Gavin","Kenvin","gkenvinrn@youtube.com","Male"],
-                ["9995","Hercules","Edgeson","hedgesonrm@trellian.com","Male"],
-                ["9994","Meredith","Morot","mmorotrl@wp.com","Male"],
-                ["9993","Corrinne","Rottger","crottgerrk@networkadvertising.org","Female"],
-                ["9992","Gallagher","Scholefield","gscholefieldrj@cdbaby.com","Male"],
-                ["9991","Obadias","Lardez","olardezri@princeton.edu","Male"]
-            ]}', true);
-
-
-        return json_decode('{
-                    "draw": 3,
-                    "recordsTotal": 57,
-                    "recordsFiltered": 57,
-                    "data": [
-                                {
-                                  "first_name": "Airi",
-                                  "last_name": "Satou",
-                                  "position": "Accountant",
-                                  "office": "Tokyo",
-                                  "start_date": "28th Nov 08",
-                                  "salary": "$162,700"
-                                },
-                                {
-                                  "first_name": "Angelica",
-                                  "last_name": "Ramos",
-                                  "position": "Chief Executive Officer (CEO)",
-                                  "office": "London",
-                                  "start_date": "9th Oct 09",
-                                  "salary": "$1,200,000"
-                                },
-                                {
-                                  "first_name": "Ashton",
-                                  "last_name": "Cox",
-                                  "position": "Junior Technical Author",
-                                  "office": "San Francisco",
-                                  "start_date": "12th Jan 09",
-                                  "salary": "$86,000"
-                                },
-                                {
-                                  "first_name": "Bradley",
-                                  "last_name": "Greer",
-                                  "position": "Software Engineer",
-                                  "office": "London",
-                                  "start_date": "13th Oct 12",
-                                  "salary": "$132,000"
-                                },
-                                {
-                                  "first_name": "Brenden",
-                                  "last_name": "Wagner",
-                                  "position": "Software Engineer",
-                                  "office": "San Francisco",
-                                  "start_date": "7th Jun 11",
-                                  "salary": "$206,850"
-                                },
-                                {
-                                  "first_name": "Brielle",
-                                  "last_name": "Williamson",
-                                  "position": "Integration Specialist",
-                                  "office": "New York",
-                                  "start_date": "2nd Dec 12",
-                                  "salary": "$372,000"
-                                },
-                                {
-                                  "first_name": "Bruno",
-                                  "last_name": "Nash",
-                                  "position": "Software Engineer",
-                                  "office": "London",
-                                  "start_date": "3rd May 11",
-                                  "salary": "$163,500"
-                                },
-                                {
-                                  "first_name": "Caesar",
-                                  "last_name": "Vance",
-                                  "position": "Pre-Sales Support",
-                                  "office": "New York",
-                                  "start_date": "12th Dec 11",
-                                  "salary": "$106,450"
-                                },
-                                {
-                                  "first_name": "Cara",
-                                  "last_name": "Stevens",
-                                  "position": "Sales Assistant",
-                                  "office": "New York",
-                                  "start_date": "6th Dec 11",
-                                  "salary": "$145,600"
-                                },
-                                {
-                                  "first_name": "Cedric",
-                                  "last_name": "Kelly",
-                                  "position": "Senior Javascript Developer",
-                                  "office": "Edinburgh",
-                                  "start_date": "29th Mar 12",
-                                  "salary": "$433,060"
-                                }
-                            ]
-                        }', true);
-    }
-
-    function doc($docId){
+    function getDoc($docId){
         $db = $this->db;
 
         $this->data["doc_date"] = date("Y-m-d");
@@ -225,8 +86,12 @@ class Quotations_m extends MY_Model {
         $this->data["wht_inc"] = "N";
         $this->data["project_id"] = null;
         $this->data["client_id"] = null;
-        $this->data["remark"] = "";
-        $this->data["created_by"] = "";
+        $this->data["remark"] = null;
+        $this->data["created_by"] = null;
+        $this->data["created_datetime"] = null;
+        $this->data["approved_by"] = null;
+        $this->data["approved_datetime"] = null;
+        $this->data["doc_status"] = NULL;
 
         if(!empty($docId)){
             $qrow = $db->select("*")
@@ -250,6 +115,10 @@ class Quotations_m extends MY_Model {
             $this->data["client_id"] = $qrow->client_id;
             $this->data["remark"] = $qrow->remark;
             $this->data["created_by"] = $qrow->created_by;
+            $this->data["created_datetime"] = $qrow->created_datetime;
+            $this->data["approved_by"] = $qrow->approved_by;
+            $this->data["approved_datetime"] = $qrow->approved_datetime;
+            $this->data["doc_status"] = $qrow->status;
         }
 
         $this->data["status"] = "success";
@@ -720,4 +589,19 @@ class Quotations_m extends MY_Model {
         return $this->data;
     }
 
+    function updateStatus(){
+        $db = $this->db;
+        $docId = $this->json->doc_id;
+        $updateStatusTo = $this->json->update_status_to;
+
+        $qrow = $db->select("*")
+                    ->from("quotation")
+                    ->where("id",$docId)
+                    ->get()->row();
+
+        if(empty($qrow)) return ["process"=>"fail", "message"=>"เกิดข้อผิดพลาด"];
+        if($qrow->status == $updateStatusTo) return ["process"=>"fail", "message"=>"เกิดข้อผิดพลาด"];
+
+        //return ["message"=>$docId."->".$updateStatusTo];
+    }
 }

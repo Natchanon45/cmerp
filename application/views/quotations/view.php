@@ -192,15 +192,22 @@
             </div>
         </div><!--.customer -->
         <div class="company">
-            <?php $user_signature = $this->Db_model->userSignature(1, "estimates"); ?>
             <div class="on_behalf_of">ในนาม <?php echo get_setting("company_name"); ?></div>
             <div class="clear">
                 <div class="name">
-                    <span class="l1"><span class="signature"><img src='<?php echo base_url().$user_signature->signature ?>'></span></span>
+                    <span class="l1">
+                        <?php if($doc_status == "A" && $this->Users_m->getSignature($approved_by) != null): ?>
+                            <span class="signature"><img src='<?php echo $user_signature->signature ?>'></span>
+                        <?php endif; ?>
+                    </span>
                     <span class="l2">ผู้อนุมัติ</span>
                 </div>
                 <div class="date">
-                    <span class="l1"></span>
+                    <span class="l1">
+                        <?php if($doc_status == "W"): ?>
+                            <span class="approved_date"><?php echo converDate($approved_datetime, true); ?></span>
+                        <?php endif; ?>
+                    </span>
                     <span class="l2">วันที่</span>
                 </div>
             </div>

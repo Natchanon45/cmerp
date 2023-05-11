@@ -370,12 +370,19 @@
     height: 32px;
 }
 
+#printd .docsignature .l1 .approved_date{
+    position: absolute;
+    width: 100%;
+    text-align: center;
+    left: 0;
+    bottom: 1px;
+}
+
 #printd .docsignature .l2{
     height: 22px;
     display: block;
     text-align: center;
 }
-
 
 @media print {
     body{

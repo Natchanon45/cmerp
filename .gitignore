@@ -1,11 +1,7 @@
 /application/logs/*
 /env.php
 /files
+/assets/signature
 /index.php
 /deploy.php
-/O-files
-/pdf_Template
-/run_node_js
-/updates
-/vendor
 .DS_Store

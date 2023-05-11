@@ -1,3 +1,4 @@
+<link rel="stylesheet" href="/assets/css/datatable.css?t=<?php echo time();?>">
 <div id="page-content" class="p20 clearfix">
     <div class="panel clearfix">
         <ul id="estimate-tabs" data-toggle="ajax-tab" class="nav nav-tabs bg-white title" role="tablist">
@@ -13,8 +14,7 @@
         <div class="tab-content">
             <div role="tabpanel" class="tab-pane fade" id="monthly-estimates">
                 <div class="table-responsive">
-                    <!--<table id="monthly-estimate-table" class="display" cellspacing="0" width="100%">   
-                    </table>-->
+                    <!--<table id="datagrid" class="display" cellspacing="0" width="100%"></table>-->
                     <table id="datagrid" class="display" cellspacing="0" width="100%">
                         <thead>
                             <tr>
@@ -43,8 +43,8 @@ let fstatus = [
         ];
 
 $(document).ready(function () {
-    /*$("#monthly-estimate-table").appTable({
-        source: '<?php echo_uri("quotations/index/igrid") ?>',
+    $("#datagrid").appTable({
+        source: '<?php echo current_url(); ?>',
         order: [[0, "desc"]],
         dateRangeType: "monthly",
         filterDropdown: [{name: "status", class: "w150", options: fstatus}],
@@ -58,10 +58,42 @@ $(document).ready(function () {
         ],
         printColumns: combineCustomFieldsColumns([0, 1, 2, 3, 4, 5]),
         xlsColumns: combineCustomFieldsColumns([0, 1, 2, 3, 4, 5])
-    });*/
+    });
+
+    $("#datagrid").on("draw.dt", function () {
+        $(".dropdown_status").on( "change", function() {
+            
+            //$("#datagrid").appTable({newData: result.data, dataId: result.id});
+            axios.post('<?php echo current_url(); ?>', {
+                task: 'update_doc_status',
+                doc_id: $(this).data("doc_id"),
+                update_status_to: $(this).val(),
+            }).then(function (response) {
+                data = response.data;
+                if(data.process == "success"){
+                    appAlert.success("HHHH Yes", {duration: 5000});
+                }else{
+                    appAlert.error(data.message, {duration: 5000});
+                }
+            }).catch(function (error) {});
+        });
+    });
 
 
-    $('#datagrid').DataTable({
+    //appAlert.error("HH");
+    //appAlert.success("HHHH Yes", {duration: 10000});
+
+
+
+    /*$(".dropdown_status").on( "change", function() {
+        alert( "Handler for `change` called." );
+    } );*/
+
+
+
+
+
+    /*$('#datagrid').DataTable({
         processing : true,
         serverSide : true,
         order : [],
@@ -69,10 +101,10 @@ $(document).ready(function () {
         filterDropdown: [{name: "status", class: "w150", options: fstatus}],
         retrieve: true,
         ajax : {
-            url:"<?php echo_uri("quotations/index/igrid") ?>",
+            url:"<?php echo current_url(); ?>",
             type:"POST"
         }
-    });
+    });*/
 
 });
 

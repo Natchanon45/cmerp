@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>socket.io - jQuery</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+
+	<script type="text/javascript" src="https://code.jquery.com/jquery-1.12.2.min.js"></script>
+	
+	<script type="text/javascript" src="https://cdn.socket.io/socket.io-1.4.5.js"></script>
+	
+</head>
+<body>
+	<div class="container">
+		<div class="row">
+			<div class="col-md-12">
+		 
+				<h3>socket.io - jQuery</h3>
+				
+				<hr>
+
+				<input type="text" id="txt_message" class="form-control">
+				<button id="btn_send" class="btn btn-primary">Send</button>
+				<hr>
+
+				<ul id="lst_message" class="list-group">
+				</ul>
+			</div>
+		</div>
+	</div>
+
+	<script type="text/javascript">
+	
+		$(function() {
+		
+			socket = io.connect( 'http://143.198.212.85:300/' );
+
+			socket.on( 'work_on_io', function( data ) {
+			
+				var li = '<li class="list-group-item">' + data.message + '</li>';
+				
+				var ul = $( '#lst_message' );
+				
+				ul.append( li );
+			});
+
+			$( '#btn_send' ).on('click', function() {
+			 
+				var data = {};
+				
+				data.message = $( '#txt_message' ).val();
+
+				
+				socket.emit( 'work_on_io', data );
+				
+				$( '#txt_message' ).val( '' );
+				
+				
+			});
+		});
+	</script>
+</body>
+</html>
