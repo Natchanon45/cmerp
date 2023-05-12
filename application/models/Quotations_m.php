@@ -39,9 +39,7 @@ class Quotations_m extends MY_Model {
         $data = [
                     "<a href='".get_uri("quotations/view/".$qrow->id)."'>".$qrow->doc_number."</a>",
                     "<a href='".get_uri("clients/view/".$qrow->client_id)."'>".$this->Clients_m->getCompanyName($qrow->client_id)."</a>",
-                    converDate($qrow->doc_date, true),
-                    number_format($qrow->total, 2),
-                    $doc_status,
+                    converDate($qrow->doc_date, true), number_format($qrow->total, 2), $doc_status,
                     "<a data-post-id='".$qrow->id."' data-action-url='".get_uri("quotations/addedit")."' data-act='ajax-modal' class='edit'><i class='fa fa-pencil'></i></a><a data-id='".$qrow->id."' data-action-url='".get_uri("quotations/delete_doc")."' data-action='delete' class='delete'><i class='fa fa-times fa-fw'></i></a>"
                 ];
 
@@ -311,6 +309,25 @@ class Quotations_m extends MY_Model {
         $remark = $this->json->remark;
 
         if($docId != ""){
+            $qrow = $db->select("status")
+                        ->from("quotation")
+                        ->where("id", $docId)
+                        ->where("deleted", 0)
+                        ->get()->row();
+
+            if(empty($qrow)){
+                $this->data["success"] = false;
+                $this->data["message"] = "ขออภัย เกิดข้อผิดพลาดระหว่างดำเนินการ! โปรดลองใหม่อีกครั้งในภายหลัง";
+                return $this->data;
+            }
+
+            if($qrow->status != "W"){
+                $this->data["success"] = false;
+                $this->data["message"] = "ไม่สามารถบันทึกเอกสารได้เนื่องจากเอกสารมีการเปลี่ยนแปลงสถานะแล้ว";
+                return $this->data;
+            }
+
+
             $db->where("id", $docId);
             $db->where("deleted", 0);
             $db->update("quotation", [
@@ -389,7 +406,7 @@ class Quotations_m extends MY_Model {
     function items(){
         $db = $this->db;
         
-        $qrow = $db->select("id")
+        $qrow = $db->select("id, status")
                         ->from("quotation")
                         ->where("id", $this->json->doc_id)
                         ->where("deleted", 0)
@@ -423,6 +440,7 @@ class Quotations_m extends MY_Model {
             $items[] = $item;
         }
 
+        $this->data["doc_status"] = $qrow->status;
         $this->data["items"] = $items;
         $this->data["status"] = "success";
 
@@ -597,11 +615,68 @@ class Quotations_m extends MY_Model {
         $qrow = $db->select("*")
                     ->from("quotation")
                     ->where("id",$docId)
+                    ->where("deleted", 0)
                     ->get()->row();
 
         if(empty($qrow)) return ["process"=>"fail", "message"=>"เกิดข้อผิดพลาด"];
         if($qrow->status == $updateStatusTo) return ["process"=>"fail", "message"=>"เกิดข้อผิดพลาด"];
 
-        //return ["message"=>$docId."->".$updateStatusTo];
+        $this->data["doc_id"] = $docId;
+        $this->data["message"] = "เกิดข้อผิดพลาด";
+        $currentStatus = $qrow->status;
+
+        $this->db->trans_begin();
+
+        if($updateStatusTo == "A"){
+
+            if($currentStatus == "R"){
+                $this->data["dataset"] = $this->getIndexDataSetHTML($qrow);
+                return $this->data;
+            }
+
+            $db->where("id", $docId);
+            $db->update("quotation", [
+                                        "approved_by"=>$this->login_user->id,
+                                        "approved_datetime"=>date("Y-m-d H:i:s"),
+                                        "status"=>"A"
+                                    ]);
+
+        }elseif($updateStatusTo == "R"){
+
+            $db->where("id", $docId);
+            $db->update("quotation", [
+                                        "approved_by"=>$this->login_user->id,
+                                        "approved_datetime"=>date("Y-m-d H:i:s"),
+                                        "status"=>"R"
+                                    ]);
+
+        }elseif($updateStatusTo == "RESET"){
+
+            $db->where("id", $docId);
+            $db->update("quotation", [
+                                        "approved_by"=>NULL,
+                                        "approved_datetime"=>NULL,
+                                        "status"=>"W"
+                                    ]);
+
+        }
+
+        if ($db->trans_status() === FALSE){
+            $db->trans_rollback();
+            $this->data["dataset"] = $this->getIndexDataSetHTML($qrow);
+            return $this->data;
+        }
+
+        $db->trans_commit();
+
+        $qrow = $db->select("*")
+                    ->from("quotation")
+                    ->where("id",$docId)
+                    ->where("deleted", 0)
+                    ->get()->row();
+
+        $this->data["dataset"] = $this->getIndexDataSetHTML($qrow);
+        $this->data["message"] = "แก้ไขข้อมูลเรียยบร้อย";
+        return $this->data;
     }
 }

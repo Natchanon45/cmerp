@@ -50,7 +50,6 @@
             </select>
         </div>
     </div>
-
     <div class="form-group">
         <label for="remark" class=" col-md-3">หมายเหตุ</label>
         <div class=" col-md-9">
@@ -60,39 +59,43 @@
 </div>
 <div class="modal-footer">
     <button type="button" class="btn btn-default" data-dismiss="modal"><span class="fa fa-close"></span> <?php echo lang('close'); ?></button>
-    <button type="button" id="btnSubmit" class="btn btn-primary"><span class="fa fa-check-circle"></span> <?php echo lang('save'); ?></button>
+    <?php if($doc_status == "W" || !isset($doc_id)): ?>
+        <button type="button" id="btnSubmit" class="btn btn-primary"><span class="fa fa-check-circle"></span> <?php echo lang('save'); ?></button>
+    <?php endif; ?>
 </div>
 
 <script type="text/javascript">
 $(document).ready(function() {
-    $("#btnSubmit").click(function() {
-        axios.post('<?php echo current_url(); ?>', {
-            task: 'save_doc',
-            doc_id : "<?php if(isset($doc_id)) echo $doc_id; ?>",
-            quotation_date:$("#quotation_date").val(),
-            credit: $("#credit").val(),
-            quotation_valid_until_date: $("#quotation_valid_until_date").val(),
-            reference_number: $("#reference_number").val(),
-            client_id: $("#client_id").val(),
-            project_id: $("#project_id").val(),
-            remark: $("#remark").val()
-        }).then(function (response) {
-            data = response.data;
-            $(".fnotvalid").remove();
+    <?php if($doc_status == "W" || !isset($doc_id)): ?>
+        $("#btnSubmit").click(function() {
+            axios.post('<?php echo current_url(); ?>', {
+                task: 'save_doc',
+                doc_id : "<?php if(isset($doc_id)) echo $doc_id; ?>",
+                quotation_date:$("#quotation_date").val(),
+                credit: $("#credit").val(),
+                quotation_valid_until_date: $("#quotation_valid_until_date").val(),
+                reference_number: $("#reference_number").val(),
+                client_id: $("#client_id").val(),
+                project_id: $("#project_id").val(),
+                remark: $("#remark").val()
+            }).then(function (response) {
+                data = response.data;
+                $(".fnotvalid").remove();
 
-            if(data.status == "validate"){
-                for(var key in data.messages){
-                    if(data.messages[key] != ""){
-                        $("<span class='fnotvalid'>"+data.messages[key]+"</span>").insertAfter("#"+key);
+                if(data.status == "validate"){
+                    for(var key in data.messages){
+                        if(data.messages[key] != ""){
+                            $("<span class='fnotvalid'>"+data.messages[key]+"</span>").insertAfter("#"+key);
+                        }
                     }
+                }else if(data.status == "success"){
+                    window.location = data.target;
+                }else{
+                    alert(data.message);
                 }
-            }else if(data.status == "success"){
-                window.location = data.target;
-            }else{
-                alert(data.message);
-            }
-        }).catch(function (error) {});
-    });
+            }).catch(function (error) {});
+        });
+    <?php endif; ?>
 
     $('#project_id').select2();
     $("#client_id").select2();

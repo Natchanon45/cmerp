@@ -19,10 +19,6 @@ class Quotations extends MY_Controller {
         $this->template->rander("quotations/index");
     }
 
-    function test(){
-        //jout(["data"=>$this->Quotations_m->indexDataSet()]);
-    }
-
     function addedit(){
         if(isset($this->json->task)){
             if($this->json->task == "save_doc") jout($this->Quotations_m->saveDoc());

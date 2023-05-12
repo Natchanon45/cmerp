@@ -28,10 +28,6 @@ class Users_m extends CI_Model {
                             ->get()->row();
 
         if(empty($urow)) return null;
-
         return $urow->signature;
     }
-
-    
-
 }

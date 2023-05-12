@@ -5,8 +5,6 @@
         <h1>ใบเสนอราคา <?php echo $doc_number;?></h1>
         <div class="title-button-group">
             <a style="margin-left: 15px;" class="btn btn-default mt0 mb0 back-to-index-btn"  href="<?php echo get_uri("quotations")?>" ><i class="fa fa-hand-o-left" aria-hidden="true"></i> ย้อนกลับไปตารางรายการ</a>
-            <a class="btn btn-info mt0 mb0 approval-btn approve-btn">อนุมัติ</a>
-            <a class="btn btn-danger mt0 mb0 approval-btn reject-btn">ไม่อนุมัติ </a>
             <a class="btn btn-default" onclick="window.print();">พิมพ์</a>
         </div>
     </div>
@@ -66,7 +64,7 @@
                     </tr>
                     <tr>
                         <td class="custom-color">วันที่</td>
-                        <td><?php echo $doc_date; ?></td>
+                        <td><?php echo converDate($doc_date, true); ?></td>
                     </tr>
                     <tr>
                         <td class="custom-color">ผู้ขาย</td>
@@ -110,7 +108,9 @@
                 <tr><td colspan="7">&nbsp;</td></tr>
                 <tr>
                     <td colspan="3">
-                        <p><?php echo modal_anchor(get_uri("quotations/item"), "<i class='fa fa-plus-circle'></i> " . lang('add_item_product'), array("id"=>"add_item_button", "class" => "btn btn-default", "title" => lang('add_item_product'), "data-post-doc_id" => $doc_id)); ?></p>
+                        <?php if($doc_status == "W"): ?>
+                            <p><?php echo modal_anchor(get_uri("quotations/item"), "<i class='fa fa-plus-circle'></i> " . lang('add_item_product'), array("id"=>"add_item_button", "class" => "btn btn-default", "title" => lang('add_item_product'), "data-post-doc_id" => $doc_id)); ?></p>
+                        <?php endif; ?>
                         <p><input type="text" id="total_in_text" readonly></p>
                     </td>
                     <td colspan="4" class="summary">
@@ -151,10 +151,10 @@
                                 <select id="wht_percent" class="wht custom-color <?php echo $wht_inc == "Y"?"v":"h"; ?>">
                                     <option value="3">3%</option>
                                     <option value="5">5%</option>
-                                    <option value="0.5">0.5%</option>
+                                    <option value="0.50">0.5%</option>
                                     <option value="0.75">0.75%</option>
                                     <option value="1">1%</option>
-                                    <option value="1.5">1.5%</option>
+                                    <option value="1.50">1.5%</option>
                                     <option value="2">2%</option>
                                     <option value="10">10%</option>
                                     <option value="15">15%</option>
@@ -196,15 +196,16 @@
             <div class="clear">
                 <div class="name">
                     <span class="l1">
-                        <?php if($doc_status == "A" && $this->Users_m->getSignature($approved_by) != null): ?>
-                            <span class="signature"><img src='<?php echo $user_signature->signature ?>'></span>
+                        <?php $signature = $this->Users_m->getSignature($approved_by); ?>
+                        <?php if($doc_status == "A" && $signature != null): ?>
+                            <span class="signature"><img src='<?php echo str_replace("./", "/", $signature); ?>'></span>
                         <?php endif; ?>
                     </span>
                     <span class="l2">ผู้อนุมัติ</span>
                 </div>
                 <div class="date">
                     <span class="l1">
-                        <?php if($doc_status == "W"): ?>
+                        <?php if($doc_status == "A"): ?>
                             <span class="approved_date"><?php echo converDate($approved_datetime, true); ?></span>
                         <?php endif; ?>
                     </span>
@@ -251,8 +252,10 @@ function loadItems(){
                     tbody += "<td>"+items[i]["price"]+"</td>";
                     tbody += "<td>"+items[i]["total_price"]+"</td>";
                     tbody += "<td class='edititem'>";
-                        tbody += "<a class='edit' data-post-doc_id='<?php echo $doc_id; ?>' data-post-item_id='"+items[i]["id"]+"' data-act='ajax-modal' data-action-url='<?php echo_uri("quotations/item"); ?>' ><i class='fa fa-pencil'></i></a>";
-                        tbody += "<a class='delete' data-item_id='"+items[i]["id"]+"'><i class='fa fa-times fa-fw'></i></a>";
+                        if(data.doc_status == "W"){
+                            tbody += "<a class='edit' data-post-doc_id='<?php echo $doc_id; ?>' data-post-item_id='"+items[i]["id"]+"' data-act='ajax-modal' data-action-url='<?php echo_uri("quotations/item"); ?>' ><i class='fa fa-pencil'></i></a>";
+                            tbody += "<a class='delete' data-item_id='"+items[i]["id"]+"'><i class='fa fa-times fa-fw'></i></a>";
+                        }
                     tbody += "</td>";
                 tbody += "</tr>";
             }
@@ -281,14 +284,6 @@ function updateDoc(){
     }else{
         $("#discount_percent").removeClass("v").addClass("h");
         discount_value = tonum($("#discount_amount").val());
-    }
-
-    if($("#wht_inc").is(':checked')){
-        $("#s-wht .wht, #s-payment-amount .wht").removeClass("h");
-        $("#s-wht .wht, #s-payment-amount .wht").addClass("v");
-    }else{
-        $("#s-wht .wht, #s-payment-amount .wht").removeClass("v");
-        $("#s-wht .wht, #s-payment-amount .wht").addClass("h");
     }
     
     axios.post('<?php echo current_url(); ?>', {
@@ -372,9 +367,6 @@ function loadSummary(){
             $("#wht_inc").prop("checked", false);
             $("#s-wht").removeClass("v").addClass("h");
         }
-
-        
-        
 
     }).catch(function (error) {
         alert(error);
