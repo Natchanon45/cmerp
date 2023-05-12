@@ -1,17 +1,13 @@
 <link rel="stylesheet" href="/assets/css/printd.css?t=<?php echo time();?>">
 <link rel="stylesheet" href="/assets/css/printd-quotation.css?t=<?php echo time();?>">
-
 <div id="dcontroller" class="clearfix">
     <div class="page-title clearfix mt15">
-        <h1>ใบเสนอราคา <?php echo $esrow->doc_no;?></h1>
+        <h1>ใบเสนอราคา <?php echo $doc_number;?></h1>
         <div class="title-button-group">
-            <a style="margin-left: 15px;" class="btn btn-default mt0 mb0 back-to-index-btn"  href="'. base_url( 'index.php/'. $param['tbName']  ) .'" ><i class="fa fa-hand-o-left" aria-hidden="true"></i> ย้อนกลับไปตารางรายการ</a>
-            <a class="btn btn-info mt0 mb0 approval-btn approve-btn">อนุมัติ</a>
-            <a class="btn btn-danger mt0 mb0 approval-btn reject-btn">ไม่อนุมัติ </a>
+            <a style="margin-left: 15px;" class="btn btn-default mt0 mb0 back-to-index-btn"  href="<?php echo get_uri("quotations")?>" ><i class="fa fa-hand-o-left" aria-hidden="true"></i> ย้อนกลับไปตารางรายการ</a>
             <a class="btn btn-default" onclick="window.print();">พิมพ์</a>
         </div>
     </div>
-    
 </div><!--#dcontroller-->
 <div id="printd" class="clear">
     <div class="docheader clear">
@@ -39,7 +35,7 @@
                         <?php
                             $client_address = $client["city"];
                             if($client_address != "" && $client["state"] != "")$client_address .= ", ".$client["city"];
-                            elseif($client_address == "" && $$client["state"] != "")$client_address .= $client["city"];
+                            elseif($client_address == "" && $client["state"] != "")$client_address .= $client["city"];
                             if($client_address != "" && $client["zip"] != "") $client_address .= " ".$client["zip"];
                             elseif($client_address == "" && $client["zip"] != "") $client_address .= $client["zip"];
                             echo $client_address;
@@ -60,15 +56,15 @@
                 <table>
                     <tr>
                         <td class="custom-color">เลขที่</td>
-                        <td><?php echo $esrow->doc_no; ?></td>
+                        <td><?php echo $doc_number; ?></td>
                     </tr>
                     <tr>
                         <td class="custom-color">เลขที่อ้างอิง</td>
-                        <td><?php echo $esrow->reference_number; ?></td>
+                        <td><?php echo $reference_number; ?></td>
                     </tr>
                     <tr>
                         <td class="custom-color">วันที่</td>
-                        <td><?php echo format_to_date($esrow->estimate_date, false); ?></td>
+                        <td><?php echo converDate($doc_date, true); ?></td>
                     </tr>
                     <tr>
                         <td class="custom-color">ผู้ขาย</td>
@@ -80,15 +76,15 @@
                 <table>
                     <tr>
                         <td class="custom-color">ผู้ติดต่อ</td>
-                        <td><?php if($client_contact != null) echo $client_contact["first_name"]." ".$client_contact["last_name"]; ?></td>
+                        <td><?php if(isset($client_contact)) echo $client_contact["first_name"]." ".$client_contact["last_name"]; ?></td>
                     </tr>
                     <tr>
                         <td class="custom-color">เบอร์โทร</td>
-                        <td><?php if($client_contact != null) echo $client_contact["phone"]; ?></td>
+                        <td><?php if(isset($client_contact)) echo $client_contact["phone"]; ?></td>
                     </tr>
                     <tr>
                         <td class="custom-color">อีเมล์</td>
-                        <td><?php if($client_contact != null) echo $client_contact["email"]; ?></td>
+                        <td><?php if(isset($client_contact)) echo $client_contact["email"]; ?></td>
                     </tr>
                 </table>
             </div>
@@ -101,6 +97,7 @@
                     <td>#</td>
                     <td>รายละเอียด</td>
                     <td>จำนวน</td>
+                    <td>หน่วย</td>
                     <td>ราคาต่อหน่วย</td>
                     <td>ยอดรวม</td>
                     <td></td>
@@ -108,52 +105,68 @@
             </thead>
             <tbody></tbody>
             <tfoot>
-                <tr><td colspan="6">&nbsp;</td></tr>
+                <tr><td colspan="7">&nbsp;</td></tr>
                 <tr>
-                    <td colspan="2">
-                        <p><?php echo modal_anchor(get_uri("estimates/item_modal_form"), "<i class='fa fa-plus-circle'></i> " . lang('add_item_product'), array("id"=>"add_item_button", "class" => "btn btn-default", "title" => lang('add_item_product'), "data-post-estimate_id" => $esrow->id, "data-post-doc_id" => $esrow->id)); ?></p>
+                    <td colspan="3">
+                        <?php if($doc_status == "W"): ?>
+                            <p><?php echo modal_anchor(get_uri("quotations/item"), "<i class='fa fa-plus-circle'></i> " . lang('add_item_product'), array("id"=>"add_item_button", "class" => "btn btn-default", "title" => lang('add_item_product'), "data-post-doc_id" => $doc_id)); ?></p>
+                        <?php endif; ?>
                         <p><input type="text" id="total_in_text" readonly></p>
                     </td>
                     <td colspan="4" class="summary">
-                        <p>
+                        <p id="s-sub-total-before-discount">
                             <span class="c1 custom-color">รวมเป็นเงิน</span>
                             <span class="c2"><input type="text" id="sub_total_before_discount" readonly></span>
                             <span class="c3"><span class="currency">บาท</span></span>
                         </p>
-                        <p>
-                            <span class="c1 custom-color">ส่วนลด<input id="discount_percent">%</span>
-                            <span class="c2"><input type="text" id="discount_amount" readonly></span>
-                            <span class="c3">
-                                <span class="edit_discount"><a><i class='fa fa-pencil'></i></a></span>
-                                <span class="currency">บาท</span>
+                        <p id="s-discount">
+                            <span class="c1 custom-color">
+                                ส่วนลด&nbsp;<input type="number" id="discount_percent" <?php if($doc_status != "W") echo "disabled"; ?>>
+                                <select id="discount_type" <?php if($doc_status != "W") echo "disabled"; ?>>
+                                    <option value="P">%</option>
+                                    <option value="F">฿</option>
+                                </select>
                             </span>
+                            <span class="c2"><input type="text" id="discount_amount" readonly></span>
+                            <span class="c3"><span class="currency">บาท</span></span>
                         </p>
-                        <p>
-                            <span class="c1 custom-color">ราคาหลังหักส่วนลด</span>
+                        <p id="s-sub-total">
+                            <span class="c1"><i class="custom-color t1">ราคาหลังหักส่วนลด</i><i class="custom-color t2">รวมเป็นเงิน</i></span>
                             <span class="c2"><input type="text" id="sub_total" readonly></span>
                             <span class="c3"><span class="currency">บาท</span></span>
                         </p>
-                        <p>
-                            <span class="c1 custom-color"><input type="checkbox" id="has_vat">ภาษีมูลค่าเพิ่ม <?php echo $this->Taxes_m->getVatPercent(); ?>%</span>
-                            <span class="c2"><input type="text" id="vat" readonly></span>
+                        <p id="s-vat">
+                            <span class="c1 custom-color"><input type="checkbox" id="vat_inc" <?php if($doc_status != "W") echo "disabled"; ?>>ภาษีมูลค่าเพิ่ม<span class="vat_percent custom-color"><?php echo $vat_percent; ?></span><span class="vat_percent_zero custom-color">0%</span></span>
+                            <span class="c2"><input type="text" id="vat_value" readonly></span>
                             <span class="c3"><span class="currency">บาท</span></span>
                         </p>
-                        <p class="total">
+                        <p id="s-total">
                             <span class="c1 custom-color">จำนวนเงินรวมทั้งสิ้น</span>
                             <span class="c2"><input type="text" id="total" readonly ></span>
                             <span class="c3"><span class="currency">บาท</span></span>
                         </p>
-                        <p class="withholding_tax">
-                            <span>
-                                <span class="c1 custom-color"><input type="checkbox" id="has_withholding_tax">หักภาษี ณ ที่จ่าย</span>
-                                <span class="c2"><input type="text" id="withholding_tax" readonly ></span>
-                                <span class="c3"><span class="currency">บาท</span></span>
+                        <p id="s-wht">
+                            <span class="c1 custom-color">
+                                <input type="checkbox" id="wht_inc" <?php if($wht_inc == "Y") echo "checked" ?> <?php if($doc_status != "W") echo "disabled"; ?>>หักภาษี ณ ที่จ่าย
+                                <select id="wht_percent" class="wht custom-color <?php echo $wht_inc == "Y"?"v":"h"; ?>" <?php if($doc_status != "W") echo "disabled"; ?>>
+                                    <option value="3">3%</option>
+                                    <option value="5">5%</option>
+                                    <option value="0.50">0.5%</option>
+                                    <option value="0.75">0.75%</option>
+                                    <option value="1">1%</option>
+                                    <option value="1.50">1.5%</option>
+                                    <option value="2">2%</option>
+                                    <option value="10">10%</option>
+                                    <option value="15">15%</option>
+                                </select>
                             </span>
-                            <span class="payment_amount">
-                                <span class="c1 custom-color">ยอดชำระ</span>
-                                <span class="c2"><input type="text" id="payment_amount" readonly></span>
-                                <span class="c3"><span class="currency">บาท</span></span>
-                            </span>
+                            <span class="c2 wht <?php echo $wht_inc == "Y"?"v":"h"; ?>"><input type="text" id="wht_value" readonly ></span>
+                            <span class="c3 wht <?php echo $wht_inc == "Y"?"v":"h"; ?>"><span class="currency">บาท</span></span>
+                        </p>
+                        <p id="s-payment-amount">
+                            <span class="c1 custom-color wht <?php echo $wht_inc == "Y"?"v":"h"; ?>">ยอดชำระ</span>
+                            <span class="c2 wht <?php echo $wht_inc == "Y"?"v":"h"; ?>"><input type="text" id="payment_amount" readonly></span>
+                            <span class="c3 wht <?php echo $wht_inc == "Y"?"v":"h"; ?>"><span class="currency">บาท</span></span>
                         </p>
                     </td>
                 </tr>
@@ -161,12 +174,12 @@
         </table>
         <div class="remark clear">
             <p class="custom-color">หมายเหตุ</p>
-            <p><?php echo nl2br($esrow->note); ?></p>
+            <p><?php echo nl2br($remark); ?></p>
         </div><!--.remark-->
     </div><!--.docitem-->
     <div class="docsignature clear">
         <div class="customer">
-            <div class="on_behalf_of">ในนาม <?php echo $client["company_name"] ?></div>
+            <div class="on_behalf_of">ในนาม <?php if(isset($client["company_name"])) echo $client["company_name"]; ?></div>
             <div class="clear">
                 <div class="name">
                     <span class="l1"></span>
@@ -179,39 +192,50 @@
             </div>
         </div><!--.customer -->
         <div class="company">
-            <?php $user_signature = $this->Db_model->userSignature(1, "estimates"); ?>
             <div class="on_behalf_of">ในนาม <?php echo get_setting("company_name"); ?></div>
             <div class="clear">
                 <div class="name">
-                    <span class="l1"><span class="signature"><img src='<?php echo base_url().$user_signature->signature ?>'></span></span>
+                    <span class="l1">
+                        <?php $signature = $this->Users_m->getSignature($approved_by); ?>
+                        <?php if($doc_status == "A" && $signature != null): ?>
+                            <span class="signature"><img src='<?php echo str_replace("./", "/", $signature); ?>'></span>
+                        <?php endif; ?>
+                    </span>
                     <span class="l2">ผู้อนุมัติ</span>
                 </div>
                 <div class="date">
-                    <span class="l1"></span>
+                    <span class="l1">
+                        <?php if($doc_status == "A"): ?>
+                            <span class="approved_date"><?php echo converDate($approved_datetime, true); ?></span>
+                        <?php endif; ?>
+                    </span>
                     <span class="l2">วันที่</span>
                 </div>
             </div>
         </div><!--.company-->
     </div>
-</div><!--#printd--> 
-
+</div><!--#printd-->
 <script type="text/javascript">
 $(document).ready(function() {
     loadItems();
-    $("#discount_percent").blur(function(){
-        loadDoc();
+    
+    $("#discount_percent, #discount_amount").blur(function(){
+        updateDoc();
+    });
+
+    $("#discount_type, #vat_inc, #wht_inc, #wht_percent").change(function() {
+        updateDoc();
     });
 });
 
 function loadItems(){
-    axios.get('<?php echo_uri("estimates/jitems") ?>', {
-        params: {
-            doc_id: '<?php echo $esrow->id; ?>'
-        }
+    axios.post('<?php echo current_url(); ?>', {
+        task: 'load_items',
+        doc_id: '<?php echo $doc_id; ?>'
     }).then(function (response) {
         data = response.data;
         if(data.status == "notfound"){
-            $(".docitem tbody").empty().append("<tr><td colspan='6' class='notfound'>"+data.message+"</td></tr>");
+            $(".docitem tbody").empty().append("<tr><td colspan='7' class='notfound'>"+data.message+"</td></tr>");
         }else if(data.status == "success"){
             tbody = "";
             items = data.items;
@@ -220,66 +244,142 @@ function loadItems(){
                 tbody += "<tr>"; 
                     tbody += "<td>"+(i+1)+"</td>";
                     tbody += "<td>";
-                        tbody += "<p class='desc1'>"+items[i]["title"]+"</p>";
-                        tbody += "<p class='desc2'>"+items[i]["description"]+"</p>";
+                        tbody += "<p class='desc1'>"+items[i]["product_name"]+"</p>";
+                        tbody += "<p class='desc2'>"+items[i]["product_description"]+"</p>";
                     tbody += "</td>";
                     tbody += "<td>"+items[i]["quantity"]+"</td>"; 
-                    tbody += "<td>"+items[i]["rate"]+"</td>";
+                    tbody += "<td>"+items[i]["unit"]+"</td>"; 
                     tbody += "<td>"+items[i]["price"]+"</td>";
+                    tbody += "<td>"+items[i]["total_price"]+"</td>";
                     tbody += "<td class='edititem'>";
-                        tbody += "<a class='edit' data-post-id='"+items[i]["id"]+"' data-post-doc_id='<?php echo $esrow->id; ?>' data-post-item_id='"+items[i]["id"]+"' data-act='ajax-modal' data-action-url='<?php echo_uri("estimates/item_modal_form"); ?>' ><i class='fa fa-pencil'></i></a>";
-                        tbody += "<a class='delete' data-id='"+items[i]["id"]+"'><i class='fa fa-times fa-fw'></i></a>";
+                        if(data.doc_status == "W"){
+                            tbody += "<a class='edit' data-post-doc_id='<?php echo $doc_id; ?>' data-post-item_id='"+items[i]["id"]+"' data-act='ajax-modal' data-action-url='<?php echo_uri("quotations/item"); ?>' ><i class='fa fa-pencil'></i></a>";
+                            tbody += "<a class='delete' data-item_id='"+items[i]["id"]+"'><i class='fa fa-times fa-fw'></i></a>";
+                        }
                     tbody += "</td>";
-
-                   
-                tbody += "</tr>"; 
+                tbody += "</tr>";
             }
 
             $(".docitem tbody").empty().append(tbody);
-            loadDoc();
-
             $(".edititem .delete").click(function() {
-                deleteItem($(this).data("id"));
+                deleteItem($(this).data("item_id"));
             });
         }
+
+        loadSummary();
+
     }).catch(function (error) {
         console.log(error);
     });
 }
 
-function loadDoc(){
-    axios.post('<?php echo_uri("quotations/jdoc") ?>', {
-        doc_id: '<?php echo $esrow->id; ?>',
-        discount_percent: $("#discount_percent").val()
-    },{
-        headers: {
-            'Content-Type': 'multipart/form-data'
-        },
+function updateDoc(){
+    let discount_type = $("#discount_type").val();
+    let discount_percent = 0;
+    let discount_value = 0;
+
+    if(discount_type == "P"){
+        $("#discount_percent").removeClass("h").addClass("v");
+        discount_percent = tonum($("#discount_percent").val());
+    }else{
+        $("#discount_percent").removeClass("v").addClass("h");
+        discount_value = tonum($("#discount_amount").val());
+    }
+    
+    axios.post('<?php echo current_url(); ?>', {
+        task: 'update_doc',
+        doc_id: '<?php echo $doc_id; ?>',
+        discount_type: discount_type,
+        discount_percent: discount_percent,
+        discount_value: discount_value,
+        vat_inc: $("#vat_inc").is(":checked"),
+        wht_inc: $("#wht_inc").is(":checked"),
+        wht_percent: $("#wht_percent").val()
     }).then(function(response) { 
-        //tonum
+        loadSummary();
+    }).catch(function (error) {
+        alert(error);
+    });
+}
+
+function loadSummary(){
+    axios.post('<?php echo current_url(); ?>', {
+        task: 'load_summary',
+        doc_id: '<?php echo $doc_id; ?>'
+    }).then(function(response) { 
         data = response.data;
 
         $("#sub_total_before_discount").val(data.sub_total_before_discount);
         $("#discount_percent").val(data.discount_percent);
-        $("#discount_amount").val(data.sub_total);
+        $("#discount_amount").val(data.discount_amount);
         $("#sub_total").val(data.sub_total);
+
+        $("#wht_percent").val(data.wht_percent);
+        $("#wht_value").val(data.wht_value);
+
         $("#total").val(data.total);
-        $("#total_in_text").val(data.total_in_text);
+        $("#total_in_text").val("("+data.total_in_text+")");
+
+        $("#payment_amount").val(data.payment_amount);
+
+         if(data.discount_type == "P"){
+            $("#discount_type").val("P");
+            $("#discount_percent").removeClass("h").addClass("v");
+            $("#discount_amount").removeClass("f").addClass("p");
+            $("#discount_amount").prop("readonly", true);
+            discount_value = $("#discount_percent").val();
+        }else{
+            $("#discount_type").val("F");
+            $("#discount_percent").removeClass("v").addClass("h");
+            $("#discount_amount").removeClass("p").addClass("f");
+            $("#discount_amount").prop("readonly", false);
+            discount_value = $("#discount_amount").val();
+        }
+
+        if(discount_value > 0){
+            $("#s-sub-total-before-discount, #s-discount").removeClass("h").addClass("v");
+            $("#s-sub-total .t1").removeClass("h").addClass("v");
+            $("#s-sub-total .t2").removeClass("v").addClass("h");
+            
+        }else{
+            $("#s-sub-total-before-discount, #s-discount").removeClass("v").addClass("h");
+            $("#s-sub-total .t1").removeClass("v").addClass("h");
+            $("#s-sub-total .t2").removeClass("h").addClass("v");
+        }
+        
+        if(data.vat_inc == "Y"){
+            $("#vat_inc").prop("checked", true);
+            $("#vat_value").val(data.vat_value);
+            $("#s-vat .vat_percent").removeClass("h").addClass("v");
+            $("#s-vat .vat_percent_zero").removeClass("v").addClass("h");
+            
+        }else{
+            $("#vat_inc").prop("checked", false);
+            $("#vat_value").val(data.vat_value);
+            $("#s-vat .vat_percent").removeClass("v").addClass("h");
+            $("#s-vat .vat_percent_zero").removeClass("h").addClass("v");
+        }
+
+        if(data.wht_inc == "Y"){
+            $("#wht_inc").prop("checked", true);
+            $("#s-wht").removeClass("h").addClass("v");
+        }else{
+            $("#wht_inc").prop("checked", false);
+            $("#s-wht").removeClass("v").addClass("h");
+        }
+
     }).catch(function (error) {
         alert(error);
     });
 }
 
 function deleteItem(item_id){
-    axios.get('<?php echo_uri("estimates/jdelete_item") ?>', {
-        params: {
-            doc_id: '<?php echo $esrow->id; ?>',
-            item_id: item_id
-        }
+    axios.post('<?php echo current_url(); ?>', {
+        task: 'delete_item',
+        doc_id: '<?php echo $doc_id; ?>',
+        item_id: item_id
     }).then(function (response) {
         loadItems();
     });
 }
-
-
 </script>

@@ -12,7 +12,6 @@ class Items extends MY_Controller
 	{
 		parent::__construct();
 		$this->init_permission_checker("order");
-		$this->load->model("Permission_m");
 		$this->load->model("Bom_item_mixing_groups_model");
 		$this->className = 'items';
 	}

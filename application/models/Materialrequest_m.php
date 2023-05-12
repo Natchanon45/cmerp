@@ -3,7 +3,7 @@ class Materialrequest_m extends CI_Model {
 
 
     function __construct() {
-		$this->load->model("Permission_m");
+		
     }
 
     function row($mrid){

@@ -59,7 +59,6 @@ class Clients extends MY_Controller {
     /* load client add/edit modal */
 
     function modal_form() {
-		$this->load->model("Permission_m");
         $permission_m = $this->Permission_m->get();
 
         // var_dump($permission_m->client);

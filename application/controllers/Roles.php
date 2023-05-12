@@ -544,8 +544,6 @@ class roles extends MY_Controller {
 
     //get permisissions of a role
     function permissions( $role_id ) {
-    	$this->load->model("Permission_m");
-
 		$config_id = 184;
 		$config = getConfig_( $config_id );
 
