@@ -218,13 +218,12 @@
 <script type="text/javascript">
 $(document).ready(function() {
     loadItems();
-    
     $("#discount_percent, #discount_amount").blur(function(){
-        updateDoc();
+        loadSummary();
     });
 
     $("#discount_type, #vat_inc, #wht_inc, #wht_percent").change(function() {
-        updateDoc();
+        loadSummary();
     });
 });
 
@@ -273,19 +272,14 @@ function loadItems(){
     });
 }
 
-function updateDoc(){
+function loadSummary(){
     let discount_type = $("#discount_type").val();
     let discount_percent = 0;
     let discount_value = 0;
 
-    if(discount_type == "P"){
-        $("#discount_percent").removeClass("h").addClass("v");
-        discount_percent = tonum($("#discount_percent").val());
-    }else{
-        $("#discount_percent").removeClass("v").addClass("h");
-        discount_value = tonum($("#discount_amount").val());
-    }
-    
+    if(discount_type == "P") discount_percent = tonum($("#discount_percent").val());
+    else discount_value = tonum($("#discount_amount").val());
+
     axios.post('<?php echo current_url(); ?>', {
         task: 'update_doc',
         doc_id: '<?php echo $doc_id; ?>',
@@ -296,78 +290,74 @@ function updateDoc(){
         wht_inc: $("#wht_inc").is(":checked"),
         wht_percent: $("#wht_percent").val()
     }).then(function(response) { 
-        loadSummary();
-    }).catch(function (error) {
-        alert(error);
-    });
-}
+        axios.post('<?php echo current_url(); ?>', {
+            task: 'load_summary',
+            doc_id: '<?php echo $doc_id; ?>'
+        }).then(function(response) { 
+            data = response.data;
 
-function loadSummary(){
-    axios.post('<?php echo current_url(); ?>', {
-        task: 'load_summary',
-        doc_id: '<?php echo $doc_id; ?>'
-    }).then(function(response) { 
-        data = response.data;
+            $("#sub_total_before_discount").val(data.sub_total_before_discount);
+            $("#discount_percent").val(data.discount_percent);
+            $("#discount_amount").val(data.discount_amount);
+            $("#sub_total").val(data.sub_total);
 
-        $("#sub_total_before_discount").val(data.sub_total_before_discount);
-        $("#discount_percent").val(data.discount_percent);
-        $("#discount_amount").val(data.discount_amount);
-        $("#sub_total").val(data.sub_total);
+            $("#wht_percent").val(data.wht_percent);
+            $("#wht_value").val(data.wht_value);
 
-        $("#wht_percent").val(data.wht_percent);
-        $("#wht_value").val(data.wht_value);
+            $("#total").val(data.total);
+            $("#total_in_text").val("("+data.total_in_text+")");
 
-        $("#total").val(data.total);
-        $("#total_in_text").val("("+data.total_in_text+")");
+            $("#payment_amount").val(data.payment_amount);
 
-        $("#payment_amount").val(data.payment_amount);
+             if(data.discount_type == "P"){
+                $("#discount_type").val("P");
+                $("#discount_percent").removeClass("h").addClass("v");
+                $("#discount_amount").removeClass("f").addClass("p");
+                $("#discount_amount").prop("readonly", true);
+                discount_value = $("#discount_percent").val();
+            }else{
+                $("#discount_type").val("F");
+                $("#discount_percent").removeClass("v").addClass("h");
+                $("#discount_amount").removeClass("p").addClass("f");
+                $("#discount_amount").prop("readonly", false);
+                discount_value = $("#discount_amount").val();
+            }
 
-         if(data.discount_type == "P"){
-            $("#discount_type").val("P");
-            $("#discount_percent").removeClass("h").addClass("v");
-            $("#discount_amount").removeClass("f").addClass("p");
-            $("#discount_amount").prop("readonly", true);
-            discount_value = $("#discount_percent").val();
-        }else{
-            $("#discount_type").val("F");
-            $("#discount_percent").removeClass("v").addClass("h");
-            $("#discount_amount").removeClass("p").addClass("f");
-            $("#discount_amount").prop("readonly", false);
-            discount_value = $("#discount_amount").val();
-        }
-
-        if(discount_value > 0){
-            $("#s-sub-total-before-discount, #s-discount").removeClass("h").addClass("v");
-            $("#s-sub-total .t1").removeClass("h").addClass("v");
-            $("#s-sub-total .t2").removeClass("v").addClass("h");
+            if(discount_value > 0){
+                $("#s-sub-total-before-discount, #s-discount").removeClass("h").addClass("v");
+                $("#s-sub-total .t1").removeClass("h").addClass("v");
+                $("#s-sub-total .t2").removeClass("v").addClass("h");
+                
+            }else{
+                $("#s-sub-total-before-discount, #s-discount").removeClass("v").addClass("h");
+                $("#s-sub-total .t1").removeClass("v").addClass("h");
+                $("#s-sub-total .t2").removeClass("h").addClass("v");
+            }
             
-        }else{
-            $("#s-sub-total-before-discount, #s-discount").removeClass("v").addClass("h");
-            $("#s-sub-total .t1").removeClass("v").addClass("h");
-            $("#s-sub-total .t2").removeClass("h").addClass("v");
-        }
-        
-        if(data.vat_inc == "Y"){
-            $("#vat_inc").prop("checked", true);
-            $("#vat_value").val(data.vat_value);
-            $("#s-vat .vat_percent").removeClass("h").addClass("v");
-            $("#s-vat .vat_percent_zero").removeClass("v").addClass("h");
-            
-        }else{
-            $("#vat_inc").prop("checked", false);
-            $("#vat_value").val(data.vat_value);
-            $("#s-vat .vat_percent").removeClass("v").addClass("h");
-            $("#s-vat .vat_percent_zero").removeClass("h").addClass("v");
-        }
+            if(data.vat_inc == "Y"){
+                $("#vat_inc").prop("checked", true);
+                $("#vat_value").val(data.vat_value);
+                $("#s-vat .vat_percent").removeClass("h").addClass("v");
+                $("#s-vat .vat_percent_zero").removeClass("v").addClass("h");
+                
+            }else{
+                $("#vat_inc").prop("checked", false);
+                $("#vat_value").val(data.vat_value);
+                $("#s-vat .vat_percent").removeClass("v").addClass("h");
+                $("#s-vat .vat_percent_zero").removeClass("h").addClass("v");
+            }
 
-        if(data.wht_inc == "Y"){
-            $("#wht_inc").prop("checked", true);
-            $("#s-wht").removeClass("h").addClass("v");
-        }else{
-            $("#wht_inc").prop("checked", false);
-            $("#s-wht").removeClass("v").addClass("h");
-        }
+            if(data.wht_inc == "Y"){
+                $("#wht_inc").prop("checked", true);
+                $("#s-wht").removeClass("h").addClass("v");
+            }else{
+                $("#wht_inc").prop("checked", false);
+                $("#s-wht").removeClass("v").addClass("h");
+            }
 
+        }).catch(function (error) {
+            alert(error);
+        });
     }).catch(function (error) {
         alert(error);
     });

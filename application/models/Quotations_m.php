@@ -335,8 +335,6 @@ class Quotations_m extends MY_Model {
                                         "credit"=>$credit,
                                         "doc_valid_until_date"=>$doc_valid_until_date,
                                         "reference_number"=>$reference_number,
-                                        "vat_inc"=>"N",
-                                        "vat_percent"=>$this->Taxes_m->getVatPercent(),
                                         "client_id"=>$client_id,
                                         "project_id"=>$project_id,
                                         "remark"=>$remark
