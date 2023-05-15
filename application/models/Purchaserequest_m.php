@@ -1,10 +1,7 @@
 <?php
 class Purchaserequest_m extends CI_Model {
 
-
     function __construct() {
-		$this->load->model("Permission_m");
-        $this->load->model("Project_m");
         $this->load->model("Material_m");
     }
 
@@ -166,7 +163,7 @@ class Purchaserequest_m extends CI_Model {
                     if(in_array($bpirow->project_id, $lacked_from_project_ids)) continue;
 
                     array_push($lacked_from_project_ids, $bpirow->project_id);
-                    $lacked_from_project_html .= "<span class='lacked_from_project'>".$this->Project_m->getName($bpirow->project_id)."</span>";
+                    $lacked_from_project_html .= "<span class='lacked_from_project'>".$this->Projects_m->getName($bpirow->project_id)."</span>";
                 }
             }
 

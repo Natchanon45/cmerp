@@ -1,0 +1,10 @@
+.datatable .dropdown_status{
+	padding: 4px 8px;
+	font-size: 1.1em;
+	border: 1px solid #ccc;
+}
+
+.fnotvalid{
+	display: block;
+	color: #ff0000;
+}

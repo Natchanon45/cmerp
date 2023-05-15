@@ -7,7 +7,6 @@ class Accounting extends MY_Controller {
   function __construct() {
     parent::__construct();
     //$this->access_only_team_members();
-    $this->load->model("Permission_m");
   }
 
   function index() {

@@ -1,8 +1,10 @@
 <?php
 
-class Clients_m extends CI_Model {
+class Clients_m extends MY_Model {
 
-    function __construct() {}
+    function __construct() {
+        parent::__construct();
+    }
 
     function indexHeader(){
         $header = [];
@@ -260,6 +262,22 @@ class Clients_m extends CI_Model {
         if(empty($crow)) return null;
 
         return $crow->company_name;
+    }
+
+    function getRows($is_lead = null){
+        $db = $this->db;
+
+        $db->select("*")
+            ->from("clients")
+            ->where("deleted", 0);
+
+        if($is_lead !== null){
+            $db->where("is_lead", $is_lead);
+        }
+                    
+        $crows = $db->get()->result();
+
+        return $crows;
     }
 
     function getInfo($client_id){

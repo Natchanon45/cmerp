@@ -1,54 +1,60 @@
 <div id="page-content" class="p20 clearfix">
     <div class="panel clearfix">
-        <ul id="estimate-tabs" data-toggle="ajax-tab" class="nav nav-tabs bg-white title" role="tablist">
+        <ul id="quotation-tabs" data-toggle="ajax-tab" class="nav nav-tabs bg-white title" role="tablist">
             <li class="title-tab"><h4 class="pl15 pt10 pr15"><?php echo lang('estimates'); ?></h4></li>
-            <li><a id="monthly-estimate-button" class="active" role="presentation" href="javascript:;" data-target="#monthly-estimates"><?php echo lang("monthly"); ?></a></li>
-            <li><a role="presentation" href="<?php echo_uri("estimates/yearly/"); ?>" data-target="#yearly-estimates"><?php echo lang('yearly'); ?></a></li>
+            <li><a id="monthly-quotation-button" class="active" role="presentation" href="javascript:;" data-target="#monthly-quotations"><?php echo lang("monthly"); ?></a></li>
+            <!--<li><a role="presentation" href="<?php echo_uri("estimates/yearly/"); ?>" data-target="#yearly-estimates"><?php echo lang('yearly'); ?></a></li>-->
             <div class="tab-title clearfix no-border">
                 <div class="title-button-group">
-                    <?php echo modal_anchor(get_uri("quotations/modal_form"), "<i class='fa fa-plus-circle'></i> " . lang('add_estimate'), array("class" => "btn btn-default", "title" => lang('add_estimate'))); ?>
+                    <a data-action-url='<?php echo get_uri("quotations/addedit"); ?>' data-act='ajax-modal' class='btn btn-default'><i class='fa fa-plus-circle'></i>เพิ่มใบเสนอราคา</a>
                 </div>
             </div>
         </ul>
-
         <div class="tab-content">
-            <div role="tabpanel" class="tab-pane fade" id="monthly-estimates">
+            <div role="tabpanel" class="tab-pane fade" id="monthly-quotations">
                 <div class="table-responsive">
-                    <table id="monthly-estimate-table" class="display" cellspacing="0" width="100%">
-                        
-                    </table>
+                    <table id="datagrid" class="display datatable" cellspacing="0" width="100%"></table>
                 </div>
             </div>
-            <div role="tabpanel" class="tab-pane fade" id="yearly-estimates"></div>
+            <!--<div role="tabpanel" class="tab-pane fade" id="yearly-estimates"></div>-->
         </div>
     </div>
 </div>
-
 <script type="text/javascript">
-let fstatus = [
-            {id:"", text:"-<?php echo lang("status"); ?>-"},
-            {id:"draft", text:"<?php echo lang("draft"); ?>"},
-            {id:"sent", text:"<?php echo lang("sent"); ?>"},
-            {id:"accepted", text:"<?php echo lang("accepted"); ?>"},
-            {id:"declined", text:"<?php echo lang("declined"); ?>"}
-        ];
-
+let doc_status = [{id:"", text:"-<?php echo lang("status"); ?>-"}, {id:"A", text:"อนุมัติ"}, {id:"R", text:"ไม่อนุมัติ"}];
 $(document).ready(function () {
-    $("#monthly-estimate-table").appTable({
-        source: '<?php echo_uri("quotations/index/jisource") ?>',
+    $("#datagrid").appTable({
+        source: '<?php echo current_url(); ?>',
         order: [[0, "desc"]],
         dateRangeType: "monthly",
-        filterDropdown: [{name: "status", class: "w150", options: fstatus}],
+        filterDropdown: [{name: "status", class: "w150", options: doc_status}],
         columns: [
-            {title: "<?php echo lang("estimate") ?> ", "class": "w15p"},
-            {title: "<?php echo lang("client") ?>"},
-            {title: "<?php echo lang("estimate_date") ?>", "iDataSort": 2, "class": "w20p"},
-            {title: "<?php echo lang("amount") ?>", "class": "text-right w20p"},
-            {title: "<?php echo lang("status") ?>", "class": "text-center"},
-            {title: "<i class='fa fa-bars'></i>", "class": "text-center option w100"}
-        ],
-        printColumns: combineCustomFieldsColumns([0, 1, 2, 3, 4, 5]),
-        xlsColumns: combineCustomFieldsColumns([0, 1, 2, 3, 4, 5])
+            {title: "ใบเสนอราคา (QT)", "class": "w15p"},
+            {title: "ลูกค้า", "class": "w30p"},
+            {title: "วันที่เสนอราคา", "iDataSort": 2, "class": "text-center w15p"},
+            {title: "ราคา", "class": "text-right w15p"},
+            {title: "สถานะ", "class": "text-center w15p"},
+            {title: "<i class='fa fa-bars'></i>", "class": "text-center option w10p"}
+        ]
+    });
+
+    $("#datagrid").on("draw.dt", function () {
+        $(".dropdown_status").on( "change", function() {
+            axios.post('<?php echo current_url(); ?>', {
+                task: 'update_doc_status',
+                doc_id: $(this).data("doc_id"),
+                update_status_to: $(this).val(),
+            }).then(function (response) {
+                data = response.data;
+                if(data.status == "success"){
+                    appAlert.success(data.message, {duration: 5000});
+                }else{
+                    appAlert.error(data.message, {duration: 5000});
+                }
+
+                $("#datagrid").appTable({newData: data.dataset, dataId: data.doc_id});
+            }).catch(function (error) {});
+        });
     });
 });
 </script>
