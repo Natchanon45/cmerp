@@ -2406,6 +2406,7 @@ $lang["have_no_project_name"] = "ไม่มีชื่อโปรเจค";
 $lang["material_request_date"] = "วันที่ขอเบิก";
 $lang["material_request_person"] = "ผู้ขอเบิก";
 $lang["text_waiting_approve"] = "รออนุมัติ";
+$lang["day_of_approved"] = "วันที่อนุมัติ";
 $lang["text_approved"] = "อนุมัติ";
 $lang["text_rejected"] = "ไม่อนุมัติ";
 
@@ -2415,3 +2416,8 @@ $lang["error_leads_max_cf"] = "ขออภัย ฟิลด์ที่กำ
 $lang["begin_cannot_display_vat"] = "ไม่สามารถทำรายการได้ เนื่องจากหมายเลขภาษี";
 $lang["end_cannot_display_vat"] = "ได้ถูกลงทะเบียนไว้แล้ว";
 $lang["have_no_delete_auth"] = "คุณไม่มีสิทธิ์ในการลบข้อมูล";
+$lang["positioning"] = "ตำแหน่งงาน";
+$lang["contact_name"] = "ชื่อผู้ติดต่อ";
+$lang["product_material_record"] = "รายการสินค้า/วัตถุดิบ";
+$lang["remark"] = "หมายเหตุ";
+$lang["on_behalf_of"] = "ในนาม";
