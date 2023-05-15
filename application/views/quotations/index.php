@@ -33,7 +33,7 @@ $(document).ready(function () {
             {title: "ลูกค้า", "class": "w30p"},
             {title: "วันที่เสนอราคา", "iDataSort": 2, "class": "text-center w15p"},
             {title: "ราคา", "class": "text-right w15p"},
-            {title: "สถานะ", "class": "text-center w15p"},
+            {title: "สถานะ", "class": "text-left w15p"},
             {title: "<i class='fa fa-bars'></i>", "class": "text-center option w10p"}
         ]
     });

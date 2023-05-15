@@ -12,6 +12,7 @@ class Stock extends MY_Controller
         {
                 parent::__construct();
                 require_once(APPPATH . "third_party/php-excel-writer/src/ExcelWriter.php");
+                $this->load->model("Permission_m");
         }
 
         function index()
@@ -288,6 +289,11 @@ class Stock extends MY_Controller
                 } else {
                         echo json_encode(array("success" => false, 'message' => lang('record_cannot_be_deleted')));
                 }
+        }
+
+        function get_login_user()
+        {
+                var_dump(arr($this->Permission_m->login_user_test()));
         }
 
         function supplier_view($supplier_id = 0, $tab = "")

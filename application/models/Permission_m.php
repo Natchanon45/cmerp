@@ -22,6 +22,7 @@ class Permission_m extends Crud_model {
 	public $approve_purchase_request = false;
 
 	function __construct() {
+		
 		if(isset($this->login_user)){
 			if($this->login_user->is_admin == 1){
 				$this->setAdmin();
@@ -124,6 +125,11 @@ class Permission_m extends Crud_model {
 
 	function get(){
 		return $this->permissions;
+	}
+
+	function login_user_test()
+	{
+		return $this->login_user;
 	}
 
 }

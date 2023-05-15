@@ -1,82 +1,61 @@
-<div id="page-content" class="clearfix p20">
+<div id="page-content" class="p20 clearfix">
     <div class="panel clearfix">
-        <ul id="invoices-tabs" data-toggle="ajax-tab" class="nav nav-tabs bg-white title" role="tablist">
-           
-		   <li class="title-tab"><h4 class="pl15 pt10 pr15"><?php echo lang("invoices"); ?></h4></li>
-			
-			
-            <li><a id="monthly-expenses-button"  role="presentation" class="active" href="javascript:;" data-target="#monthly-invoices"><?php echo lang("monthly"); ?></a></li>
-			
-			
-            <li><a role="presentation" href="<?php echo_uri("invoices/yearly/"); ?>" data-target="#yearly-invoices"><?php echo lang('yearly'); ?></a></li>
-            <li><a role="presentation" href="<?php echo_uri("invoices/custom/"); ?>" data-target="#custom-invoices"><?php echo lang('custom'); ?></a></li>
-            <li><a role="presentation" href="<?php echo_uri("invoices/recurring/"); ?>" data-target="#recurring-invoices"><?php echo lang('recurring'); ?></a></li>
+        <ul id="quotation-tabs" data-toggle="ajax-tab" class="nav nav-tabs bg-white title" role="tablist">
+            <li class="title-tab"><h4 class="pl15 pt10 pr15">ใบแจ้งหนี้ / ใบกำกับภาษี</h4></li>
+            <li><a id="monthly-quotation-button" class="active" role="presentation" href="javascript:;" data-target="#monthly-quotations"><?php echo lang("monthly"); ?></a></li>
+            <!--<li><a role="presentation" href="<?php echo_uri("estimates/yearly/"); ?>" data-target="#yearly-estimates"><?php echo lang('yearly'); ?></a></li>-->
             <div class="tab-title clearfix no-border">
                 <div class="title-button-group">
-                    <?php echo $buttonTop; ?>
+                    <a data-action-url='<?php echo get_uri("invoices/addedit"); ?>' data-act='ajax-modal' class='btn btn-default'><i class='fa fa-plus-circle'></i> เพิ่มใบแจ้งหนี้ / ใบกำกับภาษี</a>
                 </div>
             </div>
         </ul>
-
         <div class="tab-content">
-            <div role="tabpanel" class="tab-pane fade" id="monthly-invoices">
+            <div role="tabpanel" class="tab-pane fade" id="monthly-quotations">
                 <div class="table-responsive">
-                    <table id="monthly-invoice-table" class="display" cellspacing="0" width="100%">   
-                    </table>
+                    <table id="datagrid" class="display datatable" cellspacing="0" width="100%"></table>
                 </div>
             </div>
-            <div role="tabpanel" class="tab-pane fade" id="yearly-invoices"></div>
-            <div role="tabpanel" class="tab-pane fade" id="custom-invoices"></div>
-            <div role="tabpanel" class="tab-pane fade" id="recurring-invoices"></div>
+            <!--<div role="tabpanel" class="tab-pane fade" id="yearly-estimates"></div>-->
         </div>
     </div>
 </div>
-
 <script type="text/javascript">
-    loadInvoicesTable = function (selector, dateRange) {
-    var customDatePicker = "";
-    if (dateRange === "custom") {
-    customDatePicker = [{startDate: {name: "start_date", value: moment().format("YYYY-MM-DD")}, endDate: {name: "end_date", value: moment().format("YYYY-MM-DD")}, showClearButton: true}];
-    dateRange = "";
-    }
-
-    var optionVisibility = false;
-    if ("<?php echo $can_edit_invoices ?>") {
-    optionVisibility = true;
-    }
-
-    $(selector).appTable({
-    source: '<?php echo_uri("invoices/list_data") ?>',
-            dateRangeType: dateRange,
-            order: [[0, "desc"]],
-            filterDropdown: [
-            {name: "status", class: "w150", options: <?php $this->load->view("invoices/invoice_statuses_dropdown"); ?>},
-<?php if ($currencies_dropdown) { ?>
-                {name: "currency", class: "w150", options: <?php echo $currencies_dropdown; ?>}
-<?php } ?>
-            ],
-            rangeDatepicker: customDatePicker,
-            columns: [
-            {title: "<?php echo lang("invoice_id") ?>", "class": "w10p"},
-            {title: "<?php echo lang("client") ?>", "class": ""},
-            {title: "<?php echo lang("project") ?>", "class": "w15p"},
-            {visible: false, searchable: false},
-            {title: "<?php echo lang("bill_date") ?>", "class": "w10p", "iDataSort": 3},
-            {visible: false, searchable: false},
-            {title: "<?php echo lang("due_date") ?>", "class": "w10p", "iDataSort": 5},
-            {title: "<?php echo lang("invoice_value") ?>", "class": "w10p text-right"},
-            {title: "<?php echo lang("payment_received") ?>", "class": "w11p text-right"},
-            {title: "<?php echo lang("currency") ?>", "class": "w6p text-right"},
-            {title: "<?php echo lang("status") ?>", "class": "w10p text-center"}
-<?php echo $custom_field_headers; ?>,
-            {title: '<i class="fa fa-bars"></i>', "class": "text-center dropdown-option w100", visible: optionVisibility}
-            ],
-            printColumns: combineCustomFieldsColumns([0, 1, 2, 3, 5, 7, 8, 9], '<?php echo $custom_field_headers; ?>'),
-            xlsColumns: combineCustomFieldsColumns([0, 1, 2, 3, 5, 7, 8, 9], '<?php echo $custom_field_headers; ?>'),
-            summation: [{column: 7, dataType: 'number'}, {column: 8, dataType: 'number'}]
+let doc_status = [{id:"", text:"-<?php echo lang("status"); ?>-"}, {id:"A", text:"อนุมัติ"}, {id:"R", text:"ไม่อนุมัติ"}];
+$(document).ready(function () {
+    $("#datagrid").appTable({
+        source: '<?php echo current_url(); ?>',
+        order: [[0, "desc"]],
+        dateRangeType: "monthly",
+        filterDropdown: [{name: "status", class: "w150", options: doc_status}],
+        columns: [
+            {title: "วันที่", "class": "w15p"},
+            {title: "เลขที่เอกสาร", "class": "w15p"},
+            {title: "ชื่อลูกค้า", "class": "w30p"},
+            {title: "วันครบกำหนด", "iDataSort": 2, "class": "text-left w15p"},
+            {title: "ยอดรวมสุทธิ", "class": "text-right w15p"},
+            {title: "สถานะ", "class": "text-left w15p"},
+            {title: "<i class='fa fa-bars'></i>", "class": "text-center option w10p"}
+        ]
     });
-    };
-    $(document).ready(function () {
-    loadInvoicesTable("#monthly-invoice-table", "monthly");
+
+    $("#datagrid").on("draw.dt", function () {
+        $(".dropdown_status").on( "change", function() {
+            axios.post('<?php echo current_url(); ?>', {
+                task: 'update_doc_status',
+                doc_id: $(this).data("doc_id"),
+                update_status_to: $(this).val(),
+            }).then(function (response) {
+                data = response.data;
+                if(data.status == "success"){
+                    appAlert.success(data.message, {duration: 5000});
+                }else{
+                    appAlert.error(data.message, {duration: 5000});
+                }
+
+                $("#datagrid").appTable({newData: data.dataset, dataId: data.doc_id});
+            }).catch(function (error) {});
+        });
     });
+});
 </script>
