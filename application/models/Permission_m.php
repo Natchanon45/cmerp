@@ -26,6 +26,8 @@ class Permission_m extends MY_Model {
 								->where("id", $this->session->userdata("user_id"))
 								->get()->row();
 
+		if(empty($urow)) return;
+
 		if($urow->is_admin == 1){
 			$this->setAdmin();
 		}else{

@@ -16,6 +16,7 @@ class Clients_m extends MY_Model {
                             ->where("status", "E")
                             ->order_by("sort", "ASC")
                             ->get()->result();
+                            log_message("error", "Hello");
 
         if(empty($cfrows)) return null;
 
