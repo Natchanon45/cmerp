@@ -340,7 +340,7 @@ class Quotations_m extends MY_Model {
                                         "remark"=>$remark
                                     ]);
         }else{
-            $db->where("DATE_FORMAT(crreated_datetime,'%Y-%m')", date("Y-m"));
+            $db->where("DATE_FORMAT(created_datetime,'%Y-%m')", date("Y-m"));
             $running_number = $db->get("quotation")->num_rows() + 1;
 
             $doc_number = $this->getCode().date("Ym").sprintf("%04d", $running_number);
@@ -356,7 +356,7 @@ class Quotations_m extends MY_Model {
                                         "project_id"=>$project_id,
                                         "remark"=>$remark,
                                         "created_by"=>$this->login_user->id,
-                                        "crreated_datetime"=>date("Y-m-d H:i:s"),
+                                        "created_datetime"=>date("Y-m-d H:i:s"),
                                         "status"=>"W"
                                     ]);
 
@@ -616,17 +616,15 @@ class Quotations_m extends MY_Model {
                     ->where("deleted", 0)
                     ->get()->row();
 
-        if(empty($qrow)) return ["process"=>"fail", "message"=>"เกิดข้อผิดพลาด"];
-        if($qrow->status == $updateStatusTo) return ["process"=>"fail", "message"=>"เกิดข้อผิดพลาด"];
+        if(empty($qrow)) return $this->data;
+        if($qrow->status == $updateStatusTo) return $this->data;
 
         $this->data["doc_id"] = $docId;
-        $this->data["message"] = "เกิดข้อผิดพลาด";
         $currentStatus = $qrow->status;
 
         $this->db->trans_begin();
 
         if($updateStatusTo == "A"){
-
             if($currentStatus == "R"){
                 $this->data["dataset"] = $this->getIndexDataSetHTML($qrow);
                 return $this->data;
@@ -640,7 +638,6 @@ class Quotations_m extends MY_Model {
                                     ]);
 
         }elseif($updateStatusTo == "R"){
-
             $db->where("id", $docId);
             $db->update("quotation", [
                                         "approved_by"=>$this->login_user->id,
@@ -649,7 +646,6 @@ class Quotations_m extends MY_Model {
                                     ]);
 
         }elseif($updateStatusTo == "RESET"){
-
             $db->where("id", $docId);
             $db->update("quotation", [
                                         "approved_by"=>NULL,
@@ -674,7 +670,8 @@ class Quotations_m extends MY_Model {
                     ->get()->row();
 
         $this->data["dataset"] = $this->getIndexDataSetHTML($qrow);
-        $this->data["message"] = "แก้ไขข้อมูลเรียยบร้อย";
+        $this->data["status"] = "success";
+        $this->data["message"] = lang('record_saved');
         return $this->data;
     }
 }

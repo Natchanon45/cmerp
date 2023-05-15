@@ -46,7 +46,7 @@ $(document).ready(function () {
                 update_status_to: $(this).val(),
             }).then(function (response) {
                 data = response.data;
-                if(data.process == "success"){
+                if(data.status == "success"){
                     appAlert.success(data.message, {duration: 5000});
                 }else{
                     appAlert.error(data.message, {duration: 5000});
