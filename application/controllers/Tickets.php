@@ -94,65 +94,59 @@ class Tickets extends MY_Controller {
 
     //load new tickt modal 
     function modal_form() {
-		
-		 
-	 
-	/*	
-        validate_submitted_data(array(
-            "id" => "numeric"
-        ));
-*/
+
+        // validate_submitted_data(array(
+        //     "id" => "numeric"
+        // ));
+
         $id = $this->input->post('id');
-       // $this->_check_permission_of_selected_ticket($id);
 
-        //client should not be able to edit ticket
-        if ($this->login_user->user_type === "client" && $id) {
-            //redirect("forbidden");
-        }
-		
-		
+        // $this->_check_permission_of_selected_ticket($id);
 
+        // client should not be able to edit ticket
+        // if ($this->login_user->user_type === "client" && $id) {
+            // redirect("forbidden");
+        // }
+		
         $where = array();
         if ($this->login_user->user_type === "staff" && $this->access_type !== "all" && $this->access_type !== "assigned_only") {
-            //$where = array("where_in" => array("id" => $this->allowed_ticket_types));
+            $where = array("where_in" => array("id" => $this->allowed_ticket_types));
         }
-		
-		//arr( $where );
+		// arr( $where );
 
-        $ticket_info = $this->Tickets_model->get_one($this->input->post("id"));
-
-        $projects = $this->Projects_model->get_dropdown_list(array("title"), "id", array("client_id" => $ticket_info->client_id));
-        if ($this->login_user->user_type == "client") {
+        $ticket_info = $this->Tickets_model->get_one($id);
+        if ($id) {
+            $projects = $this->Projects_model->get_dropdown_list(array("title"), "id", array("client_id" => $ticket_info->client_id));
+        } else if ($this->login_user->user_type == "client") {
             $projects = $this->Projects_model->get_dropdown_list(array("title"), "id", array("client_id" => $this->login_user->client_id));
             $ticket_info->client_id = $this->login_user->client_id;
         }
-		
+
+        // $ticket_info = $this->Tickets_model->get_one($this->input->post("id"));
+        // $projects = $this->Projects_model->get_dropdown_list(array("title"), "id", array("client_id" => $ticket_info->client_id));
+
+        // if ($this->login_user->user_type == "client") {
+        //     $projects = $this->Projects_model->get_dropdown_list(array("title"), "id", array("client_id" => $this->login_user->client_id));
+        //     $ticket_info->client_id = $this->login_user->client_id;
+        // }
 		
         $suggestion = array(array("id" => "", "text" => "-"));
         foreach ($projects as $key => $value) {
             $suggestion[] = array("id" => $key, "text" => $value);
         }
 
-
-
         $view_data['projects_suggestion'] = $suggestion;
-	///echo 'dsffsdads';exit;	
-        $view_data['ticket_types_dropdown'] = $this->Ticket_types_model->get_dropdown_list(array("title"), "id", $where );
+        // echo 'dsffsdads'; exit;	
 
+        $view_data['ticket_types_dropdown'] = $this->Ticket_types_model->get_dropdown_list(array("title"), "id", $where );
         $view_data['model_info'] = $this->Tickets_model->get_one($id);
-        
-		
 		$view_data['client_id'] = $ticket_info->client_id;
         
-		
-		
 		$view_data['clients_dropdown'] = array("" => "-") + $this->Clients_model->get_dropdown_list(array("company_name"), "id", array("is_lead" => 0));
-		
-
         $view_data['show_project_reference'] = get_setting('project_reference_in_tickets');
+        // $view_data['show_project_reference'] = 1;
 
         $view_data['project_id'] = $this->input->post('project_id');
-
         $view_data['requested_by_id'] = $ticket_info->requested_by;
 
         if ($this->login_user->user_type == "client") {
@@ -164,15 +158,16 @@ class Tickets extends MY_Controller {
         $requested_by_suggestion = array(array("id" => "", "text" => "-"));
         $view_data['requested_by_dropdown'] = $requested_by_suggestion;
 
-        //prepare assign to list
+        // prepare assign to list
         $assigned_to_dropdown = array("" => "-") + $this->Users_model->get_dropdown_list(array("first_name", "last_name"), "id", array("deleted" => 0, "user_type" => "staff"));
         $view_data['assigned_to_dropdown'] = $assigned_to_dropdown;
 
-        //prepare label suggestions
+        // prepare label suggestions
         $view_data['label_suggestions'] = $this->make_labels_dropdown("ticket", $view_data['model_info']->labels);
-
-
         $view_data["custom_fields"] = $this->Custom_fields_model->get_combined_details("tickets", $view_data['model_info']->id, $this->login_user->is_admin, $this->login_user->user_type)->result();
+        
+        // var_dump(arr($view_data));
+        // exit;
 
         $this->load->view('tickets/modal_form', $view_data);
     }
