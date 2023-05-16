@@ -2415,3 +2415,4 @@ $lang["error_leads_max_cf"] = "ขออภัย ฟิลด์ที่กำ
 $lang["begin_cannot_display_vat"] = "ไม่สามารถทำรายการได้ เนื่องจากหมายเลขภาษี";
 $lang["end_cannot_display_vat"] = "ได้ถูกลงทะเบียนไว้แล้ว";
 $lang["have_no_delete_auth"] = "คุณไม่มีสิทธิ์ในการลบข้อมูล";
+$lang["leaves_date"] = "วันที่ลา";
