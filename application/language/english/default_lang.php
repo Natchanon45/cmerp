@@ -2006,3 +2006,4 @@ $lang["error_leads_max_cf"] = "Sorry, The custom fields level is max <br> Cannot
 $lang["begin_cannot_display_vat"] = "The transaction cannot be made because the vat number";
 $lang["end_cannot_display_vat"] = "has already been registered.";
 $lang["have_no_delete_auth"] = "Have no delete authorized.";
+$lang["leaves_date"] = "Leave date";
