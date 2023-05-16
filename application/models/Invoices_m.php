@@ -78,7 +78,7 @@ class Invoices_m extends MY_Model {
 
         $this->data["doc_date"] = date("Y-m-d");
         $this->data["credit"] = "0";
-        $this->data["doc_valid_until_date"] = date("Y-m-d");
+        $this->data["due_date"] = date("Y-m-d");
         $this->data["reference_number"] = "";
         $this->data["vat_inc"] = "N";
         $this->data["wht_inc"] = "N";
@@ -104,7 +104,7 @@ class Invoices_m extends MY_Model {
             $this->data["doc_number"] = $invrow->doc_number;
             $this->data["doc_date"] = $invrow->doc_date;
             $this->data["credit"] = $invrow->credit;
-            $this->data["doc_valid_until_date"] = $invrow->doc_valid_until_date;
+            $this->data["due_date"] = $invrow->due_date;
             $this->data["reference_number"] = $invrow->reference_number;
             $this->data["vat_inc"] = $invrow->vat_inc;
             $this->data["vat_percent"] = number_format_drop_zero_decimals($invrow->vat_percent, 2)."%";

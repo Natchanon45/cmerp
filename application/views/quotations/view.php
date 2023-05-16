@@ -67,6 +67,10 @@
                         <td><?php echo converDate($doc_date, true); ?></td>
                     </tr>
                     <tr>
+                        <td class="custom-color">เครดิต</td>
+                        <td><?php echo $credit; ?> วัน</td>
+                    </tr>
+                    <tr>
                         <td class="custom-color">ผู้ขาย</td>
                         <td><?php if($created != null) echo $created["first_name"]." ".$created["last_name"]; ?></td>
                     </tr>

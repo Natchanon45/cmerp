@@ -7,7 +7,6 @@ class Quotations extends MY_Controller {
     }
 
     function index() {
-        
         if($this->input->post("datatable") == true){
             jout(["data"=>$this->Quotations_m->indexDataSet()]);
             return;

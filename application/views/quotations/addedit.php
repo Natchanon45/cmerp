@@ -7,10 +7,9 @@
     </div>
 
     <div class="form-group">
-        <label for="credit" class=" col-md-3">เครดิต</label>
+        <label for="credit" class=" col-md-3">เครดิต (วัน)</label>
         <div class="col-md-9" style="display: grid;grid-template-columns: auto auto;align-items: center; justify-items: center;justify-content: start;">
             <input type="number" id="credit" value="<?php echo $credit; ?>" class="form-control" placeholder="กรอกเลข 0 หากชำระเงินสด" autocomplete="off" >
-            <div style="padding-left: 5px;"> วันหลังออกใบแจ้งหนี้</div>
         </div>
     </div>
 
@@ -95,11 +94,36 @@ $(document).ready(function() {
                 }
             }).catch(function (error) {});
         });
+
+        $('#project_id').select2();
+        $("#client_id").select2();
+        setDatePicker("#quotation_date");
     <?php endif; ?>
 
-    $('#project_id').select2();
-    $("#client_id").select2();
 
-    setDatePicker("#quotation_date, #quotation_valid_until_date");
+    $("#quotation_date").change(function() {
+        //alert($(this).setDate);
+        //alert($(this).datepicker('getDate', '+1d'));
+        /*var date2 = $('.pickupDate').datepicker('getDate', '+1d'); 
+        date2.setDate(date2.getDate()+1); 
+        $('.dropoffDate').datepicker('setDate', date2);*/
+
+        //var date2 = $("#quotation_date").datepicker('getDate');
+        //var nextDayDate = new Date();
+        //nextDayDate.setDate(date2.getDate() + 5);
+        //$('input').val(nextDayDate);
+        //alert(nextDayDate);
+        var date2 = $("#quotation_date").datepicker('getDate');
+        date2.setDate(date2.getDate()+5);
+        //var nextDayDate = new Date();
+        //nextDayDate.setDate(date.getDate() + 2);
+        //$("#quotation_valid_until_date").val($.datepicker.formatDate('dd-mm-yy', nextDayDate));
+        //$("#quotation_valid_until_date").datepicker({ dateFormat: 'yy-mm-dd' }).val(nextDayDate);
+        //alert($.datepicker.formatDate("dd-mm-yy", nextDayDate));
+        alert(date2.getDate());
+
+
+        //$('#datepicker').datepicker({ dateFormat: 'dd-mm-yy' }).val();
+    });
 });
 </script>

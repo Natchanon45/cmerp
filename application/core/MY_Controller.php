@@ -137,10 +137,11 @@ class MY_Controller extends CI_Controller {
 
 		$param['url'] = $url;
 
-        if($this->router->fetch_class() != "quotations"){
-            $this->getRolePermission = $this->db_model->getRolePermission( $param );
-            $this->getRolePermissions = $this->db_model->getRolePermissions();
-        }
+        $ignore_permission_classes = ["quotations", "invoices"];
+        if(in_array($this->router->fetch_class(), $ignore_permission_classes)) return;          
+        
+        $this->getRolePermission = $this->db_model->getRolePermission( $param );
+        $this->getRolePermissions = $this->db_model->getRolePermissions();
 
 		if( $insert == true ) {
 
@@ -165,8 +166,6 @@ class MY_Controller extends CI_Controller {
 				}
 
 			}
-
-
 		}
 		
 		
