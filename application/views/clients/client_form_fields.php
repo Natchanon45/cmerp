@@ -236,9 +236,7 @@
             <span class="help" data-container="body" data-toggle="tooltip" title="<?php echo lang('disable_online_payment_description') ?>"><i class="fa fa-question-circle"></i></span>
         </label>
         <div class="<?php echo $field_column; ?> col-xs-4 col-sm-6">
-            <?php
-            echo form_checkbox("disable_online_payment", "1", $model_info->disable_online_payment ? true : false, "id='disable_online_payment'");
-            ?>                       
+            <?php //echo form_checkbox("disable_online_payment", "1", $model_info->disable_online_payment ? true : false, "id='disable_online_payment'"); ?>                       
         </div>
     </div>-->
 <?php } ?>

@@ -86,7 +86,10 @@
 
         <?php foreach ($columns as $column) { ?>
             <li class="kanban-col" >
-                <div class="kanban-col-title" style="background: <?php echo $column->color ? $column->color : "#2e4053"; ?>;"> <?php echo $column->title; ?> </div>
+                <div class="kanban-col-title" style="background: <?php echo $column->color ? $column->color : "#2e4053"; ?>;">
+                    <?php echo $column->title; ?>
+                    <p style="float: right;"><?php echo $column->total_leads; ?></p>
+                </div>
 
                 <div class="kanban-input general-form hide">
                     <?php

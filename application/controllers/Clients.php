@@ -59,8 +59,6 @@ class Clients extends MY_Controller {
     /* load client add/edit modal */
 
     function modal_form() {
-        $permission_m = $this->Permission_m->get();
-
         // var_dump($permission_m->client);
         // var_dump(arr($this->Permission_m->get()));
         // exit;
@@ -81,8 +79,6 @@ class Clients extends MY_Controller {
 				 
 			}*/
 		}
-		
-		//echo 'dfsadfadfsd';
 		
         $this->can_access_this_client($client_id);
         validate_submitted_data(array(
