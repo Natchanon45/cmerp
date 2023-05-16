@@ -117,7 +117,7 @@ class Tickets extends MY_Controller {
         $ticket_info = $this->Tickets_model->get_one($id);
         if ($id) {
             $projects = $this->Projects_model->get_dropdown_list(array("title"), "id", array("client_id" => $ticket_info->client_id));
-        } else if ($this->login_user->user_type == "client") {
+        } else {
             $projects = $this->Projects_model->get_dropdown_list(array("title"), "id", array("client_id" => $this->login_user->client_id));
             $ticket_info->client_id = $this->login_user->client_id;
         }

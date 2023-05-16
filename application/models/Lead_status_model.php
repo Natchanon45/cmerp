@@ -19,10 +19,18 @@ class Lead_status_model extends Crud_model {
             $where = " AND $lead_status_table.id=$id";
         }
 
-        $sql = "SELECT $lead_status_table.*, (SELECT COUNT($clients_table.id) FROM $clients_table WHERE $clients_table.deleted=0 AND $clients_table.is_lead=1 AND $clients_table.lead_status_id=$lead_status_table.id) AS total_leads
+        $total_owner = "";
+        $owner_id = get_array_value($options, "owner_id");
+        if ($owner_id) {
+            $total_owner = " AND clients.owner_id = $owner_id";
+        }
+
+        $sql = "SELECT $lead_status_table.*, (SELECT COUNT($clients_table.id) FROM $clients_table WHERE $clients_table.deleted=0 AND $clients_table.is_lead=1 AND $clients_table.lead_status_id=$lead_status_table.id $total_owner) AS total_leads
         FROM $lead_status_table
         WHERE $lead_status_table.deleted=0 $where
         ORDER BY $lead_status_table.sort ASC";
+
+        // var_dump($sql);
         return $this->db->query($sql);
     }
 
