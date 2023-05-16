@@ -87,8 +87,7 @@ class Leads_m extends CI_Model {
                     "<a style='background-color: ".$status_info[$lrow->lead_status_id]['color']."' class='label' data-id='10' data-value='6' data-act='update-lead-status'>".$status_info[$lrow->lead_status_id]['title']."</a>"
                 ];
 
-            
-            $cfrows = $this->db->select("code")
+            $cfrows = $this->db->select("code, field_type")
                                 ->from("leads_custom_field")
                                 ->where("show_in_table", "Y")
                                 ->where("show_in_lead", "Y")
@@ -98,15 +97,16 @@ class Leads_m extends CI_Model {
 
             if(!empty($cfrows)){
                 foreach($cfrows as $cfrow){
-                    $data[] = mb_strimwidth($lrow->{$cfrow->code}, 0, 50, "...");
+                    //$data[] = mb_strimwidth($lrow->{$cfrow->code}, 0, 50, "...");
+                    if($cfrow->field_type == "textarea"){
+                        $data[] = "<textarea>".$lrow->{$cfrow->code}."</textarea>";
+                    }else{
+                        $data[] = $lrow->{$cfrow->code};
+                    }
                 }
             }
 
-
-
             $data[] = "<a class='edit' title='แก้ไขโอกาสในการขาย' data-post-id='".$lrow->id."' data-act='ajax-modal' data-title='แก้ไขโอกาสในการขาย' data-action-url='".get_uri("leads/modal_form")."'><i class='fa fa-pencil'></i></a><a title='ลบโอกาสในการขาย' class='delete' data-id='".$lrow->id."' data-action-url='".get_uri("leads/delete")."' data-action='delete-confirmation'><i class='fa fa-times fa-fw'></i></a>";
-
-            
 
             $dataset[] = $data;
         }
@@ -297,73 +297,4 @@ class Leads_m extends CI_Model {
 
         return $this->db->query($sql);
     }
-
-    function changeToClient(){
-        $db = $this->db;
-        $lead_id = $this->input->post('lead_id');
-        $company_name = $this->input->post('company_name');
-
-        $lrow = $db->select("*")
-                    ->from("clients")
-                    ->where("id", $lead_id)
-                    ->where("deleted", 0)
-                    ->get()->row();
-
-
-        if(empty($lsrow)){
-
-        }
-
-        $this->db->trans_begin();
-
-        $data = array(
-                "company_name" => $company_name,
-                "address" => $this->input->post('address'),
-                "city" => $this->input->post('city'),
-                "state" => $this->input->post('state'),
-                "zip" => $this->input->post('zip'),
-                "country" => $this->input->post('country'),
-                "created_date"=>$lsrow->created_date,
-                "website" => $this->input->post('website'),
-                "phone" => $this->input->post('phone'),
-                "currency_symbol" => $lsrow->currency_symbol,
-                "starred_by" => $lsrow->starred_by,
-                "group_ids" => $this->input->post('group_ids') ? $this->input->post('group_ids') : "",
-                "deleted" => 0,
-                "lead_status_id" => $lsrow->lead_status_id,
-                "owner_id" => $lsrow->owner_id,
-                "created_by" => $this->input->post('created_by') ? $this->input->post('created_by') : $lsrow->owner_id,
-                "sort" => $lsrow->sort,
-                "lead_source_id" => $lsrow->lead_source_id,
-                "last_lead_status" => $lsrow->last_lead_status,
-                "client_migration_date"=>date("Y-m-d"),
-                "vat_number" => $this->input->post('vat_number'),
-                "currency" => $lsrow->currency,
-                "disable_online_payment" => $lsrow->disable_online_payment
-            );
-
-        if ($this->login_user->is_admin) {
-            $data["currency_symbol"] = $this->input->post('currency_symbol') ? $this->input->post('currency_symbol') : "";
-            $data["currency"] = $this->input->post('currency') ? $this->input->post('currency') : "";
-            $data["disable_online_payment"] = $this->input->post('disable_online_payment') ? $this->input->post('disable_online_payment') : 0;
-        }
-
-        //ตรวจสอบชื่อบริษัทซ้ำหรือไม่, เปลี่ยนเป็นตรวจสอบจากหมายเลขภาษี
-        /*if (get_setting("disallow_duplicate_client_company_name") == "1" && $this->Clients_model->is_duplicate_company_name($company_name, $client_id)) {
-                echo json_encode(array("success" => false, 'message' => lang("account_already_exists_for_your_company_name")));
-                exit();
-        }*/
-
-        if ($this->db->trans_status() === FALSE){
-            $this->db->trans_rollback();
-        }
-
-        //$this->db->trans_commit();
-
-
-
-    }
-
-    
-
 }
