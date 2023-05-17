@@ -5115,14 +5115,22 @@ class Projects extends MY_Controller {
     }
 
     function project_items_save() {
-        //var_dump($this->input->post('item_id[]'), $this->input->post('item_mixing[]'), $this->input->post('quantity[]'));exit;
-        //$this->check_module_availability("module_stock");
+        // var_dump($this->input->post('item_id[]'), $this->input->post('item_mixing[]'), $this->input->post('quantity[]'));exit;
+        // $this->check_module_availability("module_stock");
         
         $id = $this->input->post('id');
 
         $restock_process = $this->input->post('restock_process');
 
-        //var_dump($restock_process,!empty($restock_process),$id);exit;
+        $post = [
+            "id" => $this->input->post('id'),
+            "restock_process" => $this->input->post('restock_process'),
+            "item_id" => $this->input->post('item_id[]'),
+            "item_mixing" => $this->input->post('item_mixing[]'),
+            "quantity" => $this->input->post('quantity[]')
+        ];
+
+        // var_dump($restock_process, !empty($restock_process), $id); exit;
         if(!empty($restock_process)) {
             $this->Bom_item_mixing_groups_model->restock_process($id);
         }else{

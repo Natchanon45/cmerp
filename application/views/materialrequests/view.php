@@ -20,6 +20,8 @@
 }
 </style>
 
+<?php $nodata = "<span style='color: red;'>ยังไม่มีข้อมูล</span>"; ?>
+
 <div id="dcontroller" class="clearfix">
 	<div class="page-title clearfix mt15">
 		<!-- Left top -->
@@ -139,7 +141,7 @@
 					</tr>
 					<tr>
 						<td class="custom-color"><?php echo lang("material_request_date"); ?></td>
-						<td><?php echo $mat_req_info->mr_date; ?></td>
+						<td><?php echo format_to_date($mat_req_info->mr_date); ?></td>
 					</tr>
 					<tr>
 						<td class="custom-color"><?php echo lang("material_request_person"); ?></td>
@@ -200,11 +202,11 @@
 		<table id="item-table-list">
 			<thead>
 				<tr style="height: 40px;">
-					<th style="text-align: center;">#</th>
-					<th style="text-align: center;"><?php echo lang("product_material_record"); ?></th>
-					<th style="text-align: center;"><?php echo lang("stock_restock_name"); ?></th>
-					<th style="text-align: right;"><?php echo lang("quantity"); ?></th>
-					<th width="10%" style="text-align: center;"><?php echo lang("stock_material_unit"); ?></th>
+					<th width="5%" style="text-align: center;">#</th>
+					<th width="45%" style="text-align: center;"><?php echo lang("product_material_record"); ?></th>
+					<th width="25%" style="text-align: center;"><?php echo lang("stock_restock_name"); ?></th>
+					<th width="15%" style="text-align: right;"><?php echo lang("quantity"); ?></th>
+					<th width="9%" style="text-align: center;"><?php echo lang("stock_material_unit"); ?></th>
 					<th width="1%"></th>
 				</tr>
 			</thead>
@@ -215,9 +217,9 @@
 							<td style="text-align: center;"><?php echo $key + 1; ?></td>
 							<td>
 								<b><?php echo $item->code . " : " . $item->title; ?></b><br />
-								<p style="color: #9a9797;"><?php echo nl2br(mb_strimwidth($item->description, 0, 60, "...")); ?></p>
+								<p style="color: #9a9797;"><?php echo nl2br(mb_strimwidth($item->description, 0, 50, "...")); ?></p>
 							</td>
-							<td style="text-align: center;"><?php echo $item->project_name; ?></td>
+							<td style="text-align: center; color: red;"><?php echo $nodata; ?></td>
 							<td style="text-align: right;"><?php echo to_decimal_format3($item->quantity); ?></td>
 							<td style="text-align: center;"><?php echo $item->unit_type; ?></td>
 							<td></td>
@@ -235,34 +237,65 @@
 	</div>
 
 	<!-- Document Footer -->
+	<!-- <div class="grid-container-out">
+
+		<div class="grid-container-in-left">
+			<div style="text-align: center;">
+				<div><?php // echo $mat_requester_info->first_name . " " . $mat_requester_info->last_name; ?></div>
+				<hr class="grid-line">
+				<div><?php // echo lang("material_request_person"); ?></div>
+			</div>
+			<div style="text-align: center;">
+				<div><?php // echo format_to_date($mat_req_info->mr_date); ?></div>
+				<hr class="grid-line">
+				<div><?php // echo lang("material_request_date"); ?></div>
+			</div>
+		</div>
+
+		<div class="grid-container-in-right">
+			<div style="text-align: center;">
+				<div><?php // echo $mat_requester_info->first_name . " " . $mat_requester_info->last_name; ?></div>
+				<hr class="grid-line">
+				<div><?php // echo lang("approver"); ?></div>
+			</div>
+			<div style="text-align: center;">
+				<div><?php // echo format_to_date($mat_req_info->mr_date); ?></div>
+				<hr class="grid-line">
+				<div><?php // echo lang("day_of_approved"); ?></div>
+			</div>
+		</div>
+	</div> -->
+
 	<div class="docsignature clear">
+
 		<div class="customer">
 			<div class="on_behalf_of"></div>
 			<div class="clear">
 				<div class="name">
-					<span class="l1"><?php echo $mat_requester_info->first_name . " " . $mat_requester_info->last_name; ?></span>
+					<span class="l1" style="height: 30px !important;"><?php echo $mat_requester_info->first_name . " " . $mat_requester_info->last_name; ?></span>
 					<span class="l2"><?php echo lang("material_request_person"); ?></span>
 				</div>
 				<div class="date">
-					<span class="l1"></span>
+					<span class="l1" style="height: 30px !important;"><?php echo format_to_date($mat_req_info->mr_date); ?></span>
 					<span class="l2"><?php echo lang("material_request_date"); ?></span>
 				</div>
 			</div>
 		</div>
-		
+
 		<div class="company">
 			<div class="on_behalf_of"></div>
 			<div class="clear">
 				<div class="name">
-					<span class="l1"></span>
+					<span class="l1" style="height: 30px !important;"><?php echo $nodata; ?></span>
 					<span class="l2"><?php echo lang("approver"); ?></span>
 				</div>
 				<div class="date">
-					<span class="l1"></span>
+					<span class="l1" style="height: 30px !important;"><?php echo $nodata; ?></span>
 					<span class="l2"><?php echo lang("day_of_approved"); ?></span>
 				</div>
 			</div>
 		</div>
+
 	</div>
 </div>
 

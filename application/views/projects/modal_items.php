@@ -1,7 +1,7 @@
 <?php echo form_open(get_uri("projects/project_items_save"), array("id" => "item-form", "class" => "general-form", "role" => "form")); ?>
 <div class="modal-body clearfix">
   <input type="hidden" name="id" value="<?php echo $model_info->id; ?>" />
-  <input type="hidden" name="restock_process" value="" />
+  <input type="hidden" id="restock_process" name="restock_process" value="" />
 
   <div id="type-container">
     <table class="display dataTable no-footer" cellspacing="0" width="100%" role="grid" aria-describedby="supplier-table_info">            
@@ -121,14 +121,20 @@
 
 <div class="modal-footer">
     <button type="button" class="btn btn-default" data-dismiss="modal"><span class="fa fa-close"></span> <?php echo lang('close'); ?></button>
+
     <?php if($this->Permission_m->create_material_request == true): ?>
         <button type="submit" class="btn btn-primary" id="btn-submit"><span class="fa fa-check-circle"></span> <?php echo lang('stock_save_make_mr'); ?></button>
     <?php endif; ?>
+
     <?php echo anchor(get_uri("pdf_export/project_materials_pdf/" . $model_info->id), "<i class='fa fa-download'></i> " . lang('download_pdf'), array("title" => lang('download_pdf'), "class"=>"btn btn-default")); ?>
+    
+    <!-- <button type="button" class="btn btn-default" id="btn-restock"><span class="fa fa-recycle" aria-hidden="true"></span> <?php // echo "คำนวณใหม่"; ?></button> -->
+    
     <?php if($this->Permission_m->create_purchase_request == true): ?>
         <button type="button" class="btn btn-danger pull-right" id="btn-pr"><i class="fa fa-shopping-cart"></i> <?php echo lang('request_purchasing_materials'); ?></button>
     <?php endif; ?>
 </div>
+
 <?php echo form_close(); ?>
 
 <style>
@@ -212,13 +218,27 @@
     var typeContainer = $('#type-container');
     var tableBody = typeContainer.find('#table-body'),
         btnAdd = typeContainer.find('#btn-add-material');
+    
+    let setItem = `<?php echo count($project_materials); ?>`;
+
     btnAdd.click(function(e){
       e.preventDefault();
+
+      // one item in a project
+      let dataItem = document.querySelectorAll("[data_item]");
+      if (dataItem.length) {
+        return false;
+      }
+
+      if (setItem > 0) {
+        return false;
+      }
+      
       tableBody.prepend(`
         <tr>
           <td></td>
           <td>
-            <select name="item_id[]" class="form-control select-material" required>
+            <select name="item_id[]" class="form-control select-material" data_item required>
               <option value="" data-unit=""></option>
               ${items.map(function(d){
                 return `<option value="${d.id}" data-unit="${d.unit_type}">${d.title}</option>`;
@@ -295,8 +315,10 @@
     var itemForm = $("#item-form");
     itemForm.appForm({
 			onSuccess: function (result) {
+        console.log(result);
+
         if(result.addnew){
-          url = "<?php echo base_url(); ?>materialrequests/view/" + result.mrid
+          url = "<?php echo get_uri(); ?>materialrequests/view/" + result.mrid
           window.open(url, '_blank');
         }
         
@@ -309,11 +331,11 @@
 		});
 
     // restock
-    /*$('#btn-restock').click(function(e){
-      e.preventDefault();
-      $('[name="restock_process"]').val(1);
-      $('#btn-submit').click();
-    });*/
+    // $('#btn-restock').click(function(e){
+    //   e.preventDefault();
+    //   $('[name="restock_process"]').val(1);
+    //   $('#btn-submit').click();
+    // });
 
   });
 </script>
