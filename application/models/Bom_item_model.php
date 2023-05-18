@@ -135,7 +135,7 @@ class Bom_item_model extends Crud_model {
         return $this->db->query($sql)->result();
     }
 
-    function get_item_info_suggestion($material_id) {
+    function get_item_info_suggestion($item_id) {
         $item_table = $this->db->dbprefix('items');
 
         $item_id = $this->db->escape_str($item_id);

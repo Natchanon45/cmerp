@@ -86,6 +86,27 @@
         ?>
     </div>
 </div>
+
+<div class="form-group">
+	<label for="account_id" class="<?php echo $label_column; ?>">
+		<?php echo lang('account_category'); ?>
+	</label>
+	<div class="<?php echo $field_column; ?>">
+		<?php
+		echo form_input(
+			array(
+				"id" => "account_id",
+				"name" => "account_id",
+				"value" => $model_info->account_id ? $model_info->account_id : null,
+				"class" => "form-control",
+				"placeholder" => lang('account_category'),
+				"readonly" => $readonly
+			)
+		);
+		?>
+	</div>
+</div>
+
 <div class="form-group">
     <label for="description" class="<?php echo $label_column; ?>">
         <?php echo lang('stock_item_description'); ?>
@@ -163,18 +184,16 @@
         if (!isUpdate) {
             applySelectSupplierName();
         }
-
-  
-
-        //re-initialize item suggestion dropdown on request
+        
+        // re-initialize item suggestion dropdown on request
         $("#pr_supplier_title_dropdwon_icon").click(function () {
             applySelectSupplierName();
             $('#name').select2('readonly', false);
         });
-
-
-       
+        
+        $('#account_id').select2({ data: <?php echo json_encode($account_category); ?> });
     });
+
     function applySelectSupplierName() {
         $("#name").select2({
             showSearchBox: true,
@@ -193,7 +212,7 @@
                     return {results: data};
                 }
             }
-        }).change(function (e) {//alert('change supplier');
+        }).change(function (e) { //alert('change supplier');
             if (e.val === "+") {
                 //show simple textbox to input the new item
                 $("#name").select2("destroy").val("").focus();
@@ -258,6 +277,4 @@
             }
         });
     }
-
-    
 </script>

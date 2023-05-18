@@ -988,8 +988,6 @@ class Leads extends MY_Controller
         $client_id = $this->input->post('lead_id');
         $this->can_access_this_lead($client_id);
 
-        //$this->Leads_m->changeToClient();
-
         if ($client_id) {
             
             //save client info
@@ -1585,7 +1583,7 @@ class Leads extends MY_Controller
     * - ควรใช้ที่เครื่องทดสอบ เท่านั้น
     */
     public function transfer_exfield_to_newfield($secret = null){
-        if($secret != "xxyyzz1234") exit;
+        if($secret != "xxyyzz1234ddfdfdfsfgsgfs") exit;
 
         $cfsort = null;
         $custom_fields_table = "leads_custom_field";

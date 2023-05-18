@@ -13,6 +13,7 @@ class Items extends MY_Controller
 		parent::__construct();
 		$this->init_permission_checker("order");
 		$this->load->model("Bom_item_mixing_groups_model");
+		$this->load->model("Account_category_model");
 		$this->className = 'items';
 	}
 
@@ -63,6 +64,7 @@ class Items extends MY_Controller
 
 		$view_data['model_info'] = $this->Items_model->get_one($this->input->post('id'));
 		$view_data['categories_dropdown'] = $this->Item_categories_model->get_dropdown_list(array("title"));
+		$view_data["account_category"] = $this->Account_category_model->get_list_dropdown();
 
 		// var_dump(arr($view_data)); exit;
 
@@ -86,16 +88,19 @@ class Items extends MY_Controller
 		$id = $this->input->post('id');
 		$oid = $this->input->post('oid');
 		$is_duplicate = $this->input->post('is_duplicate');
+		$account_id = $this->input->post('account_id');
 
 		$item_data = array(
 			"title" => $this->input->post('title'),
 			"description" => $this->input->post('description'),
 			"category_id" => $this->input->post('category_id'),
+			"account_id" => $account_id ? $account_id : null,
 			"unit_type" => $this->input->post('unit_type'),
 			"barcode" => $this->input->post('barcode'),
 			"rate" => unformat_currency($this->input->post('item_rate')),
 			"show_in_client_portal" => $this->input->post('show_in_client_portal') ? $this->input->post('show_in_client_portal') : ""
 		);
+		// ALTER TABLE `items` ADD `account_id` INT NULL AFTER `category_id`; 
 
 		$new_files = [];
 		$target_path = get_setting("timeline_file_path");
@@ -107,14 +112,14 @@ class Items extends MY_Controller
 		if ($id) {
 			$item_info = $this->Items_model->get_one($id);
 			$new_files = update_saved_files($timeline_file_path, $item_info->files, $new_files);
-		} elseif ($oid && $is_duplicate) { //duplicate
+		} elseif ($oid && $is_duplicate) { // duplicate
 			$o_item_info = $this->Items_model->get_one($oid);
 			$new_files = unserialize($o_item_info->files);
 			$files_data = copy_files($new_files, $target_path, "item");
 			$new_files = unserialize($files_data);
 
 			$files = $this->Bom_item_mixing_groups_model->get_file_details(['ref_id' => $oid, 'tablename' => 'items'])->result();
-			//$new_files = update_saved_files($timeline_file_path, $o_item_info->files, $new_files);
+			// $new_files = update_saved_files($timeline_file_path, $o_item_info->files, $new_files);
 		}
 
 		$item_data["files"] = serialize($new_files);
@@ -225,8 +230,9 @@ class Items extends MY_Controller
 		if ($src) {
 			$src = base_url('/items/barcode/' . $src);
 		}
-		//var_dump($src);exit;
-		//var_dump($data);exit;
+
+		// var_dump($src); exit;
+		// var_dump($data); exit;
 		$type = $data->unit_type ? $data->unit_type : "";
 
 		$show_in_client_portal_icon = "";
@@ -241,52 +247,24 @@ class Items extends MY_Controller
 		}
 
 		$buttons = array();
-		//if( empty(  $this->getRolePermission['read_only'] ) ) {
 		if ($this->login_user->is_admin == "1") {
 			$buttons[] = modal_anchor(get_uri("" . $this->className . "/modal_form"), "<i class='fa fa-pencil'></i>", array("class" => "edit", "title" => lang('edit_item'), "data-post-id" => $data->id))
 				.
 				js_anchor("<i class='fa fa-times fa-fw'></i>", array('title' => lang('delete'), "class" => "delete", "data-id" => $data->id, "data-action-url" => get_uri("" . $this->className . "/delete"), "data-action" => "delete"));
 		}
-		//}
 
 		return array(
+			anchor(get_uri('' . $this->className . '/detail/' . $data->id), $data->id),
 			$preview,
 			anchor(get_uri('' . $this->className . '/detail/' . $data->id), $data->title),
 			nl2br($data->description),
 			$data->category_title ? $data->category_title : "-",
+			$data->account_id ? $this->Account_category_model->account_by($data->account_id) : "-",
 			$type,
-
 			@$data->barcode ? '<div style="text-align:center"><a href="' . $src . '" class="barcode_img" download><img src="' . $src . '" /><div class="text">Click to download</div></a></div>' : '-',
-
 			$data->rate,
 			implode('', $buttons)
 		);
-
-		/*return array(
-		$preview,
-		($this->cp('stock', 'view_row') != '0' && $this->cp('stock', 'edit_row')
-		? anchor(get_uri(''. $this->className .'/detail/' . $data->id), $data->title)
-		: modal_anchor(get_uri(''. $this->className .'/view'), $show_in_client_portal_icon . $data->title, array("title" => lang("item_details"), "data-post-id" => $data->id))
-		),
-		nl2br($data->description),
-		$data->category_title ? $data->category_title : "-",
-		$type,
-		@$data->barcode? '<div style="text-align:center"><a href="'.$src.'" class="barcode_img" download><img src="'.$src.'" /><div class="text">Click to download</div></a></div>': '-',
-		$data->rate,
-		implode( '', $buttons )
-		);*/
-		/*  return array(
-		$preview,
-		get_setting("module_stock") == '1'
-		? anchor(get_uri('items/detail/' . $data->id), $data->title)
-		: modal_anchor(get_uri("items/view"), $show_in_client_portal_icon . $data->title, array("title" => lang("item_details"), "data-post-id" => $data->id)),
-		nl2br($data->description),
-		$data->category_title ? $data->category_title : "-",
-		$type,
-		$data->rate,
-		modal_anchor(get_uri("items/modal_form"), "<i class='fa fa-pencil'></i>", array("class" => "edit", "title" => lang('edit_item'), "data-post-id" => $data->id))
-		. js_anchor("<i class='fa fa-times fa-fw'></i>", array('title' => lang('delete'), "class" => "delete", "data-id" => $data->id, "data-action-url" => get_uri("items/delete"), "data-action" => "delete"))
-		); */
 	}
 
 	function upload_file()
@@ -592,19 +570,22 @@ class Items extends MY_Controller
 
 	function detail_mixing_list($item_id = 0)
 	{
-		/*$this->check_module_availability("module_stock");
+		$this->check_module_availability("module_stock");
 		
 		$view_data['can_read'] = $this->check_permission('bom_material_read');
 		$view_data['can_read_production_name'] = $this->check_permission('bom_material_read_production_name');
-		if(!$this->login_user->is_admin && (!$view_data['can_read'] || !$view_data['can_read_production_name'])) {
-		redirect("forbidden");
-		}*/
 
-		$list_data = $this->Bom_item_mixing_groups_model->get_details(['item_id' => $item_id])->result();
+		if(!$this->login_user->is_admin && (!$view_data['can_read'] || !$view_data['can_read_production_name'])) {
+			redirect("forbidden");
+		}
+
 		$result = array();
+		$list_data = $this->Bom_item_mixing_groups_model->get_details(['item_id' => $item_id])->result();
+
 		foreach ($list_data as $data) {
 			$result[] = $this->_detail_mixing_make_row($data);
 		}
+
 		echo json_encode(array("data" => $result));
 	}
 
@@ -1370,55 +1351,33 @@ class Items extends MY_Controller
 		$category_id = $this->input->post('category_id');
 		$options = array("category_id" => $category_id);
 
-		$list_data = $this->Items_model->get_details($options, $this->getRolePermission)->result();
-		//var_dump($list_data); exit;
-
 		$result = array();
-
-		foreach ($list_data as $data) {
-
+		$list_data = $this->Items_model->get_details($options, $this->getRolePermission)->result();
+		
+		foreach ($list_data as $data) 
+		{
 			$type = $data->unit_type ? $data->unit_type : "";
 			$show_in_client_portal_icon = "";
 			if ($data->show_in_client_portal && $this->cp('orders', 'view_row')) {
 				$show_in_client_portal_icon = "<i title='" . lang("showing_in_client_portal") . "' class='fa fa-shopping-basket'></i> ";
 			}
-
-			//$preview = '<img class="product-preview" src="'.base_url('assets/images/file_preview.jpg').'" />';
 			$images = @unserialize($data->files);
 			if (is_array($images) && sizeof($images)) {
 				$preview = '<img class="product-preview" src="' . base_url('files/timeline_files/' . $images[sizeof($images) - 1]['file_name']) . '" />';
 			}
 
 			$buttons = array();
-			
 			if (empty($this->getRolePermission['read_only'])) {
 
-				$buttons[] = modal_anchor(get_uri("" . $this->className . "/modal_form"), "<i class='fa fa-pencil'></i>", array("class" => "edit", "title" => lang('edit_item'), "data-post-id" => $data->id))
-				
-				.
-				
+				$buttons[] = modal_anchor(get_uri("" . $this->className . "/modal_form"), "<i class='fa fa-pencil'></i>", array("class" => "edit", "title" => lang('edit_item'), "data-post-id" => $data->id)) 
+				. 
 				js_anchor("<i class='fa fa-times fa-fw'></i>", array('title' => lang('delete'), "class" => "delete", "data-id" => $data->id, "data-action-url" => get_uri("" . $this->className . "/delete"), "data-action" => "delete"));
 
 			}
 
 			$result[] = $this->_make_item_row($data);
-			/* $result[] = array(
-			$preview,
-			($this->cp('stock', 'view_row') != '0' && $this->cp('stock', 'edit_row')
-			? anchor(get_uri(''. $this->className .'/detail/' . $data->id), $data->title)
-			: modal_anchor(get_uri(''. $this->className .'/view'), $show_in_client_portal_icon . $data->title, array("title" => lang("item_details"), "data-post-id" => $data->id))
-			),
-			nl2br($data->description),
-			$data->category_title ? $data->category_title : "-",
-			$type,
-			$data->rate,
-			@$data->labels,
-			
-			implode( '', $buttons )
-			); */
-
 		}
-		// var_dump(arr($result)); exit;
+
 		echo json_encode(array("data" => $result));
 	}
 }

@@ -76,6 +76,26 @@ if (empty($model_info->id)) {
 </div>
 
 <div class="form-group">
+	<label for="account_id" class="<?php echo $label_column; ?>">
+		<?php echo lang('account_category'); ?>
+	</label>
+	<div class="<?php echo $field_column; ?>">
+		<?php
+		echo form_input(
+			array(
+				"id" => "account_id",
+				"name" => "account_id",
+				"value" => $model_info->account_id ? $model_info->account_id : null,
+				"class" => "form-control",
+				"placeholder" => lang('account_category'),
+				"readonly" => $readonly
+			)
+		);
+		?>
+	</div>
+</div>
+
+<div class="form-group">
 	<label for="description" class="<?php echo $label_column; ?>">
 		<?php echo lang('stock_material_description'); ?>
 	</label>
@@ -154,5 +174,6 @@ if (empty($model_info->id)) {
 	$(document).ready(function () {
 		$('[data-toggle="tooltip"]').tooltip();
 		$('#category_id').select2({ data: <?php echo json_encode($category_dropdown); ?> });
+		$('#account_id').select2({ data: <?php echo json_encode($account_category); ?> });
 	});
 </script>
