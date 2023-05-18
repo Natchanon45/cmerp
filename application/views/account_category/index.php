@@ -32,6 +32,7 @@
             source: '<?php echo_uri("account_category/get_category_list"); ?>',
             columns: [
                 { title: '<?php echo lang("id"); ?>', class: 'w50 text-center' },
+                { title: '<?php echo lang("code"); ?>', class: 'w100 text-center' },
                 { title: '<?php echo lang("title"); ?>' },
                 { title: '<?php echo lang("created_by"); ?>', class: 'w150 text-center' },
                 { title: '<?php echo lang("created_date"); ?>', class: 'w150 text-center' }

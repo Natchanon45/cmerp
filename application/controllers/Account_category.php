@@ -25,7 +25,8 @@ class Account_category extends MY_Controller
         foreach ($list as $item) {
             $data[] = array(
                 $item->id,
-                lang($item->title) ? lang($item->title) : $item->title,
+                $item->account_code,
+                lang($item->account_name) ? lang($item->account_name) : $item->account_name,
                 $item->created_by == 0 ? "System" : $this->Account_category_model->created_by($item->created_by),
                 format_to_date($item->created_date)
             );
@@ -37,11 +38,13 @@ class Account_category extends MY_Controller
     function post_category()
     {
         validate_submitted_data(array(
+            "code" => "required",
             "title" => "required"
         ));
 
         $data = array(
-            "title" => $this->input->post("title"),
+            "account_code" => $this->input->post("code"),
+            "account_name" => $this->input->post("title"),
             "created_by" => $this->login_user->id
         );
 
@@ -50,7 +53,8 @@ class Account_category extends MY_Controller
 
         $result = array(
             $insert_result[0]->id,
-            lang($insert_result[0]->title) ? lang($insert_result[0]->title) : $insert_result[0]->title,
+            $insert_result[0]->account_code,
+            lang($insert_result[0]->account_name) ? lang($insert_result[0]->account_name) : $insert_result[0]->account_name,
             $insert_result[0]->created_by == 0 ? "System" : $this->Account_category_model->created_by($insert_result[0]->created_by),
             format_to_date($insert_result[0]->created_date)
         );

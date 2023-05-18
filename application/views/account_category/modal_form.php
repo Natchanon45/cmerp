@@ -3,6 +3,19 @@
 <div class="modal-body clearfix">
 
     <div class="form-group">
+        <label for="title" class="col-md-3"><?php echo lang('code'); ?></label>
+        <div class="col-md-9">
+            <?php echo form_input(array(
+                "id" => "code",
+                "name" => "code",
+                "class" => "form-control",
+                "placeholder" => lang('code'),
+                "required" => true
+            )); ?>
+        </div>
+    </div>
+
+    <div class="form-group">
         <label for="title" class="col-md-3"><?php echo lang('title'); ?></label>
         <div class="col-md-9">
             <?php echo form_input(array(
@@ -36,6 +49,6 @@
             }
         });
 
-        $("#title").focus();
+        $("#code").focus();
     });
 </script>
