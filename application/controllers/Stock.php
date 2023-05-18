@@ -4001,6 +4001,7 @@ class Stock extends MY_Controller
                 $view_data["view"] = $this->input->post('view');
                 $view_data['model_info'] = $this->Bom_item_model->get_one($item_id);
                 $view_data["category_dropdown"] = $this->Bom_item_model->get_category_dropdown();
+                $view_data["account_category"] = $this->Account_category_model->get_list_dropdown();
 
                 if (empty($view_data['model_info']->id)) {
                         if (!$this->check_permission('bom_material_create'))
@@ -4040,9 +4041,11 @@ class Stock extends MY_Controller
                 );
 
                 $category_id = $this->input->post('category_id');
+                $account_id = $this->input->post('account_id');
                 $data = array(
                         "title" => $this->input->post('name'),
                         "category_id" => $category_id ? $category_id : null,
+                        "account_id" => $account_id ? $account_id : null,
                         "description" => $this->input->post('description') ? $this->input->post('description') : '',
                         "unit_type" => $this->input->post('unit'),
                         "barcode" => $this->input->post('barcode'),
