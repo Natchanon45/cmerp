@@ -12,6 +12,8 @@ class Stock extends MY_Controller
         {
                 parent::__construct();
                 require_once(APPPATH . "third_party/php-excel-writer/src/ExcelWriter.php");
+
+                $this->load->model("Account_category_model");
         }
 
         function index()
@@ -941,6 +943,8 @@ class Stock extends MY_Controller
                         "category_id" => $this->input->post("category_id")
                 );
                 $list_data = $this->Bom_materials_model->get_details($options)->result();
+                // var_dump(arr($list_data)); exit;
+                
                 $result = array();
                 foreach ($list_data as $data) {
                         $result[] = $this->_material_make_row($data);
@@ -994,26 +998,28 @@ class Stock extends MY_Controller
 
                 if ($this->check_permission('bom_material_read_production_name')) {
                         $row_data = array(
-                                $data->id,
+                                anchor(get_uri('stock/material_view/' . $data->id), $data->id),
                                 $preview,
                                 anchor(get_uri('stock/material_view/' . $data->id), $data->name),
                                 $data->production_name ? $data->production_name : '-',
                                 $data->barcode ? '<div style="text-align:center"><a href="' . $src . '" class="barcode_img" download><img src="' . $src . '" /><div class="text">Click to download</div></a></div>' : '-',
                                 //$data->barcode? Barcode::render( 'code128', 'image', @$databarcode, @$rendererOptions ): '-',
                                 $data->category ? $data->category : '-',
+                                $data->account_id ? $this->Account_category_model->account_by($data->account_id) : "-",
                                 $data->description ? $data->description : '-',
-                                $data->remaining ? to_decimal_format2($data->remaining) : 0,
+                                $data->remaining ? to_decimal_format3($data->remaining) : 0,
                                 $data->unit ? $data->unit : '-'
                         );
                 } else {
                         $row_data = array(
-                                $data->id,
+                                anchor(get_uri('stock/material_view/' . $data->id), $data->id),
                                 $preview,
                                 anchor(get_uri('stock/material_view/' . $data->id), $data->name),
                                 $data->barcode ? '<div style="text-align:center"><a href="' . $src . '" class="barcode_img" download><img src="' . $src . '" /><div class="text">Click to download</div></a></div>' : '-',
                                 $data->category ? $data->category : '-',
+                                $data->account_id ? $this->Account_category_model->account_by($data->account_id) : "-",
                                 $data->description ? $data->description : '-',
-                                $data->remaining ? to_decimal_format2($data->remaining) : 0,
+                                $data->remaining ? to_decimal_format3($data->remaining) : 0,
                                 $data->unit ? $data->unit : '-'
                         );
                 }
@@ -1064,13 +1070,14 @@ class Stock extends MY_Controller
                 $view_data["view"] = $this->input->post('view');
                 $view_data['model_info'] = $this->Bom_materials_model->get_one($material_id);
                 $view_data["category_dropdown"] = $this->Bom_materials_model->get_category_dropdown();
+                $view_data["account_category"] = $this->Account_category_model->get_list_dropdown();
 
                 if (empty($view_data['model_info']->id)) {
                         if (!$this->check_permission('bom_material_create'))
                                 redirect("forbidden");
                 }
 
-                // var_dump(arr($view_data)); exit;
+                // var_dump(arr($view_data["category_dropdown"])); var_dump(arr($view_data["account_category"])); exit;
                 $this->load->view('stock/material/modal', $view_data);
         }
 
@@ -1103,10 +1110,14 @@ class Stock extends MY_Controller
                         )
                 );
 
+                $id = $this->input->post('id');
                 $category_id = $this->input->post('category_id');
+                $account_id = $this->input->post('account_id');
+                
                 $data = array(
                         "name" => $this->input->post('name'),
                         "category_id" => $category_id ? $category_id : null,
+                        "account_id" => $account_id ? $account_id : null,
                         "description" => $this->input->post('description') ? $this->input->post('description') : '',
                         "type" => $this->input->post('type') ? $this->input->post('type') : '',
                         "unit" => $this->input->post('unit'),
@@ -1116,10 +1127,16 @@ class Stock extends MY_Controller
 
                 $new_files = [];
                 $target_path = get_setting("timeline_file_path");
+                $timeline_file_path = get_setting("timeline_file_path");
 
                 $files_data = move_files_from_temp_dir_to_permanent_dir($target_path, "material");
                 $new_files = unserialize($files_data);
+                if ($id) {
+                        $mat_info = $this->Bom_materials_model->get_one($id);
+                        $new_files = update_saved_files($timeline_file_path, $mat_info->files, $new_files);
+                }
                 // ALTER TABLE `bom_materials` ADD COLUMN `files` MEDIUMTEXT AFTER `unit`;
+                // ALTER TABLE `bom_materials` ADD `account_id` INT NULL AFTER `category_id`; 
 
                 if (!$material_id) {
                         $data["created_date"] = get_current_utc_time();
@@ -3918,8 +3935,9 @@ class Stock extends MY_Controller
                                 //$data->barcode? Barcode::render( 'code128', 'image', @$databarcode, @$rendererOptions ): '-',
                                 $data->rate ? $data->rate : '-',
                                 $data->category ? $data->category : '-',
+                                $data->account_id ? $this->Account_category_model->account_by($data->account_id) : "-",
                                 $data->description ? $data->description : '-',
-                                $data->remaining ? to_decimal_format2($data->remaining) : 0,
+                                $data->remaining ? to_decimal_format3($data->remaining) : 0,
                                 $data->unit_type ? $data->unit_type : '-'
                         );
                 } else {
@@ -3930,8 +3948,9 @@ class Stock extends MY_Controller
                                 anchor(get_uri('stock/item_view/' . $data->id), $data->title),
                                 $data->barcode ? '<div style="text-align:center"><a href="' . $src . '" class="barcode_img" download><img src="' . $src . '" /><div class="text">Click to download</div></a></div>' : '-',
                                 $data->category ? $data->category : '-',
+                                $data->account_id ? $this->Account_category_model->account_by($data->account_id) : "-",
                                 $data->description ? $data->description : '-',
-                                $data->remaining ? to_decimal_format2($data->remaining) : 0,
+                                $data->remaining ? to_decimal_format3($data->remaining) : 0,
                                 $data->unit_type ? $data->unit_type : '-'
                         );
                 }
