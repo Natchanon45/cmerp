@@ -21,16 +21,11 @@ class Permission_m extends MY_Model {
 	public $approve_purchase_request = false;
 
 	function __construct() {		
-		if(isset($this->login_user)){
-			if($this->login_user->is_admin == 1){
-				$this->setAdmin();
-			}else{
-		        $prow = $this->db->select("permissions")
-							        			->from("roles")
-							        			->where("id", $this->login_user->role_id)
-							        			->where("deleted", 0)
-							        			->get()->row();
-							        			
+		$urow = $this->db->select("is_admin, role_id")
+								->from("users")
+								->where("id", $this->session->userdata("user_id"))
+								->get()->row();
+
 		if(empty($urow)) return;
 
 		if($urow->is_admin == 1){
