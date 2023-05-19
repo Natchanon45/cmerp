@@ -1,7 +1,7 @@
 <?php
 
-class Quotations_m extends MY_Model {
-    private $code = "QT";
+class Invoices_m extends MY_Model {
+    private $code = "INV";
 
     function __construct() {
         parent::__construct();
@@ -17,35 +17,32 @@ class Quotations_m extends MY_Model {
         }
     }
 
-    function getIndexDataSetHTML($qrow){
-        $doc_status = "<select class='dropdown_status' data-doc_id='".$qrow->id."'>";
+    function getIndexDataSetHTML($invrow){
+        $doc_status = "<select class='dropdown_status' data-doc_id='".$invrow->id."'>";
 
-        if($qrow->status == "W"){
-            $doc_status .= "<option selected>รออนุมัติ</option>";
-            $doc_status .= "<option value='A'>อนุมัติ</option>";
-            $doc_status .= "<option value='R'>ไม่อนุมัติ</option>";
-        }elseif($qrow->status == "A"){
-            $doc_status .= "<option selected>อนุมัติ</option>";
-            $doc_status .= "<option value='P'>ดำเนินการแล้ว</option>";
-            $doc_status .= "<option value='R'>ไม่อนุมัติ</option>";
+        if($invrow->status == "W"){
+            $doc_status .= "<option selected>รอดำเนินการ</option>";
+            $doc_status .= "<option value='B'>วางบิล</option>";
+            //$doc_status .= "<option value='R'>สร้างใบเสร็จรับเงิน</option>";
+            $doc_status .= "<option value='C'>ยกเลิก</option>";
+        }elseif($invrow->status == "B"){
+            $doc_status .= "<option selected>รอเก็บเงิน</option>";
+            //$doc_status .= "<option value='R'>สร้างใบเสร็จรับเงิน</option>";
+            $doc_status .= "<option value='C'>ยกเลิก</option>";
             $doc_status .= "<option value='RESET'>รีเซ็ต</option>";
-        }elseif($qrow->status == "R"){
-            $doc_status .= "<option selected>ไม่อนุมัติ</option>";
-            $doc_status .= "<option value='RESET'>รีเซ็ต</option>";
-        }elseif($qrow->status == "P"){
-            $doc_status .= "<option selected>ดำเนินการแล้ว</option>";
+        }elseif($invrow->status == "C"){
+            $doc_status .= "<option selected>ยกเลิก</option>";
             $doc_status .= "<option value='RESET'>รีเซ็ต</option>";
         }
 
         $doc_status .= "</select>";
 
-
         $data = [
-                    "<a href='".get_uri("quotations/view/".$qrow->id)."'>".convertDate($qrow->doc_date, true)."</a>",
-                    "<a href='".get_uri("quotations/view/".$qrow->id)."'>".$qrow->doc_number."</a>",
-                    "<a href='".get_uri("clients/view/".$qrow->client_id)."'>".$this->Clients_m->getCompanyName($qrow->client_id)."</a>",
-                    convertDate($qrow->doc_date, true), number_format($qrow->total, 2), $doc_status,
-                    "<a data-post-id='".$qrow->id."' data-action-url='".get_uri("quotations/addedit")."' data-act='ajax-modal' class='edit'><i class='fa fa-pencil'></i></a><a data-id='".$qrow->id."' data-action-url='".get_uri("quotations/delete_doc")."' data-action='delete' class='delete'><i class='fa fa-times fa-fw'></i></a>"
+                    "<a href='".get_uri("invoices/view/".$invrow->id)."'>".convertDate($invrow->doc_date, 2)."</a>",
+                    "<a href='".get_uri("invoices/view/".$invrow->id)."'>".$invrow->doc_number."</a>",
+                    "<a href='".get_uri("clients/view/".$invrow->client_id)."'>".$this->Clients_m->getCompanyName($invrow->client_id)."</a>",
+                    convertDate($invrow->due_date, true), number_format($invrow->total, 2), $doc_status,
+                    "<a data-post-id='".$invrow->id."' data-action-url='".get_uri("invoices/addedit")."' data-act='ajax-modal' class='edit'><i class='fa fa-pencil'></i></a><a data-id='".$invrow->id."' data-action-url='".get_uri("invoices/delete_doc")."' data-action='delete' class='delete'><i class='fa fa-times fa-fw'></i></a>"
                 ];
 
         return $data;
@@ -54,10 +51,9 @@ class Quotations_m extends MY_Model {
     function indexDataSet() {
         $db = $this->db;
 
-        $db->select("*")->from("quotation");
+        $db->select("*")->from("invoice");
 
         if($this->input->post("status") != null){
-            log_message("error", $this->input->post("status"));
             $db->where("status", $this->input->post("status"));
         }
 
@@ -68,12 +64,12 @@ class Quotations_m extends MY_Model {
 
         $db->where("deleted", 0);
 
-        $qrows = $db->get()->result();
+        $invrows = $db->get()->result();
 
         $dataset = [];
 
-        foreach($qrows as $qrow){
-            $dataset[] = $this->getIndexDataSetHTML($qrow);
+        foreach($invrows as $invrow){
+            $dataset[] = $this->getIndexDataSetHTML($invrow);
         }
 
         return $dataset;
@@ -84,7 +80,7 @@ class Quotations_m extends MY_Model {
 
         $this->data["doc_date"] = date("Y-m-d");
         $this->data["credit"] = "0";
-        $this->data["doc_valid_until_date"] = date("Y-m-d");
+        $this->data["due_date"] = date("Y-m-d");
         $this->data["reference_number"] = "";
         $this->data["discount_type"] = "P";
         $this->data["discount_percent"] = 0;
@@ -96,39 +92,35 @@ class Quotations_m extends MY_Model {
         $this->data["remark"] = null;
         $this->data["created_by"] = null;
         $this->data["created_datetime"] = null;
-        $this->data["approved_by"] = null;
-        $this->data["approved_datetime"] = null;
         $this->data["doc_status"] = NULL;
 
         if(!empty($docId)){
-            $qrow = $db->select("*")
-                        ->from("quotation")
+            $invrow = $db->select("*")
+                        ->from("invoice")
                         ->where("id", $docId)
                         ->where("deleted", 0)
                         ->get()->row();
 
-            if(empty($qrow)) return $this->data;
+            if(empty($invrow)) return $this->data;
 
             $this->data["doc_id"] = $docId;
-            $this->data["doc_number"] = $qrow->doc_number;
-            $this->data["doc_date"] = $qrow->doc_date;
-            $this->data["credit"] = $qrow->credit;
-            $this->data["doc_valid_until_date"] = $qrow->doc_valid_until_date;
-            $this->data["reference_number"] = $qrow->reference_number;
-            $this->data["discount_type"] = $qrow->discount_type;
-            $this->data["discount_percent"] = $qrow->discount_percent;
-            $this->data["discount_amount"] = $qrow->discount_amount;
-            $this->data["vat_inc"] = $qrow->vat_inc;
-            $this->data["vat_percent"] = number_format_drop_zero_decimals($qrow->vat_percent, 2)."%";
-            $this->data["wht_inc"] = $qrow->wht_inc;
-            $this->data["project_id"] = $qrow->project_id;
-            $this->data["client_id"] = $qrow->client_id;
-            $this->data["remark"] = $qrow->remark;
-            $this->data["created_by"] = $qrow->created_by;
-            $this->data["created_datetime"] = $qrow->created_datetime;
-            $this->data["approved_by"] = $qrow->approved_by;
-            $this->data["approved_datetime"] = $qrow->approved_datetime;
-            $this->data["doc_status"] = $qrow->status;
+            $this->data["doc_number"] = $invrow->doc_number;
+            $this->data["doc_date"] = $invrow->doc_date;
+            $this->data["credit"] = $invrow->credit;
+            $this->data["due_date"] = $invrow->due_date;
+            $this->data["reference_number"] = $invrow->reference_number;
+            $this->data["discount_type"] = $invrow->discount_type;
+            $this->data["discount_percent"] = $invrow->discount_percent;
+            $this->data["discount_amount"] = $invrow->discount_amount;
+            $this->data["vat_inc"] = $invrow->vat_inc;
+            $this->data["vat_percent"] = number_format_drop_zero_decimals($invrow->vat_percent, 2)."%";
+            $this->data["wht_inc"] = $invrow->wht_inc;
+            $this->data["project_id"] = $invrow->project_id;
+            $this->data["client_id"] = $invrow->client_id;
+            $this->data["remark"] = $invrow->remark;
+            $this->data["created_by"] = $invrow->created_by;
+            $this->data["created_datetime"] = $invrow->created_datetime;
+            $this->data["doc_status"] = $invrow->status;
         }
 
         $this->data["status"] = "success";
@@ -157,13 +149,13 @@ class Quotations_m extends MY_Model {
             $vat_inc = $this->json->vat_inc == true ? "Y":"N";
             $wht_inc = $this->json->wht_inc == true ? "Y":"N";
             
-            $qrow = $db->select("*")
-                        ->from("quotation")
+            $invrow = $db->select("*")
+                        ->from("invoice")
                         ->where("id", $docId)
                         ->where("deleted", 0)
                         ->get()->row();
 
-            if(empty($qrow)) return $this->data;
+            if(empty($invrow)) return $this->data;
 
             $discount_type = $this->json->discount_type;
 
@@ -174,35 +166,34 @@ class Quotations_m extends MY_Model {
             }else{
                 $discount_amount = getNumber($this->json->discount_value);
             }
-            
 
             if($vat_inc == "Y") $vat_percent = $this->Taxes_m->getVatPercent();
             if($wht_inc == "Y") $wht_percent = getNumber($this->json->wht_percent);
 
         }else{
-            $qrow = $db->select("*")
-                        ->from("quotation")
+            $invrow = $db->select("*")
+                        ->from("invoice")
                         ->where("id", $docId)
                         ->where("deleted", 0)
                         ->get()->row();
 
-            if(empty($qrow)) return $this->data;            
+            if(empty($invrow)) return $this->data;            
 
-            $discount_type = $qrow->discount_type;
-            $discount_percent = $qrow->discount_percent;
-            $discount_amount = $qrow->discount_amount;
+            $discount_type = $invrow->discount_type;
+            $discount_percent = $invrow->discount_percent;
+            $discount_amount = $invrow->discount_amount;
 
 
-            $vat_inc = $qrow->vat_inc;
-            $wht_inc = $qrow->wht_inc;
+            $vat_inc = $invrow->vat_inc;
+            $wht_inc = $invrow->wht_inc;
 
-            if($vat_inc == "Y") $vat_percent = $qrow->vat_percent;
-            if($wht_inc == "Y") $wht_percent = $qrow->wht_percent;
+            if($vat_inc == "Y") $vat_percent = $invrow->vat_percent;
+            if($wht_inc == "Y") $wht_percent = $invrow->wht_percent;
         }
         
         $sub_total_before_discount = $db->select("SUM(total_price) AS SUB_TOTAL")
-                                        ->from("quotation_items")
-                                        ->where("quotation_id", $docId)
+                                        ->from("invoice_items")
+                                        ->where("invoice_id", $docId)
                                         ->get()->row()->SUB_TOTAL;
 
         if($sub_total_before_discount == null) $sub_total_before_discount = 0;
@@ -215,6 +206,8 @@ class Quotations_m extends MY_Model {
             if($discount_amount < 0) $discount_amount = 0;
         }
 
+
+
         $sub_total = $sub_total_before_discount - $discount_amount;
 
         if($vat_inc == "Y") $vat_value = ($sub_total * $vat_percent)/100;
@@ -224,7 +217,7 @@ class Quotations_m extends MY_Model {
         $payment_amount = $total - $wht_value;
 
         $db->where("id", $docId);
-        $db->update("quotation", [
+        $db->update("invoice", [
                                     "sub_total_before_discount"=>$sub_total_before_discount,
                                     "discount_type"=>$discount_type,
                                     "discount_percent"=>$discount_percent,
@@ -254,7 +247,6 @@ class Quotations_m extends MY_Model {
         $this->data["wht_percent"] = number_format_drop_zero_decimals($wht_percent, 2);
         $this->data["wht_value"] = number_format($wht_value, 2);
         $this->data["payment_amount"] = number_format($payment_amount, 2);
-
         $this->data["status"] = "success";
         $this->data["message"] = lang("record_saved");
 
@@ -271,7 +263,7 @@ class Quotations_m extends MY_Model {
                                                 'rules' => 'required'
                                             ],
                                             [
-                                                "field"=>"doc_valid_until_date",
+                                                "field"=>"due_date",
                                                 'label' => '',
                                                 'rules' => 'required'
                                             ],
@@ -285,42 +277,40 @@ class Quotations_m extends MY_Model {
         if ($this->form_validation->run() == FALSE){
             $this->data["status"] = "validate";
             if(form_error('doc_date') != null) $this->data["messages"]["doc_date"] = form_error('doc_date');
-            if(form_error('doc_valid_until_date') != null) $this->data["messages"]["doc_valid_until_date"] = form_error('doc_valid_until_date');
+            if(form_error('due_date') != null) $this->data["messages"]["due_date"] = form_error('due_date');
             if(form_error('client_id') != null) $this->data["messages"]["client_id"] = form_error('client_id');
         }
-
     }
 
     function saveDoc(){
         $db = $this->db;
-        
+
         $this->validateDoc();
         if($this->data["status"] == "validate") return $this->data;
 
         $docId = $this->json->doc_id;
         $doc_date = convertDate($this->json->doc_date);
-        $credit = intval($this->json->credit) < 0 ? 0:intval($this->json->credit);
-        $doc_valid_until_date = date('Y-m-d', strtotime($doc_date." + ".$credit." days"));
+        $credit = $this->json->credit;
+        $due_date = date('Y-m-d', strtotime($doc_date." + ".$credit." days"));
         $reference_number = $this->json->reference_number;
         $client_id = $this->json->client_id;
         $project_id = $this->json->project_id;
         $remark = $this->json->remark;
 
-
         if($docId != ""){
-            $qrow = $db->select("status")
-                        ->from("quotation")
+            $invrow = $db->select("status")
+                        ->from("invoice")
                         ->where("id", $docId)
                         ->where("deleted", 0)
                         ->get()->row();
 
-            if(empty($qrow)){
+            if(empty($invrow)){
                 $this->data["success"] = false;
                 $this->data["message"] = "ขออภัย เกิดข้อผิดพลาดระหว่างดำเนินการ! โปรดลองใหม่อีกครั้งในภายหลัง";
                 return $this->data;
             }
 
-            if($qrow->status != "W"){
+            if($invrow->status != "W"){
                 $this->data["success"] = false;
                 $this->data["message"] = "ไม่สามารถบันทึกเอกสารได้เนื่องจากเอกสารมีการเปลี่ยนแปลงสถานะแล้ว";
                 return $this->data;
@@ -329,10 +319,10 @@ class Quotations_m extends MY_Model {
 
             $db->where("id", $docId);
             $db->where("deleted", 0);
-            $db->update("quotation", [
+            $db->update("invoice", [
                                         "doc_date"=>$doc_date,
                                         "credit"=>$credit,
-                                        "doc_valid_until_date"=>$doc_valid_until_date,
+                                        "due_date"=>$due_date,
                                         "reference_number"=>$reference_number,
                                         "client_id"=>$client_id,
                                         "project_id"=>$project_id,
@@ -340,15 +330,15 @@ class Quotations_m extends MY_Model {
                                     ]);
         }else{
             $db->where("DATE_FORMAT(created_datetime,'%Y-%m')", date("Y-m"));
-            $running_number = $db->get("quotation")->num_rows() + 1;
+            $running_number = $db->get("invoice")->num_rows() + 1;
 
             $doc_number = $this->getCode().date("Ym").sprintf("%04d", $running_number);
             
-            $db->insert("quotation", [
+            $db->insert("invoice", [
                                         "doc_number"=>$doc_number,
                                         "doc_date"=>$doc_date,
                                         "credit"=>$credit,
-                                        "doc_valid_until_date"=>$doc_valid_until_date,
+                                        "due_date"=>$due_date,
                                         "reference_number"=>$reference_number,
                                         "vat_inc"=>"N",
                                         "client_id"=>$client_id,
@@ -362,7 +352,7 @@ class Quotations_m extends MY_Model {
             $docId = $db->insert_id();
         }
         
-        $this->data["target"] = get_uri("quotations/view/". $docId);
+        $this->data["target"] = get_uri("invoices/view/". $docId);
         $this->data["status"] = "success";
 
         return $this->data;
@@ -372,26 +362,26 @@ class Quotations_m extends MY_Model {
         $db = $this->db;
         $docId = $this->input->post("id");
 
-        $qrow = $db->select("status")
-                        ->from("quotation")
+        $invrow = $db->select("status")
+                        ->from("invoice")
                         ->where("id", $docId)
                         ->get()->row();
 
-        if(empty($qrow)) return $this->data;
+        if(empty($invrow)) return $this->data;
 
-        if($qrow->status != "W"){
+        if($invrow->status != "W"){
             $this->data["success"] = false;
             $this->data["message"] = "คุณไม่สามารถลบเอกสารได้ เนื่องจากเอกสารมีการเปลี่ยนแปลงสถานะแล้ว";
             return $this->data;
         }
 
         $db->where("id", $docId);
-        $db->update("quotation", ["deleted"=>1]);
+        $db->update("invoice", ["deleted"=>1]);
 
-        $data["success"] = true;
-        $data["message"] = lang('record_deleted');
+        $this->data["success"] = true;
+        $this->data["message"] = lang('record_deleted');
 
-        return $data;
+        return $this->data;
     }
 
     function undoDoc(){
@@ -399,15 +389,15 @@ class Quotations_m extends MY_Model {
         $docId = $this->input->post("id");
 
         $db->where("id", $docId);
-        $db->update("quotation", ["deleted"=>0]);
+        $db->update("invoice", ["deleted"=>0]);
 
-        $qrow = $db->select("*")
-                    ->from("quotation")
+        $invrow = $db->select("*")
+                    ->from("invoice")
                     ->where("id", $docId)
                     ->get()->row();
 
         $data["success"] = true;
-        $data["data"] = $this->getIndexDataSetHTML($qrow);
+        $data["data"] = $this->getIndexDataSetHTML($invrow);
         $data["message"] = lang('record_undone');
 
         return $data;
@@ -416,21 +406,21 @@ class Quotations_m extends MY_Model {
     function items(){
         $db = $this->db;
         
-        $qrow = $db->select("id, status")
-                        ->from("quotation")
+        $invrow = $db->select("id, status")
+                        ->from("invoice")
                         ->where("id", $this->json->doc_id)
                         ->where("deleted", 0)
                         ->get()->row();
 
-        if(empty($qrow)) return $this->data;
+        if(empty($invrow)) return $this->data;
 
-        $qirows = $db->select("*")
-                        ->from("quotation_items")
-                        ->where("quotation_id", $this->json->doc_id)
+        $invirows = $db->select("*")
+                        ->from("invoice_items")
+                        ->where("invoice_id", $this->json->doc_id)
                         ->order_by("id", "asc")
                         ->get()->result();
 
-        if(empty($qirows)){
+        if(empty($invirows)){
             $this->data["status"] = "notfound";
             $this->data["message"] = "ไม่พบข้อมูล";
             return $this->data;
@@ -438,19 +428,19 @@ class Quotations_m extends MY_Model {
 
         $items = [];
 
-        foreach($qirows as $qirow){
-            $item["id"] = $qirow->id;
-            $item["product_name"] = $qirow->product_name;
-            $item["product_description"] = $qirow->product_description;
-            $item["quantity"] = $qirow->quantity;
-            $item["unit"] = $qirow->unit;
-            $item["price"] = number_format($qirow->price, 2);
-            $item["total_price"] = number_format($qirow->total_price, 2);
+        foreach($invirows as $invirow){
+            $item["id"] = $invirow->id;
+            $item["product_name"] = $invirow->product_name;
+            $item["product_description"] = $invirow->product_description;
+            $item["quantity"] = $invirow->quantity;
+            $item["unit"] = $invirow->unit;
+            $item["price"] = number_format($invirow->price, 2);
+            $item["total_price"] = number_format($invirow->total_price, 2);
 
             $items[] = $item;
         }
 
-        $this->data["doc_status"] = $qrow->status;
+        $this->data["doc_status"] = $invrow->status;
         $this->data["items"] = $items;
         $this->data["status"] = "success";
 
@@ -462,13 +452,13 @@ class Quotations_m extends MY_Model {
         $docId = $this->input->post("doc_id");
         $itemId = $this->input->post("item_id");
 
-        $qrow = $db->select("id")
-                        ->from("quotation")
+        $invrow = $db->select("id")
+                        ->from("invoice")
                         ->where("id", $docId)
                         ->where("deleted", 0)
                         ->get()->row();
 
-        if(empty($qrow)) return $this->data;
+        if(empty($invrow)) return $this->data;
 
         $this->data["doc_id"] = $docId;
         $this->data["product_id"] = "";
@@ -481,9 +471,9 @@ class Quotations_m extends MY_Model {
 
         if(!empty($itemId)){
             $qirow = $db->select("*")
-                        ->from("quotation_items")
+                        ->from("invoice_items")
                         ->where("id", $itemId)
-                        ->where("quotation_id", $docId)
+                        ->where("invoice_id", $docId)
                         ->get()->row();
 
             if(empty($qirow)) return $this->data;
@@ -531,14 +521,14 @@ class Quotations_m extends MY_Model {
         $db = $this->db;
         $docId = isset($this->json->doc_id)?$this->json->doc_id:null;
 
-        $qrow = $db->select("id")
-                    ->from("quotation")
+        $invrow = $db->select("id")
+                    ->from("invoice")
                     ->where("id", $docId)
                     ->where("deleted", 0)
                     ->get()->row();
 
-        if(empty($qrow)) return $this->data;
-        
+        if(empty($invrow)) return $this->data;
+      
         $this->validateItem();
         if($this->data["status"] == "validate") return $this->data;
 
@@ -560,7 +550,7 @@ class Quotations_m extends MY_Model {
         }*/
 
         $fdata = [
-                    "quotation_id"=>$docId,
+                    "invoice_id"=>$docId,
                     "product_id"=>$product_id,
                     "product_name"=>$product_name,
                     "product_description"=>$product_description,
@@ -573,15 +563,15 @@ class Quotations_m extends MY_Model {
         $db->trans_begin();
         
         if(empty($itemId)){
-            $db->where("quotation_id", $docId);
-            $total_items = $db->count_all_results("quotation_items");
-            $fdata["quotation_id"] = $docId;
+            $db->where("invoice_id", $docId);
+            $total_items = $db->count_all_results("invoice_items");
+            $fdata["invoice_id"] = $docId;
             $fdata["sort"] = $total_items + 1;
-            $db->insert("quotation_items", $fdata);
+            $db->insert("invoice_items", $fdata);
         }else{
             $db->where("id", $itemId);
-            $db->where("quotation_id", $docId);
-            $db->update("quotation_items", $fdata);
+            $db->where("invoice_id", $docId);
+            $db->update("invoice_items", $fdata);
         }
 
         
@@ -593,7 +583,7 @@ class Quotations_m extends MY_Model {
 
         $this->updateDoc($docId);
 
-        $this->data["target"] = get_uri("quotations/view/".$docId);
+        $this->data["target"] = get_uri("invoices/view/".$docId);
         $this->data["status"] = "success";
 
         return $this->data;
@@ -605,8 +595,8 @@ class Quotations_m extends MY_Model {
         $docId = $this->json->doc_id;
         
         $db->where("id", $this->json->item_id);
-        $db->where("quotation_id", $docId);
-        $db->delete("quotation_items");
+        $db->where("invoice_id", $docId);
+        $db->delete("invoice_items");
 
         if($db->affected_rows() != 1) return $this->data;
 
@@ -622,52 +612,48 @@ class Quotations_m extends MY_Model {
         $docId = $this->json->doc_id;
         $updateStatusTo = $this->json->update_status_to;
 
-        $qrow = $db->select("*")
-                    ->from("quotation")
+        $invrow = $db->select("*")
+                    ->from("invoice")
                     ->where("id",$docId)
                     ->where("deleted", 0)
                     ->get()->row();
 
-        if(empty($qrow)) return $this->data;
-        if($qrow->status == $updateStatusTo) return $this->data;
+        if(empty($invrow)) return $this->data;
+        if($invrow->status == $updateStatusTo) return $this->data;
 
         $this->data["doc_id"] = $docId;
-        $currentStatus = $qrow->status;
+        $currentStatus = $invrow->status;
 
         $this->db->trans_begin();
 
-        if($updateStatusTo == "A"){
+
+        if($updateStatusTo == "B"){
             if($currentStatus == "R"){
-                $this->data["dataset"] = $this->getIndexDataSetHTML($qrow);
+                $this->data["dataset"] = $this->getIndexDataSetHTML($invrow);
                 return $this->data;
             }
+            //log_message("error", 3);
 
             $db->where("id", $docId);
-            $db->update("quotation", [
-                                        "approved_by"=>$this->login_user->id,
-                                        "approved_datetime"=>date("Y-m-d H:i:s"),
-                                        "status"=>"A"
+            $db->update("invoice", [
+                                        "status"=>"B"
                                     ]);
 
         }elseif($updateStatusTo == "R"){
             $db->where("id", $docId);
-            $db->update("quotation", [
-                                        "approved_by"=>$this->login_user->id,
-                                        "approved_datetime"=>date("Y-m-d H:i:s"),
+            $db->update("invoice", [
                                         "status"=>"R"
                                     ]);
 
-        }elseif($updateStatusTo == "P"){
+        }elseif($updateStatusTo == "C"){
             $db->where("id", $docId);
-            $db->update("quotation", [
-                                        "status"=>"P"
+            $db->update("invoice", [
+                                        "status"=>"C"
                                     ]);
 
         }elseif($updateStatusTo == "RESET"){
             $db->where("id", $docId);
-            $db->update("quotation", [
-                                        "approved_by"=>NULL,
-                                        "approved_datetime"=>NULL,
+            $db->update("invoice", [
                                         "status"=>"W"
                                     ]);
 
@@ -675,19 +661,19 @@ class Quotations_m extends MY_Model {
 
         if ($db->trans_status() === FALSE){
             $db->trans_rollback();
-            $this->data["dataset"] = $this->getIndexDataSetHTML($qrow);
+            $this->data["dataset"] = $this->getIndexDataSetHTML($invrow);
             return $this->data;
         }
 
         $db->trans_commit();
 
-        $qrow = $db->select("*")
-                    ->from("quotation")
+        $invrow = $db->select("*")
+                    ->from("invoice")
                     ->where("id",$docId)
                     ->where("deleted", 0)
                     ->get()->row();
 
-        $this->data["dataset"] = $this->getIndexDataSetHTML($qrow);
+        $this->data["dataset"] = $this->getIndexDataSetHTML($invrow);
         $this->data["status"] = "success";
         $this->data["message"] = lang('record_saved');
         return $this->data;

@@ -90,7 +90,7 @@
         </a>
       </div>
     <?php }?>
-
+    
     <?php if($this->Permission_m->access_material_request == TRUE){?>
       <div class="grid xl-20 lg-30 md-1-3">
         <a class="box-card-01 box-shadow" href="<?php echo_uri('materialrequests'); ?>">
