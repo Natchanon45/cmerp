@@ -41,6 +41,7 @@ class Leads_m extends CI_Model {
 
         $this->db->select("id, company_name, address, phone, lead_status_id, owner_id, cf1, cf2, cf3, cf4, cf5, cf6, cf7, cf8, cf9, cf10, cf11, cf12")
                     ->from("clients")
+                    ->where("is_lead", 1)
                     ->where("deleted", 0)
                     ->where_in("lead_status_id", $status_ids);
 
