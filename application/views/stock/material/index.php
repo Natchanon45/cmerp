@@ -47,14 +47,15 @@
 			columns: [
 				{ title: "<?php echo lang("id") ?>", "class": "text-center w50" },
 				{ title: "<?php echo lang('preview_image') ?> ", "class": "w100" },
-				{ title: '<?php echo lang("stock_material_name"); ?>', "class": "w200" },
+				{ title: '<?php echo lang("stock_material_name"); ?>', "class": "" },
 				<?php if ($can_read_production_name) :?>
-					{ title: '<?php echo lang("stock_material_production_name"); ?>', "class": "w200" },
+					{ title: '<?php echo lang("stock_material_production_name"); ?>', "class": "" },
 				<?php endif; ?>
 				{ title: '<?php echo lang("stock_material_barcode"); ?>', "class": "w200" },
-				{ title: '<?php echo lang("stock_material_category"); ?>', "class": "w150" },
-				{ title: '<?php echo lang("description"); ?>' },
-				{ title: '<?php echo lang("stock_material_remaining"); ?>', "class": "text-center w150" },
+				{ title: '<?php echo lang("stock_material_category"); ?>', "class": "" },
+				{ title: '<?php echo lang("account_category"); ?>', "class": "w200" },
+				{ title: '<?php echo lang("description"); ?>', "class": "w200" },
+				{ title: '<?php echo lang("stock_material_remaining"); ?>', "class": "text-right" },
 				{ title: '<?php echo lang("stock_material_unit"); ?>', "class": "w50 text-center" },
 				{ title: '<i class="fa fa-bars"></i>', "class": "text-center option w100" }
 			],

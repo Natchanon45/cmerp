@@ -4,6 +4,7 @@
 class MY_Controller extends CI_Controller {
 
     public $login_user;
+    protected $json = null;
     protected $access_type = "";
     protected $allowed_members = array();
     protected $allowed_ticket_types = array();
@@ -18,6 +19,8 @@ class MY_Controller extends CI_Controller {
         parent::__construct();
 
 		global $class;
+
+        $this->json = json_decode(file_get_contents('php://input'));
 
         $login_user_id = $this->Users_model->login_user_id();
 
@@ -134,10 +137,11 @@ class MY_Controller extends CI_Controller {
 
 		$param['url'] = $url;
 
-        if($this->router->fetch_class() != "quotations"){
-            $this->getRolePermission = $this->db_model->getRolePermission( $param );
-            $this->getRolePermissions = $this->db_model->getRolePermissions();
-        }
+        $ignore_permission_classes = ["quotations", "invoices"];
+        if(in_array($this->router->fetch_class(), $ignore_permission_classes)) return;          
+        
+        $this->getRolePermission = $this->db_model->getRolePermission( $param );
+        $this->getRolePermissions = $this->db_model->getRolePermissions();
 
 		if( $insert == true ) {
 
@@ -162,8 +166,6 @@ class MY_Controller extends CI_Controller {
 				}
 
 			}
-
-
 		}
 		
 		

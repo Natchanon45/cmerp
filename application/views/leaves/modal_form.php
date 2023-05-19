@@ -61,14 +61,14 @@
     </div>
 
     <div id="single_day_section"  class="form-group date_section">
-        <label id="date_label" for="single_date" class=" col-md-3"><?php echo lang('date'); ?></label>
+        <label id="date_label" for="single_date" class=" col-md-3"><?php echo lang('leaves_date'); ?></label>
         <div class="col-md-9">
             <?php
             echo form_input(array(
                 "id" => "single_date",
                 "name" => "single_date",
                 "class" => "form-control",
-                "placeholder" => lang('date'),
+                "placeholder" => lang('leaves_date'),
                 "autocomplete" => "off",
                 "data-rule-required" => true,
                 "data-msg-required" => lang("field_required"),

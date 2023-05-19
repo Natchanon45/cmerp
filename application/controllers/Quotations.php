@@ -2,80 +2,95 @@
 if (!defined('BASEPATH')) exit('No direct script access allowed');
 
 class Quotations extends MY_Controller {
-
     function __construct() {
         parent::__construct();
-       
-        $this->load->model("Quotations_m");
-        $this->load->model("Clients_m");
-        $this->load->model("Users_m");
     }
 
     function index() {
-        if($this->uri->segment(3) == "jisource"){
-            echo $this->Quotations_m->jisource();
+        if($this->input->post("datatable") == true){
+            jout(["data"=>$this->Quotations_m->indexDataSet()]);
             return;
+        }elseif(isset($this->json->task)){
+            if($this->json->task == "update_doc_status") jout($this->Quotations_m->updateStatus());
+            return;    
         }
 
-        $this->check_module_availability("module_estimate");
-        
         $this->template->rander("quotations/index");
     }
 
-    function view($doc_id) {
-        $data = $this->Quotations_m->doc($doc_id);
-        if ($data["success"] == true) {
-            $data["created"] = $this->Users_m->getInfo($data["qrow"]->created_by);
-            $data["client"] = $this->Clients_m->getInfo($data["qrow"]->client_id);
-            $data["client_contact"] = $this->Clients_m->getContactInfo($data["qrow"]->client_id);
-            if($data["client"] != null) $data["client_contact"] = $this->Clients_m->getContactInfo($data["qrow"]->client_id);
+    function addedit(){
+        if(isset($this->json->task)){
+            if($this->json->task == "save_doc") jout($this->Quotations_m->saveDoc());
+            return;   
+        }
 
-            $this->template->rander("quotations/view", $data );
+        $data = $this->Quotations_m->getDoc($this->input->post("id"));
+
+        $this->load->view( 'quotations/addedit', $data);
+    }
+
+    function view() {
+        if(isset($this->json->task)){
+            if($this->json->task == "load_items") jout($this->Quotations_m->items());
+            if($this->json->task == "update_doc") jout($this->Quotations_m->updateDoc());
+            if($this->json->task == "delete_item") jout($this->Quotations_m->deleteItem());
             return;
         }
 
-        redirect('/quotations');
-    }
-
-
-    function delete() {
-        $this->access_only_allowed_members();
-
-        validate_submitted_data(array(
-            "id" => "required|numeric"
-        ));
-
-        $id = $this->input->post('id');
-        if ($this->input->post('undo')) {
-            if ($this->Estimates_model->delete($id, true)) {
-                echo json_encode(array("success" => true, "data" => $this->_row_data($id), "message" => lang('record_undone')));
-            } else {
-                echo json_encode(array("success" => false, lang('error_occurred')));
-            }
-        } else {
-            if ($this->Estimates_model->delete($id)) {
-                echo json_encode(array("success" => true, 'message' => lang('record_deleted')));
-            } else {
-                echo json_encode(array("success" => false, 'message' => lang('record_cannot_be_deleted')));
-            }
+        if(empty($this->uri->segment(3))){
+            redirect('/quotations');
+            return;
         }
+
+        $data = $this->Quotations_m->getDoc($this->uri->segment(3));
+        if ($data["status"] != "success"){
+            redirect('/quotations');
+            return;
+        }
+
+        $data["created"] = $this->Users_m->getInfo($data["created_by"]);
+        $data["client"] = $this->Clients_m->getInfo($data["client_id"]);
+        if($data["client"] != null) $data["client_contact"] = $this->Clients_m->getContactInfo($data["client_id"]);
+
+        $this->template->rander("quotations/view", $data);
     }
 
-    function jdoc(){
-        echo $this->Estimate_m->jDoc();
+
+    function delete_doc() {
+        if($this->input->post('undo') == true){
+            jout($this->Quotations_m->undoDoc());
+            return;
+        }
+
+        jout($this->Quotations_m->deleteDoc());
     }
 
-    function jitems(){
-        echo $this->Estimate_m->jItems();
+    function items(){
+        jout($this->Quotations_m->items());
     }
 
-    function save_item(){
-        echo json_encode($this->Estimate_m->saveItem());
-    }
+    function item() {
+        if(isset($this->json->task)){
+            if($this->json->task == "save") jout($this->Quotations_m->saveItem());
+            return;   
+        }
 
-    function jdelete_item(){
-        echo json_encode($this->Estimate_m->deleteItem());
+        if($this->input->get("task") != null){
+            if($this->input->get("task") == "suggest_products"){
+                $sprows = $this->Products_m->getRows();
+                if(!empty($sprows)){
+                    foreach($sprows as $sprow){
+                        $suggestion[] = ["id" => $sprow->id, "text" => $sprow->title, "description"=>$sprow->description, "unit"=>$sprow->unit_type, "price"=>$sprow->rate];
+                    }
+                }
+                //$suggestion[] = array("id" => "", "text" => "+ " . lang("create_new_item"));
+                jout($suggestion);
+            }
+            return;
+        }
+
+        $data = $this->Quotations_m->item();
+
+        $this->load->view('quotations/item', $data);
     }
-	
-	
 }

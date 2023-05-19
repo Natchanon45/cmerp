@@ -921,9 +921,12 @@ class Leads extends MY_Controller
         //$view_data["leads"] = $this->Clients_model->get_leads_kanban_details($options)->result();
         $view_data["leads"] = $this->Leads_m->kanban($options)->result();
 
-        $statuses = $this->Lead_status_model->get_details();
+        $statuses = $this->Lead_status_model->get_details(array("owner_id" => $this->input->post('owner_id')));
         $view_data["total_columns"] = $statuses->num_rows();
         $view_data["columns"] = $statuses->result();
+
+		// var_dump(arr($view_data));
+		// exit;
 
 		$this->load->view('leads/kanban/kanban_view', $view_data);
 	}
@@ -984,8 +987,6 @@ class Leads extends MY_Controller
 
         $client_id = $this->input->post('lead_id');
         $this->can_access_this_lead($client_id);
-
-        //$this->Leads_m->changeToClient();
 
         if ($client_id) {
             
@@ -1582,7 +1583,7 @@ class Leads extends MY_Controller
     * - ควรใช้ที่เครื่องทดสอบ เท่านั้น
     */
     public function transfer_exfield_to_newfield($secret = null){
-        if($secret != "xxyyzz1234") exit;
+        if($secret != "xxyyzz1234ddfdfdfsfgsgfs") exit;
 
         $cfsort = null;
         $custom_fields_table = "leads_custom_field";

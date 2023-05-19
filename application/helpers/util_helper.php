@@ -7,14 +7,15 @@ if (!function_exists('jout')){
 }
 
 if (!function_exists('convertDate')){
-    function converDate($date, $cm_format = false){
-        if($date == "") return "";
+    function convertDate($date, $cm_format = false){
+        if($date == "" || $date == null) return "";
 
         if($cm_format == false){
             list($dd, $mm, $yy) = explode("/", $date);
             return $yy."-".$mm."-".$dd;
         }
 
+        $date = explode(" ", $date)[0];
         list($yy, $mm, $dd) = explode("-", $date);
         return $dd."/".$mm."/".$yy;
         

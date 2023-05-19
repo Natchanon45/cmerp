@@ -1,16 +1,63 @@
 <?php
 
-class Quotations_m extends CI_Model {
+class Quotations_m extends MY_Model {
+    private $code = "QT";
 
-    function __construct() {}
+    function __construct() {
+        parent::__construct();
+    }
 
-    function jisource() {
+    function getCode(){
+        return $this->code;
+    }
+
+    function getStatusName($status_code){
+        if($status_code == "W"){
+            return "รออนุมัติ";
+        }
+    }
+
+    function getIndexDataSetHTML($qrow){
+        $doc_status = "<select class='dropdown_status' data-doc_id='".$qrow->id."'>";
+
+        if($qrow->status == "W"){
+            $doc_status .= "<option selected>รออนุมัติ</option>";
+            $doc_status .= "<option value='A'>อนุมัติ</option>";
+            $doc_status .= "<option value='R'>ไม่อนุมัติ</option>";
+        }elseif($qrow->status == "A"){
+            $doc_status .= "<option selected>อนุมัติ</option>";
+            $doc_status .= "<option value='P'>ดำเนินการแล้ว</option>";
+            $doc_status .= "<option value='R'>ไม่อนุมัติ</option>";
+            $doc_status .= "<option value='RESET'>รีเซ็ต</option>";
+        }elseif($qrow->status == "R"){
+            $doc_status .= "<option selected>ไม่อนุมัติ</option>";
+            $doc_status .= "<option value='RESET'>รีเซ็ต</option>";
+        }elseif($qrow->status == "P"){
+            $doc_status .= "<option selected>ดำเนินการแล้ว</option>";
+            $doc_status .= "<option value='RESET'>รีเซ็ต</option>";
+        }
+
+        $doc_status .= "</select>";
+
+
+        $data = [
+                    "<a href='".get_uri("quotations/view/".$qrow->id)."'>".convertDate($qrow->doc_date, true)."</a>",
+                    "<a href='".get_uri("quotations/view/".$qrow->id)."'>".$qrow->doc_number."</a>",
+                    "<a href='".get_uri("clients/view/".$qrow->client_id)."'>".$this->Clients_m->getCompanyName($qrow->client_id)."</a>",
+                    convertDate($qrow->doc_date, true), number_format($qrow->total, 2), $doc_status,
+                    "<a data-post-id='".$qrow->id."' data-action-url='".get_uri("quotations/addedit")."' data-act='ajax-modal' class='edit'><i class='fa fa-pencil'></i></a><a data-id='".$qrow->id."' data-action-url='".get_uri("quotations/delete_doc")."' data-action='delete' class='delete'><i class='fa fa-times fa-fw'></i></a>"
+                ];
+
+        return $data;
+    }
+
+    function indexDataSet() {
         $db = $this->db;
 
         $db->select("*")->from("quotation");
 
-
         if($this->input->post("status") != null){
+            log_message("error", $this->input->post("status"));
             $db->where("status", $this->input->post("status"));
         }
 
@@ -19,243 +66,523 @@ class Quotations_m extends CI_Model {
             $db->where("doc_date <=", $this->input->post("end_date"));
         }
 
+        $db->where("deleted", 0);
+
         $qrows = $db->get()->result();
 
-        $docs = [];
+        $dataset = [];
 
         foreach($qrows as $qrow){
-            $doc = [];
-            $doc[0] = "<a href='".get_uri("quotations/view/".$qrow->id)."'>".$qrow->doc_no."</a>";
-            $doc[1] = "<a href='".get_uri("clients/view/".$qrow->client_id)."'>".$this->Clients_m->getCompanyName($qrow->client_id)."</a>";
-            $doc[2] = $qrow->doc_date;
-            $doc[3] = $qrow->total;
-            $doc[4] = $qrow->status;
-            $doc[5] = "<a data-post-id='".$qrow->id."' data-action-url='".get_uri("estimates/modal_form")."' data-act='ajax-modal' class='edit'><i class='fa fa-pencil'></i></a>";
-            $doc[5] .= "<a data-id='".$qrow->id."' data-action-url='".get_uri("estimates/delete")."' data-action='delete' class='delete'><i class='fa fa-times fa-fw'></i></a>";
-         
-            $docs[] = $doc;
+            $dataset[] = $this->getIndexDataSetHTML($qrow);
         }
 
-        return json_encode(["data"=>$docs]);
+        return $dataset;
     }
 
-    function doc($doc_id){
+    function getDoc($docId){
         $db = $this->db;
-        $data["status"] = "fail";
-        $data["success"] = false;
 
-        $qrow = $db->select("*")
+        $this->data["doc_date"] = date("Y-m-d");
+        $this->data["credit"] = "0";
+        $this->data["doc_valid_until_date"] = date("Y-m-d");
+        $this->data["reference_number"] = "";
+        $this->data["discount_type"] = "P";
+        $this->data["discount_percent"] = 0;
+        $this->data["discount_amount"] = 0;
+        $this->data["vat_inc"] = "N";
+        $this->data["wht_inc"] = "N";
+        $this->data["project_id"] = null;
+        $this->data["client_id"] = null;
+        $this->data["remark"] = null;
+        $this->data["created_by"] = null;
+        $this->data["created_datetime"] = null;
+        $this->data["approved_by"] = null;
+        $this->data["approved_datetime"] = null;
+        $this->data["doc_status"] = NULL;
+
+        if(!empty($docId)){
+            $qrow = $db->select("*")
                         ->from("quotation")
-                        ->where("id", $doc_id)
+                        ->where("id", $docId)
+                        ->where("deleted", 0)
                         ->get()->row();
 
-        if(empty($qrow)) return $data;
+            if(empty($qrow)) return $this->data;
 
-        $data["qrow"] = $qrow;
-        $data["status"] = "success";
+            $this->data["doc_id"] = $docId;
+            $this->data["doc_number"] = $qrow->doc_number;
+            $this->data["doc_date"] = $qrow->doc_date;
+            $this->data["credit"] = $qrow->credit;
+            $this->data["doc_valid_until_date"] = $qrow->doc_valid_until_date;
+            $this->data["reference_number"] = $qrow->reference_number;
+            $this->data["discount_type"] = $qrow->discount_type;
+            $this->data["discount_percent"] = $qrow->discount_percent;
+            $this->data["discount_amount"] = $qrow->discount_amount;
+            $this->data["vat_inc"] = $qrow->vat_inc;
+            $this->data["vat_percent"] = number_format_drop_zero_decimals($qrow->vat_percent, 2)."%";
+            $this->data["wht_inc"] = $qrow->wht_inc;
+            $this->data["project_id"] = $qrow->project_id;
+            $this->data["client_id"] = $qrow->client_id;
+            $this->data["remark"] = $qrow->remark;
+            $this->data["created_by"] = $qrow->created_by;
+            $this->data["created_datetime"] = $qrow->created_datetime;
+            $this->data["approved_by"] = $qrow->approved_by;
+            $this->data["approved_datetime"] = $qrow->approved_datetime;
+            $this->data["doc_status"] = $qrow->status;
+        }
+
+        $this->data["status"] = "success";
+
+        return $this->data;
+    }
+
+    function updateDoc($docId = null){
+        $db = $this->db;
+
+        $discount_type = "P";
+        $discount_percent = 0;
+        $discount_amount = 0;
+
+        $vat_inc = "N";
+        $vat_percent = $this->Taxes_m->getVatPercent();
+        $vat_value = 0;
+
+        $wht_inc = "N";
+        $wht_percent = $this->Taxes_m->getWhtPercent();
+        $wht_value = 0;
+        
+        if($docId == null && isset($this->json->doc_id)){
+            $docId = $this->json->doc_id;
+
+            $vat_inc = $this->json->vat_inc == true ? "Y":"N";
+            $wht_inc = $this->json->wht_inc == true ? "Y":"N";
+            
+            $qrow = $db->select("*")
+                        ->from("quotation")
+                        ->where("id", $docId)
+                        ->where("deleted", 0)
+                        ->get()->row();
+
+            if(empty($qrow)) return $this->data;
+
+            $discount_type = $this->json->discount_type;
+
+            if($discount_type == "P"){
+                $discount_percent = getNumber($this->json->discount_percent);
+                if($discount_percent >= 100) $discount_percent = 99.99;
+                if($discount_percent < 0) $discount_percent = 0;
+            }else{
+                $discount_amount = getNumber($this->json->discount_value);
+            }
+            
+
+            if($vat_inc == "Y") $vat_percent = $this->Taxes_m->getVatPercent();
+            if($wht_inc == "Y") $wht_percent = getNumber($this->json->wht_percent);
+
+        }else{
+            $qrow = $db->select("*")
+                        ->from("quotation")
+                        ->where("id", $docId)
+                        ->where("deleted", 0)
+                        ->get()->row();
+
+            if(empty($qrow)) return $this->data;            
+
+            $discount_type = $qrow->discount_type;
+            $discount_percent = $qrow->discount_percent;
+            $discount_amount = $qrow->discount_amount;
+
+
+            $vat_inc = $qrow->vat_inc;
+            $wht_inc = $qrow->wht_inc;
+
+            if($vat_inc == "Y") $vat_percent = $qrow->vat_percent;
+            if($wht_inc == "Y") $wht_percent = $qrow->wht_percent;
+        }
+        
+        $sub_total_before_discount = $db->select("SUM(total_price) AS SUB_TOTAL")
+                                        ->from("quotation_items")
+                                        ->where("quotation_id", $docId)
+                                        ->get()->row()->SUB_TOTAL;
+
+        if($sub_total_before_discount == null) $sub_total_before_discount = 0;
+        if($discount_type == "P"){
+            if($discount_percent > 0){
+                $discount_amount = ($sub_total_before_discount * $discount_percent)/100;
+            }
+        }else{
+            if($discount_amount > $sub_total_before_discount) $discount_amount = $sub_total_before_discount;
+            if($discount_amount < 0) $discount_amount = 0;
+        }
+
+        $sub_total = $sub_total_before_discount - $discount_amount;
+
+        if($vat_inc == "Y") $vat_value = ($sub_total * $vat_percent)/100;
+        $total = $sub_total + $vat_value;
+
+        if($wht_inc == "Y") $wht_value = ($sub_total * $wht_percent) / 100;
+        $payment_amount = $total - $wht_value;
+
+        $db->where("id", $docId);
+        $db->update("quotation", [
+                                    "sub_total_before_discount"=>$sub_total_before_discount,
+                                    "discount_type"=>$discount_type,
+                                    "discount_percent"=>$discount_percent,
+                                    "discount_amount"=>$discount_amount,
+                                    "sub_total"=>$sub_total,
+                                    "vat_inc"=>$vat_inc,
+                                    "vat_percent"=>$vat_percent,
+                                    "vat_value"=>$vat_value,
+                                    "total"=>$total,
+                                    "wht_inc"=>$wht_inc,
+                                    "wht_percent"=>$wht_percent,
+                                    "wht_value"=>$wht_value,
+                                    "payment_amount"=>$payment_amount
+                                ]);
+
+        $this->data["sub_total_before_discount"] = number_format($sub_total_before_discount, 2);
+        $this->data["discount_type"] = $discount_type;
+        $this->data["discount_percent"] = number_format($discount_percent, 2);
+        $this->data["discount_amount"] = number_format($discount_amount, 2);
+        $this->data["sub_total"] = number_format($sub_total, 2);
+        $this->data["vat_inc"] = $vat_inc;
+        $this->data["vat_percent"] = number_format_drop_zero_decimals($vat_percent, 2);
+        $this->data["vat_value"] = number_format($vat_value, 2);
+        $this->data["total"] = number_format($total, 2);
+        $this->data["total_in_text"] = numberToText($total);
+        $this->data["wht_inc"] = $wht_inc;
+        $this->data["wht_percent"] = number_format_drop_zero_decimals($wht_percent, 2);
+        $this->data["wht_value"] = number_format($wht_value, 2);
+        $this->data["payment_amount"] = number_format($payment_amount, 2);
+
+        $this->data["status"] = "success";
+        $this->data["message"] = lang("record_saved");
+
+        return $this->data;
+    }
+
+    function validateDoc(){
+        $_POST = json_decode(file_get_contents('php://input'), true);
+
+        $this->form_validation->set_rules([
+                                            [
+                                                "field"=>"doc_date",
+                                                'label' => '',
+                                                'rules' => 'required'
+                                            ],
+                                            [
+                                                "field"=>"doc_valid_until_date",
+                                                'label' => '',
+                                                'rules' => 'required'
+                                            ],
+                                            [
+                                                "field"=>"client_id",
+                                                'label' => '',
+                                                'rules' => 'required'
+                                            ]
+                                        ]);
+
+        if ($this->form_validation->run() == FALSE){
+            $this->data["status"] = "validate";
+            if(form_error('doc_date') != null) $this->data["messages"]["doc_date"] = form_error('doc_date');
+            if(form_error('doc_valid_until_date') != null) $this->data["messages"]["doc_valid_until_date"] = form_error('doc_valid_until_date');
+            if(form_error('client_id') != null) $this->data["messages"]["client_id"] = form_error('client_id');
+        }
+
+    }
+
+    function saveDoc(){
+        $db = $this->db;
+        
+        $this->validateDoc();
+        if($this->data["status"] == "validate") return $this->data;
+
+        $docId = $this->json->doc_id;
+        $doc_date = convertDate($this->json->doc_date);
+        $credit = intval($this->json->credit) < 0 ? 0:intval($this->json->credit);
+        $doc_valid_until_date = date('Y-m-d', strtotime($doc_date." + ".$credit." days"));
+        $reference_number = $this->json->reference_number;
+        $client_id = $this->json->client_id;
+        $project_id = $this->json->project_id;
+        $remark = $this->json->remark;
+
+
+        if($docId != ""){
+            $qrow = $db->select("status")
+                        ->from("quotation")
+                        ->where("id", $docId)
+                        ->where("deleted", 0)
+                        ->get()->row();
+
+            if(empty($qrow)){
+                $this->data["success"] = false;
+                $this->data["message"] = "ขออภัย เกิดข้อผิดพลาดระหว่างดำเนินการ! โปรดลองใหม่อีกครั้งในภายหลัง";
+                return $this->data;
+            }
+
+            if($qrow->status != "W"){
+                $this->data["success"] = false;
+                $this->data["message"] = "ไม่สามารถบันทึกเอกสารได้เนื่องจากเอกสารมีการเปลี่ยนแปลงสถานะแล้ว";
+                return $this->data;
+            }
+
+
+            $db->where("id", $docId);
+            $db->where("deleted", 0);
+            $db->update("quotation", [
+                                        "doc_date"=>$doc_date,
+                                        "credit"=>$credit,
+                                        "doc_valid_until_date"=>$doc_valid_until_date,
+                                        "reference_number"=>$reference_number,
+                                        "client_id"=>$client_id,
+                                        "project_id"=>$project_id,
+                                        "remark"=>$remark
+                                    ]);
+        }else{
+            $db->where("DATE_FORMAT(created_datetime,'%Y-%m')", date("Y-m"));
+            $running_number = $db->get("quotation")->num_rows() + 1;
+
+            $doc_number = $this->getCode().date("Ym").sprintf("%04d", $running_number);
+            
+            $db->insert("quotation", [
+                                        "doc_number"=>$doc_number,
+                                        "doc_date"=>$doc_date,
+                                        "credit"=>$credit,
+                                        "doc_valid_until_date"=>$doc_valid_until_date,
+                                        "reference_number"=>$reference_number,
+                                        "vat_inc"=>"N",
+                                        "client_id"=>$client_id,
+                                        "project_id"=>$project_id,
+                                        "remark"=>$remark,
+                                        "created_by"=>$this->login_user->id,
+                                        "created_datetime"=>date("Y-m-d H:i:s"),
+                                        "status"=>"W"
+                                    ]);
+
+            $docId = $db->insert_id();
+        }
+        
+        $this->data["target"] = get_uri("quotations/view/". $docId);
+        $this->data["status"] = "success";
+
+        return $this->data;
+    }
+
+    function deleteDoc(){
+        $db = $this->db;
+        $docId = $this->input->post("id");
+
+        $qrow = $db->select("status")
+                        ->from("quotation")
+                        ->where("id", $docId)
+                        ->get()->row();
+
+        if(empty($qrow)) return $this->data;
+
+        if($qrow->status != "W"){
+            $this->data["success"] = false;
+            $this->data["message"] = "คุณไม่สามารถลบเอกสารได้ เนื่องจากเอกสารมีการเปลี่ยนแปลงสถานะแล้ว";
+            return $this->data;
+        }
+
+        $db->where("id", $docId);
+        $db->update("quotation", ["deleted"=>1]);
+
         $data["success"] = true;
+        $data["message"] = lang('record_deleted');
 
         return $data;
     }
 
-    function jDoc(){
+    function undoDoc(){
         $db = $this->db;
-        $doc_id = $this->input->post("doc_id");
-        $data["status"] = "fail";
-        $data["success"] = false;
+        $docId = $this->input->post("id");
 
-        $esrow = $db->select("*")
-                        ->from("estimates")
-                        ->where("id", $doc_id)
+        $db->where("id", $docId);
+        $db->update("quotation", ["deleted"=>0]);
+
+        $qrow = $db->select("*")
+                    ->from("quotation")
+                    ->where("id", $docId)
+                    ->get()->row();
+
+        $data["success"] = true;
+        $data["data"] = $this->getIndexDataSetHTML($qrow);
+        $data["message"] = lang('record_undone');
+
+        return $data;
+    }
+
+    function items(){
+        $db = $this->db;
+        
+        $qrow = $db->select("id, status")
+                        ->from("quotation")
+                        ->where("id", $this->json->doc_id)
                         ->where("deleted", 0)
                         ->get()->row();
 
-        if(empty($esrow)){
-            return $data;
+        if(empty($qrow)) return $this->data;
+
+        $qirows = $db->select("*")
+                        ->from("quotation_items")
+                        ->where("quotation_id", $this->json->doc_id)
+                        ->order_by("id", "asc")
+                        ->get()->result();
+
+        if(empty($qirows)){
+            $this->data["status"] = "notfound";
+            $this->data["message"] = "ไม่พบข้อมูล";
+            return $this->data;
         }
 
+        $items = [];
 
+        foreach($qirows as $qirow){
+            $item["id"] = $qirow->id;
+            $item["product_name"] = $qirow->product_name;
+            $item["product_description"] = $qirow->product_description;
+            $item["quantity"] = $qirow->quantity;
+            $item["unit"] = $qirow->unit;
+            $item["price"] = number_format($qirow->price, 2);
+            $item["total_price"] = number_format($qirow->total_price, 2);
 
-        $discount_percent = $this->input->post("discount_percent");
+            $items[] = $item;
+        }
 
-        $data["sub_total_before_discount"] = number_format($esrow->sub_total_before_discount, 2);
-        
-        $data["discount_amount_type"] = $esrow->discount_amount_type == "percentage" ? "P":"F";
-        $data["discount_percent"] = number_format($esrow->discount_percent > 99.99 ? 99.00 : $esrow->discount_percent, 2);
-        $data["discount_amount"] = number_format($esrow->discount_amount, 2);
+        $this->data["doc_status"] = $qrow->status;
+        $this->data["items"] = $items;
+        $this->data["status"] = "success";
 
-
-        $data["sub_total"] = number_format($esrow->sub_total_estimate, 2);
-        $data["vat_inc"] = $esrow->vat_inc;
-        $data["vat_percent"] = $esrow->vat_percent;
-        $data["vat_value"] = number_format($esrow->vat_value, 2);
-        $data["total"] = number_format($esrow->total_estimate, 2);
-        $data["wht_inc"] = $esrow->wht_inc;
-        $data["wht_percent"] = $esrow->wht_percent;
-        $data["wht_value"] = $esrow->wht_value;
-        $data["payment_amount"] = $esrow->payment_amount;
-
-        $data["total_in_text"] = "(".numberToText($esrow->sub_total_estimate).")";
-
-        return json_encode($data);
+        return $this->data;
     }
 
     function item(){
         $db = $this->db;
-        $data["status"] = "fail";
-        $data["success"] = false;
-        $doc_id = $this->input->post("doc_id");
-        $item_id = $this->input->post("item_id");
+        $docId = $this->input->post("doc_id");
+        $itemId = $this->input->post("item_id");
 
-        $esrow = $db->select("id")
-                        ->from("estimates")
-                        ->where("id", $doc_id)
+        $qrow = $db->select("id")
+                        ->from("quotation")
+                        ->where("id", $docId)
                         ->where("deleted", 0)
                         ->get()->row();
 
-        if(empty($esrow)) return $data;
+        if(empty($qrow)) return $this->data;
 
-        $data["doc_id"] = $doc_id;
-        $data["item_id"] = "";
-        $data["title"] = "";
-        $data["description"] = "";
-        $data["quantity"] = "0";
-        $data["unit_type"] = "";
-        $data["rate"] = "0";
-        $data["vat_type"] = "1";
+        $this->data["doc_id"] = $docId;
+        $this->data["product_id"] = "";
+        $this->data["product_name"] = "";
+        $this->data["product_description"] = "";
+        $this->data["quantity"] = "1.00";
+        $this->data["unit"] = "";
+        $this->data["price"] = "0.00";
+        $this->data["total_price"] = "0.00";
 
-
-        if(!empty($item_id)){
-            $esirow = $db->select("*")
-                        ->from("estimate_items")
-                        ->where("id", $item_id)
+        if(!empty($itemId)){
+            $qirow = $db->select("*")
+                        ->from("quotation_items")
+                        ->where("id", $itemId)
+                        ->where("quotation_id", $docId)
                         ->get()->row();
 
-                        
+            if(empty($qirow)) return $this->data;
 
-            if(empty($esirow)){
-                return $data;
-            }
-
-            $data["item_id"] = $esirow->id;
-            $data["title"] = $esirow->title;
-            $data["description"] = $esirow->description;
-            $data["quantity"] = $esirow->quantity;
-            $data["unit_type"] = $esirow->unit_type;
-            $data["rate"] = $esirow->rate;
-            $data["vat_type"] = $esirow->vat_type;
+            $this->data["item_id"] = $qirow->id;
+            $this->data["product_id"] = $qirow->product_id;
+            $this->data["product_name"] = $qirow->product_name;
+            $this->data["product_description"] = $qirow->product_description;
+            $this->data["quantity"] = $qirow->quantity;
+            $this->data["unit"] = $qirow->unit;
+            $this->data["price"] = $qirow->price;
+            $this->data["total_price"] = $qirow->total_price;
         }
 
-        $data["status"] = "success";
-        $data["success"] = true;
+        $this->data["status"] = "success";
 
-        return $data;
+        return $this->data;
     }
 
-    function jItems(){
-    	$db = $this->db;
-    	$data["status"] = "fail";
-        $data["success"] = false;
+    function validateItem(){
+        $_POST = json_decode(file_get_contents('php://input'), true);
 
-        $doc_id = $this->input->get("doc_id");
+        $this->form_validation->set_rules([
+                                            [
+                                                "field"=>"product_id",
+                                                'label' => '',
+                                                'rules' => 'required'
+                                            ],
+                                            [
+                                                "field"=>"quantity",
+                                                'label' => '',
+                                                'rules' => 'required'
+                                            ]
+                                        ]);
 
-    	$esrow = $db->select("id")
-    					->from("estimates")
-    					->where("id", $doc_id)
-    					->where("deleted", 0)
-    					->get()->row();
+        if ($this->form_validation->run() == FALSE){
+            $this->data["status"] = "validate";
+            if(form_error('product_id') != null) $this->data["messages"]["product_name"] = form_error('product_id');
+            if(form_error('quantity') != null) $this->data["messages"]["quantity"] = form_error('quantity');
+        }
 
-    	if(empty($esrow)) return $data;
-
-    	$esirows = $db->select("id, title, description, quantity, unit_type, rate, price")
-    					->from("estimate_items")
-    					->where("estimate_id", $doc_id)
-    					->where("deleted", 0)
-    					->get()->result();
-
-    	if(empty($esirows)){
-            $data["status"] = "notfound";
-    		$data["success"] = true;
-    		$data["message"] = "ไม่พบข้อมูล";
-    		return $data;
-    	}
-
-    	$items = [];
-
-    	foreach($esirows as $esirow){
-            $item["id"] = $esirow->id;
-    		$item["title"] = $esirow->title;
-    		$item["description"] = $esirow->description;
-    		$item["quantity"] = $esirow->quantity;
-    		$item["unit_type"] = $esirow->unit_type;
-    		$item["rate"] = number_format($esirow->rate, 2);
-    		$item["price"] = number_format($esirow->price, 2);
-
-    		$items[] = $item;
-    	}
-
-    	$data["items"] = $items;
-    	$data["status"] = "success";
-        $data["success"] = true;
-
-    	return json_encode($data);
     }
 
     function saveItem(){
         $db = $this->db;
-        $data["status"] = "fail";
-        $data["success"] = false;
+        $docId = isset($this->json->doc_id)?$this->json->doc_id:null;
 
-        $doc_id = $this->input->post('doc_id');
-        $item_id = $this->input->post('item_id');
-
-        $esrow = $db->select("id")
-                    ->from("estimates")
-                    ->where("id", $doc_id)
+        $qrow = $db->select("id")
+                    ->from("quotation")
+                    ->where("id", $docId)
                     ->where("deleted", 0)
                     ->get()->row();
 
-        if(empty($esrow)){
-            return $data;
-        }
+        if(empty($qrow)) return $this->data;
+        
+        $this->validateItem();
+        if($this->data["status"] == "validate") return $this->data;
 
-        $vat_type = (int)$this->input->post("vat_type");
-        $vat_value = 0;
-        $quantity = unformat_currency($this->input->post('estimate_item_quantity'));
-        $rate = unformat_currency($this->input->post('estimate_item_rate'));
+        $itemId = $this->json->item_id;
+        $product_id = $this->json->product_id;
+        $product_name = $this->json->product_name;
+        $product_description = $this->json->product_description;
+        $quantity = getNumber($this->json->quantity);
+        $unit = $this->json->unit;
+        $price = getNumber($this->json->price);
+        $total_price = $price * $quantity;
+        
+        /*$vat_type = $this->json->vat_type;
         $price_inc_vat = $price = $rate * $quantity;
 
         if($vat_type == 2){
             $price = roundUp($price / $this->Taxes_m->getVat());
             $vat_value = $price_inc_vat - $price;
-        }
+        }*/
 
         $fdata = [
-                    "title"=>$this->input->post('estimate_item_title'),
-                    "description"=>$this->input->post('estimate_item_description'),
+                    "quotation_id"=>$docId,
+                    "product_id"=>$product_id,
+                    "product_name"=>$product_name,
+                    "product_description"=>$product_description,
                     "quantity"=>$quantity,
-                    "unit_type"=>$this->input->post('estimate_unit_type'),
-                    "rate"=>$rate,
+                    "unit"=>$unit,
                     "price"=>$price,
-                    "vat_type"=>$vat_type,
-                    "vat_value"=>$vat_value,
-                    "price_inc_vat"=>$price_inc_vat,
-                    "deleted"=>0
+                    "total_price"=>$total_price,
                 ];
 
         $db->trans_begin();
         
-        if(empty($item_id)){
-            $fdata["estimate_id"] = $doc_id;
-            $db->insert("estimate_items", $fdata);
+        if(empty($itemId)){
+            $db->where("quotation_id", $docId);
+            $total_items = $db->count_all_results("quotation_items");
+            $fdata["quotation_id"] = $docId;
+            $fdata["sort"] = $total_items + 1;
+            $db->insert("quotation_items", $fdata);
         }else{
-            $db->where("id", $item_id);
-            $db->where("estimate_id", $doc_id);
-            $db->update("estimate_items", $fdata);
+            $db->where("id", $itemId);
+            $db->where("quotation_id", $docId);
+            $db->update("quotation_items", $fdata);
         }
-        
-
-        $this->updateDoc($doc_id);
 
         
         if ($db->trans_status() === FALSE){
@@ -264,94 +591,105 @@ class Quotations_m extends CI_Model {
             $db->trans_commit();
         }
 
-        $data["status"] = "success";
-        $data["success"] = true;
+        $this->updateDoc($docId);
 
-        return $data;
+        $this->data["target"] = get_uri("quotations/view/".$docId);
+        $this->data["status"] = "success";
 
-    }
+        return $this->data;
 
-    function updateDoc($doc_id){
-        $db = $this->db;
-
-        $esrow = $db->select("*")
-                    ->from("estimates")
-                    ->where("id", $doc_id)
-                    ->where("deleted", 0)
-                    ->get()->row();
-
-        if(empty($esrow)) return false;
-
-        $sub_total_before_discount = $db->select("SUM(price) AS total_price")
-                                        ->from("estimate_items")
-                                        ->where("estimate_id", $doc_id)
-                                        ->where("deleted", 0)
-                                        ->get()->row()->total_price;
-
-
-        $discount_amount_type = $esrow->discount_amount_type;
-        $discount_percent = $esrow->discount_percent;
-        $discount_amount = $esrow->discount_amount;
-
-
-        if($discount_amount_type == "percentage" && $discount_percent > 0){
-            $discount_amount = ($sub_total * $discount_percent)/100;
-        }
-
-        $sub_total = $sub_total_before_discount - $discount_amount;
-
-
-        $vat_inc = $esrow->vat_inc;
-        $vat_percent = 0;
-        $vat_value = 0;
-        if($vat_inc == "Y"){
-            $vat_percent = $this->Taxes_m->getVatPercent();
-            $vat_value = $sub_total * $this->Taxes_m->getVat();
-        }
-        $wht_inc = $esrow->wht_inc;
-        $wht_percent = $esrow->wht_percent;
-        $wht_value = $esrow->wht_value;
-        $payment_amount = $esrow->payment_amount;
-
-        $total = $sub_total;
-
-
-        $db->where("id", $doc_id);
-        $db->update("estimates", [
-                                    "sub_total_before_discount"=>$sub_total_before_discount,
-                                    "discount_amount_type"=>$discount_amount_type,
-                                    "discount_percent"=>$discount_percent,
-                                    "discount_amount"=>$discount_amount,
-                                    "sub_total_estimate"=>$sub_total,
-                                    "vat_inc"=>$vat_inc,
-                                    "vat_percent"=>$vat_percent,
-                                    "vat_value"=>$vat_value,
-                                    "total_estimate"=>$total
-                                ]);
     }
 
     function deleteItem(){
         $db = $this->db;
-        $doc_id = $this->input->get("doc_id");
-        $item_id = $this->input->get("item_id");
-        $data["success"] = false;
+        $docId = $this->json->doc_id;
+        
+        $db->where("id", $this->json->item_id);
+        $db->where("quotation_id", $docId);
+        $db->delete("quotation_items");
 
-        $esrow = $db->select("id")
-                        ->from("estimates")
-                        ->where("id", $doc_id)
-                        ->where("deleted", 0)
-                        ->get()->row();
+        if($db->affected_rows() != 1) return $this->data;
 
-        if(empty($esrow)) return $data;
+        $this->updateDoc($docId);
 
-        $db->where("id", $item_id);
-        $db->where("estimate_id", $doc_id);
-        $db->update("estimate_items", ["deleted"=>1]);
+        $this->data["status"] = "success";
 
-        if($db->affected_rows() != 1) return $data;
-
-        $data["process"] = true;
-        return $data;
+        return $this->data;
     }
 
+    function updateStatus(){
+        $db = $this->db;
+        $docId = $this->json->doc_id;
+        $updateStatusTo = $this->json->update_status_to;
+
+        $qrow = $db->select("*")
+                    ->from("quotation")
+                    ->where("id",$docId)
+                    ->where("deleted", 0)
+                    ->get()->row();
+
+        if(empty($qrow)) return $this->data;
+        if($qrow->status == $updateStatusTo) return $this->data;
+
+        $this->data["doc_id"] = $docId;
+        $currentStatus = $qrow->status;
+
+        $this->db->trans_begin();
+
+        if($updateStatusTo == "A"){
+            if($currentStatus == "R"){
+                $this->data["dataset"] = $this->getIndexDataSetHTML($qrow);
+                return $this->data;
+            }
+
+            $db->where("id", $docId);
+            $db->update("quotation", [
+                                        "approved_by"=>$this->login_user->id,
+                                        "approved_datetime"=>date("Y-m-d H:i:s"),
+                                        "status"=>"A"
+                                    ]);
+
+        }elseif($updateStatusTo == "R"){
+            $db->where("id", $docId);
+            $db->update("quotation", [
+                                        "approved_by"=>$this->login_user->id,
+                                        "approved_datetime"=>date("Y-m-d H:i:s"),
+                                        "status"=>"R"
+                                    ]);
+
+        }elseif($updateStatusTo == "P"){
+            $db->where("id", $docId);
+            $db->update("quotation", [
+                                        "status"=>"P"
+                                    ]);
+
+        }elseif($updateStatusTo == "RESET"){
+            $db->where("id", $docId);
+            $db->update("quotation", [
+                                        "approved_by"=>NULL,
+                                        "approved_datetime"=>NULL,
+                                        "status"=>"W"
+                                    ]);
+
+        }
+
+        if ($db->trans_status() === FALSE){
+            $db->trans_rollback();
+            $this->data["dataset"] = $this->getIndexDataSetHTML($qrow);
+            return $this->data;
+        }
+
+        $db->trans_commit();
+
+        $qrow = $db->select("*")
+                    ->from("quotation")
+                    ->where("id",$docId)
+                    ->where("deleted", 0)
+                    ->get()->row();
+
+        $this->data["dataset"] = $this->getIndexDataSetHTML($qrow);
+        $this->data["status"] = "success";
+        $this->data["message"] = lang('record_saved');
+        return $this->data;
+    }
 }

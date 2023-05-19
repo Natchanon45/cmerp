@@ -2292,8 +2292,6 @@ deleteConfirmationHandler = function (e, callback) {
     $("#confirmationModal").modal('show');
 };
 
-
-
 // appAlert
 (function (define) {
     define(['jquery'], function ($) {

@@ -1,370 +1,376 @@
-<?php //arr( $getRolePermission ) ?>
-
-<div id="page-content" class="clearfix">
-    <div style="max-width: 1100px; margin: auto;">
-        <div class="page-title clearfix mt15">
-            <h1><?php echo get_invoice_id($invoice_info->doc_no); ?>
-                <?php
-                if ($invoice_info->recurring) {
-                    $recurring_status_class = "text-primary";
-                    if ($invoice_info->no_of_cycles_completed > 0 && $invoice_info->no_of_cycles_completed == $invoice_info->no_of_cycles) {
-                        $recurring_status_class = "text-danger";
-                    }
-                    ?>
-                    <span class="label ml15 b-a "><span class="<?php echo $recurring_status_class; ?>"><?php echo lang('recurring'); ?></span></span>
-                <?php } ?>
-            </h1>
-			
-			
-            <div class="title-button-group">
-                <?php echo $proveButton ?>
-                <span class="dropdown inline-block mt10">
-                    <button class="btn btn-info dropdown-toggle  mt0 mb0" type="button" data-toggle="dropdown" aria-expanded="true">
-                        <i class='fa fa-cogs'></i> <?php echo lang('actions'); ?>
-                        <span class="caret"></span>
-                    </button>
-                    <ul class="dropdown-menu" role="menu">
-					
-					
-                        <?php if ( $invoice_status !== "cancelled" && !empty( $getRolePermission['edit_row'] ) ) { ?>
-                            <li role="presentation"><?php echo modal_anchor(get_uri("invoices/send_invoice_modal_form/" . $invoice_info->id), "<i class='fa fa-envelope-o'></i> " . lang('email_invoice_to_client'), array("title" => lang('email_invoice_to_client'), "data-post-id" => $invoice_info->id, "role" => "menuitem", "tabindex" => "-1")); ?> </li>
-                        <?php } ?>
-                         <li role="presentation"><?php echo anchor(get_uri("pdf_export/invoices_pdf/" . $invoice_info->id), "<i class='fa fa-download'></i> " . lang('download_pdf'), array("title" => lang('download_pdf'))); ?> </li>
-                        <!-- <li role="presentation"> -->
-						
-						
-						<!-- <?php echo anchor(get_uri("invoices/download_pdf/" . $invoice_info->id . "/view"), "<i class='fa fa-file-pdf-o'></i> " . lang('view_pdf'), array("title" => lang('view_pdf'), "target" => "_blank")); ?> </li> -->
-                        <li role="presentation"><?php echo anchor(get_uri("invoices/preview/" . $invoice_info->id . "/1"), "<i class='fa fa-search'></i> " . lang('invoice_preview'), array("title" => lang('invoice_preview'), "target" => "_blank")); ?> </li>
-                        <!-- <li role="presentation"><?php echo js_anchor("<i class='fa fa-print'></i> " . lang('print_invoice'), array('title' => lang('print_invoice'), 'id' => 'print-invoice-btn')); ?> </li> -->
-
-                        <?php if ( !empty( $getRolePermission['edit_row'] ) ) { ?>
-                            <li role="presentation" class="divider"></li>
-
-                            <?php if ($invoice_status !== "cancelled") { ?>
-							
-							
-							
-                                <li role="presentation"><?php echo modal_anchor(get_uri("invoices/modal_form"), "<i class='fa fa-edit'></i> " . lang('edit_invoice'), array("title" => lang('edit_invoice'), "data-post-id" => $invoice_info->id, "role" => "menuitem", "tabindex" => "-1")); ?> </li>
-                           
-
-						   <?php } ?>
-
-                            <?php if ($invoice_status == "draft" && $invoice_status !== "cancelled") { ?>
-                               
-
-							   <li role="presentation"><?php echo ajax_anchor(get_uri("invoices/update_invoice_status/" . $invoice_info->id . "/not_paid"), "<i class='fa fa-check'></i> " . lang('mark_invoice_as_not_paid'), array("data-reload-on-success" => "1")); ?> </li>
-								
-								
-                            <?php } else if ($invoice_status == "not_paid" || $invoice_status == "overdue" || $invoice_status == "partially_paid") { ?>
-                                <li role="presentation"><?php echo js_anchor("<i class='fa fa-close'></i> " . lang('mark_invoice_as_cancelled'), array('title' => lang('mark_invoice_as_cancelled'), "data-action-url" => get_uri("invoices/update_invoice_status/" . $invoice_info->id . "/cancelled"), "data-action" => "delete-confirmation", "data-reload-on-success" => "1")); ?> </li>
-                            <?php } ?>
-                            <li role="presentation"><?php echo modal_anchor(get_uri("invoices/modal_form"), "<i class='fa fa-copy'></i> " . lang('clone_invoice'), array("data-post-is_clone" => true, "data-post-id" => $invoice_info->id, "title" => lang('clone_invoice'))); ?></li>
-                        <?php } ?>
-
-                    </ul>
-                </span>
-                <?php if ($invoice_status !== "cancelled" && !empty( $getRolePermission['edit_row'] ) ) { ?>
-                    <?php //echo modal_anchor(get_uri("invoices/item_modal_form"), "<i class='fa fa-plus-circle'></i> " . lang('add_item'), array("class" => "btn btn-default", "title" => lang('add_item'), "data-post-invoice_id" => $invoice_info->id)); ?>
-					
-					
-					
-                    <?php echo modal_anchor(get_uri("invoice_payments/payment_modal_form"), "<i class='fa fa-plus-circle'></i> " . lang('add_payment'), array("class" => "btn btn-default", "title" => lang('add_payment'), "data-post-invoice_id" => $invoice_info->id)); ?>
-                <?php } ?>
-            </div>
-			
-			
+<link rel="stylesheet" href="/assets/css/printd.css?t=<?php echo time();?>">
+<link rel="stylesheet" href="/assets/css/printd-invoice.css?t=<?php echo time();?>">
+<div id="dcontroller" class="clearfix">
+    <div class="page-title clearfix mt15">
+        <h1>ใบแจ้งหนี้ / ใบกำกับภาษี <?php echo $doc_number;?></h1>
+        <div class="title-button-group">
+            <a style="margin-left: 15px;" class="btn btn-default mt0 mb0 back-to-index-btn"  href="<?php echo get_uri("invoices")?>" ><i class="fa fa-hand-o-left" aria-hidden="true"></i> ย้อนกลับไปตารางรายการ</a>
+            <a class="btn btn-default" onclick="window.print();">พิมพ์</a>
         </div>
-
-<?php echo $this->dao->getDocLabels( $invoice_info->id ); ?>
-       
-
-        <?php
-        if ($invoice_info->recurring) {
-            $this->load->view("invoices/invoice_recurring_info_bar");
-        }
-        ?>
-
-        <div class="mt15">
-            <div class="panel panel-default p15 b-t">
-                <div class="clearfix p20">
-                    <!-- small font size is required to generate the pdf, overwrite that for screen -->
-                    <style type="text/css"> .invoice-meta {font-size: 100% !important;}</style>
-
-                    <?php
-                    $color = get_setting("invoice_color");
-                    if (!$color) {
-                        $color = "#2AA384";
-                    }
-                    $invoice_style = get_setting("invoice_style");
-                    $data = array(
-                        "client_info" => $client_info,
-                        "color" => $color,
-                        "invoice_info" => $invoice_info
-                    );
-
-                    if ($invoice_style === "style_2") {
-                        $this->load->view('invoices/invoice_parts/header_style_2.php', $data);
-                    } else {
-                        $this->load->view('invoices/invoice_parts/header_style_1.php', $data);
-                    }
-                    ?>
-                </div>
-
-                <div class="table-responsive mt15 pl15 pr15">
-                    <table id="invoice-item-table" class="display" width="100%">            
-                    </table>
-                </div>
-
-                <div class="clearfix">
-                    <div class="pull-right pr15" id="invoice-total-section">
-<?php $this->load->view( "invoices/invoice_total_section", array( "invoice_id" => $invoice_info->id, "can_edit_invoices" => $can_edit_invoices ) ); ?>
-                    </div>
-                </div>
-
-                <?php
-                $files = @unserialize($invoice_info->files);
-                if ($files && is_array($files) && count($files)) {
-                    ?>
-                    <div class="clearfix">
-                        <div class="col-md-12 mt20">
-                            <p class="b-t"></p>
-                            <div class="mb5 strong"><?php echo lang("files"); ?></div>
-                            <?php
-                            foreach ($files as $key => $value) {
-                                $file_name = get_array_value($value, "file_name");
-                                echo "<div>";
-                                echo js_anchor(remove_file_prefix($file_name), array("data-toggle" => "app-modal", "data-sidebar" => "0", "data-url" => get_uri("invoices/file_preview/" . $invoice_info->id . "/" . $key)));
-                                echo "</div>";
-                            }
-                            ?>
-                        </div>
-                    </div>
-                <?php } ?>
-
-                <p class="b-t b-info pt10 m15"><?php echo nl2br($invoice_info->note); ?></p>
-
-            </div>
-        </div>
-
-
-
-        <?php if ($invoice_info->recurring) { ?>
-            <ul id="invoice-view-tabs" data-toggle="ajax-tab" class="nav nav-tabs" role="tablist">
-                <li><a  role="presentation" href="#" data-target="#invoice-payments"> <?php echo lang('payments'); ?></a></li>
-                <li><a  role="presentation" href="<?php echo_uri("invoices/sub_invoices/" . $invoice_info->id); ?>" data-target="#sub-invoices"> <?php echo lang('sub_invoices'); ?></a></li>
-            </ul>
-
-            <div class="tab-content">
-                <div role="tabpanel" class="tab-pane fade active" id="invoice-payments">
-                    <div class="panel panel-default">
-                        <div class="tab-title clearfix">
-                            <h4> <?php echo lang('invoice_payment_list'); ?></h4>
-                        </div>
-                        <div class="table-responsive">
-                            <table id="invoice-payment-table" class="display" cellspacing="0" width="100%">            
-                            </table>
-                        </div>
-                    </div>
-                </div>
-                <div role="tabpanel" class="tab-pane fade" id="sub-invoices"></div>
-            </div>
-        <?php } else { ?>
-
-            <div class="panel panel-default">
-                <div class="tab-title clearfix">
-                    <h4> <?php echo lang('invoice_payment_list'); ?></h4>
-                </div>
-                <div class="table-responsive">
-                    <table id="invoice-payment-table" class="display" cellspacing="0" width="100%">            
-                    </table>
-                </div>
-            </div>
-        <?php } ?>
     </div>
-</div>
-
-
-
+</div><!--#dcontroller-->
+<div id="printd" class="clear">
+    <div class="docheader clear">
+        <div class="l">
+            <div class="logo"><img src="<?php echo get_file_from_setting("estimate_logo", get_setting('only_file_path')); ?>" /></div>
+            <div class="company">
+                <p class="company_name"><?php echo get_setting("company_name"); ?></p>
+                <p><?php echo nl2br(get_setting("company_address")); ?></p>
+                <?php if(trim(get_setting("company_phone")) != ""): ?>
+                    <p><?php echo lang("phone") . ": ".get_setting("company_phone"); ?></p>
+                <?php endif;?>
+                <?php if(trim(get_setting("company_website")) != ""): ?>
+                    <p><?php echo lang("website") . ": ".get_setting("company_website"); ?></p>
+                <?php endif;?>
+                <?php if(trim(get_setting("company_vat_number")) != ""): ?>
+                    <p><?php echo lang("vat_number") . ": ".get_setting("company_vat_number"); ?></p>
+                <?php endif;?>
+            </div><!-- .company -->
+            <div class="customer">
+                <p class="custom-color"><?php echo lang("client"); ?></p>
+                <?php if($client != null): ?>
+                    <p class="customer_name"><?php echo $client["company_name"] ?></p>
+                    <p><?php if($client != null) echo nl2br($client["address"]); ?></p>
+                    <p>
+                        <?php
+                            $client_address = $client["city"];
+                            if($client_address != "" && $client["state"] != "")$client_address .= ", ".$client["city"];
+                            elseif($client_address == "" && $client["state"] != "")$client_address .= $client["city"];
+                            if($client_address != "" && $client["zip"] != "") $client_address .= " ".$client["zip"];
+                            elseif($client_address == "" && $client["zip"] != "") $client_address .= $client["zip"];
+                            echo $client_address;
+                        ?>    
+                    </p>
+                    <?php if(trim($client["country"]) != ""): ?>
+                        <p><?php echo $client["country"]; ?></p>
+                    <?php endif; ?>
+                    <?php if(trim($client["vat_number"]) != ""): ?>
+                        <p><?php echo lang("vat_number") . ": " . $client["vat_number"]; ?></p>
+                    <?php endif; ?>
+                <?php endif; ?>
+            </div><!-- .company -->
+        </div><!--.l-->
+        <div class="r">
+            <h1 class="document_name custom-color">ใบแจ้งหนี้ / ใบกำกับภาษี<!--<span class="note custom-color">ต้นฉบับ (เอกสารออกเป็นชุด)</span>--></h1>
+            <div class="about_company">
+                <table>
+                    <tr>
+                        <td class="custom-color">เลขที่</td>
+                        <td><?php echo $doc_number; ?></td>
+                    </tr>
+                    <tr>
+                        <td class="custom-color">วันที่</td>
+                        <td><?php echo convertDate($doc_date, true); ?></td>
+                    </tr>
+                    <tr>
+                        <td class="custom-color">ครบกำหนด</td>
+                        <td><?php echo convertDate($due_date, true); ?></td>
+                    </tr>
+                    <tr>
+                        <td class="custom-color">ผู้ขาย</td>
+                        <td><?php if($created != null) echo $created["first_name"]." ".$created["last_name"]; ?></td>
+                    </tr>
+                    <?php if(trim($reference_number) != ""): ?>
+                        <tr>
+                            <td class="custom-color">เลขที่อ้างอิง</td>
+                            <td><?php echo $reference_number; ?></td>
+                        </tr>
+                    <?php endif; ?>
+                </table>
+            </div>
+            <div class="about_customer">
+                <table>
+                    <tr>
+                        <td class="custom-color">ผู้ติดต่อ</td>
+                        <td><?php if(isset($client_contact)) echo $client_contact["first_name"]." ".$client_contact["last_name"]; ?></td>
+                    </tr>
+                    <tr>
+                        <td class="custom-color">เบอร์โทร</td>
+                        <td><?php if(isset($client_contact)) echo $client_contact["phone"]; ?></td>
+                    </tr>
+                    <tr>
+                        <td class="custom-color">อีเมล์</td>
+                        <td><?php if(isset($client_contact)) echo $client_contact["email"]; ?></td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div><!--.docheader-->
+    <div class="docitem">
+        <table>
+            <thead>
+                <tr>
+                    <td>#</td>
+                    <td>รายละเอียด</td>
+                    <td>จำนวน</td>
+                    <td>หน่วย</td>
+                    <td>ราคาต่อหน่วย</td>
+                    <td>ยอดรวม</td>
+                    <td></td>
+                </tr>
+            </thead>
+            <tbody></tbody>
+            <tfoot>
+                <tr><td colspan="7">&nbsp;</td></tr>
+                <tr>
+                    <td colspan="3">
+                        <?php if($doc_status == "W"): ?>
+                            <p><?php echo modal_anchor(get_uri("invoices/item"), "<i class='fa fa-plus-circle'></i> " . lang('add_item_product'), array("id"=>"add_item_button", "class" => "btn btn-default", "title" => lang('add_item_product'), "data-post-doc_id" => $doc_id)); ?></p>
+                        <?php endif; ?>
+                        <p><input type="text" id="total_in_text" readonly></p>
+                    </td>
+                    <td colspan="4" class="summary">
+                        <p id="s-sub-total-before-discount">
+                            <span class="c1 custom-color">รวมเป็นเงิน</span>
+                            <span class="c2"><input type="text" id="sub_total_before_discount" readonly></span>
+                            <span class="c3"><span class="currency">บาท</span></span>
+                        </p>
+                        <p id="s-discount">
+                            <span class="c1 custom-color">
+                                ส่วนลด&nbsp;<input type="number" id="discount_percent" value="<?php echo $discount_percent; ?>" <?php if($doc_status != "W") echo "disabled"; ?>>
+                                <select id="discount_type" <?php if($doc_status != "W") echo "disabled"; ?>>
+                                    <option value="P" <?php if($discount_type == "P") echo "selected";?>>%</option>
+                                    <option value="F" <?php if($discount_type == "F") echo "selected";?>>฿</option>
+                                </select>
+                            </span>
+                            <span class="c2"><input type="text" id="discount_amount" value="<?php echo $discount_amount; ?>" readonly></span>
+                            <span class="c3"><span class="currency">บาท</span></span>
+                        </p>
+                        <p id="s-sub-total">
+                            <span class="c1"><i class="custom-color t1">ราคาหลังหักส่วนลด</i><i class="custom-color t2">รวมเป็นเงิน</i></span>
+                            <span class="c2"><input type="text" id="sub_total" readonly></span>
+                            <span class="c3"><span class="currency">บาท</span></span>
+                        </p>
+                        <p id="s-vat">
+                            <span class="c1 custom-color"><input type="checkbox" id="vat_inc" <?php if($vat_inc == "Y") echo "checked" ?> <?php if($doc_status != "W") echo "disabled"; ?>>ภาษีมูลค่าเพิ่ม<span class="vat_percent custom-color"><?php echo $vat_percent; ?></span><span class="vat_percent_zero custom-color">7%</span></span>
+                            <span class="c2"><input type="text" id="vat_value" readonly></span>
+                            <span class="c3"><span class="currency">บาท</span></span>
+                        </p>
+                        <p id="s-total">
+                            <span class="c1 custom-color">จำนวนเงินรวมทั้งสิ้น</span>
+                            <span class="c2"><input type="text" id="total" readonly ></span>
+                            <span class="c3"><span class="currency">บาท</span></span>
+                        </p>
+                        <p id="s-wht">
+                            <span class="c1 custom-color">
+                                <input type="checkbox" id="wht_inc" <?php if($wht_inc == "Y") echo "checked" ?> <?php if($doc_status != "W") echo "disabled"; ?>>หักภาษี ณ ที่จ่าย
+                                <select id="wht_percent" class="wht custom-color <?php echo $wht_inc == "Y"?"v":"h"; ?>" <?php if($doc_status != "W") echo "disabled"; ?>>
+                                    <option value="3">3%</option>
+                                    <option value="5">5%</option>
+                                    <option value="0.50">0.5%</option>
+                                    <option value="0.75">0.75%</option>
+                                    <option value="1">1%</option>
+                                    <option value="1.50">1.5%</option>
+                                    <option value="2">2%</option>
+                                    <option value="10">10%</option>
+                                    <option value="15">15%</option>
+                                </select>
+                            </span>
+                            <span class="c2 wht <?php echo $wht_inc == "Y"?"v":"h"; ?>"><input type="text" id="wht_value" readonly ></span>
+                            <span class="c3 wht <?php echo $wht_inc == "Y"?"v":"h"; ?>"><span class="currency">บาท</span></span>
+                        </p>
+                        <p id="s-payment-amount">
+                            <span class="c1 custom-color wht <?php echo $wht_inc == "Y"?"v":"h"; ?>">ยอดชำระ</span>
+                            <span class="c2 wht <?php echo $wht_inc == "Y"?"v":"h"; ?>"><input type="text" id="payment_amount" readonly></span>
+                            <span class="c3 wht <?php echo $wht_inc == "Y"?"v":"h"; ?>"><span class="currency">บาท</span></span>
+                        </p>
+                    </td>
+                </tr>
+            </tfoot>
+        </table>
+        <div class="remark clear">
+            <p class="custom-color">หมายเหตุ</p>
+            <p><?php echo nl2br($remark); ?></p>
+        </div><!--.remark-->
+    </div><!--.docitem-->
+    <div class="docsignature clear">
+        <div class="customer">
+            <div class="on_behalf_of">ในนาม <?php if(isset($client["company_name"])) echo $client["company_name"]; ?></div>
+            <div class="clear">
+                <div class="name">
+                    <span class="l1"></span>
+                    <span class="l2">ผู้รับสินค้า / บริการ</span>
+                </div>
+                <div class="date">
+                    <span class="l1"></span>
+                    <span class="l2">วันที่</span>
+                </div>
+            </div>
+        </div><!--.customer -->
+        <div class="company">
+            <div class="on_behalf_of">ในนาม <?php echo get_setting("company_name"); ?></div>
+            <div class="clear">
+                <div class="name">
+                    <span class="l1">
+                        <?php $signature = $this->Users_m->getSignature($created_by); ?>
+                        <?php if($signature != null): ?>
+                            <span class="signature"><img src='<?php echo str_replace("./", "/", $signature); ?>'></span>
+                        <?php endif; ?>
+                    </span>
+                    <span class="l2">ผู้อนุมัติ</span>
+                </div>
+                <div class="date">
+                    <span class="l1">
+                        <?php if($signature != null): ?>
+                            <span class="approved_date"><?php echo convertDate($doc_date, true); ?></span>
+                        <?php endif; ?>
+                    </span>
+                    <span class="l2">วันที่</span>
+                </div>
+            </div>
+        </div><!--.company-->
+    </div>
+</div><!--#printd-->
 <script type="text/javascript">
-    $(document).ready(function () {
+$(document).ready(function() {
+    loadItems();
+    $("#discount_percent, #discount_amount").blur(function(){
+        loadSummary();
+    });
 
-        $('[name="pay_sp"]').keyup(function(){
-            me = $(this);
-            q = {};
-            q.pay_sp = me.val();
-            q.pay_type = $('[name="pay_type"]').val();
-            
-            $.getJSON('<?php echo get_uri('invoices/pay_split/').$invoice_info->id?>',q,function(data){
-                // alert(data.vat_B);
-                // alert(data.after_vat);
-                $('.load_pay_sp').html(data.after_vat);
-                $('.load_pay_vat').html(data.vat_bath);
+    $("#discount_type, #vat_inc, #wht_inc, #wht_percent").change(function() {
+        loadSummary();
+    });
+});
+
+function loadItems(){
+    axios.post('<?php echo current_url(); ?>', {
+        task: 'load_items',
+        doc_id: '<?php echo $doc_id; ?>'
+    }).then(function (response) {
+        data = response.data;
+        if(data.status == "notfound"){
+            $(".docitem tbody").empty().append("<tr><td colspan='7' class='notfound'>"+data.message+"</td></tr>");
+        }else if(data.status == "success"){
+            tbody = "";
+            items = data.items;
+
+            for(let i = 0; i < items.length; i++){
+                tbody += "<tr>"; 
+                    tbody += "<td>"+(i+1)+"</td>";
+                    tbody += "<td>";
+                        tbody += "<p class='desc1'>"+items[i]["product_name"]+"</p>";
+                        tbody += "<p class='desc2'>"+items[i]["product_description"]+"</p>";
+                    tbody += "</td>";
+                    tbody += "<td>"+items[i]["quantity"]+"</td>"; 
+                    tbody += "<td>"+items[i]["unit"]+"</td>"; 
+                    tbody += "<td>"+items[i]["price"]+"</td>";
+                    tbody += "<td>"+items[i]["total_price"]+"</td>";
+                    tbody += "<td class='edititem'>";
+                        if(data.doc_status == "W"){
+                            tbody += "<a class='edit' data-post-doc_id='<?php echo $doc_id; ?>' data-post-item_id='"+items[i]["id"]+"' data-act='ajax-modal' data-action-url='<?php echo_uri("invoices/item"); ?>' ><i class='fa fa-pencil'></i></a>";
+                            tbody += "<a class='delete' data-item_id='"+items[i]["id"]+"'><i class='fa fa-times fa-fw'></i></a>";
+                        }
+                    tbody += "</td>";
+                tbody += "</tr>";
+            }
+
+            $(".docitem tbody").empty().append(tbody);
+            $(".edititem .delete").click(function() {
+                deleteItem($(this).data("item_id"));
             });
-        });
-
-        $('[name="pay_type"]').change(function(){
-            me = $(this);
-            q = {};
-            q.pay_sp = $('[name="pay_sp"]').val();
-            q.pay_type = me.val();
-            $.getJSON('<?php echo get_uri('invoices/pay_split/').$invoice_info->id?>',q,function(data){
-                // alert(data.vat_B);
-                // alert(data.after_vat);
-                $('.load_pay_sp').html(data.after_vat);
-                $('.load_pay_vat').html(data.vat_bath);
-            });
-        });
-
-        var optionVisibility = false;
-        if ("<?php echo $can_edit_invoices ?>") {
-            optionVisibility = true;
         }
 
-        $("#invoice-item-table").appTable({
-            source: '<?php echo_uri("invoices/item_list_data/" . $invoice_info->id . "/") ?>',
-            order: [[0, "asc"]],
-            hideTools: true,
-            displayLength: 100,
-            columns: [
-                {visible: false, searchable: false},
-                {title: '<?php echo lang("item") ?> ', "bSortable": false},
-                {title: '<?php echo lang("quantity") ?>', "class": "text-right w15p", "bSortable": false},
-                {title: '<?php echo lang("rate") ?>', "class": "text-right w15p", "bSortable": false},
-                {title: '<?php echo lang("total") ?>', "class": "text-right w15p", "bSortable": false},
-                {title: '<i class="fa fa-bars"></i>', "class": "text-center option w100", "bSortable": false, visible: optionVisibility}
-            ],
-            onInitComplete: function () {
-<?php if ($can_edit_invoices) { ?>
-                    //apply sortable
-                    $("#invoice-item-table").find("tbody").attr("id", "invoice-item-table-sortable");
-                    var $selector = $("#invoice-item-table-sortable");
+        loadSummary();
 
-                    Sortable.create($selector[0], {
-                        animation: 150,
-                        chosenClass: "sortable-chosen",
-                        ghostClass: "sortable-ghost",
-                        onUpdate: function (e) {
-                            appLoader.show();
-                            //prepare sort indexes 
-                            var data = "";
-                            $.each($selector.find(".item-row"), function (index, ele) {
-                                if (data) {
-                                    data += ",";
-                                }
-
-                                data += $(ele).attr("data-id") + "-" + index;
-                            });
-
-                            //update sort indexes
-                            $.ajax({
-                                url: '<?php echo_uri("Invoices/update_item_sort_values") ?>',
-                                type: "POST",
-                                data: {sort_values: data},
-                                success: function () {
-                                    appLoader.hide();
-                                }
-                            });
-                        }
-                    });
-
-<?php } ?>
-
-            },
-            onDeleteSuccess: function (result) {
-                $("#invoice-total-section").html(result.invoice_total_view);
-                if (typeof updateInvoiceStatusBar == 'function') {
-                    updateInvoiceStatusBar(result.invoice_id);
-                }
-            },
-            onUndoSuccess: function (result) {
-                $("#invoice-total-section").html(result.invoice_total_view);
-                if (typeof updateInvoiceStatusBar == 'function') {
-                    updateInvoiceStatusBar(result.invoice_id);
-                }
-            }
-        });
-
-        $("#invoice-payment-table").appTable({
-            source: '<?php echo_uri("invoice_payments/payment_list_data/" . $invoice_info->id . "/") ?>',
-            order: [[0, "asc"]],
-            columns: [
-                {targets: [0], visible: false, searchable: false},
-                {visible: false, searchable: false},
-                {title: '<?php echo lang("payment_date") ?> ', "class": "w15p", "iDataSort": 1},
-                {title: '<?php echo lang("payment_method") ?>', "class": "w15p"},
-                {title: '<?php echo lang("note") ?>'},
-                {title: '<?php echo lang("amount") ?>', "class": "text-right w15p"},
-                {title: '<i class="fa fa-bars"></i>', "class": "text-center option w100", visible: optionVisibility}
-            ],
-            onDeleteSuccess: function (result) {
-                $("#invoice-total-section").html(result.invoice_total_view);
-                if (typeof updateInvoiceStatusBar == 'function') {
-                    updateInvoiceStatusBar(result.invoice_id);
-                }
-            },
-            onUndoSuccess: function (result) {
-                $("#invoice-total-section").html(result.invoice_total_view);
-                if (typeof updateInvoiceStatusBar == 'function') {
-                    updateInvoiceStatusBar(result.invoice_id);
-                }
-            }
-        });
-
-        //modify the delete confirmation texts
-        $("#confirmationModalTitle").html("<?php echo lang('cancel') . "?"; ?>");
-        $("#confirmDeleteButton").html("<i class='fa fa-times'></i> <?php echo lang("cancel"); ?>");
+    }).catch(function (error) {
+        console.log(error);
     });
+}
 
-    updateInvoiceStatusBar = function (invoiceId) {
-        $.ajax({
-            url: "<?php echo get_uri("invoices/get_invoice_status_bar"); ?>/" + invoiceId,
-            success: function (result) {
-                if (result) {
-                    $("#invoice-status-bar").html(result);
-                }
-            }
-        });
-    };
+function loadSummary(){
+    let discount_type = $("#discount_type").val();
+    let discount_percent = 0;
+    let discount_value = 0;
 
-    //print invoice
-    $("#print-invoice-btn").click(function () {
-        appLoader.show();
+    if(discount_type == "P") discount_percent = tonum($("#discount_percent").val());
+    else discount_value = tonum($("#discount_amount").val());
 
-        $.ajax({
-            url: "<?php echo get_uri('invoices/print_invoice/' . $invoice_info->id) ?>",
-            dataType: 'json',
-            success: function (result) {
-                if (result.success) {
-                    document.body.innerHTML = result.print_view; //add invoice's print view to the page
-                    $("html").css({"overflow": "visible"});
+    axios.post('<?php echo current_url(); ?>', {
+        task: 'update_doc',
+        doc_id: '<?php echo $doc_id; ?>',
+        discount_type: discount_type,
+        discount_percent: discount_percent,
+        discount_value: discount_value,
+        vat_inc: $("#vat_inc").is(":checked"),
+        wht_inc: $("#wht_inc").is(":checked"),
+        wht_percent: $("#wht_percent").val()
+    }).then(function(response) {
+        data = response.data;
 
-                    setTimeout(function () {
-                        window.print();
-                    }, 200);
-                } else {
-                    appAlert.error(result.message);
-                }
+        $("#sub_total_before_discount").val(data.sub_total_before_discount);
+        $("#discount_percent").val(data.discount_percent);
+        $("#discount_amount").val(data.discount_amount);
+        $("#sub_total").val(data.sub_total);
 
-                appLoader.hide();
-            }
-        });
+        $("#wht_percent").val(data.wht_percent);
+        $("#wht_value").val(data.wht_value);
+
+        $("#total").val(data.total);
+        $("#total_in_text").val("("+data.total_in_text+")");
+
+        $("#payment_amount").val(data.payment_amount);
+
+         if(data.discount_type == "P"){
+            $("#discount_type").val("P");
+            $("#discount_percent").removeClass("h").addClass("v");
+            $("#discount_amount").removeClass("f").addClass("p");
+            $("#discount_amount").prop("readonly", true);
+            discount_value = $("#discount_percent").val();
+        }else{
+            $("#discount_type").val("F");
+            $("#discount_percent").removeClass("v").addClass("h");
+            $("#discount_amount").removeClass("p").addClass("f");
+            $("#discount_amount").prop("readonly", false);
+            discount_value = $("#discount_amount").val();
+        }
+
+        if(discount_value > 0){
+            $("#s-sub-total-before-discount, #s-discount").removeClass("h").addClass("v");
+            $("#s-sub-total .t1").removeClass("h").addClass("v");
+            $("#s-sub-total .t2").removeClass("v").addClass("h");
+            
+        }else{
+            $("#s-sub-total-before-discount, #s-discount").removeClass("v").addClass("h");
+            $("#s-sub-total .t1").removeClass("v").addClass("h");
+            $("#s-sub-total .t2").removeClass("h").addClass("v");
+        }
+        
+        if(data.vat_inc == "Y"){
+            $("#vat_inc").prop("checked", true);
+            $("#vat_value").val(data.vat_value);
+            $("#s-vat .vat_percent").removeClass("h").addClass("v");
+            $("#s-vat .vat_percent_zero").removeClass("v").addClass("h");
+            
+        }else{
+            $("#vat_inc").prop("checked", false);
+            $("#vat_value").val(data.vat_value);
+            $("#s-vat .vat_percent").removeClass("v").addClass("h");
+            $("#s-vat .vat_percent_zero").removeClass("h").addClass("v");
+        }
+
+        if(data.wht_inc == "Y"){
+            $("#wht_inc").prop("checked", true);
+            $("#s-wht").removeClass("h").addClass("v");
+            $(".wht").removeClass("h").addClass("v");
+        }else{
+            $("#wht_inc").prop("checked", false);
+            $("#s-wht").removeClass("v").addClass("h");
+            $(".wht").removeClass("v").addClass("h");
+        }
+
+    }).catch(function (error) {
+        alert(error);
     });
+}
 
-    //reload page after finishing print action
-    window.onafterprint = function () {
-        location.reload();
-    };
-
+function deleteItem(item_id){
+    axios.post('<?php echo current_url(); ?>', {
+        task: 'delete_item',
+        doc_id: '<?php echo $doc_id; ?>',
+        item_id: item_id
+    }).then(function (response) {
+        loadItems();
+    });
+}
 </script>
-
-<?php
-//required to send email 
-
-load_css(array(
-    "assets/js/summernote/summernote.css",
-));
-load_js(array(
-    "assets/js/summernote/summernote.min.js",
-));
-?>
-

@@ -8,7 +8,7 @@ $settings_menu = array(
         array("name" => "cron_job", "url" => "settings/cron_job"),
         array("name" => "notifications", "url" => "settings/notifications"),
         array("name" => "integration", "url" => "settings/integration"),
-        // array("name" => "updates", "url" => "Updates"),
+        // array("name" => "updates", "url" => "Updates")
     ),
     "access_permission" => array(
         array("name" => "roles", "url" => "roles"),
@@ -45,6 +45,7 @@ if (get_setting("module_ticket") == "1") {
 }
 
 $settings_menu["setup"][] = array("name" => "note_types", "url" => "note_types");
+$settings_menu["setup"][] = array("name" => "account_category", "url" => "account_category");
 
 if (get_setting("module_expense") == "1") {
     $settings_menu["setup"][] = array("name" => "expense_categories", "url" => "expense_categories");

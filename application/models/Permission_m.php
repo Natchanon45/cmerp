@@ -1,6 +1,5 @@
 <?php
-
-class Permission_m extends Crud_model {
+class Permission_m extends MY_Model {
 	public $permissions = null;
 
 	public $access_note = "assigned_only";
@@ -21,16 +20,28 @@ class Permission_m extends Crud_model {
 	public $delete_purchase_request = false;
 	public $approve_purchase_request = false;
 
-	function __construct() {
-		if($this->login_user->is_admin == 1){
+	function __construct() {		
+		if(isset($this->login_user)){
+			if($this->login_user->is_admin == 1){
+				$this->setAdmin();
+			}else{
+		        $prow = $this->db->select("permissions")
+							        			->from("roles")
+							        			->where("id", $this->login_user->role_id)
+							        			->where("deleted", 0)
+							        			->get()->row();
+							        			
+		if(empty($urow)) return;
+
+		if($urow->is_admin == 1){
 			$this->setAdmin();
 		}else{
 	        $prow = $this->db->select("permissions")
 						        			->from("roles")
-						        			->where("id", $this->login_user->role_id)
+						        			->where("id", $urow->role_id)
 						        			->where("deleted", 0)
 						        			->get()->row();
-
+						        			
 			if(!empty($prow)){
 				$this->permissions = json_decode(json_encode(unserialize($prow->permissions)));
 				$this->setPermission();
@@ -118,10 +129,13 @@ class Permission_m extends Crud_model {
 
 	}
 
-
-
 	function get(){
 		return $this->permissions;
+	}
+
+	function login_user_test()
+	{
+		return $this->login_user;
 	}
 
 }
