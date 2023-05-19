@@ -1,21 +1,21 @@
 <div class="general-form modal-body clearfix">
     <div class="form-group">
-        <label for="quotation_date" class=" col-md-3"><?php echo lang('estimate_date'); ?></label>
+        <label for="doc_date" class=" col-md-3">วันที่</label>
         <div class="col-md-9">
-            <input type="text" id="quotation_date" value="<?php echo $doc_date; ?>" class="form-control" placeholder="<?php echo lang('estimate_date'); ?>" autocomplete="off">
+            <input type="text" id="doc_date" class="form-control" autocomplete="off" readonly>
         </div>
     </div>
 
     <div class="form-group">
         <label for="credit" class=" col-md-3">เครดิต (วัน)</label>
         <div class="col-md-9" style="display: grid;grid-template-columns: auto auto;align-items: center; justify-items: center;justify-content: start;">
-            <input type="number" id="credit" value="<?php echo $credit; ?>" class="form-control" placeholder="กรอกเลข 0 หากชำระเงินสด" autocomplete="off" >
+            <input type="number" id="credit" value="<?php echo $credit; ?>" class="form-control" autocomplete="off" >
         </div>
     </div>
 
     <div class="form-group">
-        <label for="quotation_valid_until_date" class=" col-md-3"><?php echo lang('valid_until'); ?></label>
-        <div class="col-md-9"><input type="text" id="quotation_valid_until_date" value="<?php echo $doc_valid_until_date; ?>" class="form-control" placeholder="<?php echo lang('valid_until'); ?>" autocomplete="off">
+        <label for="doc_valid_until_date" class=" col-md-3"><?php echo lang('valid_until'); ?></label>
+        <div class="col-md-9"><input type="text" id="doc_valid_until_date" class="form-control" autocomplete="off" readonly>
         </div>
     </div>
 
@@ -70,9 +70,9 @@ $(document).ready(function() {
             axios.post('<?php echo current_url(); ?>', {
                 task: 'save_doc',
                 doc_id : "<?php if(isset($doc_id)) echo $doc_id; ?>",
-                quotation_date:$("#quotation_date").val(),
+                doc_date:$("#doc_date").val(),
                 credit: $("#credit").val(),
-                quotation_valid_until_date: $("#quotation_valid_until_date").val(),
+                doc_valid_until_date: $("#doc_valid_until_date").val(),
                 reference_number: $("#reference_number").val(),
                 client_id: $("#client_id").val(),
                 project_id: $("#project_id").val(),
@@ -97,33 +97,31 @@ $(document).ready(function() {
 
         $('#project_id').select2();
         $("#client_id").select2();
-        setDatePicker("#quotation_date");
+
+        doc_date = $("#doc_date").datepicker({
+            yearRange: "<?php echo date('Y'); ?>",
+            format: 'dd/mm/yyyy',
+            changeMonth: true,
+            changeYear: true,
+            autoclose: true
+        }).on("changeDate", function (e) {
+            find_valid_date();
+        });
+
+        doc_date.datepicker("setDate", "<?php echo date('d/m/Y', strtotime($doc_date)); ?>");
+
+        $("#credit").blur(function(){
+            find_valid_date();
+        });     
     <?php endif; ?>
-
-
-    $("#quotation_date").change(function() {
-        //alert($(this).setDate);
-        //alert($(this).datepicker('getDate', '+1d'));
-        /*var date2 = $('.pickupDate').datepicker('getDate', '+1d'); 
-        date2.setDate(date2.getDate()+1); 
-        $('.dropoffDate').datepicker('setDate', date2);*/
-
-        //var date2 = $("#quotation_date").datepicker('getDate');
-        //var nextDayDate = new Date();
-        //nextDayDate.setDate(date2.getDate() + 5);
-        //$('input').val(nextDayDate);
-        //alert(nextDayDate);
-        var date2 = $("#quotation_date").datepicker('getDate');
-        date2.setDate(date2.getDate()+5);
-        //var nextDayDate = new Date();
-        //nextDayDate.setDate(date.getDate() + 2);
-        //$("#quotation_valid_until_date").val($.datepicker.formatDate('dd-mm-yy', nextDayDate));
-        //$("#quotation_valid_until_date").datepicker({ dateFormat: 'yy-mm-dd' }).val(nextDayDate);
-        //alert($.datepicker.formatDate("dd-mm-yy", nextDayDate));
-        alert(date2.getDate());
-
-
-        //$('#datepicker').datepicker({ dateFormat: 'dd-mm-yy' }).val();
-    });
 });
+
+function find_valid_date(){
+    qdate = $("#doc_date").datepicker('getDate');
+    credit = Number($("#credit").val());
+    if(credit < 0) credit = 0;
+    $("#credit").val(credit);
+    qdate.setDate(qdate.getDate() + credit);
+    $("#doc_valid_until_date").val(todate(qdate));
+}
 </script>

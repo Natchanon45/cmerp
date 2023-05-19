@@ -32,7 +32,6 @@ class Quotations extends MY_Controller {
     function view() {
         if(isset($this->json->task)){
             if($this->json->task == "load_items") jout($this->Quotations_m->items());
-            if($this->json->task == "load_summary") jout($this->Quotations_m->summary());
             if($this->json->task == "update_doc") jout($this->Quotations_m->updateDoc());
             if($this->json->task == "delete_item") jout($this->Quotations_m->deleteItem());
             return;

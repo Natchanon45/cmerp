@@ -32,21 +32,20 @@ class Invoices extends MY_Controller {
 
     function view() {
         if(isset($this->json->task)){
-            if($this->json->task == "load_items") jout($this->Quotations_m->items());
-            if($this->json->task == "load_summary") jout($this->Quotations_m->summary());
-            if($this->json->task == "update_doc") jout($this->Quotations_m->updateDoc());
-            if($this->json->task == "delete_item") jout($this->Quotations_m->deleteItem());
+            if($this->json->task == "load_items") jout($this->Invoices_m->items());
+            if($this->json->task == "update_doc") jout($this->Invoices_m->updateDoc());
+            if($this->json->task == "delete_item") jout($this->Invoices_m->deleteItem());
             return;
         }
 
         if(empty($this->uri->segment(3))){
-            redirect('/quotations');
+            redirect('/invoices');
             return;
         }
 
-        $data = $this->Quotations_m->getDoc($this->uri->segment(3));
+        $data = $this->Invoices_m->getDoc($this->uri->segment(3));
         if ($data["status"] != "success"){
-            redirect('/quotations');
+            redirect('/invoices');
             return;
         }
 
@@ -54,26 +53,26 @@ class Invoices extends MY_Controller {
         $data["client"] = $this->Clients_m->getInfo($data["client_id"]);
         if($data["client"] != null) $data["client_contact"] = $this->Clients_m->getContactInfo($data["client_id"]);
 
-        $this->template->rander("quotations/view", $data);
+        $this->template->rander("invoices/view", $data);
     }
 
 
     function delete_doc() {
         if($this->input->post('undo') == true){
-            jout($this->Quotations_m->undoDoc());
+            jout($this->Invoices_m->undoDoc());
             return;
         }
 
-        jout($this->Quotations_m->deleteDoc());
+        jout($this->Invoices_m->deleteDoc());
     }
 
     function items(){
-        jout($this->Quotations_m->items());
+        jout($this->Invoices_m->items());
     }
 
     function item() {
         if(isset($this->json->task)){
-            if($this->json->task == "save") jout($this->Quotations_m->saveItem());
+            if($this->json->task == "save") jout($this->Invoices_m->saveItem());
             return;   
         }
 
@@ -91,7 +90,7 @@ class Invoices extends MY_Controller {
             return;
         }
 
-        $data = $this->Quotations_m->item();
+        $data = $this->Invoices_m->item();
 
         $this->load->view('quotations/item', $data);
     }

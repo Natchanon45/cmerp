@@ -21,7 +21,7 @@
     </div>
 </div>
 <script type="text/javascript">
-let doc_status = [{id:"", text:"-<?php echo lang("status"); ?>-"}, {id:"A", text:"อนุมัติ"}, {id:"R", text:"ไม่อนุมัติ"}];
+let doc_status = [{id:"", text:"-<?php echo lang("status"); ?>-"}, {id:"W", text:"รอดำเนินการ"}, {id:"B", text:"รอเก็บเงิน"}, {id:"C", text:"ยกเลิก"}];
 $(document).ready(function () {
     $("#datagrid").appTable({
         source: '<?php echo current_url(); ?>',
@@ -29,11 +29,11 @@ $(document).ready(function () {
         dateRangeType: "monthly",
         filterDropdown: [{name: "status", class: "w150", options: doc_status}],
         columns: [
-            {title: "วันที่", "class": "w15p"},
-            {title: "เลขที่เอกสาร", "class": "w15p"},
-            {title: "ชื่อลูกค้า", "class": "w30p"},
-            {title: "วันครบกำหนด", "iDataSort": 2, "class": "text-left w15p"},
-            {title: "ยอดรวมสุทธิ", "class": "text-right w15p"},
+            {title: "วันที่", "class": "w10p"},
+            {title: "เลขที่เอกสาร", "class": "w10p"},
+            {title: "ชื่อลูกค้า", "class": "w35p"},
+            {title: "วันครบกำหนด", "class": "text-left w10p"},
+            {title: "ยอดรวมสุทธิ", "class": "text-right w10p"},
             {title: "สถานะ", "class": "text-left w15p"},
             {title: "<i class='fa fa-bars'></i>", "class": "text-center option w10p"}
         ]

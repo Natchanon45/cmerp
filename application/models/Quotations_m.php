@@ -26,10 +26,14 @@ class Quotations_m extends MY_Model {
             $doc_status .= "<option value='R'>ไม่อนุมัติ</option>";
         }elseif($qrow->status == "A"){
             $doc_status .= "<option selected>อนุมัติ</option>";
+            $doc_status .= "<option value='P'>ดำเนินการแล้ว</option>";
             $doc_status .= "<option value='R'>ไม่อนุมัติ</option>";
             $doc_status .= "<option value='RESET'>รีเซ็ต</option>";
         }elseif($qrow->status == "R"){
             $doc_status .= "<option selected>ไม่อนุมัติ</option>";
+            $doc_status .= "<option value='RESET'>รีเซ็ต</option>";
+        }elseif($qrow->status == "P"){
+            $doc_status .= "<option selected>ดำเนินการแล้ว</option>";
             $doc_status .= "<option value='RESET'>รีเซ็ต</option>";
         }
 
@@ -37,9 +41,10 @@ class Quotations_m extends MY_Model {
 
 
         $data = [
+                    "<a href='".get_uri("quotations/view/".$qrow->id)."'>".convertDate($qrow->doc_date, true)."</a>",
                     "<a href='".get_uri("quotations/view/".$qrow->id)."'>".$qrow->doc_number."</a>",
                     "<a href='".get_uri("clients/view/".$qrow->client_id)."'>".$this->Clients_m->getCompanyName($qrow->client_id)."</a>",
-                    converDate($qrow->doc_date, true), number_format($qrow->total, 2), $doc_status,
+                    convertDate($qrow->doc_date, true), number_format($qrow->total, 2), $doc_status,
                     "<a data-post-id='".$qrow->id."' data-action-url='".get_uri("quotations/addedit")."' data-act='ajax-modal' class='edit'><i class='fa fa-pencil'></i></a><a data-id='".$qrow->id."' data-action-url='".get_uri("quotations/delete_doc")."' data-action='delete' class='delete'><i class='fa fa-times fa-fw'></i></a>"
                 ];
 
@@ -52,6 +57,7 @@ class Quotations_m extends MY_Model {
         $db->select("*")->from("quotation");
 
         if($this->input->post("status") != null){
+            log_message("error", $this->input->post("status"));
             $db->where("status", $this->input->post("status"));
         }
 
@@ -80,6 +86,9 @@ class Quotations_m extends MY_Model {
         $this->data["credit"] = "0";
         $this->data["doc_valid_until_date"] = date("Y-m-d");
         $this->data["reference_number"] = "";
+        $this->data["discount_type"] = "P";
+        $this->data["discount_percent"] = 0;
+        $this->data["discount_amount"] = 0;
         $this->data["vat_inc"] = "N";
         $this->data["wht_inc"] = "N";
         $this->data["project_id"] = null;
@@ -106,6 +115,9 @@ class Quotations_m extends MY_Model {
             $this->data["credit"] = $qrow->credit;
             $this->data["doc_valid_until_date"] = $qrow->doc_valid_until_date;
             $this->data["reference_number"] = $qrow->reference_number;
+            $this->data["discount_type"] = $qrow->discount_type;
+            $this->data["discount_percent"] = $qrow->discount_percent;
+            $this->data["discount_amount"] = $qrow->discount_amount;
             $this->data["vat_inc"] = $qrow->vat_inc;
             $this->data["vat_percent"] = number_format_drop_zero_decimals($qrow->vat_percent, 2)."%";
             $this->data["wht_inc"] = $qrow->wht_inc;
@@ -228,52 +240,38 @@ class Quotations_m extends MY_Model {
                                     "payment_amount"=>$payment_amount
                                 ]);
 
-        return $this->data;
-    }
-
-    function summary(){
-        $db = $this->db;
-        $docId = isset($this->json->doc_id) ? $this->json->doc_id : null;
-        
-        $qrow = $db->select("*")
-                    ->from("quotation")
-                    ->where("id", $docId)
-                    ->where("deleted", 0)
-                    ->get()->row();
-
-        if(empty($qrow)) return $this->data;
+        $this->data["sub_total_before_discount"] = number_format($sub_total_before_discount, 2);
+        $this->data["discount_type"] = $discount_type;
+        $this->data["discount_percent"] = number_format($discount_percent, 2);
+        $this->data["discount_amount"] = number_format($discount_amount, 2);
+        $this->data["sub_total"] = number_format($sub_total, 2);
+        $this->data["vat_inc"] = $vat_inc;
+        $this->data["vat_percent"] = number_format_drop_zero_decimals($vat_percent, 2);
+        $this->data["vat_value"] = number_format($vat_value, 2);
+        $this->data["total"] = number_format($total, 2);
+        $this->data["total_in_text"] = numberToText($total);
+        $this->data["wht_inc"] = $wht_inc;
+        $this->data["wht_percent"] = number_format_drop_zero_decimals($wht_percent, 2);
+        $this->data["wht_value"] = number_format($wht_value, 2);
+        $this->data["payment_amount"] = number_format($payment_amount, 2);
 
         $this->data["status"] = "success";
-        $this->data["sub_total_before_discount"] = number_format($qrow->sub_total_before_discount, 2);
-        $this->data["discount_type"] = $qrow->discount_type;
-        $this->data["discount_percent"] = number_format($qrow->discount_percent, 2);
-        $this->data["discount_amount"] = number_format($qrow->discount_amount, 2);
-        $this->data["sub_total"] = number_format($qrow->sub_total, 2);
-        $this->data["vat_inc"] = $qrow->vat_inc;
-        $this->data["vat_percent"] = number_format_drop_zero_decimals($qrow->vat_percent, 2);
-        $this->data["vat_value"] = number_format($qrow->vat_value, 2);
-        $this->data["total"] = number_format($qrow->total, 2);
-        $this->data["total_in_text"] = numberToText($qrow->total);
-        $this->data["wht_inc"] = $qrow->wht_inc;
-        $this->data["wht_percent"] = number_format_drop_zero_decimals($qrow->wht_percent, 2);
-        $this->data["wht_value"] = number_format($qrow->wht_value, 2);
-        $this->data["payment_amount"] = number_format($qrow->payment_amount, 2);
-        
+        $this->data["message"] = lang("record_saved");
+
         return $this->data;
     }
-
 
     function validateDoc(){
         $_POST = json_decode(file_get_contents('php://input'), true);
 
         $this->form_validation->set_rules([
                                             [
-                                                "field"=>"quotation_date",
+                                                "field"=>"doc_date",
                                                 'label' => '',
                                                 'rules' => 'required'
                                             ],
                                             [
-                                                "field"=>"quotation_valid_until_date",
+                                                "field"=>"doc_valid_until_date",
                                                 'label' => '',
                                                 'rules' => 'required'
                                             ],
@@ -286,8 +284,8 @@ class Quotations_m extends MY_Model {
 
         if ($this->form_validation->run() == FALSE){
             $this->data["status"] = "validate";
-            if(form_error('quotation_date') != null) $this->data["messages"]["quotation_date"] = form_error('quotation_date');
-            if(form_error('quotation_valid_until_date') != null) $this->data["messages"]["quotation_valid_until_date"] = form_error('quotation_valid_until_date');
+            if(form_error('doc_date') != null) $this->data["messages"]["doc_date"] = form_error('doc_date');
+            if(form_error('doc_valid_until_date') != null) $this->data["messages"]["doc_valid_until_date"] = form_error('doc_valid_until_date');
             if(form_error('client_id') != null) $this->data["messages"]["client_id"] = form_error('client_id');
         }
 
@@ -300,13 +298,14 @@ class Quotations_m extends MY_Model {
         if($this->data["status"] == "validate") return $this->data;
 
         $docId = $this->json->doc_id;
-        $doc_date = converDate($this->json->quotation_date);
-        $credit = $this->json->credit;
-        $doc_valid_until_date = converDate($this->json->quotation_valid_until_date);
+        $doc_date = convertDate($this->json->doc_date);
+        $credit = intval($this->json->credit) < 0 ? 0:intval($this->json->credit);
+        $doc_valid_until_date = date('Y-m-d', strtotime($doc_date." + ".$credit." days"));
         $reference_number = $this->json->reference_number;
         $client_id = $this->json->client_id;
         $project_id = $this->json->project_id;
         $remark = $this->json->remark;
+
 
         if($docId != ""){
             $qrow = $db->select("status")
@@ -373,6 +372,19 @@ class Quotations_m extends MY_Model {
         $db = $this->db;
         $docId = $this->input->post("id");
 
+        $qrow = $db->select("status")
+                        ->from("quotation")
+                        ->where("id", $docId)
+                        ->get()->row();
+
+        if(empty($qrow)) return $this->data;
+
+        if($qrow->status != "W"){
+            $this->data["success"] = false;
+            $this->data["message"] = "คุณไม่สามารถลบเอกสารได้ เนื่องจากเอกสารมีการเปลี่ยนแปลงสถานะแล้ว";
+            return $this->data;
+        }
+
         $db->where("id", $docId);
         $db->update("quotation", ["deleted"=>1]);
 
@@ -395,7 +407,7 @@ class Quotations_m extends MY_Model {
                     ->get()->row();
 
         $data["success"] = true;
-        $data["data"] = $this->getIGrid($qrow);
+        $data["data"] = $this->getIndexDataSetHTML($qrow);
         $data["message"] = lang('record_undone');
 
         return $data;
@@ -643,6 +655,12 @@ class Quotations_m extends MY_Model {
                                         "approved_by"=>$this->login_user->id,
                                         "approved_datetime"=>date("Y-m-d H:i:s"),
                                         "status"=>"R"
+                                    ]);
+
+        }elseif($updateStatusTo == "P"){
+            $db->where("id", $docId);
+            $db->update("quotation", [
+                                        "status"=>"P"
                                     ]);
 
         }elseif($updateStatusTo == "RESET"){

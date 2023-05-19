@@ -1,22 +1,21 @@
 <div class="general-form modal-body clearfix">
     <div class="form-group">
-        <label for="invoice_date" class=" col-md-3"><?php echo lang('estimate_date'); ?></label>
+        <label for="doc_date" class=" col-md-3">วันที่</label>
         <div class="col-md-9">
-            <input type="text" id="invoice_date" value="<?php echo $doc_date; ?>" class="form-control" placeholder="<?php echo lang('estimate_date'); ?>" autocomplete="off">
+            <input type="text" id="doc_date" class="form-control" autocomplete="off" readonly>
         </div>
     </div>
 
     <div class="form-group">
-        <label for="credit" class=" col-md-3">เครดิต</label>
+        <label for="credit" class=" col-md-3">เครดิต (วัน)</label>
         <div class="col-md-9" style="display: grid;grid-template-columns: auto auto;align-items: center; justify-items: center;justify-content: start;">
-            <input type="number" id="credit" value="<?php echo $credit; ?>" class="form-control" placeholder="กรอกเลข 0 หากชำระเงินสด" autocomplete="off" >
-            <div style="padding-left: 5px;"> วันหลังออกใบแจ้งหนี้</div>
+            <input type="number" id="credit" value="<?php echo $credit; ?>" class="form-control" autocomplete="off" >
         </div>
     </div>
 
     <div class="form-group">
         <label for="due_date" class=" col-md-3">ครบกำหนด</label>
-        <div class="col-md-9"><input type="text" id="due_date" value="<?php echo $due_date; ?>" class="form-control" placeholder="ครบกำหนด" autocomplete="off">
+        <div class="col-md-9"><input type="text" id="due_date" class="form-control" autocomplete="off" readonly>
         </div>
     </div>
 
@@ -71,7 +70,7 @@ $(document).ready(function() {
             axios.post('<?php echo current_url(); ?>', {
                 task: 'save_doc',
                 doc_id : "<?php if(isset($doc_id)) echo $doc_id; ?>",
-                invoice_date:$("#invoice_date").val(),
+                doc_date:$("#doc_date").val(),
                 credit: $("#credit").val(),
                 due_date: $("#due_date").val(),
                 reference_number: $("#reference_number").val(),
@@ -100,6 +99,29 @@ $(document).ready(function() {
     $('#project_id').select2();
     $("#client_id").select2();
 
-    setDatePicker("#invoice_date, #due_date");
+    doc_date = $("#doc_date").datepicker({
+        yearRange: "<?php echo date('Y'); ?>",
+        format: 'dd/mm/yyyy',
+        changeMonth: true,
+        changeYear: true,
+        autoclose: true
+    }).on("changeDate", function (e) {
+        find_valid_date();
+    });
+
+    doc_date.datepicker("setDate", "<?php echo date('d/m/Y', strtotime($doc_date)); ?>");
+
+    $("#credit").blur(function(){
+        find_valid_date();
+    });
 });
+
+function find_valid_date(){
+    qdate = $("#doc_date").datepicker('getDate');
+    credit = Number($("#credit").val());
+    if(credit < 0) credit = 0;
+    $("#credit").val(credit);
+    qdate.setDate(qdate.getDate() + credit);
+    $("#due_date").val(todate(qdate));
+}
 </script>

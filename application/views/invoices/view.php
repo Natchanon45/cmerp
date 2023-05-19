@@ -1,10 +1,10 @@
 <link rel="stylesheet" href="/assets/css/printd.css?t=<?php echo time();?>">
-<link rel="stylesheet" href="/assets/css/printd-quotation.css?t=<?php echo time();?>">
+<link rel="stylesheet" href="/assets/css/printd-invoice.css?t=<?php echo time();?>">
 <div id="dcontroller" class="clearfix">
     <div class="page-title clearfix mt15">
-        <h1>ใบเสนอราคา <?php echo $doc_number;?></h1>
+        <h1>ใบแจ้งหนี้ / ใบกำกับภาษี <?php echo $doc_number;?></h1>
         <div class="title-button-group">
-            <a style="margin-left: 15px;" class="btn btn-default mt0 mb0 back-to-index-btn"  href="<?php echo get_uri("quotations")?>" ><i class="fa fa-hand-o-left" aria-hidden="true"></i> ย้อนกลับไปตารางรายการ</a>
+            <a style="margin-left: 15px;" class="btn btn-default mt0 mb0 back-to-index-btn"  href="<?php echo get_uri("invoices")?>" ><i class="fa fa-hand-o-left" aria-hidden="true"></i> ย้อนกลับไปตารางรายการ</a>
             <a class="btn btn-default" onclick="window.print();">พิมพ์</a>
         </div>
     </div>
@@ -51,7 +51,7 @@
             </div><!-- .company -->
         </div><!--.l-->
         <div class="r">
-            <h1 class="document_name custom-color">ใบเสนอราคา</h1>
+            <h1 class="document_name custom-color">ใบแจ้งหนี้ / ใบกำกับภาษี<!--<span class="note custom-color">ต้นฉบับ (เอกสารออกเป็นชุด)</span>--></h1>
             <div class="about_company">
                 <table>
                     <tr>
@@ -59,17 +59,23 @@
                         <td><?php echo $doc_number; ?></td>
                     </tr>
                     <tr>
-                        <td class="custom-color">เลขที่อ้างอิง</td>
-                        <td><?php echo $reference_number; ?></td>
+                        <td class="custom-color">วันที่</td>
+                        <td><?php echo convertDate($doc_date, true); ?></td>
                     </tr>
                     <tr>
-                        <td class="custom-color">วันที่</td>
-                        <td><?php echo converDate($doc_date, true); ?></td>
+                        <td class="custom-color">ครบกำหนด</td>
+                        <td><?php echo convertDate($due_date, true); ?></td>
                     </tr>
                     <tr>
                         <td class="custom-color">ผู้ขาย</td>
                         <td><?php if($created != null) echo $created["first_name"]." ".$created["last_name"]; ?></td>
                     </tr>
+                    <?php if(trim($reference_number) != ""): ?>
+                        <tr>
+                            <td class="custom-color">เลขที่อ้างอิง</td>
+                            <td><?php echo $reference_number; ?></td>
+                        </tr>
+                    <?php endif; ?>
                 </table>
             </div>
             <div class="about_customer">
@@ -109,7 +115,7 @@
                 <tr>
                     <td colspan="3">
                         <?php if($doc_status == "W"): ?>
-                            <p><?php echo modal_anchor(get_uri("quotations/item"), "<i class='fa fa-plus-circle'></i> " . lang('add_item_product'), array("id"=>"add_item_button", "class" => "btn btn-default", "title" => lang('add_item_product'), "data-post-doc_id" => $doc_id)); ?></p>
+                            <p><?php echo modal_anchor(get_uri("invoices/item"), "<i class='fa fa-plus-circle'></i> " . lang('add_item_product'), array("id"=>"add_item_button", "class" => "btn btn-default", "title" => lang('add_item_product'), "data-post-doc_id" => $doc_id)); ?></p>
                         <?php endif; ?>
                         <p><input type="text" id="total_in_text" readonly></p>
                     </td>
@@ -121,13 +127,13 @@
                         </p>
                         <p id="s-discount">
                             <span class="c1 custom-color">
-                                ส่วนลด&nbsp;<input type="number" id="discount_percent" <?php if($doc_status != "W") echo "disabled"; ?>>
+                                ส่วนลด&nbsp;<input type="number" id="discount_percent" value="<?php echo $discount_percent; ?>" <?php if($doc_status != "W") echo "disabled"; ?>>
                                 <select id="discount_type" <?php if($doc_status != "W") echo "disabled"; ?>>
-                                    <option value="P">%</option>
-                                    <option value="F">฿</option>
+                                    <option value="P" <?php if($discount_type == "P") echo "selected";?>>%</option>
+                                    <option value="F" <?php if($discount_type == "F") echo "selected";?>>฿</option>
                                 </select>
                             </span>
-                            <span class="c2"><input type="text" id="discount_amount" readonly></span>
+                            <span class="c2"><input type="text" id="discount_amount" value="<?php echo $discount_amount; ?>" readonly></span>
                             <span class="c3"><span class="currency">บาท</span></span>
                         </p>
                         <p id="s-sub-total">
@@ -136,7 +142,7 @@
                             <span class="c3"><span class="currency">บาท</span></span>
                         </p>
                         <p id="s-vat">
-                            <span class="c1 custom-color"><input type="checkbox" id="vat_inc" <?php if($doc_status != "W") echo "disabled"; ?>>ภาษีมูลค่าเพิ่ม<span class="vat_percent custom-color"><?php echo $vat_percent; ?></span><span class="vat_percent_zero custom-color">0%</span></span>
+                            <span class="c1 custom-color"><input type="checkbox" id="vat_inc" <?php if($vat_inc == "Y") echo "checked" ?> <?php if($doc_status != "W") echo "disabled"; ?>>ภาษีมูลค่าเพิ่ม<span class="vat_percent custom-color"><?php echo $vat_percent; ?></span><span class="vat_percent_zero custom-color">7%</span></span>
                             <span class="c2"><input type="text" id="vat_value" readonly></span>
                             <span class="c3"><span class="currency">บาท</span></span>
                         </p>
@@ -183,7 +189,7 @@
             <div class="clear">
                 <div class="name">
                     <span class="l1"></span>
-                    <span class="l2">ผู้สั่งซื้อสินค้า</span>
+                    <span class="l2">ผู้รับสินค้า / บริการ</span>
                 </div>
                 <div class="date">
                     <span class="l1"></span>
@@ -196,8 +202,8 @@
             <div class="clear">
                 <div class="name">
                     <span class="l1">
-                        <?php $signature = $this->Users_m->getSignature($approved_by); ?>
-                        <?php if($doc_status == "A" && $signature != null): ?>
+                        <?php $signature = $this->Users_m->getSignature($created_by); ?>
+                        <?php if($signature != null): ?>
                             <span class="signature"><img src='<?php echo str_replace("./", "/", $signature); ?>'></span>
                         <?php endif; ?>
                     </span>
@@ -205,8 +211,8 @@
                 </div>
                 <div class="date">
                     <span class="l1">
-                        <?php if($doc_status == "A"): ?>
-                            <span class="approved_date"><?php echo converDate($approved_datetime, true); ?></span>
+                        <?php if($signature != null): ?>
+                            <span class="approved_date"><?php echo convertDate($doc_date, true); ?></span>
                         <?php endif; ?>
                     </span>
                     <span class="l2">วันที่</span>
@@ -252,7 +258,7 @@ function loadItems(){
                     tbody += "<td>"+items[i]["total_price"]+"</td>";
                     tbody += "<td class='edititem'>";
                         if(data.doc_status == "W"){
-                            tbody += "<a class='edit' data-post-doc_id='<?php echo $doc_id; ?>' data-post-item_id='"+items[i]["id"]+"' data-act='ajax-modal' data-action-url='<?php echo_uri("quotations/item"); ?>' ><i class='fa fa-pencil'></i></a>";
+                            tbody += "<a class='edit' data-post-doc_id='<?php echo $doc_id; ?>' data-post-item_id='"+items[i]["id"]+"' data-act='ajax-modal' data-action-url='<?php echo_uri("invoices/item"); ?>' ><i class='fa fa-pencil'></i></a>";
                             tbody += "<a class='delete' data-item_id='"+items[i]["id"]+"'><i class='fa fa-times fa-fw'></i></a>";
                         }
                     tbody += "</td>";
@@ -289,75 +295,70 @@ function loadSummary(){
         vat_inc: $("#vat_inc").is(":checked"),
         wht_inc: $("#wht_inc").is(":checked"),
         wht_percent: $("#wht_percent").val()
-    }).then(function(response) { 
-        axios.post('<?php echo current_url(); ?>', {
-            task: 'load_summary',
-            doc_id: '<?php echo $doc_id; ?>'
-        }).then(function(response) { 
-            data = response.data;
+    }).then(function(response) {
+        data = response.data;
 
-            $("#sub_total_before_discount").val(data.sub_total_before_discount);
-            $("#discount_percent").val(data.discount_percent);
-            $("#discount_amount").val(data.discount_amount);
-            $("#sub_total").val(data.sub_total);
+        $("#sub_total_before_discount").val(data.sub_total_before_discount);
+        $("#discount_percent").val(data.discount_percent);
+        $("#discount_amount").val(data.discount_amount);
+        $("#sub_total").val(data.sub_total);
 
-            $("#wht_percent").val(data.wht_percent);
-            $("#wht_value").val(data.wht_value);
+        $("#wht_percent").val(data.wht_percent);
+        $("#wht_value").val(data.wht_value);
 
-            $("#total").val(data.total);
-            $("#total_in_text").val("("+data.total_in_text+")");
+        $("#total").val(data.total);
+        $("#total_in_text").val("("+data.total_in_text+")");
 
-            $("#payment_amount").val(data.payment_amount);
+        $("#payment_amount").val(data.payment_amount);
 
-             if(data.discount_type == "P"){
-                $("#discount_type").val("P");
-                $("#discount_percent").removeClass("h").addClass("v");
-                $("#discount_amount").removeClass("f").addClass("p");
-                $("#discount_amount").prop("readonly", true);
-                discount_value = $("#discount_percent").val();
-            }else{
-                $("#discount_type").val("F");
-                $("#discount_percent").removeClass("v").addClass("h");
-                $("#discount_amount").removeClass("p").addClass("f");
-                $("#discount_amount").prop("readonly", false);
-                discount_value = $("#discount_amount").val();
-            }
+         if(data.discount_type == "P"){
+            $("#discount_type").val("P");
+            $("#discount_percent").removeClass("h").addClass("v");
+            $("#discount_amount").removeClass("f").addClass("p");
+            $("#discount_amount").prop("readonly", true);
+            discount_value = $("#discount_percent").val();
+        }else{
+            $("#discount_type").val("F");
+            $("#discount_percent").removeClass("v").addClass("h");
+            $("#discount_amount").removeClass("p").addClass("f");
+            $("#discount_amount").prop("readonly", false);
+            discount_value = $("#discount_amount").val();
+        }
 
-            if(discount_value > 0){
-                $("#s-sub-total-before-discount, #s-discount").removeClass("h").addClass("v");
-                $("#s-sub-total .t1").removeClass("h").addClass("v");
-                $("#s-sub-total .t2").removeClass("v").addClass("h");
-                
-            }else{
-                $("#s-sub-total-before-discount, #s-discount").removeClass("v").addClass("h");
-                $("#s-sub-total .t1").removeClass("v").addClass("h");
-                $("#s-sub-total .t2").removeClass("h").addClass("v");
-            }
+        if(discount_value > 0){
+            $("#s-sub-total-before-discount, #s-discount").removeClass("h").addClass("v");
+            $("#s-sub-total .t1").removeClass("h").addClass("v");
+            $("#s-sub-total .t2").removeClass("v").addClass("h");
             
-            if(data.vat_inc == "Y"){
-                $("#vat_inc").prop("checked", true);
-                $("#vat_value").val(data.vat_value);
-                $("#s-vat .vat_percent").removeClass("h").addClass("v");
-                $("#s-vat .vat_percent_zero").removeClass("v").addClass("h");
-                
-            }else{
-                $("#vat_inc").prop("checked", false);
-                $("#vat_value").val(data.vat_value);
-                $("#s-vat .vat_percent").removeClass("v").addClass("h");
-                $("#s-vat .vat_percent_zero").removeClass("h").addClass("v");
-            }
+        }else{
+            $("#s-sub-total-before-discount, #s-discount").removeClass("v").addClass("h");
+            $("#s-sub-total .t1").removeClass("v").addClass("h");
+            $("#s-sub-total .t2").removeClass("h").addClass("v");
+        }
+        
+        if(data.vat_inc == "Y"){
+            $("#vat_inc").prop("checked", true);
+            $("#vat_value").val(data.vat_value);
+            $("#s-vat .vat_percent").removeClass("h").addClass("v");
+            $("#s-vat .vat_percent_zero").removeClass("v").addClass("h");
+            
+        }else{
+            $("#vat_inc").prop("checked", false);
+            $("#vat_value").val(data.vat_value);
+            $("#s-vat .vat_percent").removeClass("v").addClass("h");
+            $("#s-vat .vat_percent_zero").removeClass("h").addClass("v");
+        }
 
-            if(data.wht_inc == "Y"){
-                $("#wht_inc").prop("checked", true);
-                $("#s-wht").removeClass("h").addClass("v");
-            }else{
-                $("#wht_inc").prop("checked", false);
-                $("#s-wht").removeClass("v").addClass("h");
-            }
+        if(data.wht_inc == "Y"){
+            $("#wht_inc").prop("checked", true);
+            $("#s-wht").removeClass("h").addClass("v");
+            $(".wht").removeClass("h").addClass("v");
+        }else{
+            $("#wht_inc").prop("checked", false);
+            $("#s-wht").removeClass("v").addClass("h");
+            $(".wht").removeClass("v").addClass("h");
+        }
 
-        }).catch(function (error) {
-            alert(error);
-        });
     }).catch(function (error) {
         alert(error);
     });

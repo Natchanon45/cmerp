@@ -58,6 +58,7 @@ $(document).ready(function () {
             price: $("#price").val()
         }).then(function (response) {
             data = response.data;
+            console.log(data);
             $(".fnotvalid").remove();
 
             if(data.status == "validate"){

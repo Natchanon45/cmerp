@@ -94,15 +94,15 @@
     padding-top: 12px;
 }
 
-#printd .docheader .r .document_name .docno{
-    background: #2ba384;
-    color: #fff;
-    font-weight: bold;
-    font-size: 19px;
+#printd .docheader .r .document_name{
+    font-size: 2em;
+    line-height: 30px;
+}
+
+#printd .docheader .r .document_name .note{
+    font-size: 0.61em;
+    display: block;
     line-height: 20px;
-    padding: 4px 6px;
-    display: inline-block;
-    margin-bottom: 28px;
 }
 
 #printd .docheader .company_name,
@@ -367,7 +367,7 @@
 #printd .docsignature .l1 .signature img{
     display: inline-block;
     width: auto;
-    height: 40px;
+    height: 36px;
 }
 
 #printd .docsignature .l1 .approved_date{
