@@ -1,0 +1,72 @@
+#printd td{
+    /*border: 1px solid #ff0000;*/
+}
+
+#printd .docitem td:nth-child(1){
+    width: 30px;
+    text-align: left;
+}
+
+#printd .docitem td:nth-child(2){
+    width: calc(100% - 550px);
+    text-align: left;
+}
+
+#printd .docitem td:nth-child(3){
+    width: 110px;
+    text-align: right;
+}
+
+#printd .docitem td:nth-child(4){
+    width: 110px;
+    text-align: right;
+}
+
+#printd .docitem td:nth-child(5){
+    width: 110px;
+    text-align: right;
+}
+
+#printd .docitem td:nth-child(6){
+    width: 110px;
+    text-align: right;
+}
+
+#printd .docitem td:last-child{
+    width: 80px;
+    text-align: center;
+}
+
+#printd .docitem td .desc1{
+    font-weight: bold;
+}
+
+#printd .withholding_tax select{
+    display: inline-block;
+}
+
+@media print {
+    #printd .docitem td:nth-child(1){
+        width: 30px;
+    }
+
+    #printd .docitem td:nth-child(2){
+        width: calc(100% - 470px);
+    }
+
+    #printd .docitem td:nth-child(3){
+        width: 90px;
+    }
+
+    #printd .docitem td:nth-child(4){
+        width: 90px;   
+    }
+
+    #printd .docitem td:nth-child(5){
+        width: 90px;
+    }
+
+    #printd .docitem td:nth-child(6){
+        width: 90px;
+    }
+}

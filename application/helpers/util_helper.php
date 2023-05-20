@@ -7,7 +7,7 @@ if (!function_exists('jout')){
 }
 
 if (!function_exists('convertDate')){
-    function converDate($date, $cm_format = false){
+    function convertDate($date, $cm_format = false){
         if($date == "" || $date == null) return "";
 
         if($cm_format == false){

@@ -20,7 +20,7 @@ class Permission_m extends MY_Model {
 	public $delete_purchase_request = false;
 	public $approve_purchase_request = false;
 
-	function __construct() {
+	function __construct() {		
 		$urow = $this->db->select("is_admin, role_id")
 								->from("users")
 								->where("id", $this->session->userdata("user_id"))
@@ -126,6 +126,11 @@ class Permission_m extends MY_Model {
 
 	function get(){
 		return $this->permissions;
+	}
+
+	function login_user_test()
+	{
+		return $this->login_user;
 	}
 
 }

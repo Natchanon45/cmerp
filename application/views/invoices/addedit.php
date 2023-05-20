@@ -14,8 +14,8 @@
     </div>
 
     <div class="form-group">
-        <label for="doc_valid_until_date" class=" col-md-3"><?php echo lang('valid_until'); ?></label>
-        <div class="col-md-9"><input type="text" id="doc_valid_until_date" class="form-control" autocomplete="off" readonly>
+        <label for="due_date" class=" col-md-3">ครบกำหนด</label>
+        <div class="col-md-9"><input type="text" id="due_date" class="form-control" autocomplete="off" readonly>
         </div>
     </div>
 
@@ -72,7 +72,7 @@ $(document).ready(function() {
                 doc_id : "<?php if(isset($doc_id)) echo $doc_id; ?>",
                 doc_date:$("#doc_date").val(),
                 credit: $("#credit").val(),
-                doc_valid_until_date: $("#doc_valid_until_date").val(),
+                due_date: $("#due_date").val(),
                 reference_number: $("#reference_number").val(),
                 client_id: $("#client_id").val(),
                 project_id: $("#project_id").val(),
@@ -94,26 +94,26 @@ $(document).ready(function() {
                 }
             }).catch(function (error) {});
         });
-
-        $('#project_id').select2();
-        $("#client_id").select2();
-
-        doc_date = $("#doc_date").datepicker({
-            yearRange: "<?php echo date('Y'); ?>",
-            format: 'dd/mm/yyyy',
-            changeMonth: true,
-            changeYear: true,
-            autoclose: true
-        }).on("changeDate", function (e) {
-            find_valid_date();
-        });
-
-        doc_date.datepicker("setDate", "<?php echo date('d/m/Y', strtotime($doc_date)); ?>");
-
-        $("#credit").blur(function(){
-            find_valid_date();
-        });     
     <?php endif; ?>
+
+    $('#project_id').select2();
+    $("#client_id").select2();
+
+    doc_date = $("#doc_date").datepicker({
+        yearRange: "<?php echo date('Y'); ?>",
+        format: 'dd/mm/yyyy',
+        changeMonth: true,
+        changeYear: true,
+        autoclose: true
+    }).on("changeDate", function (e) {
+        find_valid_date();
+    });
+
+    doc_date.datepicker("setDate", "<?php echo date('d/m/Y', strtotime($doc_date)); ?>");
+
+    $("#credit").blur(function(){
+        find_valid_date();
+    });
 });
 
 function find_valid_date(){
@@ -122,6 +122,6 @@ function find_valid_date(){
     if(credit < 0) credit = 0;
     $("#credit").val(credit);
     qdate.setDate(qdate.getDate() + credit);
-    $("#doc_valid_until_date").val(todate(qdate));
+    $("#due_date").val(todate(qdate));
 }
 </script>
