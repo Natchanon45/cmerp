@@ -14,6 +14,7 @@ class Stock extends MY_Controller
                 require_once(APPPATH . "third_party/php-excel-writer/src/ExcelWriter.php");
 
                 $this->load->model("Permission_m");
+                $this->load->model("Account_category_model");
         }
 
         function index()
