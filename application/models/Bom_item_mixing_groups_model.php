@@ -202,7 +202,7 @@ class Bom_item_mixing_groups_model extends Crud_model {
         
         if(!empty($item_ids) && sizeof($item_ids)){ 
             foreach($item_ids as $i=>$d) {
-                //var_dump($d);
+                // var_dump($d);
                 if ($quantities[$i] > 0) {
                     $group_id = !empty($item_mixings[$i])? $item_mixings[$i]: null;
                     $quantity = floatval($quantities[$i]);

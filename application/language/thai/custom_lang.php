@@ -2428,3 +2428,5 @@ $lang["contact_name"] = "ชื่อผู้ติดต่อ";
 $lang["product_material_record"] = "รายการสินค้า/วัตถุดิบ";
 $lang["remark"] = "หมายเหตุ";
 $lang["on_behalf_of"] = "ในนาม";
+$lang["create_matreq"] = "สร้างใบเบิก";
+$lang["re_calc_stock"] = "คำนวณใหม่";

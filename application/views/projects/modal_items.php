@@ -1,7 +1,8 @@
 <?php echo form_open(get_uri("projects/project_items_save"), array("id" => "item-form", "class" => "general-form", "role" => "form")); ?>
+
 <div class="modal-body clearfix">
   <input type="hidden" name="id" value="<?php echo $model_info->id; ?>" />
-  <input type="hidden" id="restock_process" name="restock_process" value="" />
+  <!-- <input type="hidden" id="restock_process" name="restock_process" value="" /> -->
 
   <div id="type-container">
     <table class="display dataTable no-footer" cellspacing="0" width="100%" role="grid" aria-describedby="supplier-table_info">            
@@ -123,13 +124,12 @@
     <button type="button" class="btn btn-default" data-dismiss="modal"><span class="fa fa-close"></span> <?php echo lang('close'); ?></button>
 
     <?php if($this->Permission_m->create_material_request == true): ?>
-        <button type="submit" class="btn btn-primary" id="btn-submit"><span class="fa fa-check-circle"></span> <?php echo lang('stock_save_make_mr'); ?></button>
+        <button type="submit" class="btn btn-primary" id="btn-submit" name="save_type_id" value="0"><span class="fa fa-check-circle"></span> <?php echo lang('save'); ?></button>
+        <button type="submit" class="btn btn-info" id="btn-submit" name="save_type_id" value="1"><span class="fa fa-plus-circle"></span> <?php echo lang('create_matreq'); ?></button>
+        <button type="submit" class="btn btn-worning" id="btn-submit" name="save_type_id" value="2"><span class="fa fa-recycle"></span> <?php echo lang('re_calc_stock'); ?></button>
     <?php endif; ?>
 
     <?php echo anchor(get_uri("pdf_export/project_materials_pdf/" . $model_info->id), "<i class='fa fa-download'></i> " . lang('download_pdf'), array("title" => lang('download_pdf'), "class"=>"btn btn-default")); ?>
-    
-    <!-- <button type="button" class="btn btn-default" id="btn-restock"><span class="fa fa-recycle" aria-hidden="true"></span> <?php // echo "คำนวณใหม่"; ?></button> -->
-    
     <?php if($this->Permission_m->create_purchase_request == true): ?>
         <button type="button" class="btn btn-danger pull-right" id="btn-pr"><i class="fa fa-shopping-cart"></i> <?php echo lang('request_purchasing_materials'); ?></button>
     <?php endif; ?>
@@ -315,7 +315,7 @@
     var itemForm = $("#item-form");
     itemForm.appForm({
 			onSuccess: function (result) {
-        console.log(result);
+        console.log(result.data);
 
         if(result.addnew){
           url = "<?php echo get_uri(); ?>materialrequests/view/" + result.mrid
@@ -326,7 +326,7 @@
         let projectId = itemForm.find('[name="id"]').val();
         setTimeout(function(){
           $(`body .bom-item-modal[data-act="ajax-modal"][data-post-id="${projectId}"]`).click();
-        }, 1100);
+        }, 1050);
 			}
 		});
 

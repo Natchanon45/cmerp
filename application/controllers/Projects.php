@@ -5114,71 +5114,101 @@ class Projects extends MY_Controller {
         $this->load->view('projects/modal_items', $view_data);
     }
 
-    function project_items_save() {
-        // var_dump($this->input->post('item_id[]'), $this->input->post('item_mixing[]'), $this->input->post('quantity[]'));exit;
-        // $this->check_module_availability("module_stock");
-        
-        $id = $this->input->post('id');
+    function project_items_save() 
+    {
+        // $restock_process = $this->input->post('restock_process');
 
-        $restock_process = $this->input->post('restock_process');
+        // $post = [
+        //     "id" => $this->input->post('id'),
+        //     "restock_process" => $this->input->post('restock_process'),
+        //     "item_id" => $this->input->post('item_id[]'),
+        //     "item_mixing" => $this->input->post('item_mixing[]'),
+        //     "quantity" => $this->input->post('quantity[]')
+        // ];
 
-        $post = [
-            "id" => $this->input->post('id'),
-            "restock_process" => $this->input->post('restock_process'),
-            "item_id" => $this->input->post('item_id[]'),
-            "item_mixing" => $this->input->post('item_mixing[]'),
-            "quantity" => $this->input->post('quantity[]')
-        ];
+        $post = $this->input->post();
 
-        // var_dump($restock_process, !empty($restock_process), $id); exit;
-        if(!empty($restock_process)) {
-            $this->Bom_item_mixing_groups_model->restock_process($id);
-        }else{
-            validate_submitted_data(array(
-                "id" => "required|numeric"
-            ));
-
-            $mr = $this->Materialrequests_model->get_details(['project_id'=>$id])->row();
-            $project = $this->db->query("SELECT p.id, p.title FROM projects p WHERE p.id = $id ")->row();
-
-            //echo json_encode(array("success" => false, 'message' => lang('error_occurred')));
-            
-            //if this project haven't had material request yet
-            if(!$mr) {
-                $data = [
-                    'project_id'=>$id,
-                    'project_name' => $project->title,
-                    'requester_id'=>$this->login_user->id,
-                    'created_by'=>$this->login_user->id,
-                    'mr_date'=>get_today_date(),
-                    'status_id' => 1
-                ];
-                $mr_id = $mr = $this->Materialrequests_model->save($data, 0);
-                $mr = $this->Materialrequests_model->get_one($mr_id);
-            }
-            
-            $ps = $this->Bom_item_mixing_groups_model->project_items_save(
-                $id, 
-                $this->input->post('item_id[]'), 
-                $this->input->post('item_mixing[]'), 
-                $this->input->post('quantity[]'),
-                $mr->id
-            );
-            if (true) {
-                echo json_encode(array("success" => true, 'message' => lang('record_saved') , 'mrid' => $mr->id , 'addnew' => $ps));
-            } else {
-                echo json_encode(array("success" => false, 'message' => lang('error_occurred')));
-            }
-            return;
+        if ($post["save_type_id"] == '2') 
+        {
+            $post = $this->save_project_recalc_stock($post);
+        } 
+        else if ($post["save_type_id"] == '1') 
+        {
+            $post = $this->save_project_material_request($post);
+        } 
+        else 
+        {
+            $post = $this->save_project_items($post);
         }
+
+        echo json_encode(array("success" => true, "data" => $post, "message" => lang("record_saved")));
+        exit;
+
+        // if(!empty($restock_process)) {
+            // $this->Bom_item_mixing_groups_model->restock_process($id);
+        // } else {
+            // validate_submitted_data(array(
+            //     "id" => "required|numeric"
+            // ));
+
+            // $mr = $this->Materialrequests_model->get_details(['project_id'=>$id])->row();
+            // $project = $this->db->query("SELECT p.id, p.title FROM projects p WHERE p.id = $id ")->row();
+
+            // echo json_encode(array("success" => false, 'message' => lang('error_occurred')));
+            // if this project haven't had material request yet
+            // if(!$mr) {
+            //     $data = [
+            //         'project_id'=>$id,
+            //         'project_name' => $project->title,
+            //         'requester_id'=>$this->login_user->id,
+            //         'created_by'=>$this->login_user->id,
+            //         'mr_date'=>get_today_date(),
+            //         'status_id' => 1
+            //     ];
+            //     $mr_id = $mr = $this->Materialrequests_model->save($data, 0);
+            //     $mr = $this->Materialrequests_model->get_one($mr_id);
+            // }
+            
+            // $ps = $this->Bom_item_mixing_groups_model->project_items_save(
+            //     $id, 
+            //     $this->input->post('item_id[]'), 
+            //     $this->input->post('item_mixing[]'), 
+            //     $this->input->post('quantity[]'),
+            //     $mr->id
+            // );
+            // if ($ps) {
+            //     echo json_encode(array("success" => true, 'message' => lang('record_saved') , 'mrid' => $mr->id , 'addnew' => $ps, 'mr_req' => $this->input->post('mr_req')));
+            // } else {
+            //     echo json_encode(array("success" => false, 'message' => lang('error_occurred')));
+            // }
+            // return;
+        // }
 
         // TODO: Alert low quantity materials
             
-        if (true) {
-            echo json_encode(array("success" => true, 'message' => lang('record_saved')));
-        } else {
-            echo json_encode(array("success" => false, 'message' => lang('error_occurred')));
-        }
+        // if (true) {
+        //     echo json_encode(array("success" => true, 'message' => lang('record_saved')));
+        // } else {
+        //     echo json_encode(array("success" => false, 'message' => lang('error_occurred')));
+        // }
+    }
+
+    private function save_project_items($post)
+    {
+        $post["function"] = "project_items";
+        return $post;
+    }
+
+    private function save_project_material_request($post)
+    {
+        $post["function"] = "project_material_request";
+        return $post;
+    }
+
+    private function save_project_recalc_stock($post)
+    {
+        $post["function"] = "project_recalc_stock";
+        return $post;
     }
 
     function create_material_request($project_id) {
