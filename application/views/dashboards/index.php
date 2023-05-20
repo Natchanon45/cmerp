@@ -93,15 +93,15 @@
             <div class="row">
                 <div class="col-md-12">
                     <?php
-                    if ($show_invoice_statistics) {
+                    /*if ($show_invoice_statistics) {
                         invoice_statistics_widget();
-                    } else if ($show_project_timesheet) {
+                    } else if ($show_project_timesheet) {*/
                         if ($this->login_user->is_admin) {
                             project_timesheet_statistics_widget("all_timesheet_statistics");
                         } else {
                             project_timesheet_statistics_widget("my_timesheet_statistics");
                         }
-                    }
+                    //}
                     ?> 
                 </div>
             </div>
