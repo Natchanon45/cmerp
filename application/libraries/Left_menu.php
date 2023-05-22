@@ -546,6 +546,7 @@ class Left_menu {
         $menu_list = $this->ci->dao->fetchAll( $sql );
         foreach($menu_list as $ml) {
             $json = json_decode($ml->detail);
+            if($ml->class_name == "income_vs_expenses" || $ml->class_name == "invoice_payments") continue;
             if($json) {
                 $menus[$json->name] = [];
                 $menus[$json->name]["id"] = $ml->id;
