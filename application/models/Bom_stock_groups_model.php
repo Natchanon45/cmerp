@@ -129,23 +129,25 @@ class Bom_stock_groups_model extends Crud_model {
         return $this->db->query($sql);
     }
     
-    function restock_save($group_id = 0, $restock_ids = [], $material_ids = [], 
-    $stocks = [], $prices = []) {
+    function restock_save($group_id = 0, $restock_ids = [], $material_ids = [], $stocks = [], $prices = [], $serial_numbers = []) {
         $except_ids = array_filter($restock_ids, function($var){ return !empty($var); });
         $where = "";
         if (sizeof($except_ids)) {
             $where .= " AND id NOT IN (".implode(',', $except_ids).")";
         }
+        
         $this->db->query("DELETE FROM bom_stocks WHERE group_id = $group_id $where");
         if(!empty($material_ids) && sizeof($material_ids)) {
             foreach($material_ids as $i=>$d) {
+
                 if (empty($restock_ids[$i])||!$restock_ids[$i]) {
                     if (empty($prices)) {
                         $this->db->insert('bom_stocks', [
                             'group_id' => $group_id,
                             'material_id' => $d,
                             'stock' => $stocks[$i],
-                            'remaining' => $stocks[$i]
+                            'remaining' => $stocks[$i],
+                            'serial_number' => $serial_numbers[$i] 
                         ]);
                     } else {
                         $this->db->insert('bom_stocks', [
@@ -153,14 +155,19 @@ class Bom_stock_groups_model extends Crud_model {
                             'material_id' => $d,
                             'stock' => $stocks[$i],
                             'remaining' => $stocks[$i],
-                            'price' => $prices[$i]
+                            'price' => $prices[$i],
+                            'serial_number' => $serial_numbers[$i] 
                         ]);
                     }
                 } else {
-                    $this->db->query("UPDATE bom_stocks 
-                        SET material_id = $d, stock = $stocks[$i], price = $prices[$i] 
-                        WHERE id = $restock_ids[$i]");
+                    $this->db->set("material_id", $d)
+                        ->set("stock", $stocks[$i])
+                        ->set("price", $prices[$i])
+                        ->set("serial_number", $serial_numbers[$i])
+                        ->where("id", $restock_ids[$i])
+                        ->update("bom_stocks");
                 }
+
             }
         }
     }
