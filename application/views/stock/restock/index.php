@@ -6,6 +6,7 @@
           <i class="fa fa-chevron-left" aria-hidden="true"></i>
         </a>
         <?php echo lang('stock_restocks'); ?>
+        <!-- <?php // echo get_setting("user_" . $this->login_user->id . "_personal_language"); ?> -->
       </h1>
       <div class="title-button-group">
         <?php 
@@ -25,28 +26,42 @@
   </div>
 </div>
 
+<style type="text/css">
+#restock-table {
+  font-size: small;
+}
+</style>
+
 <script type="text/javascript">
   $(document).ready(function () {
     $("#restock-table").appTable({
-      source: '<?php echo_uri("stock/restock_list") ?>',
+      source: '<?php echo_uri('stock/dev2_restockingList'); ?>',
       filterDropdown: [
-        <?php if($can_read){?>
-          {name: "created_by", class: "w200", options: <?php echo $team_members_dropdown; ?>}
-        <?php }?>
+        <?php if($can_read): ?>
+          { name: "created_by", class: "w200", options: <?php echo $team_members_dropdown; ?> }
+        <?php endif; ?>
       ],
       columns: [
-        {title: "<?php echo lang("id") ?>", "class": "text-center w50"},
-        {title: '<?php echo lang("stock_restock_name"); ?>'},
-        {title: '<?php echo lang("po_ref2"); ?>', "class": "w150 text-center"},
-        {title: '<?php echo lang("created_by"); ?>', "class": "w150"},
-        {title: '<?php echo lang("created_date"); ?>', "class": "w100"},
-        {title: '<i class="fa fa-bars"></i>', "class": "text-center option w100"}
+        { title: "<?php echo lang('id') ?>", "class": "text-center w50" },
+        { title: "<?php echo lang('stock_restock_name'); ?>", "class": "" },
+        { title: "<?php echo lang('serial_number'); ?>"},
+        { title: "<?php echo lang('stock_material'); ?>", "class": "" },
+        { title: "<?php echo lang('stock_restock_quantity'); ?>", "class": "text-right" },
+        { title: "<?php echo lang('stock_restock_remaining'); ?>", "class": "text-right" },
+        { title: "<?php echo lang('stock_material_unit'); ?>", "class": "w50" },
+        { title: "<?php echo lang('created_by'); ?>", "class": "" },
+        { title: "<?php echo lang('created_date'); ?>", "class": "" },
+        { title: '<i class="fa fa-bars"></i>', "class": "text-center option w100" }
       ],
-      order: [ 3, 'desc' ],
-      <?php if(isset($is_admin) && $is_admin){?>
-        printColumns: combineCustomFieldsColumns([0, 1, 2, 3]),
-        xlsColumns: combineCustomFieldsColumns([0, 1, 2, 3])
-      <?php }?>
+      order: [ 0, 'asc' ],
+      <?php if(isset($is_admin) && $is_admin): ?>
+        printColumns: combineCustomFieldsColumns([0, 1, 2, 3, 4, 5, 6, 7]),
+        xlsColumns: combineCustomFieldsColumns([0, 1, 2, 3, 4, 5, 6, 7]),
+      <?php endif; ?>
+      summation: [
+        { column: 4, dataType: 'number' },
+        { column: 5, dataType: 'number' },
+      ]
     });
   });
 </script>
