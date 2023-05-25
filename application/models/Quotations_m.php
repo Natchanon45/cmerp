@@ -11,6 +11,16 @@ class Quotations_m extends MY_Model {
         return $this->code;
     }
 
+    function getNewDocNumber(){
+        $this->db->where("DATE_FORMAT(created_datetime,'%Y-%m')", date("Y-m"));
+        $this->db->where("deleted", 0);
+        $running_number = $this->db->get("quotation")->num_rows() + 1;
+
+        $doc_number = $this->getCode().date("Ym").sprintf("%04d", $running_number);
+
+        return $doc_number;
+    }
+
     function getStatusName($status_code){
         if($status_code == "W"){
             return "รออนุมัติ";
@@ -23,10 +33,12 @@ class Quotations_m extends MY_Model {
         if($qrow->status == "W"){
             $doc_status .= "<option selected>รออนุมัติ</option>";
             $doc_status .= "<option value='A'>อนุมัติ</option>";
+            $doc_status .= "<option value='CREATE_BILLING_NOTE'>สร้างใบวางบิล</option>";
             $doc_status .= "<option value='R'>ไม่อนุมัติ</option>";
         }elseif($qrow->status == "A"){
             $doc_status .= "<option selected>อนุมัติ</option>";
             $doc_status .= "<option value='P'>ดำเนินการแล้ว</option>";
+            $doc_status .= "<option value='CREATE_BILLING_NOTE'>สร้างใบวางบิล</option>";
             $doc_status .= "<option value='R'>ไม่อนุมัติ</option>";
             $doc_status .= "<option value='RESET'>รีเซ็ต</option>";
         }elseif($qrow->status == "R"){
@@ -57,7 +69,6 @@ class Quotations_m extends MY_Model {
         $db->select("*")->from("quotation");
 
         if($this->input->post("status") != null){
-            log_message("error", $this->input->post("status"));
             $db->where("status", $this->input->post("status"));
         }
 
@@ -92,7 +103,9 @@ class Quotations_m extends MY_Model {
         $this->data["vat_inc"] = "N";
         $this->data["wht_inc"] = "N";
         $this->data["project_id"] = null;
+        $this->data["customer_id"] = null;
         $this->data["client_id"] = null;
+        $this->data["lead_id"] = null;
         $this->data["remark"] = null;
         $this->data["created_by"] = null;
         $this->data["created_datetime"] = null;
@@ -109,6 +122,16 @@ class Quotations_m extends MY_Model {
 
             if(empty($qrow)) return $this->data;
 
+            $lead_id = $client_id = null;
+            
+            if($this->Customers_m->isLead($qrow->client_id) == true){
+                $this->data["customer_id"] = $lead_id = $qrow->client_id;
+                $this->data["customer_is_lead"] = 1;
+            }else{
+                $this->data["customer_id"] = $client_id = $qrow->client_id;
+                $this->data["customer_is_lead"] = 0;
+            }
+
             $this->data["doc_id"] = $docId;
             $this->data["doc_number"] = $qrow->doc_number;
             $this->data["doc_date"] = $qrow->doc_date;
@@ -122,7 +145,8 @@ class Quotations_m extends MY_Model {
             $this->data["vat_percent"] = number_format_drop_zero_decimals($qrow->vat_percent, 2)."%";
             $this->data["wht_inc"] = $qrow->wht_inc;
             $this->data["project_id"] = $qrow->project_id;
-            $this->data["client_id"] = $qrow->client_id;
+            $this->data["client_id"] = $client_id;
+            $this->data["lead_id"] = $lead_id;
             $this->data["remark"] = $qrow->remark;
             $this->data["created_by"] = $qrow->created_by;
             $this->data["created_datetime"] = $qrow->created_datetime;
@@ -274,11 +298,6 @@ class Quotations_m extends MY_Model {
                                                 "field"=>"doc_valid_until_date",
                                                 'label' => '',
                                                 'rules' => 'required'
-                                            ],
-                                            [
-                                                "field"=>"client_id",
-                                                'label' => '',
-                                                'rules' => 'required'
                                             ]
                                         ]);
 
@@ -286,7 +305,6 @@ class Quotations_m extends MY_Model {
             $this->data["status"] = "validate";
             if(form_error('doc_date') != null) $this->data["messages"]["doc_date"] = form_error('doc_date');
             if(form_error('doc_valid_until_date') != null) $this->data["messages"]["doc_valid_until_date"] = form_error('doc_valid_until_date');
-            if(form_error('client_id') != null) $this->data["messages"]["client_id"] = form_error('client_id');
         }
 
     }
@@ -303,9 +321,19 @@ class Quotations_m extends MY_Model {
         $doc_valid_until_date = date('Y-m-d', strtotime($doc_date." + ".$credit." days"));
         $reference_number = $this->json->reference_number;
         $client_id = $this->json->client_id;
+        $lead_id = $this->json->lead_id;
         $project_id = $this->json->project_id;
         $remark = $this->json->remark;
 
+        if($client_id == "" && $lead_id == ""){
+            $this->data["status"] = "validate";
+            $this->data["messages"]["client_id"] = "โปรดใส่ข้อมูล";
+            return $this->data;
+        }
+
+        $customer_id = null;
+        if($client_id != "") $customer_id = $client_id;
+        if($lead_id != "") $customer_id = $lead_id;
 
         if($docId != ""){
             $qrow = $db->select("status")
@@ -326,7 +354,6 @@ class Quotations_m extends MY_Model {
                 return $this->data;
             }
 
-
             $db->where("id", $docId);
             $db->where("deleted", 0);
             $db->update("quotation", [
@@ -334,16 +361,13 @@ class Quotations_m extends MY_Model {
                                         "credit"=>$credit,
                                         "doc_valid_until_date"=>$doc_valid_until_date,
                                         "reference_number"=>$reference_number,
-                                        "client_id"=>$client_id,
+                                        "client_id"=>$customer_id,
                                         "project_id"=>$project_id,
                                         "remark"=>$remark
                                     ]);
         }else{
-            $db->where("DATE_FORMAT(created_datetime,'%Y-%m')", date("Y-m"));
-            $running_number = $db->get("quotation")->num_rows() + 1;
+            $doc_number = $this->getNewDocNumber();
 
-            $doc_number = $this->getCode().date("Ym").sprintf("%04d", $running_number);
-            
             $db->insert("quotation", [
                                         "doc_number"=>$doc_number,
                                         "doc_date"=>$doc_date,
@@ -351,7 +375,7 @@ class Quotations_m extends MY_Model {
                                         "doc_valid_until_date"=>$doc_valid_until_date,
                                         "reference_number"=>$reference_number,
                                         "vat_inc"=>"N",
-                                        "client_id"=>$client_id,
+                                        "client_id"=>$customer_id,
                                         "project_id"=>$project_id,
                                         "remark"=>$remark,
                                         "created_by"=>$this->login_user->id,
@@ -629,9 +653,13 @@ class Quotations_m extends MY_Model {
                     ->get()->row();
 
         if(empty($qrow)) return $this->data;
-        if($qrow->status == $updateStatusTo) return $this->data;
+        if($qrow->status == $updateStatusTo){
+            $this->data["dataset"] = $this->getIndexDataSetHTML($qrow);
+            return $this->data;
+        }
 
-        $this->data["doc_id"] = $docId;
+        $quotation_id = $this->data["doc_id"] = $docId;
+        $quotation_number = $qrow->doc_number;
         $currentStatus = $qrow->status;
 
         $this->db->trans_begin();
@@ -663,6 +691,75 @@ class Quotations_m extends MY_Model {
                                         "status"=>"P"
                                     ]);
 
+        }elseif($updateStatusTo == "CREATE_BILLING_NOTE"){
+            $db->where("id", $docId);
+            $db->update("quotation", [
+                                        "status"=>"P"
+                                    ]);
+
+            $billing_note_number = $this->Billing_notes_m->getNewDocNumber();
+            $billing_date = date("Y-m-d");
+            $billing_credit = $qrow->credit;
+            $billing_due_date = date("Y-m-d", strtotime($billing_date. " + ".$billing_credit." days"));
+
+            $db->insert("billing_note", [
+                                            "quotation_id"=>$quotation_id,
+                                            "doc_number"=>$billing_note_number,
+                                            "doc_date"=>$billing_date,
+                                            "credit"=>$billing_credit,
+                                            "due_date"=>$billing_due_date,
+                                            "reference_number"=>$quotation_number,
+                                            "project_id"=>$qrow->project_id,
+                                            "client_id"=>$qrow->client_id,
+                                            "sub_total_before_discount"=>$qrow->sub_total_before_discount,
+                                            "discount_type"=>$qrow->discount_type,
+                                            "discount_percent"=>$qrow->discount_percent,
+                                            "discount_amount"=>$qrow->discount_amount,
+                                            "sub_total"=>$qrow->sub_total,
+                                            "vat_inc"=>$qrow->vat_inc,
+                                            "vat_percent"=>$qrow->vat_percent,
+                                            "vat_value"=>$qrow->vat_value,
+                                            "total"=>$qrow->total,
+                                            "wht_inc"=>$qrow->wht_inc,
+                                            "wht_percent"=>$qrow->wht_percent,
+                                            "wht_value"=>$qrow->wht_value,
+                                            "payment_amount"=>$qrow->payment_amount,
+                                            "remark"=>$qrow->remark,
+                                            "created_by"=>$this->login_user->id,
+                                            "created_datetime"=>date("Y-m-d H:i:s"),
+                                            "status"=>"W",
+                                            "deleted"=>0
+                                        ]);
+
+            $billing_note_id = $db->insert_id();
+
+            $qirows = $db->select("*")
+                        ->from("quotation_items")
+                        ->where("quotation_id", $quotation_id)
+                        ->order_by("sort", "ASC")
+                        ->get()->result();
+
+            if(empty(!$qirows)){
+                foreach($qirows as $qirow){
+                    $db->insert("billing_note_items", [
+                                                        "billing_note_id"=>$billing_note_id,
+                                                        "product_id"=>$qirow->product_id,
+                                                        "product_name"=>$qirow->product_name,
+                                                        "product_description"=>$qirow->product_description,
+                                                        "quantity"=>$qirow->quantity,
+                                                        "unit"=>$qirow->unit,
+                                                        "price"=>$qirow->price,
+                                                        "total_price"=>$qirow->total_price,
+                                                        "sort"=>$qirow->sort
+                                                    ]);
+                }
+            }
+
+            $this->data["task"] = "create_billing_note";
+            $this->data["status"] = "success";
+            $this->data["url"] = get_uri("billing-notes/view/".$billing_note_id);
+
+
         }elseif($updateStatusTo == "RESET"){
             $db->where("id", $docId);
             $db->update("quotation", [
@@ -680,6 +777,8 @@ class Quotations_m extends MY_Model {
         }
 
         $db->trans_commit();
+
+        if(isset($this->data["task"])) return $this->data;
 
         $qrow = $db->select("*")
                     ->from("quotation")

@@ -1,12 +1,12 @@
 <div id="page-content" class="p20 clearfix">
     <div class="panel clearfix">
         <ul id="quotation-tabs" data-toggle="ajax-tab" class="nav nav-tabs bg-white title" role="tablist">
-            <li class="title-tab"><h4 class="pl15 pt10 pr15"><?php echo lang('estimates'); ?></h4></li>
+            <li class="title-tab"><h4 class="pl15 pt10 pr15">ใบวางบิล</h4></li>
             <li><a id="monthly-quotation-button" class="active" role="presentation" href="javascript:;" data-target="#monthly-quotations"><?php echo lang("monthly"); ?></a></li>
             <!--<li><a role="presentation" href="<?php echo_uri("estimates/yearly/"); ?>" data-target="#yearly-estimates"><?php echo lang('yearly'); ?></a></li>-->
             <div class="tab-title clearfix no-border">
                 <div class="title-button-group">
-                    <a data-action-url='<?php echo get_uri("quotations/addedit"); ?>' data-act='ajax-modal' class='btn btn-default'><i class='fa fa-plus-circle'></i> เพิ่มใบเสนอราคา</a>
+                    <a data-action-url='<?php echo get_uri("billing-notes/addedit"); ?>' data-act='ajax-modal' class='btn btn-default'><i class='fa fa-plus-circle'></i> เพิ่มใบวางบิล</a>
                 </div>
             </div>
         </ul>
@@ -21,7 +21,7 @@
     </div>
 </div>
 <script type="text/javascript">
-let doc_status = [{id:"", text:"-<?php echo lang("status"); ?>-"}, {id:"W", text:"รออนุมัติ"}, {id:"A", text:"อนุมัติ"}, {id:"P", text:"ดำเนินการแล้ว"}, {id:"R", text:"ไม่อนุมัติ"}];
+let doc_status = [{id:"", text:"-<?php echo lang("status"); ?>-"}, {id:"W", text:"รอดำเนินการ"}, {id:"B", text:"รอเก็บเงิน"}, {id:"C", text:"ยกเลิก"}];
 $(document).ready(function () {
     $("#datagrid").appTable({
         source: '<?php echo current_url(); ?>',
@@ -29,13 +29,13 @@ $(document).ready(function () {
         dateRangeType: "monthly",
         filterDropdown: [{name: "status", class: "w150", options: doc_status}],
         columns: [
-            {title: "วันที่", "class":"w10p"},
-            {title: "เลขที่เอกสาร", "class":"w10p"},
-            {title: "ลูกค้า", "class":"w35p"},
-            {title: "ครบกำหนด", "class":"text-left w10p"},
-            {title: "ยอดรวมสุทธิ", "class":"text-right w10p"},
-            {title: "สถานะ", "class":"text-left w15p"},
-            {title: "<i class='fa fa-bars'></i>", "class":"text-center option w10p"}
+            {title: "วันที่", "class": "w10p"},
+            {title: "เลขที่เอกสาร", "class": "w10p"},
+            {title: "ชื่อลูกค้า", "class": "w35p"},
+            {title: "วันครบกำหนด", "class": "text-left w10p"},
+            {title: "ยอดรวมสุทธิ", "class": "text-right w10p"},
+            {title: "สถานะ", "class": "text-left w15p"},
+            {title: "<i class='fa fa-bars'></i>", "class": "text-center option w10p"}
         ]
     });
 

@@ -1,8 +1,9 @@
 <?php
+class Leads_m extends Customers_m {
 
-class Leads_m extends CI_Model {
-
-    function __construct() {}
+    function __construct() {
+        parent::__construct();
+    }
 
     function indexHeader(){
     	$header = [];
@@ -115,12 +116,24 @@ class Leads_m extends CI_Model {
         return $dataset;
     }
 
+    function getRows(){
+        $db = $this->db;
+
+        $crows = $db->select("*")
+                    ->from("clients")
+                    ->where("deleted", 0)
+                    ->where("is_lead", 1)
+                    ->get()->result();
+
+        return $crows;
+    }
+
     function getRow($id){
         $row = $this->db->select("*")
                         ->from("clients")
                         ->where("id", $id)
+                        ->where("is_lead", 1)
                         ->get()->row();
-
         return $row;
     }
 

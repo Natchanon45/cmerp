@@ -49,12 +49,11 @@ class Quotations extends MY_Controller {
         }
 
         $data["created"] = $this->Users_m->getInfo($data["created_by"]);
-        $data["client"] = $this->Clients_m->getInfo($data["client_id"]);
-        if($data["client"] != null) $data["client_contact"] = $this->Clients_m->getContactInfo($data["client_id"]);
+        $data["client"] = $this->Customers_m->getInfo($data["customer_id"]);
+        $data["client_contact"] = $this->Customers_m->getContactInfo($data["client_id"]);
 
         $this->template->rander("quotations/view", $data);
     }
-
 
     function delete_doc() {
         if($this->input->post('undo') == true){
@@ -74,6 +73,8 @@ class Quotations extends MY_Controller {
             if($this->json->task == "save") jout($this->Quotations_m->saveItem());
             return;   
         }
+
+        $suggestion = [];
 
         if($this->input->get("task") != null){
             if($this->input->get("task") == "suggest_products"){

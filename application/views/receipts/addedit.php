@@ -7,19 +7,6 @@
     </div>
 
     <div class="form-group">
-        <label for="credit" class=" col-md-3">เครดิต (วัน)</label>
-        <div class="col-md-9" style="display: grid;grid-template-columns: auto auto;align-items: center; justify-items: center;justify-content: start;">
-            <input type="number" id="credit" value="<?php echo $credit; ?>" class="form-control" autocomplete="off" >
-        </div>
-    </div>
-
-    <div class="form-group">
-        <label for="due_date" class=" col-md-3">ครบกำหนด</label>
-        <div class="col-md-9"><input type="text" id="due_date" class="form-control" autocomplete="off" readonly>
-        </div>
-    </div>
-
-    <div class="form-group">
         <label for="reference_number" class=" col-md-3">เลขที่อ้างอิง</label>
         <div class="col-md-9"><input type="text" id="reference_number" value="<?php echo $reference_number; ?>" placeholder="#" class="form-control"></div>
     </div>
@@ -94,8 +81,6 @@ $(document).ready(function() {
                 task: 'save_doc',
                 doc_id : "<?php if(isset($doc_id)) echo $doc_id; ?>",
                 doc_date:$("#doc_date").val(),
-                credit: $("#credit").val(),
-                due_date: $("#due_date").val(),
                 reference_number: $("#reference_number").val(),
                 client_id: $("#client_id").val(),
                 lead_id: $("#lead_id").val(),
@@ -126,49 +111,8 @@ $(document).ready(function() {
         changeMonth: true,
         changeYear: true,
         autoclose: true
-    }).on("changeDate", function (e) {
-        cal_due_date_from_credit();
-    });
-
-    due_date = $("#due_date").datepicker({
-        yearRange: "<?php echo date('Y'); ?>",
-        format: 'dd/mm/yyyy',
-        changeMonth: true,
-        changeYear: true,
-        autoclose: true
-    }).on("changeDate", function (e) {
-        cal_credit_from_due_date();
     });
 
     doc_date.datepicker("setDate", "<?php echo date('d/m/Y', strtotime($doc_date)); ?>");
-    due_date.datepicker("setDate", "<?php echo date('d/m/Y', strtotime($due_date)); ?>");
-
-    $("#credit").blur(function(){
-        cal_due_date_from_credit();
-    });
 });
-
-function cal_due_date_from_credit(){
-    qdate = $("#doc_date").datepicker('getDate');
-    credit = Number($("#credit").val());
-    if(credit < 0) credit = 0;
-    $("#credit").val(credit);
-    qdate.setDate(qdate.getDate() + credit);
-    $("#due_date").val(todate(qdate));
-}
-
-function cal_credit_from_due_date(){
-    doc_date = $("#doc_date").datepicker('getDate');
-    due_date = $("#due_date").datepicker('getDate');
-
-    if (doc_date > due_date) {
-        doc_date = new Date(due_date.getFullYear(),due_date.getMonth(),due_date.getDate());
-        $("#doc_date").datepicker("setDate", doc_date);
-    }
-
-    doc_date = $("#doc_date").datepicker('getDate').getTime();
-    due_date = $("#due_date").datepicker('getDate').getTime();
-    credit = Math.round(Math.abs((due_date - doc_date)/(24*60*60*1000)));
-    $("#credit").val(credit);
-}
 </script>
