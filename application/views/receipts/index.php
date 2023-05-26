@@ -35,6 +35,9 @@ $(document).ready(function () {
             {title: "ยอดรวมสุทธิ", "class": "text-right w15p"},
             {title: "สถานะ", "class": "text-left w15p"},
             {title: "<i class='fa fa-bars'></i>", "class": "text-center option w10p"}
+        ],
+        summation: [
+            {column: 3, dataType: 'currency'}
         ]
     });
 
