@@ -77,7 +77,7 @@ class Billing_notes_m extends MY_Model {
 
         $db->where("deleted", 0);
 
-        $bnrows = $db->get()->result();
+        $bnrows = $db->order_by("doc_number", "desc")->get()->result();
 
         $dataset = [];
 
@@ -106,6 +106,8 @@ class Billing_notes_m extends MY_Model {
         $this->data["remark"] = null;
         $this->data["created_by"] = null;
         $this->data["created_datetime"] = null;
+        $this->data["approved_by"] = null;
+        $this->data["approved_datetime"] = null;
         $this->data["doc_status"] = NULL;
 
         if(!empty($docId)){
@@ -145,6 +147,8 @@ class Billing_notes_m extends MY_Model {
             $this->data["remark"] = $bnrow->remark;
             $this->data["created_by"] = $bnrow->created_by;
             $this->data["created_datetime"] = $bnrow->created_datetime;
+            $this->data["approved_by"] = $bnrow->approved_by;
+            $this->data["approved_datetime"] = $bnrow->approved_datetime;
             $this->data["doc_status"] = $bnrow->status;
         }
 
@@ -647,8 +651,10 @@ class Billing_notes_m extends MY_Model {
         if(empty($bnrow)) return $this->data;
         if($bnrow->status == $updateStatusTo){
             $this->data["dataset"] = $this->getIndexDataSetHTML($bnrow);
+            $this->data["message"] = "ไม่สามารถแก้ไขสถานะเอกสารได้ เนื่องจากเอกสารมีการเปลี่ยนแปลงสถานะแล้ว";
             return $this->data;
         }
+
 
         $billing_note_id = $this->data["doc_id"] = $docId;
         $billing_note_number = $bnrow->doc_number;
@@ -664,6 +670,8 @@ class Billing_notes_m extends MY_Model {
 
             $db->where("id", $docId);
             $db->update("billing_note", [
+                                        "approved_by"=>$this->login_user->id,
+                                        "approved_datetime"=>date("Y-m-d H:i:s"),
                                         "status"=>"A"
                                     ]);
 
@@ -675,6 +683,8 @@ class Billing_notes_m extends MY_Model {
 
             $db->where("id", $docId);
             $db->update("billing_note", [
+                                        "approved_by"=>$this->login_user->id,
+                                        "approved_datetime"=>date("Y-m-d H:i:s"),
                                         "status"=>"I"
                                     ]);
 
@@ -684,8 +694,25 @@ class Billing_notes_m extends MY_Model {
                 return $this->data;
             }
 
+            $invrow = $db->select("doc_number")
+                            ->from("invoice")
+                            ->where("billing_note_id", $billing_note_id)
+                            ->where("status !=", "V")
+                            ->where("deleted", 0)
+                            ->get()->row();
+
+            if(!empty($invrow)){
+                $db->trans_rollback();
+                $this->data["dataset"] = $this->getIndexDataSetHTML($bnrow);
+                $this->data["message"] = "ไม่สามารถสร้างใบกำกับภาษีได้ เนื่องจากมีการเปิดบิลที่ ".$invrow->doc_number." เรียบร้อยแล้ว";
+                return $this->data;
+            }
+
+
             $db->where("id", $docId);
             $db->update("billing_note", [
+                                        "approved_by"=>$this->login_user->id,
+                                        "approved_datetime"=>date("Y-m-d H:i:s"),
                                         "status"=>"I"
                                     ]);
 

@@ -21,7 +21,7 @@
     </div>
 </div>
 <script type="text/javascript">
-let doc_status = [{id:"", text:"-<?php echo lang("status"); ?>-"}, {id:"W", text:"รอดำเนินการ"}, {id:"B", text:"รอเก็บเงิน"}, {id:"C", text:"ยกเลิก"}];
+let doc_status = [{id:"", text:"-<?php echo lang("status"); ?>-"}, {id:"W", text:"รอดำเนินการ"}, {id:"P", text:"เก็บเงินแล้ว"}, {id:"V", text:"ยกเลิก"}];
 $(document).ready(function () {
     $("#datagrid").appTable({
         source: '<?php echo current_url(); ?>',

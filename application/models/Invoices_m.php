@@ -32,7 +32,7 @@ class Invoices_m extends MY_Model {
 
         if($invrow->status == "P"){
             $doc_status .= "<option selected>รอเก็บเงิน</option>";
-            $doc_status .= "<option value='CREATE_RECEIPT'>สร้างใบเสร็จรับเงิน</option>";
+            $doc_status .= "<option value='R'>สร้างใบเสร็จรับเงิน</option>";
             $doc_status .= "<option value='V'>ยกเลิก</option>";
         }elseif($invrow->status == "R"){
             $doc_status .= "<option selected>เปิดใบเสร็จแล้ว</option>";
@@ -69,7 +69,7 @@ class Invoices_m extends MY_Model {
 
         $db->where("deleted", 0);
 
-        $invrows = $db->get()->result();
+        $invrows = $db->order_by("doc_number", "desc")->get()->result();
 
         $dataset = [];
 
@@ -98,6 +98,8 @@ class Invoices_m extends MY_Model {
         $this->data["remark"] = null;
         $this->data["created_by"] = null;
         $this->data["created_datetime"] = null;
+        $this->data["approved_by"] = null;
+        $this->data["approved_datetime"] = null;
         $this->data["doc_status"] = NULL;
 
         if(!empty($docId)){
@@ -137,6 +139,8 @@ class Invoices_m extends MY_Model {
             $this->data["remark"] = $invrow->remark;
             $this->data["created_by"] = $invrow->created_by;
             $this->data["created_datetime"] = $invrow->created_datetime;
+            $this->data["approved_by"] = $invrow->approved_by;
+            $this->data["approved_datetime"] = $invrow->approved_datetime;
             $this->data["doc_status"] = $invrow->status;
         }
 
@@ -296,28 +300,28 @@ class Invoices_m extends MY_Model {
     function saveDoc(){
         $db = $this->db;
 
-        $this->validateDoc();
-        if($this->data["status"] == "validate") return $this->data;
+        //$this->validateDoc();
+        //if($this->data["status"] == "validate") return $this->data;
 
         $docId = $this->json->doc_id;
-        $doc_date = convertDate($this->json->doc_date);
+        /*$doc_date = convertDate($this->json->doc_date);
         $credit = $this->json->credit;
         $due_date = date('Y-m-d', strtotime($doc_date." + ".$credit." days"));
         $reference_number = $this->json->reference_number;
         $client_id = $this->json->client_id;
         $lead_id = $this->json->lead_id;
-        $project_id = $this->json->project_id;
+        $project_id = $this->json->project_id;*/
         $remark = $this->json->remark;
 
-        if($client_id == "" && $lead_id == ""){
+        /*if($client_id == "" && $lead_id == ""){
             $this->data["status"] = "validate";
             $this->data["messages"]["client_id"] = "โปรดใส่ข้อมูล";
             return $this->data;
-        }
+        }*/
 
-        $customer_id = null;
+        /*$customer_id = null;
         if($client_id != "") $customer_id = $client_id;
-        if($lead_id != "") $customer_id = $lead_id;
+        if($lead_id != "") $customer_id = $lead_id;*/
 
         if($docId != ""){
             $invrow = $db->select("status")
@@ -332,25 +336,13 @@ class Invoices_m extends MY_Model {
                 return $this->data;
             }
 
-            if($invrow->status != "W"){
-                $this->data["success"] = false;
-                $this->data["message"] = "ไม่สามารถบันทึกเอกสารได้เนื่องจากเอกสารมีการเปลี่ยนแปลงสถานะแล้ว";
-                return $this->data;
-            }
-
             $db->where("id", $docId);
             $db->where("deleted", 0);
             $db->update("invoice", [
-                                        "doc_date"=>$doc_date,
-                                        "credit"=>$credit,
-                                        "due_date"=>$due_date,
-                                        "reference_number"=>$reference_number,
-                                        "client_id"=>$customer_id,
-                                        "project_id"=>$project_id,
                                         "remark"=>$remark
                                     ]);
         }else{
-            $doc_number = $this->getNewDocNumber();
+            /*$doc_number = $this->getNewDocNumber();
 
             $db->insert("invoice", [
                                         "doc_number"=>$doc_number,
@@ -367,7 +359,11 @@ class Invoices_m extends MY_Model {
                                         "status"=>"W"
                                     ]);
 
-            $docId = $db->insert_id();
+            $docId = $db->insert_id();*/
+
+            $this->data["success"] = false;
+            $this->data["message"] = "ขออภัย เกิดข้อผิดพลาดระหว่างดำเนินการ! โปรดลองใหม่อีกครั้งในภายหลัง";
+            return $this->data;            
         }
         
         $this->data["target"] = get_uri("invoices/view/". $docId);
@@ -387,7 +383,7 @@ class Invoices_m extends MY_Model {
 
         if(empty($invrow)) return $this->data;
 
-        if($invrow->status != "W"){
+        if($invrow->status != "P"){
             $this->data["success"] = false;
             $this->data["message"] = "คุณไม่สามารถลบเอกสารได้ เนื่องจากเอกสารมีการเปลี่ยนแปลงสถานะแล้ว";
             return $this->data;
@@ -558,14 +554,6 @@ class Invoices_m extends MY_Model {
         $unit = $this->json->unit;
         $price = getNumber($this->json->price);
         $total_price = $price * $quantity;
-        
-        /*$vat_type = $this->json->vat_type;
-        $price_inc_vat = $price = $rate * $quantity;
-
-        if($vat_type == 2){
-            $price = roundUp($price / $this->Taxes_m->getVat());
-            $vat_value = $price_inc_vat - $price;
-        }*/
 
         $fdata = [
                     "invoice_id"=>$docId,
@@ -591,13 +579,12 @@ class Invoices_m extends MY_Model {
             $db->where("invoice_id", $docId);
             $db->update("invoice_items", $fdata);
         }
-
         
         if ($db->trans_status() === FALSE){
             $db->trans_rollback();
-        }else{
-            $db->trans_commit();
         }
+
+        $db->trans_commit();
 
         $this->updateDoc($docId);
 
@@ -637,7 +624,11 @@ class Invoices_m extends MY_Model {
                     ->get()->row();
 
         if(empty($invrow)) return $this->data;
-        if($invrow->status == $updateStatusTo) return $this->data;
+        if($invrow->status == $updateStatusTo){
+            $this->data["dataset"] = $this->getIndexDataSetHTML($invrow);
+            $this->data["message"] = "ไม่สามารถแก้ไขสถานะเอกสารได้ เนื่องจากเอกสารมีการเปลี่ยนแปลงสถานะแล้ว";
+            return $this->data;
+        }
 
         $invoice_id = $this->data["doc_id"] = $docId;
         $invoice_number = $invrow->doc_number;
@@ -645,15 +636,30 @@ class Invoices_m extends MY_Model {
 
         $this->db->trans_begin();
 
-
-        if($updateStatusTo == "CREATE_RECEIPT"){
+        if($updateStatusTo == "R"){
             if($currentStatus == "V"){
                 $this->data["dataset"] = $this->getIndexDataSetHTML($invrow);
+                return $this->data;
+            }
+
+            $rerow = $db->select("doc_number")
+                            ->from("receipt")
+                            ->where("invoice_id", $invoice_id)
+                            ->where("status !=", "V")
+                            ->where("deleted", 0)
+                            ->get()->row();
+
+            if(!empty($rerow)){
+                $db->trans_rollback();
+                $this->data["dataset"] = $this->getIndexDataSetHTML($invrow);
+                $this->data["message"] = "ไม่สามารถสร้างใบเสร็จรับเงินได้ เนื่องจากมีการเปิดใบเสร็จที่ ".$rerow->doc_number." เรียบร้อยแล้ว";
                 return $this->data;
             }
             
             $db->where("id", $docId);
             $db->update("invoice", [
+                                        "approved_by"=>$this->login_user->id,
+                                        "approved_datetime"=>date("Y-m-d H:i:s"),
                                         "status"=>"R"
                                     ]);
 

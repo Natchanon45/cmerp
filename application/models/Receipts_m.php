@@ -32,7 +32,7 @@ class Receipts_m extends MY_Model {
 
         if($rerow->status == "W"){
             $doc_status .= "<option selected>รอดำเนินการ</option>";
-            $doc_status .= "<option value='RECEIVE_PAYMENT'>เก็บเงิน</option>";
+            $doc_status .= "<option value='P'>เก็บเงิน</option>";
             $doc_status .= "<option value='V'>ยกเลิก</option>";
         }elseif($rerow->status == "P"){
             $doc_status .= "<option selected>เก็บเงินแล้ว</option>";
@@ -69,7 +69,7 @@ class Receipts_m extends MY_Model {
 
         $db->where("deleted", 0);
 
-        $rerows = $db->get()->result();
+        $rerows = $db->order_by("doc_number", "desc")->get()->result();
 
         $dataset = [];
 
@@ -83,6 +83,7 @@ class Receipts_m extends MY_Model {
     function getDoc($docId){
         $db = $this->db;
 
+        $this->data["invoice_id"] = null;
         $this->data["doc_date"] = date("Y-m-d");
         $this->data["reference_number"] = "";
         $this->data["discount_type"] = "P";
@@ -96,6 +97,8 @@ class Receipts_m extends MY_Model {
         $this->data["remark"] = null;
         $this->data["created_by"] = null;
         $this->data["created_datetime"] = null;
+        $this->data["approved_by"] = null;
+        $this->data["approved_datetime"] = null;
         $this->data["doc_status"] = NULL;
 
         if(!empty($docId)){
@@ -117,6 +120,7 @@ class Receipts_m extends MY_Model {
                 $this->data["customer_is_lead"] = 0;
             }
 
+            $this->data["invoice_id"] = $rerow->invoice_id;
             $this->data["doc_id"] = $docId;
             $this->data["doc_number"] = $rerow->doc_number;
             $this->data["doc_date"] = $rerow->doc_date;
@@ -133,6 +137,8 @@ class Receipts_m extends MY_Model {
             $this->data["remark"] = $rerow->remark;
             $this->data["created_by"] = $rerow->created_by;
             $this->data["created_datetime"] = $rerow->created_datetime;
+            $this->data["approved_by"] = $rerow->approved_by;
+            $this->data["approved_datetime"] = $rerow->approved_datetime;
             $this->data["doc_status"] = $rerow->status;
         }
 
@@ -407,8 +413,9 @@ class Receipts_m extends MY_Model {
 
     function items(){
         $db = $this->db;
+        $this->data["edit"] = false;
         
-        $rerow = $db->select("id, status")
+        $rerow = $db->select("id, invoice_id, status")
                         ->from("receipt")
                         ->where("id", $this->json->doc_id)
                         ->where("deleted", 0)
@@ -442,7 +449,10 @@ class Receipts_m extends MY_Model {
             $items[] = $item;
         }
 
-        $this->data["doc_status"] = $rerow->status;
+        if($rerow->invoice_id == null && $rerow->status == "W"){
+            $this->data["edit"] = true;
+        }
+
         $this->data["items"] = $items;
         $this->data["status"] = "success";
 
@@ -542,14 +552,6 @@ class Receipts_m extends MY_Model {
         $unit = $this->json->unit;
         $price = getNumber($this->json->price);
         $total_price = $price * $quantity;
-        
-        /*$vat_type = $this->json->vat_type;
-        $price_inc_vat = $price = $rate * $quantity;
-
-        if($vat_type == 2){
-            $price = roundUp($price / $this->Taxes_m->getVat());
-            $vat_value = $price_inc_vat - $price;
-        }*/
 
         $fdata = [
                     "receipt_id"=>$docId,
@@ -621,15 +623,18 @@ class Receipts_m extends MY_Model {
                     ->get()->row();
 
         if(empty($rerow)) return $this->data;
-        if($rerow->status == $updateStatusTo) return $this->data;
+        if($rerow->status == $updateStatusTo){
+            $this->data["dataset"] = $this->getIndexDataSetHTML($rerow);
+            $this->data["message"] = "ไม่สามารถแก้ไขสถานะเอกสารได้ เนื่องจากเอกสารมีการเปลี่ยนแปลงสถานะแล้ว";
+            return $this->data;
+        }
 
         $this->data["doc_id"] = $docId;
         $currentStatus = $rerow->status;
 
         $this->db->trans_begin();
 
-
-        if($updateStatusTo == "RECEIVE_PAYMENT"){
+        if($updateStatusTo == "P"){
             if($currentStatus == "V"){
                 $this->data["dataset"] = $this->getIndexDataSetHTML($rerow);
                 return $this->data;
@@ -637,6 +642,8 @@ class Receipts_m extends MY_Model {
             
             $db->where("id", $docId);
             $db->update("receipt", [
+                                        "approved_by"=>$this->login_user->id,
+                                        "approved_datetime"=>date("Y-m-d H:i:s"),
                                         "status"=>"P"
                                     ]);
 
@@ -645,7 +652,6 @@ class Receipts_m extends MY_Model {
             $db->update("receipt", [
                                         "status"=>"V"
                                     ]);
-
         }
 
         if ($db->trans_status() === FALSE){

@@ -202,7 +202,7 @@
             <div class="clear">
                 <div class="name">
                     <span class="l1">
-                        <?php $signature = $this->Users_m->getSignature($created_by); ?>
+                        <?php $signature = $this->Users_m->getSignature($approved_by); ?>
                         <?php if($signature != null): ?>
                             <span class="signature"><img src='<?php echo str_replace("./", "/", $signature); ?>'></span>
                         <?php endif; ?>
@@ -212,7 +212,7 @@
                 <div class="date">
                     <span class="l1">
                         <?php if($signature != null): ?>
-                            <span class="approved_date"><?php echo convertDate($doc_date, true); ?></span>
+                            <span class="approved_date"><?php echo convertDate($approved_datetime, true); ?></span>
                         <?php endif; ?>
                     </span>
                     <span class="l2">วันที่</span>

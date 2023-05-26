@@ -40,13 +40,13 @@ class Quotations_m extends MY_Model {
             $doc_status .= "<option value='P'>ดำเนินการแล้ว</option>";
             $doc_status .= "<option value='CREATE_BILLING_NOTE'>สร้างใบวางบิล</option>";
             $doc_status .= "<option value='R'>ไม่อนุมัติ</option>";
-            $doc_status .= "<option value='RESET'>รีเซ็ต</option>";
+            //$doc_status .= "<option value='RESET'>รีเซ็ต</option>";
         }elseif($qrow->status == "R"){
             $doc_status .= "<option selected>ไม่อนุมัติ</option>";
-            $doc_status .= "<option value='RESET'>รีเซ็ต</option>";
+            //$doc_status .= "<option value='RESET'>รีเซ็ต</option>";
         }elseif($qrow->status == "P"){
             $doc_status .= "<option selected>ดำเนินการแล้ว</option>";
-            $doc_status .= "<option value='RESET'>รีเซ็ต</option>";
+            //$doc_status .= "<option value='RESET'>รีเซ็ต</option>";
         }
 
         $doc_status .= "</select>";
@@ -79,7 +79,7 @@ class Quotations_m extends MY_Model {
 
         $db->where("deleted", 0);
 
-        $qrows = $db->get()->result();
+        $qrows = $db->order_by("doc_number", "desc")->get()->result();
 
         $dataset = [];
 
@@ -680,8 +680,6 @@ class Quotations_m extends MY_Model {
         }elseif($updateStatusTo == "R"){
             $db->where("id", $docId);
             $db->update("quotation", [
-                                        "approved_by"=>$this->login_user->id,
-                                        "approved_datetime"=>date("Y-m-d H:i:s"),
                                         "status"=>"R"
                                     ]);
 
@@ -760,7 +758,7 @@ class Quotations_m extends MY_Model {
             $this->data["url"] = get_uri("billing-notes/view/".$billing_note_id);
 
 
-        }elseif($updateStatusTo == "RESET"){
+        }/*elseif($updateStatusTo == "RESET"){
             $db->where("id", $docId);
             $db->update("quotation", [
                                         "approved_by"=>NULL,
@@ -768,7 +766,7 @@ class Quotations_m extends MY_Model {
                                         "status"=>"W"
                                     ]);
 
-        }
+        }*/
 
         if ($db->trans_status() === FALSE){
             $db->trans_rollback();

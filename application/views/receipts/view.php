@@ -4,7 +4,7 @@
     <div class="page-title clearfix mt15">
         <h1>ใบเสร็จรับเงิน <?php echo $doc_number;?></h1>
         <div class="title-button-group">
-            <a style="margin-left: 15px;" class="btn btn-default mt0 mb0 back-to-index-btn"  href="<?php echo get_uri("invoices")?>" ><i class="fa fa-hand-o-left" aria-hidden="true"></i> ย้อนกลับไปตารางรายการ</a>
+            <a style="margin-left: 15px;" class="btn btn-default mt0 mb0 back-to-index-btn"  href="<?php echo get_uri("receipts")?>" ><i class="fa fa-hand-o-left" aria-hidden="true"></i> ย้อนกลับไปตารางรายการ</a>
             <a class="btn btn-default" onclick="window.print();">พิมพ์</a>
         </div>
     </div>
@@ -110,6 +110,9 @@
                 <tr><td colspan="7">&nbsp;</td></tr>
                 <tr>
                     <td colspan="3">
+                        <?php if($invoice_id != null && $doc_status == "W"): ?>
+                            <p><?php echo modal_anchor(get_uri("receipts/item"), "<i class='fa fa-plus-circle'></i> " . lang('add_item_product'), array("id"=>"add_item_button", "class" => "btn btn-default", "title" => lang('add_item_product'), "data-post-doc_id" => $doc_id)); ?></p>
+                        <?php endif; ?>
                         <p><input type="text" id="total_in_text" readonly></p>
                     </td>
                     <td colspan="4" class="summary">
@@ -120,8 +123,8 @@
                         </p>
                         <p id="s-discount">
                             <span class="c1 custom-color">
-                                ส่วนลด&nbsp;<input type="number" id="discount_percent" value="<?php echo $discount_percent; ?>" <?php if($doc_status != "W") echo "disabled"; ?>>
-                                <select id="discount_type" <?php if($doc_status != "W") echo "disabled"; ?>>
+                                ส่วนลด&nbsp;<input type="number" id="discount_percent" value="<?php echo $discount_percent; ?>" <?php if($invoice_id != null && $doc_status == "W") echo "disabled"; ?>>
+                                <select id="discount_type" <?php if($invoice_id != null && $doc_status == "W") echo "disabled"; ?>>
                                     <option value="P" <?php if($discount_type == "P") echo "selected";?>>%</option>
                                     <option value="F" <?php if($discount_type == "F") echo "selected";?>>฿</option>
                                 </select>
@@ -135,7 +138,7 @@
                             <span class="c3"><span class="currency">บาท</span></span>
                         </p>
                         <p id="s-vat">
-                            <span class="c1 custom-color"><input type="checkbox" id="vat_inc" <?php if($vat_inc == "Y") echo "checked" ?> <?php if($doc_status != "W") echo "disabled"; ?>>ภาษีมูลค่าเพิ่ม<span class="vat_percent custom-color"><?php echo $vat_percent; ?></span><span class="vat_percent_zero custom-color">7%</span></span>
+                            <span class="c1 custom-color"><input type="checkbox" id="vat_inc" <?php if($vat_inc == "Y") echo "checked" ?> <?php if($invoice_id != null && $doc_status == "W") echo "disabled"; ?>>ภาษีมูลค่าเพิ่ม<span class="vat_percent custom-color"><?php echo $vat_percent; ?></span><span class="vat_percent_zero custom-color">7%</span></span>
                             <span class="c2"><input type="text" id="vat_value" readonly></span>
                             <span class="c3"><span class="currency">บาท</span></span>
                         </p>
@@ -146,8 +149,8 @@
                         </p>
                         <p id="s-wht">
                             <span class="c1 custom-color">
-                                <input type="checkbox" id="wht_inc" <?php if($wht_inc == "Y") echo "checked" ?> <?php if($doc_status != "W") echo "disabled"; ?>>หักภาษี ณ ที่จ่าย
-                                <select id="wht_percent" class="wht custom-color <?php echo $wht_inc == "Y"?"v":"h"; ?>" <?php if($doc_status != "W") echo "disabled"; ?>>
+                                <input type="checkbox" id="wht_inc" <?php if($wht_inc == "Y") echo "checked" ?> <?php if($invoice_id != null && $doc_status == "W") echo "disabled"; ?>>หักภาษี ณ ที่จ่าย
+                                <select id="wht_percent" class="wht custom-color <?php echo $wht_inc == "Y"?"v":"h"; ?>" <?php if($invoice_id != null && $doc_status == "W") echo "disabled"; ?>>
                                     <option value="3">3%</option>
                                     <option value="5">5%</option>
                                     <option value="0.50">0.5%</option>
@@ -195,7 +198,7 @@
             <div class="clear">
                 <div class="name">
                     <span class="l1">
-                        <?php $signature = $this->Users_m->getSignature($created_by); ?>
+                        <?php $signature = $this->Users_m->getSignature($approved_by); ?>
                         <?php if($signature != null): ?>
                             <span class="signature"><img src='<?php echo str_replace("./", "/", $signature); ?>'></span>
                         <?php endif; ?>
@@ -205,7 +208,7 @@
                 <div class="date">
                     <span class="l1">
                         <?php if($signature != null): ?>
-                            <span class="approved_date"><?php echo convertDate($doc_date, true); ?></span>
+                            <span class="approved_date"><?php echo convertDate($approved_datetime, true); ?></span>
                         <?php endif; ?>
                     </span>
                     <span class="l2">วันที่</span>
@@ -250,8 +253,9 @@ function loadItems(){
                     tbody += "<td>"+items[i]["price"]+"</td>";
                     tbody += "<td>"+items[i]["total_price"]+"</td>";
                     tbody += "<td class='edititem'>";
-                        if(data.doc_status == "W"){
-                            tbody += "<a class='edit' data-post-doc_id='<?php echo $doc_id; ?>' data-post-item_id='"+items[i]["id"]+"' data-act='ajax-modal' data-action-url='<?php echo_uri("invoices/item"); ?>' ><i class='fa fa-pencil'></i></a>";
+                        if(data.edit == true){
+                            tbody += "<a class='edit' data-post-doc_id='<?php echo $doc_id; ?>' data-post-item_id='"+items[i]["id"]+"' data-act='ajax-modal' data-action-url='<?php echo_uri("receipts/item"); ?>' ><i class='fa fa-pencil'></i></a>";
+                            tbody += "<a class='delete' data-item_id='"+items[i]["id"]+"'><i class='fa fa-times fa-fw'></i></a>";
                         }
                     tbody += "</td>";
                 tbody += "</tr>";

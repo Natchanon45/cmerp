@@ -99,6 +99,7 @@ class Left_menu {
         // $available_items = $this->get_available_items();
         $sortable_items = $this->get_sortable_items_array();
 		$liss = array();
+
         // $value = get_setting('module_purchaserequests');
         // echo 'purchaserequests:'.$value."<br />\r\n";
 		foreach ( $sortable_items as $ka => $main_menu ) {
@@ -221,10 +222,54 @@ class Left_menu {
 					'. $ul .'			
 				</li>
 			';
+
+			if($title == "items"){
+				$liss[] = '
+					<li class="main">
+						<a '. $target .' href="'. get_uri('/quotations') .'">
+							<i class="fa fa-file"></i>
+							<span>ใบเสนอราคา</span>'. $spanBadge .'
+						</a>
+									
+						'. $ul .'			
+					</li>
+				';
+				
+				$liss[] = '
+					<li class="main">
+						<a '. $target .' href="'. get_uri('/billing-notes') .'">
+							<i class="fa fa-file-text"></i>
+							<span>ใบวางบิล</span>'. $spanBadge .'
+						</a>
+									
+						'. $ul .'			
+					</li>
+				';
+
+				$liss[] = '
+					<li class="main">
+						<a '. $target .' href="'. get_uri('/invoices') .'">
+							<i class="fa fa-file-text"></i>
+							<span>ใบกำกับภาษี</span>'. $spanBadge .'
+						</a>
+									
+						'. $ul .'			
+					</li>
+				';
+			
+				$liss[] = '
+					<li class="main">
+						<a '. $target .' href="'. get_uri('/receipts') .'">
+							<i class="fa fa-file-text"></i>
+							<span>ใบเสร็จรับเงิน</span>'. $spanBadge .'
+						</a>
+									
+						'. $ul .'			
+					</li>
+				';
+			}
 		}
 		
-		// exit;   
-		 
 		
 		return '
 			<div id="sidebar" class="box-content ani-width">
@@ -496,7 +541,7 @@ class Left_menu {
 
         $available_items = $this->_get_sidebar_menu_items();
     
-        $default_left_menu_items = $this->_get_left_menu_from_setting($type);
+        $default_left_menu_items = $this->_get_left_menu_from_setting($type);        
 
         // foreach ($available_items as $item){
         //     $items[] = $item;
@@ -504,25 +549,17 @@ class Left_menu {
         // }
         // exit;
         if (count($default_left_menu_items)) {
-            
             foreach ($default_left_menu_items as $item) {
                 // var_dump($item['name']);
                 
                 if(isset($available_items[$item['name']])){
                     $items[] = $available_items[$item['name']];
                 }
-                
-                    
-               
-                
-            }
-            
-           
+            }   
         }
 
         return $items;
     }
-
 
     private function _get_item_array_value($data_array, $left_menu_items) {
         $name = get_array_value($data_array, "name");
@@ -546,7 +583,8 @@ class Left_menu {
         $menu_list = $this->ci->dao->fetchAll( $sql );
         foreach($menu_list as $ml) {
             $json = json_decode($ml->detail);
-            if($ml->class_name == "income_vs_expenses" || $ml->class_name == "invoice_payments") continue;
+            if($ml->class_name == "income_vs_expenses" || $ml->class_name == "invoice_payments" || $ml->class_name == "estimates" || $ml->class_name == "invoices" || $ml->class_name == "receipts" || $ml->class_name == "accounting") continue;
+
             if($json) {
                 $menus[$json->name] = [];
                 $menus[$json->name]["id"] = $ml->id;
@@ -892,13 +930,6 @@ $sidebar_menu[] = array("name" => "payment_vouchers", "url" => "payment_vouchers
             }
         }
 		
-		
-				  // $help_knowledge_base_menues[] = array("name" => "articles", "category" => "help", "url" => "help/knowledge_base_articles", "class" => "fa-question-circle-o");
-		
-		//arr( $sidebar_menu );
-		
-		//exit;
-
         return $menus;
         // return $sidebar_menu;
 
