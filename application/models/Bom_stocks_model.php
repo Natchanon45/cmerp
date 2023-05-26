@@ -12,7 +12,6 @@ class Bom_stocks_model extends Crud_model {
         parent::__construct($this->table);
     }
 
-
     function get_details($options = array()) {
         $where = "";
         
@@ -40,6 +39,7 @@ class Bom_stocks_model extends Crud_model {
         ";
         return $this->db->query($sql);
     }
+
     function delete_one($id) {
         $this->db->query("DELETE FROM {$this->table} WHERE id = $id");
         return true;
@@ -99,6 +99,33 @@ class Bom_stocks_model extends Crud_model {
         }
         return true;
     }
-    
 
+    public function dev2_getRestockingList($post)
+    {
+        $where_create_by = "";
+        if ($post) {
+            $where_create_by = "AND `bsg`.`created_by` = " . $post;
+        }
+
+        $sql = "SELECT `bs`.`id` AS 'stock_id', `bsg`.`id` AS 'group_id', `bsg`.`name` AS 'stock_name', `bs`.`serial_number` AS 'serial_number', `bm`.`id` AS 'material_id', `bm`.`name` AS 'material_code', `bm`.`production_name` AS 'material_name', `bm`.`unit` AS 'material_unit', `bs`.`stock` AS 'stock_qty', `bs`.`remaining` AS 'stock_remain', `bsg`.`created_by` AS 'create_by', `bsg`.`created_date` AS 'create_date' 
+        FROM `bom_stocks` AS `bs` 
+        LEFT JOIN `bom_stock_groups` AS `bsg` ON `bs`.`group_id` = `bsg`.`id` 
+        LEFT JOIN `bom_materials` AS `bm` ON `bs`.`material_id` = `bm`.`id` 
+        WHERE `bs`.`remaining` > 0 " . $where_create_by . " ORDER BY `bs`.`id` ";
+
+        $query = $this->db->query($sql);
+        return $query->result();
+    }
+
+    public function dev2_getRestockingById(&$id)
+    {
+        $sql = "SELECT `bs`.`id` AS 'stock_id', `bsg`.`id` AS 'group_id', `bsg`.`name` AS 'stock_name', `bs`.`serial_number` AS 'serial_number', `bm`.`id` AS 'material_id', `bm`.`name` AS 'material_code', `bm`.`production_name` AS 'material_name', `bm`.`unit` AS 'material_unit', `bs`.`stock` AS 'stock_qty', `bs`.`remaining` AS 'stock_remain', `bsg`.`created_by` AS 'create_by', `bsg`.`created_date` AS 'create_date' 
+        FROM `bom_stocks` AS `bs` 
+        LEFT JOIN `bom_stock_groups` AS `bsg` ON `bs`.`group_id` = `bsg`.`id` 
+        LEFT JOIN `bom_materials` AS `bm` ON `bs`.`material_id` = `bm`.`id` 
+        WHERE `bs`.`remaining` > 0 AND `bs`.`group_id` = " . $id . " ORDER BY `bs`.`id` ";
+
+        $query = $this->db->query($sql);
+        return $query->result();
+    }
 }
