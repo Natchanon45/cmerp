@@ -7,18 +7,6 @@
     </div>
 
     <div class="form-group">
-        <label for="credit" class=" col-md-3">เครดิต (วัน)</label>
-        <div class="col-md-9" style="display: grid;grid-template-columns: auto auto;align-items: center; justify-items: center;justify-content: start;">
-            <input type="number" id="credit" value="<?php echo $credit; ?>" class="form-control" autocomplete="off" >
-        </div>
-    </div>
-
-    <div class="form-group">
-        <label for="doc_valid_until_date" class=" col-md-3"><?php echo lang('valid_until'); ?></label>
-        <div class="col-md-9"><input type="text" id="doc_valid_until_date" class="form-control" autocomplete="off" readonly></div>
-    </div>
-
-    <div class="form-group">
         <label for="reference_number" class=" col-md-3">เลขที่อ้างอิง</label>
         <div class="col-md-9"><input type="text" id="reference_number" value="<?php echo $reference_number; ?>" placeholder="#" class="form-control"></div>
     </div>
@@ -93,8 +81,6 @@ $(document).ready(function() {
                 task: 'save_doc',
                 doc_id : "<?php if(isset($doc_id)) echo $doc_id; ?>",
                 doc_date:$("#doc_date").val(),
-                credit: $("#credit").val(),
-                doc_valid_until_date: $("#doc_valid_until_date").val(),
                 reference_number: $("#reference_number").val(),
                 client_id: $("#client_id").val(),
                 lead_id: $("#lead_id").val(),
@@ -117,57 +103,16 @@ $(document).ready(function() {
                 }
             }).catch(function (error) {});
         });
-
-        doc_date = $("#doc_date").datepicker({
-            yearRange: "<?php echo date('Y'); ?>",
-            format: 'dd/mm/yyyy',
-            changeMonth: true,
-            changeYear: true,
-            autoclose: true
-        }).on("changeDate", function (e) {
-            cal_valid_date_from_credit();
-        });
-
-        doc_valid_until_date = $("#doc_valid_until_date").datepicker({
-            yearRange: "<?php echo date('Y'); ?>",
-            format: 'dd/mm/yyyy',
-            changeMonth: true,
-            changeYear: true,
-            autoclose: true
-        }).on("changeDate", function (e) {
-            cal_credit_from_valid_until_date();
-        });
-
-        doc_date.datepicker("setDate", "<?php echo date('d/m/Y', strtotime($doc_date)); ?>");
-        doc_valid_until_date.datepicker("setDate", "<?php echo date('d/m/Y', strtotime($doc_valid_until_date)); ?>");
-
-        $("#credit").blur(function(){
-            cal_valid_date_from_credit();
-        });        
     <?php endif; ?>
+
+    doc_date = $("#doc_date").datepicker({
+        yearRange: "<?php echo date('Y'); ?>",
+        format: 'dd/mm/yyyy',
+        changeMonth: true,
+        changeYear: true,
+        autoclose: true
+    });
+
+    doc_date.datepicker("setDate", "<?php echo date('d/m/Y', strtotime($doc_date)); ?>");
 });
-
-function cal_valid_date_from_credit(){
-    doc_date = $("#doc_date").datepicker('getDate');
-    credit = Number($("#credit").val());
-    if(credit < 0) credit = 0;
-    $("#credit").val(credit);
-    doc_date.setDate(doc_date.getDate() + credit);
-    $("#doc_valid_until_date").val(todate(doc_date));
-}
-
-function cal_credit_from_valid_until_date(){
-    doc_date = $("#doc_date").datepicker('getDate');
-    doc_valid_until_date = $("#doc_valid_until_date").datepicker('getDate');
-
-    if (doc_date > doc_valid_until_date) {
-        doc_date = new Date(doc_valid_until_date.getFullYear(),doc_valid_until_date.getMonth(),doc_valid_until_date.getDate());
-        $("#doc_date").datepicker("setDate", doc_date);
-    }
-
-    doc_date = $("#doc_date").datepicker('getDate').getTime();
-    doc_valid_until_date = $("#doc_valid_until_date").datepicker('getDate').getTime();
-    credit = Math.round(Math.abs((doc_valid_until_date - doc_date)/(24*60*60*1000)));
-    $("#credit").val(credit);
-}
 </script>

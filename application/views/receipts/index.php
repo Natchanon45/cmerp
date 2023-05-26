@@ -1,69 +1,63 @@
 <div id="page-content" class="p20 clearfix">
     <div class="panel clearfix">
-        <ul id="receipt-tabs" data-toggle="ajax-tab" class="nav nav-tabs bg-white title" role="tablist">
-            <li class="title-tab"><h4 class="pl15 pt10 pr15"><?php echo lang('receipts'); ?></h4></li>
-            <li><a id="monthly-receipt-button" class="active" role="presentation" href="javascript:;" data-target="#monthly-receipts"><?php echo lang("monthly"); ?></a></li>
-            <li><a role="presentation" href="<?php echo_uri("receipts/yearly/"); ?>" data-target="#yearly-receipts"><?php echo lang('yearly'); ?></a></li>
-
-            <div class="tab-title clearfix no-breceipt">
+        <ul id="quotation-tabs" data-toggle="ajax-tab" class="nav nav-tabs bg-white title" role="tablist">
+            <li class="title-tab"><h4 class="pl15 pt10 pr15">ใบเสร็จรับเงิน</h4></li>
+            <li><a id="monthly-quotation-button" class="active" role="presentation" href="javascript:;" data-target="#monthly-quotations"><?php echo lang("monthly"); ?></a></li>
+            <!--<li><a role="presentation" href="<?php echo_uri("estimates/yearly/"); ?>" data-target="#yearly-estimates"><?php echo lang('yearly'); ?></a></li>-->
+            <div class="tab-title clearfix no-border">
                 <div class="title-button-group">
-                    <?php 
-					if(!empty( $this->getRolePermission['add_row'] ) ) {
-						// echo js_anchor("<i class='fa fa-plus-circle'></i> " . lang('add_receipt'), array("class" => "btn btn-default", "id" => "add-receipt-btn"));
-                        echo modal_anchor(get_uri("receipts/modal_form"), "<i class='fa fa-plus-circle'></i> " . lang('add_item'), array("class" => "btn btn-default", "title" => lang('add_item')));
-
-					} 
-					
-					
-					
-					 ?>           
+                    <a data-action-url='<?php echo get_uri("receipts/addedit"); ?>' data-act='ajax-modal' class='btn btn-default'><i class='fa fa-plus-circle'></i> เพิ่มใบเสร็จรับเงิน</a>
                 </div>
             </div>
         </ul>
-
         <div class="tab-content">
-            <div role="tabpanel" class="tab-pane fade" id="monthly-receipts">
+            <div role="tabpanel" class="tab-pane fade" id="monthly-quotations">
                 <div class="table-responsive">
-                    <table id="monthly-receipt-table" class="display" cellspacing="0" width="100%">   
-                    </table>
+                    <table id="datagrid" class="display datatable" cellspacing="0" width="100%"></table>
                 </div>
             </div>
-            <div role="tabpanel" class="tab-pane fade" id="yearly-receipts"></div>
+            <!--<div role="tabpanel" class="tab-pane fade" id="yearly-estimates"></div>-->
         </div>
     </div>
 </div>
-
 <script type="text/javascript">
-    loadreceiptsTable = function (selector, dateRange) {
-        $(selector).appTable({
-            source: '<?php echo_uri("receipts/list_data") ?>',
-            receipt: [[0, "desc"]],
-            dateRangeType: dateRange,
-            filterDropdown: [{name: "status_id", class: "w150", options: <?php $this->load->view("receipts/receipt_statuses_dropdown"); ?>}],
-            columns: [
-                {title: "<?php echo lang("receipt") ?> ", "class": "w15p"},
-                {title: "<?php echo lang("store") ?>"},
-                {visible: false, searchable: false},
-                {title: "<?php echo lang("receipt_date") ?>", "iDataSort": 2, "class": "w20p"},
-                {title: "<?php echo lang("amount") ?>", "class": "text-right w20p"},
-                {title: "<?php echo lang("status") ?>", "class": "text-center"}
-<?php echo $custom_field_headers; ?>,
-                {title: "<i class='fa fa-bars'></i>", "class": "text-center option w100"}
-            ],
-            printColumns: combineCustomFieldsColumns([0, 1, 3, 4, 5], '<?php echo $custom_field_headers; ?>'),
-            xlsColumns: combineCustomFieldsColumns([0, 1, 3, 4, 5], '<?php echo $custom_field_headers; ?>'),
-            summation: [{column: 4, dataType: 'currency', currencySymbol: AppHelper.settings.currencySymbol}]
-        });
-    };
-
-    $(document).ready(function () {
-        loadreceiptsTable("#monthly-receipt-table", "monthly");
-
-        $("#add-receipt-btn").click(function () {
-            window.location.href = "<?php echo get_uri("receipts/item_modal_form"); ?>";
-        });
+let doc_status = [{id:"", text:"-<?php echo lang("status"); ?>-"}, {id:"W", text:"รอดำเนินการ"}, {id:"P", text:"เก็บเงินแล้ว"}, {id:"V", text:"ยกเลิก"}];
+$(document).ready(function () {
+    $("#datagrid").appTable({
+        source: '<?php echo current_url(); ?>',
+        order: [[0, "desc"]],
+        dateRangeType: "monthly",
+        filterDropdown: [{name: "status", class: "w150", options: doc_status}],
+        columns: [
+            {title: "วันที่", "class": "w10p"},
+            {title: "เลขที่เอกสาร", "class": "w15p"},
+            {title: "ชื่อลูกค้า", "class": "w35p"},
+            {title: "ยอดรวมสุทธิ", "class": "text-right w15p"},
+            {title: "สถานะ", "class": "text-left w15p"},
+            {title: "<i class='fa fa-bars'></i>", "class": "text-center option w10p"}
+        ],
+        summation: [
+            {column: 3, dataType: 'currency'}
+        ]
     });
 
-</script>
+    $("#datagrid").on("draw.dt", function () {
+        $(".dropdown_status").on( "change", function() {
+            axios.post('<?php echo current_url(); ?>', {
+                task: 'update_doc_status',
+                doc_id: $(this).data("doc_id"),
+                update_status_to: $(this).val(),
+            }).then(function (response) {
+                data = response.data;
+                if(data.status == "success"){
+                    appAlert.success(data.message, {duration: 5000});
+                }else{
+                    appAlert.error(data.message, {duration: 5000});
+                }
 
-<?php $this->load->view("receipts/update_receipt_status_script"); ?>
+                $("#datagrid").appTable({newData: data.dataset, dataId: data.doc_id});
+            }).catch(function (error) {});
+        });
+    });
+});
+</script>

@@ -2,7 +2,7 @@
 <link rel="stylesheet" href="/assets/css/printd-invoice.css?t=<?php echo time();?>">
 <div id="dcontroller" class="clearfix">
     <div class="page-title clearfix mt15">
-        <h1>ใบแจ้งหนี้ / ใบกำกับภาษี <?php echo $doc_number;?></h1>
+        <h1>ใบส่งสินค้า / ใบกำกับภาษี <?php echo $doc_number;?></h1>
         <div class="title-button-group">
             <a style="margin-left: 15px;" class="btn btn-default mt0 mb0 back-to-index-btn"  href="<?php echo get_uri("invoices")?>" ><i class="fa fa-hand-o-left" aria-hidden="true"></i> ย้อนกลับไปตารางรายการ</a>
             <a class="btn btn-default" onclick="window.print();">พิมพ์</a>
@@ -51,7 +51,7 @@
             </div><!-- .company -->
         </div><!--.l-->
         <div class="r">
-            <h1 class="document_name custom-color">ใบแจ้งหนี้ / ใบกำกับภาษี<!--<span class="note custom-color">ต้นฉบับ (เอกสารออกเป็นชุด)</span>--></h1>
+            <h1 class="document_name custom-color">ใบส่งสินค้า / ใบกำกับภาษี<!--<span class="note custom-color">ต้นฉบับ (เอกสารออกเป็นชุด)</span>--></h1>
             <div class="about_company">
                 <table>
                     <tr>
@@ -202,7 +202,7 @@
             <div class="clear">
                 <div class="name">
                     <span class="l1">
-                        <?php $signature = $this->Users_m->getSignature($created_by); ?>
+                        <?php $signature = $this->Users_m->getSignature($approved_by); ?>
                         <?php if($signature != null): ?>
                             <span class="signature"><img src='<?php echo str_replace("./", "/", $signature); ?>'></span>
                         <?php endif; ?>
@@ -212,7 +212,7 @@
                 <div class="date">
                     <span class="l1">
                         <?php if($signature != null): ?>
-                            <span class="approved_date"><?php echo convertDate($doc_date, true); ?></span>
+                            <span class="approved_date"><?php echo convertDate($approved_datetime, true); ?></span>
                         <?php endif; ?>
                     </span>
                     <span class="l2">วันที่</span>

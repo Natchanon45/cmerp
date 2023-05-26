@@ -1,10 +1,10 @@
 <link rel="stylesheet" href="/assets/css/printd.css?t=<?php echo time();?>">
-<link rel="stylesheet" href="/assets/css/printd-receipt.css?t=<?php echo time();?>">
+<link rel="stylesheet" href="/assets/css/printd-billing-note.css?t=<?php echo time();?>">
 <div id="dcontroller" class="clearfix">
     <div class="page-title clearfix mt15">
-        <h1>ใบเสร็จรับเงิน <?php echo $doc_number;?></h1>
+        <h1>ใบวางบิล <?php echo $doc_number;?></h1>
         <div class="title-button-group">
-            <a style="margin-left: 15px;" class="btn btn-default mt0 mb0 back-to-index-btn"  href="<?php echo get_uri("receipts")?>" ><i class="fa fa-hand-o-left" aria-hidden="true"></i> ย้อนกลับไปตารางรายการ</a>
+            <a style="margin-left: 15px;" class="btn btn-default mt0 mb0 back-to-index-btn"  href="<?php echo get_uri("billing-notes")?>" ><i class="fa fa-hand-o-left" aria-hidden="true"></i> ย้อนกลับไปตารางรายการ</a>
             <a class="btn btn-default" onclick="window.print();">พิมพ์</a>
         </div>
     </div>
@@ -51,7 +51,7 @@
             </div><!-- .company -->
         </div><!--.l-->
         <div class="r">
-            <h1 class="document_name custom-color">ใบเสร็จรับเงิน<!--<span class="note custom-color">ต้นฉบับ (เอกสารออกเป็นชุด)</span>--></h1>
+            <h1 class="document_name custom-color">ใบวางบิล<!--<span class="note custom-color">ต้นฉบับ (เอกสารออกเป็นชุด)</span>--></h1>
             <div class="about_company">
                 <table>
                     <tr>
@@ -63,12 +63,16 @@
                         <td><?php echo convertDate($doc_date, true); ?></td>
                     </tr>
                     <tr>
+                        <td class="custom-color">ครบกำหนด</td>
+                        <td><?php echo convertDate($due_date, true); ?></td>
+                    </tr>
+                    <tr>
                         <td class="custom-color">ผู้ขาย</td>
                         <td><?php if($created != null) echo $created["first_name"]." ".$created["last_name"]; ?></td>
                     </tr>
                     <?php if(trim($reference_number) != ""): ?>
                         <tr>
-                            <td class="custom-color">อ้างอิง</td>
+                            <td class="custom-color">เลขที่อ้างอิง</td>
                             <td><?php echo $reference_number; ?></td>
                         </tr>
                     <?php endif; ?>
@@ -110,8 +114,8 @@
                 <tr><td colspan="7">&nbsp;</td></tr>
                 <tr>
                     <td colspan="3">
-                        <?php if($invoice_id != null && $doc_status == "W"): ?>
-                            <p><?php echo modal_anchor(get_uri("receipts/item"), "<i class='fa fa-plus-circle'></i> " . lang('add_item_product'), array("id"=>"add_item_button", "class" => "btn btn-default", "title" => lang('add_item_product'), "data-post-doc_id" => $doc_id)); ?></p>
+                        <?php if($doc_status == "W"): ?>
+                            <p><?php echo modal_anchor(get_uri("billing-notes/item"), "<i class='fa fa-plus-circle'></i> " . lang('add_item_product'), array("id"=>"add_item_button", "class" => "btn btn-default", "title" => lang('add_item_product'), "data-post-doc_id" => $doc_id)); ?></p>
                         <?php endif; ?>
                         <p><input type="text" id="total_in_text" readonly></p>
                     </td>
@@ -123,8 +127,8 @@
                         </p>
                         <p id="s-discount">
                             <span class="c1 custom-color">
-                                ส่วนลด&nbsp;<input type="number" id="discount_percent" value="<?php echo $discount_percent; ?>" <?php if($invoice_id != null && $doc_status == "W") echo "disabled"; ?>>
-                                <select id="discount_type" <?php if($invoice_id != null && $doc_status == "W") echo "disabled"; ?>>
+                                ส่วนลด&nbsp;<input type="number" id="discount_percent" value="<?php echo $discount_percent; ?>" <?php if($doc_status != "W") echo "disabled"; ?>>
+                                <select id="discount_type" <?php if($doc_status != "W") echo "disabled"; ?>>
                                     <option value="P" <?php if($discount_type == "P") echo "selected";?>>%</option>
                                     <option value="F" <?php if($discount_type == "F") echo "selected";?>>฿</option>
                                 </select>
@@ -138,7 +142,7 @@
                             <span class="c3"><span class="currency">บาท</span></span>
                         </p>
                         <p id="s-vat">
-                            <span class="c1 custom-color"><input type="checkbox" id="vat_inc" <?php if($vat_inc == "Y") echo "checked" ?> <?php if($invoice_id != null && $doc_status == "W") echo "disabled"; ?>>ภาษีมูลค่าเพิ่ม<span class="vat_percent custom-color"><?php echo $vat_percent; ?></span><span class="vat_percent_zero custom-color">7%</span></span>
+                            <span class="c1 custom-color"><input type="checkbox" id="vat_inc" <?php if($vat_inc == "Y") echo "checked" ?> <?php if($doc_status != "W") echo "disabled"; ?>>ภาษีมูลค่าเพิ่ม<span class="vat_percent custom-color"><?php echo $vat_percent; ?></span><span class="vat_percent_zero custom-color">7%</span></span>
                             <span class="c2"><input type="text" id="vat_value" readonly></span>
                             <span class="c3"><span class="currency">บาท</span></span>
                         </p>
@@ -149,8 +153,8 @@
                         </p>
                         <p id="s-wht">
                             <span class="c1 custom-color">
-                                <input type="checkbox" id="wht_inc" <?php if($wht_inc == "Y") echo "checked" ?> <?php if($invoice_id != null && $doc_status == "W") echo "disabled"; ?>>หักภาษี ณ ที่จ่าย
-                                <select id="wht_percent" class="wht custom-color <?php echo $wht_inc == "Y"?"v":"h"; ?>" <?php if($invoice_id != null && $doc_status == "W") echo "disabled"; ?>>
+                                <input type="checkbox" id="wht_inc" <?php if($wht_inc == "Y") echo "checked" ?> <?php if($doc_status != "W") echo "disabled"; ?>>หักภาษี ณ ที่จ่าย
+                                <select id="wht_percent" class="wht custom-color <?php echo $wht_inc == "Y"?"v":"h"; ?>" <?php if($doc_status != "W") echo "disabled"; ?>>
                                     <option value="3">3%</option>
                                     <option value="5">5%</option>
                                     <option value="0.50">0.5%</option>
@@ -185,7 +189,7 @@
             <div class="clear">
                 <div class="name">
                     <span class="l1"></span>
-                    <span class="l2">ผู้จ่ายเงิน</span>
+                    <span class="l2">ผู้รับสินค้า / บริการ</span>
                 </div>
                 <div class="date">
                     <span class="l1"></span>
@@ -203,7 +207,7 @@
                             <span class="signature"><img src='<?php echo str_replace("./", "/", $signature); ?>'></span>
                         <?php endif; ?>
                     </span>
-                    <span class="l2">ผู้รับเงิน</span>
+                    <span class="l2">ผู้อนุมัติ</span>
                 </div>
                 <div class="date">
                     <span class="l1">
@@ -253,8 +257,8 @@ function loadItems(){
                     tbody += "<td>"+items[i]["price"]+"</td>";
                     tbody += "<td>"+items[i]["total_price"]+"</td>";
                     tbody += "<td class='edititem'>";
-                        if(data.edit == true){
-                            tbody += "<a class='edit' data-post-doc_id='<?php echo $doc_id; ?>' data-post-item_id='"+items[i]["id"]+"' data-act='ajax-modal' data-action-url='<?php echo_uri("receipts/item"); ?>' ><i class='fa fa-pencil'></i></a>";
+                        if(data.doc_status == "W"){
+                            tbody += "<a class='edit' data-post-doc_id='<?php echo $doc_id; ?>' data-post-item_id='"+items[i]["id"]+"' data-act='ajax-modal' data-action-url='<?php echo_uri("billing-notes/item"); ?>' ><i class='fa fa-pencil'></i></a>";
                             tbody += "<a class='delete' data-item_id='"+items[i]["id"]+"'><i class='fa fa-times fa-fw'></i></a>";
                         }
                     tbody += "</td>";

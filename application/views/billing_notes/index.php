@@ -1,12 +1,12 @@
 <div id="page-content" class="p20 clearfix">
     <div class="panel clearfix">
         <ul id="quotation-tabs" data-toggle="ajax-tab" class="nav nav-tabs bg-white title" role="tablist">
-            <li class="title-tab"><h4 class="pl15 pt10 pr15">ใบส่งสินค้า / ใบกำกับภาษี</h4></li>
+            <li class="title-tab"><h4 class="pl15 pt10 pr15">ใบวางบิล</h4></li>
             <li><a id="monthly-quotation-button" class="active" role="presentation" href="javascript:;" data-target="#monthly-quotations"><?php echo lang("monthly"); ?></a></li>
             <!--<li><a role="presentation" href="<?php echo_uri("estimates/yearly/"); ?>" data-target="#yearly-estimates"><?php echo lang('yearly'); ?></a></li>-->
             <div class="tab-title clearfix no-border">
                 <div class="title-button-group">
-                    <!--<a data-action-url='<?php echo get_uri("invoices/addedit"); ?>' data-act='ajax-modal' class='btn btn-default'><i class='fa fa-plus-circle'></i> เพิ่มใบแจ้งหนี้ / ใบกำกับภาษี</a>-->
+                    <a data-action-url='<?php echo get_uri("billing-notes/addedit"); ?>' data-act='ajax-modal' class='btn btn-default'><i class='fa fa-plus-circle'></i> เพิ่มใบวางบิล</a>
                 </div>
             </div>
         </ul>
@@ -21,7 +21,7 @@
     </div>
 </div>
 <script type="text/javascript">
-let doc_status = [{id:"", text:"-<?php echo lang("status"); ?>-"}, {id:"P", text:"รอเก็บเงิน"}, {id:"R", text:"เปิดใบเสร็จแล้ว"}, {id:"V", text:"ยกเลิก"}];
+let doc_status = [{id:"", text:"-<?php echo lang("status"); ?>-"}, {id:"W", text:"รอวางบิล"}, {id:"A", text:"วางบิลแล้ว"}, {id:"I", text:"เปิดบิลแล้ว"}, {id:"V", text:"ยกเลิก"}];
 $(document).ready(function () {
     $("#datagrid").appTable({
         source: '<?php echo current_url(); ?>',

@@ -1,50 +1,50 @@
 <?php
 if (!defined('BASEPATH')) exit('No direct script access allowed');
 
-class Invoices extends MY_Controller {
+class Billing_notes extends MY_Controller {
     function __construct() {
         parent::__construct();
     }
 
     function index() {
         if($this->input->post("datatable") == true){
-            jout(["data"=>$this->Invoices_m->indexDataSet()]);
+            jout(["data"=>$this->Billing_notes_m->indexDataSet()]);
             return;
         }elseif(isset($this->json->task)){
-            if($this->json->task == "update_doc_status") jout($this->Invoices_m->updateStatus());
+            if($this->json->task == "update_doc_status") jout($this->Billing_notes_m->updateStatus());
             return;    
         }
 
-        $this->template->rander("invoices/index");
+        $this->template->rander("billing_notes/index");
     }
 
     function addedit(){
         if(isset($this->json->task)){
-            if($this->json->task == "save_doc") jout($this->Invoices_m->saveDoc());
+            if($this->json->task == "save_doc") jout($this->Billing_notes_m->saveDoc());
             return;   
         }
 
-        $data = $this->Invoices_m->getDoc($this->input->post("id"));
+        $data = $this->Billing_notes_m->getDoc($this->input->post("id"));
 
-        $this->load->view( 'invoices/addedit', $data);
+        $this->load->view( 'billing_notes/addedit', $data);
     }
 
     function view() {
         if(isset($this->json->task)){
-            if($this->json->task == "load_items") jout($this->Invoices_m->items());
-            if($this->json->task == "update_doc") jout($this->Invoices_m->updateDoc());
-            if($this->json->task == "delete_item") jout($this->Invoices_m->deleteItem());
+            if($this->json->task == "load_items") jout($this->Billing_notes_m->items());
+            if($this->json->task == "update_doc") jout($this->Billing_notes_m->updateDoc());
+            if($this->json->task == "delete_item") jout($this->Billing_notes_m->deleteItem());
             return;
         }
 
         if(empty($this->uri->segment(3))){
-            redirect('/invoices');
+            redirect('/billing_notes');
             return;
         }
 
-        $data = $this->Invoices_m->getDoc($this->uri->segment(3));
+        $data = $this->Billing_notes_m->getDoc($this->uri->segment(3));
         if ($data["status"] != "success"){
-            redirect('/invoices');
+            redirect('/billing_notes');
             return;
         }
 
@@ -52,26 +52,26 @@ class Invoices extends MY_Controller {
         $data["client"] = $this->Customers_m->getInfo($data["customer_id"]);
         $data["client_contact"] = $this->Customers_m->getContactInfo($data["client_id"]);
 
-        $this->template->rander("invoices/view", $data);
+        $this->template->rander("billing_notes/view", $data);
     }
 
 
     function delete_doc() {
         if($this->input->post('undo') == true){
-            jout($this->Invoices_m->undoDoc());
+            jout($this->Billing_notes_m->undoDoc());
             return;
         }
 
-        jout($this->Invoices_m->deleteDoc());
+        jout($this->Billing_notes_m->deleteDoc());
     }
 
     function items(){
-        jout($this->Invoices_m->items());
+        jout($this->Billing_notes_m->items());
     }
 
     function item() {
         if(isset($this->json->task)){
-            if($this->json->task == "save") jout($this->Invoices_m->saveItem());
+            if($this->json->task == "save") jout($this->Billing_notes_m->saveItem());
             return;   
         }
 
@@ -89,8 +89,8 @@ class Invoices extends MY_Controller {
             return;
         }
 
-        $data = $this->Invoices_m->item();
+        $data = $this->Billing_notes_m->item();
 
-        $this->load->view('invoices/item', $data);
+        $this->load->view('quotations/item', $data);
     }
 }
