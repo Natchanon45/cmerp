@@ -37,8 +37,8 @@ $(document).ready(function () {
             {title: "สถานะ", "class":"text-left w15p"},
             {title: "<i class='fa fa-bars'></i>", "class":"text-center option w10p"}
         ],
-        //printColumns: combineCustomFieldsColumns([0, 1, 2, 3, 4, 5]),
-        //xlsColumns: combineCustomFieldsColumns([0, 1, 2, 3, 4, 5]),
+        printColumns: combineCustomFieldsColumns([0, 1, 2, 3, 4, 5]),
+        xlsColumns: combineCustomFieldsColumns([0, 1, 2, 3, 4, 5]),
         summation: [
             {column: 4, dataType: 'number'}
         ]
