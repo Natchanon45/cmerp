@@ -548,10 +548,10 @@ class Receipts_m extends MY_Model {
         $product_id = $this->json->product_id;
         $product_name = $this->json->product_name;
         $product_description = $this->json->product_description;
-        $quantity = getNumber($this->json->quantity);
+        $quantity = round($this->json->quantity, 4);
         $unit = $this->json->unit;
         $price = getNumber($this->json->price);
-        $total_price = $price * $quantity;
+        $total_price = round($price * $quantity, 2);
 
         $fdata = [
                     "receipt_id"=>$docId,
