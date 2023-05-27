@@ -119,7 +119,7 @@ $(document).ready(function () {
 });
 
 function calculatePrice(){
-    let quantity = tonum($("#quantity").val());
+    let quantity = tonum($("#quantity").val(), 4);
     let price = tonum($("#price").val());
 
     if(quantity < 0 ) quantity = 0;
