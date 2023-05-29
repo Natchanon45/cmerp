@@ -210,12 +210,13 @@
                         </div>
                     </div>
 
-                    <input type="hidden" id="last_invoice_id" name="last_invoice_id" value="<?php echo $last_id; ?>" />
+                    <!--
+                    <input type="hidden" id="last_invoice_id" name="last_invoice_id" value="<?php //echo $last_id; ?>" />
                     <div class="form-group">
                         <label for="initial_number_of_the_invoice" class="col-md-2"><?php echo lang('initial_number_of_the_invoice'); ?></label>
                         <div class="col-md-3">
                             <?php
-                            echo form_input(array(
+                            /*echo form_input(array(
                                 "id" => "initial_number_of_the_invoice",
                                 "name" => "initial_number_of_the_invoice",
                                 "type" => "number",
@@ -223,10 +224,11 @@
                                 "class" => "form-control mini",
                                 "data-rule-greaterThan" => "#last_invoice_id",
                                 "data-msg-greaterThan" => lang("the_invoices_id_must_be_larger_then_last_invoice_id")
-                            ));
+                            ));*/
                             ?>
                         </div>
                     </div>
+                -->
                     <div class="form-group">
                         <label for="client_can_pay_invoice_without_login" class=" col-md-2"><?php echo lang('client_can_pay_invoice_without_login'); ?> <span class="help" data-toggle="tooltip" title="<?php echo lang('client_can_pay_invoice_without_login_help_message'); ?>"><i class="fa fa-question-circle"></i></span></label>
 

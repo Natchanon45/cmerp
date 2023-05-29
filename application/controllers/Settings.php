@@ -524,9 +524,11 @@ class Settings extends MY_Controller {
     }
 
     function invoices() {
-        $last_invoice_id = $this->Invoices_model->get_last_invoice_id();
+        //$last_invoice_id = $this->Invoices_model->get_last_invoice_id();
 
-        $view_data["last_id"] = $last_invoice_id;
+        //$view_data["last_id"] = $last_invoice_id;
+
+        $view_data = [];
 
         $this->template->rander("settings/invoices", $view_data);
     }
@@ -1085,6 +1087,7 @@ class Settings extends MY_Controller {
     function estimates() {
         $estimate_info = $this->Estimates_model->get_estimate_last_id();
         $view_data["last_id"] = $estimate_info;
+        //$view_data = [];
 
         $this->template->rander("settings/estimates", $view_data);
     }
