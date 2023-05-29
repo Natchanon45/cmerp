@@ -55,7 +55,7 @@ class Quotations_m extends MY_Model {
         $data = [
                     "<a href='".get_uri("quotations/view/".$qrow->id)."'>".convertDate($qrow->doc_date, true)."</a>",
                     "<a href='".get_uri("quotations/view/".$qrow->id)."'>".$qrow->doc_number."</a>",
-                    "<a href='".get_uri("clients/view/".$qrow->client_id)."'>".$this->Clients_m->getCompanyName($qrow->client_id)."</a>",
+                    $qrow->reference_number, "<a href='".get_uri("clients/view/".$qrow->client_id)."'>".$this->Clients_m->getCompanyName($qrow->client_id)."</a>",
                     convertDate($qrow->doc_date, true), number_format($qrow->total, 2), $doc_status,
                     "<a data-post-id='".$qrow->id."' data-action-url='".get_uri("quotations/addedit")."' data-act='ajax-modal' class='edit'><i class='fa fa-pencil'></i></a><a data-id='".$qrow->id."' data-action-url='".get_uri("quotations/delete_doc")."' data-action='delete' class='delete'><i class='fa fa-times fa-fw'></i></a>"
                 ];
@@ -498,10 +498,10 @@ class Quotations_m extends MY_Model {
         $this->data["product_id"] = "";
         $this->data["product_name"] = "";
         $this->data["product_description"] = "";
-        $this->data["quantity"] = "1.00";
+        $this->data["quantity"] = number_format(1, $this->Settings_m->getDecimalPlacesNumber());
         $this->data["unit"] = "";
-        $this->data["price"] = "0.00";
-        $this->data["total_price"] = "0.00";
+        $this->data["price"] = number_format(0, 2);
+        $this->data["total_price"] = number_format(0, 2);
 
         if(!empty($itemId)){
             $qirow = $db->select("*")
@@ -516,10 +516,10 @@ class Quotations_m extends MY_Model {
             $this->data["product_id"] = $qirow->product_id;
             $this->data["product_name"] = $qirow->product_name;
             $this->data["product_description"] = $qirow->product_description;
-            $this->data["quantity"] = $qirow->quantity;
+            $this->data["quantity"] = number_format($qirow->quantity, $this->Settings_m->getDecimalPlacesNumber());
             $this->data["unit"] = $qirow->unit;
-            $this->data["price"] = $qirow->price;
-            $this->data["total_price"] = $qirow->total_price;
+            $this->data["price"] = number_format($qirow->price, 2);
+            $this->data["total_price"] = number_format($qirow->total_price, 2);
         }
 
         $this->data["status"] = "success";
@@ -570,18 +570,12 @@ class Quotations_m extends MY_Model {
         $product_id = $this->json->product_id;
         $product_name = $this->json->product_name;
         $product_description = $this->json->product_description;
-        $quantity = getNumber($this->json->quantity);
+        $quantity = round(getNumber($this->json->quantity), $this->Settings_m->getDecimalPlacesNumber());
+        //log_message("error", round($this->json->quantity, $this->Settings_m->getDecimalPlacesNumber()));
+        //log_message("error", round(getNumber($this->json->quantity), $this->Settings_m->getDecimalPlacesNumber()));
         $unit = $this->json->unit;
-        $price = getNumber($this->json->price);
-        $total_price = $price * $quantity;
-        
-        /*$vat_type = $this->json->vat_type;
-        $price_inc_vat = $price = $rate * $quantity;
-
-        if($vat_type == 2){
-            $price = roundUp($price / $this->Taxes_m->getVat());
-            $vat_value = $price_inc_vat - $price;
-        }*/
+        $price = round(getNumber($this->json->price), 2);
+        $total_price = round($price * $quantity, 2);
 
         $fdata = [
                     "quotation_id"=>$docId,
