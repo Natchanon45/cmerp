@@ -29,6 +29,7 @@
         <?php
           $project_materials = isset($project_materials)?$project_materials:[];
           $create_material_request = count($project_materials)>0;
+          // var_dump(arr($project_materials)); exit;
           if(isset($project_materials) && count($project_materials)){
             foreach($project_materials as $n=>$k){
               $project_id = $k->project_id;
@@ -57,64 +58,70 @@
             <tr class="row-target" data-row="<?= $n ?>">
               <td colspan="5">
                 <div class="toggle-container">
-                  <table class="display dataTable" cellspacing="0" width="100%">            
+                  <table class="display dataTable" cellspacing="0" width="100%" style="font-size: small;">
                     <thead>
                       <tr role="row">
-                        <th class="w250"><?php echo lang('stock_material'); ?></th>
-                        <th class="w200"><?php echo lang('stock_restock_name'); ?></th>
+                        <th class=""><?php echo lang('stock_material'); ?></th>
+                        <th class=""><?php echo lang('stock_restock_name'); ?></th>
                         <th class="w125 text-right"><?php echo lang('quantity'); ?></th>
-                        <?php if($can_read_price){?>
+                        <?php if ($can_read_price): ?>
                           <th class="w150 text-right"><?php echo lang('stock_calculator_value'); ?></th>
-                        <?php }?>
+                        <?php endif; ?>
+                        <th><?php echo lang('status_material_request'); ?></th>
                       </tr>
                     </thead>
                     <tbody>
-                      <?php //var_dump($k->result);exit;?>
-                      <?php $total = 0; foreach($k->result as $s){?>
+                      <?php // var_dump($k->result); exit; ?>
+                      <?php $total = 0; foreach($k->result as $s): ?>
                         <tr>
-                          <td><?= $s->material_name ?></td>
+                          <td>
+                            <?php echo $can_read_material_name ? $s->material_name . ' - ' . $s->material_desc : $s->material_name; ?>
+                          </td>
                           <td><?= !empty($s->stock_name)? $s->stock_name: '-' ?></td>
                           <td class="w125 text-right">
                             <?php
-                            $create_material_request = $create_material_request && ($s->ratio>0);
+                              $create_material_request = $create_material_request && ($s->ratio>0);
                               $s->ratio = floatval($s->ratio);
                               $classer = 'color-red lacked_material';
                               if($s->ratio > 0) $classer = 'color-green';
-                              ///$lack = $s->noti_threshold-abs($s->remaining);
-                              echo '<div class="'.$classer.'" data-project-id="'.$project_id.'" data-project-name="'.$project_name.'" data-material-id="'.$s->id.'" data-lacked-amount="'.abs($s->ratio).'" data-ratio="'.$s->ratio.'" data-unit="'.$s->material_unit.'" data-price="'.abs($s->price2/$s->ratio).'" data-supplier-id="'.$s->supplier_id.'" data-supplier-name="'.$s->supplier_name.'" data-currency="'.($s->currency?$s->currency:'THB').'" data-currency-symbol="'.($s->currency_symbol?$s->currency_symbol:'฿').'">'
-                                  .to_decimal_format2($s->ratio).' '.$s->material_unit
-                                .'</div>' 
+
+                              // /$lack = $s->noti_threshold-abs($s->remaining);
+                              echo '<div class="' . $classer . '" data-project-id="' . $project_id . '" data-project-name="' . $project_name . '" data-material-id="' . $s->id . '" data-lacked-amount="' . abs($s->ratio) . '" data-ratio="' . $s->ratio . '" data-unit="' . $s->material_unit . '" data-price="' . abs($s->price2/$s->ratio) . '" data-supplier-id="' . $s->supplier_id . '" data-supplier-name="' . $s->supplier_name . '" data-currency="' . ($s->currency ? $s->currency : 'THB') . '" data-currency-symbol="' . ($s->currency_symbol ? $s->currency_symbol : '฿') . '">' . to_decimal_format2($s->ratio) . ' ' . $s->material_unit . '</div>';
                             ?>
                           </td>
-                          <?php if($can_read_price){?>
+                          <?php if($can_read_price): ?>
                             <td class="w150 text-right">
                               <?php 
                                 if(!empty($s->value)){
                                   $total += $s->value;
                                   echo to_currency($s->value);
-                                }else echo '-';
+                                } else {
+                                  echo '-';
+                                }
                               ?>
                             </td>
-                          <?php }?>
+                          <?php endif; ?>
+                          <td class="text-center"><?php echo $s->mr_id ? $s->mr_id : '-'; ?></td>
                         </tr>
-                      <?php }?>
+                      <?php endforeach; ?>
                     </tbody>
-                    <?php if($can_read_price){?>
+                    <?php if($can_read_price): ?>
                       <tfoot>
                         <tr>
                           <th colspan="2"></th>
-                          <th class="text-right"><?= lang('total') ?></th>
-                          <td class="text-right"><?= to_currency($total) ?></td>
+                          <th class="text-right"><?php echo lang('total'); ?></th>
+                          <td class="text-right"><?php echo to_currency($total); ?></td>
+                          <td><?php // echo $can_read_material_name; ?></td>
                         </tr>
                       </tfoot>
-                    <?php }?>
+                    <?php endif; ?>
                   </table>
                 </div>
               </td>
             </tr>
-          <?php }?>
-        <?php }
-          }?>
+          <?php } ?>
+        <?php } 
+        } ?>
       </tbody>
     </table>
   </div>

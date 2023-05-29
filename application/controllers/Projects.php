@@ -5054,15 +5054,26 @@ class Projects extends MY_Controller {
     
         $view_data["view"] = $this->input->post('view');
         $view_data['model_info'] = $this->Projects_model->get_one($project_id);
-        
+        $can_read_material_name = false;
+        if ($this->login_user->is_admin) {
+            $can_read_material_name = true;
+        } else {
+            if ($this->login_user->permissions['bom_material_read_production_name']) {
+                $can_read_material_name = true;
+            } else {
+                $can_read_material_name = false;
+            }
+        }
+
+        $view_data['can_read_material_name'] = $can_read_material_name;
         $view_data['items'] = $this->Items_model->get_items([])->result();
         // arr($view_data['items']);
         foreach($view_data['items'] as $k => $item) {
             unset($item->files);
             unset($item->description);
         }
-
-         $aa = $this->Bom_item_mixing_groups_model->get_detail_items([
+        
+        $aa = $this->Bom_item_mixing_groups_model->get_detail_items([
             'for_client_id' => $view_data['model_info']->client_id
         ])->result();
         
@@ -5196,12 +5207,44 @@ class Projects extends MY_Controller {
     private function save_project_items($post)
     {
         $post["function"] = "project_items";
+
+        $project_id = isset($post["id"]) ? $post["id"] : null;
+        $item_ids = isset($post["item_id"]) ? $post["item_id"] : null;
+        $item_mixings = isset($post["item_mixing"]) ? $post["item_mixing"] : null;
+        $quantities = isset($post["quantity"]) ? $post["quantity"] : null;
+
+        $this->Bom_item_mixing_groups_model->dev2_save_project_item($project_id, $item_ids, $item_mixings, $quantities);
         return $post;
     }
 
     private function save_project_material_request($post)
     {
         $post["function"] = "project_material_request";
+
+        $project_id = isset($post["id"]) ? $post["id"] : null;
+        if ($project_id != null) {
+            $project_info = $this->db->query("SELECT p.id, p.title FROM projects p WHERE p.id = $project_id")->row();
+            $items_for_mr = $this->Bom_item_mixing_groups_model->dev2_get_project_item_for_mr($project_id);
+
+            if (isset($items_for_mr) && sizeof($items_for_mr)) {
+                $header_data = array(
+                    'project_id' => $project_info->id,
+                    'project_name' => $project_info->title,
+                    'created_by' => $this->login_user->id,
+                    'requester_id' => $this->login_user->id,
+                    'mr_date' => get_today_date(),
+                    'status_id' => 1
+                );
+
+                $mr_id = $mr = $this->Materialrequests_model->save($header_data, 0);
+                $mr = $this->Materialrequests_model->get_one($mr_id);
+            }
+        }
+
+        $post["item_for_mr"] = $items_for_mr;
+        $post["sizeof_item_for_mr"] = isset($items_for_mr) && sizeof($items_for_mr) ? true : false;
+        $post["project_name"] = $project_info->title;
+        $post["new_mr"] = $mr;
         return $post;
     }
 

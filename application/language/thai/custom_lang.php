@@ -2431,3 +2431,4 @@ $lang["on_behalf_of"] = "ในนาม";
 $lang["create_matreq"] = "สร้างใบเบิก";
 $lang["re_calc_stock"] = "คำนวณใหม่";
 $lang["serial_number"] = "รหัสการนำเข้า";
+$lang["status_material_request"] = "สถานะออกใบเบิก";
