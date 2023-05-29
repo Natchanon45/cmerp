@@ -28,6 +28,12 @@
 </div>
 <?php echo form_close(); ?>
 
+<style type="text/css">
+table, th, td {
+    /* border: 1px solid black !important; */
+}
+</style>
+
 <script type="text/javascript">
     $(document).ready(function () {
         console.log($("#import-material-form"))
