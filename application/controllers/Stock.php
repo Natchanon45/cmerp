@@ -2316,6 +2316,8 @@ class Stock extends MY_Controller
                 // }
                 // $row_data[] = $options;
 
+                // var_dump(arr($row_data)); exit;
+
                 return $row_data;
         }
         // END: Material Reports
@@ -5027,14 +5029,16 @@ class Stock extends MY_Controller
         {
             $button = "";
 
+            $stock_diff = $item->stock_qty == $item->stock_remain ? true : false;
+
             if ($this->dev2_canUpdateRestock()) {
                 $button .= modal_anchor(get_uri('stock/restock_modal'), "<i class='fa fa-pencil'></i>", array("class" => "edit", "title" => lang('stock_restock_edit'), "data-post-id" => $item->group_id));
             } else {
                 $button .= modal_anchor(get_uri("stock/restock_modal"), "<i class='fa fa-eye'></i>", array("class" => "edit", "title" => lang('stock_restock_edit'), "data-post-id" => $item->group_id));
             }
 
-            if ($this->dev2_canDeleteRestock()) {
-                $button .= js_anchor("<i class='fa fa-times fa-fw'></i>", array('title' => lang('stock_restock_delete'), "class" => "delete", "data-id" => $item->group_id, "data-action-url" => get_uri("stock/restock_delete"), "data-action" => "delete-confirmation"));
+            if ($this->dev2_canDeleteRestock() && $stock_diff) {
+                $button .= js_anchor("<i class='fa fa-times fa-fw'></i>", array('title' => lang('stock_restock_delete'), "class" => "delete", "data-id" => $item->stock_id, "data-action-url" => get_uri("stock/restock_item_delete"), "data-action" => "delete-confirmation"));
             }
 
             return array(

@@ -695,11 +695,15 @@ class Notifications_model extends Crud_model {
                  $ticket_comments_table.description AS ticket_comment_description,
                  $posts_table.description AS posts_title,
                  $announcements_table.title AS announcement_title,
-                 $activity_logs_table.changes AS activity_log_changes, $activity_logs_table.log_type AS activity_log_type,
-                 $leave_applications_table.start_date AS leave_start_date, $leave_applications_table.end_date AS leave_end_date,
-                 $invoice_payments_table.invoice_id AS payment_invoice_id, $invoice_payments_table.amount AS payment_amount, (SELECT currency_symbol FROM $clients_table WHERE $clients_table.id=$invoices_table.client_id) AS client_currency_symbol,
-                 (SELECT CONCAT($users_table.first_name, ' ', $users_table.last_name) FROM $users_table WHERE $users_table.id=$notifications_table.to_user_id) AS to_user_name,
-                 FIND_IN_SET($user_id, $notifications_table.read_by) as is_read    
+                 $activity_logs_table.changes AS activity_log_changes, 
+                 $activity_logs_table.log_type AS activity_log_type, 
+                 $leave_applications_table.start_date AS leave_start_date, 
+                 $leave_applications_table.end_date AS leave_end_date, 
+                 $invoice_payments_table.invoice_id AS payment_invoice_id, 
+                 $invoice_payments_table.amount AS payment_amount, 
+                 '฿' AS client_currency_symbol, 
+                 (SELECT CONCAT($users_table.first_name, ' ', $users_table.last_name) FROM $users_table WHERE $users_table.id=$notifications_table.to_user_id) AS to_user_name, 
+                 FIND_IN_SET($user_id, $notifications_table.read_by) AS is_read 
         FROM $notifications_table
         LEFT JOIN $projects_table ON $projects_table.id=$notifications_table.project_id
         LEFT JOIN $project_comments_table ON $project_comments_table.id=$notifications_table.project_comment_id
@@ -711,15 +715,17 @@ class Notifications_model extends Crud_model {
         LEFT JOIN $posts_table ON $posts_table.id=$notifications_table.post_id
         LEFT JOIN $users_table ON $users_table.id=$notifications_table.user_id
         LEFT JOIN $activity_logs_table ON $activity_logs_table.id=$notifications_table.activity_log_id
-        LEFT JOIN $invoice_payments_table ON $invoice_payments_table.id=$notifications_table.invoice_payment_id  
-        LEFT JOIN $invoices_table ON $invoices_table.id=$notifications_table.invoice_id
-        LEFT JOIN $events_table ON $events_table.id=$notifications_table.event_id
-        LEFT JOIN $announcements_table ON $announcements_table.id=$notifications_table.announcement_id
+        LEFT JOIN $invoice_payments_table ON $invoice_payments_table.id=$notifications_table.invoice_payment_id 
+        LEFT JOIN $events_table ON $events_table.id=$notifications_table.event_id 
+        LEFT JOIN $announcements_table ON $announcements_table.id=$notifications_table.announcement_id 
         WHERE $notifications_table.deleted=0 AND FIND_IN_SET($user_id, $notifications_table.notify_to) != 0
         ORDER BY $notifications_table.id DESC LIMIT $offset, $limit";
 
+        // var_dump(arr($sql)); exit;
+        
         $data = new stdClass();
         $data->result = $this->db->query($sql)->result();
+
         $data->found_rows = $this->db->query("SELECT FOUND_ROWS() as found_rows")->row()->found_rows;
         return $data;
     }

@@ -119,14 +119,17 @@ $(document).ready(function () {
 });
 
 function calculatePrice(){
-    let quantity = tonum($("#quantity").val(), 4);
-    let price = tonum($("#price").val());
+    let quantity = tonum($("#quantity").val(), <?php echo $this->Settings_m->getDecimalPlacesNumber(); ?>);
+    let price = tonum($("#price").val(), <?php echo $this->Settings_m->getDecimalPlacesNumber(); ?>);
+    let total_price = 0.00;
 
     if(quantity < 0 ) quantity = 0;
     if(price < 0 ) price = 0;
 
-    $("#quantity").val(quantity);
-    $("#price").val(price);
-    $("#total_price").val($.number(quantity * price, 2 ));
+    total_price = price * quantity;
+
+    $("#quantity").val($.number(quantity, <?php echo $this->Settings_m->getDecimalPlacesNumber(); ?>));
+    $("#price").val($.number(price, 2));
+    $("#total_price").val($.number(total_price, 2));
 }
 </script>
