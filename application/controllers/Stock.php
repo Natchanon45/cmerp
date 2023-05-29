@@ -1279,6 +1279,16 @@ class Stock extends MY_Controller
                 );
         }
 
+        function tryGetSettingPath()
+        {
+                $file_name = "import-materials-sample-new.xlsx";
+                
+                // var_dump(serialize(array(array("file_name" => $file_name))));
+                // var_dump("assets/");
+
+                download_app_files("assets/", serialize(array(array("file_name" => $file_name))));
+        }
+
         function material_upload_excel_file()
         {
                 upload_file_to_temp(true);
@@ -1426,10 +1436,10 @@ class Stock extends MY_Controller
         private function _material_get_allowed_headers()
         {
                 return array(
+                        "material_code",
                         "material_name",
-                        "production_name",
                         "description",
-                        "unit"
+                        "unit_name"
                 );
         }
 
@@ -1510,7 +1520,7 @@ class Stock extends MY_Controller
                 $now = get_current_utc_time();
 
                 foreach ($excel_file as $key => $value) { //rows
-                        if ($key === 0) { //first line is headers, modify this for custom fields and continue for the next loop
+                        if ($key === 0) { // first line is headers, modify this for custom fields and continue for the next loop
                                 continue;
                         }
 
@@ -1530,7 +1540,7 @@ class Stock extends MY_Controller
                         }
                 }
 
-                delete_file_from_directory($temp_file_path . $file_name); //delete temp file
+                delete_file_from_directory($temp_file_path . $file_name); // delete temp file
                 echo json_encode(array('success' => true, 'message' => lang("record_saved")));
         }
         // END: Material Import
