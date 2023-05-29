@@ -165,9 +165,9 @@ class Clients extends MY_Controller {
         //$this->can_access_this_client($client_id);
         if ( $client_id ) {
 			
-			
-            $options = array("id" => $client_id);
-            $client_info = $this->Clients_model->get_details($options)->row();
+            //$options = array("id" => $client_id);
+            //$client_info = $this->Clients_model->get_details($options)->row();
+            $client_info = $this->Clients_m->getRow($client_id);
             
             //if ($client_info && !$client_info->is_lead) {
             if ($client_info) {

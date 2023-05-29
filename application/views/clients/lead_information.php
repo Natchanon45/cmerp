@@ -11,8 +11,11 @@
         <?php if ($client_info->last_lead_status) { ?>
             <br /><?php echo lang("last_status") . ": " . $client_info->last_lead_status; ?>
         <?php } ?>
-        <?php if ($client_info->owner_id) { ?>
-            <br /><?php echo lang("owner") . ": " . get_team_member_profile_link($client_info->owner_id, $client_info->owner_name); ?>
-        <?php } ?>
+        <?php
+            $uinfo = $this->Users_m->getInfo($client_info->owner_id);
+            if($uinfo != null){
+                echo lang("owner") . ": " . get_team_member_profile_link($client_info->owner_id, $uinfo["first_name"]." ".$uinfo["last_name"]);
+            }
+        ?>
     </div>
 </div>

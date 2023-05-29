@@ -31,8 +31,8 @@
         <li><a  role="presentation" href="<?php echo_uri("clients/projects/" . $client_info->id); ?>" data-target="#client-projects"><?php echo lang('projects'); ?></a></li>
 
         <?php if ($show_invoice_info) { ?>
-            <li><a  role="presentation" href="<?php echo_uri("clients/invoices/" . $client_info->id); ?>" data-target="#client-invoices"> <?php echo lang('invoices'); ?></a></li>
-            <li><a  role="presentation" href="<?php echo_uri("clients/payments/" . $client_info->id); ?>" data-target="#client-payments"> <?php echo lang('payments'); ?></a></li>
+            <!--<li><a  role="presentation" href="<?php echo_uri("clients/invoices/" . $client_info->id); ?>" data-target="#client-invoices"> <?php echo lang('invoices'); ?></a></li>
+            <li><a  role="presentation" href="<?php echo_uri("clients/payments/" . $client_info->id); ?>" data-target="#client-payments"> <?php echo lang('payments'); ?></a></li>-->
         <?php } ?>
         <?php if ($show_estimate_info) { ?>
             <li><a  role="presentation" href="<?php echo_uri("clients/estimates/" . $client_info->id); ?>" data-target="#client-estimates"> <?php echo lang('estimates'); ?></a></li>
@@ -65,8 +65,8 @@
         <div role="tabpanel" class="tab-pane fade" id="client-files"></div>
         <div role="tabpanel" class="tab-pane fade" id="client-info"></div>
         <div role="tabpanel" class="tab-pane fade" id="client-contacts"></div>
-        <div role="tabpanel" class="tab-pane fade" id="client-invoices"></div>
-        <div role="tabpanel" class="tab-pane fade" id="client-payments"></div>
+        <!--<div role="tabpanel" class="tab-pane fade" id="client-invoices"></div>
+        <div role="tabpanel" class="tab-pane fade" id="client-payments"></div>-->
         <div role="tabpanel" class="tab-pane fade" id="client-estimates"></div>
         <div role="tabpanel" class="tab-pane fade" id="client-orders"></div>
         <div role="tabpanel" class="tab-pane fade" id="client-estimate-requests"></div>
@@ -79,7 +79,6 @@
 
 <script type="text/javascript">
     $(document).ready(function () {
-
         setTimeout(function () {
             var tab = "<?php echo $tab; ?>";
             if (tab === "info") {
@@ -92,6 +91,5 @@
                 $("[data-target=#client-payments]").trigger("click");
             }
         }, 210);
-
     });
 </script>

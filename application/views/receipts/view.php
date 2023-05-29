@@ -1,210 +1,372 @@
-<?php //arr( $receipt_total_summary ) ;
-
-    //var_dump($receipt_info);exit;
-?>
-<div id="page-content" class="clearfix">
-    <div style="max-width: 1000px; margin: auto;">
-        <div class="page-title clearfix mt15">            
-            <h1><?php echo get_receipt_id($receipt_info->doc_no); ?></h1>
-
-            <div class="title-button-group" style="margin: 15px;">
-                <?php echo $proveButton ?>
-                <span class="dropdown inline-block">
-
-
-                    <button class="btn btn-info dropdown-toggle  mt0 mb0" type="button" data-toggle="dropdown" aria-expanded="true">
-                        <i class='fa fa-cogs'></i> <?php echo lang('actions'); ?>
-                        <span class="caret"></span>
-                    </button>
-                    <ul class="dropdown-menu" role="menu">
-
-                        <li role="presentation"><?php echo anchor(get_uri("pdf_export/receipt_pdf/" . $receipt_info->id), "<i class='fa fa-download'></i> " . lang('download_pdf'), array("title" => lang('download_pdf'),)); ?> </li>
-
-                        <!-- <li role="presentation"><?php echo anchor(get_uri("receipts/download_pdf/" . $receipt_info->id . "/view"), "<i class='fa fa-file-pdf-o'></i> " . lang('view_pdf'), array("title" => lang('view_pdf'), "target" => "_blank")); ?> </li> -->
-
-                        <!-- <li role="presentation"><?php echo anchor(get_uri("receipts/preview/" . $receipt_info->id . "/1"), "<i class='fa fa-search'></i> " . lang('receipt_preview'), array("title" => lang('receipt_preview')), array("target" => "_blank")); ?> </li> -->
-
-                        <li role="presentation" class="divider"></li>
-
-
-                        <li role="presentation"><?php echo modal_anchor(get_uri("receipts/modal_form"), "<i class='fa fa-edit'></i> " . lang('edit_receipt'), array("title" => lang('edit_receipt'), "data-post-id" => $receipt_info->id, "role" => "menuitem", "tabindex" => "-1")); ?> </li>
-
-                        <li role="presentation" class="divider"></li>
-
-                        <li role="presentation"><?php echo modal_anchor(get_uri("estimates/modal_form/"), "<i class='fa fa-file'></i> " . lang('create_estimate'), array("title" => lang("create_estimate"), "data-post-receipt_id" => $receipt_info->id)); ?> </li>
-
-
-                        <li role="presentation"><?php echo modal_anchor(get_uri("invoices/modal_form/"), "<i class='fa fa-file-text'></i> " . lang('create_invoice'), array("title" => lang("create_invoice"), "data-post-receipt_id" => $receipt_info->id)); ?> </li>
-
-
-                    </ul>
-                </span>
-
-                <?php
-                if (!isset($receipt_info->po_id)) {
-                    echo modal_anchor(get_uri("receipts/item_modal_form"), "<i class='fa fa-plus-circle'></i> " . lang('add_item'), array("class" => "btn btn-default", "title" => lang('add_item'), "data-post-receipt_id" => $receipt_info->id));
-                }
-                ?>
-
-            </div>
+<link rel="stylesheet" href="/assets/css/printd.css?t=<?php echo time();?>">
+<link rel="stylesheet" href="/assets/css/printd-receipt.css?t=<?php echo time();?>">
+<div id="dcontroller" class="clearfix">
+    <div class="page-title clearfix mt15">
+        <h1>ใบเสร็จรับเงิน <?php echo $doc_number;?></h1>
+        <div class="title-button-group">
+            <a style="margin-left: 15px;" class="btn btn-default mt0 mb0 back-to-index-btn"  href="<?php echo get_uri("receipts")?>" ><i class="fa fa-hand-o-left" aria-hidden="true"></i> ย้อนกลับไปตารางรายการ</a>
+            <a class="btn btn-default" onclick="window.print();">พิมพ์</a>
         </div>
-
-        <?php echo $this->dao->getDocLabels($receipt_info->id); ?>
-
-        <div class="mt15">
-            <div class="panel panel-default p15 b-t">
-                <div class="clearfix p20">
-                    <!-- small font size is required to generate the pdf, overwrite that for screen -->
-                    <style type="text/css">
-                        .invoice-meta {
-                            font-size: 100% !important;
-                        }
-                    </style>
-
-                    <?php
-                    $color = get_setting("receipt_color");
-                    if (!$color) {
-                        $color = get_setting("invoice_color");
-                    }
-                    $style = get_setting("invoice_style");
-                    ?>
-                    <?php
-                    $data = array(
-                        "bom_suppliers" => $bom_suppliers,
-                        "client_info" => $client_info,
-                        "color" => $color ? $color : "#2AA384",
-                        "receipt_info" => $receipt_info
-                    );
-
-                    if ($style === "style_2") {
-                        $this->load->view('receipts/receipt_parts/header_style_2.php', $data);
-                    } else {
-                        $this->load->view('receipts/receipt_parts/header_style_1.php', $data);
-                    }
-                    ?>
-
-                </div>
-
-                <div class="table-responsive mt15 pl15 pr15">
-                    <table id="receipt-item-table" class="display" width="100%">
-                    </table>
-                </div>
-
-                <div class="clearfix">
-                    <div class="col-sm-8">
-
-                    </div>
-                    <div class="pull-right pr15" id="receipt-total-section">
-                        <?php $this->load->view("receipts/receipt_total_section"); ?>
-                    </div>
-                </div>
-
-                <p class="b-t b-info pt10 m15"><?php echo nl2br($receipt_info->note); ?></p>
-
-            </div>
-        </div>
-
     </div>
-</div>
-
-
-
+</div><!--#dcontroller-->
+<div id="printd" class="clear">
+    <div class="docheader clear">
+        <div class="l">
+            <div class="logo"><img src="<?php echo get_file_from_setting("estimate_logo", get_setting('only_file_path')); ?>" /></div>
+            <div class="company">
+                <p class="company_name"><?php echo get_setting("company_name"); ?></p>
+                <p><?php echo nl2br(get_setting("company_address")); ?></p>
+                <?php if(trim(get_setting("company_phone")) != ""): ?>
+                    <p><?php echo lang("phone") . ": ".get_setting("company_phone"); ?></p>
+                <?php endif;?>
+                <?php if(trim(get_setting("company_website")) != ""): ?>
+                    <p><?php echo lang("website") . ": ".get_setting("company_website"); ?></p>
+                <?php endif;?>
+                <?php if(trim(get_setting("company_vat_number")) != ""): ?>
+                    <p><?php echo lang("vat_number") . ": ".get_setting("company_vat_number"); ?></p>
+                <?php endif;?>
+            </div><!-- .company -->
+            <div class="customer">
+                <p class="custom-color"><?php echo lang("client"); ?></p>
+                <?php if($client != null): ?>
+                    <p class="customer_name"><?php echo $client["company_name"] ?></p>
+                    <p><?php if($client != null) echo nl2br($client["address"]); ?></p>
+                    <p>
+                        <?php
+                            $client_address = $client["city"];
+                            if($client_address != "" && $client["state"] != "")$client_address .= ", ".$client["city"];
+                            elseif($client_address == "" && $client["state"] != "")$client_address .= $client["city"];
+                            if($client_address != "" && $client["zip"] != "") $client_address .= " ".$client["zip"];
+                            elseif($client_address == "" && $client["zip"] != "") $client_address .= $client["zip"];
+                            echo $client_address;
+                        ?>    
+                    </p>
+                    <?php if(trim($client["country"]) != ""): ?>
+                        <p><?php echo $client["country"]; ?></p>
+                    <?php endif; ?>
+                    <?php if(trim($client["vat_number"]) != ""): ?>
+                        <p><?php echo lang("vat_number") . ": " . $client["vat_number"]; ?></p>
+                    <?php endif; ?>
+                <?php endif; ?>
+            </div><!-- .company -->
+        </div><!--.l-->
+        <div class="r">
+            <h1 class="document_name custom-color">ใบเสร็จรับเงิน<!--<span class="note custom-color">ต้นฉบับ (เอกสารออกเป็นชุด)</span>--></h1>
+            <div class="about_company">
+                <table>
+                    <tr>
+                        <td class="custom-color">เลขที่</td>
+                        <td><?php echo $doc_number; ?></td>
+                    </tr>
+                    <tr>
+                        <td class="custom-color">วันที่</td>
+                        <td><?php echo convertDate($doc_date, true); ?></td>
+                    </tr>
+                    <tr>
+                        <td class="custom-color">ผู้ขาย</td>
+                        <td><?php if($created != null) echo $created["first_name"]." ".$created["last_name"]; ?></td>
+                    </tr>
+                    <?php if(trim($reference_number) != ""): ?>
+                        <tr>
+                            <td class="custom-color">อ้างอิง</td>
+                            <td><?php echo $reference_number; ?></td>
+                        </tr>
+                    <?php endif; ?>
+                </table>
+            </div>
+            <div class="about_customer">
+                <table>
+                    <tr>
+                        <td class="custom-color">ผู้ติดต่อ</td>
+                        <td><?php if(isset($client_contact)) echo $client_contact["first_name"]." ".$client_contact["last_name"]; ?></td>
+                    </tr>
+                    <tr>
+                        <td class="custom-color">เบอร์โทร</td>
+                        <td><?php if(isset($client_contact)) echo $client_contact["phone"]; ?></td>
+                    </tr>
+                    <tr>
+                        <td class="custom-color">อีเมล์</td>
+                        <td><?php if(isset($client_contact)) echo $client_contact["email"]; ?></td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div><!--.docheader-->
+    <div class="docitem">
+        <table>
+            <thead>
+                <tr>
+                    <td>#</td>
+                    <td>รายละเอียด</td>
+                    <td>จำนวน</td>
+                    <td>หน่วย</td>
+                    <td>ราคาต่อหน่วย</td>
+                    <td>ยอดรวม</td>
+                    <td></td>
+                </tr>
+            </thead>
+            <tbody></tbody>
+            <tfoot>
+                <tr><td colspan="7">&nbsp;</td></tr>
+                <tr>
+                    <td colspan="3">
+                        <?php if($invoice_id == null && $doc_status == "W"): ?>
+                            <p><?php echo modal_anchor(get_uri("receipts/item"), "<i class='fa fa-plus-circle'></i> " . lang('add_item_product'), array("id"=>"add_item_button", "class" => "btn btn-default", "title" => lang('add_item_product'), "data-post-doc_id" => $doc_id)); ?></p>
+                        <?php endif; ?>
+                        <p><input type="text" id="total_in_text" readonly></p>
+                    </td>
+                    <td colspan="4" class="summary">
+                        <p id="s-sub-total-before-discount">
+                            <span class="c1 custom-color">รวมเป็นเงิน</span>
+                            <span class="c2"><input type="text" id="sub_total_before_discount" readonly></span>
+                            <span class="c3"><span class="currency">บาท</span></span>
+                        </p>
+                        <p id="s-discount">
+                            <span class="c1 custom-color">
+                                ส่วนลด&nbsp;<input type="number" id="discount_percent" value="<?php echo $discount_percent; ?>" <?php echo $invoice_id == null && $doc_status == "W"?"":"disabled"; ?>>
+                                <select id="discount_type" <?php echo $invoice_id == null && $doc_status == "W"?"":"disabled"; ?>>
+                                    <option value="P" <?php if($discount_type == "P") echo "selected";?>>%</option>
+                                    <option value="F" <?php if($discount_type == "F") echo "selected";?>>฿</option>
+                                </select>
+                            </span>
+                            <span class="c2"><input type="text" id="discount_amount" value="<?php echo $discount_amount; ?>" readonly></span>
+                            <span class="c3"><span class="currency">บาท</span></span>
+                        </p>
+                        <p id="s-sub-total">
+                            <span class="c1"><i class="custom-color t1">ราคาหลังหักส่วนลด</i><i class="custom-color t2">รวมเป็นเงิน</i></span>
+                            <span class="c2"><input type="text" id="sub_total" readonly></span>
+                            <span class="c3"><span class="currency">บาท</span></span>
+                        </p>
+                        <p id="s-vat">
+                            <span class="c1 custom-color"><input type="checkbox" id="vat_inc" <?php if($vat_inc == "Y") echo "checked" ?> <?php echo $invoice_id == null && $doc_status == "W"?"":"disabled"; ?>>ภาษีมูลค่าเพิ่ม<span class="vat_percent custom-color"><?php echo $vat_percent; ?></span><span class="vat_percent_zero custom-color">7%</span></span>
+                            <span class="c2"><input type="text" id="vat_value" readonly></span>
+                            <span class="c3"><span class="currency">บาท</span></span>
+                        </p>
+                        <p id="s-total">
+                            <span class="c1 custom-color">จำนวนเงินรวมทั้งสิ้น</span>
+                            <span class="c2"><input type="text" id="total" readonly ></span>
+                            <span class="c3"><span class="currency">บาท</span></span>
+                        </p>
+                        <p id="s-wht">
+                            <span class="c1 custom-color">
+                                <input type="checkbox" id="wht_inc" <?php if($wht_inc == "Y") echo "checked" ?> <?php echo $invoice_id == null && $doc_status == "W"?"":"disabled"; ?>>หักภาษี ณ ที่จ่าย
+                                <select id="wht_percent" class="wht custom-color <?php echo $wht_inc == "Y"?"v":"h"; ?>" <?php echo $invoice_id == null && $doc_status == "W"?"":"disabled"; ?>>
+                                    <option value="3">3%</option>
+                                    <option value="5">5%</option>
+                                    <option value="0.50">0.5%</option>
+                                    <option value="0.75">0.75%</option>
+                                    <option value="1">1%</option>
+                                    <option value="1.50">1.5%</option>
+                                    <option value="2">2%</option>
+                                    <option value="10">10%</option>
+                                    <option value="15">15%</option>
+                                </select>
+                            </span>
+                            <span class="c2 wht <?php echo $wht_inc == "Y"?"v":"h"; ?>"><input type="text" id="wht_value" readonly ></span>
+                            <span class="c3 wht <?php echo $wht_inc == "Y"?"v":"h"; ?>"><span class="currency">บาท</span></span>
+                        </p>
+                        <p id="s-payment-amount">
+                            <span class="c1 custom-color wht <?php echo $wht_inc == "Y"?"v":"h"; ?>">ยอดชำระ</span>
+                            <span class="c2 wht <?php echo $wht_inc == "Y"?"v":"h"; ?>"><input type="text" id="payment_amount" readonly></span>
+                            <span class="c3 wht <?php echo $wht_inc == "Y"?"v":"h"; ?>"><span class="currency">บาท</span></span>
+                        </p>
+                    </td>
+                </tr>
+            </tfoot>
+        </table>
+        <div class="remark clear">
+            <p class="custom-color">หมายเหตุ</p>
+            <p><?php echo nl2br($remark); ?></p>
+        </div><!--.remark-->
+    </div><!--.docitem-->
+    <div class="docsignature clear">
+        <div class="customer">
+            <div class="on_behalf_of">ในนาม <?php if(isset($client["company_name"])) echo $client["company_name"]; ?></div>
+            <div class="clear">
+                <div class="name">
+                    <span class="l1"></span>
+                    <span class="l2">ผู้จ่ายเงิน</span>
+                </div>
+                <div class="date">
+                    <span class="l1"></span>
+                    <span class="l2">วันที่</span>
+                </div>
+            </div>
+        </div><!--.customer -->
+        <div class="company">
+            <div class="on_behalf_of">ในนาม <?php echo get_setting("company_name"); ?></div>
+            <div class="clear">
+                <div class="name">
+                    <span class="l1">
+                        <?php $signature = $this->Users_m->getSignature($approved_by); ?>
+                        <?php if($signature != null): ?>
+                            <span class="signature"><img src='<?php echo str_replace("./", "/", $signature); ?>'></span>
+                        <?php endif; ?>
+                    </span>
+                    <span class="l2">ผู้รับเงิน</span>
+                </div>
+                <div class="date">
+                    <span class="l1">
+                        <?php if($signature != null): ?>
+                            <span class="approved_date"><?php echo convertDate($approved_datetime, true); ?></span>
+                        <?php endif; ?>
+                    </span>
+                    <span class="l2">วันที่</span>
+                </div>
+            </div>
+        </div><!--.company-->
+    </div>
+</div><!--#printd-->
 <script type="text/javascript">
-    //RELOAD_VIEW_AFTER_UPDATE = true;
-    $(document).ready(function() {
-        $("#receipt-item-table").appTable({
-            source: '<?php echo_uri("receipts/item_list_data/" . $receipt_info->id . "/") ?>',
-            receipt: [
-                [0, "asc"]
-            ],
-            hideTools: true,
-            displayLength: 100,
-            columns: [{
-                    visible: false,
-                    searchable: false
-                },
-                {
-                    title: "<?php echo lang("item") ?> ",
-                    "bSortable": false
-                },
-                {
-                    title: "<?php echo lang("quantity") ?>",
-                    "class": "text-right w15p",
-                    "bSortable": false
-                },
-                {
-                    title: "<?php echo lang("rate") ?>",
-                    "class": "text-right w15p",
-                    "bSortable": false
-                },
-                {
-                    title: "<?php echo lang("total") ?>",
-                    "class": "text-right w15p",
-                    "bSortable": false
-                },
-                {
-                    title: "<i class='fa fa-bars'></i>",
-                    "class": "text-center option w100",
-                    "bSortable": false
-                }
-            ],
-
-            onInitComplete: function() {
-                //apply sortable
-                $("#receipt-item-table").find("tbody").attr("id", "receipt-item-table-sortable");
-                var $selector = $("#receipt-item-table-sortable");
-
-                Sortable.create($selector[0], {
-                    animation: 150,
-                    chosenClass: "sortable-chosen",
-                    ghostClass: "sortable-ghost",
-                    onUpdate: function(e) {
-                        appLoader.show();
-                        //prepare sort indexes 
-                        var data = "";
-                        $.each($selector.find(".item-row"), function(index, ele) {
-                            if (data) {
-                                data += ",";
-                            }
-
-                            data += $(ele).attr("data-id") + "-" + index;
-                        });
-
-                        //update sort indexes
-                        $.ajax({
-                            url: '<?php echo_uri("receipts/update_item_sort_values") ?>',
-                            type: "POST",
-                            data: {
-                                sort_values: data
-                            },
-                            success: function() {
-                                appLoader.hide();
-                            }
-                        });
-                    }
-                });
-
-            },
-
-            onDeleteSuccess: function(result) {
-                $("#receipt-total-section").html(result.receipt_total_view);
-            },
-            onUndoSuccess: function(result) {
-                $("#receipt-total-section").html(result.receipt_total_view);
-            }
-        });
+$(document).ready(function() {
+    loadItems();
+    $("#discount_percent, #discount_amount").blur(function(){
+        loadSummary();
     });
+
+    $("#discount_type, #vat_inc, #wht_inc, #wht_percent").change(function() {
+        loadSummary();
+    });
+});
+
+function loadItems(){
+    axios.post('<?php echo current_url(); ?>', {
+        task: 'load_items',
+        doc_id: '<?php echo $doc_id; ?>'
+    }).then(function (response) {
+        data = response.data;
+        if(data.status == "notfound"){
+            $(".docitem tbody").empty().append("<tr><td colspan='7' class='notfound'>"+data.message+"</td></tr>");
+        }else if(data.status == "success"){
+            tbody = "";
+            items = data.items;
+
+            for(let i = 0; i < items.length; i++){
+                tbody += "<tr>"; 
+                    tbody += "<td>"+(i+1)+"</td>";
+                    tbody += "<td>";
+                        tbody += "<p class='desc1'>"+items[i]["product_name"]+"</p>";
+                        tbody += "<p class='desc2'>"+items[i]["product_description"]+"</p>";
+                    tbody += "</td>";
+                    tbody += "<td>"+items[i]["quantity"]+"</td>"; 
+                    tbody += "<td>"+items[i]["unit"]+"</td>"; 
+                    tbody += "<td>"+items[i]["price"]+"</td>";
+                    tbody += "<td>"+items[i]["total_price"]+"</td>";
+                    tbody += "<td class='edititem'>";
+                        if(data.edit == true){
+                            tbody += "<a class='edit' data-post-doc_id='<?php echo $doc_id; ?>' data-post-item_id='"+items[i]["id"]+"' data-act='ajax-modal' data-action-url='<?php echo_uri("receipts/item"); ?>' ><i class='fa fa-pencil'></i></a>";
+                            tbody += "<a class='delete' data-item_id='"+items[i]["id"]+"'><i class='fa fa-times fa-fw'></i></a>";
+                        }
+                    tbody += "</td>";
+                tbody += "</tr>";
+            }
+
+            $(".docitem tbody").empty().append(tbody);
+            $(".edititem .delete").click(function() {
+                deleteItem($(this).data("item_id"));
+            });
+        }
+
+        loadSummary();
+
+    }).catch(function (error) {
+        console.log(error);
+    });
+}
+
+function loadSummary(){
+    let discount_type = $("#discount_type").val();
+    let discount_percent = 0;
+    let discount_value = 0;
+
+    if(discount_type == "P") discount_percent = tonum($("#discount_percent").val());
+    else discount_value = tonum($("#discount_amount").val());
+
+    axios.post('<?php echo current_url(); ?>', {
+        task: 'update_doc',
+        doc_id: '<?php echo $doc_id; ?>',
+        discount_type: discount_type,
+        discount_percent: discount_percent,
+        discount_value: discount_value,
+        vat_inc: $("#vat_inc").is(":checked"),
+        wht_inc: $("#wht_inc").is(":checked"),
+        wht_percent: $("#wht_percent").val()
+    }).then(function(response) {
+        data = response.data;
+
+        $("#sub_total_before_discount").val(data.sub_total_before_discount);
+        $("#discount_percent").val(data.discount_percent);
+        $("#discount_amount").val(data.discount_amount);
+        $("#sub_total").val(data.sub_total);
+
+        $("#wht_percent").val(data.wht_percent);
+        $("#wht_value").val(data.wht_value);
+
+        $("#total").val(data.total);
+        $("#total_in_text").val("("+data.total_in_text+")");
+
+        $("#payment_amount").val(data.payment_amount);
+
+         if(data.discount_type == "P"){
+            $("#discount_type").val("P");
+            $("#discount_percent").removeClass("h").addClass("v");
+            $("#discount_amount").removeClass("f").addClass("p");
+            $("#discount_amount").prop("readonly", true);
+            discount_value = $("#discount_percent").val();
+        }else{
+            $("#discount_type").val("F");
+            $("#discount_percent").removeClass("v").addClass("h");
+            $("#discount_amount").removeClass("p").addClass("f");
+            $("#discount_amount").prop("readonly", false);
+            discount_value = $("#discount_amount").val();
+        }
+
+        if(discount_value > 0){
+            $("#s-sub-total-before-discount, #s-discount").removeClass("h").addClass("v");
+            $("#s-sub-total .t1").removeClass("h").addClass("v");
+            $("#s-sub-total .t2").removeClass("v").addClass("h");
+            
+        }else{
+            $("#s-sub-total-before-discount, #s-discount").removeClass("v").addClass("h");
+            $("#s-sub-total .t1").removeClass("v").addClass("h");
+            $("#s-sub-total .t2").removeClass("h").addClass("v");
+        }
+        
+        if(data.vat_inc == "Y"){
+            $("#vat_inc").prop("checked", true);
+            $("#vat_value").val(data.vat_value);
+            $("#s-vat .vat_percent").removeClass("h").addClass("v");
+            $("#s-vat .vat_percent_zero").removeClass("v").addClass("h");
+            
+        }else{
+            $("#vat_inc").prop("checked", false);
+            $("#vat_value").val(data.vat_value);
+            $("#s-vat .vat_percent").removeClass("v").addClass("h");
+            $("#s-vat .vat_percent_zero").removeClass("h").addClass("v");
+        }
+
+        if(data.wht_inc == "Y"){
+            $("#wht_inc").prop("checked", true);
+            $("#s-wht").removeClass("h").addClass("v");
+            $(".wht").removeClass("h").addClass("v");
+        }else{
+            $("#wht_inc").prop("checked", false);
+            $("#s-wht").removeClass("v").addClass("h");
+            $(".wht").removeClass("v").addClass("h");
+        }
+
+    }).catch(function (error) {
+        alert(error);
+    });
+}
+
+function deleteItem(item_id){
+    axios.post('<?php echo current_url(); ?>', {
+        task: 'delete_item',
+        doc_id: '<?php echo $doc_id; ?>',
+        item_id: item_id
+    }).then(function (response) {
+        loadItems();
+    });
+}
 </script>
-
-<?php
-//required to send email 
-
-load_css(array(
-    "assets/js/summernote/summernote.css",
-));
-load_js(array(
-    "assets/js/summernote/summernote.min.js",
-));
-?>
-
-<?php $this->load->view("receipts/update_receipt_status_script", array("details_view" => true)); ?>

@@ -57,4 +57,4 @@ $route['about/(:any)'] = 'about/index/$1';
 $route['test/(:any)'] = 'test/$1';
 
 $route['404_override'] = '';
-$route['translate_uri_dashes'] = FALSE;
+$route['translate_uri_dashes'] = TRUE;

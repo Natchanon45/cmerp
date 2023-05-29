@@ -2316,6 +2316,8 @@ class Stock extends MY_Controller
                 // }
                 // $row_data[] = $options;
 
+                // var_dump(arr($row_data)); exit;
+
                 return $row_data;
         }
         // END: Material Reports
@@ -2427,7 +2429,9 @@ class Stock extends MY_Controller
 
                 $view_data["team_members_dropdown"] = $this->get_team_members_dropdown(true);
 
+                $view_data['can_read_material_name'] = $this->dev2_canReadMaterialName();
                 $view_data['material_dropdown'] = $this->Bom_materials_model->get_details([])->result();
+                
                 $view_data['material_restocks'] = $this->Bom_stock_groups_model->get_restocks([
                         'group_id' => $group_id ? $group_id : -1
                 ])->result();
@@ -2437,70 +2441,75 @@ class Stock extends MY_Controller
 
         function restock_save()
         {
-                $this->check_module_availability("module_stock");
-                if (!$this->bom_can_access_restock()) {
-                        echo json_encode(array("success" => false, 'message' => lang('no_permissions')));
-                        exit;
+            $this->check_module_availability("module_stock");
+            if (!$this->bom_can_access_restock()) {
+                echo json_encode(array("success" => false, 'message' => lang('no_permissions')));
+                exit;
+            }
+
+            $id = $this->input->post('id');
+            if (empty($id)) {
+                if (!$this->check_permission('bom_restock_create')) {
+                    echo json_encode(array("success" => false, 'message' => lang('no_permissions')));
+                    exit;
+                }
+            } else {
+                if (!$this->check_permission('bom_restock_update')) {
+                    echo json_encode(array("success" => false, 'message' => lang('no_permissions')));
+                    exit;
+                }
+            }
+            
+            validate_submitted_data(array(
+                "id" => "numeric"
+            ));
+            
+            $data = array(
+                "name" => $this->input->post('name'),
+                "created_by" => $this->input->post('created_by'),
+                "created_date" => $this->input->post('created_date'),
+                "po_no" => $this->input->post('po_no')
+            );
+            if (!$this->login_user->is_admin || empty($data["created_by"])) {
+                $data["created_by"] = $this->login_user->id;
+            }
+            $data = clean_data($data);
+
+            $save_id = $this->Bom_stock_groups_model->save($data, $id);
+            if ($save_id) {
+                $restock_ids = $this->input->post('restock_id[]');
+                $material_ids = $this->input->post('material_id[]');
+                $stocks = $this->input->post('stock[]');
+                $prices = $this->input->post('price[]');
+                $serial_numbers = $this->input->post('restock_serial[]');
+                
+                if (isset($restock_ids) && isset($material_ids) && isset($stocks)) {
+                    $this->Bom_stock_groups_model->restock_save(
+                        $save_id,
+                        $restock_ids,
+                        $material_ids,
+                        $stocks,
+                        $prices,
+                        $serial_numbers
+                    );
                 }
 
-                $id = $this->input->post('id');
-                if (empty($id)) {
-                        if (!$this->check_permission('bom_restock_create')) {
-                                echo json_encode(array("success" => false, 'message' => lang('no_permissions')));
-                                exit;
-                        }
-                } else {
-                        if (!$this->check_permission('bom_restock_update')) {
-                                echo json_encode(array("success" => false, 'message' => lang('no_permissions')));
-                                exit;
-                        }
+                $data = array();
+                $new_source_data = $this->Bom_stocks_model->dev2_getRestockingById($save_id);
+                foreach ($new_source_data as $item) {
+                    $data[] = $this->dev2_rowDataList($item);
                 }
-
-                validate_submitted_data(
-                        array(
-                                "id" => "numeric"
-                        )
-                );
-
-                $data = array(
-                        "name" => $this->input->post('name'),
-                        "created_by" => $this->input->post('created_by'),
-                        "created_date" => $this->input->post('created_date'),
-                        "po_no" => $this->input->post('po_no')
-                );
-                if (!$this->login_user->is_admin || empty($data["created_by"])) {
-                        $data["created_by"] = $this->login_user->id;
-                }
-                $data = clean_data($data);
-
-                $save_id = $this->Bom_stock_groups_model->save($data, $id);
-                if ($save_id) {
-                        $restock_ids = $this->input->post('restock_id[]');
-                        $material_ids = $this->input->post('material_id[]');
-                        $stocks = $this->input->post('stock[]');
-                        $prices = $this->input->post('price[]');
-                        if (isset($restock_ids) && isset($material_ids) && isset($stocks)) {
-                                $this->Bom_stock_groups_model->restock_save(
-                                        $save_id,
-                                        $restock_ids,
-                                        $material_ids,
-                                        $stocks,
-                                        $prices
-                                );
-                        }
-
-                        echo json_encode(
-                                array(
-                                        "success" => true,
-                                        "data" => $this->_restock_row_data($save_id),
-                                        'id' => $save_id,
-                                        'view' => $this->input->post('view'),
-                                        'message' => lang('record_saved')
-                                )
-                        );
-                } else {
-                        echo json_encode(array("success" => false, 'message' => lang('error_occurred')));
-                }
+                
+                echo json_encode(array(
+                    'success' => true,
+                    'data' => $data,
+                    'id' => $save_id,
+                    'view' => $this->input->post('view'),
+                    'message' => lang('record_saved')
+                ));
+            } else {
+                echo json_encode(array("success" => false, 'message' => lang('error_occurred')));
+            }
         }
 
         function restock_delete()
@@ -5001,6 +5010,90 @@ class Stock extends MY_Controller
                 // $row_data[] = $options;
 
                 return $row_data;
+        }
+
+        public function dev2_restockingList()
+        {
+            $post = $this->input->post('created_by') ? $this->input->post('created_by') : '';
+            $result = $this->Bom_stocks_model->dev2_getRestockingList($post);
+            
+            $data = array();
+            foreach ($result as $item) {
+                $data[] = $this->dev2_rowDataList($item);
+            }
+
+            echo json_encode(array("data" => $data));
+        }
+
+        private function dev2_rowDataList($item)
+        {
+            $button = "";
+
+            $stock_diff = $item->stock_qty == $item->stock_remain ? true : false;
+
+            if ($this->dev2_canUpdateRestock()) {
+                $button .= modal_anchor(get_uri('stock/restock_modal'), "<i class='fa fa-pencil'></i>", array("class" => "edit", "title" => lang('stock_restock_edit'), "data-post-id" => $item->group_id));
+            } else {
+                $button .= modal_anchor(get_uri("stock/restock_modal"), "<i class='fa fa-eye'></i>", array("class" => "edit", "title" => lang('stock_restock_edit'), "data-post-id" => $item->group_id));
+            }
+
+            if ($this->dev2_canDeleteRestock() && $stock_diff) {
+                $button .= js_anchor("<i class='fa fa-times fa-fw'></i>", array('title' => lang('stock_restock_delete'), "class" => "delete", "data-id" => $item->stock_id, "data-action-url" => get_uri("stock/restock_item_delete"), "data-action" => "delete-confirmation"));
+            }
+
+            return array(
+                $item->stock_id,
+                anchor(get_uri('stock/restock_view/' . $item->group_id), $item->stock_name),
+                $item->serial_number ? $item->serial_number : '-',
+                $this->dev2_canReadMaterialName() 
+                ? anchor(get_uri('stock/material_view/' . $item->material_id), strtoupper($item->material_code) . ' - ' . ucwords(strtolower($item->material_name))) 
+                : anchor(get_uri('stock/material_view/' . $item->material_id), strtoupper($item->material_code)),
+                to_decimal_format3($item->stock_qty),
+                to_decimal_format3($item->stock_remain),
+                strtoupper($item->material_unit),
+                $item->create_by ? anchor(get_uri('team_members/view/' . $item->create_by), $this->Account_category_model->created_by($item->create_by)) : '',
+                format_to_date($item->create_date),
+                $button
+            );
+        }
+
+        private function dev2_canReadMaterialName()
+        {
+            if ($this->login_user->is_admin) {
+                return true;
+            } else {
+                if ($this->login_user->permissions['bom_material_read_production_name']) {
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+        }
+
+        private function dev2_canUpdateRestock()
+        {
+            if ($this->login_user->is_admin) {
+                return true;
+            } else {
+                if ($this->Permission_m->permissions->bom_restock_update) {
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+        }
+
+        private function dev2_canDeleteRestock()
+        {
+            if ($this->login_user->is_admin) {
+                return true;
+            } else {
+                if ($this->Permission_m->permissions->bom_restock_delete) {
+                    return true;
+                } else {
+                    return false;
+                }
+            }
         }
 
 // END: Material Reports
