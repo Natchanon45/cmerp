@@ -41,7 +41,7 @@ $(document).ready(function () {
         printColumns: combineCustomFieldsColumns([0, 1, 2, 3, 4, 5]),
         xlsColumns: combineCustomFieldsColumns([0, 1, 2, 3, 4, 5]),
         summation: [
-            {column: 4, dataType: 'currency'}
+            {column: 5, dataType: 'currency'}
         ]
     });
 

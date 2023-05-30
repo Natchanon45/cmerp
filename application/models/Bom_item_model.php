@@ -51,7 +51,13 @@ class Bom_item_model extends Crud_model {
         else return false;
     }
 
+    function duplicated_code($code)
+    {
+        $temp = $this->db->query("SELECT id FROM items WHERE item_code = '" . $code . "'");
+        $temp = $temp->row();
 
+        if ($temp): return true; else: return false; endif;
+    }
 
     function get_categories($options = array()) {
         $where = "";

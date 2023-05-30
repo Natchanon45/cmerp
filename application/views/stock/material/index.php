@@ -53,7 +53,7 @@
 				<?php endif; ?>
 				{ title: '<?php echo lang("stock_material_barcode"); ?>', "class": "w200" },
 				{ title: '<?php echo lang("stock_material_category"); ?>', "class": "" },
-				{ title: '<?php echo lang("account_category"); ?>', "class": "w200" },
+				// { title: '<?php // echo lang("account_category"); ?>', "class": "w200" },
 				{ title: '<?php echo lang("description"); ?>', "class": "w200" },
 				{ title: '<?php echo lang("stock_material_remaining"); ?>', "class": "text-right" },
 				{ title: '<?php echo lang("stock_material_unit"); ?>', "class": "w50 text-center" },
@@ -61,11 +61,11 @@
 			],
 			<?php if (isset($is_admin) && $is_admin) { ?>
 				<?php if ($can_read_production_name) { ?>
-					printColumns: combineCustomFieldsColumns([0, 1, 2, 3, 4, 5, 6, 7]),
-					xlsColumns: combineCustomFieldsColumns([0, 1, 2, 3, 4, 5, 6, 7]),
-				<?php } else { ?>
 					printColumns: combineCustomFieldsColumns([0, 1, 2, 3, 4, 5, 6]),
 					xlsColumns: combineCustomFieldsColumns([0, 1, 2, 3, 4, 5, 6]),
+				<?php } else { ?>
+					printColumns: combineCustomFieldsColumns([0, 1, 2, 3, 4, 5]),
+					xlsColumns: combineCustomFieldsColumns([0, 1, 2, 3, 4, 5]),
 				<?php } ?>
 			<?php } ?>
 		});

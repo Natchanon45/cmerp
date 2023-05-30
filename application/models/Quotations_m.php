@@ -571,8 +571,6 @@ class Quotations_m extends MY_Model {
         $product_name = $this->json->product_name;
         $product_description = $this->json->product_description;
         $quantity = round(getNumber($this->json->quantity), $this->Settings_m->getDecimalPlacesNumber());
-        //log_message("error", round($this->json->quantity, $this->Settings_m->getDecimalPlacesNumber()));
-        //log_message("error", round(getNumber($this->json->quantity), $this->Settings_m->getDecimalPlacesNumber()));
         $unit = $this->json->unit;
         $price = round(getNumber($this->json->price), 2);
         $total_price = round($price * $quantity, 2);
