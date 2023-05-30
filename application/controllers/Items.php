@@ -259,7 +259,7 @@ class Items extends MY_Controller
 			anchor(get_uri('' . $this->className . '/detail/' . $data->id), $data->title),
 			nl2br($data->description),
 			$data->category_title ? $data->category_title : "-",
-			$data->account_id ? $this->Account_category_model->account_by($data->account_id) : "-",
+			// $data->account_id ? $this->Account_category_model->account_by($data->account_id) : "-",
 			$type,
 			@$data->barcode ? '<div style="text-align:center"><a href="' . $src . '" class="barcode_img" download><img src="' . $src . '" /><div class="text">Click to download</div></a></div>' : '-',
 			$data->rate,

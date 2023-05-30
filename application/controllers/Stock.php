@@ -1009,9 +1009,9 @@ class Stock extends MY_Controller
                                 anchor(get_uri('stock/material_view/' . $data->id), $data->name),
                                 $data->production_name ? $data->production_name : '-',
                                 $data->barcode ? '<div style="text-align:center"><a href="' . $src . '" class="barcode_img" download><img src="' . $src . '" /><div class="text">Click to download</div></a></div>' : '-',
-                                //$data->barcode? Barcode::render( 'code128', 'image', @$databarcode, @$rendererOptions ): '-',
+                                // $data->barcode? Barcode::render('code128', 'image', @$databarcode, @$rendererOptions ): '-',
                                 $data->category ? $data->category : '-',
-                                $data->account_id ? $this->Account_category_model->account_by($data->account_id) : "-",
+                                // $data->account_id ? $this->Account_category_model->account_by($data->account_id) : "-",
                                 $data->description ? $data->description : '-',
                                 $data->remaining ? to_decimal_format3($data->remaining) : 0,
                                 $data->unit ? $data->unit : '-'
@@ -1023,7 +1023,7 @@ class Stock extends MY_Controller
                                 anchor(get_uri('stock/material_view/' . $data->id), $data->name),
                                 $data->barcode ? '<div style="text-align:center"><a href="' . $src . '" class="barcode_img" download><img src="' . $src . '" /><div class="text">Click to download</div></a></div>' : '-',
                                 $data->category ? $data->category : '-',
-                                $data->account_id ? $this->Account_category_model->account_by($data->account_id) : "-",
+                                // $data->account_id ? $this->Account_category_model->account_by($data->account_id) : "-",
                                 $data->description ? $data->description : '-',
                                 $data->remaining ? to_decimal_format3($data->remaining) : 0,
                                 $data->unit ? $data->unit : '-'
@@ -1270,23 +1270,18 @@ class Stock extends MY_Controller
                         exit;
                 }
 
-                $file_name = "import-materials-sample.xlsx";
-                //if($this->check_permission("bom_material_read_production_name") == true) $file_name = "import_inc_name-materials-sample.xlsx";
+                // $file_name = "import-materials-sample.xlsx";
+                // if($this->check_permission("bom_material_read_production_name") == true) $file_name = "import_inc_name-materials-sample.xlsx";
+                // download_app_files(get_setting("system_file_path"),serialize(array(array("file_name" => $file_name))));
 
-                download_app_files(
-                        get_setting("system_file_path"),
-                        serialize(array(array("file_name" => $file_name)))
-                );
+                $file_name = "import-materials-sample-new.xlsx";
+                download_app_files("assets/", serialize(array(array("file_name" => $file_name))));
         }
 
         function tryGetSettingPath()
         {
-                $file_name = "import-materials-sample-new.xlsx";
-                
-                // var_dump(serialize(array(array("file_name" => $file_name))));
-                // var_dump("assets/");
-
-                download_app_files("assets/", serialize(array(array("file_name" => $file_name))));
+                // $file_name = "import-materials-sample-new.xlsx";
+                // download_app_files("assets/", serialize(array(array("file_name" => $file_name))));
         }
 
         function material_upload_excel_file()
@@ -3902,6 +3897,7 @@ class Stock extends MY_Controller
                         "category_id" => $this->input->post("category_id")
                 );
                 $list_data = $this->Bom_item_model->get_details($options)->result();
+                // var_dump(arr($list_data)); exit;
                 $result = array();
                 foreach ($list_data as $data) {
                         $result[] = $this->_item_make_row($data);
@@ -3960,7 +3956,7 @@ class Stock extends MY_Controller
                                 //$data->barcode? Barcode::render( 'code128', 'image', @$databarcode, @$rendererOptions ): '-',
                                 $data->rate ? $data->rate : '-',
                                 $data->category ? $data->category : '-',
-                                $data->account_id ? $this->Account_category_model->account_by($data->account_id) : "-",
+                                // $data->account_id ? $this->Account_category_model->account_by($data->account_id) : "-",
                                 $data->description ? $data->description : '-',
                                 $data->remaining ? to_decimal_format3($data->remaining) : 0,
                                 $data->unit_type ? $data->unit_type : '-'
@@ -3973,7 +3969,7 @@ class Stock extends MY_Controller
                                 anchor(get_uri('stock/item_view/' . $data->id), $data->title),
                                 $data->barcode ? '<div style="text-align:center"><a href="' . $src . '" class="barcode_img" download><img src="' . $src . '" /><div class="text">Click to download</div></a></div>' : '-',
                                 $data->category ? $data->category : '-',
-                                $data->account_id ? $this->Account_category_model->account_by($data->account_id) : "-",
+                                // $data->account_id ? $this->Account_category_model->account_by($data->account_id) : "-",
                                 $data->description ? $data->description : '-',
                                 $data->remaining ? to_decimal_format3($data->remaining) : 0,
                                 $data->unit_type ? $data->unit_type : '-'
@@ -4202,10 +4198,14 @@ class Stock extends MY_Controller
                         echo json_encode(array("success" => false, 'message' => lang('no_permissions')));
                         exit;
                 }
-                download_app_files(
-                        get_setting("system_file_path"),
-                        serialize(array(array("file_name" => "import-item-sample.xlsx")))
-                );
+
+                // download_app_files(
+                //         get_setting("system_file_path"),
+                //         serialize(array(array("file_name" => "import-item-sample.xlsx")))
+                // );
+
+                $file_name = "import-item-sample-new.xlsx";
+                download_app_files("assets/", serialize(array(array("file_name" => $file_name))));
         }
 
         function item_upload_excel_file()
@@ -4353,10 +4353,11 @@ class Stock extends MY_Controller
         private function _item_get_allowed_headers()
         {
                 return array(
+                        "item_code",
                         "title",
-                        "rate",
                         "description",
-                        "unit_type"
+                        "rate",
+                        "unit_name"
                 );
         }
 
@@ -4435,19 +4436,21 @@ class Stock extends MY_Controller
                 $excel_file = new SpreadsheetReader($temp_file_path . $file_name);
                 $allowed_headers = $this->_item_get_allowed_headers();
 
-                foreach ($excel_file as $key => $value) { //rows
-                        if ($key === 0) { //first line is headers, modify this for custom fields and continue for the next loop
+                foreach ($excel_file as $key => $value) { // rows
+                        if ($key === 0) { // first line is headers, modify this for custom fields and continue for the next loop
                                 continue;
                         }
 
                         $item = [
-                                'title' => $value[0],
-                                'rate' => $value[1],
+                                'item_code' => $value[0],
+                                'title' => $value[1],
                                 'description' => $value[2],
-                                'unit_type' => $value[3],
+                                'rate' => $value[3],
+                                'unit_type' => $value[4]
                         ];
+
                         // Save material data
-                        if (!$this->Bom_item_model->duplicated_name($item['title'])) {
+                        if (!$this->Bom_item_model->duplicated_name($item['title']) && !$this->Bom_item_model->duplicated_code($item['item_code'])) {
                                 $item_id = $this->Bom_item_model->save($item);
                                 if (!$item_id) {
                                         continue;
@@ -4455,7 +4458,7 @@ class Stock extends MY_Controller
                         }
                 }
 
-                delete_file_from_directory($temp_file_path . $file_name); //delete temp file
+                delete_file_from_directory($temp_file_path . $file_name); // delete temp file
                 echo json_encode(array('success' => true, 'message' => lang("record_saved")));
         }
         // END: Material Import
