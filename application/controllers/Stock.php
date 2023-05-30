@@ -1278,12 +1278,6 @@ class Stock extends MY_Controller
                 download_app_files("assets/", serialize(array(array("file_name" => $file_name))));
         }
 
-        function tryGetSettingPath()
-        {
-                // $file_name = "import-materials-sample-new.xlsx";
-                // download_app_files("assets/", serialize(array(array("file_name" => $file_name))));
-        }
-
         function material_upload_excel_file()
         {
                 upload_file_to_temp(true);
