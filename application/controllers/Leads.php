@@ -998,9 +998,8 @@ class Leads extends MY_Controller
 
             $company_name = $this->input->post('company_name');
 
-            $client_info = $this->Clients_model->get_details(array("id" => $client_id))->row();
-            //$client_info = $this->Leads_m->getRow($client_id);
-
+            //$client_info = $this->Clients_model->get_details(array("id" => $client_id))->row();
+            $client_info = $this->Leads_m->getRow($client_id);
 
             $data = array(
                 "company_name" => $company_name,
