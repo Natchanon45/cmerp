@@ -45,7 +45,7 @@ class Receipts_m extends MY_Model {
         $data = [
                     "<a href='".get_uri("receipts/view/".$rerow->id)."'>".convertDate($rerow->doc_date, 2)."</a>",
                     "<a href='".get_uri("receipts/view/".$rerow->id)."'>".$rerow->doc_number."</a>",
-                    "<a href='".get_uri("clients/view/".$rerow->client_id)."'>".$this->Clients_m->getCompanyName($rerow->client_id)."</a>",
+                    $rerow->reference_number, "<a href='".get_uri("clients/view/".$rerow->client_id)."'>".$this->Clients_m->getCompanyName($rerow->client_id)."</a>",
                     number_format($rerow->total, 2), $doc_status,
                     "<a data-post-id='".$rerow->id."' data-action-url='".get_uri("receipts/addedit")."' data-act='ajax-modal' class='edit'><i class='fa fa-pencil'></i></a><a data-id='".$rerow->id."' data-action-url='".get_uri("receipts/delete_doc")."' data-action='delete' class='delete'><i class='fa fa-times fa-fw'></i></a>"
                 ];

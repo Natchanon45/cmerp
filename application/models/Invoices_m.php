@@ -45,7 +45,7 @@ class Invoices_m extends MY_Model {
         $data = [
                     "<a href='".get_uri("invoices/view/".$invrow->id)."'>".convertDate($invrow->doc_date, 2)."</a>",
                     "<a href='".get_uri("invoices/view/".$invrow->id)."'>".$invrow->doc_number."</a>",
-                    "<a href='".get_uri("clients/view/".$invrow->client_id)."'>".$this->Clients_m->getCompanyName($invrow->client_id)."</a>",
+                    $invrow->reference_number, "<a href='".get_uri("clients/view/".$invrow->client_id)."'>".$this->Clients_m->getCompanyName($invrow->client_id)."</a>",
                     convertDate($invrow->due_date, true), number_format($invrow->total, 2), $doc_status,
                     "<a data-post-id='".$invrow->id."' data-action-url='".get_uri("invoices/addedit")."' data-act='ajax-modal' class='edit'><i class='fa fa-pencil'></i></a><a data-id='".$invrow->id."' data-action-url='".get_uri("invoices/delete_doc")."' data-action='delete' class='delete'><i class='fa fa-times fa-fw'></i></a>"
                 ];

@@ -31,7 +31,8 @@ $(document).ready(function () {
         columns: [
             {title: "วันที่", "class": "w10p"},
             {title: "เลขที่เอกสาร", "class": "w10p"},
-            {title: "ชื่อลูกค้า", "class": "w35p"},
+            {title: "เลขที่อ้างอิง", "class":"w10p"},
+            {title: "ชื่อลูกค้า", "class": "w25p"},
             {title: "วันครบกำหนด", "class": "text-left w10p"},
             {title: "ยอดรวมสุทธิ", "class": "text-right w10p"},
             {title: "สถานะ", "class": "text-left w15p"},
@@ -40,7 +41,7 @@ $(document).ready(function () {
         printColumns: combineCustomFieldsColumns([0, 1, 2, 3, 4, 5]),
         xlsColumns: combineCustomFieldsColumns([0, 1, 2, 3, 4, 5]),
         summation: [
-            {column: 4, dataType: 'currency'}
+            {column: 5, dataType: 'currency'}
         ]
     });
 
