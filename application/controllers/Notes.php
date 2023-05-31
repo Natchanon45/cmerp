@@ -473,14 +473,15 @@ class Notes extends MY_Controller {
 		 
         $view_data['label'] = $this->dao->fetchAll( $sql );
 
-        if($this->login_user->is_admin == 1 || $this->getRolePermission['view_row'] == "2"){
+        // if($this->login_user->is_admin == 1 || $this->getRolePermission['view_row'] == "2"){
+        if($this->login_user->is_admin == 1){
             $view_data['created_by'] = $this->dao->fetchAll("SELECT id, first_name, last_name FROM users WHERE user_type = 'staff' AND deleted = 0");
         }
 
 		$this->buttonTop = implode( '', $this->buttonTop );
         $view_data["available_note_types"] = explode(",", $this->Permission_m->access_note_specific);
 
-        $this->template->rander( "notes/index",$view_data);
+        $this->template->rander("notes/index",$view_data);
     }
 
 }
