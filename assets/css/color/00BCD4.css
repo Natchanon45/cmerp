@@ -50,8 +50,17 @@
 #sidebar-menu .devider{
     border-color: #00acc1
 }
+
 a {
     color: #00acc1;
+}
+
+.custom-bg{
+    background: rgba(0, 188, 212, 1) !important;
+}
+
+.custom-bg01{
+    background: rgba(0, 188, 212, 0.1) !important;
 }
 
 .custom-color{

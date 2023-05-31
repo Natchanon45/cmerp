@@ -56,6 +56,14 @@ a {
     color: #717d7e;
 }
 
+.custom-bg{
+    background: rgba(137, 145, 146, 1) !important;
+}
+
+.custom-bg01{
+    background: rgba(137, 145, 146, 0.1) !important;
+}
+
 .custom-color {
     color: #717d7e !important;
 }

@@ -32,7 +32,7 @@ $(document).ready(function () {
             {title: "วันที่", "class": "w10p"},
             {title: "เลขที่เอกสาร", "class": "w10p"},
             {title: "เลขที่อ้างอิง", "class":"w10p"},
-            {title: "ชื่อลูกค้า", "class": "w25p"},
+            {title: "ลูกค้า", "class": "w25p"},
             {title: "ยอดรวมสุทธิ", "class": "text-right w15p"},
             {title: "สถานะ", "class": "text-left w15p"},
             {title: "<i class='fa fa-bars'></i>", "class": "text-center option w10p"}
