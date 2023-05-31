@@ -54,16 +54,17 @@
                 {value: moment().add(15, 'days').format("YYYY-MM-DD"), text: "<?php echo sprintf(lang('in_number_of_days'), 15); ?>"}
             ]}],
             columns: [
-                {title: '<?php echo lang("id") ?>', "class": "w50"},
-                {title: '<?php echo lang("title") ?>'},
+                {title: '<?php echo lang("id") ?>', "class": "w5p text-center"},
+                {title: '<?php echo lang("title") ?>', "class": "w15p"},
                 {title: '<?php echo lang("client") ?>', "class": "w15p"},
+                {title: '<?php echo lang("owner") ?>', "class": "w15p"},
                 {visible: optionVisibility, title: '<?php echo lang("price") ?>', "class": "w10p"},
                 {visible: false, searchable: false},
                 {title: '<?php echo lang("start_date") ?>', "class": "w10p", "iDataSort": 4},
                 {visible: false, searchable: false},
                 {title: '<?php echo lang("deadline") ?>', "class": "w10p", "iDataSort": 6},
                 {title: '<?php echo lang("progress") ?>', "class": "w10p"},
-                {title: '<?php echo lang("status") ?>', "class": "w10p"}
+                {title: '<?php echo lang("status") ?>', "class": "w5p"}
                 <?php echo $custom_field_headers; ?>,
                 {visible: optionVisibility, title: '<i class="fa fa-bars"></i>', "class": "text-center option w120"}
             ],
