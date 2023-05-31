@@ -18,7 +18,11 @@ class Accounting extends MY_Controller {
 
     //บัญชีขาย
     function sell(){
-        $this->template->rander("accounting/sell");
+        $data["module"] = "quotations";
+
+        if($this->uri->segment(3) != null) $data["module"] = $this->uri->segment(3);
+
+        $this->template->rander("accounting/sell", $data);
     }
 
     //บัญชีซื้อ

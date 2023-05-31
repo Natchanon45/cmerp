@@ -50,23 +50,32 @@
 </style>
 <div id="page-content" class="p20 clearfix">
     <ul class="nav nav-tabs bg-white title" role="tablist">
-        <li class="active" data-tab="tickets_list"><a href="<?php echo_uri('tickets/index/'); ?>">บัญชีขาย</a></li>
-        <li class="" data-tab="tickets_own_list"><a href="<?php echo_uri('tickets/ticket_own/'); ?>">บัญชีซื้อ</a></li>
+        <!--<li class=""><a href="#">ผังบัญชี</a></li>-->
+        <li class="active"><a>บัญชีขาย</a></li>
+        <!--<li class=""><a href="#">บัญชีซื้อ</a></li>-->
     </ul>
     <div class="panel panel-default">
         <div class="table-responsive pb50">
             <ul id="accounting_tabs">
-                <li data-module="quotations" class="active custom-bg01"><a class="custom-color">ใบเสนอราคา</a></li>
-                <li data-module="billing-notes"><a>ใบวางบิล</a></li>
-                <li data-module="invoices"><a>ใบกำกับภาษี</a></li>
-                <li data-module="receipts"><a>ใบเสร็จรับเงิน</a></li>
+                <li data-module="quotations" class="<?php if($module == "quotations") echo 'active custom-bg01'; ?>">
+                    <a class="<?php if($module == "quotations") echo 'custom-color'; ?>">ใบเสนอราคา</a>
+                </li>
+                <li data-module="billing-notes" class="<?php if($module == "billing-notes") echo 'active custom-bg01'; ?>">
+                    <a class="<?php if($module == "billing-notes") echo 'custom-color'; ?>">ใบวางบิล</a>
+                </li>
+                <li data-module="invoices" class="<?php if($module == "invoices") echo 'active custom-bg01'; ?>">
+                    <a class="<?php if($module == "invoices") echo 'custom-color'; ?>">ใบกำกับภาษี</a>
+                </li>
+                <li data-module="receipts" class="<?php if($module == "receipts") echo 'active custom-bg01'; ?>">
+                    <a class="<?php if($module == "receipts") echo 'custom-color'; ?>">ใบเสร็จรับเงิน</a>
+                </li>
             </ul>
         </div>
     </div>
 </div>
 <script type="text/javascript">
 $(document).ready(function () {
-    loadDataGrid("quotations");
+    loadDataGrid("<?php echo $module; ?>");
     $("#accounting_tabs li").click(function(){
         $("#accounting_tabs li").removeClass("active, custom-bg01");
         $("#accounting_tabs li a").removeClass("custom-color");
@@ -80,8 +89,8 @@ $(document).ready(function () {
 function loadDataGrid(module){
     $("#datagrid_wrapper").empty();
     $("<table id='datagrid' class='display' cellspacing='0' width='100%''></table>").insertAfter("#accounting_tabs");
-    let doc_status = [{id:"", text:"-<?php echo lang("status"); ?>-"}, {id:"W", text:"รออนุมัติ"}, {id:"A", text:"อนุมัติ"}, {id:"P", text:"ดำเนินการแล้ว"}, {id:"R", text:"ไม่อนุมัติ"}];
-    let grid_columns = [
+    var doc_status = [{id:"", text:"-<?php echo lang("status"); ?>-"}, {id:"W", text:"รออนุมัติ"}, {id:"A", text:"อนุมัติ"}, {id:"P", text:"ดำเนินการแล้ว"}, {id:"R", text:"ไม่อนุมัติ"}];
+    var grid_columns = [
                             {title: "วันที่", "class":"w10p"},
                             {title: "เลขที่เอกสาร", "class":"w10p"},
                             {title: "เลขที่อ้างอิง", "class":"w10p"},
@@ -92,24 +101,21 @@ function loadDataGrid(module){
                             {title: "<i class='fa fa-bars'></i>", "class":"text-center option w10p"}
                         ];
 
-    let summation_column = 5;
+    var summation_column = 5;
 
     if(module == "receipts"){
-        let grid_columns = [
-                            {title: "วันที่", "class": "w10p"},
-                            {title: "เลขที่เอกสาร", "class": "w10p"},
+        grid_columns = [
+                            {title: "วันที่", "class":"w10p"},
+                            {title: "เลขที่เอกสาร", "class":"w10p"},
                             {title: "เลขที่อ้างอิง", "class":"w10p"},
-                            {title: "ลูกค้า", "class": "w25p"},
-                            {title: "ยอดรวมสุทธิ", "class": "text-right w15p"},
-                            {title: "สถานะ", "class": "text-left w15p"},
-                            {title: "<i class='fa fa-bars'></i>", "class": "text-center option w10p"}
+                            {title: "ลูกค้า", "class":"w30p"},
+                            {title: "ยอดรวมสุทธิ", "class":"text-right w15p"},
+                            {title: "สถานะ", "class":"text-left w15p"},
+                            {title: "<i class='fa fa-bars'></i>", "class":"text-center option w10p"}
                         ];
 
-        let summation_column = 4;
+        summation_column = 4;
     }
-
-    
-    
 
     $("#datagrid").appTable({
         source: "<?php echo_uri(); ?>"+module,
@@ -125,7 +131,7 @@ function loadDataGrid(module){
         ]
     });
 
-    /*$("#datagrid").on("draw.dt", function () {
+    $("#datagrid").on("draw.dt", function () {
         $(".dropdown_status").on( "change", function() {
             axios.post("<?php echo_uri(); ?>"+module, {
                 task: 'update_doc_status',
@@ -146,6 +152,6 @@ function loadDataGrid(module){
                 $("#datagrid").appTable({newData: data.dataset, dataId: data.doc_id});
             }).catch(function (error) {});
         });
-    });*/
+    });
 }
 </script>

@@ -15,7 +15,7 @@ class Billing_notes extends MY_Controller {
             return;    
         }
 
-        $this->template->rander("billing_notes/index");
+        //$this->template->rander("billing_notes/index");
     }
 
     function addedit(){

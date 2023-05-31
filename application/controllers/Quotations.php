@@ -15,7 +15,7 @@ class Quotations extends MY_Controller {
             return;    
         }
 
-        $this->template->rander("quotations/index");
+        //$this->template->rander("quotations/index");
     }
 
     function addedit(){
