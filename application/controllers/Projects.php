@@ -923,10 +923,13 @@ class Projects extends MY_Controller {
             $price = "-";
         }
 
+        $owner = $this->Clients_model->getOwnerByClientId($data->client_id);
+
         $row_data = array(
             anchor(get_uri("projects/view/" . $data->id), $data->id),
             $title,
             anchor(get_uri("clients/view/" . $data->client_id), $data->company_name),
+            anchor(get_uri("team_members/view/" . $owner->id), $owner->full_name),
             $price,
             $data->start_date,
             $start_date,
@@ -935,6 +938,8 @@ class Projects extends MY_Controller {
             $progress_bar,
             lang($data->status)
         );
+
+        // var_dump(arr($row_data)); exit;
 
         foreach ($custom_fields as $field) {
             $cf_id = "cfv_" . $field->id;

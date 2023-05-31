@@ -46,15 +46,15 @@
       ],
       columns: [
         {title: "<?php echo lang("id") ?>", "class": "text-center w50"},
-        { title: "<?php echo lang('preview_image') ?> ", "class": "w100" },
+        {title: "<?php echo lang('preview_image') ?> ", "class": "w100" },
         {title: '<?php echo lang("stock_item_code"); ?>', "class": ""},
         {title: '<?php echo lang("stock_item_name"); ?>', "class": ""},
         {title: '<?php echo lang("stock_item_barcode"); ?>',"class": "w200"},
         <?php if($can_read_production_name){?>
-          {title: '<?php echo lang("stock_item_rate"); ?>', "class": "text-center"},
+          {title: '<?php echo lang("stock_item_rate"); ?>', "class": "w100 text-center"},
         <?php }?>
         {title: '<?php echo lang("stock_item_category"); ?>', "class": ""},
-        {title: '<?php echo lang("account_category"); ?>', "class": "w200"},
+        // {title: '<?php // echo lang("account_category"); ?>', "class": "w200"},
         {title: '<?php echo lang("description"); ?>'},
         
         {title: '<?php echo lang("stock_item_remaining"); ?>', "class": "text-right"},

@@ -370,6 +370,14 @@ class Clients_model extends Crud_model
 		return $query->result();
 	}
 
+	public function getOwnerByClientId(&$id)
+    {
+        $owner = $this->db->select("owner_id AS id")->get_where("clients", ["id" => $id])->row();
+        $result = $this->db->select("id, CONCAT(first_name, ' ', last_name) AS full_name")->get_where("users", ["id" => $owner->id])->row();
+
+        return $result;
+    }
+
 	public function get_client_by_id($id = 0)
 	{
 		$this->db->select("*")->from("clients")->where("id", $id);
