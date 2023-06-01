@@ -2423,3 +2423,4 @@ $lang["owners_equity"] = "ส่วนของเจ้าของ";
 $lang["incomes"] = "รายได้";
 $lang["expenses"] = "ค่าใช้จ่าย";
 $lang["serial_number"] = "รหัสการนำเข้า";
+$lang["status_of_client"] = "สถานะของลูกค้า";
