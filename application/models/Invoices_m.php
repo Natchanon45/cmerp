@@ -67,6 +67,10 @@ class Invoices_m extends MY_Model {
             $db->where("doc_date <=", $this->input->post("end_date"));
         }
 
+        if($this->input->post("client_id") != null){
+            $db->where("client_id", $this->input->post("client_id"));
+        }
+
         $db->where("deleted", 0);
 
         $invrows = $db->order_by("doc_number", "desc")->get()->result();

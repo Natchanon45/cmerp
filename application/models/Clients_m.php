@@ -1,5 +1,5 @@
 <?php
-class Clients_m extends Customers_m {
+class Clients_m extends MY_Model {
 
     function __construct() {
         parent::__construct();

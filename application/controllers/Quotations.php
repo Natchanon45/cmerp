@@ -15,6 +15,7 @@ class Quotations extends MY_Controller {
             return;    
         }
 
+        redirect("/accounting/sell/quotations");
         //$this->template->rander("quotations/index");
     }
 

@@ -85,11 +85,11 @@ $(document).ready(function () {
     });
 });
 
-
 function loadDataGrid(module){
     $("#datagrid_wrapper").empty();
     $("<table id='datagrid' class='display' cellspacing='0' width='100%''></table>").insertAfter("#accounting_tabs");
-    var doc_status = [{id:"", text:"-<?php echo lang("status"); ?>-"}, {id:"W", text:"รออนุมัติ"}, {id:"A", text:"อนุมัติ"}, {id:"P", text:"ดำเนินการแล้ว"}, {id:"R", text:"ไม่อนุมัติ"}];
+    var doc_status = [{id:"", text:"-- <?php echo lang("status"); ?> --"}, {id:"W", text:"รออนุมัติ"}, {id:"A", text:"อนุมัติ"}, {id:"P", text:"ดำเนินการแล้ว"}, {id:"R", text:"ไม่อนุมัติ"}];
+
     var grid_columns = [
                             {title: "วันที่", "class":"w10p"},
                             {title: "เลขที่เอกสาร", "class":"w10p"},
@@ -120,9 +120,14 @@ function loadDataGrid(module){
     $("#datagrid").appTable({
         source: "<?php echo_uri(); ?>"+module,
         order: [[0, "desc"]],
-        dateRangeType: "monthly",
+        rangeDatepicker: [
+            {
+                startDate: { name: "start_date", value: "<?php echo date('Y-m-d', strtotime('-1 month')); ?>" }, 
+                endDate: { name: "end_date", value: "<?php echo date("Y-m-d"); ?>" }
+            }
+        ],
         destroy: true,
-        filterDropdown: [{name: "status", class: "w150", options: doc_status}],
+        filterDropdown: [{name: "client_id", class: "w150", options: <?php echo $client_ids; ?>}, {name: "status", class: "w130", options: doc_status}],
         columns: grid_columns,
         printColumns: combineCustomFieldsColumns([0, 1, 2, 3, 4, 5]),
         xlsColumns: combineCustomFieldsColumns([0, 1, 2, 3, 4, 5]),

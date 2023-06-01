@@ -15,6 +15,7 @@ class Invoices extends MY_Controller {
             return;    
         }
 
+        redirect("/accounting/sell/invoices");
         //$this->template->rander("invoices/index");
     }
 
