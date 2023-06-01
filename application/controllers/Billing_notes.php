@@ -15,6 +15,7 @@ class Billing_notes extends MY_Controller {
             return;    
         }
 
+        redirect("/accounting/sell/billing-notes");
         //$this->template->rander("billing_notes/index");
     }
 

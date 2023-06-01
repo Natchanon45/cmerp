@@ -15,6 +15,7 @@ class Receipts extends MY_Controller {
             return;    
         }
 
+        redirect("/accounting/sell/receipts");
         //$this->template->rander("receipts/index");
     }
 
