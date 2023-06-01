@@ -40,7 +40,6 @@ class Left_menu {
 		// else 
         if( $this->ci->login_user->is_admin == 0 ) {
 
-            
 			$sql = "
 				SELECT 
 					l.id 
@@ -103,13 +102,14 @@ class Left_menu {
         // $value = get_setting('module_purchaserequests');
         // echo 'purchaserequests:'.$value."<br />\r\n";
 		foreach ( $sortable_items as $ka => $main_menu ) {
-           
             if(!$this->ci->login_user->is_admin && !in_array($main_menu['id'], $allowed_menus)) continue;
             $value = get_setting('module_'.$main_menu['name']);
             
             if($value!==null && !$value) {
                 continue;
             }
+
+
 			// $main_menu = json_decode( $va->detail );
 		  
 			// $main_menu = convertObJectToArray( $main_menu );
@@ -222,6 +222,8 @@ class Left_menu {
 					'. $ul .'			
 				</li>
 			';
+
+
 		}
 		
 		return '
