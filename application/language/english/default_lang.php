@@ -2013,3 +2013,4 @@ $lang["liability"] = "Liability";
 $lang["owners_equity"] = "Owner’s equity";
 $lang["incomes"] = "Incomes";
 $lang["expenses"] = "Expenses";
+$lang["status_of_client"] = "Client status";

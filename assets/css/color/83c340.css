@@ -56,14 +56,21 @@ a {
     color: #6dad2b;
 }
 
-.custom-color {
+.custom-bg{
+    background: rgba(131, 195, 64, 1) !important;
+}
+
+.custom-bg01{
+    background: rgba(131, 195, 64, 0.1) !important;
+}
+
+.custom-color{
     color: #6dad2b !important;
 }
 
 .bg-success{
     background: #6dad2b;
 }
-
 
 #sidebar-menu li a,
 #sidebar-menu li.expand > a:before{

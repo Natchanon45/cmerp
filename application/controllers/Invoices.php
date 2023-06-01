@@ -15,7 +15,7 @@ class Invoices extends MY_Controller {
             return;    
         }
 
-        $this->template->rander("invoices/index");
+        //$this->template->rander("invoices/index");
     }
 
     function addedit(){

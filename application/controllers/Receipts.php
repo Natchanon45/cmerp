@@ -15,7 +15,7 @@ class Receipts extends MY_Controller {
             return;    
         }
 
-        $this->template->rander("receipts/index");
+        //$this->template->rander("receipts/index");
     }
 
     function addedit(){

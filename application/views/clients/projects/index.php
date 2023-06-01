@@ -87,9 +87,10 @@ if (isset($page_type) && $page_type === 'dashboard') {
             ],
             filterDropdown: filters,
             columns: [
-                {title: '<?php echo lang("id") ?>', "class": "w50"},
+                {title: '<?php echo lang("id") ?>', "class": "w5p"},
                 {title: '<?php echo lang("title") ?>'},
                 {targets: [2], visible: false, searchable: false},
+                {title: '<?php echo lang("owner") ?>', "class": "w15p"},
                 {title: '<?php echo lang("price") ?>', "class": "w10p"},
                 {visible: false, searchable: false},
                 {title: '<?php echo lang("start_date") ?>', "class": "w10p", "iDataSort": 4},
@@ -97,11 +98,11 @@ if (isset($page_type) && $page_type === 'dashboard') {
                 {title: '<?php echo lang("deadline") ?>', "class": "w10p", "iDataSort": 6},
                 {title: '<?php echo lang("progress") ?>', "class": "w15p"},
                 {title: '<?php echo lang("status") ?>', "class": "w10p"}
-<?php echo $custom_field_headers; ?>,
+                <?php echo $custom_field_headers; ?>,
                 {visible: optionVisibility, title: '<i class="fa fa-bars"></i>', "class": "text-center option w100"}
             ],
-            printColumns: combineCustomFieldsColumns([0, 1, 3, 5, 7, 9], '<?php echo $custom_field_headers; ?>'),
-            xlsColumns: combineCustomFieldsColumns([0, 1, 3, 5, 7, 9], '<?php echo $custom_field_headers; ?>')
+            printColumns: combineCustomFieldsColumns([0, 1, 3, 4, 6, 8, 10], '<?php echo $custom_field_headers; ?>'),
+            xlsColumns: combineCustomFieldsColumns([0, 1, 3, 4, 6, 8, 10], '<?php echo $custom_field_headers; ?>')
         });
     });
 </script>

@@ -370,4 +370,33 @@ class Clients_model extends Crud_model
 		return $query->result();
 	}
 
+	public function getOwnerByClientId(&$id)
+    {
+        $owner = $this->db->select("owner_id AS id")->get_where("clients", ["id" => $id])->row();
+        $result = $this->db->select("id, CONCAT(first_name, ' ', last_name) AS full_name")->get_where("users", ["id" => $owner->id])->row();
+
+        return $result;
+    }
+
+	public function getClientDropdownForProject()
+	{
+		$lists = $this->db->select("id, company_name, is_lead")->get_where("clients", ["deleted" => "0"])->result();
+		
+		$data = array();
+		$data[0] = "- เลือกลูกค้า -";
+
+		foreach ($lists as $list) {
+			if ($list->is_lead == 1): { $status = lang("lead"); } else: { $status = lang("client"); } endif;
+			$data[$list->id] = $list->company_name . " - " . $status;
+		}
+
+		return $data;
+	}
+
+	public function getClientTypeById(&$id)
+	{
+		$type = $this->db->select("is_lead")->get_where("clients", ["id" => $id])->row();
+		return $type->is_lead;
+	}
+
 }

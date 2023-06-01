@@ -222,54 +222,7 @@ class Left_menu {
 					'. $ul .'			
 				</li>
 			';
-
-			if($title == "items"){
-				$liss[] = '
-					<li class="main">
-						<a '. $target .' href="'. get_uri('/quotations') .'">
-							<i class="fa fa-file"></i>
-							<span>ใบเสนอราคา</span>'. $spanBadge .'
-						</a>
-									
-						'. $ul .'			
-					</li>
-				';
-				
-				$liss[] = '
-					<li class="main">
-						<a '. $target .' href="'. get_uri('/billing-notes') .'">
-							<i class="fa fa-file-text"></i>
-							<span>ใบวางบิล</span>'. $spanBadge .'
-						</a>
-									
-						'. $ul .'			
-					</li>
-				';
-
-				$liss[] = '
-					<li class="main">
-						<a '. $target .' href="'. get_uri('/invoices') .'">
-							<i class="fa fa-file-text"></i>
-							<span>ใบกำกับภาษี</span>'. $spanBadge .'
-						</a>
-									
-						'. $ul .'			
-					</li>
-				';
-			
-				$liss[] = '
-					<li class="main">
-						<a '. $target .' href="'. get_uri('/receipts') .'">
-							<i class="fa fa-file-text"></i>
-							<span>ใบเสร็จรับเงิน</span>'. $spanBadge .'
-						</a>
-									
-						'. $ul .'			
-					</li>
-				';
-			}
 		}
-		
 		
 		return '
 			<div id="sidebar" class="box-content ani-width">
@@ -583,7 +536,7 @@ class Left_menu {
         $menu_list = $this->ci->dao->fetchAll( $sql );
         foreach($menu_list as $ml) {
             $json = json_decode($ml->detail);
-            if($ml->class_name == "income_vs_expenses" || $ml->class_name == "invoice_payments" || $ml->class_name == "estimates" || $ml->class_name == "invoices" || $ml->class_name == "receipts" || $ml->class_name == "accounting") continue;
+            if($ml->class_name == "income_vs_expenses" || $ml->class_name == "invoice_payments" || $ml->class_name == "estimates" || $ml->class_name == "invoices" || $ml->class_name == "receipts") continue;
 
             if($json) {
                 $menus[$json->name] = [];
