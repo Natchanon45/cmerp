@@ -41,7 +41,7 @@
             <li><a  role="presentation" href="<?php echo_uri("clients/orders/" . $client_info->id); ?>" data-target="#client-orders"> <?php echo lang('orders'); ?></a></li>
         <?php } ?>
         <?php if ($show_estimate_request_info) { ?>
-            <li><a  role="presentation" href="<?php echo_uri("clients/estimate_requests/" . $client_info->id); ?>" data-target="#client-estimate-requests"> <?php echo lang('estimate_requests'); ?></a></li>
+            <!--<li><a  role="presentation" href="<?php echo_uri("clients/estimate_requests/" . $client_info->id); ?>" data-target="#client-estimate-requests"> <?php echo lang('estimate_requests'); ?></a></li>-->
         <?php } ?>
         <?php if ($show_ticket_info) { ?>
             <li><a  role="presentation" href="<?php echo_uri("clients/tickets/" . $client_info->id); ?>" data-target="#client-tickets"> <?php echo lang('tickets'); ?></a></li>
