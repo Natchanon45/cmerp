@@ -30,6 +30,10 @@ class Quotations extends MY_Controller {
         $this->load->view( 'quotations/addedit', $data);
     }
 
+    function test(){
+        echo "HEllo";
+    }
+
     function view() {
         if(isset($this->json->task)){
             if($this->json->task == "load_items") jout($this->Quotations_m->items());

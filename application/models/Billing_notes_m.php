@@ -95,6 +95,7 @@ class Billing_notes_m extends MY_Model {
     function getDoc($docId){
         $db = $this->db;
 
+        $this->data["quotation_id"] = null;
         $this->data["doc_date"] = date("Y-m-d");
         $this->data["credit"] = "0";
         $this->data["due_date"] = date("Y-m-d");
@@ -122,6 +123,20 @@ class Billing_notes_m extends MY_Model {
                         ->get()->row();
 
             if(empty($bnrow)) return $this->data;
+            $quotation_id = $bnrow->quotation_id;
+            $is_partial = "N";
+
+            if($quotation_id != null){
+                $qrow = $db->select("is_partial")
+                            ->from("quotation")
+                            ->get()->row();
+
+                if(empty($qrow)){
+
+                }
+
+                $is_partial = $qrow->is_partial;
+            }
 
             $lead_id = $client_id = null;
             
@@ -134,6 +149,7 @@ class Billing_notes_m extends MY_Model {
             }
 
             $this->data["doc_id"] = $docId;
+            $this->data["quotation_id"] = $quotation_id;
             $this->data["doc_number"] = $bnrow->doc_number;
             $this->data["doc_date"] = $bnrow->doc_date;
             $this->data["credit"] = $bnrow->credit;

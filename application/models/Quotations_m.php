@@ -33,12 +33,14 @@ class Quotations_m extends MY_Model {
         if($qrow->status == "W"){
             $doc_status .= "<option selected>รออนุมัติ</option>";
             $doc_status .= "<option value='A'>อนุมัติ</option>";
-            $doc_status .= "<option value='CREATE_BILLING_NOTE'>สร้างใบวางบิล</option>";
+            $doc_status .= "<option value='B-1'>สร้างใบวางบิล</option>";
+            $doc_status .= "<option value='B-2'>แบ่งจ่ายใบวางบิล</option>";
             $doc_status .= "<option value='R'>ไม่อนุมัติ</option>";
         }elseif($qrow->status == "A"){
             $doc_status .= "<option selected>อนุมัติ</option>";
             $doc_status .= "<option value='P'>ดำเนินการแล้ว</option>";
-            $doc_status .= "<option value='CREATE_BILLING_NOTE'>สร้างใบวางบิล</option>";
+            $doc_status .= "<option value='B-1'>สร้างใบวางบิล</option>";
+            $doc_status .= "<option value='B-2'>แบ่งจ่ายใบวางบิล</option>";
             $doc_status .= "<option value='R'>ไม่อนุมัติ</option>";
             //$doc_status .= "<option value='RESET'>รีเซ็ต</option>";
         }elseif($qrow->status == "R"){
@@ -407,6 +409,18 @@ class Quotations_m extends MY_Model {
 
         if(empty($qrow)) return $this->data;
 
+        $bnrow = $db->select("*")
+                    ->from("billing_note")
+                    ->where("quotation_id", $docId)
+                    ->where("deleted", 0)
+                    ->get()->row();
+
+        if(!empty($bnrow)){
+            $this->data["success"] = false;
+            $this->data["message"] = "คุณไม่สามารถลบเอกสารได้ เนื่องจากเอกสารถูกอ้างอิงในใบวางบิลแล้ว";
+            return $this->data;
+        }
+
         if($qrow->status != "W"){
             $this->data["success"] = false;
             $this->data["message"] = "คุณไม่สามารถลบเอกสารได้ เนื่องจากเอกสารมีการเปลี่ยนแปลงสถานะแล้ว";
@@ -685,9 +699,12 @@ class Quotations_m extends MY_Model {
                                         "status"=>"P"
                                     ]);
 
-        }elseif($updateStatusTo == "CREATE_BILLING_NOTE"){
+        }elseif($updateStatusTo == "B-1" || $updateStatusTo == "B-2"){
+            $is_partial = (explode("-", $updateStatusTo)[1] == "2" ? 'Y':'N');
+
             $db->where("id", $docId);
             $db->update("quotation", [
+                                        "is_partial"=>$is_partial,
                                         "status"=>"P"
                                     ]);
 
