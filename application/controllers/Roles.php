@@ -266,7 +266,7 @@ class roles extends MY_Controller {
 		$can_view_team_members_social_links = @$this->input->post("can_view_team_members_contact_info");
 		$can_view_team_members_contact_info = @$this->input->post("can_view_team_members_social_links");
 
-		$post['permisissions']['stock']['view_row'] = ($bom_restock_read_self || $bom_restock_read);
+		$post['permisissions']['stock']['view_row'] = get_array_value($post, 'bom_material_read');
 		$post['permisissions']['team_members']['view_row'] = ($hide_team_members_list || $team_member_update || $can_view_team_members_social_links || $can_view_team_members_contact_info);
 		$post['permisissions']['team_members']['add_row'] = $post['permisissions']['team_members']['edit_row'] = $team_member_update;
 
