@@ -179,8 +179,8 @@ class Clients_m extends MY_Model {
             "currency_symbol" => $this->input->post('currency_symbol') ? $this->input->post('currency_symbol') : "",
             "currency" => $this->input->post('currency') ? $this->input->post('currency') : "",
             "is_lead" => 0,
-            "lead_status_id" => $this->input->post('lead_status_id'),
-            "lead_source_id" => $this->input->post('lead_source_id'),
+            "lead_status_id" => $this->input->post('lead_status_id') ? $this->input->post('lead_status_id') : '0',
+            "lead_source_id" => $this->input->post('lead_source_id') ? $this->input->post('lead_source_id') : '0',
             "owner_id" => $this->input->post('owner_id') ? $this->input->post('owner_id') : $this->login_user->id
         );
 
