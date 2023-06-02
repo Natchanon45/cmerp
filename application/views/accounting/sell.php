@@ -63,6 +63,7 @@
     margin-right: 5px;
 }
 </style>
+<a id="popup" data-act="ajax-modal" class="btn ajax-modal"></a>
 <div id="page-content" class="p20 clearfix">
     <ul class="nav nav-tabs bg-white title" role="tablist">
         <!--<li><a href="#">ผังบัญชี</a></li>-->
@@ -86,7 +87,9 @@
                         <a class="<?php if($module == "receipts") echo 'custom-color'; ?>">ใบเสร็จรับเงิน</a>
                     </li>
                 </ul>
-                <ul class="buttons"><li class="add"></li></ul>
+                <ul class="buttons">
+                    <li class="add"><a data-act='ajax-modal' class='btn btn-default'><i class='fa fa-plus-circle'></i><span></span></a></li>
+                </ul>
             </div>
         </div>
     </div>
@@ -110,7 +113,7 @@ $(document).ready(function () {
 
 function loadDataGrid(){
     $("#datagrid_wrapper").empty();
-    $("#accounting_navs .buttons li.add").empty();
+    $("#accounting_navs .buttons li.add span").empty();
     $("<table id='datagrid' class='display' cellspacing='0' width='100%''></table>").insertAfter("#accounting_navs");
     var doc_status = null;
     var grid_columns = [
@@ -127,16 +130,18 @@ function loadDataGrid(){
     var summation_column = 5;
 
     if(active_module == "quotations"){
-        $(".buttons li.add").append("<a data-action-url='<?php echo get_uri("quotations/addedit"); ?>' data-act='ajax-modal' class='btn btn-default'><i class='fa fa-plus-circle'></i>เพิ่มใบเสนอราคา</a>");
+        $(".buttons li.add a").attr("data-action-url", "<?php echo get_uri("quotations/addedit"); ?>");
+        $(".buttons li.add span").append("เพิ่มใบเสนอราคา");
         doc_status = [{id:"", text:"-- <?php echo lang("status"); ?> --"}, {id:"W", text:"รออนุมัติ"}, {id:"A", text:"อนุมัติ"}, {id:"P", text:"ดำเนินการแล้ว"}, {id:"R", text:"ไม่อนุมัติ"}];
     }else if(active_module == "billing-notes"){
-        $(".buttons li.add").append("<a data-action-url='<?php echo get_uri("billing-notes/addedit"); ?>' data-act='ajax-modal' class='btn btn-default'><i class='fa fa-plus-circle'></i>เพิ่มใบวางบิล</a>");
+        $(".buttons li.add a").attr("data-action-url", "<?php echo get_uri("billing-notes/addedit"); ?>");
+        $(".buttons li.add span").append("เพิ่มใบวางบิล");
         doc_status = [{id:"", text:"-- <?php echo lang("status"); ?> --"}, {id:"W", text:"รอวางบิล"}, {id:"A", text:"วางบิลแล้ว"}, {id:"I", text:"เปิดบิลแล้ว"}, {id:"V", text:"ยกเลิก"}];
     }else if(active_module == "invoices"){
-        $(".buttons li.add").empty();
         doc_status = [{id:"", text:"-- <?php echo lang("status"); ?> --"}, {id:"P", text:"รอเก็บเงิน"}, {id:"R", text:"เปิดใบเสร็จแล้ว"}, {id:"V", text:"ยกเลิก"}];
     }else if(active_module == "receipts"){
-        $(".buttons li.add").append("<a data-action-url='<?php echo get_uri("receipts/addedit"); ?>' data-act='ajax-modal' class='btn btn-default'><i class='fa fa-plus-circle'></i>เพิ่มใบเสร็จรับเงิน</a>");
+        $(".buttons li.add a").attr("data-action-url", "<?php echo get_uri("receipts/addedit"); ?>");
+        $(".buttons li.add span").append("เพิ่มใบเสร็จรับเงิน");
         doc_status = [{id:"", text:"-- <?php echo lang("status"); ?> --"}, {id:"W", text:"รอดำเนินการ"}, {id:"P", text:"เก็บเงินแล้ว"}, {id:"V", text:"ยกเลิก"}];
         grid_columns = [
                             {title: "วันที่", "class":"w10p"},
@@ -172,6 +177,19 @@ function loadDataGrid(){
 
     $("#datagrid").on("draw.dt", function () {
         $(".dropdown_status").on( "change", function() {
+            
+            if(active_module == "quotations"){
+                if($(this).val() == "B-1"){
+                    $("#popup").attr("data-action-url", "<?php echo get_uri("quotations/test"); ?>").trigger( "click" );
+                }
+
+                if($(this).val() == "B-2"){
+                   
+                }
+            }
+
+            return;
+
             axios.post("<?php echo_uri(); ?>"+active_module, {
                 task: 'update_doc_status',
                 doc_id: $(this).data("doc_id"),
