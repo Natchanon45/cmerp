@@ -927,13 +927,14 @@ class Projects extends MY_Controller {
         if ($this->login_user->user_type == "staff" && !$this->can_create_projects()) {
             $price = "-";
         }
-
+        
         $owner = $this->Clients_model->getOwnerByClientId($data->client_id);
+        // var_dump(arr($data->client_id));
 
         $row_data = array(
             anchor(get_uri("projects/view/" . $data->id), $data->id),
             $title,
-            anchor(get_uri("clients/view/" . $data->client_id), $data->company_name),
+            $data->client_id != 0 ? anchor(get_uri("clients/view/" . $data->client_id), $data->company_name) : '-',
             isset($owner->id) ? anchor(get_uri("team_members/view/" . $owner->id), $owner->full_name) : '-',
             $price,
             $data->start_date,

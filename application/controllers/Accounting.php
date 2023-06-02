@@ -22,6 +22,16 @@ class Accounting extends MY_Controller {
 
         if($this->uri->segment(3) != null) $data["module"] = $this->uri->segment(3);
 
+        $cusrows = $this->Customers_m->getRows(["id", "company_name"]);
+        $client_ids[] = ["id"=>"", "text"=>"-- ลูกค้า --"];
+        if(!empty($cusrows)){
+            foreach($cusrows as $cusrow){
+                $client_ids[] = ["id"=>$cusrow->id, "text"=>$cusrow->company_name];
+            }
+        }
+
+        $data["client_ids"] = json_encode($client_ids);
+
         $this->template->rander("accounting/sell", $data);
     }
 
