@@ -35,7 +35,7 @@
             <li><a  role="presentation" href="<?php echo_uri("clients/payments/" . $client_info->id); ?>" data-target="#client-payments"> <?php echo lang('payments'); ?></a></li>-->
         <?php } ?>
         <?php if ($show_estimate_info) { ?>
-            <li><a  role="presentation" href="<?php echo_uri("clients/estimates/" . $client_info->id); ?>" data-target="#client-estimates"> <?php echo lang('estimates'); ?></a></li>
+            <!--<li><a  role="presentation" href="<?php echo_uri("clients/estimates/" . $client_info->id); ?>" data-target="#client-estimates"> <?php echo lang('estimates'); ?></a></li>-->
         <?php } ?>
         <?php if ($show_order_info) { ?>
             <li><a  role="presentation" href="<?php echo_uri("clients/orders/" . $client_info->id); ?>" data-target="#client-orders"> <?php echo lang('orders'); ?></a></li>
