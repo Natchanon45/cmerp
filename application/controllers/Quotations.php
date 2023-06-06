@@ -30,8 +30,16 @@ class Quotations extends MY_Controller {
         $this->load->view( 'quotations/addedit', $data);
     }
 
-    function test(){
-        echo "HEllo";
+    function partial_payment_type(){
+        if(isset($this->json->task)){
+            if($this->json->task == "update_doc_status") jout($this->Quotations_m->updateStatus());
+            return;   
+        }
+
+        $data = $this->Quotations_m->getDoc($this->uri->segment(3));
+        if($data["status"] != "success") return;
+
+        $this->load->view( 'quotations/partial_payment_type', $data);
     }
 
     function view() {

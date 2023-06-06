@@ -132,7 +132,7 @@ function loadDataGrid(){
     if(active_module == "quotations"){
         $(".buttons li.add a").attr("data-action-url", "<?php echo get_uri("quotations/addedit"); ?>");
         $(".buttons li.add span").append("เพิ่มใบเสนอราคา");
-        doc_status = [{id:"", text:"-- <?php echo lang("status"); ?> --"}, {id:"W", text:"รออนุมัติ"}, {id:"A", text:"อนุมัติ"}, {id:"P", text:"ดำเนินการแล้ว"}, {id:"R", text:"ไม่อนุมัติ"}];
+        doc_status = [{id:"", text:"-- <?php echo lang("status"); ?> --"}, {id:"W", text:"รออนุมัติ"}, {id:"A", text:"อนุมัติ"}, {id:"I", text:"ดำเนินการแล้ว"}, {id:"R", text:"ไม่อนุมัติ"}];
     }else if(active_module == "billing-notes"){
         $(".buttons li.add a").attr("data-action-url", "<?php echo get_uri("billing-notes/addedit"); ?>");
         $(".buttons li.add span").append("เพิ่มใบวางบิล");
@@ -177,18 +177,13 @@ function loadDataGrid(){
 
     $("#datagrid").on("draw.dt", function () {
         $(".dropdown_status").on( "change", function() {
-            
             if(active_module == "quotations"){
-                if($(this).val() == "B-1"){
-                    $("#popup").attr("data-action-url", "<?php echo get_uri("quotations/test"); ?>").trigger( "click" );
-                }
-
-                if($(this).val() == "B-2"){
-                   
+                if($(this).val() == "P"){
+                    $("#popup").attr("data-title", "แบ่งจ่ายใบวางบิล");
+                    $("#popup").attr("data-action-url", "<?php echo_uri("quotations/partial-payment-type/"); ?>"+$(this).data("doc_id")).trigger( "click" );
+                    return;
                 }
             }
-
-            return;
 
             axios.post("<?php echo_uri(); ?>"+active_module, {
                 task: 'update_doc_status',

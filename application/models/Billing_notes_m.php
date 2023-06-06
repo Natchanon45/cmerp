@@ -127,7 +127,7 @@ class Billing_notes_m extends MY_Model {
             $is_partial = "N";
 
             if($quotation_id != null){
-                $qrow = $db->select("is_partial")
+                $qrow = $db->select("is_partials")
                             ->from("quotation")
                             ->get()->row();
 
@@ -135,7 +135,7 @@ class Billing_notes_m extends MY_Model {
 
                 }
 
-                $is_partial = $qrow->is_partial;
+                $is_partial = $qrow->is_partials;
             }
 
             $lead_id = $client_id = null;
