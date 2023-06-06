@@ -33,22 +33,22 @@ class Quotations_m extends MY_Model {
         if($qrow->status == "W"){
             $doc_status .= "<option selected>รออนุมัติ</option>";
             $doc_status .= "<option value='A'>อนุมัติ</option>";
-            $doc_status .= "<option value='B-1'>สร้างใบวางบิล</option>";
-            $doc_status .= "<option value='B-2'>แบ่งจ่ายใบวางบิล</option>";
+            $doc_status .= "<option value='B'>สร้างใบวางบิล</option>";
+            $doc_status .= "<option value='P'>แบ่งจ่ายใบวางบิล</option>";
             $doc_status .= "<option value='R'>ไม่อนุมัติ</option>";
         }elseif($qrow->status == "A"){
             $doc_status .= "<option selected>อนุมัติ</option>";
-            $doc_status .= "<option value='P'>ดำเนินการแล้ว</option>";
-            $doc_status .= "<option value='B-1'>สร้างใบวางบิล</option>";
-            $doc_status .= "<option value='B-2'>แบ่งจ่ายใบวางบิล</option>";
+            $doc_status .= "<option value='I'>ดำเนินการแล้ว</option>";
+            $doc_status .= "<option value='B'>สร้างใบวางบิล</option>";
+            $doc_status .= "<option value='P'>แบ่งจ่ายใบวางบิล</option>";
             $doc_status .= "<option value='R'>ไม่อนุมัติ</option>";
-            //$doc_status .= "<option value='RESET'>รีเซ็ต</option>";
         }elseif($qrow->status == "R"){
             $doc_status .= "<option selected>ไม่อนุมัติ</option>";
-            //$doc_status .= "<option value='RESET'>รีเซ็ต</option>";
         }elseif($qrow->status == "P"){
+            $doc_status .= "<option selected>แบ่งจ่าย</option>";
+            $doc_status .= "<option value='P'>แบ่งจ่ายใบวางบิล</option>";
+        }elseif($qrow->status == "I"){
             $doc_status .= "<option selected>ดำเนินการแล้ว</option>";
-            //$doc_status .= "<option value='RESET'>รีเซ็ต</option>";
         }
 
         $doc_status .= "</select>";
@@ -670,11 +670,12 @@ class Quotations_m extends MY_Model {
 
         $quotation_id = $this->data["doc_id"] = $docId;
         $quotation_number = $qrow->doc_number;
+        $quotation_total = $qrow->total;
         $currentStatus = $qrow->status;
 
         $this->db->trans_begin();
 
-        if($updateStatusTo == "A"){
+        if($updateStatusTo == "A"){//Approved
             if($currentStatus == "R"){
                 $this->data["dataset"] = $this->getIndexDataSetHTML($qrow);
                 return $this->data;
@@ -687,26 +688,40 @@ class Quotations_m extends MY_Model {
                                         "status"=>"A"
                                     ]);
 
-        }elseif($updateStatusTo == "R"){
+        }elseif($updateStatusTo == "R"){//Refused
             $db->where("id", $docId);
-            $db->update("quotation", [
-                                        "status"=>"R"
-                                    ]);
+            $db->update("quotation", ["status"=>"R"]);
 
-        }elseif($updateStatusTo == "P"){
+        }elseif($updateStatusTo == "I"){//Issued
             $db->where("id", $docId);
-            $db->update("quotation", [
-                                        "status"=>"P"
-                                    ]);
+            $db->update("quotation", ["status"=>"I"]);
 
-        }elseif($updateStatusTo == "B-1" || $updateStatusTo == "B-2"){
-            $is_partial = (explode("-", $updateStatusTo)[1] == "2" ? 'Y':'N');
+        }elseif($updateStatusTo == "P" || $updateStatusTo == "B"){//Partial OR Create Billing Note
+            if($updateStatusTo == "P"){
+                
+                $sum_billing_total = $db->select("SUM(total) AS sum_billing_total")
+                                        ->from("billing_note")
+                                        ->where("quotation_id", $docId)
+                                        ->get()->row()->sum_billing_total;
 
-            $db->where("id", $docId);
-            $db->update("quotation", [
-                                        "is_partial"=>$is_partial,
-                                        "status"=>"P"
-                                    ]);
+                if($sum_billing_total == null) $sum_billing_total = 0;
+
+                if($sum_billing_total >= $quotation_total){
+                    $db->trans_rollback();
+                    $this->data["message"] = "ไม่สามารถบันทึกข้อมูลได้ เนื่องจากจำนวนเงินที่แบ่งจ่ายต้องมากกว่า 0 แต่ไม่เกินมูลค่าของเอกสาร";
+                    $this->data["dataset"] = $this->getIndexDataSetHTML($qrow);
+                    return $this->data;
+                }
+
+                $db->where("id", $docId);
+                $db->update("quotation", ["is_partials"=>"Y", "partials_type"=>$this->json->patials_type, "status"=>"P"]);
+
+                //คำนวน total แบบ patial
+
+            }elseif($updateStatusTo == "B"){
+                $db->where("id", $docId);
+                $db->update("quotation", ["is_partials"=>"Y", "status"=>"I"]);
+            }
 
             $billing_note_number = $this->Billing_notes_m->getNewDocNumber();
             $billing_date = date("Y-m-d");
@@ -745,10 +760,10 @@ class Quotations_m extends MY_Model {
             $billing_note_id = $db->insert_id();
 
             $qirows = $db->select("*")
-                        ->from("quotation_items")
-                        ->where("quotation_id", $quotation_id)
-                        ->order_by("sort", "ASC")
-                        ->get()->result();
+                            ->from("quotation_items")
+                            ->where("quotation_id", $quotation_id)
+                            ->order_by("sort", "ASC")
+                            ->get()->result();
 
             if(empty(!$qirows)){
                 foreach($qirows as $qirow){
@@ -768,18 +783,10 @@ class Quotations_m extends MY_Model {
 
             $this->data["task"] = "create_billing_note";
             $this->data["status"] = "success";
+            $this->data["message"] = lang('record_saved');
             $this->data["url"] = get_uri("billing-notes/view/".$billing_note_id);
 
-
-        }/*elseif($updateStatusTo == "RESET"){
-            $db->where("id", $docId);
-            $db->update("quotation", [
-                                        "approved_by"=>NULL,
-                                        "approved_datetime"=>NULL,
-                                        "status"=>"W"
-                                    ]);
-
-        }*/
+        }//end elseif $updateStatusTo == "P" || $updateStatusTo == "B"
 
         if ($db->trans_status() === FALSE){
             $db->trans_rollback();
