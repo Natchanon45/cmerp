@@ -288,6 +288,23 @@
     display: none;
 }
 
+#s-unpaid-amount{
+    width: 374px;
+    text-align: left;
+    border: 1px solid #ff0000;
+}
+
+#s-partials input[type="text"]{
+    border: 1px solid #cecece !important;
+    border-radius: 4px !important;
+    padding: 4px !important;
+    height: 28px !important;
+}
+
+#s-partials input#partials_percent{
+    width: 50px;
+}
+
 #s-vat .vat_percent,
 #s-vat .vat_percent_zero{
     margin-left: 4px;
