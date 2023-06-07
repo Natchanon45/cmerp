@@ -92,6 +92,6 @@ class Billing_notes extends MY_Controller {
 
         $data = $this->Billing_notes_m->item();
 
-        $this->load->view('quotations/item', $data);
+        $this->load->view('billing_notes/item', $data);
     }
 }

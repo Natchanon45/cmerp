@@ -141,10 +141,15 @@
                             <span class="c2"><input type="text" id="sub_total" readonly></span>
                             <span class="c3"><span class="currency">บาท</span></span>
                         </p>
+                        <p id="s-unpaid-amount">(ยอดค้างชำระ: 100.00 %)</p>
                         <p id="s-partials">
-                            <span class="c1"><i class="custom-color t1">ราคาหลังหักส่วนลด</i><i class="custom-color t2">รวมเป็นเงิน</i></span>
-                            <span class="c2"><input type="text" id="sub_total" readonly></span>
-                            <span class="c3"><span class="currency">บาท</span></span>
+                            <span class="c1 custom-color">
+                                <i class="custom-color">แบ่งชำระ</i>
+                                <input type="text" id="partials_percent">
+                                <i class="custom-color">เปอร์เซ็นต์</i>
+                            </span>
+                            <span class="c2"><input type="text" id="partials_amount" readonly></span>
+                            <span class="c3"></span>
                         </p>
                         <p id="s-vat">
                             <span class="c1 custom-color"><input type="checkbox" id="vat_inc" <?php if($vat_inc == "Y") echo "checked" ?> <?php if($doc_status != "W") echo "disabled"; ?>>ภาษีมูลค่าเพิ่ม<span class="vat_percent custom-color"><?php echo $vat_percent; ?></span><span class="vat_percent_zero custom-color">7%</span></span>
@@ -264,7 +269,10 @@ function loadItems(){
                     tbody += "<td class='edititem'>";
                         if(data.doc_status == "W"){
                             tbody += "<a class='edit' data-post-doc_id='<?php echo $doc_id; ?>' data-post-item_id='"+items[i]["id"]+"' data-act='ajax-modal' data-action-url='<?php echo_uri("billing-notes/item"); ?>' ><i class='fa fa-pencil'></i></a>";
-                            tbody += "<a class='delete' data-item_id='"+items[i]["id"]+"'><i class='fa fa-times fa-fw'></i></a>";
+
+                            <?php if($quotation_id == null): ?>
+                                tbody += "<a class='delete' data-item_id='"+items[i]["id"]+"'><i class='fa fa-times fa-fw'></i></a>";
+                            <?php endif;?>
                         }
                     tbody += "</td>";
                 tbody += "</tr>";

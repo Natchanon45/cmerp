@@ -456,7 +456,7 @@ class Billing_notes_m extends MY_Model {
     function items(){
         $db = $this->db;
         
-        $bnrow = $db->select("id, status")
+        $bnrow = $db->select("id, quotation_id, status")
                         ->from("billing_note")
                         ->where("id", $this->json->doc_id)
                         ->where("deleted", 0)
@@ -486,7 +486,6 @@ class Billing_notes_m extends MY_Model {
             $item["unit"] = $invirow->unit;
             $item["price"] = number_format($invirow->price, 2);
             $item["total_price"] = number_format($invirow->total_price, 2);
-
             $items[] = $item;
         }
 
@@ -502,7 +501,7 @@ class Billing_notes_m extends MY_Model {
         $docId = $this->input->post("doc_id");
         $itemId = $this->input->post("item_id");
 
-        $bnrow = $db->select("id")
+        $bnrow = $db->select("id, quotation_id")
                         ->from("billing_note")
                         ->where("id", $docId)
                         ->where("deleted", 0)
@@ -511,6 +510,7 @@ class Billing_notes_m extends MY_Model {
         if(empty($bnrow)) return $this->data;
 
         $this->data["doc_id"] = $docId;
+        $this->data["quotation_id"] = $bnrow->quotation_id;
         $this->data["product_id"] = "";
         $this->data["product_name"] = "";
         $this->data["product_description"] = "";
@@ -564,7 +564,6 @@ class Billing_notes_m extends MY_Model {
             if(form_error('product_id') != null) $this->data["messages"]["product_name"] = form_error('product_id');
             if(form_error('quantity') != null) $this->data["messages"]["quantity"] = form_error('quantity');
         }
-
     }
 
     function saveItem(){

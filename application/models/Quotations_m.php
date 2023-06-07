@@ -53,7 +53,6 @@ class Quotations_m extends MY_Model {
 
         $doc_status .= "</select>";
 
-
         $data = [
                     "<a href='".get_uri("quotations/view/".$qrow->id)."'>".convertDate($qrow->doc_date, true)."</a>",
                     "<a href='".get_uri("quotations/view/".$qrow->id)."'>".$qrow->doc_number."</a>",
@@ -697,6 +696,8 @@ class Quotations_m extends MY_Model {
             $db->update("quotation", ["status"=>"I"]);
 
         }elseif($updateStatusTo == "P" || $updateStatusTo == "B"){//Partial OR Create Billing Note
+            $partials = null;
+
             if($updateStatusTo == "P"){
                 
                 $sum_billing_total = $db->select("SUM(total) AS sum_billing_total")
@@ -716,11 +717,11 @@ class Quotations_m extends MY_Model {
                 $db->where("id", $docId);
                 $db->update("quotation", ["is_partials"=>"Y", "partials_type"=>$this->json->patials_type, "status"=>"P"]);
 
-                //คำนวน total แบบ patial
+                $partials = 0;
 
             }elseif($updateStatusTo == "B"){
                 $db->where("id", $docId);
-                $db->update("quotation", ["is_partials"=>"Y", "status"=>"I"]);
+                $db->update("quotation", ["is_partials"=>"N", "status"=>"I"]);
             }
 
             $billing_note_number = $this->Billing_notes_m->getNewDocNumber();
@@ -742,6 +743,7 @@ class Quotations_m extends MY_Model {
                                             "discount_percent"=>$qrow->discount_percent,
                                             "discount_amount"=>$qrow->discount_amount,
                                             "sub_total"=>$qrow->sub_total,
+                                            "partials"=>$partials,
                                             "vat_inc"=>$qrow->vat_inc,
                                             "vat_percent"=>$qrow->vat_percent,
                                             "vat_value"=>$qrow->vat_value,
