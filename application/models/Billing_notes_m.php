@@ -95,7 +95,9 @@ class Billing_notes_m extends MY_Model {
     function getDoc($docId){
         $db = $this->db;
 
+        $this->data["doc_id"] = null;
         $this->data["quotation_id"] = null;
+        $this->data["doc_number"] = null;
         $this->data["doc_date"] = date("Y-m-d");
         $this->data["credit"] = "0";
         $this->data["due_date"] = date("Y-m-d");
@@ -104,6 +106,9 @@ class Billing_notes_m extends MY_Model {
         $this->data["discount_percent"] = 0;
         $this->data["discount_amount"] = 0;
         $this->data["vat_inc"] = "N";
+        $this->data["unpaid_amount"] = 0;
+        $this->data["partials_percent"] = 0;
+        $this->data["partials_amount"] = 0;
         $this->data["wht_inc"] = "N";
         $this->data["project_id"] = null;
         $this->data["client_id"] = null;
@@ -115,6 +120,9 @@ class Billing_notes_m extends MY_Model {
         $this->data["approved_datetime"] = null;
         $this->data["doc_status"] = NULL;
 
+        $this->data["is_partial_billing"] = "N";
+        $this->data["partials_type"] = null;
+
         if(!empty($docId)){
             $bnrow = $db->select("*")
                         ->from("billing_note")
@@ -123,19 +131,44 @@ class Billing_notes_m extends MY_Model {
                         ->get()->row();
 
             if(empty($bnrow)) return $this->data;
+
             $quotation_id = $bnrow->quotation_id;
-            $is_partial = "N";
+            $quotation_is_partial = "N";
+            $quotation_partial_type = null;
+            $unpaid_amount = 0;
 
             if($quotation_id != null){
-                $qrow = $db->select("is_partials")
+                $qrow = $db->select("total, is_partials, partials_type")
                             ->from("quotation")
+                            ->where("deleted", 0)
                             ->get()->row();
 
                 if(empty($qrow)){
-
+                    log_message("error", "SYSERR=>Billing_notes_m->getDoc: qrow is null");
+                    return $this->data;
                 }
 
-                $is_partial = $qrow->is_partials;
+                $billed_amount = 0;
+                $quotation_total = $qrow->total;
+                $quotation_is_partial = $qrow->is_partials;
+                $quotation_partial_type = $qrow->partials_type;
+
+                if($quotation_is_partial == "Y"){
+                    $billed_amount = $db->select("SUM(partials_amount) AS billed_amount")
+                                                ->from("billing_note")
+                                                ->where("quotation_id", $quotation_id)
+                                                ->get()->row()->billed_amount;
+
+                    if($quotation_partial_type == "A"){
+                        $unpaid_amount = $quotation_total - $billed_amount;
+                    }else{
+                        $unpaid_amount = (($quotation_total - $billed_amount)/$quotation_total) * 100;
+                    }
+                }else{
+                    log_message("error", "SYSERR=>Billing_notes_m->getDoc: quotation_is_partial != Y");
+                    return $this->data;
+                    // มี quotation id อยู่ใน billing แต่ไม่ใช่ billing note แบบแบ่งจ่าย, ตอนนนี้ยังนึก case ไม่ออก แต่ไม่ควรเข้าเงื่อนไขนี้
+                }
             }
 
             $lead_id = $client_id = null;
@@ -158,6 +191,9 @@ class Billing_notes_m extends MY_Model {
             $this->data["discount_type"] = $bnrow->discount_type;
             $this->data["discount_percent"] = $bnrow->discount_percent;
             $this->data["discount_amount"] = $bnrow->discount_amount;
+            $this->data["unpaid_amount"] = number_format($unpaid_amount, 2);
+            $this->data["partials_percent"] = $bnrow->partials_percent;
+            $this->data["partials_amount"] = $bnrow->partials_amount;
             $this->data["vat_inc"] = $bnrow->vat_inc;
             $this->data["vat_percent"] = number_format_drop_zero_decimals($bnrow->vat_percent, 2)."%";
             $this->data["wht_inc"] = $bnrow->wht_inc;
@@ -170,6 +206,9 @@ class Billing_notes_m extends MY_Model {
             $this->data["approved_by"] = $bnrow->approved_by;
             $this->data["approved_datetime"] = $bnrow->approved_datetime;
             $this->data["doc_status"] = $bnrow->status;
+
+            $this->data["is_partial_billing"] = $quotation_is_partial;
+            $this->data["partials_type"] = $quotation_partial_type;
         }
 
         $this->data["status"] = "success";

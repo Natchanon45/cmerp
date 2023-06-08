@@ -680,7 +680,7 @@ class Quotations_m extends MY_Model {
                 return $this->data;
             }
 
-            $db->where("id", $docId);
+            $db->where("id", $quotation_id);
             $db->update("quotation", [
                                         "approved_by"=>$this->login_user->id,
                                         "approved_datetime"=>date("Y-m-d H:i:s"),
@@ -688,39 +688,42 @@ class Quotations_m extends MY_Model {
                                     ]);
 
         }elseif($updateStatusTo == "R"){//Refused
-            $db->where("id", $docId);
+            $db->where("id", $quotation_id);
             $db->update("quotation", ["status"=>"R"]);
 
         }elseif($updateStatusTo == "I"){//Issued
-            $db->where("id", $docId);
+            $db->where("id", $quotation_id);
             $db->update("quotation", ["status"=>"I"]);
 
         }elseif($updateStatusTo == "P" || $updateStatusTo == "B"){//Partial OR Create Billing Note
-            $partials = null;
+            $partials_percent = null;
+            $partials_amount = 0;
 
             if($updateStatusTo == "P"){
-                
-                $sum_billing_total = $db->select("SUM(total) AS sum_billing_total")
+                $billed_amount = $db->select("SUM(partials_amount) AS billed_amount")
                                         ->from("billing_note")
-                                        ->where("quotation_id", $docId)
-                                        ->get()->row()->sum_billing_total;
+                                        ->where("quotation_id", $quotation_id)
+                                        ->get()->row()->billed_amount;
 
-                if($sum_billing_total == null) $sum_billing_total = 0;
+                if($billed_amount == null) $billed_amount = 0;
 
-                if($sum_billing_total >= $quotation_total){
-                    $db->trans_rollback();
-                    $this->data["message"] = "ไม่สามารถบันทึกข้อมูลได้ เนื่องจากจำนวนเงินที่แบ่งจ่ายต้องมากกว่า 0 แต่ไม่เกินมูลค่าของเอกสาร";
+                if($billed_amount >= $quotation_total){
+                    $db->where("id", $quotation_id);
+                    $db->update("quotation", ["status"=>"I"]);
+                    $db->trans_commit();
+                    $this->data["message"] = "ไม่สามารถดำเนินการได้ เนื่องจากจำนวนเงินที่แบ่งจ่ายเกินมูลค่าของเอกสาร";
                     $this->data["dataset"] = $this->getIndexDataSetHTML($qrow);
                     return $this->data;
                 }
 
-                $db->where("id", $docId);
+                //$this->json->patials_type can be P(Percent) OR A(Amount)
+                $db->where("id", $quotation_id);
                 $db->update("quotation", ["is_partials"=>"Y", "partials_type"=>$this->json->patials_type, "status"=>"P"]);
 
-                $partials = 0;
+                if($this->json->patials_type == "P") $partials_percent = 0;
 
             }elseif($updateStatusTo == "B"){
-                $db->where("id", $docId);
+                $db->where("id", $quotation_id);
                 $db->update("quotation", ["is_partials"=>"N", "status"=>"I"]);
             }
 
@@ -743,7 +746,8 @@ class Quotations_m extends MY_Model {
                                             "discount_percent"=>$qrow->discount_percent,
                                             "discount_amount"=>$qrow->discount_amount,
                                             "sub_total"=>$qrow->sub_total,
-                                            "partials"=>$partials,
+                                            "partials_percent"=>$partials_percent,
+                                            "partials_amount"=>$partials_amount,
                                             "vat_inc"=>$qrow->vat_inc,
                                             "vat_percent"=>$qrow->vat_percent,
                                             "vat_value"=>$qrow->vat_value,
