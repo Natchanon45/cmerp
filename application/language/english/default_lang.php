@@ -2014,3 +2014,6 @@ $lang["owners_equity"] = "Owner’s equity";
 $lang["incomes"] = "Incomes";
 $lang["expenses"] = "Expenses";
 $lang["status_of_client"] = "Client status";
+$lang["serial_number"] = "Serial number";
+$lang["serial_number_duplicate"] = "The serial number must be unique.";
+$lang["stock_restock_item_withdraw"] = "Add the item used.";

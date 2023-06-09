@@ -32,9 +32,9 @@
 
 		$('#restock-form').appForm({
 			onSuccess: function (result) {
-				console.log(result);
-
-				appAlert.success(result.message, { duration: 10000 });
+				// console.log(result);
+				// appAlert.success(result.message, { duration: 1000 });
+				
 				setTimeout(function () {
 					location.reload();
 				}, 500);

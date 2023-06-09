@@ -1,6 +1,6 @@
 
-<input type="hidden" name="id" value="<?php echo isset($model_info->id)? $model_info->id: ''; ?>" />
-<input type="hidden" name="view" value="<?php echo isset($view) ? $view : ""; ?>" />
+<input type="hidden" name="id" value="<?php echo isset($model_info->id) ? $model_info->id: ''; ?>" />
+<input type="hidden" name="view" value="<?php echo isset($view) ? $view : ''; ?>" />
 
 <?php
     $readonly = false;
@@ -10,6 +10,7 @@
         $readonly = isset($can_update) && !$can_update;
     }
 ?>
+
 <div class="form-group">
     <label for="item_code" class="<?php echo $label_column; ?>">
         <?php echo lang('stock_item_code'); ?>
@@ -30,12 +31,14 @@
         ?>
     </div>
 </div>
+
+<?php if(isset($can_read_production_name) && $can_read_production_name): ?>
 <div class="form-group">
     <label for="name" class="<?php echo $label_column; ?>">
-            <?php echo lang('stock_item_name'); ?>
-        </label>
-        <div class="<?php echo $field_column; ?>">
-            <?php
+        <?php echo lang('stock_item_name'); ?>
+    </label>
+    <div class="<?php echo $field_column; ?>">
+        <?php
             echo form_input(array(
                 "id" => "name",
                 "name" => "name",
@@ -44,67 +47,75 @@
                 "placeholder" => lang('title'),
                 "type" => "text",
                 "data-rule-required" => true,
-                "data-msg-required" => lang("field_required"),
+                "data-msg-required" => lang('field_required'),
+                "readonly" => $readonly
             ));
-            ?>
-           <a id="pr_supplier_title_dropdwon_icon" tabindex="-1" href="javascript:void(0);" style="color: #B3B3B3;float: right; padding: 5px 7px; margin-top: -35px; font-size: 18px;"><span>×</span></a>
-        </div>
- </div>
-<?php if(isset($can_read_production_name) && $can_read_production_name){?>
-    <div class="form-group">
-        <label for="production_name" class="<?php echo $label_column; ?>">
-            <?php echo lang('stock_item_rate'); ?>
-        </label>
-        <div class="<?php echo $field_column; ?>">
-            <?php
-                echo form_input(array(
-                    "id" => "production_name",
-                    "name" => "production_name",
-                    "value" => $model_info->rate,
-                    "class" => "form-control",
-                    "placeholder" => lang('stock_item_rate'),
-                    "readonly" => $readonly
-                ));
-            ?>
-        </div>
+        ?>
+        <?php // if (!$readonly): ?>
+            <!-- <a id="pr_supplier_title_dropdwon_icon" tabindex="-1" href="javascript:void(0);" style="color: #B3B3B3;float: right; padding: 5px 7px; margin-top: -35px; font-size: 18px;"><span>×</span></a> -->
+        <?php // endif; ?>
     </div>
-<?php }?>
+</div>
+<?php endif; ?>
+
+<div class="form-group">
+    <label for="item_rate" class="<?php echo $label_column; ?>">
+        <?php echo lang('stock_item_rate'); ?>
+    </label>
+    <div class="<?php echo $field_column; ?>">
+        <?php
+        echo form_input(
+            array(
+                "id" => "item_rate",
+                "name" => "item_rate",
+                "value" => $model_info->rate,
+                "class" => "form-control",
+                "placeholder" => lang('stock_item_rate'),
+                "readonly" => $readonly
+            )
+        );
+        ?>
+    </div>
+</div>
+
 <div class="form-group">
     <label for="category_id" class="<?php echo $label_column; ?>">
         <?php echo lang('stock_item_category'); ?>
     </label>
     <div class="<?php echo $field_column; ?>">
         <?php
-            echo form_input(array(
+        echo form_input(
+            array(
                 "id" => "category_id",
                 "name" => "category_id",
-                "value" => $model_info->category_id? $model_info->category_id: null,
+                "value" => $model_info->category_id ? $model_info->category_id : null,
                 "class" => "form-control",
                 "placeholder" => lang('stock_item_category'),
                 "readonly" => $readonly
-            ));
+            )
+        );
         ?>
     </div>
 </div>
 
 <div class="form-group">
-	<label for="account_id" class="<?php echo $label_column; ?>">
-		<?php echo lang('account_category'); ?>
-	</label>
-	<div class="<?php echo $field_column; ?>">
-		<?php
-		echo form_input(
-			array(
-				"id" => "account_id",
-				"name" => "account_id",
-				"value" => $model_info->account_id ? $model_info->account_id : null,
-				"class" => "form-control",
-				"placeholder" => lang('account_category'),
-				"readonly" => $readonly
-			)
-		);
-		?>
-	</div>
+    <label for="account_id" class="<?php echo $label_column; ?>">
+        <?php echo lang('account_category'); ?>
+    </label>
+    <div class="<?php echo $field_column; ?>">
+        <?php
+        echo form_input(
+            array(
+                "id" => "account_id",
+                "name" => "account_id",
+                "value" => $model_info->account_id ? $model_info->account_id : null,
+                "class" => "form-control",
+                "placeholder" => lang('account_category'),
+                "readonly" => $readonly
+            )
+        );
+        ?>
+    </div>
 </div>
 
 <div class="form-group">
@@ -113,24 +124,28 @@
     </label>
     <div class="<?php echo $field_column; ?>">
         <?php
-            echo form_textarea(array(
+        echo form_textarea(
+            array(
                 "id" => "description",
                 "name" => "description",
-                "value" => $model_info->description? $model_info->description: '',
+                "value" => $model_info->description ? $model_info->description : '',
                 "class" => "form-control",
                 "placeholder" => lang('stock_item_description'),
                 "readonly" => $readonly
-            ));
+            )
+        );
         ?>
     </div>
 </div>
+
 <div class="form-group">
     <label for="unit" class="<?php echo $label_column; ?>">
         <?php echo lang('stock_iteml_unit'); ?>
     </label>
     <div class="<?php echo $field_column; ?>">
         <?php
-            echo form_input(array(
+        echo form_input(
+            array(
                 "id" => "unit",
                 "name" => "unit",
                 "value" => $model_info->unit_type,
@@ -139,38 +154,42 @@
                 "data-rule-required" => true,
                 "data-msg-required" => lang("field_required"),
                 "readonly" => $readonly
-            ));
+            )
+        );
         ?>
     </div>
 </div>
+
 <div class="form-group">
     <label for="barcode" class="<?php echo $label_column; ?>">
         <?php echo lang('stock_item_barcode'); ?>
     </label>
     <div class="<?php echo $field_column; ?>">
         <?php
-            echo form_input(array(
+        echo form_input(
+            array(
                 "id" => "barcode",
                 "name" => "barcode",
                 "value" => @$model_info->barcode,
                 "class" => "form-control",
                 "placeholder" => lang('stock_item_barcode'),
                 "readonly" => $readonly
-            ));
+            )
+        );
         ?>
     </div>
 </div>
+
 <div class="form-group">
     <label for="noti_threshold" class="<?php echo $label_column; ?>">
         <?php echo lang('stock_item_noti_threshold'); ?>
     </label>
     <div class="<?php echo $field_column; ?>">
-        <input 
+        <input
             type="number" name="noti_threshold" class="form-control" min="0" step="0.0001" required 
-            name="noti_threshold" value="<?= $model_info->noti_threshold ?>" 
-            placeholder="<?php echo lang('stock_item_noti_threshold'); ?>" 
-            data-rule-required="true" data-msg-required="<?= lang("field_required") ?>" 
-            <?php if($readonly)echo 'readonly'; ?> 
+            name="noti_threshold" value="<?php echo @$model_info->noti_threshold; ?>" 
+            placeholder="<?php echo lang('stock_item_noti_threshold'); ?>" data-rule-required="true" 
+            data-msg-required="<?php echo lang("field_required"); ?>" <?php if ($readonly) { echo "readonly"; } ?>
         />
     </div>
 </div>
@@ -179,19 +198,18 @@
     $(document).ready(function () {
         $('[data-toggle="tooltip"]').tooltip();
         $('#category_id').select2({data: <?php echo json_encode($category_dropdown); ?>});
+        $('#account_id').select2({ data: <?php echo json_encode($account_category); ?> });
 
-        var isUpdate = "<?php echo $model_info->id; ?>";
-        if (!isUpdate) {
-            applySelectSupplierName();
-        }
+        // var isUpdate = "<?php // echo $model_info->id; ?>";
+        // if (!isUpdate) {
+        //     applySelectSupplierName();
+        // }
         
         // re-initialize item suggestion dropdown on request
-        $("#pr_supplier_title_dropdwon_icon").click(function () {
-            applySelectSupplierName();
-            $('#name').select2('readonly', false);
-        });
-        
-        $('#account_id').select2({ data: <?php echo json_encode($account_category); ?> });
+        // $("#pr_supplier_title_dropdwon_icon").click(function () {
+        //     applySelectSupplierName();
+        //     $('#name').select2('readonly', false);
+        // });
     });
 
     function applySelectSupplierName() {

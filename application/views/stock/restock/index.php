@@ -42,16 +42,16 @@
         <?php endif; ?>
       ],
       columns: [
-        { title: "<?php echo lang('id') ?>", "class": "text-center w50" },
-        { title: "<?php echo lang('stock_restock_name'); ?>", "class": "" },
-        { title: "<?php echo lang('serial_number'); ?>"},
-        { title: "<?php echo lang('stock_material'); ?>", "class": "" },
-        { title: "<?php echo lang('stock_restock_quantity'); ?>", "class": "text-right" },
-        { title: "<?php echo lang('stock_restock_remaining'); ?>", "class": "text-right" },
-        { title: "<?php echo lang('stock_material_unit'); ?>", "class": "w50" },
-        { title: "<?php echo lang('created_by'); ?>", "class": "" },
-        { title: "<?php echo lang('created_date'); ?>", "class": "" },
-        { title: '<i class="fa fa-bars"></i>', "class": "text-center option w100" }
+        { title: "<?php echo lang('id') ?>", class: "text-center w50" },
+        { title: "<?php echo lang('stock_restock_name'); ?>", class: "w150" },
+        { title: "<?php echo lang('serial_number'); ?>", class: "w150" },
+        { title: "<?php echo lang('stock_material'); ?>" },
+        { title: "<?php echo lang('stock_restock_quantity'); ?>", class: "text-right" },
+        { title: "<?php echo lang('stock_restock_remaining'); ?>", class: "text-right" },
+        { title: "<?php echo lang('stock_material_unit'); ?>", class: "w50" },
+        { title: "<?php echo lang('created_by'); ?>" },
+        { title: "<?php echo lang('created_date'); ?>" },
+        { title: '<i class="fa fa-bars"></i>', class: "text-center option w100" }
       ],
       order: [ 0, 'asc' ],
       <?php if(isset($is_admin) && $is_admin): ?>

@@ -47,4 +47,10 @@ class Bom_project_item_items_model extends Crud_model {
         ");
     }
 
+    public function getCountStockUsedById($id)
+    {
+        $query = $this->db->get_where('bom_project_item_items', array('stock_id' => $id));
+        return $query->num_rows();
+    }
+
 }

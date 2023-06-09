@@ -111,7 +111,7 @@ class Bom_stocks_model extends Crud_model {
         FROM `bom_stocks` AS `bs` 
         LEFT JOIN `bom_stock_groups` AS `bsg` ON `bs`.`group_id` = `bsg`.`id` 
         LEFT JOIN `bom_materials` AS `bm` ON `bs`.`material_id` = `bm`.`id` 
-        WHERE `bs`.`remaining` > 0 " . $where_create_by . " ORDER BY `bs`.`id` ";
+        WHERE `bs`.`stock` > 0 " . $where_create_by . " ORDER BY `bs`.`id` ";
 
         $query = $this->db->query($sql);
         return $query->result();
@@ -123,7 +123,7 @@ class Bom_stocks_model extends Crud_model {
         FROM `bom_stocks` AS `bs` 
         LEFT JOIN `bom_stock_groups` AS `bsg` ON `bs`.`group_id` = `bsg`.`id` 
         LEFT JOIN `bom_materials` AS `bm` ON `bs`.`material_id` = `bm`.`id` 
-        WHERE `bs`.`remaining` > 0 AND `bs`.`group_id` = " . $id . " ORDER BY `bs`.`id` ";
+        WHERE `bs`.`stock` > 0 AND `bs`.`group_id` = " . $id . " ORDER BY `bs`.`id` ";
 
         $query = $this->db->query($sql);
         return $query->result();
