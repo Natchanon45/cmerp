@@ -299,8 +299,8 @@
 
 #s-partials .unpaid-amount{
     display: block !important;
-    font-size: 0.94em;
-    line-height: 22px;
+    font-size: 0.95em;
+    line-height: 24px;
     color: #646e7a;
 }
 
@@ -316,7 +316,7 @@
 }
 
 #s-partials input#partials_percent{
-    width: 50px;
+    width: 58px;
 }
 
 #s-vat .vat_percent,
@@ -520,6 +520,10 @@
     #s-sub-total i.t2.h,
     #s-vat .vat_percent.h,
     #s-vat .vat_percent_zero.h{
+        display: none !important;
+    }
+
+    #s-partials{
         display: none !important;
     }
 

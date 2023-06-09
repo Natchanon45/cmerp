@@ -50,10 +50,16 @@ class Billing_notes_m extends MY_Model {
 
         $doc_status .= "</select>";
 
+        $reference_number_column = $bnrow->reference_number;
+        if($bnrow->quotation_id != null){
+            $reference_number_column = "<a href='".get_uri("quotations/view/".$bnrow->quotation_id)."'>".$bnrow->reference_number."</a>";
+        }
+
         $data = [
                     "<a href='".get_uri("billing-notes/view/".$bnrow->id)."'>".convertDate($bnrow->doc_date, 2)."</a>",
                     "<a href='".get_uri("billing-notes/view/".$bnrow->id)."'>".$bnrow->doc_number."</a>",
-                    $bnrow->reference_number, "<a href='".get_uri("clients/view/".$bnrow->client_id)."'>".$this->Clients_m->getCompanyName($bnrow->client_id)."</a>",
+                    $reference_number_column,
+                    "<a href='".get_uri("clients/view/".$bnrow->client_id)."'>".$this->Clients_m->getCompanyName($bnrow->client_id)."</a>",
                     convertDate($bnrow->due_date, true), number_format($bnrow->total, 2), $doc_status,
                     "<a data-post-id='".$bnrow->id."' data-action-url='".get_uri("billing-notes/addedit")."' data-act='ajax-modal' class='edit'><i class='fa fa-pencil'></i></a><a data-id='".$bnrow->id."' data-action-url='".get_uri("billing-notes/delete_doc")."' data-action='delete' class='delete'><i class='fa fa-times fa-fw'></i></a>"
                 ];
@@ -144,7 +150,7 @@ class Billing_notes_m extends MY_Model {
                             ->get()->row();
 
                 if(empty($qrow)){
-                    log_message("error", "SYSERR=>Billing_notes_m->getDoc: qrow is null");
+                    log_message("error", "SYSERR=>Billing_notes_m->getDoc:".$db->last_query());
                     return $this->data;
                 }
 
@@ -219,9 +225,14 @@ class Billing_notes_m extends MY_Model {
     function updateDoc($docId = null){
         $db = $this->db;
 
+        $bnrow = null;
+
         $discount_type = "P";
         $discount_percent = 0;
         $discount_amount = 0;
+
+        $total = 0;
+        $payment_amount = 0;
 
         $vat_inc = "N";
         $vat_percent = $this->Taxes_m->getVatPercent();
@@ -294,15 +305,68 @@ class Billing_notes_m extends MY_Model {
             if($discount_amount < 0) $discount_amount = 0;
         }
 
-
-
         $sub_total = $sub_total_before_discount - $discount_amount;
 
-        if($vat_inc == "Y") $vat_value = ($sub_total * $vat_percent)/100;
-        $total = $sub_total + $vat_value;
+        $quotation_id = $bnrow->quotation_id;
+        $quotation_sub_total = 0;
+        $billed_amount = 0;
+        $is_partial_billing = "N";
+        $can_update_partial_billing = "N";
+        $partials_type = null;
+        $partials_percent = null;
+        $partials_amount = null;
 
-        if($wht_inc == "Y") $wht_value = ($sub_total * $wht_percent) / 100;
-        $payment_amount = $total - $wht_value;
+        if($quotation_id != null){
+            $qrow = $db->select("sub_total, is_partials, partials_type")
+                        ->from("quotation")
+                        ->where("id", $quotation_id)
+                        ->where("deleted", 0)
+                        ->get()->row();
+
+            if(!empty($qrow)){
+                $partials_type = $qrow->partials_type;
+                $quotation_sub_total = $qrow->sub_total;
+
+                if($qrow->is_partials == "Y"){
+                    $is_partial_billing = "Y";
+
+                    $billed_amount = $db->select("SUM(partials_amount) AS billed_amount")
+                                        ->from("billing_note")
+                                        ->where("quotation_id", $quotation_id)
+                                        ->where("deleted", 0)
+                                        ->get()->row()->billed_amount;
+
+                    if($billed_amount == null) $billed_amount = 0;
+
+                    if($partials_type == "P"){
+                        $partials_percent = getNumber($this->json->partials_percent);
+                        $partials_amount = ($partials_percent * $quotation_sub_total)/100;
+                        $billed_amount = $billed_amount + $partials_amount;
+                    }
+
+                    if($partials_type == "A"){
+                        $partials_amount = getNumber($this->json->partials_amount);
+                        $billed_amount = $billed_amount + $partials_amount;
+                    }
+
+                    if($vat_inc == "Y") $vat_value = ($partials_amount * $vat_percent) / 100;
+                    $total = $partials_amount + $vat_value;
+
+                    if($wht_inc == "Y") $wht_value = ($partials_amount * $wht_percent) / 100;
+                    $payment_amount = $total - $wht_value;
+                }
+            }else{
+                log_message("error", "SYSERR=>Billing_notes_m->updateDoc: ".$db->last_query());
+            }
+        }
+
+        if($quotation_id == null || $is_partial_billing == "N"){
+            if($vat_inc == "Y") $vat_value = ($sub_total * $vat_percent) / 100;
+            $total = $sub_total + $vat_value;
+
+            if($wht_inc == "Y") $wht_value = ($sub_total * $wht_percent) / 100;
+            $payment_amount = $total - $wht_value;
+        }
 
         $db->where("id", $docId);
         $db->update("billing_note", [
@@ -311,6 +375,8 @@ class Billing_notes_m extends MY_Model {
                                     "discount_percent"=>$discount_percent,
                                     "discount_amount"=>$discount_amount,
                                     "sub_total"=>$sub_total,
+                                    "partials_percent"=>$partials_percent,
+                                    "partials_amount"=>$partials_amount,
                                     "vat_inc"=>$vat_inc,
                                     "vat_percent"=>$vat_percent,
                                     "vat_value"=>$vat_value,
@@ -321,11 +387,30 @@ class Billing_notes_m extends MY_Model {
                                     "payment_amount"=>$payment_amount
                                 ]);
 
+
+        if($is_partial_billing == "Y"){
+            $billed_amount = $db->select("SUM(partials_amount) AS billed_amount")
+                                    ->from("billing_note")
+                                    ->where("quotation_id", $quotation_id)
+                                    ->where("deleted", 0)
+                                    ->get()->row()->billed_amount;
+
+            if($partials_type == "A"){
+                $this->data["unpaid_amount"] = number_format($quotation_sub_total - $billed_amount, 2);
+            }else{
+                $this->data["unpaid_amount"] = number_format((($quotation_sub_total - $billed_amount)/$quotation_sub_total) * 100, 2);
+            }    
+        }
+
         $this->data["sub_total_before_discount"] = number_format($sub_total_before_discount, 2);
         $this->data["discount_type"] = $discount_type;
         $this->data["discount_percent"] = number_format($discount_percent, 2);
         $this->data["discount_amount"] = number_format($discount_amount, 2);
         $this->data["sub_total"] = number_format($sub_total, 2);
+        $this->data["is_partial_billing"] = $is_partial_billing;
+        $this->data["partials_type"] = $partials_type;
+        $this->data["partials_percent"] = ($partials_percent !== null) ? number_format($partials_percent, 2) : null;
+        $this->data["partials_amount"] = ($partials_amount !== null) ? number_format($partials_amount, 2) : null;
         $this->data["vat_inc"] = $vat_inc;
         $this->data["vat_percent"] = number_format_drop_zero_decimals($vat_percent, 2);
         $this->data["vat_value"] = number_format($vat_value, 2);
