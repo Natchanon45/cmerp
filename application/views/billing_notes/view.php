@@ -141,18 +141,21 @@
                             <span class="c2"><input type="text" id="sub_total" readonly></span>
                             <span class="c3"><span class="currency">บาท</span></span>
                         </p>
-                        <p id="s-partials">
-                            <span class="unpaid-amount">(ยอดค้างชำระ: <?php echo $unpaid_amount; ?> %)</span>
-                            <span class="r">
-                                <span class="c1 custom-color">
-                                    <i class="custom-color">แบ่งชำระ</i>
-                                    <input type="text" id="partials_percent" value="<?php echo $partials_percent; ?>">
-                                    <i class="custom-color">เปอร์เซ็นต์</i>
+                        <?php if($is_partial_billing == "Y"): ?>
+                            <p id="s-partials">
+                                <span class="unpaid-amount">( ยอดค้างชำระ: <i><?php echo $unpaid_amount; ?></i> <?php echo ($partials_type == "P"?"%":"บาท"); ?> )</span>
+                                <span class="r">
+                                    <span class="c1 custom-color">
+                                        <i class="custom-color">แบ่งชำระ<?php if($partials_type == "A") echo "เป็นจำนวน" ?></i>
+                                        <?php if($partials_type == "P"): ?>
+                                            <input type="text" id="partials_percent" value="<?php echo $partials_percent; ?>"> <i class="custom-color">%</i>
+                                        <?php endif; ?>
+                                    </span>
+                                    <span class="c2"><input type="text" id="partials_amount" value="<?php echo $partials_amount; ?>" <?php if($partials_type == "P") echo "readonly"; ?>></span>
+                                    <span class="c3"></span>
                                 </span>
-                                <span class="c2"><input type="text" id="partials_amount" value="<?php echo $partials_amount; ?>"></span>
-                                <span class="c3"></span>
-                            </span>
-                        </p>
+                            </p>
+                        <?php endif; ?>
                         <p id="s-vat">
                             <span class="c1 custom-color"><input type="checkbox" id="vat_inc" <?php if($vat_inc == "Y") echo "checked" ?> <?php if($doc_status != "W" || $is_partial_billing == "Y") echo "disabled"; ?>>ภาษีมูลค่าเพิ่ม<span class="vat_percent custom-color"><?php echo $vat_percent; ?></span><span class="vat_percent_zero custom-color">7%</span></span>
                             <span class="c2"><input type="text" id="vat_value" readonly></span>
@@ -236,7 +239,7 @@
 <script type="text/javascript">
 $(document).ready(function() {
     loadItems();
-    $("#discount_percent, #discount_amount").blur(function(){
+    $("#discount_percent, #discount_amount, #partials_percent, #partials_amount").blur(function(){
         loadSummary();
     });
 
@@ -297,33 +300,31 @@ function loadSummary(){
     var discount_type = $("#discount_type").val();
     var discount_percent = 0;
     var discount_value = 0;
-    var partials_percent = 0;
-    var partials_amount = 0;
 
     if(discount_type == "P") discount_percent = tonum($("#discount_percent").val());
     else discount_value = tonum($("#discount_amount").val());
 
-    <?php if($partials_type == "A"): ?>
-
-    <?php endif; ?>
+    let data = {
+                    task: "update_doc",
+                    doc_id: "<?php echo $doc_id; ?>",
+                    discount_type: discount_type,
+                    discount_percent: discount_percent,
+                    discount_value: discount_value,
+                    vat_inc: $("#vat_inc").is(":checked"),
+                    wht_inc: $("#wht_inc").is(":checked"),
+                    wht_percent: $("#wht_percent").val()
+                };
 
     <?php if($partials_type == "P"): ?>
-
+        data["partials_percent"] = tonum($("#partials_percent").val());
     <?php endif; ?>
 
-    axios.post('<?php echo current_url(); ?>', {
-        task: 'update_doc',
-        doc_id: '<?php echo $doc_id; ?>',
-        discount_type: discount_type,
-        discount_percent: discount_percent,
-        discount_value: discount_value,
-        partials_percent: partials_percent,
-        partials_amount: partials_amount,
-        vat_inc: $("#vat_inc").is(":checked"),
-        wht_inc: $("#wht_inc").is(":checked"),
-        wht_percent: $("#wht_percent").val()
-    }).then(function(response) {
-        data = response.data;
+    <?php if($partials_type == "A"): ?>
+        data["partials_amount"] = tonum($("#partials_amount").val());
+    <?php endif; ?>
+
+    axios.post('<?php echo current_url(); ?>', data).then(function(response) {
+        let data = response.data;
 
         $("#sub_total_before_discount").val(data.sub_total_before_discount);
         $("#discount_percent").val(data.discount_percent);
@@ -356,11 +357,22 @@ function loadSummary(){
             $("#s-sub-total-before-discount, #s-discount").removeClass("h").addClass("v");
             $("#s-sub-total .t1").removeClass("h").addClass("v");
             $("#s-sub-total .t2").removeClass("v").addClass("h");
-            
         }else{
             $("#s-sub-total-before-discount, #s-discount").removeClass("v").addClass("h");
             $("#s-sub-total .t1").removeClass("v").addClass("h");
             $("#s-sub-total .t2").removeClass("h").addClass("v");
+        }
+
+        if(data.is_partial_billing == "Y"){
+            $("#s-partials .unpaid-amount i").empty().append(data.unpaid_amount);
+            if(data.partials_type == "P"){
+                $("#partials_percent").val(data.partials_percent);
+                $("#partials_amount").val(data.partials_amount);
+            }
+
+            if(data.partials_type == "A"){
+                $("#partials_amount").val(data.partials_amount);
+            }
         }
         
         if(data.vat_inc == "Y"){
