@@ -42,10 +42,16 @@ class Invoices_m extends MY_Model {
 
         $doc_status .= "</select>";
 
+        $reference_number_column = $invrow->reference_number;
+        if($invrow->billing_note_id != null){
+            $reference_number_column = "<a href='".get_uri("billing-notes/view/".$invrow->billing_note_id)."'>".$invrow->reference_number."</a>";
+        }
+
         $data = [
                     "<a href='".get_uri("invoices/view/".$invrow->id)."'>".convertDate($invrow->doc_date, 2)."</a>",
                     "<a href='".get_uri("invoices/view/".$invrow->id)."'>".$invrow->doc_number."</a>",
-                    $invrow->reference_number, "<a href='".get_uri("clients/view/".$invrow->client_id)."'>".$this->Clients_m->getCompanyName($invrow->client_id)."</a>",
+                    $reference_number_column,
+                    "<a href='".get_uri("clients/view/".$invrow->client_id)."'>".$this->Clients_m->getCompanyName($invrow->client_id)."</a>",
                     convertDate($invrow->due_date, true), number_format($invrow->total, 2), $doc_status,
                     "<a data-post-id='".$invrow->id."' data-action-url='".get_uri("invoices/addedit")."' data-act='ajax-modal' class='edit'><i class='fa fa-pencil'></i></a><a data-id='".$invrow->id."' data-action-url='".get_uri("invoices/delete_doc")."' data-action='delete' class='delete'><i class='fa fa-times fa-fw'></i></a>"
                 ];

@@ -132,7 +132,7 @@ function loadDataGrid(){
     if(active_module == "quotations"){
         $(".buttons li.add a").attr("data-action-url", "<?php echo get_uri("quotations/addedit"); ?>");
         $(".buttons li.add span").append("เพิ่มใบเสนอราคา");
-        doc_status = [{id:"", text:"-- <?php echo lang("status"); ?> --"}, {id:"W", text:"รออนุมัติ"}, {id:"A", text:"อนุมัติ"}, {id:"I", text:"ดำเนินการแล้ว"}, {id:"R", text:"ไม่อนุมัติ"}];
+        doc_status = [{id:"", text:"-- <?php echo lang("status"); ?> --"}, {id:"W", text:"รออนุมัติ"}, {id:"A", text:"อนุมัติ"}, {id:"P", text:"แบ่งจ่าย"}, {id:"I", text:"ดำเนินการแล้ว"}, {id:"R", text:"ไม่อนุมัติ"}];
     }else if(active_module == "billing-notes"){
         $(".buttons li.add a").attr("data-action-url", "<?php echo get_uri("billing-notes/addedit"); ?>");
         $(".buttons li.add span").append("เพิ่มใบวางบิล");
@@ -177,33 +177,46 @@ function loadDataGrid(){
 
     $("#datagrid").on("draw.dt", function () {
         $(".dropdown_status").on( "change", function() {
-            if(active_module == "quotations"){
-                if($(this).val() == "P"){
-                    $("#popup").attr("data-title", "แบ่งจ่ายใบวางบิล");
-                    $("#popup").attr("data-action-url", "<?php echo_uri("quotations/partial-payment-type/"); ?>"+$(this).data("doc_id")).trigger( "click" );
-                    return;
-                }
-            }
-
-            axios.post("<?php echo_uri(); ?>"+active_module, {
-                task: 'update_doc_status',
-                doc_id: $(this).data("doc_id"),
-                update_status_to: $(this).val(),
-            }).then(function (response) {
-                data = response.data;
-                if(data.status == "success"){
-                    if(typeof data.task !== 'undefined') {
-                        location.href = data.url;
-                        return;
+            if(active_module == "quotations" && $(this).val() == "P"){
+                var total_billing_note = 0;
+                axios.post("<?php echo_uri(); ?>"+active_module, {
+                    task: 'get_partial_billing_note',
+                    doc_id: $(this).data("doc_id")
+                }).then(function (response) {
+                    total_billing_note = response.data.total_billing_note;
+                }).finally(() => {
+                    if(total_billing_note <= 0){
+                        $("#popup").attr("data-title", "แบ่งจ่ายใบวางบิล");
+                        $("#popup").attr("data-action-url", "<?php echo_uri("quotations/partial-payment-type/"); ?>"+$(this).data("doc_id")).trigger( "click" );
+                    }else{
+                        updateStatus($(this).data("doc_id"), $(this).val());
                     }
-                    appAlert.success(data.message, {duration: 5000});
-                }else{
-                    appAlert.error(data.message, {duration: 5000});
-                }
-
-                $("#datagrid").appTable({newData: data.dataset, dataId: data.doc_id});
-            }).catch(function (error) {});
+                });
+            }else{
+                updateStatus($(this).data("doc_id"), $(this).val());
+            }
         });
     });
+}
+
+function updateStatus(docId, updateStatusTo){
+    axios.post("<?php echo_uri(); ?>"+active_module, {
+        task: 'update_doc_status',
+        doc_id: docId,
+        update_status_to: updateStatusTo,
+    }).then(function (response) {
+        data = response.data;
+        if(data.status == "success"){
+            if(typeof data.task !== 'undefined') {
+                location.href = data.url;
+                return;
+            }
+            appAlert.success(data.message, {duration: 5000});
+        }else{
+            appAlert.error(data.message, {duration: 5000});
+        }
+
+        //$("#datagrid").appTable({newData: data.dataset, dataId: data.doc_id});
+    }).catch(function (error) {});
 }
 </script>
