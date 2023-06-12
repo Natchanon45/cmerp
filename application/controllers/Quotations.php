@@ -12,6 +12,7 @@ class Quotations extends MY_Controller {
             return;
         }elseif(isset($this->json->task)){
             if($this->json->task == "update_doc_status") jout($this->Quotations_m->updateStatus());
+            if($this->json->task == "get_partial_billing_note") jout($this->Quotations_m->getTotalDocPartialBillingNote());
             return;    
         }
 

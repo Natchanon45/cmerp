@@ -61,8 +61,13 @@ class Billing_notes_m extends MY_Model {
                     $reference_number_column,
                     "<a href='".get_uri("clients/view/".$bnrow->client_id)."'>".$this->Clients_m->getCompanyName($bnrow->client_id)."</a>",
                     convertDate($bnrow->due_date, true), number_format($bnrow->total, 2), $doc_status,
-                    "<a data-post-id='".$bnrow->id."' data-action-url='".get_uri("billing-notes/addedit")."' data-act='ajax-modal' class='edit'><i class='fa fa-pencil'></i></a><a data-id='".$bnrow->id."' data-action-url='".get_uri("billing-notes/delete_doc")."' data-action='delete' class='delete'><i class='fa fa-times fa-fw'></i></a>"
+                    "<a data-post-id='".$bnrow->id."' data-action-url='".get_uri("billing-notes/addedit")."' data-act='ajax-modal' class='edit'><i class='fa fa-pencil'></i></a>"
                 ];
+
+        /*
+        *Delete button
+        *<a data-id='".$bnrow->id."' data-action-url='".get_uri("billing-notes/delete_doc")."' data-action='delete' class='delete'><i class='fa fa-times fa-fw'></i></a>
+        */
 
         return $data;
     }
@@ -309,6 +314,7 @@ class Billing_notes_m extends MY_Model {
 
         $quotation_id = $bnrow->quotation_id;
         $quotation_sub_total = 0;
+        $quotation_total = 0;
         $billed_amount = 0;
         $is_partial_billing = "N";
         $can_update_partial_billing = "N";
@@ -317,7 +323,7 @@ class Billing_notes_m extends MY_Model {
         $partials_amount = null;
 
         if($quotation_id != null){
-            $qrow = $db->select("sub_total, is_partials, partials_type")
+            $qrow = $db->select("sub_total, total, is_partials, partials_type")
                         ->from("quotation")
                         ->where("id", $quotation_id)
                         ->where("deleted", 0)
@@ -326,6 +332,7 @@ class Billing_notes_m extends MY_Model {
             if(!empty($qrow)){
                 $partials_type = $qrow->partials_type;
                 $quotation_sub_total = $qrow->sub_total;
+                $quotation_total = $qrow->total;
 
                 if($qrow->is_partials == "Y"){
                     $is_partial_billing = "Y";
@@ -389,17 +396,28 @@ class Billing_notes_m extends MY_Model {
 
 
         if($is_partial_billing == "Y"){
-            $billed_amount = $db->select("SUM(partials_amount) AS billed_amount")
+            $bnsum = $db->select("SUM(partials_amount) AS sub_total_vat_excluded, SUM(total) AS collected_amount")
                                     ->from("billing_note")
                                     ->where("quotation_id", $quotation_id)
                                     ->where("deleted", 0)
-                                    ->get()->row()->billed_amount;
+                                    ->get()->row();
+
+            $sub_total_vat_excluded = $bnsum->sub_total_vat_excluded === null ? 0 : $bnsum->sub_total_vat_excluded;
+            $collected_amount = $bnsum->collected_amount === null ? 0 : $bnsum->collected_amount;
 
             if($partials_type == "A"){
-                $this->data["unpaid_amount"] = number_format($quotation_sub_total - $billed_amount, 2);
+                $this->data["unpaid_amount"] = number_format($quotation_sub_total - $sub_total_vat_excluded, 2);
             }else{
-                $this->data["unpaid_amount"] = number_format((($quotation_sub_total - $billed_amount)/$quotation_sub_total) * 100, 2);
-            }    
+                $this->data["unpaid_amount"] = number_format((($quotation_sub_total - $sub_total_vat_excluded) / $quotation_sub_total) * 100, 2);
+            }
+
+            $db->where("id", $quotation_id);
+            $db->where("deleted", 0);
+            if($collected_amount >= $quotation_total){
+                $db->update("quotation", ["status"=>"I"]);
+            }else{
+                $db->update("quotation", ["status"=>"P"]);
+            }
         }
 
         $this->data["sub_total_before_discount"] = number_format($sub_total_before_discount, 2);
@@ -939,7 +957,7 @@ class Billing_notes_m extends MY_Model {
 
         $this->data["dataset"] = $this->getIndexDataSetHTML($bnrow);
         $this->data["status"] = "success";
-        $this->data["message"] = lang('record_saved');
+        $this->data["message"] = lang('doc_id');
         return $this->data;
     }
 }

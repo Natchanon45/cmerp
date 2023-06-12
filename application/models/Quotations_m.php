@@ -58,8 +58,13 @@ class Quotations_m extends MY_Model {
                     "<a href='".get_uri("quotations/view/".$qrow->id)."'>".$qrow->doc_number."</a>",
                     $qrow->reference_number, "<a href='".get_uri("clients/view/".$qrow->client_id)."'>".$this->Clients_m->getCompanyName($qrow->client_id)."</a>",
                     convertDate($qrow->doc_date, true), number_format($qrow->total, 2), $doc_status,
-                    "<a data-post-id='".$qrow->id."' data-action-url='".get_uri("quotations/addedit")."' data-act='ajax-modal' class='edit'><i class='fa fa-pencil'></i></a><a data-id='".$qrow->id."' data-action-url='".get_uri("quotations/delete_doc")."' data-action='delete' class='delete'><i class='fa fa-times fa-fw'></i></a>"
+                    "<a data-post-id='".$qrow->id."' data-action-url='".get_uri("quotations/addedit")."' data-act='ajax-modal' class='edit'><i class='fa fa-pencil'></i></a>"
                 ];
+
+        /*
+        *Delete Button
+        *<a data-id='".$qrow->id."' data-action-url='".get_uri("quotations/delete_doc")."' data-action='delete' class='delete'><i class='fa fa-times fa-fw'></i></a>
+        */
 
         return $data;
     }
@@ -661,16 +666,20 @@ class Quotations_m extends MY_Model {
                     ->where("deleted", 0)
                     ->get()->row();
 
+
         if(empty($qrow)) return $this->data;
-        if($qrow->status == $updateStatusTo){
-            $this->data["dataset"] = $this->getIndexDataSetHTML($qrow);
-            return $this->data;
-        }
 
         $quotation_id = $this->data["doc_id"] = $docId;
         $quotation_number = $qrow->doc_number;
         $quotation_total = $qrow->total;
+        $is_partials = $qrow->is_partials;
+        $partials_type = $qrow->partials_type;
         $currentStatus = $qrow->status;
+
+        if($qrow->status == $updateStatusTo && $updateStatusTo != "P"){
+            $this->data["dataset"] = $this->getIndexDataSetHTML($qrow);
+            return $this->data;
+        }
 
         $this->db->trans_begin();
 
@@ -700,9 +709,10 @@ class Quotations_m extends MY_Model {
             $partials_amount = 0;
 
             if($updateStatusTo == "P"){
-                $billed_amount = $db->select("SUM(partials_amount) AS billed_amount")
+                $billed_amount = $db->select("SUM(total) AS billed_amount")
                                         ->from("billing_note")
                                         ->where("quotation_id", $quotation_id)
+                                        ->where("deleted", 0)
                                         ->get()->row()->billed_amount;
 
                 if($billed_amount == null) $billed_amount = 0;
@@ -716,11 +726,16 @@ class Quotations_m extends MY_Model {
                     return $this->data;
                 }
 
-                //$this->json->patials_type can be P(Percent) OR A(Amount)
-                $db->where("id", $quotation_id);
-                $db->update("quotation", ["is_partials"=>"Y", "partials_type"=>$this->json->patials_type, "status"=>"P"]);
+                if($is_partials == "N" && $partials_type == null){
+                    //$this->json->patials_type can be P OR A (Percent/Amount)
+                    $db->where("id", $quotation_id);
+                    $db->update("quotation", ["is_partials"=>"Y", "partials_type"=>$this->json->patials_type, "status"=>"P"]);
 
-                if($this->json->patials_type == "P") $partials_percent = 0;
+                    if($this->json->patials_type == "P") $partials_percent = 0;
+                }else{
+                    if($partials_type == "P") $partials_percent = 0;
+                }
+
 
             }elseif($updateStatusTo == "B"){
                 $db->where("id", $quotation_id);
@@ -751,11 +766,11 @@ class Quotations_m extends MY_Model {
                                             "vat_inc"=>$qrow->vat_inc,
                                             "vat_percent"=>$qrow->vat_percent,
                                             "vat_value"=>$qrow->vat_value,
-                                            "total"=>$qrow->total,
-                                            "wht_inc"=>$qrow->wht_inc,
-                                            "wht_percent"=>$qrow->wht_percent,
-                                            "wht_value"=>$qrow->wht_value,
-                                            "payment_amount"=>$qrow->payment_amount,
+                                            "total"=>0,
+                                            "wht_inc"=>"N",
+                                            "wht_percent"=>0,
+                                            "wht_value"=>0,
+                                            "payment_amount"=>0,
                                             "remark"=>$qrow->remark,
                                             "created_by"=>$this->login_user->id,
                                             "created_datetime"=>date("Y-m-d H:i:s"),
@@ -814,5 +829,23 @@ class Quotations_m extends MY_Model {
         $this->data["status"] = "success";
         $this->data["message"] = lang('record_saved');
         return $this->data;
+    }
+
+    function getTotalDocPartialBillingNote(){
+        $db = $this->db;
+        $docId = $this->json->doc_id;
+                    
+        $db->where("quotation_id",$docId);
+        $db->where("deleted", 0);
+        $totalPartialBillingNote = $db->count_all_results("billing_note");
+
+        if($totalPartialBillingNote == null) $totalPartialBillingNote = 0;
+
+        $this->data["total_billing_note"] = $totalPartialBillingNote;
+        $this->data["status"] = "success";
+        $this->data["message"] = "success";
+
+        return $this->data;
+
     }
 }
