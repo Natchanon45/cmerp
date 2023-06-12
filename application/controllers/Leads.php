@@ -116,6 +116,11 @@ class Leads extends MY_Controller
 	/* insert or update a lead */
 
     function save() {
+    	if($this->input->post("user_id") == null){
+    		redirect(get_uri("leads"));
+    		return;
+    	}
+
         //$id = $this->input->post('id');
         $view = $this->input->post('view');
         //$this->can_access_this_lead($id);
