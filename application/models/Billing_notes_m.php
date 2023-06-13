@@ -151,6 +151,7 @@ class Billing_notes_m extends MY_Model {
             if($quotation_id != null){
                 $qrow = $db->select("total, is_partials, partials_type")
                             ->from("quotation")
+                            ->where("id", $quotation_id)
                             ->where("deleted", 0)
                             ->get()->row();
 
@@ -176,7 +177,7 @@ class Billing_notes_m extends MY_Model {
                         $unpaid_amount = (($quotation_total - $billed_amount)/$quotation_total) * 100;
                     }
                 }else{
-                    log_message("error", "SYSERR=>Billing_notes_m->getDoc: quotation_is_partial != Y");
+                    log_message("error", "SYSERR=>Billing_notes_m->getDoc: quotation_is_partial != Y, doc_number:".$bnrow->doc_number);
                     return $this->data;
                     // มี quotation id อยู่ใน billing แต่ไม่ใช่ billing note แบบแบ่งจ่าย, ตอนนนี้ยังนึก case ไม่ออก แต่ไม่ควรเข้าเงื่อนไขนี้
                 }
