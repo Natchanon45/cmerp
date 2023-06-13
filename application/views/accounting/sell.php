@@ -130,16 +130,20 @@ function loadDataGrid(){
     var summation_column = 5;
 
     if(active_module == "quotations"){
+        $(".buttons li.add").css("display", "block");
         $(".buttons li.add a").attr("data-action-url", "<?php echo get_uri("quotations/addedit"); ?>");
         $(".buttons li.add span").append("เพิ่มใบเสนอราคา");
         doc_status = [{id:"", text:"-- <?php echo lang("status"); ?> --"}, {id:"W", text:"รออนุมัติ"}, {id:"A", text:"อนุมัติ"}, {id:"P", text:"แบ่งจ่าย"}, {id:"I", text:"ดำเนินการแล้ว"}, {id:"R", text:"ไม่อนุมัติ"}];
     }else if(active_module == "billing-notes"){
+        $(".buttons li.add").css("display", "block");
         $(".buttons li.add a").attr("data-action-url", "<?php echo get_uri("billing-notes/addedit"); ?>");
         $(".buttons li.add span").append("เพิ่มใบวางบิล");
         doc_status = [{id:"", text:"-- <?php echo lang("status"); ?> --"}, {id:"W", text:"รอวางบิล"}, {id:"A", text:"วางบิลแล้ว"}, {id:"I", text:"เปิดบิลแล้ว"}, {id:"V", text:"ยกเลิก"}];
     }else if(active_module == "invoices"){
+        $(".buttons li.add").css("display", "none");
         doc_status = [{id:"", text:"-- <?php echo lang("status"); ?> --"}, {id:"P", text:"รอเก็บเงิน"}, {id:"R", text:"เปิดใบเสร็จแล้ว"}, {id:"V", text:"ยกเลิก"}];
     }else if(active_module == "receipts"){
+        $(".buttons li.add").css("display", "block");
         $(".buttons li.add a").attr("data-action-url", "<?php echo get_uri("receipts/addedit"); ?>");
         $(".buttons li.add span").append("เพิ่มใบเสร็จรับเงิน");
         doc_status = [{id:"", text:"-- <?php echo lang("status"); ?> --"}, {id:"W", text:"รอดำเนินการ"}, {id:"P", text:"เก็บเงินแล้ว"}, {id:"V", text:"ยกเลิก"}];

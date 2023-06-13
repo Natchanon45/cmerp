@@ -17,7 +17,7 @@
             <!--<li><a  role="presentation" href="<?php echo_uri("leads/estimates/" . $lead_info->id); ?>" data-target="#lead-estimates"> <?php echo lang('estimates'); ?></a></li>-->
         <?php } ?>
         <?php if ($show_estimate_request_info) { ?>
-            <li><a  role="presentation" href="<?php echo_uri("leads/estimate_requests/" . $lead_info->id); ?>" data-target="#lead-estimate-requests"> <?php echo lang('estimate_requests'); ?></a></li>
+            <!--<li><a  role="presentation" href="<?php echo_uri("leads/estimate_requests/" . $lead_info->id); ?>" data-target="#lead-estimate-requests"> <?php echo lang('estimate_requests'); ?></a></li>-->
         <?php } ?>
         <?php if ($show_ticket_info) { ?>
             <li><a  role="presentation" href="<?php echo_uri("leads/tickets/" . $lead_info->id); ?>" data-target="#lead-tickets"> <?php echo lang('tickets'); ?></a></li>

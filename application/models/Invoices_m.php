@@ -389,6 +389,7 @@ class Invoices_m extends MY_Model {
         $invrow = $db->select("status")
                         ->from("invoice")
                         ->where("id", $docId)
+                        ->where("deleted", 0)
                         ->get()->row();
 
         if(empty($invrow)) return $this->data;

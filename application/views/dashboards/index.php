@@ -139,11 +139,11 @@
 
         <div class="col-md-3 widget-container">
             <?php
-            if ($show_income_vs_expenses) {
-                income_vs_expenses_widget();
-            } else {
+            /*if ($show_income_vs_expenses) {
+                //income_vs_expenses_widget();
+            } else {*/
                 my_task_stataus_widget();
-            }
+            //}
             ?>
         </div>
 

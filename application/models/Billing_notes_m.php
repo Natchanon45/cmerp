@@ -169,6 +169,7 @@ class Billing_notes_m extends MY_Model {
                     $billed_amount = $db->select("SUM(partials_amount) AS billed_amount")
                                                 ->from("billing_note")
                                                 ->where("quotation_id", $quotation_id)
+                                                ->where("deleted", 0)
                                                 ->get()->row()->billed_amount;
 
                     if($quotation_partial_type == "A"){
@@ -558,6 +559,7 @@ class Billing_notes_m extends MY_Model {
         $bnrow = $db->select("status")
                         ->from("billing_note")
                         ->where("id", $docId)
+                        ->where("deleted", 0)
                         ->get()->row();
 
         if(empty($bnrow)) return $this->data;
@@ -823,6 +825,7 @@ class Billing_notes_m extends MY_Model {
             }
 
             $db->where("id", $docId);
+            $db->where("deleted", 0);
             $db->update("billing_note", [
                                         "approved_by"=>$this->login_user->id,
                                         "approved_datetime"=>date("Y-m-d H:i:s"),
@@ -836,6 +839,7 @@ class Billing_notes_m extends MY_Model {
             }
 
             $db->where("id", $docId);
+            $db->where("deleted", 0);
             $db->update("billing_note", [
                                         "approved_by"=>$this->login_user->id,
                                         "approved_datetime"=>date("Y-m-d H:i:s"),
