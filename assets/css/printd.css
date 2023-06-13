@@ -319,15 +319,6 @@
     width: 58px;
 }
 
-#s-vat .vat_percent,
-#s-vat .vat_percent_zero{
-    margin-left: 4px;
-}
-
-#s-vat .vat_percent_zero{
-    display: none !important;
-}
-
 #printd .docitem tfoot #s-wht{
     border-top: 1px solid #cecece;
     margin-top: 12px;
@@ -510,16 +501,12 @@
     }
 
     #s-sub-total i.t1.v,
-    #s-sub-total i.t2.v,
-    #s-vat .vat_percent.v,
-    #s-vat .vat_percent_zero.v{
+    #s-sub-total i.t2.v{
         display: inline-block !important;
     }
 
     #s-sub-total i.t1.h,
-    #s-sub-total i.t2.h,
-    #s-vat .vat_percent.h,
-    #s-vat .vat_percent_zero.h{
+    #s-sub-total i.t2.h{
         display: none !important;
     }
 
