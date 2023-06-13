@@ -666,15 +666,32 @@ class Quotations_m extends MY_Model {
                     ->where("deleted", 0)
                     ->get()->row();
 
-
         if(empty($qrow)) return $this->data;
 
         $quotation_id = $this->data["doc_id"] = $docId;
         $quotation_number = $qrow->doc_number;
-        $quotation_total = $qrow->total;
-        $is_partials = $qrow->is_partials;
-        $partials_type = $qrow->partials_type;
+        $quotation_is_partials = $qrow->is_partials;
+        $quotation_partials_type = $qrow->partials_type;
         $currentStatus = $qrow->status;
+
+        $quotation_sub_total_before_discount = $qrow->sub_total_before_discount;
+
+        $quotation_discount_type = $qrow->discount_type;
+        $quotation_discount_percent = $qrow->discount_percent;
+        $quotation_discount_amount = $qrow->discount_amount;
+
+        $quotation_sub_total = $qrow->sub_total;
+
+        $quotation_vat_inc = $qrow->vat_inc;
+        $quotation_vat_percent = $qrow->vat_percent;
+        $quotation_vat_value = $qrow->vat_value;
+
+        $quotation_wht_inc = $qrow->wht_inc;
+        $quotation_wht_percent = $qrow->wht_percent;
+        $quotation_wht_value = $qrow->wht_value;
+
+        $quotation_total = $qrow->total;
+        $quotation_payment_amount = $qrow->payment_amount;
 
         if($qrow->status == $updateStatusTo && $updateStatusTo != "P"){
             $this->data["dataset"] = $this->getIndexDataSetHTML($qrow);
@@ -726,16 +743,25 @@ class Quotations_m extends MY_Model {
                     return $this->data;
                 }
 
-                if($is_partials == "N" && $partials_type == null){
-                    //$this->json->patials_type can be P OR A (Percent/Amount)
+                /*
+                * ตอนเริ่มสร้าง BL ใบแรกจาก, quotation จะมีสถานะเริ่มแรกที่ไม่ได้เป็นแบบแบ่งจ่าย $quotation_is_partials == "N"
+                * หลังจากสร้าง BL ไปแล้ว quotation จะเปลี่ยนสถานะเป็นแบบแบ่งจ่าย $quotation_is_partials == "Y"
+                *
+                * $this->json->patials_type มี 2 ประเภทคือ P OR A (Percent/Amount)
+                */
+                if($quotation_is_partials == "N" && $quotation_partials_type == null){
                     $db->where("id", $quotation_id);
                     $db->update("quotation", ["is_partials"=>"Y", "partials_type"=>$this->json->patials_type, "status"=>"P"]);
 
                     if($this->json->patials_type == "P") $partials_percent = 0;
                 }else{
-                    if($partials_type == "P") $partials_percent = 0;
+                    if($quotation_partials_type == "P") $partials_percent = 0;
                 }
 
+                $quotation_vat_value = 0;
+                $quotation_total = 0;
+                $quotation_wht_value = 0;
+                $quotation_payment_amount = 0;
 
             }elseif($updateStatusTo == "B"){
                 $db->where("id", $quotation_id);
@@ -756,27 +782,29 @@ class Quotations_m extends MY_Model {
                                             "reference_number"=>$quotation_number,
                                             "project_id"=>$qrow->project_id,
                                             "client_id"=>$qrow->client_id,
-                                            "sub_total_before_discount"=>$qrow->sub_total_before_discount,
-                                            "discount_type"=>$qrow->discount_type,
-                                            "discount_percent"=>$qrow->discount_percent,
-                                            "discount_amount"=>$qrow->discount_amount,
-                                            "sub_total"=>$qrow->sub_total,
+                                            "sub_total_before_discount"=>$quotation_sub_total_before_discount,
+                                            "discount_type"=>$quotation_discount_type,
+                                            "discount_percent"=>$quotation_discount_percent,
+                                            "discount_amount"=>$quotation_discount_amount,
+                                            "sub_total"=>$quotation_sub_total,
                                             "partials_percent"=>$partials_percent,
                                             "partials_amount"=>$partials_amount,
-                                            "vat_inc"=>$qrow->vat_inc,
-                                            "vat_percent"=>$qrow->vat_percent,
-                                            "vat_value"=>$qrow->vat_value,
-                                            "total"=>0,
-                                            "wht_inc"=>"N",
-                                            "wht_percent"=>0,
-                                            "wht_value"=>0,
-                                            "payment_amount"=>0,
+                                            "vat_inc"=>$quotation_vat_inc,
+                                            "vat_percent"=>$quotation_vat_percent,
+                                            "vat_value"=>$quotation_vat_value,
+                                            "total"=>$quotation_total,
+                                            "wht_inc"=>$quotation_wht_inc,
+                                            "wht_percent"=>$quotation_wht_percent,
+                                            "wht_value"=>$quotation_wht_value,
+                                            "payment_amount"=>$quotation_payment_amount,
                                             "remark"=>$qrow->remark,
                                             "created_by"=>$this->login_user->id,
                                             "created_datetime"=>date("Y-m-d H:i:s"),
                                             "status"=>"W",
                                             "deleted"=>0
                                         ]);
+
+            
 
             $billing_note_id = $db->insert_id();
 
@@ -814,7 +842,7 @@ class Quotations_m extends MY_Model {
             $this->data["dataset"] = $this->getIndexDataSetHTML($qrow);
             return $this->data;
         }
-
+//$db->trans_rollback();
         $db->trans_commit();
 
         if(isset($this->data["task"])) return $this->data;

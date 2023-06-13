@@ -63,12 +63,12 @@
                         <td><?php echo convertDate($doc_date, true); ?></td>
                     </tr>
                     <tr>
-                        <td class="custom-color">ครบกำหนด</td>
-                        <td><?php echo convertDate($due_date, true); ?></td>
+                        <td class="custom-color">เครดิต (วัน)</td>
+                        <td><?php echo $credit; ?></td>
                     </tr>
                     <tr>
-                        <td class="custom-color">เครดิต</td>
-                        <td><?php echo $credit; ?> วัน</td>
+                        <td class="custom-color">ครบกำหนด</td>
+                        <td><?php echo convertDate($due_date, true); ?></td>
                     </tr>
                     <tr>
                         <td class="custom-color">ผู้ขาย</td>
@@ -146,7 +146,7 @@
                             <span class="c3"><span class="currency">บาท</span></span>
                         </p>
                         <p id="s-vat">
-                            <span class="c1 custom-color"><input type="checkbox" id="vat_inc" <?php if($vat_inc == "Y") echo "checked" ?> <?php if($doc_status != "W") echo "disabled"; ?>>ภาษีมูลค่าเพิ่ม<span class="vat_percent custom-color"><?php echo $vat_percent; ?></span><span class="vat_percent_zero custom-color">7%</span></span>
+                            <span class="c1 custom-color"><input type="checkbox" id="vat_inc" <?php if($vat_inc == "Y") echo "checked" ?> <?php if($doc_status != "W") echo "disabled"; ?>>ภาษีมูลค่าเพิ่ม <?php echo $this->Taxes_m->getVatPercent()."%"; ?></span>
                             <span class="c2"><input type="text" id="vat_value" readonly></span>
                             <span class="c3"><span class="currency">บาท</span></span>
                         </p>

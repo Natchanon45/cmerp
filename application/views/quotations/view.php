@@ -142,7 +142,7 @@
                             <span class="c3"><span class="currency">บาท</span></span>
                         </p>
                         <p id="s-vat">
-                            <span class="c1 custom-color"><input type="checkbox" id="vat_inc" <?php if($vat_inc == "Y") echo "checked" ?> <?php if($doc_status != "W") echo "disabled"; ?>>ภาษีมูลค่าเพิ่ม<span class="vat_percent custom-color"><?php echo $vat_percent; ?></span><span class="vat_percent_zero custom-color">0%</span></span>
+                            <span class="c1 custom-color"><input type="checkbox" id="vat_inc" <?php if($vat_inc == "Y") echo "checked" ?> <?php if($doc_status != "W") echo "disabled"; ?>>ภาษีมูลค่าเพิ่ม <?php echo $this->Taxes_m->getVatPercent()."%"; ?></span>
                             <span class="c2"><input type="text" id="vat_value" readonly></span>
                             <span class="c3"><span class="currency">บาท</span></span>
                         </p>
@@ -339,14 +339,9 @@ function loadSummary(){
         if(data.vat_inc == "Y"){
             $("#vat_inc").prop("checked", true);
             $("#vat_value").val(data.vat_value);
-            $("#s-vat .vat_percent").removeClass("h").addClass("v");
-            $("#s-vat .vat_percent_zero").removeClass("v").addClass("h");
-            
         }else{
             $("#vat_inc").prop("checked", false);
             $("#vat_value").val(data.vat_value);
-            $("#s-vat .vat_percent").removeClass("v").addClass("h");
-            $("#s-vat .vat_percent_zero").removeClass("h").addClass("v");
         }
 
         if(data.wht_inc == "Y"){
