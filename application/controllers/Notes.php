@@ -6,9 +6,8 @@ if (!defined('BASEPATH'))
 class Notes extends MY_Controller {
 
     function __construct() {
-		
         parent::__construct();
-		
+
         $this->access_only_team_members();
 		
 		$this->type = 'note';
@@ -446,18 +445,16 @@ class Notes extends MY_Controller {
 	
 	
     function index() {
-		
         $this->check_module_availability("module_note");
 		
 		$this->buttonTop = array();
 		
 		$this->buttonTop[] = modal_anchor(get_uri("labels/modal_form"), "<i class='fa fa-tags'></i> " . lang('manage_labels'), array("class" => "btn btn-default", "title" => lang('manage_labels'), "data-post-type" => "note"));
-	
 			
 		$this->buttonTop[] = modal_anchor(get_uri("notes/modal_form"), "<i class='fa fa-plus-circle'></i> " . lang('add_note'), array("class" => "btn btn-default", "title" => lang('add_note'), "data-post-project_id" => 0));
 
         //data-post-project_id="1"
-	
+        
         $this->labeltest();
         
         $labels_where["context"] = "note";
@@ -470,7 +467,7 @@ class Notes extends MY_Controller {
 			FROM labels WHERE context = 'note'
 			AND deleted = 0
 		";
-		 
+		
         $view_data['label'] = $this->dao->fetchAll( $sql );
 
         // if($this->login_user->is_admin == 1 || $this->getRolePermission['view_row'] == "2"){
