@@ -6,8 +6,35 @@
         <input type="hidden" name="client_id" value="<?php echo $client_id; ?>" />
         <input type="hidden" name="user_id" value="<?php echo $user_id; ?>" />
 		
-		  <div class="form-group">
-            <?php echo $this->dao->getBombInputs($model_info->id) ?>
+		<div class="form-group">
+            <?php
+                $val = $this->db->select("GROUP_CONCAT( label_id ) as label_ids")
+                                    ->from("label_table")
+                                    ->where("doc_id", $model_info->id)
+                                    ->where("tbName", "notes")
+                                    ->get()->row()->label_ids;
+
+                $lrows = $this->db->select("id, title as text")
+                                    ->from("labels")
+                                    ->where("context", "note")
+                                    ->where("deleted", 0)
+                                    ->get()->result();
+            ?>
+
+
+            <div class="form-group">
+                <label for="invoice_labels" class=" col-md-3"><?php echo lang( 'labels' );?></label>
+                <div class=" col-md-9">
+                    <input type="text" name="labels" value="<?php echo $val; ?>" class="form-control" placeholder="<?php echo lang( 'labels' ); ?>">
+                </div>
+            </div>
+
+            <script>
+
+            $( function() {
+                $('[name="labels"]').select2({multiple: true, data: <?php echo json_encode( $lrows ) ?>});
+            });
+            </script>
         </div>
         <div class="form-group">
             <label for="title" class=" col-md-3">หัวเรื่อง</label>

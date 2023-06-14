@@ -8,14 +8,18 @@ class Notes extends MY_Controller {
     function __construct() {
         parent::__construct();
 
-        $this->access_only_team_members();
+        //$this->access_only_team_members();
+        if($this->Permission_m->access_note == false){
+            redirect("forbidden");
+            return;
+        }
 		
 		$this->type = 'note';
-      
 		
 		$this->load->model( 'Db_model' );
-        $this->load->model('Permission_m');
         $this->load->model('Note_types_model');
+
+
 		
 		$this->dao = $this->Db_model;
 		$param['table_name'] = $this->type; 
@@ -53,6 +57,7 @@ class Notes extends MY_Controller {
 
 
     function modal_form() {
+
 		$id = !empty( $this->input->post('id') )? $this->input->post('id'): NULL;
 		
         $view_data['model_info'] = $this->Notes_model->get_one( $id );

@@ -124,10 +124,6 @@ class Permission_m extends MY_Model {
 
 	}
 
-	function get(){
-		return $this->permissions;
-	}
-
 	function login_user_test()
 	{
 		return $this->login_user;

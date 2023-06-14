@@ -137,7 +137,7 @@ class MY_Controller extends CI_Controller {
 
 		$param['url'] = $url;
 
-        $ignore_permission_classes = ["accounting", "quotations", "billing_notes", "invoices", "receipts", "clients", "notes"];
+        $ignore_permission_classes = ["test", "accounting", "quotations", "billing_notes", "invoices", "receipts", "clients", "notes"];
         if(in_array($this->router->fetch_class(), $ignore_permission_classes)) return;          
 
         $this->getRolePermission = $this->db_model->getRolePermission( $param );
