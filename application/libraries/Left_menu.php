@@ -118,8 +118,7 @@ class Left_menu {
 			$submenu = get_array_value($main_menu, "submenu");
 			$expend_class = $submenu ? " expand " : "";
 			
-			$active_class = uri_string() == $url? "active" : "";
-			
+			$active_class = uri_string() == $url? "active" : (get_instance()->uri->segment(1) == $url? "active" : "");
 			
 			//isset($main_menu["is_active_menu"]) 
 
@@ -211,7 +210,6 @@ class Left_menu {
 			
 			$class = isset( $main_menu['class']) ? '<i class="fa '. $main_menu['class'] .'"></i>' : '<i class="'. $main_menu['icon'] .'"></i>';
 
-            
 			$liss[] = '
 				<li class="'. $expend_class .' '. $devider_class .' '. $active_class .' '. $submenu_open_class .' main">
 					<a '. $target .' href="'. $link .'">
