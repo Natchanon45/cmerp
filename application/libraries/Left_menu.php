@@ -46,6 +46,8 @@ class Left_menu {
 				FROM left_menu l
 				WHERE ( 
 					( l.every_body = 1 ) 
+					OR
+					( l.left_menu = 1 ) 
 					OR 
 					( 1 = ". $this->ci->login_user->is_admin ." ) 
 					OR 
@@ -63,8 +65,7 @@ class Left_menu {
 					l.order_number ASC
 			";
 			
-		}
-		else {
+		}else {
 			
 			$sql = "
 				SELECT 
@@ -102,9 +103,10 @@ class Left_menu {
         // $value = get_setting('module_purchaserequests');
         // echo 'purchaserequests:'.$value."<br />\r\n";
 		foreach ( $sortable_items as $ka => $main_menu ) {
+			//log_message("error", json_encode($main_menu));
             if(!$this->ci->login_user->is_admin && !in_array($main_menu['id'], $allowed_menus)) continue;
             $value = get_setting('module_'.$main_menu['name']);
-            
+
             if($value!==null && !$value) {
                 continue;
             }
@@ -118,8 +120,7 @@ class Left_menu {
 			$submenu = get_array_value($main_menu, "submenu");
 			$expend_class = $submenu ? " expand " : "";
 			
-			$active_class = uri_string() == $url? "active" : "";
-			
+			$active_class = uri_string() == $url? "active" : (get_instance()->uri->segment(1) == $url? "active" : "");
 			
 			//isset($main_menu["is_active_menu"]) 
 
@@ -211,7 +212,6 @@ class Left_menu {
 			
 			$class = isset( $main_menu['class']) ? '<i class="fa '. $main_menu['class'] .'"></i>' : '<i class="'. $main_menu['icon'] .'"></i>';
 
-            
 			$liss[] = '
 				<li class="'. $expend_class .' '. $devider_class .' '. $active_class .' '. $submenu_open_class .' main">
 					<a '. $target .' href="'. $link .'">

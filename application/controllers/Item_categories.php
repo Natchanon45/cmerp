@@ -10,12 +10,12 @@ class Item_categories extends MY_Controller {
         $this->access_only_admin();
     }
 
-    //load item categories list view
+    // Load item categories list view
     function index() {
         $this->template->rander("item_categories/index");
     }
 
-    //load item category add/edit modal form
+    // Load item category add/edit modal form
     function modal_form() {
         validate_submitted_data(array(
             "id" => "numeric"
@@ -25,18 +25,30 @@ class Item_categories extends MY_Controller {
         $this->load->view('item_categories/modal_form', $view_data);
     }
 
-    //save item category
+    // Save item category
     function save() {
-
         validate_submitted_data(array(
             "id" => "numeric",
             "title" => "required"
         ));
 
+        $is_duplicate = false;
         $id = $this->input->post('id');
+        if ($id) {
+            $is_duplicate = $this->dev2_itemCateDuplicateWithId($this->input->post('title'), $this->input->post('id'));
+        } else {
+            $is_duplicate = $this->dev2_itemCateDuplicate($this->input->post('title'));
+        }
+
+        if ($is_duplicate) {
+            echo json_encode(array("success" => false, 'message' => lang('item_cate_duplicate')));
+            return;
+        }
+
         $data = array(
             "title" => $this->input->post('title')
         );
+
         $save_id = $this->Item_categories_model->save($data, $id);
         if ($save_id) {
             echo json_encode(array("success" => true, "data" => $this->_row_data($save_id), 'id' => $save_id, 'message' => lang('record_saved')));
@@ -45,7 +57,7 @@ class Item_categories extends MY_Controller {
         }
     }
 
-    //delete/undo an item category
+    // Delete/undo an item category
     function delete() {
         validate_submitted_data(array(
             "id" => "required|numeric"
@@ -67,7 +79,7 @@ class Item_categories extends MY_Controller {
         }
     }
 
-    //get data for items category list
+    // Get data for items category list
     function list_data() {
         $list_data = $this->Item_categories_model->get_details()->result();
         $result = array();
@@ -77,19 +89,86 @@ class Item_categories extends MY_Controller {
         echo json_encode(array("data" => $result));
     }
 
-    //get an expnese category list row
+    // Get an expnese category list row
     private function _row_data($id) {
         $options = array("id" => $id);
         $data = $this->Item_categories_model->get_details($options)->row();
+        
         return $this->_make_row($data);
     }
 
-    //prepare an item category list row
+    // Prepare an item category list row
     private function _make_row($data) {
-        return array($data->title,
-            modal_anchor(get_uri("item_categories/modal_form"), "<i class='fa fa-pencil'></i>", array("class" => "edit", "title" => lang('edit_items_category'), "data-post-id" => $data->id))
-            . js_anchor("<i class='fa fa-times fa-fw'></i>", array('title' => lang('delete_items_category'), "class" => "delete", "data-id" => $data->id, "data-action-url" => get_uri("item_categories/delete"), "data-action" => "delete"))
+        $options = "";
+        $can_delete = $this->dev2_itemCateCanDelete($data->id);
+
+        $options .= modal_anchor(
+            get_uri("item_categories/modal_form"), 
+            "<i class='fa fa-pencil'></i>", 
+            array(
+                "class" => "edit", 
+                "title" => lang('edit_items_category'), 
+                "data-post-id" => $data->id
+            )
+        ); // btn-edit
+
+        if ($can_delete) {
+            $options .= js_anchor(
+                "<i class='fa fa-times fa-fw'></i>", 
+                array(
+                    "title" => lang('delete_items_category'), 
+                    "class" => "delete", 
+                    "data-id" => $data->id, 
+                    "data-action-url" => get_uri("item_categories/delete"), 
+                    "data-action" => "delete"
+                )
+            ); // btn-delete
+        }
+        
+        return array(
+            $data->id,
+            $data->title,
+            $options
         );
+    }
+
+    private function dev2_itemCateDuplicate($name)
+    {
+        $is_duplicate = false;
+        $rows = $this->Item_categories_model->dev2_getItemCateByName($name);
+
+        if ($rows > 0) {
+            $is_duplicate = true;
+        }
+        return $is_duplicate;
+    }
+
+    private function dev2_itemCateDuplicateWithId($name, $id)
+    {
+        $is_duplicate = false;
+        $rows = $this->Item_categories_model->dev2_getItemCateByNameWithId($name, $id);
+
+        if ($rows > 0) {
+            $is_duplicate = true;
+        }
+        return $is_duplicate;
+    }
+
+    private function dev2_itemCateCanDelete($id)
+    {
+        $can_delete = true;
+        $rows = $this->Item_categories_model->dev2_getCountItemCateById($id);
+
+        if ($rows > 0) {
+            $can_delete = false;
+        }
+        return $can_delete;
+    }
+
+    public function dev2_countItemCateById($id)
+    {
+        $rows = $this->Item_categories_model->dev2_getCountItemCateById($id);
+        echo $rows;
     }
 
 }

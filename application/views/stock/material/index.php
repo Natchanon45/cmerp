@@ -1,3 +1,9 @@
+<style type="text/css">
+.small-view {
+	font-size: small;
+}
+</style>
+
 <div id="page-content" class="p20 clearfix">
 	<div class="panel panel-default">
 		<div class="page-title clearfix">
@@ -32,7 +38,7 @@
 			</div>
 		</div>
 		<div class="table-responsive">
-			<table id="material-table" class="display" cellspacing="0" width="100%"></table>
+			<table id="material-table" class="display small-view" cellspacing="0" width="100%"></table>
 		</div>
 	</div>
 </div>
@@ -46,27 +52,24 @@
 			],
 			columns: [
 				{ title: "<?php echo lang("id") ?>", "class": "text-center w50" },
-				{ title: "<?php echo lang('preview_image') ?> ", "class": "w100" },
+				{ title: "<?php echo lang("preview_image") ?> ", "class": "w100" },
 				{ title: '<?php echo lang("stock_material_name"); ?>', "class": "" },
-				<?php if ($can_read_production_name) :?>
+				<?php if ($can_read_production_name): ?>
 					{ title: '<?php echo lang("stock_material_production_name"); ?>', "class": "" },
 				<?php endif; ?>
 				{ title: '<?php echo lang("stock_material_barcode"); ?>', "class": "w200" },
 				{ title: '<?php echo lang("stock_material_category"); ?>', "class": "" },
-				// { title: '<?php // echo lang("account_category"); ?>', "class": "w200" },
 				{ title: '<?php echo lang("description"); ?>', "class": "w200" },
 				{ title: '<?php echo lang("stock_material_remaining"); ?>', "class": "text-right" },
 				{ title: '<?php echo lang("stock_material_unit"); ?>', "class": "w50 text-center" },
 				{ title: '<i class="fa fa-bars"></i>', "class": "text-center option w100" }
 			],
-			<?php if (isset($is_admin) && $is_admin) { ?>
-				<?php if ($can_read_production_name) { ?>
-					printColumns: combineCustomFieldsColumns([0, 1, 2, 3, 4, 5, 6]),
-					xlsColumns: combineCustomFieldsColumns([0, 1, 2, 3, 4, 5, 6]),
-				<?php } else { ?>
-					printColumns: combineCustomFieldsColumns([0, 1, 2, 3, 4, 5]),
-					xlsColumns: combineCustomFieldsColumns([0, 1, 2, 3, 4, 5]),
-				<?php } ?>
+			<?php if ($can_read_production_name) { ?>
+				printColumns: combineCustomFieldsColumns([0, 1, 2, 3, 4, 5, 6, 7, 8]),
+				xlsColumns: combineCustomFieldsColumns([0, 1, 2, 3, 4, 5, 6, 7, 8])
+			<?php } else { ?>
+				printColumns: combineCustomFieldsColumns([0, 1, 2, 3, 4, 5, 6, 7]),
+				xlsColumns: combineCustomFieldsColumns([0, 1, 2, 3, 4, 5, 6, 7])
 			<?php } ?>
 		});
 	});

@@ -172,4 +172,9 @@ class Bom_stock_groups_model extends Crud_model {
         }
     }
 
+    function dev2_deleteRestockingItemById($id)
+    {
+        $this->db->delete('bom_stocks', array('id' => $id));
+    }
+
 }

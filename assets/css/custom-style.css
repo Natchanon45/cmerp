@@ -21,6 +21,9 @@ span.help-block{color:#ec5855;}
 .input-suffix > .input-tag{
     position:absolute; top:0; right:0; padding:6px 8px; font-size:15px;
 }
+.input-suffix > .input-tag-2{
+    position:absolute; top:0; right:0; padding:6px 8px; font-size:15px;
+}
 input::-webkit-outer-spin-button,
 input::-webkit-inner-spin-button{-webkit-appearance:none; margin:0;}
 input[type=number]{-moz-appearance:textfield;}

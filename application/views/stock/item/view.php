@@ -8,28 +8,34 @@
 </div>
 <div id="page-content" class="clearfix">
 
-  <ul id="client-tabs" data-toggle="ajax-tab" class="nav nav-tabs" role="tablist" style="background:#ffffff;">
+  <ul id="client-tabs" data-toggle="ajax-tab" class="nav nav-tabs" role="tablist" style="background: #ffffff;">
+
     <li><a role="presentation" href="<?php echo_uri("stock/item_info/".$item_info->id); ?>" data-target="#material-info">
       <?php echo lang('stock_item_info'); ?>
     </a></li>
-    <?php if(!isset($hidden_menu) || !in_array('material-pricings', $hidden_menu)){?>
-      <li><a role="presentation" href="<?php echo_uri("stock/material_pricings/".$item_info->id); ?>" data-target="#material-pricings">
-        <?php echo lang('stock_item_pricings'); ?>
+
+    <!-- <?php // if(!isset($hidden_menu) || !in_array('material-pricings', $hidden_menu)) { ?>
+      <li><a role="presentation" href="<?php // echo_uri("stock/material_pricings/".$item_info->id); ?>" data-target="#material-pricings">
+        <?php // echo lang('stock_item_pricings'); ?>
       </a></li>
-    <?php }?>
+    <?php // } ?> -->
+
     <li><a role="presentation" href="<?php echo_uri("stock/item_files/".$item_info->id); ?>" data-target="#material-files">
       <?php echo lang('files'); ?>
     </a></li>
-    <?php if(!isset($hidden_menu) || !in_array('material-remaining', $hidden_menu)){?>
-      <li><a role="presentation" href="<?php echo_uri("stock/item_remainings/".$item_info->id); ?>" data-target="#material-remaining">
-        <?php echo lang('stock_restock_list'); ?>
+
+    <!-- <?php // if(!isset($hidden_menu) || !in_array('material-remaining', $hidden_menu)) { ?>
+      <li><a role="presentation" href="<?php // echo_uri("stock/item_remainings/".$item_info->id); ?>" data-target="#material-remaining">
+        <?php // echo lang('stock_restock_list'); ?>
       </a></li>
-    <?php }?>
-    <?php if(!isset($hidden_menu) || !in_array('material-used', $hidden_menu)){?>
-      <li><a role="presentation" href="<?php echo_uri("stock/item_used/".$item_info->id); ?>" data-target="#material-used">
-        <?php echo lang('stock_restock_used_list'); ?>
+    <?php // } ?> -->
+
+    <!-- <?php // if(!isset($hidden_menu) || !in_array('material-used', $hidden_menu)) { ?>
+      <li><a role="presentation" href="<?php // echo_uri("stock/item_used/".$item_info->id); ?>" data-target="#material-used">
+        <?php // echo lang('stock_restock_used_list'); ?>
       </a></li>
-    <?php }?>
+    <?php // } ?> -->
+
   </ul>
   <div class="tab-content">
     <div role="tabpanel" class="tab-pane fade" id="material-info"></div>
