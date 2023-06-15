@@ -10,6 +10,14 @@
 		color: #ff4500;
 		padding-left: 1.2rem;
 	}
+
+	.input-suffix > .input-tag-2 {
+		position: absolute;
+		top: 0;
+		right: 0;
+		padding: 6px 8px;
+		font-size: 15px;
+	}
 </style>
 
 <p class="dev2-alert">
