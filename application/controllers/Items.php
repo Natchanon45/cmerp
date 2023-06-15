@@ -1343,7 +1343,7 @@ class Items extends MY_Controller
 
 		$view_data['buttonTop'] = implode('', $buttonTop);
 		$view_data['categories_dropdown'] = $this->_get_categories_dropdown();
-		$this->template->rander("" . $this->className . "/index", $view_data);
+		$this->template->rander("items/index", $view_data);
 	}
 
 	function list_data()

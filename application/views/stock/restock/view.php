@@ -6,30 +6,35 @@
     <?php echo lang('stock_restock') . " - " . $restock_info->name ?>
   </h1>
 </div>
-<div id="page-content" class="clearfix">
 
+<div id="page-content" class="clearfix">
   <ul id="client-tabs" data-toggle="ajax-tab" class="nav nav-tabs" role="tablist" style="background:#ffffff;">
-    <li><a role="presentation" href="<?php echo_uri("stock/restock_info/".$restock_info->id); ?>" data-target="#restock-info">
-      <?php echo lang('stock_restock_info'); ?>
-    </a></li>
-    <li><a role="presentation" href="<?php echo_uri("stock/restock_details/".$restock_info->id); ?>" data-target="#restock-details">
-      <?php echo lang('stock_restock_list'); ?>
-    </a></li>
-    <li><a role="presentation" href="<?php echo_uri("stock/restock_used/".$restock_info->id); ?>" data-target="#restock-used">
-      <?php echo lang('stock_restock_used_list'); ?>
-    </a></li>
+    <li>
+      <a role="presentation" href="<?php echo_uri("stock/restock_info/" . $restock_info->id); ?>" data-target="#restock-info">
+        <?php echo lang('stock_restock_info'); ?>
+      </a>
+    </li>
+    <li>
+      <a role="presentation" href="<?php echo_uri("stock/restock_details/" . $restock_info->id); ?>" data-target="#restock-details">
+        <?php echo lang('stock_restock_list'); ?>
+      </a>
+    </li>
+    <li>
+      <a role="presentation" href="<?php echo_uri("stock/restock_used/" . $restock_info->id); ?>" data-target="#restock-used">
+        <?php echo lang('stock_restock_used_list'); ?>
+      </a>
+    </li>
   </ul>
+
   <div class="tab-content">
     <div role="tabpanel" class="tab-pane fade" id="restock-info"></div>
     <div role="tabpanel" class="tab-pane fade" id="restock-details"></div>
     <div role="tabpanel" class="tab-pane fade" id="restock-used"></div>
   </div>
-
 </div>
 
 <script type="text/javascript">
   $(document).ready(function () {
-
     setTimeout(function () {
       var tab = "<?php echo $tab; ?>";
       if (tab === "info") {
@@ -40,6 +45,5 @@
         $("[data-target=#restock-used]").trigger("click");
       }
     }, 210);
-
   });
 </script>

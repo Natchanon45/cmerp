@@ -10,7 +10,6 @@ class Bom_item_groups_model extends Crud_model {
         parent::__construct($this->table);
     }
     
-
     function get_details($options = array()) {
         $where = "";
         
@@ -23,7 +22,7 @@ class Bom_item_groups_model extends Crud_model {
             $where .= " AND bsg.created_by = $created_by";
         }
 
-        return $this->db->query("
+        $sql = "
             SELECT bsg.*, 
             u.id `user_id`, 
             u.first_name `user_first_name`, 
@@ -33,16 +32,17 @@ class Bom_item_groups_model extends Crud_model {
             LEFT JOIN users u ON u.id = bsg.created_by 
             WHERE 1 $where 
             GROUP BY bsg.id 
-        ");
-        
+        ";
+
+        return $this->db->query($sql);
     }
 
     function delete_one($id) {
         $this->db->query("DELETE FROM bom_item_groups WHERE id = $id");
         $this->db->query("DELETE FROM bom_items WHERE group_id = $id");
+        
         return true;
     }
-
 
     function get_restocks($options = array()) {
         $where = "";
@@ -65,7 +65,7 @@ class Bom_item_groups_model extends Crud_model {
         }
         $sql = "
             SELECT bs.*, 
-            it.title `item_name`, it.unit_type `item_unit`, it.noti_threshold, 
+            it.title `item_name`, it.unit_type `item_unit`, it.item_code, it.noti_threshold, 
             bsg.name `group_name`, bsg.created_date, 
             bs.price,
             u.id `user_id`, 
@@ -77,12 +77,10 @@ class Bom_item_groups_model extends Crud_model {
             INNER JOIN bom_item_groups bsg ON bsg.id = bs.group_id 
             LEFT JOIN users u ON u.id = bsg.created_by 
             WHERE 1 $where 
-            GROUP BY bs.id
-            
+            GROUP BY bs.id 
         ";
         
         return $this->db->query($sql);
-
     }
 
     function get_restocks2($options = array()) {
@@ -130,13 +128,11 @@ class Bom_item_groups_model extends Crud_model {
             WHERE 1 $where 
             GROUP BY bs.id 
         ";
-
         
         return $this->db->query($sql);
     }
     
-    function restock_item_save($group_id = 0, $restock_ids = [], $item_ids = [], 
-    $stocks = [], $prices = []) {
+    function restock_item_save($group_id = 0, $restock_ids = [], $item_ids = [], $stocks = [], $prices = [], $serns = []) {
         $except_ids = array_filter($restock_ids, function($var){ return !empty($var); });
         $where = "";
         if (sizeof($except_ids)) {
@@ -151,7 +147,8 @@ class Bom_item_groups_model extends Crud_model {
                             'group_id' => $group_id,
                             'item_id' => $d,
                             'stock' => $stocks[$i],
-                            'remaining' => $stocks[$i]
+                            'remaining' => $stocks[$i],
+                            'serial_number' => $serns[$i]
                         ]);
                     } else {
                         $this->db->insert($this->table2, [
@@ -159,16 +156,37 @@ class Bom_item_groups_model extends Crud_model {
                             'item_id' => $d,
                             'stock' => $stocks[$i],
                             'remaining' => $stocks[$i],
-                            'price' => $prices[$i]
+                            'price' => $prices[$i],
+                            'serial_number' => $serns[$i]
                         ]);
                     }
                 } else {
-                    $this->db->query("UPDATE {$this->table2} 
-                        SET item_id = '$d', stock = '$stocks[$i]', price = '$prices[$i]' 
-                        WHERE id = '$restock_ids[$i]'");
+                    $this->db->query("UPDATE {$this->table2} SET item_id = '$d', stock = '$stocks[$i]', price = '$prices[$i]', serial_number = '$serns[$i]' WHERE id = '$restock_ids[$i]'");
                 }
             }
         }
+    }
+
+    function dev2_getRestockingItemList($post)
+    {
+        $where_create_by = "";
+        if ($post) {
+            $where_create_by = "AND `big`.`created_by` = " . $post;
+        }
+
+        $sql = "SELECT bis.id AS id, big.id AS group_id, big.name AS group_name, bis.serial_number AS sern, i.id AS item_id, i.title AS item_name, i.item_code AS item_code, bis.stock AS stock_qty, bis.remaining AS remain_qty, i.unit_type AS item_unit, big.created_by AS create_by, big.created_date AS create_date 
+        FROM bom_item_stocks bis 
+        LEFT JOIN bom_item_groups big ON bis.group_id = big.id 
+        INNER JOIN items i ON bis.item_id = i.id 
+        WHERE 1 AND bis.stock > 0 " . $where_create_by . " ORDER BY bis.id ";
+        
+        $query = $this->db->query($sql);
+        return $query->result();
+    }
+
+    function dev2_deleteRestockingItemById($id)
+    {
+        $this->db->delete('bom_item_stocks', array('id' => $id));
     }
 
 }

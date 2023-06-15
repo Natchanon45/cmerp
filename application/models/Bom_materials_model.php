@@ -257,4 +257,64 @@ class Bom_materials_model extends Crud_model
 		);
 	}
 
+	function dev2_getCountNameByMaterialName($name)
+	{
+		$sql = "SELECT `name` FROM `bom_materials` WHERE LOWER(`name`) = '" . strtolower($name) . "'";
+
+		if (isset($name) && strlen($name) > 0) {
+			$query = $this->db->query($sql);
+			return $query->num_rows();
+		} else {
+			return 0;
+		}
+	}
+
+	function dev2_getCountNameByMaterialNameWithId($name, $id) 
+	{
+		$sql = "SELECT `name` FROM `bom_materials` WHERE 1 AND LOWER(`name`) = '" . strtolower($name) . "' AND `id` <> '" . $id . "'";
+		
+		if (isset($name) && strlen($name) > 0) {
+			$query = $this->db->query($sql);
+			return $query->num_rows();
+		} else {
+			return 0;
+		}
+	}
+
+	function dev2_getMaterialCateByName($name)
+	{
+		$rows = 0;
+        $sql = "SELECT `id` FROM `bom_material_categories` WHERE 1 AND LOWER(`title`) = '" . strtolower($name) . "'";
+
+        if (isset($name) && strlen($name) > 0) {
+            $query = $this->db->query($sql);
+            $rows = $query->num_rows();
+        }
+        return $rows;
+	}
+
+	function dev2_getMaterialCateByNameWithId($name, $id)
+	{
+		$rows = 0;
+        $sql = "SELECT `id` FROM `bom_material_categories` WHERE 1 AND LOWER(`title`) = '" . strtolower($name) . "' AND `id` != '" . $id . "'";
+
+        if (isset($name) && strlen($name) > 0) {
+            $query = $this->db->query($sql);
+            $rows = $query->num_rows();
+        }
+        return $rows;
+	}
+
+	function dev2_getCountMaterialCateById($id)
+	{
+		$rows = 0;
+        $sql = "SELECT `id` FROM `bom_materials` WHERE `category_id` = '" . $id . "'";
+
+        if (isset($id) && $id != "0") {
+            $query = $this->db->query($sql);
+            $rows = $query->num_rows();
+        }
+        return $rows;
+	}
+
 }

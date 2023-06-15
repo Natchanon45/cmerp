@@ -111,4 +111,33 @@ class Bom_item_stocks_model extends Crud_model {
         return true;
     }
 
+    function dev2_getSerialNumByGroupId($group_id)
+    {
+        $query = $this->db->select('serial_number')->get_where('bom_item_stocks', array('group_id' => $group_id));
+        
+        $sern = array();
+        foreach ($query->result() as $item) {
+            array_push($sern, $item->serial_number);
+        }
+        return $sern;
+    }
+
+    function dev2_getSerialNumByGroupIdWithoutSelf($group_id, $id)
+    {
+        $sql = "SELECT `serial_number` FROM `bom_item_stocks` WHERE `group_id` = '" . $group_id . "' AND `id` != '" . $id . "'";
+        $query = $this->db->query($sql);
+
+        $sern = array();
+        foreach ($query->result() as $item) {
+            array_push($sern, $item->serial_number);
+        }
+        return $sern;
+    }
+
+    function dev2_getCountRestockingByItemId($id)
+    {
+        $query = $this->db->get_where('bom_item_stocks', ['item_id' => $id]);
+        return $query->num_rows();
+    }
+
 }

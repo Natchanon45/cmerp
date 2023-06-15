@@ -1,3 +1,9 @@
+<style type="text/css">
+.string-upper {
+    text-transform: uppercase;
+}
+</style>
+
 <input type="hidden" name="id" value="<?php echo isset($model_info->id) ? $model_info->id : ''; ?>" />
 <input type="hidden" name="view" value="<?php echo isset($view) ? $view : ""; ?>" />
 
@@ -121,18 +127,22 @@ if (empty($model_info->id)) {
 	</label>
 	<div class="<?php echo $field_column; ?>">
 		<?php
-		echo form_input(
-			array(
-				"id" => "unit",
-				"name" => "unit",
-				"value" => $model_info->unit,
-				"class" => "form-control",
-				"placeholder" => lang('stock_material_unit'),
-				"data-rule-required" => true,
-				"data-msg-required" => lang("field_required"),
-				"readonly" => $readonly
-			)
+		$set_unit = array(
+			"id" => "unit",
+			"name" => "unit",
+			"value" => $model_info->unit,
+			"class" => "form-control string-upper",
+			"placeholder" => lang('stock_material_unit'),
+			"data-rule-required" => true,
+			"data-msg-required" => lang("field_required"),
+			"readonly" => $readonly
 		);
+
+		if (isset($model_info->can_delete) && !$model_info->can_delete) {
+			$set_unit["readonly"] = true;
+		}
+
+		echo form_input($set_unit);
 		?>
 	</div>
 </div>
