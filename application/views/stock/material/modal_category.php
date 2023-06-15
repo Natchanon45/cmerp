@@ -1,3 +1,11 @@
+<style>
+#alert-message {
+    box-shadow: none;
+    color: #ec5855;
+    margin: 0 1rem 0 1rem !important;
+}
+</style>
+
 <?php echo form_open(get_uri("stock/material_category_save"), array("id" => "category-form", "class" => "general-form", "role" => "form")); ?>
 <div class="modal-body clearfix label-modal-body">
   <input type="hidden" id="type" name="type" value="<?php echo $type; ?>" />
@@ -21,6 +29,9 @@
             ));
           ?>
         </div>
+        <p id="alert-message" class="hide">
+            <span><?php echo lang('item_cate_duplicate'); ?></span>
+        </p>
       </div>
     </div>
     <div class="col-md-3">
@@ -56,30 +67,57 @@
     $("#category-form").appForm({
       isModal: false,
       onSuccess: function (result) {
-        if (result.success) {
-          if ($("#category_id").val()) {
-            var $selector = $categoryShowArea.find("[data-id='" + result.id + "']");
-            $selector.html(result.data.title);
-            hideEditMode();
-          } else {
-            $categoryShowArea.prepend(`<span data-act="category-edit-delete" data-id="${result.id}" class="label label-material cate-large mr5 clickable">${result.data.title}</span>`);
+        if (result.post) {
+          $('#alert-message').removeClass('hide');
+
+          setTimeout((e) => {
+                $('#alert-message').addClass('hide');
+            }, 3000);
+        } else {
+          if (result.success) {
+            $('#alert-message').addClass('hide');
+
+            if ($("#category_id").val()) {
+              var $selector = $categoryShowArea.find("[data-id='" + result.id + "']");
+              $selector.html(result.data.title);
+
+              hideEditMode();
+            } else {
+              $categoryShowArea.prepend(`<span data-act="category-edit-delete" data-id="${result.id}" class="label label-material cate-large mr5 clickable">${result.data.title}</span>`);
+            }
+            $("#title").val("").focus();
           }
-          $("#title").val("").focus();
         }
-      }
+      } 
     });
 
-    //update/delete
-    $('body').on('click', "[data-act='category-edit-delete']", function () {
+    $('body').on('click', "[data-act='category-edit-delete']", function (e) {
       showEditMode($(this));
     });
 
-    function showEditMode($selector) {
+    $('body').on('click', "#title", function (e) {
+        e.target.select();
+    });
+
+    function showEditMode($selector) { // MARK
+      let url = "<?php echo get_uri('stock/dev2_countMaterialCateById/'); ?>" + $selector.data().id;
+      $.ajax({
+        url: url,
+        type: 'GET',
+        success: function(result) {
+          if (parseInt(result) > 0) {
+            $("#category-delete-btn").addClass("hide");
+          } else {
+            $("#category-delete-btn").removeClass("hide");
+          }
+        }
+      });
+
       $("#title").val($selector.text()).focus();
       $("#category_id").val($selector.attr("data-id"));
-      $("#category-delete-btn").removeClass("hide");
       $("#cancel-edit-btn").removeClass("hide");
     }
+    
     function hideEditMode() {
       $("#title").val('').focus();
       $("#category_id").val('');

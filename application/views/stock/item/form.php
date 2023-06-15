@@ -1,14 +1,19 @@
+<style type="text/css">
+.string-upper {
+    text-transform: uppercase;
+}
+</style>
 
 <input type="hidden" name="id" value="<?php echo isset($model_info->id) ? $model_info->id: ''; ?>" />
 <input type="hidden" name="view" value="<?php echo isset($view) ? $view : ''; ?>" />
 
 <?php
-    $readonly = false;
-    if(empty($model_info->id)) {
-        $readonly = isset($can_create) && !$can_create;
-    } else {
-        $readonly = isset($can_update) && !$can_update;
-    }
+$readonly = false;
+if (empty($model_info->id)) {
+    $readonly = isset($can_create) && !$can_create;
+} else {
+    $readonly = isset($can_update) && !$can_update;
+}
 ?>
 
 <div class="form-group">
@@ -51,9 +56,6 @@
                 "readonly" => $readonly
             ));
         ?>
-        <?php // if (!$readonly): ?>
-            <!-- <a id="pr_supplier_title_dropdwon_icon" tabindex="-1" href="javascript:void(0);" style="color: #B3B3B3;float: right; padding: 5px 7px; margin-top: -35px; font-size: 18px;"><span>×</span></a> -->
-        <?php // endif; ?>
     </div>
 </div>
 <?php endif; ?>
@@ -144,18 +146,22 @@
     </label>
     <div class="<?php echo $field_column; ?>">
         <?php
-        echo form_input(
-            array(
-                "id" => "unit",
-                "name" => "unit",
-                "value" => $model_info->unit_type,
-                "class" => "form-control",
-                "placeholder" => lang('stock_item_unit'),
-                "data-rule-required" => true,
-                "data-msg-required" => lang("field_required"),
-                "readonly" => $readonly
-            )
+        $set_unit = array(
+            "id" => "unit",
+            "name" => "unit",
+            "value" => $model_info->unit_type,
+            "class" => "form-control string-upper",
+            "placeholder" => lang('stock_item_unit'),
+            "data-rule-required" => true,
+            "data-msg-required" => lang("field_required"),
+            "readonly" => $readonly
         );
+
+        if (isset($model_info->can_delete) && !$model_info->can_delete) {
+			$set_unit["readonly"] = true;
+		}
+
+        echo form_input($set_unit);
         ?>
     </div>
 </div>
@@ -188,8 +194,8 @@
         <input
             type="number" name="noti_threshold" class="form-control" min="0" step="0.0001" required 
             name="noti_threshold" value="<?php echo @$model_info->noti_threshold; ?>" 
-            placeholder="<?php echo lang('stock_item_noti_threshold'); ?>" data-rule-required="true" 
-            data-msg-required="<?php echo lang("field_required"); ?>" <?php if ($readonly) { echo "readonly"; } ?>
+            placeholder="<?php echo lang('stock_item_noti_threshold'); ?>" data-rule-required = "true" 
+            data-msg-required="<?php echo lang("field_required"); ?>" <?php if ($readonly) { echo " readonly"; } ?>
         />
     </div>
 </div>
@@ -197,6 +203,7 @@
 <script type="text/javascript">
     $(document).ready(function () {
         $('[data-toggle="tooltip"]').tooltip();
+
         $('#category_id').select2({data: <?php echo json_encode($category_dropdown); ?>});
         $('#account_id').select2({ data: <?php echo json_encode($account_category); ?> });
 
@@ -221,7 +228,7 @@
                 quietMillis: 250,
                 data: function (term, page) {
                     return {
-                        q: term, // search term,
+                        q: term, // Search term,
                         id:<?php echo intval($model_info->id); ?>,
                         item_id: parseInt(jQuery('#item_id').val())
                     };
@@ -230,13 +237,13 @@
                     return {results: data};
                 }
             }
-        }).change(function (e) { //alert('change supplier');
+        }).change(function (e) { // alert('change supplier');
             if (e.val === "+") {
-                //show simple textbox to input the new item
+                // show simple textbox to input the new item
                 $("#name").select2("destroy").val("").focus();
-                $("#add_new_supplier_to_library").val(1); //set the flag to add new item in library
+                $("#add_new_supplier_to_library").val(1); // set the flag to add new item in library
 
-                //jQuery('#item_id').val(0);
+                // jQuery('#item_id').val(0);
                 jQuery('#material_id').val(0);
                 jQuery('#supplier_id').val(0);
                 jQuery('#name').select2('readonly', false);
@@ -255,18 +262,19 @@
                 $("#add_new_supplier_to_library").val(""); //reset the flag to add new item in library
                 $.ajax({
                     url: "<?php echo get_uri("stock/get_item_info_suggestion"); ?>",
-                    data: {supplier_name: e.val,supplier_id:e.added.supplier_id, material_id:parseInt(jQuery('#material_id').val())},
+                    data: { supplier_name: e.val, supplier_id: e.added.supplier_id, material_id: parseInt(jQuery('#material_id').val()) },
                     cache: false,
                     type: 'POST',
                     dataType: "json",
                     success: function (response) {
-                        //auto fill the description, unit type and rate fields.
+                        // auto fill the description, unit type and rate fields.
                         if (response) {
                             jQuery('#supplier_id').val(response.supplier_info.id);
                             jQuery('#name').val(response.supplier_info.supplier_name);
-                            if(parseFloat(response.supplier_info.price)!=0 && parseFloat(jQuery('#pr_item_rate').val())==0)
+                            if (parseFloat(response.supplier_info.price) != 0 && parseFloat(jQuery('#pr_item_rate').val()) == 0)
                                 jQuery('#pr_item_rate').val(response.supplier_info.price);
-                            jQuery("#pr_item_rate").val(parseInt(response.supplier_info.ratio)?Math.abs(response.supplier_info.price/response.supplier_info.ratio):0);
+
+                            jQuery("#pr_item_rate").val(parseInt(response.supplier_info.ratio) ? Math.abs(response.supplier_info.price / response.supplier_info.ratio) : 0);
                             jQuery('#currency').val(response.supplier_info.currency);
                             jQuery('#currency_symbol').val(response.supplier_info.currency_symbol);
                             jQuery('#address').val(response.supplier_info.address);
@@ -278,7 +286,7 @@
                             jQuery('#phone').val(response.supplier_info.phone);
                             jQuery('#vat_number').val(response.supplier_info.vat_number);
 
-                            //jQuery('#supplier_name').select2('readonly', true);
+                            // jQuery('#supplier_name').select2('readonly', true);
                             jQuery('#currency').attr('readonly', true);
                             jQuery('#currency_symbol').attr('readonly', true);
                             jQuery('#address').attr('readonly', true);

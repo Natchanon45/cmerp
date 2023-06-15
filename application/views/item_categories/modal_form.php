@@ -32,9 +32,10 @@
     $(document).ready(function() {
         $("#category-form").appForm({
             onSuccess: function(result) {
-                $("#category-table").appTable({newData: result.data, dataId: result.id});
+                $("#category-table").appTable({ newData: result.data, dataId: result.id });
             }
         });
         $("#title").focus();
+        appLoader.hide();
     });
 </script>

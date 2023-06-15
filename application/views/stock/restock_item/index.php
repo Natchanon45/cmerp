@@ -2,7 +2,9 @@
     <div class="panel panel-default">
         <div class="page-title clearfix">
             <h1>
-                <a class="title-back" href="<?php echo get_uri('stock'); ?>"><i class="fa fa-chevron-left" aria-hidden="true"></i></a>
+                <a class="title-back" href="<?php echo get_uri('stock'); ?>">
+                    <i class="fa fa-chevron-left" aria-hidden="true"></i>
+                </a>
                 <?php echo lang('stock_restocks_item'); ?>
             </h1>
             <div class="title-button-group">
@@ -53,7 +55,7 @@
             order: [ 0, 'desc' ],
             summation: [
                 { column: 4, dataType: 'number' },
-                { column: 5, dataType: 'number' },
+                { column: 5, dataType: 'number' }
             ],
             <?php if (isset($is_admin) && $is_admin) { ?>
                 printColumns: combineCustomFieldsColumns([0, 1, 2, 3, 4, 5, 6, 7, 8]),

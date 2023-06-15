@@ -1,3 +1,9 @@
+<style type="text/css">
+.pr-19px {
+    padding-right: 19px !important;
+}
+</style>
+
 <div id="page-content" class="p20 clearfix">
     <div class="panel panel-default">
         <div class="page-title clearfix">
@@ -47,25 +53,24 @@
             ],
             columns: [
                 { title: "<?php echo lang("id"); ?>", "class": "text-center w50" },
-                { title: "<?php echo lang('preview_image'); ?> ", "class": "w100" },
+                { title: "<?php echo lang("preview_image"); ?> ", "class": "w100" },
                 { title: '<?php echo lang("stock_item_code"); ?>' },
                 <?php if ($can_read_production_name): ?>
                     { title: '<?php echo lang("stock_item_name"); ?>' },
                 <?php endif; ?>
                 { title: '<?php echo lang("stock_item_barcode"); ?>', "class": "w200" },
-                { title: '<?php echo lang("stock_item_rate"); ?>', "class": "w100 text-center" },
+                { title: '<?php echo lang("rate"); ?>', "class": "w100 text-right pr-19px" },
+                { title: '<?php echo lang("currency"); ?>', "class": "w50" },
                 { title: '<?php echo lang("stock_item_category"); ?>' },
                 { title: '<?php echo lang("description"); ?>' },
-                { title: '<?php echo lang("stock_item_remaining"); ?>', "class": "text-right" },
-                { title: '<?php echo lang("stock_item_unit"); ?>', "class": "w50 text-center" },
+                { title: '<?php echo lang("stock_item_remaining"); ?>', "class": "text-right pr-19px" },
+                { title: '<?php echo lang("stock_item_unit"); ?>', "class": "w50" },
                 { title: '<i class="fa fa-bars"></i>', "class": "text-center option w100" }
             ],
             <?php if ($can_read_production_name): ?>
-                summation: [{ column: 5, dataType: 'number' }],
                 printColumns : combineCustomFieldsColumns([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]),
                 xlsColumns: combineCustomFieldsColumns([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
             <?php else: ?>
-                summation: [{ column: 4, dataType: 'number' }],
                 printColumns: combineCustomFieldsColumns([0, 1, 2, 3, 4, 5, 6, 7, 8]),
                 xlsColumns: combineCustomFieldsColumns([0, 1, 2, 3, 4, 5, 6, 7, 8])
             <?php endif; ?>

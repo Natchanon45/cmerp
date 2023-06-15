@@ -2424,3 +2424,6 @@ $lang["serial_number"] = "รหัสการนำเข้า";
 $lang["status_of_client"] = "สถานะของลูกค้า";
 $lang["serial_number_duplicate"] = "รหัสการนำเข้าต้องไม่ซ้ำกัน";
 $lang["stock_restock_item_withdraw"] = "เพิ่มการนำออกสินค้าสำเร็จ";
+$lang["material_name_duplicate"] = "รหัสวัตถุดิบต้องไม่ซ้ำกัน";
+$lang["item_name_duplicate"] = "รหัสสินค้าสำเร็จต้องไม่ซ้ำกัน";
+$lang["item_cate_duplicate"] = "ชื่อหมวดหมู่สินค้าสำเร็จต้องไม่ซ้ำกัน";

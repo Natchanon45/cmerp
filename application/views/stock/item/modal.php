@@ -21,6 +21,7 @@
         $('[data-toggle="tooltip"]').tooltip();
         $("#material-form").appForm({
             onSuccess: function (result) {
+                console.log(result);
                 if (result.view === "details") {
                     appAlert.success(result.message, { duration: 10000 });
                     setTimeout(function () {

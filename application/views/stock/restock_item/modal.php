@@ -17,10 +17,13 @@
 </p>
 
 <div class="modal-footer">
-	<button type="button" class="btn btn-default" data-dismiss="modal"><span class="fa fa-close"></span><?php echo ' ' . lang('close'); ?></button>
+	<button type="button" class="btn btn-default" data-dismiss="modal">
+		<span class="fa fa-close"></span><?php echo ' ' . lang('close'); ?>
+	</button>
+
 	<?php if ((empty($model_info->id) && $can_create) || (!empty($model_info->id) && $can_update)) { ?>
 		<button id="btn-submit" type="button" class="btn btn-primary">
-			<span class="fa fa-check-circle"></span>
+			<span class="fa fa-check-circle"></span> 
 			<?php echo lang('save'); ?>
 		</button>
 		<button id="btn-post" type="submit" style="display: none;"></button>
@@ -91,3 +94,5 @@
         }
 	});
 </script>
+
+<!-- done -->

@@ -9,7 +9,7 @@
       <?php echo lang('stock_item'); ?>
     </label>
     <div class="<?php echo $field_column; ?>">
-      <select name="item_id" class="form-control select-material" required <?php if (!empty($model_info->id) && !empty($model_info->group_id)) echo 'style="pointer-events:none;"'; ?>>
+      <select name="item_id" class="form-control select-material" <?php if (!empty($model_info->id) && !empty($model_info->group_id)) echo 'style="pointer-events: none;"'; ?> required>
         <?php
         foreach ($item_dropdown as $d) {
           $selected = '';
@@ -40,7 +40,7 @@
     </label>
     <div class="<?php echo $field_column; ?>">
       <div class="input-suffix">
-        <input type="number" name="ratio" id="ratio" required class="form-control" min="1" max="<?= $model_info->remaining ?>" step="0.0001" value="0" />
+        <input type="number" name="ratio" id="ratio" required class="form-control" min="0.0001" max="<?= $model_info->remaining ?>" step="0.0001" value="0" />
         <div class="input-tag"></div>
       </div>
     </div>
@@ -69,11 +69,11 @@
 
 <div class="modal-footer">
   <button type="button" class="btn btn-default" data-dismiss="modal">
-    <span class="fa fa-close"></span>
+    <span class="fa fa-close"></span> 
     <?php echo lang('close'); ?>
   </button>
   <button type="submit" class="btn btn-primary">
-    <span class="fa fa-check-circle"></span>
+    <span class="fa fa-check-circle"></span> 
     <?php echo lang('save'); ?>
   </button>
 </div>
@@ -96,7 +96,7 @@
     var tempContainer = $('#temp-container'), selectMaterial = tempContainer.find('.select-material');
     updateUnit();
 
-    selectMaterial.change(function () {
+    selectMaterial.change(function() {
       updateUnit();
     });
 
@@ -106,3 +106,5 @@
     }
   });
 </script>
+
+<!-- done -->

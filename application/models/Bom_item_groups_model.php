@@ -177,7 +177,7 @@ class Bom_item_groups_model extends Crud_model {
         $sql = "SELECT bis.id AS id, big.id AS group_id, big.name AS group_name, bis.serial_number AS sern, i.id AS item_id, i.title AS item_name, i.item_code AS item_code, bis.stock AS stock_qty, bis.remaining AS remain_qty, i.unit_type AS item_unit, big.created_by AS create_by, big.created_date AS create_date 
         FROM bom_item_stocks bis 
         LEFT JOIN bom_item_groups big ON bis.group_id = big.id 
-        LEFT JOIN items i ON bis.item_id = i.id 
+        INNER JOIN items i ON bis.item_id = i.id 
         WHERE 1 AND bis.stock > 0 " . $where_create_by . " ORDER BY bis.id ";
         
         $query = $this->db->query($sql);

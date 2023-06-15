@@ -33,7 +33,7 @@ class Bom_item_model extends Crud_model {
             LEFT JOIN item_categories bmc ON bmc.id = bm.category_id 
             LEFT JOIN bom_item_stocks bs ON bs.item_id = bm.id AND bs.remaining > 0 
             WHERE 1 $where 
-            GROUP BY bm.id 
+            AND bm.deleted = 0 GROUP BY bm.id 
         ");
     }
     
@@ -71,6 +71,7 @@ class Bom_item_model extends Crud_model {
             SELECT bmc.* 
             FROM item_categories bmc 
             WHERE 1 $where 
+            AND bmc.deleted = 0 ORDER BY bmc.id
         ");
     }
     function category_create($data) {
@@ -86,6 +87,7 @@ class Bom_item_model extends Crud_model {
         $this->db->delete('item_categories', [ 'id' => $id ]);
         return true;
     }
+
     function get_category_dropdown($options = array()) {
         $data = $this->get_categories($options)->result();
         $result = [
@@ -96,6 +98,7 @@ class Bom_item_model extends Crud_model {
         }
         return $result;
     }
+
     function get_mixings($options = array()) {
         $where = "";
         
@@ -172,5 +175,29 @@ class Bom_item_model extends Crud_model {
             WHERE db.total < db.noti_threshold 
         ");
     }
+
+    function dev2_getCountNameByItemName($name)
+	{
+		$sql = "SELECT `item_code` FROM `items` WHERE LOWER(`item_code`) = '" . strtolower($name) . "'";
+
+		if (isset($name) && strlen($name) > 0) {
+			$query = $this->db->query($sql);
+			return $query->num_rows();
+		} else {
+			return 0;
+		}
+	}
+
+    function dev2_getCountNameByItemNameWithId($name, $id) 
+    {
+		$sql = "SELECT `item_code` FROM `items` WHERE 1 AND LOWER(`item_code`) = '" . strtolower($name) . "' AND `id` <> '" . $id . "'";
+
+		if (isset($name) && strlen($name) > 0) {
+			$query = $this->db->query($sql);
+			return $query->num_rows();
+		} else {
+			return 0;
+		}
+	}
 
 }

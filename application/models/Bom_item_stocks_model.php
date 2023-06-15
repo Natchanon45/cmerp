@@ -134,4 +134,10 @@ class Bom_item_stocks_model extends Crud_model {
         return $sern;
     }
 
+    function dev2_getCountRestockingByItemId($id)
+    {
+        $query = $this->db->get_where('bom_item_stocks', ['item_id' => $id]);
+        return $query->num_rows();
+    }
+
 }

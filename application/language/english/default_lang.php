@@ -2017,3 +2017,6 @@ $lang["status_of_client"] = "Client status";
 $lang["serial_number"] = "Serial number";
 $lang["serial_number_duplicate"] = "The serial number must be unique.";
 $lang["stock_restock_item_withdraw"] = "Add the item used.";
+$lang["material_name_duplicate"] = "Material code must be unique.";
+$lang["item_name_duplicate"] = "Item code must be unique.";
+$lang["item_cate_duplicate"] = "Item category name must be unique.";

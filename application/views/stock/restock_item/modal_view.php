@@ -1,4 +1,11 @@
 <?php echo form_open(get_uri("stock/restock_item_view_save"), array("id" => "remaining-form", "class" => "general-form", "role" => "form")); ?>
+
+<style type="text/css">
+.string-upper {
+    text-transform: uppercase;
+}
+</style>
+
 <div id="material-dropzone" class="post-dropzone">
   <div class="modal-body clearfix" id="temp-container">
 
@@ -21,10 +28,10 @@
 
     <div class="form-group">
       <label for="item_id" class="<?php echo $label_column; ?>">
-        <?php echo lang('stock_item'); ?>
+        <?php echo lang('stock_item') . $readonly; ?>
       </label>
       <div class="<?php echo $field_column; ?>">
-        <select name="item_id" class="form-control select-material" <?php if (!empty($model_info->id) && !empty($model_info->group_id)) { echo 'style="pointer-events:none;"'; } if ($readonly) { echo 'readonly'; } ?> required>
+        <select name="item_id" class="form-control select-material" <?php if (!empty($model_info->id) && !empty($model_info->group_id)) { echo 'style="pointer-events:none;"'; } if ($readonly) { echo ' readonly'; } ?> required>
           <?php
             foreach ($item_dropdown as $d) {
               $selected = '';
@@ -44,7 +51,7 @@
       <div class="<?php echo $field_column; ?>">
         <div class="input-suffix">
           <input type="text" name="sern" id="sern" class="form-control" placeholder="<?php echo lang('serial_number'); ?>"
-          value="<?php echo $model_info->serial_number; ?>" <?php if ($disabled) { echo "disabled"; } ?> required />
+          value="<?php echo $model_info->serial_number; ?>" <?php if ($disabled) echo 'disabled'; if ($readonly) echo ' readonly'; ?> required />
         </div>
       </div>
     </div>
@@ -55,10 +62,10 @@
       </label>
       <div class="<?php echo $field_column; ?>">
         <div class="input-suffix">
-          <input type="number" name="stock" id="stock" required class="form-control" min="1" step="0.0001" <?php if ($disabled) { echo "disabled"; } ?>
+          <input type="number" name="stock" id="stock" required class="form-control" min="0.0001" step="0.0001" <?php if ($disabled) { echo "disabled"; } ?>
             placeholder="<?php echo lang('stock_restock_quantity'); ?>" value="<?php echo $model_info->stock ? $model_info->stock : ''; ?>" 
-            <?php if (isset($model_info->can_delete) && !$model_info->can_delete) echo 'readonly'; ?> />
-          <div class="input-tag"></div>
+            <?php if (isset($model_info->can_delete) && !$model_info->can_delete) echo 'readonly'; if ($readonly) echo ' readonly'; ?> />
+          <div class="input-tag string-upper"></div>
         </div>
       </div>
     </div>
@@ -69,9 +76,9 @@
       </label>
       <div class="<?php echo $field_column; ?>">
         <div class="input-suffix">
-          <input type="number" name="remaining" id="remaining" required class="form-control" min="1" step="0.0001" placeholder="<?php echo lang('stock_restock_remaining'); ?>"
+          <input type="number" name="remaining" id="remaining" required class="form-control" min="0" step="0.0001" placeholder="<?php echo lang('stock_restock_remaining'); ?>"
             value="<?php echo $model_info->remaining ? $model_info->remaining : ''; ?>" <?php if ($disabled) { echo "disabled"; } ?> readonly />
-          <div class="input-tag"></div>
+          <div class="input-tag string-upper"></div>
         </div>
       </div>
     </div>
@@ -83,20 +90,20 @@
         </label>
         <div class="<?php echo $field_column; ?>">
           <div class="input-suffix">
-            <input type="number" name="price" id="price" required class="form-control" min="1" step="0.01" placeholder="<?php echo lang('stock_restock_price'); ?>" <?php if ($disabled) { echo "disabled"; } ?>
-              value="<?php echo $model_info->price ? $model_info->price : ''; ?>" <?php if (isset($model_info->can_delete) && !$model_info->can_delete) echo 'readonly'; ?> />
+            <input type="number" name="price" id="price" required class="form-control" min="0" step="0.01" placeholder="<?php echo lang('stock_restock_price'); ?>" <?php if ($disabled) { echo "disabled"; } ?>
+              value="<?php echo $model_info->price ? $model_info->price : ''; ?>" <?php if (isset($model_info->can_delete) && !$model_info->can_delete) echo 'readonly'; if ($readonly) echo ' readonly'; ?> />
             <div class="input-tag-2"><?php echo lang('THB'); ?></div>
           </div>
         </div>
       </div>
       <div class="form-group">
-        <label for="price" class="<?php echo $label_column; ?>">
+        <label for="priceunit" class="<?php echo $label_column; ?>">
           <?php echo lang('rate'); ?>
         </label>
         <div class="<?php echo $field_column; ?>">
           <div class="input-suffix">
-            <input type="number" name="priceunit" id="priceunit" required class="form-control" min="1" step="0.01" placeholder="<?php echo lang('rate'); ?>" <?php if ($disabled) { echo "disabled"; } ?>
-              value="<?php echo @$model_info->priceunit ? $model_info->priceunit : ''; ?>" <?php if (isset($model_info->can_delete) && !$model_info->can_delete) echo 'readonly'; ?> />
+            <input type="number" name="priceunit" id="priceunit" required class="form-control" min="0" step="0.01" placeholder="<?php echo lang('rate'); ?>" <?php if ($disabled) { echo "disabled"; } ?>
+              value="<?php echo @$model_info->priceunit ? $model_info->priceunit : ''; ?>" <?php if (isset($model_info->can_delete) && !$model_info->can_delete) echo 'readonly'; if ($readonly) echo 'readonly'; ?> />
             <div class="input-tag-2"><?php echo lang('THB'); ?></div>
           </div>
         </div>
@@ -107,7 +114,7 @@
       <label for="expiration_date" class="<?php echo $label_column; ?>">
         <?php echo lang('expiration_date'); ?>
       </label>
-      <div class="<?php echo $field_column; ?>" <?php if ($readonly) echo 'style="pointer-events:none;"'; ?>>
+      <div class="<?php echo $field_column; ?>" <?php if ($readonly) echo 'style="pointer-events: none;"'; ?>>
         <?php
         $set_expire = array(
           "id" => "expiration_date",
@@ -179,7 +186,7 @@
       <?php if (!$disabled): ?>
         <button class="btn btn-default upload-file-button pull-left btn-sm round" type="button" style="color: #7988a2;">
           <i class="fa fa-camera"></i>
-          <?php echo lang('upload_file'); ?>
+          <?php echo lang('upload_image'); ?>
         </button>
       <?php endif; ?>
     <?php } ?>
@@ -234,7 +241,7 @@
       tempContainer.find('.input-tag').html(option.data('unit'));
     }
 
-    $('#stock, #remaining, #price, #priceunit').click(function(e) {
+    $('#stock, #remaining, #price, #priceunit, #sern').click(function(e) {
       e.target.select();
     });
 
@@ -288,3 +295,5 @@
     }
   });
 </script>
+
+<!-- done -->

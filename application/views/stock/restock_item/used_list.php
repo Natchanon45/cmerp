@@ -27,7 +27,7 @@
         { title: '<?php echo lang('created_by'); ?>' },
         { title: '<?php echo lang("note_real"); ?>' },
         { title: '<?php echo lang("stock_restock_used_quantity"); ?>', class: 'w125 text-right' },
-        { title: '<?php echo lang("stock_material_unit"); ?>', class: 'w125 text-right' },
+        { title: '<?php echo lang("stock_material_unit"); ?>', class: 'w125 text-right <?php if (!$can_read_price) { echo 'pr-25px'; } ?>' },
         <?php if ($can_read_price) { ?>
           { title: '<?php echo lang("stock_restock_used_value"); ?>', class: 'w125 text-right' },
           { title: '<?php echo lang("currency"); ?>', class: 'w125 text-right pr-25px' }
@@ -39,14 +39,17 @@
         xlsColumns: combineCustomFieldsColumns([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]),
         summation: [
           { column: 6, dataType: 'number' },
-          { column: 8, dataType: 'currency' },
+          { column: 8, dataType: 'currency' }
         ]
       <?php } else { ?>
-          <?php if (isset($is_admin) && $is_admin) { ?>
-            printColumns: combineCustomFieldsColumns([0, 1, 3, 4, 5, 6]),
-            xlsColumns: combineCustomFieldsColumns([0, 1, 3, 4, 5, 6])
-          <?php } ?>
+        printColumns: combineCustomFieldsColumns([0, 1, 3, 4, 5, 6, 7]),
+        xlsColumns: combineCustomFieldsColumns([0, 1, 3, 4, 5, 6, 7]),
+        summation: [
+          { column: 6, dataType: 'number' }
+        ]
       <?php } ?>
     });
   });
 </script>
+
+<!-- done -->

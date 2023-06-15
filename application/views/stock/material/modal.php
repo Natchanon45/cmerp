@@ -36,7 +36,6 @@
 	$(document).ready(function () {
 		let uploadUrl = "<?php echo get_uri("stock/upload_material_file"); ?>";
 		let validationUri = "<?php echo get_uri("stock/validate_material_file"); ?>";
-
 		let dropzone = attachDropzoneWithForm("#material-dropzone", uploadUrl, validationUri);
 
 		$('[data-toggle="tooltip"]').tooltip();

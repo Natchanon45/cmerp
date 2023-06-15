@@ -77,7 +77,7 @@
 
 <div class="form-group">
     <label for="created_date" class="<?php echo $label_column; ?>"><?php echo lang('stock_restock_date'); ?>*</label>
-    <div class="<?php echo $field_column; ?>" <?php if ($readonly) echo 'style="pointer-events: none;"'; ?>>
+    <div <?php if ($readonly) echo 'style="pointer-events: none;"'; ?> class="<?php echo $field_column; ?>">
         <?php
         echo form_input(
             array(
@@ -113,12 +113,16 @@
 .event-point {
     pointer-events: none;
 }
+
+.string-upper {
+    text-transform: uppercase;
+}
 </style>
 
 <?php if (isset($item_restocks)) { ?>
     <div id="type-container">
         <table class="display dataTable no-footer" cellspacing="0" width="100%" role="grid" aria-describedby="supplier-table_info">
-                <thead>
+                <thead id="table-header">
                     <tr role="row">
                         <th style="width: 20%;">
                             <?php echo lang('serial_number'); ?>
@@ -141,14 +145,18 @@
             
                         <th style="width: 5%; text-align: center;">
                             <?php if (!$readonly) { ?>
-                                <a href="javascript:void();" id="btn-add-material" class="btn btn-primary w100p">
-                                    <span class="fa fa-plus-circle"></span>
-                                    <?php echo lang('add'); ?>
-                                </a>
+                                <?php if ($can_create): ?>
+                                    <a href="javascript:void();" id="btn-add-material" class="btn btn-primary w100p">
+                                        <span class="fa fa-plus-circle"></span>
+                                        <?php echo lang('add'); ?>
+                                    </a>
+                                <?php endif; ?>
                             <?php } ?>
                         </th>
                     </tr>
                 </thead>
+                <!-- Table Head -->
+
                 <tbody id="table-body">
                     <?php
                     foreach ($item_restocks as $k) {
@@ -156,7 +164,7 @@
                     ?>
                     <tr>
                         <td>
-                            <input type="text" name="sern[]" <?php if ($readonly) { echo 'readonly'; } if (!$k->can_delete) echo 'readonly'; ?> class="form-control data-sern" maxlength="40" value="<?php echo $k->serial_number ? $k->serial_number : ''; ?>">
+                            <input type="text" name="sern[]" <?php if ($readonly) { echo 'readonly'; } if (!$k->can_delete) echo ' readonly'; ?> class="form-control data-sern" maxlength="40" value="<?php echo $k->serial_number ? $k->serial_number : ''; ?>">
                         </td>
                         <td>
                             <input type="hidden" name="restock_id[]" value="<?= $k->id ?>" />
@@ -174,16 +182,16 @@
                         </td>
                         <td>
                             <div class="input-suffix">
-                                <input type="number" name="stock[]" required readonly class="form-control stock-calc" min="1" step="1" value="<?php echo $k->stock; ?>" />
-                                <div class="input-tag"><?php echo $k->item_unit; ?></div>
+                                <input type="number" name="stock[]" required readonly class="form-control stock-calc" min="0.0001" step="0.0001" value="<?php echo $k->stock; ?>" />
+                                <div class="input-tag string-upper"><?php echo $k->item_unit; ?></div>
                             </div>
                         </td>
                         <?php if ($can_read_price) { ?>
                             <td>
                                 <div class="input-suffix">
                                     <input 
-                                        type="number" name="price[]" required <?php if ($readonly) echo 'readonly'; if (!$k->can_delete) echo 'readonly'; ?> 
-                                        class="form-control price-calc" min="1" step="0.01" value="<?php echo $k->price; ?>" 
+                                        type="number" name="price[]" required <?php if ($readonly) echo 'readonly'; if (!$k->can_delete) echo ' readonly'; ?> 
+                                        class="form-control price-calc" min="0" step="0.01" value="<?php echo $k->price; ?>" 
                                     />
                                     <div class="input-tag-2"><?php echo lang('THB'); ?></div>
                                 </div>
@@ -191,8 +199,8 @@
                             <td>
                                 <div class="input-suffix">
                                     <input 
-                                        type="number" name="priceunit[]" <?php if ($readonly) echo 'readonly'; if (!$k->can_delete) echo 'readonly'; ?> 
-                                        class="form-control price-per-unit" min="1" value="<?php echo $pricePerUnit; ?>" 
+                                        type="number" name="priceunit[]" <?php if ($readonly) echo 'readonly'; if (!$k->can_delete) echo ' readonly'; ?> 
+                                        class="form-control price-per-unit" min="0" value="<?php echo $pricePerUnit; ?>" 
                                     />
                                     <div class="input-tag-2"><?php echo lang('THB'); ?></div>
                                 <div>
@@ -249,7 +257,7 @@
                     <td>
                     <div class="input-suffix">
                         <input type="number" name="stock[]" required class="form-control stock-calc" min="0.0001" step="0.0001" value="1" />
-                        <div class="input-tag"><?php echo $item_dropdown[0]->unit_type; ?></div>
+                        <div class="input-tag string-upper"><?php echo $item_dropdown[0]->unit_type; ?></div>
                     </div>
                     </td>
                         <?php if ($can_read_price) { ?>
@@ -257,7 +265,7 @@
                                 <div class="input-suffix">
                                     <input 
                                         type="number" name="price[]" required 
-                                        class="form-control price-calc" min="0.01" step="0.01" value="1" 
+                                        class="form-control price-calc" min="0" step="0.01" value="1" 
                                     />
                                     <div class="input-tag-2"><?php echo lang('THB'); ?></div>
                                 </div>
@@ -266,7 +274,7 @@
                                 <div class="input-suffix">
                                     <input 
                                         type="number" name="priceunit[]" required 
-                                        class="form-control price-per-unit" min="0.01" step="0.01" value="1" 
+                                        class="form-control price-per-unit" min="0" step="0.01" value="1" 
                                     />
                                     <div class="input-tag-2"><?php echo lang('THB'); ?></div>
                                 </div>
@@ -367,3 +375,5 @@
         <?php } ?>
     });
 </script>
+
+<!-- done -->

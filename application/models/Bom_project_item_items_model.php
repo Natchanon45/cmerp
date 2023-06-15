@@ -32,7 +32,7 @@ class Bom_project_item_items_model extends Crud_model {
 
         return $this->db->query("
             SELECT bpim.*, 
-            bm.title item_name, bm.unit_type item_unit, 
+            bm.title item_name, bm.unit_type item_unit, bm.item_code, 
             p.id project_id, p.title project_title, 
             bsg.id group_id, bsg.name stock_name, 
             bs.price, bs.stock 
