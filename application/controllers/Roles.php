@@ -318,6 +318,7 @@ class roles extends MY_Controller {
 
         $access_note = false;
         $access_note_specific = null;
+        $update_note = false;
         $access_product_item_formula = false;
         $create_product_item = false;
         $access_material_request = false;
@@ -333,6 +334,7 @@ class roles extends MY_Controller {
 
         if($this->input->post('access_note') != false) $access_note = $this->input->post('access_note');
         if($access_note === "specific") $access_note_specific = $this->input->post('access_note_specific');
+        if($this->input->post('update_note') == "Y") $update_note = true;
 
         if($this->input->post('access_product_item_formula') == "Y") $access_product_item_formula = true;
         if($this->input->post('create_product_item') == "Y") $create_product_item = true;
@@ -405,7 +407,6 @@ class roles extends MY_Controller {
         $team_member_update_permission = $this->input->post('team_member_update_permission');
 
 
-
 		$team_member_update_permission_specific = $this->input->post('team_member_update_permission_specific');
 
         $timesheet_manage_permission = $this->input->post('timesheet_manage_permission');
@@ -431,6 +432,7 @@ class roles extends MY_Controller {
         $permissions = array(
             "access_note"=>$access_note,
             "access_note_specific"=>$access_note_specific,
+            "update_note"=>$update_note,
         	"access_product_item_formula"=>$access_product_item_formula,
         	"create_product_item"=>$create_product_item,
         	"access_material_request"=>$access_material_request,
@@ -651,6 +653,7 @@ class roles extends MY_Controller {
             if(get_array_value($permissions, "access_note") === null) $view_data['access_note'] = "assigned_only";
             else $view_data['access_note'] = get_array_value($permissions, "access_note");
             $view_data['access_note_specific'] = get_array_value($permissions, "access_note_specific");
+            $view_data['update_note'] = get_array_value($permissions, "update_note");
 
             $view_data['access_product_item_formula'] = get_array_value($permissions, "access_product_item_formula");
             $view_data['create_product_item'] = get_array_value($permissions, "create_product_item");
