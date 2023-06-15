@@ -321,7 +321,7 @@ class Quotations_m extends MY_Model {
 
     function saveDoc(){
         $db = $this->db;
-        
+
         $this->validateDoc();
         if($this->data["status"] == "validate") return $this->data;
 
@@ -554,11 +554,6 @@ class Quotations_m extends MY_Model {
 
         $this->form_validation->set_rules([
                                             [
-                                                "field"=>"product_id",
-                                                'label' => '',
-                                                'rules' => 'required'
-                                            ],
-                                            [
                                                 "field"=>"quantity",
                                                 'label' => '',
                                                 'rules' => 'required'
@@ -567,7 +562,6 @@ class Quotations_m extends MY_Model {
 
         if ($this->form_validation->run() == FALSE){
             $this->data["status"] = "validate";
-            if(form_error('product_id') != null) $this->data["messages"]["product_name"] = form_error('product_id');
             if(form_error('quantity') != null) $this->data["messages"]["quantity"] = form_error('quantity');
         }
 
@@ -589,7 +583,7 @@ class Quotations_m extends MY_Model {
         if($this->data["status"] == "validate") return $this->data;
 
         $itemId = $this->json->item_id;
-        $product_id = $this->json->product_id;
+        $product_id = $this->json->product_id == ""?null:$this->json->product_id;
         $product_name = $this->json->product_name;
         $product_description = $this->json->product_description;
         $quantity = round(getNumber($this->json->quantity), $this->Settings_m->getDecimalPlacesNumber());

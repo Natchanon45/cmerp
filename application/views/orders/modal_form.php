@@ -4,7 +4,7 @@
 
     <div class="form-group">
         <label for="order_date" class=" col-md-3"><?php echo lang('order_date'); ?></label>
-        <div class="col-md-9">
+        <div class="col-md-9">dddd
             <?php
             echo form_input(array(
                 "id" => "order_date",

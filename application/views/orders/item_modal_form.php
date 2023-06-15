@@ -138,7 +138,7 @@
                     return {results: data};
                 }
             }
-        }).change(function (e) {
+        }).change(function (e) {alert(e.val);
             if (e.val === "+") {
                 //show simple textbox to input the new item
                 $("#order_item_title").select2("destroy").val("").focus();
