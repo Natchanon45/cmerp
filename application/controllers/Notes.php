@@ -323,7 +323,8 @@ class Notes extends MY_Controller {
 	
 	
     function save() {
-        if($this->login_user->is_admin != "1" || $this->Permission_m->update_note != true) redirect("/notes");
+        if($this->login_user->is_admin != "1" && $this->Permission_m->update_note != true) redirect("/notes");
+
         validate_submitted_data(array(
             "id" => "numeric",
             "title" => "required",
