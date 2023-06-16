@@ -288,13 +288,35 @@
     display: none;
 }
 
-#s-vat .vat_percent,
-#s-vat .vat_percent_zero{
-    margin-left: 4px;
+#s-partials{
+    display: block;
+    width: 382px;
+    margin-top: 8px !important;
+    padding-top: 12px !important;
+    border-top: 1px solid #cecece;
+    text-align: left;
 }
 
-#s-vat .vat_percent_zero{
-    display: none !important;
+#s-partials .unpaid-amount{
+    display: block !important;
+    font-size: 0.95em;
+    line-height: 24px;
+    color: #646e7a;
+}
+
+#s-partials .r{
+    display: block;
+}
+
+#s-partials input[type="text"]{
+    border: 1px solid #cecece !important;
+    border-radius: 4px !important;
+    padding: 4px !important;
+    height: 28px !important;
+}
+
+#s-partials input#partials_percent{
+    width: 58px;
 }
 
 #printd .docitem tfoot #s-wht{
@@ -479,16 +501,16 @@
     }
 
     #s-sub-total i.t1.v,
-    #s-sub-total i.t2.v,
-    #s-vat .vat_percent.v,
-    #s-vat .vat_percent_zero.v{
+    #s-sub-total i.t2.v{
         display: inline-block !important;
     }
 
     #s-sub-total i.t1.h,
-    #s-sub-total i.t2.h,
-    #s-vat .vat_percent.h,
-    #s-vat .vat_percent_zero.h{
+    #s-sub-total i.t2.h{
+        display: none !important;
+    }
+
+    #s-partials{
         display: none !important;
     }
 

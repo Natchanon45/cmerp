@@ -55,4 +55,27 @@ class Customers_m extends MY_Model {
         if($cusrow->is_lead == 1) return true;
         else return false;
     }
+
+    function getRows($fields = [], $isDeleted = 0){
+        $db = $this->db;
+
+        $s = "*";
+
+        if(count($fields) > 0){
+            $s = "";
+            foreach($fields as $field){
+                $s .= $field.",";
+            }
+        }
+
+        $q = $db->select($s)->from("clients");
+
+        if($isDeleted != "all"){
+            $q->where("deleted", $isDeleted);
+        }
+
+        $cusrows = $q->get()->result();
+
+        return $cusrows;
+    }
 }

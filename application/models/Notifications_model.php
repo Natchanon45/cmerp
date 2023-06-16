@@ -677,7 +677,6 @@ class Notifications_model extends Crud_model {
         $tickets_table = $this->db->dbprefix('tickets');
         $ticket_comments_table = $this->db->dbprefix('ticket_comments');
         $activity_logs_table = $this->db->dbprefix('activity_logs');
-        $invoice_payments_table = $this->db->dbprefix('invoice_payments');
         $posts_table = $this->db->dbprefix('posts');
         $invoices_table = $this->db->dbprefix('invoices');
         $clients_table = $this->db->dbprefix('clients');
@@ -699,8 +698,6 @@ class Notifications_model extends Crud_model {
                  $activity_logs_table.log_type AS activity_log_type, 
                  $leave_applications_table.start_date AS leave_start_date, 
                  $leave_applications_table.end_date AS leave_end_date, 
-                 $invoice_payments_table.invoice_id AS payment_invoice_id, 
-                 $invoice_payments_table.amount AS payment_amount, 
                  '฿' AS client_currency_symbol, 
                  (SELECT CONCAT($users_table.first_name, ' ', $users_table.last_name) FROM $users_table WHERE $users_table.id=$notifications_table.to_user_id) AS to_user_name, 
                  FIND_IN_SET($user_id, $notifications_table.read_by) AS is_read 
@@ -715,7 +712,6 @@ class Notifications_model extends Crud_model {
         LEFT JOIN $posts_table ON $posts_table.id=$notifications_table.post_id
         LEFT JOIN $users_table ON $users_table.id=$notifications_table.user_id
         LEFT JOIN $activity_logs_table ON $activity_logs_table.id=$notifications_table.activity_log_id
-        LEFT JOIN $invoice_payments_table ON $invoice_payments_table.id=$notifications_table.invoice_payment_id 
         LEFT JOIN $events_table ON $events_table.id=$notifications_table.event_id 
         LEFT JOIN $announcements_table ON $announcements_table.id=$notifications_table.announcement_id 
         WHERE $notifications_table.deleted=0 AND FIND_IN_SET($user_id, $notifications_table.notify_to) != 0
@@ -741,7 +737,6 @@ class Notifications_model extends Crud_model {
         $tickets_table = $this->db->dbprefix('tickets');
         $ticket_comments_table = $this->db->dbprefix('ticket_comments');
         $activity_logs_table = $this->db->dbprefix('activity_logs');
-        $invoice_payments_table = $this->db->dbprefix('invoice_payments');
         $posts_table = $this->db->dbprefix('posts');
         $invoices_table = $this->db->dbprefix('invoices');
         $clients_table = $this->db->dbprefix('clients');
@@ -760,8 +755,7 @@ class Notifications_model extends Crud_model {
                  $posts_table.description AS posts_title,
                  $announcement_table.title AS announcement_title,
                  $activity_logs_table.changes AS activity_log_changes, $activity_logs_table.log_type AS activity_log_type,
-                 $leave_applications_table.start_date AS leave_start_date, $leave_applications_table.end_date AS leave_end_date,
-                 $invoice_payments_table.invoice_id AS payment_invoice_id, $invoice_payments_table.amount AS payment_amount, (SELECT currency_symbol FROM $clients_table WHERE $clients_table.id=$invoices_table.client_id) AS client_currency_symbol,
+                 $leave_applications_table.start_date AS leave_start_date, $leave_applications_table.end_date AS leave_end_date, (SELECT currency_symbol FROM $clients_table WHERE $clients_table.id=$invoices_table.client_id) AS client_currency_symbol,
                  (SELECT CONCAT($users_table.first_name, ' ', $users_table.last_name) FROM $users_table WHERE $users_table.id=$notifications_table.to_user_id) AS to_user_name,
                  $notification_settings_table.category 
         FROM $notifications_table
@@ -775,7 +769,6 @@ class Notifications_model extends Crud_model {
         LEFT JOIN $posts_table ON $posts_table.id=$notifications_table.post_id
         LEFT JOIN $users_table ON $users_table.id=$notifications_table.user_id
         LEFT JOIN $activity_logs_table ON $activity_logs_table.id=$notifications_table.activity_log_id
-        LEFT JOIN $invoice_payments_table ON $invoice_payments_table.id=$notifications_table.invoice_payment_id 
         LEFT JOIN $invoices_table ON $invoices_table.id=$notifications_table.invoice_id
         LEFT JOIN $notification_settings_table ON $notification_settings_table.event=$notifications_table.event    
         LEFT JOIN $events_table ON $events_table.id=$notifications_table.event_id

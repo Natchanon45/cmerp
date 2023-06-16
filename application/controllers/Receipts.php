@@ -15,7 +15,8 @@ class Receipts extends MY_Controller {
             return;    
         }
 
-        $this->template->rander("receipts/index");
+        redirect("/accounting/sell/receipts");
+        //$this->template->rander("receipts/index");
     }
 
     function addedit(){
@@ -83,7 +84,7 @@ class Receipts extends MY_Controller {
                         $suggestion[] = ["id" => $sprow->id, "text" => $sprow->title, "description"=>$sprow->description, "unit"=>$sprow->unit_type, "price"=>$sprow->rate];
                     }
                 }
-                //$suggestion[] = array("id" => "", "text" => "+ " . lang("create_new_item"));
+                $suggestion[] = array("id" => "+", "text" => "+ " . lang("create_new_item"));
                 jout($suggestion);
             }
             return;

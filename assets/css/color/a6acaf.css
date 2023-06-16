@@ -56,6 +56,14 @@ a {
     color: #909497;
 }
 
+.custom-bg{
+    background: rgba(166, 172, 175, 1) !important;
+}
+
+.custom-bg01{
+    background: rgba(166, 172, 175, 0.1) !important;
+}
+
 .custom-color {
     color: #909497 !important;
 }
@@ -63,7 +71,6 @@ a {
 .bg-success{
     background: #909497;
 }
-
 
 #sidebar-menu li a,
 #sidebar-menu li.expand > a:before{

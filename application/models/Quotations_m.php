@@ -33,32 +33,38 @@ class Quotations_m extends MY_Model {
         if($qrow->status == "W"){
             $doc_status .= "<option selected>รออนุมัติ</option>";
             $doc_status .= "<option value='A'>อนุมัติ</option>";
-            $doc_status .= "<option value='CREATE_BILLING_NOTE'>สร้างใบวางบิล</option>";
+            $doc_status .= "<option value='B'>สร้างใบวางบิล</option>";
+            $doc_status .= "<option value='P'>แบ่งจ่ายใบวางบิล</option>";
             $doc_status .= "<option value='R'>ไม่อนุมัติ</option>";
         }elseif($qrow->status == "A"){
             $doc_status .= "<option selected>อนุมัติ</option>";
-            $doc_status .= "<option value='P'>ดำเนินการแล้ว</option>";
-            $doc_status .= "<option value='CREATE_BILLING_NOTE'>สร้างใบวางบิล</option>";
+            $doc_status .= "<option value='I'>ดำเนินการแล้ว</option>";
+            $doc_status .= "<option value='B'>สร้างใบวางบิล</option>";
+            $doc_status .= "<option value='P'>แบ่งจ่ายใบวางบิล</option>";
             $doc_status .= "<option value='R'>ไม่อนุมัติ</option>";
-            //$doc_status .= "<option value='RESET'>รีเซ็ต</option>";
         }elseif($qrow->status == "R"){
             $doc_status .= "<option selected>ไม่อนุมัติ</option>";
-            //$doc_status .= "<option value='RESET'>รีเซ็ต</option>";
         }elseif($qrow->status == "P"){
+            $doc_status .= "<option selected>แบ่งจ่าย</option>";
+            $doc_status .= "<option value='P'>แบ่งจ่ายใบวางบิล</option>";
+        }elseif($qrow->status == "I"){
             $doc_status .= "<option selected>ดำเนินการแล้ว</option>";
-            //$doc_status .= "<option value='RESET'>รีเซ็ต</option>";
         }
 
         $doc_status .= "</select>";
-
 
         $data = [
                     "<a href='".get_uri("quotations/view/".$qrow->id)."'>".convertDate($qrow->doc_date, true)."</a>",
                     "<a href='".get_uri("quotations/view/".$qrow->id)."'>".$qrow->doc_number."</a>",
                     $qrow->reference_number, "<a href='".get_uri("clients/view/".$qrow->client_id)."'>".$this->Clients_m->getCompanyName($qrow->client_id)."</a>",
                     convertDate($qrow->doc_date, true), number_format($qrow->total, 2), $doc_status,
-                    "<a data-post-id='".$qrow->id."' data-action-url='".get_uri("quotations/addedit")."' data-act='ajax-modal' class='edit'><i class='fa fa-pencil'></i></a><a data-id='".$qrow->id."' data-action-url='".get_uri("quotations/delete_doc")."' data-action='delete' class='delete'><i class='fa fa-times fa-fw'></i></a>"
+                    "<a data-post-id='".$qrow->id."' data-action-url='".get_uri("quotations/addedit")."' data-act='ajax-modal' class='edit'><i class='fa fa-pencil'></i></a>"
                 ];
+
+        /*
+        *Delete Button
+        *<a data-id='".$qrow->id."' data-action-url='".get_uri("quotations/delete_doc")."' data-action='delete' class='delete'><i class='fa fa-times fa-fw'></i></a>
+        */
 
         return $data;
     }
@@ -75,6 +81,10 @@ class Quotations_m extends MY_Model {
         if($this->input->post("start_date") != null && $this->input->post("end_date")){
             $db->where("doc_date >=", $this->input->post("start_date"));
             $db->where("doc_date <=", $this->input->post("end_date"));
+        }
+
+        if($this->input->post("client_id") != null){
+            $db->where("client_id", $this->input->post("client_id"));
         }
 
         $db->where("deleted", 0);
@@ -311,7 +321,7 @@ class Quotations_m extends MY_Model {
 
     function saveDoc(){
         $db = $this->db;
-        
+
         $this->validateDoc();
         if($this->data["status"] == "validate") return $this->data;
 
@@ -402,6 +412,18 @@ class Quotations_m extends MY_Model {
                         ->get()->row();
 
         if(empty($qrow)) return $this->data;
+
+        $bnrow = $db->select("*")
+                    ->from("billing_note")
+                    ->where("quotation_id", $docId)
+                    ->where("deleted", 0)
+                    ->get()->row();
+
+        if(!empty($bnrow)){
+            $this->data["success"] = false;
+            $this->data["message"] = "คุณไม่สามารถลบเอกสารได้ เนื่องจากเอกสารถูกอ้างอิงในใบวางบิลแล้ว";
+            return $this->data;
+        }
 
         if($qrow->status != "W"){
             $this->data["success"] = false;
@@ -532,11 +554,6 @@ class Quotations_m extends MY_Model {
 
         $this->form_validation->set_rules([
                                             [
-                                                "field"=>"product_id",
-                                                'label' => '',
-                                                'rules' => 'required'
-                                            ],
-                                            [
                                                 "field"=>"quantity",
                                                 'label' => '',
                                                 'rules' => 'required'
@@ -545,7 +562,6 @@ class Quotations_m extends MY_Model {
 
         if ($this->form_validation->run() == FALSE){
             $this->data["status"] = "validate";
-            if(form_error('product_id') != null) $this->data["messages"]["product_name"] = form_error('product_id');
             if(form_error('quantity') != null) $this->data["messages"]["quantity"] = form_error('quantity');
         }
 
@@ -567,7 +583,7 @@ class Quotations_m extends MY_Model {
         if($this->data["status"] == "validate") return $this->data;
 
         $itemId = $this->json->item_id;
-        $product_id = $this->json->product_id;
+        $product_id = $this->json->product_id == ""?null:$this->json->product_id;
         $product_name = $this->json->product_name;
         $product_description = $this->json->product_description;
         $quantity = round(getNumber($this->json->quantity), $this->Settings_m->getDecimalPlacesNumber());
@@ -645,47 +661,106 @@ class Quotations_m extends MY_Model {
                     ->get()->row();
 
         if(empty($qrow)) return $this->data;
-        if($qrow->status == $updateStatusTo){
+
+        $quotation_id = $this->data["doc_id"] = $docId;
+        $quotation_number = $qrow->doc_number;
+        $quotation_is_partials = $qrow->is_partials;
+        $quotation_partials_type = $qrow->partials_type;
+        $currentStatus = $qrow->status;
+
+        $quotation_sub_total_before_discount = $qrow->sub_total_before_discount;
+
+        $quotation_discount_type = $qrow->discount_type;
+        $quotation_discount_percent = $qrow->discount_percent;
+        $quotation_discount_amount = $qrow->discount_amount;
+
+        $quotation_sub_total = $qrow->sub_total;
+
+        $quotation_vat_inc = $qrow->vat_inc;
+        $quotation_vat_percent = $qrow->vat_percent;
+        $quotation_vat_value = $qrow->vat_value;
+
+        $quotation_wht_inc = $qrow->wht_inc;
+        $quotation_wht_percent = $qrow->wht_percent;
+        $quotation_wht_value = $qrow->wht_value;
+
+        $quotation_total = $qrow->total;
+        $quotation_payment_amount = $qrow->payment_amount;
+
+        if($qrow->status == $updateStatusTo && $updateStatusTo != "P"){
             $this->data["dataset"] = $this->getIndexDataSetHTML($qrow);
             return $this->data;
         }
 
-        $quotation_id = $this->data["doc_id"] = $docId;
-        $quotation_number = $qrow->doc_number;
-        $currentStatus = $qrow->status;
-
         $this->db->trans_begin();
 
-        if($updateStatusTo == "A"){
+        if($updateStatusTo == "A"){//Approved
             if($currentStatus == "R"){
                 $this->data["dataset"] = $this->getIndexDataSetHTML($qrow);
                 return $this->data;
             }
 
-            $db->where("id", $docId);
+            $db->where("id", $quotation_id);
             $db->update("quotation", [
                                         "approved_by"=>$this->login_user->id,
                                         "approved_datetime"=>date("Y-m-d H:i:s"),
                                         "status"=>"A"
                                     ]);
 
-        }elseif($updateStatusTo == "R"){
-            $db->where("id", $docId);
-            $db->update("quotation", [
-                                        "status"=>"R"
-                                    ]);
+        }elseif($updateStatusTo == "R"){//Refused
+            $db->where("id", $quotation_id);
+            $db->update("quotation", ["status"=>"R"]);
 
-        }elseif($updateStatusTo == "P"){
-            $db->where("id", $docId);
-            $db->update("quotation", [
-                                        "status"=>"P"
-                                    ]);
+        }elseif($updateStatusTo == "I"){//Issued
+            $db->where("id", $quotation_id);
+            $db->update("quotation", ["status"=>"I"]);
 
-        }elseif($updateStatusTo == "CREATE_BILLING_NOTE"){
-            $db->where("id", $docId);
-            $db->update("quotation", [
-                                        "status"=>"P"
-                                    ]);
+        }elseif($updateStatusTo == "P" || $updateStatusTo == "B"){//Partial OR Create Billing Note
+            $partials_percent = null;
+            $partials_amount = 0;
+
+            if($updateStatusTo == "P"){
+                $billed_amount = $db->select("SUM(total) AS billed_amount")
+                                        ->from("billing_note")
+                                        ->where("quotation_id", $quotation_id)
+                                        ->where("deleted", 0)
+                                        ->get()->row()->billed_amount;
+
+                if($billed_amount == null) $billed_amount = 0;
+
+                if($billed_amount >= $quotation_total){
+                    $db->where("id", $quotation_id);
+                    $db->update("quotation", ["status"=>"I"]);
+                    $db->trans_commit();
+                    $this->data["message"] = "ไม่สามารถดำเนินการได้ เนื่องจากจำนวนเงินที่แบ่งจ่ายเกินมูลค่าของเอกสาร";
+                    $this->data["dataset"] = $this->getIndexDataSetHTML($qrow);
+                    return $this->data;
+                }
+
+                /*
+                * ตอนเริ่มสร้าง BL ใบแรกจาก, quotation จะมีสถานะเริ่มแรกที่ไม่ได้เป็นแบบแบ่งจ่าย $quotation_is_partials == "N"
+                * หลังจากสร้าง BL ไปแล้ว quotation จะเปลี่ยนสถานะเป็นแบบแบ่งจ่าย $quotation_is_partials == "Y"
+                *
+                * $this->json->patials_type มี 2 ประเภทคือ P OR A (Percent/Amount)
+                */
+                if($quotation_is_partials == "N" && $quotation_partials_type == null){
+                    $db->where("id", $quotation_id);
+                    $db->update("quotation", ["is_partials"=>"Y", "partials_type"=>$this->json->patials_type, "status"=>"P"]);
+
+                    if($this->json->patials_type == "P") $partials_percent = 0;
+                }else{
+                    if($quotation_partials_type == "P") $partials_percent = 0;
+                }
+
+                $quotation_vat_value = 0;
+                $quotation_total = 0;
+                $quotation_wht_value = 0;
+                $quotation_payment_amount = 0;
+
+            }elseif($updateStatusTo == "B"){
+                $db->where("id", $quotation_id);
+                $db->update("quotation", ["is_partials"=>"N", "status"=>"I"]);
+            }
 
             $billing_note_number = $this->Billing_notes_m->getNewDocNumber();
             $billing_date = date("Y-m-d");
@@ -701,19 +776,21 @@ class Quotations_m extends MY_Model {
                                             "reference_number"=>$quotation_number,
                                             "project_id"=>$qrow->project_id,
                                             "client_id"=>$qrow->client_id,
-                                            "sub_total_before_discount"=>$qrow->sub_total_before_discount,
-                                            "discount_type"=>$qrow->discount_type,
-                                            "discount_percent"=>$qrow->discount_percent,
-                                            "discount_amount"=>$qrow->discount_amount,
-                                            "sub_total"=>$qrow->sub_total,
-                                            "vat_inc"=>$qrow->vat_inc,
-                                            "vat_percent"=>$qrow->vat_percent,
-                                            "vat_value"=>$qrow->vat_value,
-                                            "total"=>$qrow->total,
-                                            "wht_inc"=>$qrow->wht_inc,
-                                            "wht_percent"=>$qrow->wht_percent,
-                                            "wht_value"=>$qrow->wht_value,
-                                            "payment_amount"=>$qrow->payment_amount,
+                                            "sub_total_before_discount"=>$quotation_sub_total_before_discount,
+                                            "discount_type"=>$quotation_discount_type,
+                                            "discount_percent"=>$quotation_discount_percent,
+                                            "discount_amount"=>$quotation_discount_amount,
+                                            "sub_total"=>$quotation_sub_total,
+                                            "partials_percent"=>$partials_percent,
+                                            "partials_amount"=>$partials_amount,
+                                            "vat_inc"=>$quotation_vat_inc,
+                                            "vat_percent"=>$quotation_vat_percent,
+                                            "vat_value"=>$quotation_vat_value,
+                                            "total"=>$quotation_total,
+                                            "wht_inc"=>$quotation_wht_inc,
+                                            "wht_percent"=>$quotation_wht_percent,
+                                            "wht_value"=>$quotation_wht_value,
+                                            "payment_amount"=>$quotation_payment_amount,
                                             "remark"=>$qrow->remark,
                                             "created_by"=>$this->login_user->id,
                                             "created_datetime"=>date("Y-m-d H:i:s"),
@@ -721,13 +798,15 @@ class Quotations_m extends MY_Model {
                                             "deleted"=>0
                                         ]);
 
+            
+
             $billing_note_id = $db->insert_id();
 
             $qirows = $db->select("*")
-                        ->from("quotation_items")
-                        ->where("quotation_id", $quotation_id)
-                        ->order_by("sort", "ASC")
-                        ->get()->result();
+                            ->from("quotation_items")
+                            ->where("quotation_id", $quotation_id)
+                            ->order_by("sort", "ASC")
+                            ->get()->result();
 
             if(empty(!$qirows)){
                 foreach($qirows as $qirow){
@@ -747,18 +826,10 @@ class Quotations_m extends MY_Model {
 
             $this->data["task"] = "create_billing_note";
             $this->data["status"] = "success";
+            $this->data["message"] = lang('record_saved');
             $this->data["url"] = get_uri("billing-notes/view/".$billing_note_id);
 
-
-        }/*elseif($updateStatusTo == "RESET"){
-            $db->where("id", $docId);
-            $db->update("quotation", [
-                                        "approved_by"=>NULL,
-                                        "approved_datetime"=>NULL,
-                                        "status"=>"W"
-                                    ]);
-
-        }*/
+        }//end elseif $updateStatusTo == "P" || $updateStatusTo == "B"
 
         if ($db->trans_status() === FALSE){
             $db->trans_rollback();
@@ -780,5 +851,23 @@ class Quotations_m extends MY_Model {
         $this->data["status"] = "success";
         $this->data["message"] = lang('record_saved');
         return $this->data;
+    }
+
+    function getTotalDocPartialBillingNote(){
+        $db = $this->db;
+        $docId = $this->json->doc_id;
+                    
+        $db->where("quotation_id",$docId);
+        $db->where("deleted", 0);
+        $totalPartialBillingNote = $db->count_all_results("billing_note");
+
+        if($totalPartialBillingNote == null) $totalPartialBillingNote = 0;
+
+        $this->data["total_billing_note"] = $totalPartialBillingNote;
+        $this->data["status"] = "success";
+        $this->data["message"] = "success";
+
+        return $this->data;
+
     }
 }

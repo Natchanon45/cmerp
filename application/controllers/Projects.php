@@ -412,6 +412,10 @@ class Projects extends MY_Controller {
         $view_data["custom_fields"] = $this->Custom_fields_model->get_combined_details("projects", $view_data['model_info']->id, $this->login_user->is_admin, $this->login_user->user_type)->result();
 
         $view_data['clients_dropdown'] = $this->Clients_model->get_dropdown_list(array("company_name"), "id", array("is_lead" => 0));
+        $view_data['clients_dropdown_new'] = $this->Clients_model->getClientDropdownForProject();
+
+        // var_dump(arr($view_data['clients_dropdown']));
+        // var_dump(arr($view_data['clients_dropdown_new'])); exit;
 
         $view_data['label_suggestions'] = $this->make_labels_dropdown("project", $view_data['model_info']->labels);
         
@@ -446,6 +450,7 @@ class Projects extends MY_Controller {
             "title" => $this->input->post('title'),
             "description" => $this->input->post('description'),
             "client_id" => $this->input->post('client_id'),
+            "client_type" => $this->input->post('client_type_code'),
             "start_date" => $this->input->post('start_date'),
             "deadline" => $this->input->post('deadline'),
             "price" => unformat_currency($this->input->post('price')),
@@ -922,14 +927,15 @@ class Projects extends MY_Controller {
         if ($this->login_user->user_type == "staff" && !$this->can_create_projects()) {
             $price = "-";
         }
-
+        
         $owner = $this->Clients_model->getOwnerByClientId($data->client_id);
+        // var_dump(arr($data->client_id));
 
         $row_data = array(
             anchor(get_uri("projects/view/" . $data->id), $data->id),
             $title,
-            anchor(get_uri("clients/view/" . $data->client_id), $data->company_name),
-            anchor(get_uri("team_members/view/" . $owner->id), $owner->full_name),
+            $data->client_id != 0 ? anchor(get_uri("clients/view/" . $data->client_id), $data->company_name) : '-',
+            isset($owner->id) ? anchor(get_uri("team_members/view/" . $owner->id), $owner->full_name) : '-',
             $price,
             $data->start_date,
             $start_date,
@@ -5999,6 +6005,22 @@ class Projects extends MY_Controller {
             $buyers_dropdown[$key] = $value;
         }
         return $buyers_dropdown;
+    }
+
+    public function client_type($id)
+    {
+        $data = array();
+        if ($id) {
+            $is_lead = $this->Clients_model->getClientTypeById($id);
+            $data['code'] = $is_lead;
+            if ($is_lead == "0"): {
+                $data['text'] = lang('client');
+            } else: {
+                $data['text'] = lang('lead');
+            } endif;
+        }
+
+        echo json_encode(array("data" => $data));
     }
 }
 

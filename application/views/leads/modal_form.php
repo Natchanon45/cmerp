@@ -1,4 +1,5 @@
 <?php echo form_open(get_uri("leads/save"), array("id" => "lead-form", "class" => "general-form", "role" => "form")); ?>
+<input type="hidden" name="user_id" value="<?php echo $this->login_user->id; ?>">
 <div class="modal-body clearfix">
     <?php //$this->load->view("leads/lead_form_fields"); ?>
     <?php if(isset($model_info)):?>

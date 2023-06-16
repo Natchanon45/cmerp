@@ -40,13 +40,14 @@ class Left_menu {
 		// else 
         if( $this->ci->login_user->is_admin == 0 ) {
 
-            
 			$sql = "
 				SELECT 
 					l.id 
 				FROM left_menu l
 				WHERE ( 
 					( l.every_body = 1 ) 
+					OR
+					( l.left_menu = 1 ) 
 					OR 
 					( 1 = ". $this->ci->login_user->is_admin ." ) 
 					OR 
@@ -64,8 +65,7 @@ class Left_menu {
 					l.order_number ASC
 			";
 			
-		}
-		else {
+		}else {
 			
 			$sql = "
 				SELECT 
@@ -103,13 +103,15 @@ class Left_menu {
         // $value = get_setting('module_purchaserequests');
         // echo 'purchaserequests:'.$value."<br />\r\n";
 		foreach ( $sortable_items as $ka => $main_menu ) {
-           
+			//log_message("error", json_encode($main_menu));
             if(!$this->ci->login_user->is_admin && !in_array($main_menu['id'], $allowed_menus)) continue;
             $value = get_setting('module_'.$main_menu['name']);
-            
+
             if($value!==null && !$value) {
                 continue;
             }
+
+
 			// $main_menu = json_decode( $va->detail );
 		  
 			// $main_menu = convertObJectToArray( $main_menu );
@@ -118,8 +120,7 @@ class Left_menu {
 			$submenu = get_array_value($main_menu, "submenu");
 			$expend_class = $submenu ? " expand " : "";
 			
-			$active_class = uri_string() == $url? "active" : "";
-			
+			$active_class = uri_string() == $url? "active" : (get_instance()->uri->segment(1) == $url? "active" : "");
 			
 			//isset($main_menu["is_active_menu"]) 
 
@@ -211,7 +212,6 @@ class Left_menu {
 			
 			$class = isset( $main_menu['class']) ? '<i class="fa '. $main_menu['class'] .'"></i>' : '<i class="'. $main_menu['icon'] .'"></i>';
 
-            
 			$liss[] = '
 				<li class="'. $expend_class .' '. $devider_class .' '. $active_class .' '. $submenu_open_class .' main">
 					<a '. $target .' href="'. $link .'">
@@ -223,53 +223,8 @@ class Left_menu {
 				</li>
 			';
 
-			if($title == "items"){
-				$liss[] = '
-					<li class="main">
-						<a '. $target .' href="'. get_uri('/quotations') .'">
-							<i class="fa fa-file"></i>
-							<span>ใบเสนอราคา</span>'. $spanBadge .'
-						</a>
-									
-						'. $ul .'			
-					</li>
-				';
-				
-				$liss[] = '
-					<li class="main">
-						<a '. $target .' href="'. get_uri('/billing-notes') .'">
-							<i class="fa fa-file-text"></i>
-							<span>ใบวางบิล</span>'. $spanBadge .'
-						</a>
-									
-						'. $ul .'			
-					</li>
-				';
 
-				$liss[] = '
-					<li class="main">
-						<a '. $target .' href="'. get_uri('/invoices') .'">
-							<i class="fa fa-file-text"></i>
-							<span>ใบกำกับภาษี</span>'. $spanBadge .'
-						</a>
-									
-						'. $ul .'			
-					</li>
-				';
-			
-				$liss[] = '
-					<li class="main">
-						<a '. $target .' href="'. get_uri('/receipts') .'">
-							<i class="fa fa-file-text"></i>
-							<span>ใบเสร็จรับเงิน</span>'. $spanBadge .'
-						</a>
-									
-						'. $ul .'			
-					</li>
-				';
-			}
 		}
-		
 		
 		return '
 			<div id="sidebar" class="box-content ani-width">
@@ -583,7 +538,7 @@ class Left_menu {
         $menu_list = $this->ci->dao->fetchAll( $sql );
         foreach($menu_list as $ml) {
             $json = json_decode($ml->detail);
-            if($ml->class_name == "income_vs_expenses" || $ml->class_name == "invoice_payments" || $ml->class_name == "estimates" || $ml->class_name == "invoices" || $ml->class_name == "receipts" || $ml->class_name == "accounting") continue;
+            if($ml->class_name == "income_vs_expenses" || $ml->class_name == "invoice_payments" || $ml->class_name == "estimates" || $ml->class_name == "invoices" || $ml->class_name == "receipts") continue;
 
             if($json) {
                 $menus[$json->name] = [];

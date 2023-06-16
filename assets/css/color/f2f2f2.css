@@ -67,6 +67,14 @@ a {
     color: #4e6395;
 }
 
+.custom-bg{
+    background: rgba(242, 242, 242, 1) !important;
+}
+
+.custom-bg01{
+    background: rgba(242, 242, 242, 0.1) !important;
+}
+
 .custom-color {
     color: #4e6395 !important;
 }

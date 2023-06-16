@@ -42,10 +42,16 @@ class Invoices_m extends MY_Model {
 
         $doc_status .= "</select>";
 
+        $reference_number_column = $invrow->reference_number;
+        if($invrow->billing_note_id != null){
+            $reference_number_column = "<a href='".get_uri("billing-notes/view/".$invrow->billing_note_id)."'>".$invrow->reference_number."</a>";
+        }
+
         $data = [
                     "<a href='".get_uri("invoices/view/".$invrow->id)."'>".convertDate($invrow->doc_date, 2)."</a>",
                     "<a href='".get_uri("invoices/view/".$invrow->id)."'>".$invrow->doc_number."</a>",
-                    $invrow->reference_number, "<a href='".get_uri("clients/view/".$invrow->client_id)."'>".$this->Clients_m->getCompanyName($invrow->client_id)."</a>",
+                    $reference_number_column,
+                    "<a href='".get_uri("clients/view/".$invrow->client_id)."'>".$this->Clients_m->getCompanyName($invrow->client_id)."</a>",
                     convertDate($invrow->due_date, true), number_format($invrow->total, 2), $doc_status,
                     "<a data-post-id='".$invrow->id."' data-action-url='".get_uri("invoices/addedit")."' data-act='ajax-modal' class='edit'><i class='fa fa-pencil'></i></a><a data-id='".$invrow->id."' data-action-url='".get_uri("invoices/delete_doc")."' data-action='delete' class='delete'><i class='fa fa-times fa-fw'></i></a>"
                 ];
@@ -65,6 +71,10 @@ class Invoices_m extends MY_Model {
         if($this->input->post("start_date") != null && $this->input->post("end_date")){
             $db->where("doc_date >=", $this->input->post("start_date"));
             $db->where("doc_date <=", $this->input->post("end_date"));
+        }
+
+        if($this->input->post("client_id") != null){
+            $db->where("client_id", $this->input->post("client_id"));
         }
 
         $db->where("deleted", 0);
@@ -379,6 +389,7 @@ class Invoices_m extends MY_Model {
         $invrow = $db->select("status")
                         ->from("invoice")
                         ->where("id", $docId)
+                        ->where("deleted", 0)
                         ->get()->row();
 
         if(empty($invrow)) return $this->data;
@@ -547,7 +558,7 @@ class Invoices_m extends MY_Model {
         if($this->data["status"] == "validate") return $this->data;
 
         $itemId = $this->json->item_id;
-        $product_id = $this->json->product_id;
+        $product_id = $this->json->product_id == ""?null:$this->json->product_id;
         $product_name = $this->json->product_name;
         $product_description = $this->json->product_description;
         $quantity = round(getNumber($this->json->quantity), $this->Settings_m->getDecimalPlacesNumber());

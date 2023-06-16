@@ -5,9 +5,11 @@
         <input type="hidden" name="project_id" value="<?php echo $project_id; ?>" />
         <input type="hidden" name="client_id" value="<?php echo $client_id; ?>" />
         <input type="hidden" name="user_id" value="<?php echo $user_id; ?>" />
-		
-		  <div class="form-group">
-            <?php echo $this->dao->getBombInputs($model_info->id) ?>
+		<div class="form-group">
+            <div class="form-group">
+                <label for="invoice_labels" class=" col-md-3"><?php echo lang( 'labels' );?></label>
+                <div class=" col-md-9"><?php echo $this->Labels_m->genLabel("notes", $model_info->id); ?></div>
+            </div>
         </div>
         <div class="form-group">
             <label for="title" class=" col-md-3">หัวเรื่อง</label>

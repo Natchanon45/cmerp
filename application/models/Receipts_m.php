@@ -42,10 +42,16 @@ class Receipts_m extends MY_Model {
 
         $doc_status .= "</select>";
 
+        $reference_number_column = $rerow->reference_number;
+        if($rerow->invoice_id != null){
+            $reference_number_column = "<a href='".get_uri("invoices/view/".$rerow->invoice_id)."'>".$rerow->reference_number."</a>";
+        }
+
         $data = [
                     "<a href='".get_uri("receipts/view/".$rerow->id)."'>".convertDate($rerow->doc_date, 2)."</a>",
                     "<a href='".get_uri("receipts/view/".$rerow->id)."'>".$rerow->doc_number."</a>",
-                    $rerow->reference_number, "<a href='".get_uri("clients/view/".$rerow->client_id)."'>".$this->Clients_m->getCompanyName($rerow->client_id)."</a>",
+                    $reference_number_column,
+                    "<a href='".get_uri("clients/view/".$rerow->client_id)."'>".$this->Clients_m->getCompanyName($rerow->client_id)."</a>",
                     number_format($rerow->total, 2), $doc_status,
                     "<a data-post-id='".$rerow->id."' data-action-url='".get_uri("receipts/addedit")."' data-act='ajax-modal' class='edit'><i class='fa fa-pencil'></i></a><a data-id='".$rerow->id."' data-action-url='".get_uri("receipts/delete_doc")."' data-action='delete' class='delete'><i class='fa fa-times fa-fw'></i></a>"
                 ];
@@ -65,6 +71,10 @@ class Receipts_m extends MY_Model {
         if($this->input->post("start_date") != null && $this->input->post("end_date")){
             $db->where("doc_date >=", $this->input->post("start_date"));
             $db->where("doc_date <=", $this->input->post("end_date"));
+        }
+
+        if($this->input->post("client_id") != null){
+            $db->where("client_id", $this->input->post("client_id"));
         }
 
         $db->where("deleted", 0);
@@ -510,11 +520,6 @@ class Receipts_m extends MY_Model {
 
         $this->form_validation->set_rules([
                                             [
-                                                "field"=>"product_id",
-                                                'label' => '',
-                                                'rules' => 'required'
-                                            ],
-                                            [
                                                 "field"=>"quantity",
                                                 'label' => '',
                                                 'rules' => 'required'
@@ -523,7 +528,6 @@ class Receipts_m extends MY_Model {
 
         if ($this->form_validation->run() == FALSE){
             $this->data["status"] = "validate";
-            if(form_error('product_id') != null) $this->data["messages"]["product_name"] = form_error('product_id');
             if(form_error('quantity') != null) $this->data["messages"]["quantity"] = form_error('quantity');
         }
 
@@ -545,7 +549,7 @@ class Receipts_m extends MY_Model {
         if($this->data["status"] == "validate") return $this->data;
 
         $itemId = $this->json->item_id;
-        $product_id = $this->json->product_id;
+        $product_id = $this->json->product_id == ""?null:$this->json->product_id;
         $product_name = $this->json->product_name;
         $product_description = $this->json->product_description;
         $quantity = round(getNumber($this->json->quantity), $this->Settings_m->getDecimalPlacesNumber());

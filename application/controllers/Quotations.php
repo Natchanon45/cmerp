@@ -12,10 +12,12 @@ class Quotations extends MY_Controller {
             return;
         }elseif(isset($this->json->task)){
             if($this->json->task == "update_doc_status") jout($this->Quotations_m->updateStatus());
+            if($this->json->task == "get_partial_billing_note") jout($this->Quotations_m->getTotalDocPartialBillingNote());
             return;    
         }
 
-        $this->template->rander("quotations/index");
+        redirect("/accounting/sell/quotations");
+        //$this->template->rander("quotations/index");
     }
 
     function addedit(){
@@ -27,6 +29,18 @@ class Quotations extends MY_Controller {
         $data = $this->Quotations_m->getDoc($this->input->post("id"));
 
         $this->load->view( 'quotations/addedit', $data);
+    }
+
+    function partial_payment_type(){
+        if(isset($this->json->task)){
+            if($this->json->task == "update_doc_status") jout($this->Quotations_m->updateStatus());
+            return;   
+        }
+
+        $data = $this->Quotations_m->getDoc($this->uri->segment(3));
+        if($data["status"] != "success") return;
+
+        $this->load->view( 'quotations/partial_payment_type', $data);
     }
 
     function view() {
@@ -84,7 +98,7 @@ class Quotations extends MY_Controller {
                         $suggestion[] = ["id" => $sprow->id, "text" => $sprow->title, "description"=>$sprow->description, "unit"=>$sprow->unit_type, "price"=>$sprow->rate];
                     }
                 }
-                //$suggestion[] = array("id" => "", "text" => "+ " . lang("create_new_item"));
+                $suggestion[] = array("id" => "+", "text" => "+ " . lang("create_new_item"));
                 jout($suggestion);
             }
             return;

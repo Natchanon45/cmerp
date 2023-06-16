@@ -65,20 +65,19 @@ class Clients extends MY_Controller {
 		
         $client_id = $this->input->post('id');
 		
-		if (empty( $client_id )) {
-			if( empty( $this->getRolePermission['add_row'] ) ) {
+		// if (empty( $client_id )) {
+			// if( empty( $this->getRolePermission['add_row'] ) ) {
 			
-				echo permissionBlock();
-				return;
+				// echo permissionBlock();
+				// return;
 
-			}
-		} else {
-			/*if($permission_m->client === "read_only") {
-				echo permissionBlock();
-				return;
-				 
-			}*/
-		}
+			// }
+		// } else {
+			// if($permission_m->client === "read_only") {
+				// echo permissionBlock();
+				// return;
+			// }
+		// }
 		
         $this->can_access_this_client($client_id);
         validate_submitted_data(array(

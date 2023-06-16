@@ -29,12 +29,40 @@
             <label for="client_id" class=" col-md-3"><?php echo lang('client'); ?></label>
             <div class=" col-md-9">
                 <?php
-                echo form_dropdown("client_id", $clients_dropdown, array($model_info->client_id), "class='select2 validate-hidden' data-rule-required='true', data-msg-required='" . lang('field_required') . "'");
+                echo form_dropdown("client_id", $clients_dropdown_new, array($model_info->client_id), "class='select2 validate-hidden client_key' data-rule-required='true', data-msg-required='" . lang('field_required') . "'");
                 ?>
             </div>
         </div>
     <?php } ?>
 
+    <?php
+    $status_code = "";
+    $status_value = "";
+
+    if (isset($model_info->client_type) && $model_info->client_type == "0") {
+        $status_code = '0';
+        $status_value = lang("client");
+    } 
+    
+    if (isset($model_info->client_type) && $model_info->client_type == "1") {
+        $status_code = '1';
+        $status_value = lang("lead");
+    }
+    ?>
+    <div class="form-group">
+        <input type="hidden" name="client_type_code" id="client_type_code" value="<?php echo $status_code; ?>">
+        <label for="client_type" class="col-md-3"><?php echo lang("status_of_client")?></label>
+        <div class="col-md-9">
+            <?php echo form_input(array(
+                "id" => "client_type_value",
+                "name" => "client_type_value",
+                "value" => $status_value,
+                "placeholder" => lang("status_of_client"),
+                "class" => "form-control",
+                "readonly" => true
+            )); ?>
+        </div>
+    </div>
     
     <div class="form-group">
         <label for="description" class=" col-md-3"><?php echo lang('description'); ?></label>
@@ -153,11 +181,27 @@
                 }
             }
         });
+
         $("#title").focus();
         $("#project-form .select2").select2();
 
         setDatePicker("#start_date, #deadline");
 
         $("#project_labels").select2({multiple: true, data: <?php echo json_encode($label_suggestions); ?>});
+
+        $(".client_key").on('change', function(e) {
+            e.preventDefault();
+
+            let url = '<?php echo get_uri('projects/client_type/'); ?>' + $(this).val();
+            $.ajax({
+                url: url,
+                success: function (results) {
+                    let result = JSON.parse(results).data;
+
+                    $("#client_type_code").val(result.code);
+                    $("#client_type_value").val(result.text);
+                }
+            });
+        });
     });
 </script>    

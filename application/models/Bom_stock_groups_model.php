@@ -34,12 +34,12 @@ class Bom_stock_groups_model extends Crud_model {
             GROUP BY bsg.id 
         ");
     }
+
     function delete_one($id) {
         $this->db->query("DELETE FROM bom_stock_groups WHERE id = $id");
         $this->db->query("DELETE FROM bom_stocks WHERE group_id = $id");
         return true;
     }
-
 
     function get_restocks($options = array()) {
         $where = "";
@@ -170,6 +170,11 @@ class Bom_stock_groups_model extends Crud_model {
 
             }
         }
+    }
+
+    function dev2_deleteRestockingItemById($id)
+    {
+        $this->db->delete('bom_stocks', array('id' => $id));
     }
 
 }

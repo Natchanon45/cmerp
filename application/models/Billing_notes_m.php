@@ -50,13 +50,24 @@ class Billing_notes_m extends MY_Model {
 
         $doc_status .= "</select>";
 
+        $reference_number_column = $bnrow->reference_number;
+        if($bnrow->quotation_id != null){
+            $reference_number_column = "<a href='".get_uri("quotations/view/".$bnrow->quotation_id)."'>".$bnrow->reference_number."</a>";
+        }
+
         $data = [
                     "<a href='".get_uri("billing-notes/view/".$bnrow->id)."'>".convertDate($bnrow->doc_date, 2)."</a>",
                     "<a href='".get_uri("billing-notes/view/".$bnrow->id)."'>".$bnrow->doc_number."</a>",
-                    $bnrow->reference_number, "<a href='".get_uri("clients/view/".$bnrow->client_id)."'>".$this->Clients_m->getCompanyName($bnrow->client_id)."</a>",
+                    $reference_number_column,
+                    "<a href='".get_uri("clients/view/".$bnrow->client_id)."'>".$this->Clients_m->getCompanyName($bnrow->client_id)."</a>",
                     convertDate($bnrow->due_date, true), number_format($bnrow->total, 2), $doc_status,
-                    "<a data-post-id='".$bnrow->id."' data-action-url='".get_uri("billing-notes/addedit")."' data-act='ajax-modal' class='edit'><i class='fa fa-pencil'></i></a><a data-id='".$bnrow->id."' data-action-url='".get_uri("billing-notes/delete_doc")."' data-action='delete' class='delete'><i class='fa fa-times fa-fw'></i></a>"
+                    "<a data-post-id='".$bnrow->id."' data-action-url='".get_uri("billing-notes/addedit")."' data-act='ajax-modal' class='edit'><i class='fa fa-pencil'></i></a>"
                 ];
+
+        /*
+        *Delete button
+        *<a data-id='".$bnrow->id."' data-action-url='".get_uri("billing-notes/delete_doc")."' data-action='delete' class='delete'><i class='fa fa-times fa-fw'></i></a>
+        */
 
         return $data;
     }
@@ -75,6 +86,10 @@ class Billing_notes_m extends MY_Model {
             $db->where("doc_date <=", $this->input->post("end_date"));
         }
 
+        if($this->input->post("client_id") != null){
+            $db->where("client_id", $this->input->post("client_id"));
+        }
+
         $db->where("deleted", 0);
 
         $bnrows = $db->order_by("doc_number", "desc")->get()->result();
@@ -91,6 +106,9 @@ class Billing_notes_m extends MY_Model {
     function getDoc($docId){
         $db = $this->db;
 
+        $this->data["doc_id"] = null;
+        $this->data["quotation_id"] = null;
+        $this->data["doc_number"] = null;
         $this->data["doc_date"] = date("Y-m-d");
         $this->data["credit"] = "0";
         $this->data["due_date"] = date("Y-m-d");
@@ -99,6 +117,9 @@ class Billing_notes_m extends MY_Model {
         $this->data["discount_percent"] = 0;
         $this->data["discount_amount"] = 0;
         $this->data["vat_inc"] = "N";
+        $this->data["unpaid_amount"] = 0;
+        $this->data["partials_percent"] = 0;
+        $this->data["partials_amount"] = 0;
         $this->data["wht_inc"] = "N";
         $this->data["project_id"] = null;
         $this->data["client_id"] = null;
@@ -110,6 +131,9 @@ class Billing_notes_m extends MY_Model {
         $this->data["approved_datetime"] = null;
         $this->data["doc_status"] = NULL;
 
+        $this->data["is_partial_billing"] = "N";
+        $this->data["partials_type"] = null;
+
         if(!empty($docId)){
             $bnrow = $db->select("*")
                         ->from("billing_note")
@@ -118,6 +142,43 @@ class Billing_notes_m extends MY_Model {
                         ->get()->row();
 
             if(empty($bnrow)) return $this->data;
+
+            $quotation_id = $bnrow->quotation_id;
+            $quotation_is_partial = "N";
+            $quotation_partial_type = null;
+            $unpaid_amount = 0;
+
+            if($quotation_id != null){
+                $qrow = $db->select("total, is_partials, partials_type")
+                            ->from("quotation")
+                            ->where("id", $quotation_id)
+                            ->where("deleted", 0)
+                            ->get()->row();
+
+                if(empty($qrow)){
+                    log_message("error", "SYSERR=>Billing_notes_m->getDoc:".$db->last_query());
+                    return $this->data;
+                }
+
+                $billed_amount = 0;
+                $quotation_total = $qrow->total;
+                $quotation_is_partial = $qrow->is_partials;
+                $quotation_partial_type = $qrow->partials_type;
+
+                if($quotation_is_partial == "Y"){
+                    $billed_amount = $db->select("SUM(partials_amount) AS billed_amount")
+                                                ->from("billing_note")
+                                                ->where("quotation_id", $quotation_id)
+                                                ->where("deleted", 0)
+                                                ->get()->row()->billed_amount;
+
+                    if($quotation_partial_type == "A"){
+                        $unpaid_amount = $quotation_total - $billed_amount;
+                    }else{
+                        $unpaid_amount = (($quotation_total - $billed_amount)/$quotation_total) * 100;
+                    }
+                }
+            }
 
             $lead_id = $client_id = null;
             
@@ -130,6 +191,7 @@ class Billing_notes_m extends MY_Model {
             }
 
             $this->data["doc_id"] = $docId;
+            $this->data["quotation_id"] = $quotation_id;
             $this->data["doc_number"] = $bnrow->doc_number;
             $this->data["doc_date"] = $bnrow->doc_date;
             $this->data["credit"] = $bnrow->credit;
@@ -138,6 +200,9 @@ class Billing_notes_m extends MY_Model {
             $this->data["discount_type"] = $bnrow->discount_type;
             $this->data["discount_percent"] = $bnrow->discount_percent;
             $this->data["discount_amount"] = $bnrow->discount_amount;
+            $this->data["unpaid_amount"] = number_format($unpaid_amount, 2);
+            $this->data["partials_percent"] = $bnrow->partials_percent;
+            $this->data["partials_amount"] = $bnrow->partials_amount;
             $this->data["vat_inc"] = $bnrow->vat_inc;
             $this->data["vat_percent"] = number_format_drop_zero_decimals($bnrow->vat_percent, 2)."%";
             $this->data["wht_inc"] = $bnrow->wht_inc;
@@ -150,6 +215,9 @@ class Billing_notes_m extends MY_Model {
             $this->data["approved_by"] = $bnrow->approved_by;
             $this->data["approved_datetime"] = $bnrow->approved_datetime;
             $this->data["doc_status"] = $bnrow->status;
+
+            $this->data["is_partial_billing"] = $quotation_is_partial;
+            $this->data["partials_type"] = $quotation_partial_type;
         }
 
         $this->data["status"] = "success";
@@ -160,9 +228,14 @@ class Billing_notes_m extends MY_Model {
     function updateDoc($docId = null){
         $db = $this->db;
 
+        $bnrow = null;
+
         $discount_type = "P";
         $discount_percent = 0;
         $discount_amount = 0;
+
+        $total = 0;
+        $payment_amount = 0;
 
         $vat_inc = "N";
         $vat_percent = $this->Taxes_m->getVatPercent();
@@ -235,15 +308,70 @@ class Billing_notes_m extends MY_Model {
             if($discount_amount < 0) $discount_amount = 0;
         }
 
-
-
         $sub_total = $sub_total_before_discount - $discount_amount;
 
-        if($vat_inc == "Y") $vat_value = ($sub_total * $vat_percent)/100;
-        $total = $sub_total + $vat_value;
+        $quotation_id = $bnrow->quotation_id;
+        $quotation_sub_total = 0;
+        $quotation_total = 0;
+        $billed_amount = 0;
+        $is_partial_billing = "N";
+        $can_update_partial_billing = "N";
+        $partials_type = null;
+        $partials_percent = null;
+        $partials_amount = null;
 
-        if($wht_inc == "Y") $wht_value = ($sub_total * $wht_percent) / 100;
-        $payment_amount = $total - $wht_value;
+        if($quotation_id != null){
+            $qrow = $db->select("sub_total, total, is_partials, partials_type")
+                        ->from("quotation")
+                        ->where("id", $quotation_id)
+                        ->where("deleted", 0)
+                        ->get()->row();
+
+            if(!empty($qrow)){
+                $partials_type = $qrow->partials_type;
+                $quotation_sub_total = $qrow->sub_total;
+                $quotation_total = $qrow->total;
+
+                if($qrow->is_partials == "Y"){
+                    $is_partial_billing = "Y";
+
+                    $billed_amount = $db->select("SUM(partials_amount) AS billed_amount")
+                                        ->from("billing_note")
+                                        ->where("quotation_id", $quotation_id)
+                                        ->where("deleted", 0)
+                                        ->get()->row()->billed_amount;
+
+                    if($billed_amount == null) $billed_amount = 0;
+
+                    if($partials_type == "P"){
+                        $partials_percent = getNumber($this->json->partials_percent);
+                        $partials_amount = ($partials_percent * $quotation_sub_total)/100;
+                        $billed_amount = $billed_amount + $partials_amount;
+                    }
+
+                    if($partials_type == "A"){
+                        $partials_amount = getNumber($this->json->partials_amount);
+                        $billed_amount = $billed_amount + $partials_amount;
+                    }
+
+                    if($vat_inc == "Y") $vat_value = ($partials_amount * $vat_percent) / 100;
+                    $total = $partials_amount + $vat_value;
+
+                    if($wht_inc == "Y") $wht_value = ($partials_amount * $wht_percent) / 100;
+                    $payment_amount = $total - $wht_value;
+                }
+            }else{
+                log_message("error", "SYSERR=>Billing_notes_m->updateDoc: ".$db->last_query());
+            }
+        }
+
+        if($quotation_id == null || $is_partial_billing == "N"){
+            if($vat_inc == "Y") $vat_value = ($sub_total * $vat_percent) / 100;
+            $total = $sub_total + $vat_value;
+
+            if($wht_inc == "Y") $wht_value = ($sub_total * $wht_percent) / 100;
+            $payment_amount = $total - $wht_value;
+        }
 
         $db->where("id", $docId);
         $db->update("billing_note", [
@@ -252,6 +380,8 @@ class Billing_notes_m extends MY_Model {
                                     "discount_percent"=>$discount_percent,
                                     "discount_amount"=>$discount_amount,
                                     "sub_total"=>$sub_total,
+                                    "partials_percent"=>$partials_percent,
+                                    "partials_amount"=>$partials_amount,
                                     "vat_inc"=>$vat_inc,
                                     "vat_percent"=>$vat_percent,
                                     "vat_value"=>$vat_value,
@@ -262,11 +392,41 @@ class Billing_notes_m extends MY_Model {
                                     "payment_amount"=>$payment_amount
                                 ]);
 
+
+        if($is_partial_billing == "Y"){
+            $bnsum = $db->select("SUM(partials_amount) AS sub_total_vat_excluded, SUM(total) AS collected_amount")
+                                    ->from("billing_note")
+                                    ->where("quotation_id", $quotation_id)
+                                    ->where("deleted", 0)
+                                    ->get()->row();
+
+            $sub_total_vat_excluded = $bnsum->sub_total_vat_excluded === null ? 0 : $bnsum->sub_total_vat_excluded;
+            $collected_amount = $bnsum->collected_amount === null ? 0 : $bnsum->collected_amount;
+
+            if($partials_type == "A"){
+                $this->data["unpaid_amount"] = number_format($quotation_sub_total - $sub_total_vat_excluded, 2);
+            }else{
+                $this->data["unpaid_amount"] = number_format((($quotation_sub_total - $sub_total_vat_excluded) / $quotation_sub_total) * 100, 2);
+            }
+
+            $db->where("id", $quotation_id);
+            $db->where("deleted", 0);
+            if($collected_amount >= $quotation_total){
+                $db->update("quotation", ["status"=>"I"]);
+            }else{
+                $db->update("quotation", ["status"=>"P"]);
+            }
+        }
+
         $this->data["sub_total_before_discount"] = number_format($sub_total_before_discount, 2);
         $this->data["discount_type"] = $discount_type;
         $this->data["discount_percent"] = number_format($discount_percent, 2);
         $this->data["discount_amount"] = number_format($discount_amount, 2);
         $this->data["sub_total"] = number_format($sub_total, 2);
+        $this->data["is_partial_billing"] = $is_partial_billing;
+        $this->data["partials_type"] = $partials_type;
+        $this->data["partials_percent"] = ($partials_percent !== null) ? number_format($partials_percent, 2) : null;
+        $this->data["partials_amount"] = ($partials_amount !== null) ? number_format($partials_amount, 2) : null;
         $this->data["vat_inc"] = $vat_inc;
         $this->data["vat_percent"] = number_format_drop_zero_decimals($vat_percent, 2);
         $this->data["vat_value"] = number_format($vat_value, 2);
@@ -395,6 +555,7 @@ class Billing_notes_m extends MY_Model {
         $bnrow = $db->select("status")
                         ->from("billing_note")
                         ->where("id", $docId)
+                        ->where("deleted", 0)
                         ->get()->row();
 
         if(empty($bnrow)) return $this->data;
@@ -436,7 +597,7 @@ class Billing_notes_m extends MY_Model {
     function items(){
         $db = $this->db;
         
-        $bnrow = $db->select("id, status")
+        $bnrow = $db->select("id, quotation_id, status")
                         ->from("billing_note")
                         ->where("id", $this->json->doc_id)
                         ->where("deleted", 0)
@@ -466,7 +627,6 @@ class Billing_notes_m extends MY_Model {
             $item["unit"] = $invirow->unit;
             $item["price"] = number_format($invirow->price, 2);
             $item["total_price"] = number_format($invirow->total_price, 2);
-
             $items[] = $item;
         }
 
@@ -482,7 +642,7 @@ class Billing_notes_m extends MY_Model {
         $docId = $this->input->post("doc_id");
         $itemId = $this->input->post("item_id");
 
-        $bnrow = $db->select("id")
+        $bnrow = $db->select("id, quotation_id")
                         ->from("billing_note")
                         ->where("id", $docId)
                         ->where("deleted", 0)
@@ -491,6 +651,7 @@ class Billing_notes_m extends MY_Model {
         if(empty($bnrow)) return $this->data;
 
         $this->data["doc_id"] = $docId;
+        $this->data["quotation_id"] = $bnrow->quotation_id;
         $this->data["product_id"] = "";
         $this->data["product_name"] = "";
         $this->data["product_description"] = "";
@@ -528,11 +689,6 @@ class Billing_notes_m extends MY_Model {
 
         $this->form_validation->set_rules([
                                             [
-                                                "field"=>"product_id",
-                                                'label' => '',
-                                                'rules' => 'required'
-                                            ],
-                                            [
                                                 "field"=>"quantity",
                                                 'label' => '',
                                                 'rules' => 'required'
@@ -541,10 +697,8 @@ class Billing_notes_m extends MY_Model {
 
         if ($this->form_validation->run() == FALSE){
             $this->data["status"] = "validate";
-            if(form_error('product_id') != null) $this->data["messages"]["product_name"] = form_error('product_id');
             if(form_error('quantity') != null) $this->data["messages"]["quantity"] = form_error('quantity');
         }
-
     }
 
     function saveItem(){
@@ -563,7 +717,7 @@ class Billing_notes_m extends MY_Model {
         if($this->data["status"] == "validate") return $this->data;
 
         $itemId = $this->json->item_id;
-        $product_id = $this->json->product_id;
+        $product_id = $this->json->product_id == ""?null:$this->json->product_id;
         $product_name = $this->json->product_name;
         $product_description = $this->json->product_description;
         $quantity = round(getNumber($this->json->quantity), $this->Settings_m->getDecimalPlacesNumber());
@@ -661,6 +815,7 @@ class Billing_notes_m extends MY_Model {
             }
 
             $db->where("id", $docId);
+            $db->where("deleted", 0);
             $db->update("billing_note", [
                                         "approved_by"=>$this->login_user->id,
                                         "approved_datetime"=>date("Y-m-d H:i:s"),
@@ -674,6 +829,7 @@ class Billing_notes_m extends MY_Model {
             }
 
             $db->where("id", $docId);
+            $db->where("deleted", 0);
             $db->update("billing_note", [
                                         "approved_by"=>$this->login_user->id,
                                         "approved_datetime"=>date("Y-m-d H:i:s"),
@@ -796,7 +952,7 @@ class Billing_notes_m extends MY_Model {
 
         $this->data["dataset"] = $this->getIndexDataSetHTML($bnrow);
         $this->data["status"] = "success";
-        $this->data["message"] = lang('record_saved');
+        $this->data["message"] = lang('doc_id');
         return $this->data;
     }
 }

@@ -1,11 +1,9 @@
- 
-
 <div id="page-content" class="p20 clearfix">
     <div class="row">
         <div class="col-sm-3 col-lg-2">
             <?php
-            $tab_view['active_tab'] = "roles";
-            $this->load->view("settings/tabs", $tab_view);
+                $tab_view['active_tab'] = "roles";
+                $this->load->view("settings/tabs", $tab_view);
             ?>
         </div>
 
@@ -60,7 +58,7 @@
         });
 
         $("body").on("click", "#role-table tr", function () {
-            //don't load this message if already has selected.
+            // Don't load this message if already has selected.
             if (!$(this).hasClass("active")) {
                 appLoader.show();
                 var role_id = $(this).find(".role-row").attr("data-id");

@@ -6,17 +6,20 @@ if (!defined('BASEPATH'))
 class Notes extends MY_Controller {
 
     function __construct() {
-		
         parent::__construct();
-		
-        $this->access_only_team_members();
+
+        //$this->access_only_team_members();
+        if($this->Permission_m->access_note == false){
+            redirect("forbidden");
+            return;
+        }
 		
 		$this->type = 'note';
-      
 		
 		$this->load->model( 'Db_model' );
-        $this->load->model('Permission_m');
         $this->load->model('Note_types_model');
+
+
 		
 		$this->dao = $this->Db_model;
 		$param['table_name'] = $this->type; 
@@ -54,6 +57,7 @@ class Notes extends MY_Controller {
 
 
     function modal_form() {
+
 		$id = !empty( $this->input->post('id') )? $this->input->post('id'): NULL;
 		
         $view_data['model_info'] = $this->Notes_model->get_one( $id );
@@ -68,7 +72,6 @@ class Notes extends MY_Controller {
 
         $view_data['note_types_dropdown'] = array(null => "-");
 
-
         $note_types_dropdown = [];
         $note_types = $this->Note_types_model->get_dropdown_list(array("title"), "id");
 
@@ -81,6 +84,7 @@ class Notes extends MY_Controller {
 
 
     function delete() {
+        if($this->login_user->is_admin != "1") redirect("/notes");
         validate_submitted_data(array(
             "id" => "required|numeric"
         ));
@@ -286,16 +290,17 @@ class Notes extends MY_Controller {
         $actions = "";
 		
 		
-		if ($this->login_user->is_admin == "1") {
+		if ($this->login_user->is_admin == "1" || $this->Permission_m->update_note == true) {
 
             $actions = modal_anchor($view_target, "<i class='fa fa-bolt'></i>", array("class" => "edit", "title" => lang('note_details'), "data-modal-title" => lang("note"), "data-post-id" => $data->id));
 		
 			$buttons[] = modal_anchor( get_uri("notes/modal_form"), "<i class='fa fa-pencil'></i>", array("class" => "edit", "title" => lang('edit_note'), "data-post-id" => $data->id ));
 		
-
-			$buttons[] = js_anchor( "<i class='fa fa-times fa-fw'></i>", array('title' => lang('delete_note'), "class" => "delete", "data-id" => $data->id, "data-action-url" => get_uri("notes/delete"), "data-action" => "delete-confirmation" ));
+            if($this->login_user->is_admin == "1"){
+                $buttons[] = js_anchor( "<i class='fa fa-times fa-fw'></i>", array('title' => lang('delete_note'), "class" => "delete", "data-id" => $data->id, "data-action-url" => get_uri("notes/delete"), "data-action" => "delete-confirmation" ));
+            }
 			
-			$buttons[] = '<a href="#" class="list-group-item" title="ส่งข้อความ" data-act="ajax-modal" data-title="ส่งข้อความ" data-action-url="'. base_url( ''. ex( 1 ) .'/form_mail/'. $data->id .'' ) .'"><i class="fa fa-envelope"></i></a>';
+			//$buttons[] = '<a href="#" class="list-group-item" title="ส่งข้อความ" data-act="ajax-modal" data-title="ส่งข้อความ" data-action-url="'. base_url( ''. ex( 1 ) .'/form_mail/'. $data->id .'' ) .'"><i class="fa fa-envelope"></i></a>';
 
             $actions = implode( '', $buttons );
 
@@ -318,6 +323,8 @@ class Notes extends MY_Controller {
 	
 	
     function save() {
+        if($this->login_user->is_admin != "1" && $this->Permission_m->update_note != true) redirect("/notes");
+
         validate_submitted_data(array(
             "id" => "numeric",
             "title" => "required",
@@ -446,18 +453,16 @@ class Notes extends MY_Controller {
 	
 	
     function index() {
-		
         $this->check_module_availability("module_note");
 		
 		$this->buttonTop = array();
 		
 		$this->buttonTop[] = modal_anchor(get_uri("labels/modal_form"), "<i class='fa fa-tags'></i> " . lang('manage_labels'), array("class" => "btn btn-default", "title" => lang('manage_labels'), "data-post-type" => "note"));
-	
 			
 		$this->buttonTop[] = modal_anchor(get_uri("notes/modal_form"), "<i class='fa fa-plus-circle'></i> " . lang('add_note'), array("class" => "btn btn-default", "title" => lang('add_note'), "data-post-project_id" => 0));
 
         //data-post-project_id="1"
-	
+        
         $this->labeltest();
         
         $labels_where["context"] = "note";
@@ -470,7 +475,7 @@ class Notes extends MY_Controller {
 			FROM labels WHERE context = 'note'
 			AND deleted = 0
 		";
-		 
+		
         $view_data['label'] = $this->dao->fetchAll( $sql );
 
         // if($this->login_user->is_admin == 1 || $this->getRolePermission['view_row'] == "2"){

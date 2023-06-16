@@ -15,7 +15,8 @@ class Billing_notes extends MY_Controller {
             return;    
         }
 
-        $this->template->rander("billing_notes/index");
+        redirect("/accounting/sell/billing-notes");
+        //$this->template->rander("billing_notes/index");
     }
 
     function addedit(){
@@ -83,7 +84,7 @@ class Billing_notes extends MY_Controller {
                         $suggestion[] = ["id" => $sprow->id, "text" => $sprow->title, "description"=>$sprow->description, "unit"=>$sprow->unit_type, "price"=>$sprow->rate];
                     }
                 }
-                //$suggestion[] = array("id" => "", "text" => "+ " . lang("create_new_item"));
+                $suggestion[] = array("id" => "+", "text" => "+ " . lang("create_new_item"));
                 jout($suggestion);
             }
             return;
@@ -91,6 +92,6 @@ class Billing_notes extends MY_Controller {
 
         $data = $this->Billing_notes_m->item();
 
-        $this->load->view('quotations/item', $data);
+        $this->load->view('billing_notes/item', $data);
     }
 }

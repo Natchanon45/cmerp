@@ -3,7 +3,7 @@ function todate(d){
 }
 
 function tonum(mynum, digit = 2){
-	let div = 1;
+	var div = 1;
 
 	if(digit == 3) div = 1000;
 	else if(digit == 4) div = 10000;

@@ -222,7 +222,7 @@
                         ?>
                         <label for="access_note_assigned_only">ใช่ เอกสารของคุณเท่านั้น</label>
                     </div>
-                    <div class="">
+                    <div>
                         <?php
                         echo form_radio(array(
                             "id" => "access_note_specific",
@@ -235,7 +235,13 @@
                         <div class="specific_dropdown">
                             <input type="text" value="<?php echo $access_note_specific; ?>" name="access_note_specific" id="note_types_specific_dropdown" class="w100p validate-hidden"  data-rule-required="true" data-msg-required="<?php echo lang('field_required'); ?>" placeholder="Choose note types"  />
                         </div>
-                        
+                    </div>
+
+                    <div class="form-group">
+                        <div>
+                            <?php echo form_checkbox("update_note", "Y", $update_note ? true : false, "id='update_note'"); ?>
+                            <label for="update_note">สามารถแก้ไขเอกสารได้</label>
+                        </div>
                     </div>
                 </li>
                 <li>
