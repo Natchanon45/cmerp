@@ -68,6 +68,35 @@ a {
     color: #1f618d !important;
 }
 
+.custom-color-button{
+    text-align: center;
+    color: rgba(36, 113, 163, 0.8) !important;
+    background: #fff;
+    border: 1px solid rgba(36, 113, 163, 0.8);
+    -webkit-transition: 0.5s;
+}
+
+.custom-color-button:hover{
+    cursor: pointer;
+    color: rgba(36, 113, 163, 1) !important;
+    background: rgba(36, 113, 163, 0.1) !important;
+    border: 1px solid rgba(36, 113, 163, 1);
+}
+
+.custom-color-button i{
+    margin-right: 4px;
+}
+
+input.custom-color-input{
+    outline: none !important;
+    border-radius: 2px;
+    border: 1px solid #ccc;
+}
+
+input.custom-color-input:focus{
+    border: 1px solid rgba(36, 113, 163, 1) !important;
+}
+
 .bg-success{
     background: #1f618d;
 }

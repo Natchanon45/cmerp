@@ -870,4 +870,12 @@ class Quotations_m extends MY_Model {
         return $this->data;
 
     }
+
+    function genShareKey(){
+        $db = $this->db;
+
+        $this->data["message"] = $this->json->gen_key;
+
+        return $this->data;
+    }
 }

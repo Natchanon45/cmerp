@@ -108,4 +108,14 @@ class Quotations extends MY_Controller {
 
         $this->load->view('quotations/item', $data);
     }
+
+    function share(){
+        if(isset($this->json->task)){
+            if($this->json->task == "gen_key") jout($this->Quotations_m->genShareKey());
+            return;   
+        }
+        
+        $data = $this->Quotations_m->getDoc($this->input->post("id"));
+        $this->load->view('quotations/share', $data);
+    }
 }

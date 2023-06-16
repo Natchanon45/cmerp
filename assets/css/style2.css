@@ -1,3 +1,9 @@
+.clear:after{
+	clear: both;
+	display: table;
+	content: '';
+}
+
 .datatable .dropdown_status{
 	padding: 4px 8px;
 	font-size: 1.1em;
@@ -7,4 +13,38 @@
 .fnotvalid{
 	display: block;
 	color: #ff0000;
+}
+
+/*
+*.popup
+*/
+.popup input[type=text]{
+	height: 28px;
+	padding: 4px;
+}
+
+.popup ul, .popup li{
+	list-style: none;
+	padding: 0;
+	margin: 0;
+}
+
+.popup .container{
+	width: 100%;
+	padding-top: 12px;
+	padding-bottom: 12px;
+}
+
+.popup .footer{
+	text-align: right;
+	padding: 10px;
+	border-top: 1px solid #f6f8f9;
+}
+
+.popup .footer button{
+	margin-left: 4px;
+}
+
+.popup .footer button span{
+	margin-right: 4px;
 }
