@@ -2020,3 +2020,5 @@ $lang["stock_restock_item_withdraw"] = "Add the item used.";
 $lang["material_name_duplicate"] = "Material code must be unique.";
 $lang["item_name_duplicate"] = "Item code must be unique.";
 $lang["item_cate_duplicate"] = "Item category name must be unique.";
+$lang["used_by"] = "Used by";
+$lang["used_date"] = "Used date";
