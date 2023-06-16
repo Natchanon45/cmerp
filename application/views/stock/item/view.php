@@ -10,7 +10,7 @@
 
   <ul id="client-tabs" data-toggle="ajax-tab" class="nav nav-tabs" role="tablist" style="background: #ffffff;">
 
-    <li><a role="presentation" href="<?php echo_uri("stock/item_info/".$item_info->id); ?>" data-target="#material-info">
+    <li><a role="presentation" href="<?php echo_uri("stock/item_info/" . $item_info->id); ?>" data-target="#material-info">
       <?php echo lang('stock_item_info'); ?>
     </a></li>
 
@@ -20,21 +20,21 @@
       </a></li>
     <?php // } ?> -->
 
-    <li><a role="presentation" href="<?php echo_uri("stock/item_files/".$item_info->id); ?>" data-target="#material-files">
+    <li><a role="presentation" href="<?php echo_uri("stock/item_files/" . $item_info->id); ?>" data-target="#material-files">
       <?php echo lang('files'); ?>
     </a></li>
 
-    <!-- <?php // if(!isset($hidden_menu) || !in_array('material-remaining', $hidden_menu)) { ?>
-      <li><a role="presentation" href="<?php // echo_uri("stock/item_remainings/".$item_info->id); ?>" data-target="#material-remaining">
-        <?php // echo lang('stock_restock_list'); ?>
+    <?php if(!isset($hidden_menu) || !in_array('material-remaining', $hidden_menu)) { ?>
+      <li><a role="presentation" href="<?php echo_uri("stock/item_remainings/" . $item_info->id); ?>" data-target="#material-remaining">
+        <?php echo lang('stock_restock_list'); ?>
       </a></li>
-    <?php // } ?> -->
+    <?php } ?>
 
-    <!-- <?php // if(!isset($hidden_menu) || !in_array('material-used', $hidden_menu)) { ?>
-      <li><a role="presentation" href="<?php // echo_uri("stock/item_used/".$item_info->id); ?>" data-target="#material-used">
-        <?php // echo lang('stock_restock_used_list'); ?>
+    <?php if(!isset($hidden_menu) || !in_array('material-used', $hidden_menu)) { ?>
+      <li><a role="presentation" href="<?php echo_uri("stock/item_used/" . $item_info->id); ?>" data-target="#material-used">
+        <?php echo lang('stock_restock_used_list'); ?>
       </a></li>
-    <?php // } ?> -->
+    <?php } ?>
 
   </ul>
   <div class="tab-content">
