@@ -97,14 +97,19 @@ $(document).ready(function () {
                 }
             }
         }).change(function (e) {
-            $("#product_id").val(e.added.id);
-            $("#product_name").val(e.added.text);
-            $("#product_description").val(e.added.description);
-            $("#quantity").val("1");
-            $("#unit").val(e.added.unit);
-            $("#price").val(e.added.price);
+            if (e.val === "+") {
+                $("#product_name").select2("destroy").val("").focus();
+                $("#product_id").val(""); //set the flag to add new item in library
+            } else if (e.val) {
+                $("#product_id").val(e.added.id);
+                $("#product_name").val(e.added.text);
+                $("#product_description").val(e.added.description);
+                $("#quantity").val("1");
+                $("#unit").val(e.added.unit);
+                $("#price").val(e.added.price);
 
-            calculatePrice();
+                calculatePrice();
+            }
         });
     <?php endif; ?>
 

@@ -836,7 +836,7 @@ class Quotations_m extends MY_Model {
             $this->data["dataset"] = $this->getIndexDataSetHTML($qrow);
             return $this->data;
         }
-//$db->trans_rollback();
+
         $db->trans_commit();
 
         if(isset($this->data["task"])) return $this->data;

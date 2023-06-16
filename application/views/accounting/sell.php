@@ -162,7 +162,7 @@ function loadDataGrid(){
 
     $("#datagrid").appTable({
         source: "<?php echo_uri(); ?>"+active_module,
-        order: [[0, "desc"]],
+        order: [[1, "desc"]],
         rangeDatepicker: [
             {
                 startDate: { name: "start_date", value: "<?php echo date('Y-m-d', strtotime('-1 month')); ?>" }, 

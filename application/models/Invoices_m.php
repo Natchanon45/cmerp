@@ -558,7 +558,7 @@ class Invoices_m extends MY_Model {
         if($this->data["status"] == "validate") return $this->data;
 
         $itemId = $this->json->item_id;
-        $product_id = $this->json->product_id;
+        $product_id = $this->json->product_id == ""?null:$this->json->product_id;
         $product_name = $this->json->product_name;
         $product_description = $this->json->product_description;
         $quantity = round(getNumber($this->json->quantity), $this->Settings_m->getDecimalPlacesNumber());
