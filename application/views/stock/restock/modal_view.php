@@ -4,6 +4,14 @@
 .string-upper {
     text-transform: uppercase;
 }
+
+.input-suffix > .input-tag-2 {
+  position: absolute;
+  top: 0;
+  right: 0;
+  padding: 6px 8px;
+  font-size: 15px;
+}
 </style>
 
 <div id="material-dropzone" class="post-dropzone">
