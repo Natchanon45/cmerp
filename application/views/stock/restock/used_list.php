@@ -1,3 +1,9 @@
+<style type="text/css">
+.pr-25px {
+  padding-right: 25px !important;
+}
+</style>
+
 <div class="panel">
   <div class="tab-title clearfix">
     <h4>
@@ -8,12 +14,6 @@
     <table id="used-table" class="display" width="100%"></table>
   </div>
 </div>
-
-<style type="text/css">
-.pr-25px {
-  padding-right: 25px !important;
-}
-</style>
 
 <script type="text/javascript">
   $(document).ready(function () {
@@ -27,10 +27,10 @@
         { title: '<?php echo lang('created_by'); ?>' },
         { title: '<?php echo lang("note_real"); ?>' },
         { title: '<?php echo lang("stock_restock_used_quantity"); ?>', class: 'w125 text-right' },
-        { title: '<?php echo lang("stock_material_unit"); ?>', class: 'w125 text-right' },
+        { title: '<?php echo lang("stock_material_unit"); ?>', class: 'w80 text-right' },
         <?php if ($can_read_price) { ?>
           { title: '<?php echo lang("stock_restock_used_value"); ?>', class: 'w125 text-right' },
-          { title: '<?php echo lang("currency"); ?>', class: 'w125 text-right' }
+          { title: '<?php echo lang("currency"); ?>', class: 'w80 text-right pr-25px' }
         <?php } ?>
       ],
       order: [[1, 'asc']],

@@ -1,3 +1,9 @@
+<style type="text/css">
+.string-upper {
+    text-transform: uppercase;
+}
+</style>
+
 <?php echo form_open(get_uri("stock/restock_withdraw_save"), array("id" => "withdraw-form", "class" => "general-form", "role" => "form")); ?>
 <div class="modal-body clearfix" id="temp-container">
   <input type="hidden" name="id" value="<?php echo isset($model_info->id) ? $model_info->id : ''; ?>" />
@@ -29,7 +35,7 @@
     <div class="<?php echo $field_column; ?>">
       <div class="input-suffix">
         <input type="number" name="remaining" id="remaining" disabled class="form-control" min="1" step="0.0001" value="<?= $model_info->remaining ?>" />
-        <div class="input-tag"></div>
+        <div class="input-tag string-upper"></div>
       </div>
     </div>
   </div>
@@ -41,7 +47,7 @@
     <div class="<?php echo $field_column; ?>">
       <div class="input-suffix">
         <input type="number" name="ratio" id="ratio" required class="form-control" min="0.0001" max="<?= $model_info->remaining ?>" step="0.0001" value="0" />
-        <div class="input-tag"></div>
+        <div class="input-tag string-upper"></div>
       </div>
     </div>
   </div>
