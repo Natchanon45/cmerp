@@ -30,25 +30,20 @@
 }
 
 .popup .link label,
-.popup .link input,
-.popup .link #generate_link{
+.popup .link input{
     display: inline-block;
 }
 
-#generate_link{
-    width: 90px;
-    position: relative;
-    top: 3px;
-    text-align: right;
-}
-
-.popup .link label{
-    width: 90px;
-}
-
 .popup .link input[type=text]{
-    width: calc(100% - 190px);
+    width: calc(100% - 90px);
     background: #f6f7fb;
+    margin-left: 4px;
+}
+
+#generate_link{
+    display: block;
+    margin-left: 81px;
+    margin-top: 12px;
 }
 
 .popup .link #generate_link i{
@@ -67,8 +62,8 @@
         <div class="link">
             <p>
                 <label>ลิงก์เอกสาร:</label>
-                <input type="text" class="custom-color-input" readonly>
-                <span id="generate_link"><input type="checkbox"><i>สร้างลิงก์</i></span>
+                <input type="text" id="share_link" class="custom-color-input" value="<?php echo $share_link; ?>" readonly>
+                <span id="generate_link"><input type="checkbox" <?php if($share_link != null) echo "checked"; ?>><i>สร้างลิงก์และคัดลอกลิงก์</i></span>
             </p>
         </div>
     </div>
@@ -79,14 +74,24 @@
 
 <script type="text/javascript">
 $(document).ready(function() {
+    <?php if($share_link != null): ?>
+        $("#share_link").select();
+        document.execCommand('copy');
+    <?php endif;?>
+
     $("#generate_link input").change(function() {
         axios.post("<?php echo current_url(); ?>", {
-            task: "gen_key",
+            task: "gen_sharekey",
             doc_id: "<?php if(isset($doc_id)) echo $doc_id; ?>",
             gen_key: this.checked
         }).then(function (response) {
             data = response.data;
-            alert(data.message);
+            if(typeof data.sharelink != "undefined"){
+                $("#share_link").val(data.sharelink).select();
+                document.execCommand('copy');
+            }else{
+                $("#share_link").val("");
+            }
         }).catch(function (error) {});
     });
 });

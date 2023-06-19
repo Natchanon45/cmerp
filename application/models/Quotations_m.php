@@ -144,6 +144,7 @@ class Quotations_m extends MY_Model {
 
             $this->data["doc_id"] = $docId;
             $this->data["doc_number"] = $qrow->doc_number;
+            $this->data["share_link"] = $qrow->sharekey != null ? get_uri("share/quotation/".$qrow->sharekey) : null;
             $this->data["doc_date"] = $qrow->doc_date;
             $this->data["credit"] = $qrow->credit;
             $this->data["doc_valid_until_date"] = $qrow->doc_valid_until_date;
@@ -168,6 +169,32 @@ class Quotations_m extends MY_Model {
         $this->data["status"] = "success";
 
         return $this->data;
+    }
+
+    function getDocBySharekey($sharekey){
+        $db = $this->db;
+
+        $qrow = $db->select("*")
+                    ->from("quotation")
+                    ->where("deleted", 0)
+                    ->where("sharekey", $sharekey)
+                    ->get()->row();
+
+        if(empty($qrow)){
+
+        }
+
+        $qirows = $db->select("*")
+                        ->from("quotation_items")
+                        ->where("quotation_id", $qrow->id)
+                        ->order_by("sort", "asc")
+                        ->get()->result();
+
+
+        $data["doc"] = $qrow;
+        $data["items"] = $qirows;
+
+        return $data;
     }
 
     function updateDoc($docId = null){
@@ -873,8 +900,24 @@ class Quotations_m extends MY_Model {
 
     function genShareKey(){
         $db = $this->db;
+        $docId = $this->json->doc_id;
+        $genKey = $this->json->gen_key;
+        
+        $sharekey = null;
 
-        $this->data["message"] = $this->json->gen_key;
+        if($genKey == true){
+            $sharekey = "";
+            while(true){
+                $sharekey = uniqid();
+                $db->where("sharekey", $sharekey);
+                if($db->count_all_results("quotation") < 1) break;
+            }
+
+            $this->data["sharelink"] = get_uri("share/quotation/".$sharekey);
+        }
+
+        $db->where("id", $docId);
+        $db->update("quotation", ["sharekey"=>$sharekey]);
 
         return $this->data;
     }

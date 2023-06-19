@@ -1,6 +1,4 @@
 <?php
-
-
 class MY_Controller extends CI_Controller {
 
     public $login_user;
@@ -1057,3 +1055,11 @@ class MY_Controller extends CI_Controller {
     }
 
 }
+
+
+class MY_Controller2 extends CI_Controller {
+    function __construct() {
+        parent::__construct();
+    }
+}
+
