@@ -32,7 +32,7 @@ if ($notification->activity_log_changes !== "") {
     }
 }
 
-if ($notification->payment_invoice_id) {
+if (isset($notification->payment_invoice_id) && $notification->payment_invoice_id) {
     echo "<div>" . to_currency($notification->payment_amount, $notification->client_currency_symbol) . "  -  " . get_invoice_id($notification->payment_invoice_id) . "</div>";
 }
 
