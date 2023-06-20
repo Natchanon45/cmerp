@@ -1,0 +1,239 @@
+@font-face {
+  font-family: 'Open Sans';
+  font-style: normal;
+  font-weight: 300;
+  src: local('Open Sans Light'), local('OpenSans-Light'), url('fonts/opensans/opensans-light.woff') format('woff');
+}
+@font-face {
+  font-family: 'Open Sans';
+  font-style: normal;
+  font-weight: 400;
+  src: local('Open Sans'), local('OpenSans'), url('fonts/opensans/opensans.woff') format('woff');
+}
+@font-face {
+  font-family: 'Open Sans';
+  font-style: normal;
+  font-weight: 700;
+  src: local('Open Sans Bold'), local('OpenSans-Bold'), url('fonts/opensans/opensans-bold.woff') format('woff');
+}
+
+/*
+*reset
+**/
+html, body, div, span, applet, object, iframe,
+h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+a, abbr, acronym, address, big, cite, code,
+del, dfn, em, img, ins, kbd, q, s, samp,
+small, strike, strong, sub, sup, tt, var,
+b, u, i, center,
+dl, dt, dd, ol, ul, li,
+fieldset, form, label, legend,
+table, caption, tbody, tfoot, thead, tr, th, td,
+article, aside, canvas, details, embed, 
+figure, figcaption, footer, header, hgroup, 
+menu, nav, output, ruby, section, summary,
+time, mark, audio, video {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    font-size: 100%;
+    font: inherit;
+    /*vertical-align: baseline;*/
+    -webkit-box-sizing: border-box; /* Safari/Chrome, other WebKit */
+    -moz-box-sizing: border-box;    /* Firefox, other Gecko */
+    box-sizing: border-box;
+    word-wrap: break-word;
+}
+/* HTML5 display-role reset for older browsers */
+article, aside, details, figcaption, figure, 
+footer, header, hgroup, menu, nav, section {
+    display: block;
+}
+
+html{
+    height: 100%;
+    font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-size: 13px;
+}
+
+body {
+    font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-size: 13px;
+    min-height:100%;
+    line-height: 22px;
+    
+    -webkit-box-sizing: border-box; /* Safari/Chrome, other WebKit */
+    -moz-box-sizing: border-box;    /* Firefox, other Gecko */
+    box-sizing: border-box;
+}
+
+b, h1, h2, h3, h4, h5, h6{
+    font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+
+fieldset{
+    border: 1px solid #ccc;
+    padding: 18px 20px;
+}
+
+fieldset legend{
+    font-weight: bold;
+    padding-left: 8px;
+    padding-right: 8px;
+}
+
+blockquote, q {
+    quotes: none;
+}
+
+blockquote:before, blockquote:after,
+q:before, q:after {
+    content: '';
+    content: none;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    border-spacing: 0;
+}
+
+.clear:after{
+    clear: both;
+    display: table;
+    content:'';
+}
+
+/*
+*layout
+*/
+.wrapper{
+    max-width: 915px;
+    margin: 0 auto;
+}
+
+
+body{
+    background: #e5e5e5;
+}
+
+header{
+    position: fixed;
+    display: block;
+    top: 0;
+    width: 100%;
+    height: 50px;
+    padding-top: 12px;
+    background: #fff;
+    text-align: right;
+    box-shadow: 1px 1px 8px #E4E6E7 !important;
+    border-bottom: 1px solid #D0D4DD !important;
+}
+
+header .button{
+    padding: 5px 10px;
+    padding-top: 12px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+}
+
+header .button:hover{
+    cursor: pointer;
+}
+
+header .button i{
+    font-size: 22px;
+}
+
+.container{
+    margin: 0 auto;
+    padding-top: 70px;
+    padding-bottom: 70px;
+}
+
+.paper{
+    aspect-ratio: auto 1190 / 1683;
+    background:  #fff;
+    padding: 32px 38px;
+}
+
+.paper .header{
+    margin-bottom: 8px;
+    border: 1px solid #ff0000;
+}
+
+.paper .header .left{
+    float: left;
+    width: 55%;
+}
+
+.paper .header .left .logo{
+    width: 300px;
+    height: 100px;
+    text-align: left;
+}
+
+.paper .header .left .logo img{
+    display: block;
+    height: 80px;
+    width: auto;
+}
+
+.paper .header .buyer{
+    margin-top: 8px;
+}
+
+.paper .header .right{
+    float: right;
+    width: 44%;
+    padding-top: 30px;
+}
+
+.paper .header .right > div{
+    padding-left: 8px;
+}
+
+.paper .header .right .docname{
+    font-size: 2em;
+    text-align: center;
+    margin-bottom: 12px;
+}
+
+.paper .header .right .docinfo{
+    border-top: 1px solid #cecece;
+    border-bottom: 1px solid #cecece;
+    padding-top: 8px;
+    padding-bottom: 8px;
+}
+
+.paper .header .right .buyercontact{
+    margin-top: 8px;
+}
+
+.paper .body .items table td{
+    padding-top: 6px;
+    padding-bottom: 6px;
+}
+
+.paper .body .items table thead{
+    font-weight: bold;
+    border-top: 1px solid #cecece;
+    border-bottom: 1px solid #cecece;
+    
+}
+
+footer{
+    position: fixed;
+    display: block;
+    bottom: 0;
+    width: 100%;
+    height: 50px;
+    background: #fff;
+    text-align: center;
+    box-shadow: 1px 1px 8px #E4E6E7;
+    border-top: 1px solid #D0D4DD;
+}
+
+@media print {
+
+}

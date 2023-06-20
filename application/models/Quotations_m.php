@@ -2,6 +2,7 @@
 
 class Quotations_m extends MY_Model {
     private $code = "QT";
+    private $shareHtmlAddress = "share/quotation/html/";
 
     function __construct() {
         parent::__construct();
@@ -144,7 +145,7 @@ class Quotations_m extends MY_Model {
 
             $this->data["doc_id"] = $docId;
             $this->data["doc_number"] = $qrow->doc_number;
-            $this->data["share_link"] = $qrow->sharekey != null ? get_uri("share/quotation/".$qrow->sharekey) : null;
+            $this->data["share_link"] = $qrow->sharekey != null ? get_uri($this->shareHtmlAddress."th/".$qrow->sharekey) : null;
             $this->data["doc_date"] = $qrow->doc_date;
             $this->data["credit"] = $qrow->credit;
             $this->data["doc_valid_until_date"] = $qrow->doc_valid_until_date;
@@ -171,24 +172,55 @@ class Quotations_m extends MY_Model {
         return $this->data;
     }
 
-    function getDocBySharekey($sharekey){
+    function getEdoc($docId = null, $sharekey = null){
         $db = $this->db;
+        $ci = get_instance();
+
+        if($docId == null && $sharekey == null){
+            return false;
+        }
+
+        if($docId != null && $sharekey == null){
+            $db->where("id", $docId);
+        }elseif($docId == null && $sharekey != null){
+            $db->where("sharekey", $sharekey);
+        }else{
+            return false;
+        }
+
+        $db->where("deleted", 0);
 
         $qrow = $db->select("*")
                     ->from("quotation")
-                    ->where("deleted", 0)
-                    ->where("sharekey", $sharekey)
                     ->get()->row();
 
         if(empty($qrow)){
-
+            return false;
         }
+
+        $docId = $qrow->id;
 
         $qirows = $db->select("*")
                         ->from("quotation_items")
-                        ->where("quotation_id", $qrow->id)
+                        ->where("quotation_id", $docId)
                         ->order_by("sort", "asc")
                         ->get()->result();
+
+
+        $client_id = $qrow->client_id;
+        $created_by = $qrow->created_by;
+
+        $data["seller"] = $ci->Users_m->getInfo($created_by);
+
+        $data["buyer"] = $ci->Customers_m->getInfo($client_id);
+        $data["buyer_contact"] = $ci->Customers_m->getContactInfo($client_id);
+
+        $data["doc_number"] = $qrow->doc_number;
+        $data["doc_date"] = $qrow->doc_date;
+        $data["credit"] = $qrow->credit;
+        $data["doc_valid_until_date"] = $qrow->doc_valid_until_date;
+        $data["reference_number"] = $qrow->reference_number;
+        $data["remark"] = $qrow->remark;
 
 
         $data["doc"] = $qrow;
@@ -913,7 +945,7 @@ class Quotations_m extends MY_Model {
                 if($db->count_all_results("quotation") < 1) break;
             }
 
-            $this->data["sharelink"] = get_uri("share/quotation/".$sharekey);
+            $this->data["sharelink"] = get_uri($this->shareHtmlAddress."th/".$sharekey);
         }
 
         $db->where("id", $docId);

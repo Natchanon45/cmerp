@@ -6,9 +6,8 @@ class Share extends MY_Controller2 {
         parent::__construct();
     }
 
-    function quotation($sharekey){
-        $data = $this->Quotations_m->getDocBySharekey($sharekey);
-
+    function quotation(){
+        $data = $this->Quotations_m->getEdoc(null, $this->uri->segment(5));
         $this->load->view('edocs/quotation', $data);
     }
 

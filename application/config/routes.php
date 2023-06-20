@@ -49,12 +49,18 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 | Examples:	my-controller/index	-> my_controller/index
 |		my-controller/my-method	-> my_controller/my_method
 */
+
 $route['default_controller'] = 'dashboard';
 
 //custom routing for custom pages
 //this route will move 'about/any-text' to 'domain.com/about/index/any-text'
 $route['about/(:any)'] = 'about/index/$1';
 $route['test/(:any)'] = 'test/$1';
+
+$route['share/(:any)/(:any)/(:any)/(:any)'] = 'share/$1/$2/$3/$4';
+$route['share'] = 'dashboard';
+$route['share/(.+)'] = 'dashboard';
+
 
 $route['404_override'] = '';
 $route['translate_uri_dashes'] = TRUE;

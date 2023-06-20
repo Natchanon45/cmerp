@@ -5,7 +5,7 @@
         <h1>ใบเสนอราคา <?php echo $doc_number;?></h1>
         <div class="title-button-group">
             <a style="margin-left: 15px;" class="btn btn-default mt0 mb0 back-to-index-btn" href="<?php echo get_uri("accounting/sell/quotations");?>" ><i class="fa fa-hand-o-left" aria-hidden="true"></i> ย้อนกลับไปตารางรายการ</a>
-            <a id="add_item_button" class="btn btn-default" data-post-doc_id="12" data-act="ajax-modal" data-title="แชร์เอกสาร <?php echo $doc_number; ?>" data-action-url="<?php echo get_uri("/quotations/share"); ?>">แชร์</a>
+            <a id="add_item_button" class="btn btn-default" data-post-doc_id="<?php echo $doc_id; ?>" data-act="ajax-modal" data-title="แชร์เอกสาร <?php echo $doc_number; ?>" data-action-url="<?php echo get_uri("/quotations/share"); ?>">แชร์</a>
             <a class="btn btn-default" onclick="window.print();">พิมพ์</a>
         </div>
     </div>

@@ -1,6 +1,6 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
-redirect(get_uri());
+//redirect(get_uri());
 ?>
 
 
