@@ -13,7 +13,6 @@
 
 <style type="text/css">
 .body .items table td{
-	border: 1px solid #ff0000;
 }
 
 .body .items table td:nth-child(1){
@@ -158,35 +157,72 @@
 		            		<?php $i = 1; ?>
 		            		<?php foreach($items as $item): ?>
 				            	<tr>
-				                    <td><?php echo $i; ?></td>
-				                    <td></td>
-				                    <td></td>
-				                    <td></td>
-				                    <td></td>
-				                    <td></td>
+				                    <td><?php echo $i++; ?></td>
+				                    <td>
+				                    	<span class="product_name"><?php echo $item->product_name; ?></span>
+				                    	<?php if(trim($item->product_description) != ""): ?>
+				                    		<span class="product_description"><?php echo trim($item->product_description); ?></span>
+				                    	<?php endif;?>
+				                    </td>
+				                    <td><?php echo $item->quantity; ?></td>
+				                    <td><?php echo $item->unit; ?></td>
+				                    <td><?php echo number_format($item->price, 2); ?></td>
+				                    <td><?php echo number_format($item->total_price, 2); ?></td>
 				                </tr>
-			            	<?php endif; ?>
+			            	<?php endforeach; ?>
 		            	<?php endif; ?>
 		            </tbody>
 				</table>
 			</div>
-			<div class="summary">
-				<div class="left">
-					<p class="custom-color">หมายเหตุ</p>
-            		<p><?php echo nl2br($remark); ?></p>
-				</div>
-				<div class="right">
+			<div class="summary clear">
+				<div class="total_in_text"><span><?php echo "(".$total_in_text.")"; ?></span></div>
+				<div class="total_all">
 					<div class="row">
-						<div class="c1"></div>
-						<div class="c2"></div>
+						<div class="c1 custom-color">รวมเป็นเงิน</div>
+						<div class="c2"><span><?php echo number_format($sub_total_before_discount, 2); ?></span><span><?php echo lang("THB");?></span></div>
 					</div>
+					<?php if($discount_amount > 0): ?>
+						<div class="row">
+							<div class="c1 custom-color">ส่วนลด <?php if($discount_type == "P") echo number_format_drop_zero_decimals($discount_percent, 2)."%"; ?></div>
+							<div class="c2"><span><?php echo number_format($discount_amount, 2); ?></span><span><?php echo lang("THB");?></span></div>
+						</div>
+						<div class="row">
+							<div class="c1 custom-color">จำนวนหลังหักส่วนลด</div>
+							<div class="c2"><span><?php echo number_format($sub_total_before_discount, 2); ?></span><span><?php echo lang("THB");?></span></div>
+						</div>
+					<?php endif; ?>
+					<?php if($vat_inc == "Y"): ?>
+						<div class="row">
+							<div class="c1 custom-color">ภาษีมูลค่าเพิ่ม <?php echo number_format_drop_zero_decimals($vat_percent, 2)."%";?></div>
+							<div class="c2"><span><?php echo number_format($vat_value, 2); ?></span><span><?php echo lang("THB");?></span></div>
+						</div>
+					<?php endif; ?>
+					<div class="row">
+						<div class="c1 custom-color">จำนวนเงินรวมทั้งสิน</div>
+						<div class="c2"><span><?php echo number_format($sub_total_before_discount, 2); ?></span><span><?php echo lang("THB");?></span></div>
+					</div>
+					<?php if($wht_inc == "Y"): ?>
+						<div class="row wht">
+							<div class="c1 custom-color">หักภาษี ณ ที่จ่าย <?php echo number_format_drop_zero_decimals($wht_percent, 2)."%";?></div>
+							<div class="c2"><span><?php echo number_format($wht_value, 2); ?></span><span><?php echo lang("THB");?></span></div>
+						</div>
+						<div class="row">
+							<div class="c1 custom-color">ยอดชำระ</div>
+							<div class="c2"><span><?php echo number_format($payment_amount, 2); ?></span><span><?php echo lang("THB");?></span></div>
+						</div>
+					<?php endif;?>
 				</div>
 			</div>
 		</div><!--.body-->
-		<div class="footer">
-			<div class="remark"></div>
+		<div class="footer clear">
+			<div class="remark clear">
+				<?php if(trim($remark) != ""): ?>
+					<div class="l1 custom-color">หมายเหตุ</div>
+	            	<div class="l2 clear"><?php echo nl2br($remark); ?></div>
+            	<?php endif; ?>
+			</div>
 			<div class="signature">
-				<div class="left">
+				<div class="c1">
 					<div class="on_behalf_of">ในนาม <?php if(isset($client["company_name"])) echo $client["company_name"]; ?></div>
 					<div class="clear">
 						<div class="name">
@@ -199,7 +235,7 @@
 		                </div>
 					</div>
 				</div>
-				<div class="right">
+				<div class="c2">
 					<div class="on_behalf_of">ในนาม <?php if(isset($client["company_name"])) echo $client["company_name"]; ?></div>
 					<div class="clear">
 						<div class="name">

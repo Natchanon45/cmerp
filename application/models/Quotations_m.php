@@ -223,6 +223,26 @@ class Quotations_m extends MY_Model {
         $data["remark"] = $qrow->remark;
 
 
+        $data["sub_total_before_discount"] = $qrow->sub_total_before_discount;
+
+        
+        $data["discount_type"] = $qrow->discount_type;
+        $data["discount_percent"] = $qrow->discount_percent;
+        $data["discount_amount"] = $qrow->discount_amount;
+        
+        
+        $data["sub_total"] = $qrow->sub_total;
+
+        $data["vat_inc"] = $qrow->vat_inc;
+        $data["vat_percent"] = $qrow->vat_percent;
+        $data["vat_value"] = $qrow->vat_value;
+        $data["total"] = $qrow->total;
+        $data["total_in_text"] = numberToText($qrow->total);
+        $data["wht_inc"] = $qrow->wht_inc;
+        $data["wht_percent"] = $qrow->wht_percent;
+        $data["wht_value"] = $qrow->wht_value;
+        $data["payment_amount"] = $qrow->payment_amount;
+
         $data["doc"] = $qrow;
         $data["items"] = $qirows;
 
