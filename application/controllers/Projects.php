@@ -2110,8 +2110,7 @@ class Projects extends MY_Controller {
         $data = array(
             "title" => $this->input->post('title'),
             "description" => $this->input->post('description'),
-            "project_id" => $this->input->post('project_id'),
-            "due_date" => $this->input->post('due_date')
+            "project_id" => $this->input->post('project_id')
         );
         $save_id = $this->Milestones_model->save($data, $id);
         if ($save_id) {
