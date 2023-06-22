@@ -318,6 +318,7 @@ class roles extends MY_Controller {
 
         $access_note = false;
         $access_note_specific = null;
+        $add_note = false;
         $update_note = false;
         $access_product_item_formula = false;
         $create_product_item = false;
@@ -334,6 +335,7 @@ class roles extends MY_Controller {
 
         if($this->input->post('access_note') != false) $access_note = $this->input->post('access_note');
         if($access_note === "specific") $access_note_specific = $this->input->post('access_note_specific');
+        if($this->input->post('add_note') == "Y") $add_note = true;
         if($this->input->post('update_note') == "Y") $update_note = true;
 
         if($this->input->post('access_product_item_formula') == "Y") $access_product_item_formula = true;
@@ -432,6 +434,7 @@ class roles extends MY_Controller {
         $permissions = array(
             "access_note"=>$access_note,
             "access_note_specific"=>$access_note_specific,
+            "add_note"=>$add_note,
             "update_note"=>$update_note,
         	"access_product_item_formula"=>$access_product_item_formula,
         	"create_product_item"=>$create_product_item,
@@ -653,6 +656,7 @@ class roles extends MY_Controller {
             if(get_array_value($permissions, "access_note") === null) $view_data['access_note'] = "assigned_only";
             else $view_data['access_note'] = get_array_value($permissions, "access_note");
             $view_data['access_note_specific'] = get_array_value($permissions, "access_note_specific");
+            $view_data['add_note'] = get_array_value($permissions, "add_note");
             $view_data['update_note'] = get_array_value($permissions, "update_note");
 
             $view_data['access_product_item_formula'] = get_array_value($permissions, "access_product_item_formula");

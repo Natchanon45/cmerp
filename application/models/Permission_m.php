@@ -4,6 +4,7 @@ class Permission_m extends MY_Model {
 
 	public $access_note = "assigned_only";
 	public $access_note_specific = null;
+	public $add_note = false;
 	public $update_note = false;
 
 	public $access_product_item_formula = false;
@@ -48,6 +49,7 @@ class Permission_m extends MY_Model {
 	function setAdmin(){
 		$this->access_note = "all";
 		$this->access_note_specific = null;
+		$this->add_note = true;
 		$this->update_note = true;
 
 		$this->access_product_item_formula = true;
@@ -72,6 +74,7 @@ class Permission_m extends MY_Model {
 		//Note
 		if(isset($p->access_note)) $this->access_note = $p->access_note;
 		if(isset($p->access_note_specific)) $this->access_note_specific = $p->access_note_specific;
+		if(isset($p->add_note)) $this->add_note = $p->add_note;
 		if(isset($p->update_note)) $this->update_note = $p->update_note;
 
 		//Product Item

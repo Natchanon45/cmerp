@@ -18,7 +18,7 @@ class Labels extends MY_Controller {
 			
 			echo permissionBlock();
 			
-			exit;;
+			exit;
 		}
     }
 
