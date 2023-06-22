@@ -1,16 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<title>ติดต่อเรา</title>	
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="icon" href="<?php echo get_favicon_url(); ?>" />
-<link rel="stylesheet" href="/assets/js/font-awesome/css/font-awesome.min.css">
-
-<link rel="stylesheet" href="/assets/css/color/<?php echo get_setting("default_theme_color"); ?>.css">
-<link rel="stylesheet" href="/assets/css/font.css">
-<link rel="stylesheet" href="/assets/css/edocs.css">
-
+<?php $this->load->view("edocs/include/head"); ?>
+<title><?php echo get_setting("company_name")." - ".$doc_number; ?></title>	
 <style type="text/css">
 .body .items table td{
 }
@@ -47,11 +39,7 @@
 </style>
 </head>
 <body>
-<header>
-	<div class="wrapper">
-		<a class="button print"><i class="fa fa-print" aria-hidden="true"></i></a>
-	</div>
-</header>
+<header><?php $this->load->view("edocs/include/header"); ?></header>
 <div class="container">
 	<div class="paper wrapper">
 		<div class="header clear">
@@ -213,17 +201,17 @@
 					<?php endif;?>
 				</div>
 			</div>
-		</div><!--.body-->
-		<div class="footer clear">
-			<div class="remark clear">
-				<?php if(trim($remark) != ""): ?>
+			<?php if(trim($remark) != ""): ?>
+				<div class="remark clear">
 					<div class="l1 custom-color">หมายเหตุ</div>
 	            	<div class="l2 clear"><?php echo nl2br($remark); ?></div>
-            	<?php endif; ?>
-			</div>
+				</div>
+			<?php endif; ?>
+		</div><!--.body-->
+		<div class="footer clear">
 			<div class="signature">
 				<div class="c1">
-					<div class="on_behalf_of">ในนาม <?php if(isset($client["company_name"])) echo $client["company_name"]; ?></div>
+					<div class="on_behalf_of">ในนาม <?php echo get_setting("company_name"); ?></div>
 					<div class="clear">
 						<div class="name">
 		                    <span class="l1"></span>
@@ -236,7 +224,7 @@
 					</div>
 				</div>
 				<div class="c2">
-					<div class="on_behalf_of">ในนาม <?php if(isset($client["company_name"])) echo $client["company_name"]; ?></div>
+					<div class="on_behalf_of">ในนาม <?php echo $buyer["company_name"] ?></div>
 					<div class="clear">
 						<div class="name">
 		                    <span class="l1"></span>
@@ -252,11 +240,6 @@
 		</div><!--.footer-->
 	</div>
 </div>
-<footer>
-	<div class="wrapper">
-		<div class="left"></div>
-		<div class="right"></div>
-	</div>
-</footer>
+<footer><?php $this->load->view("edocs/include/footer"); ?></footer>
 </body>
 </html>
