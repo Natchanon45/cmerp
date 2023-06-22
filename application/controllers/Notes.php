@@ -84,7 +84,9 @@ class Notes extends MY_Controller {
 
 
     function delete() {
-        if($this->login_user->is_admin != "1") redirect("/notes");
+        if($this->login_user->is_admin != "1"){
+            echo json_encode(array("success" => false, 'message' => 'คุณไม่มีสิทธิ์ในการลบข้อมูล'));
+        }
         validate_submitted_data(array(
             "id" => "required|numeric"
         ));
@@ -323,7 +325,10 @@ class Notes extends MY_Controller {
 	
 	
     function save() {
-        if($this->login_user->is_admin != "1" && $this->Permission_m->update_note != true) redirect("/notes");
+        /*if($this->login_user->is_admin != "1" && $this->Permission_m->update_note != true){
+            echo json_encode(array("success" => false, 'message' => 'คุณไม่มีสิทธิ์เข้าถึงข้อมูลในส่วนนี้'));
+            return;
+        }*/
 
         validate_submitted_data(array(
             "id" => "numeric",
@@ -362,20 +367,25 @@ class Notes extends MY_Controller {
         $data["files"] = serialize($new_files);
 
         if ($id) {
+            if($this->login_user->is_admin != "1" && $this->Permission_m->update_note != true){
+                echo json_encode(array("success" => false, 'message' => 'คุณไม่มีสิทธิ์แก้ไขเอกสาร'));
+                return;
+            }
             //saving existing note. check permission
             $note_info = $this->Notes_model->get_one($id);
             $data['created_by'] = $note_info->created_by;
 
             $this->validate_access_to_note($note_info, true);
         } else {
+            if($this->login_user->is_admin != "1" && $this->Permission_m->add_note != true){
+                echo json_encode(array("success" => false, 'message' => 'คุณไม่มีสิทธิ์เพิ่มเอกสาร'));
+                return;
+            }
             $data['created_by'] = $this->login_user->id;
             $data['created_at'] = get_current_utc_time();
         }
 
-        
-
         $data = clean_data($data);
-
 
         $save_id = $this->Notes_model->save($data, $id);
 
@@ -458,8 +468,11 @@ class Notes extends MY_Controller {
 		$this->buttonTop = array();
 		
 		$this->buttonTop[] = modal_anchor(get_uri("labels/modal_form"), "<i class='fa fa-tags'></i> " . lang('manage_labels'), array("class" => "btn btn-default", "title" => lang('manage_labels'), "data-post-type" => "note"));
-			
-		$this->buttonTop[] = modal_anchor(get_uri("notes/modal_form"), "<i class='fa fa-plus-circle'></i> " . lang('add_note'), array("class" => "btn btn-default", "title" => lang('add_note'), "data-post-project_id" => 0));
+		
+
+        if($this->Permission_m->add_note == true){
+            $this->buttonTop[] = modal_anchor(get_uri("notes/modal_form"), "<i class='fa fa-plus-circle'></i> " . lang('add_note'), array("class" => "btn btn-default", "title" => lang('add_note'), "data-post-project_id" => 0));
+        }
 
         //data-post-project_id="1"
         
