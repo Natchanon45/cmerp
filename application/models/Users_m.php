@@ -7,7 +7,7 @@ class Users_m extends CI_Model {
     function getInfo($user_id){
         $db = $this->db;
         
-        $urow = $db->select("id, first_name, last_name, image")
+        $urow = $db->select("id, first_name, last_name, email, image")
                         ->from("users")
                         ->where("id", $user_id)
                         ->where("deleted", 0)
@@ -17,8 +17,9 @@ class Users_m extends CI_Model {
 
         return [
                 "id"=>$urow->id,
-		"first_name"=>$urow->first_name,
-		"last_name"=>$urow->last_name,
+        		"first_name"=>$urow->first_name,
+        		"last_name"=>$urow->last_name,
+                "email"=>$urow->email,
                 "image"=>$urow->image
 		];
     }

@@ -1,7 +1,6 @@
 <style type="text/css">
-.modal-content{
-    width: 320px;
-    margin: 40% auto;
+.modal-dialog{
+    width: 400px;
 }
 
 .pt{
