@@ -22,19 +22,17 @@
 }
 
 #printd{
+    background: #fff;
     display: block;
+    min-height: 1100px;
     margin: 0 auto;
     max-width: 1000px;
     margin-bottom: 80px;
+    padding: 32px;
 }
 
 #printd p{
     margin: 0;
-}
-
-#printd{
-    background: #fff;
-    padding: 32px;
 }
 
 #printd .docheader .l{
