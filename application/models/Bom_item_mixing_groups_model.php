@@ -285,42 +285,19 @@ class Bom_item_mixing_groups_model extends Crud_model {
         }
     }
 
-    function dev2_get_project_item_for_mr($project_id) {
-        $sql_project_info = "SELECT p.id, p.title FROM projects p WHERE p.id = '" . $project_id . "'";
-        $project_info = $this->db->query($sql_project_info)->row();
-
-        $sql_items_for_mr = "SELECT * FROM bom_project_item_materials AS bpim LEFT JOIN bom_project_items AS bpi ON bpi.id = bpim.project_item_id WHERE bpi.project_id = '" . $project_id . "' AND bpim.ratio > 0 AND bpim.mr_id IS NULL";
-        $items_for_mr = $this->db->query($sql_items_for_mr)->result();
-
-        if (isset($items_for_mr) && sizeof($items_for_mr)) {
-            $header_data = array(
-                'project_id' => $project_info->id,
-                'project_name' => $project_info->title,
-                'created_by' => $this->login_user->id,
-                'requester_id' => $this->login_user->id,
-                'mr_date' => get_today_date(),
-                'status_id' => 1
-            );
-
-            $mr_id = $mr = $this->Materialrequests_model->save($header_data, 0);
-            $mr = $this->Materialrequests_model->get_one($mr_id);
-
-            foreach ($items_for_mr as $item) {
-                $this->db->insert('mr_items', [
-                    'mr_id' => $mr_id,
-                    'project_id' => $project_info->id,
-                    'project_name' => $project_info->title,
-                    'material_id' => $item->material_id,
-                    'quantity' => $item->ratio,
-                    'created_by' => $this->login_user->id,
-                ]);
-            }
-        }
-
-        return $project_info;
+    function dev2_get_project_item_for_mr($project_id)
+    {
+        $sql = "SELECT bpim.id, bpim.stock_id, bpim.material_id, bm.name, bm.production_name, bm.description, bm.unit, bpim.ratio 
+        FROM bom_project_item_materials AS bpim 
+        LEFT JOIN bom_project_items AS bpi ON bpi.id = bpim.project_item_id 
+        LEFT JOIN bom_materials AS bm ON bpim.material_id = bm.id 
+        WHERE bpi.project_id = '" . $project_id . "' AND bpim.ratio > 0 AND bpim.mr_id IS NULL";
+        
+        $query = $this->db->query($sql);
+        return $query->result();
     }
 
-    function dev2_save_project_item($project_id , $item_ids = [], $item_mixings = [], $quantities = [])
+    function dev2_save_project_item($project_id, $item_ids = [], $item_mixings = [], $quantities = [])
     {
         if (!empty($item_ids) && sizeof($item_ids)) {
             foreach ($item_ids as $i => $d) {
@@ -334,7 +311,7 @@ class Bom_item_mixing_groups_model extends Crud_model {
                         'mixing_group_id' => $group_id,
                         'quantity' => $quantity
                     ]);
-                    $save_project_item_id = $this->db->insert_id();
+                    $save_bom_project_items_id = $this->db->insert_id();
 
                     if ($group_id) {
                         $materials_sql = "SELECT bim.material_id, bim.ratio, bm.* FROM bom_materials bm RIGHT JOIN(SELECT material_id, SUM(ratio) AS ratio FROM bom_item_mixings WHERE group_id = '" . $group_id . "' GROUP BY material_id) AS bim ON bm.id = bim.material_id";
@@ -344,7 +321,7 @@ class Bom_item_mixing_groups_model extends Crud_model {
                             foreach ($materials as $m) {
                                 $total_ratio = $quantity * floatval($m->ratio);
 
-                                $stock_sql = "SELECT bs.id, bs.group_id, bs.material_id, bs.remaining FROM bom_stocks bs INNER JOIN bom_stock_groups bsg ON bsg.id = bs.group_id WHERE bs.material_id = '" . $m->material_id . "' AND bs.remaining > 0 ORDER BY bsg.created_date ASC ";
+                                $stock_sql = "SELECT bs.id, bs.group_id, bs.material_id, bs.remaining FROM bom_stocks bs INNER JOIN bom_stock_groups bsg ON bsg.id = bs.group_id WHERE bs.material_id = '" . $m->material_id . "' AND bs.remaining > 0 ORDER BY bsg.created_date ASC";
                                 $stocks = $this->db->query($stock_sql)->result();
 
                                 if (sizeof($stocks)) {
@@ -353,22 +330,20 @@ class Bom_item_mixing_groups_model extends Crud_model {
                                             $remaining = floatval($s->remaining);
                                             $used = min($total_ratio, $remaining);
                                             $total_ratio -= $used;
-                                            $remaining -= $used;
 
                                             $this->db->insert('bom_project_item_materials', [
-                                                'project_item_id' => $save_project_item_id,
+                                                'project_item_id' => $save_bom_project_items_id,
                                                 'material_id' => $m->material_id,
                                                 'stock_id' => $s->id,
                                                 'ratio' => $used
                                             ]);
-                                            $save_project_item_materials = $this->db->insert_id();
                                         }
                                     }
                                 }
 
                                 if ($total_ratio > 0) {
                                     $this->db->insert('bom_project_item_materials', [
-                                        'project_item_id' => $save_project_item_id,
+                                        'project_item_id' => $save_bom_project_items_id,
                                         'material_id' => $m->material_id,
                                         'ratio' => $total_ratio * -1
                                     ]);
@@ -559,11 +534,18 @@ class Bom_item_mixing_groups_model extends Crud_model {
             ";
             
             $res = $this->db->query($sql)->result();
-            
-            if(sizeof($res)) {
-                foreach($res as $s) {
+            if (sizeof($res)) {
+                foreach ($res as $s) {
+                    // setting mr_doc
+                    $mr_doc = "";
+                    if (isset($s->mr_id) && !empty($s->mr_id)) {
+                        $mr_doc = $this->dev2_getMaterialRequestDocById($s->mr_id);
+                    }
+                    $s->mr_doc = $mr_doc;
+                    
+                    // setting value
                     $value = 0;
-                    if($s->stock > 0){
+                    if ($s->stock > 0) {
                         $value = $s->ratio * $s->price / $s->stock;
                     }
                     $s->value = $value;
@@ -585,6 +567,14 @@ class Bom_item_mixing_groups_model extends Crud_model {
     {
         $query = $this->db->get_where('bom_item_mixing_groups', ['item_id' => $id]);
         return $query->num_rows();
+    }
+
+    function dev2_getMaterialRequestDocById($id)
+    {
+        $this->db->select('doc_no')->from('materialrequests')->where('id', $id);
+
+        $query = $this->db->get();
+        return $query->row()->doc_no;
     }
 
 }

@@ -2195,9 +2195,9 @@ $lang["expiration_date"] = "วันหมดอายุ";
 
 /* materialrequests */
 
-$lang["materialrequests"] = "ใบขอเบิก";
-$lang["add_materialrequests"] = "เพิ่มใบขอเบิก";
-$lang["delete_materialrequests"] = "ลบใบขอเบิก";
+$lang["materialrequests"] = "ใบเบิก";
+$lang["add_materialrequests"] = "เพิ่มใบเบิก";
+$lang["delete_materialrequests"] = "ลบใบเบิก";
 $lang["process_request_materialrequest"] = "ดำเนินการขอเบิก";
 $lang["back_to_request_materialrequest"]="กลับหน้ารายการขอเบิก";
 $lang["place_order_materialrequest"] = "ทำการขอเบิก";
@@ -2429,7 +2429,7 @@ $lang["on_behalf_of"] = "ในนาม";
 $lang["create_matreq"] = "สร้างใบเบิก";
 $lang["re_calc_stock"] = "คำนวณใหม่";
 $lang["serial_number"] = "รหัสการนำเข้า";
-$lang["status_material_request"] = "สถานะออกใบเบิก";
+$lang["status_material_request"] = "ใบเบิก";
 $lang["status_of_client"] = "สถานะของลูกค้า";
 $lang["serial_number_duplicate"] = "รหัสการนำเข้าต้องไม่ซ้ำกัน";
 $lang["stock_restock_item_withdraw"] = "เพิ่มการนำออกสินค้าสำเร็จ";
@@ -2438,3 +2438,8 @@ $lang["item_name_duplicate"] = "รหัสสินค้าสำเร็จ
 $lang["item_cate_duplicate"] = "ชื่อหมวดหมู่สินค้าสำเร็จต้องไม่ซ้ำกัน";
 $lang["used_by"] = "นำออกโดย";
 $lang["used_date"] = "วันที่นำออก";
+$lang["not_enough_stock"] = "เนื่องจากวัตถุดิบในคลังไม่เพียบพอจึงไม่สามารถอนุมัติได้";
+$lang["approved_success"] = "ใบเบิกเปลี่ยนสถานะเป็น อนุมัติ เรียบร้อยแล้ว";
+$lang["rejected_message"] = "ใบเบิกเปลี่ยนสถานะเป็น ไม่อนุมัติ เรียบร้อยแล้ว";
+$lang["rejecter"] = "ผู้ไม่อนุมัติ";
+$lang["date_of_rejected"] = "วันที่ไม่อนุมัติ";

@@ -158,4 +158,42 @@ class Bom_stocks_model extends Crud_model {
         return $query->num_rows();
     }
 
+    function dev2_getRestockNameByStockId($id)
+    {
+        $sql = "SELECT bsg.name FROM bom_stock_groups bsg LEFT JOIN bom_stocks bs ON bsg.id = bs.group_id WHERE 1 AND bs.id = '{$id}'";
+        $name = "-";
+        
+        if (isset($id) && !empty($id)) {
+            $query = $this->db->query($sql);
+            $name = $query->row()->name;
+        }
+        return $name;
+    }
+
+    function dev2_getRestockGroupNameByStockId($id)
+    {
+        $sql = "SELECT bsg.id, bsg.name FROM bom_stock_groups bsg LEFT JOIN bom_stocks bs ON bsg.id = bs.group_id WHERE 1 AND bs.id = '{$id}'";
+        
+        $query = null;
+        if (isset($id) && !empty($id)) {
+            $query = $this->db->query($sql)->row();
+        }
+        return $query;
+    }
+
+    function dev2_verifyStockUsabled($stock_id, $qty)
+    {
+        $sql = "SELECT remaining FROM bom_stocks WHERE id = '{$stock_id}'";
+        $query = $this->db->query($sql)->row();
+        $remaining = $query->remaining;
+        
+        return $remaining >= $qty;
+    }
+
+    function dev2_updateStockUsed($stock_id, $qty)
+    {
+        $sql = "UPDATE bom_stocks SET remaining = remaining - {$qty} WHERE id = '{$stock_id}'";
+        $this->db->query($sql);
+    }
+
 }

@@ -372,7 +372,6 @@ class Projects extends MY_Controller
     }
 
     /* load project view */
-
     function index()
     {
         redirect("projects/all_projects");
@@ -381,17 +380,12 @@ class Projects extends MY_Controller
     function all_projects($status = "")
     {
         $view_data['project_labels_dropdown'] = json_encode($this->make_labels_dropdown("project", "", true));
-
         $view_data["custom_field_headers"] = $this->Custom_fields_model->get_custom_field_headers_for_table("projects", $this->login_user->is_admin, $this->login_user->user_type);
-
         $view_data["status"] = $status;
 
         if ($this->login_user->user_type === "staff") {
-
-
             $view_data["can_edit_projects"] = $this->can_edit_projects();
             $view_data["can_delete_projects"] = $this->can_delete_projects();
-
             $this->template->rander("projects/index", $view_data);
         } else {
             $view_data['client_id'] = $this->login_user->client_id;
@@ -401,7 +395,6 @@ class Projects extends MY_Controller
     }
 
     /* load project  add/edit modal */
-
     function modal_form()
     {
 
@@ -907,27 +900,26 @@ class Projects extends MY_Controller
     }
 
     /* prepare a row of project list table */
-
-    private function _make_row($data, $custom_fields)
+    private function _make_row($data, $custom_fields) 
     {
-
         $progress = $data->total_points ? round(($data->completed_points / $data->total_points) * 100) : 0;
-
         $class = "progress-bar-primary";
         if ($progress == 100) {
             $class = "progress-bar-success";
-        }
+        } // set progress
 
-        $progress_bar = "<div class='progress' title='$progress%'>
-            <div  class='progress-bar $class' role='progressbar' aria-valuenow='$progress' aria-valuemin='0' aria-valuemax='100' style='width: $progress%'>
-            </div>
-        </div>";
+        $progress_bar = "
+        <div class='progress' title='$progress%'>
+            <div class='progress-bar $class' role='progressbar' aria-valuenow='$progress' aria-valuemin='0' aria-valuemax='100' style='width: $progress%'></div>
+        </div>
+        "; // generate progress bar
+
         $start_date = is_date_exists($data->start_date) ? format_to_date($data->start_date, false) : "-";
         $dateline = is_date_exists($data->deadline) ? format_to_date($data->deadline, false) : "-";
         $price = $data->price ? to_currency($data->price, $data->currency_symbol) : "-";
 
-        //has deadline? change the color of date based on status
-        if (is_date_exists($data->deadline)) {
+        // has deadline? change the color of date based on status
+        if (isset($data->deadline) && is_date_exists($data->deadline)) {
             if ($progress !== 100 && $data->status === "open" && get_my_local_time("Y-m-d") > $data->deadline) {
                 $dateline = "<span class='text-danger mr5'>" . $dateline . "</span> ";
             } else if ($progress !== 100 && $data->status === "open" && get_my_local_time("Y-m-d") == $data->deadline) {
@@ -936,17 +928,24 @@ class Projects extends MY_Controller
         }
 
         $title = anchor(get_uri("projects/view/" . $data->id), $data->title);
-        if ($data->labels_list) {
+        if (isset($data->labels_list) && $data->labels_list) {
             $project_labels = make_labels_view_data($data->labels_list, true);
             $title .= "<br />" . $project_labels;
         }
 
         $optoins = "";
-
         if (get_array_value($this->login_user->permissions, "can_manage_all_projects") == true || $this->login_user->is_admin == "1") {
             if (get_array_value($this->login_user->permissions, "can_edit_projects") == true || $this->login_user->is_admin == "1") {
-                $optoins .= modal_anchor(get_uri("projects/modal_form"), "<i class='fa fa-pencil'></i>", array("class" => "edit", "title" => lang('edit_project'), "data-post-id" => $data->id));
-            }
+                $optoins .= modal_anchor(
+                    get_uri("projects/modal_form"), 
+                    "<i class='fa fa-pencil'></i>", 
+                    array(
+                        "class" => "edit", 
+                        "title" => lang('edit_project'), 
+                        "data-post-id" => $data->id
+                    )
+                );
+            } // btn-edit-project
 
             if ($this->Permission_m->access_material_request == true || $this->Permission_m->access_purchase_request) {
                 $optoins .= modal_anchor(
@@ -959,11 +958,20 @@ class Projects extends MY_Controller
                         "data-post-id" => $data->id
                     )
                 );
-            }
+            } // btn-bag-project
 
             if ((get_array_value($this->login_user->permissions, "can_delete_projects") == true) || $this->login_user->is_admin == "1") {
-                $optoins .= js_anchor("<i class='fa fa-times fa-fw'></i>", array('title' => lang('delete_project'), "class" => "delete", "data-id" => $data->id, "data-action-url" => get_uri("projects/delete"), "data-action" => "delete-confirmation"));
-            }
+                $optoins .= js_anchor(
+                    "<i class='fa fa-times fa-fw'></i>", 
+                    array(
+                        'title' => lang('delete_project'), 
+                        "class" => "delete", 
+                        "data-id" => $data->id, 
+                        "data-action-url" => get_uri("projects/delete"), 
+                        "data-action" => "delete-confirmation"
+                    )
+                );
+            } // btn-delete-project
         }
 
         if ($this->login_user->user_type == "staff" && !$this->can_create_projects()) {
@@ -971,8 +979,6 @@ class Projects extends MY_Controller
         }
 
         $owner = $this->Clients_model->getOwnerByClientId($data->client_id);
-        // var_dump(arr($data->client_id));
-
         $row_data = array(
             anchor(get_uri("projects/view/" . $data->id), $data->id),
             $title,
@@ -987,21 +993,16 @@ class Projects extends MY_Controller
             lang($data->status)
         );
 
-        // var_dump(arr($row_data)); exit;
-
         foreach ($custom_fields as $field) {
             $cf_id = "cfv_" . $field->id;
             $row_data[] = $this->load->view("custom_fields/output_" . $field->field_type, array("value" => $data->$cf_id), true);
         }
 
         $row_data[] = $optoins;
-
         return $row_data;
     }
 
     /* load project details view */
-
-
     private function can_edit_timesheet_settings($project_id)
     {
         $this->init_project_permission_checker($project_id);
@@ -4936,10 +4937,10 @@ class Projects extends MY_Controller
         $this->load->view("projects/tasks/task_timesheet", $view_data);
     }
 
-    // BOM
+    // BOM in project
     function modal_items()
     {
-        //$this->check_module_availability("module_stock");
+        $this->check_module_availability("module_stock");
 
         $view_data['can_read_price'] = $this->check_permission('bom_restock_read_price');
         $project_id = $this->input->post('id');
@@ -4954,29 +4955,16 @@ class Projects extends MY_Controller
 
         $view_data["view"] = $this->input->post('view');
         $view_data['model_info'] = $this->Projects_model->get_one($project_id);
-        $can_read_material_name = false;
-        if ($this->login_user->is_admin) {
-            $can_read_material_name = true;
-        } else {
-            if ($this->login_user->permissions['bom_material_read_production_name']) {
-                $can_read_material_name = true;
-            } else {
-                $can_read_material_name = false;
-            }
-        }
 
-        $view_data['can_read_material_name'] = $can_read_material_name;
+        $view_data['can_read_material_name'] = $this->check_permission('bom_material_read_production_name');
         $view_data['items'] = $this->Items_model->get_items([])->result();
         foreach ($view_data['items'] as $k => $item) {
             unset($item->files);
             unset($item->description);
         }
 
-        $aa = $this->Bom_item_mixing_groups_model->get_detail_items([
-            'for_client_id' => $view_data['model_info']->client_id
-        ])->result();
-
         $datas = [];
+        $aa = $this->Bom_item_mixing_groups_model->get_detail_items(['for_client_id' => $view_data['model_info']->client_id])->result();
         foreach ($aa as $k => $v) {
             $v->name = trim($v->name);
             $v->title = trim($v->title);
@@ -4989,15 +4977,14 @@ class Projects extends MY_Controller
         $view_data['project_materials'] = $this->Bom_item_mixing_groups_model->get_project_materials($view_data['project_items']);
 
         // var_dump(arr($view_data['project_materials'])); exit;
-
         $view_data['add_pr_row'] = $this->cp('purchaserequests', 'add_row');
         $view_data["proveButton"] = '';
-        $approveDoc = null;
+        $view_data["approveDoc"] = '';
         if ($project_id) {
             $params = [];
             $params['id'] = $project_id;
             $params['tbName'] = 'projects';
-            $view_data["proveButton"] = $this->dao->getProveButton($params);
+            $view_data["proveButton"] = $this->dao->getProveButton($params); // MARK
 
             $sql = "
                 SELECT
@@ -5010,12 +4997,25 @@ class Projects extends MY_Controller
             $view_data["approveDoc"] = $this->dao->fetch($sql);
         }
 
-        //arr($view_data);
+        // var_dump(arr($view_data)); exit;
         $this->load->view('projects/modal_items', $view_data);
     }
 
-    function project_items_save()
+    function project_items_save() // MARK
     {
+        $post = $this->input->post();
+        $data = array();
+
+        if ($post["save_type_id"] == "2") {
+            $data = $this->save_project_recalculate($post); // SPRC
+        } elseif ($post["save_type_id"] == "1") {
+            $data = $this->save_project_material_request($post); // SPMR
+        } else {
+            $data = $this->save_project_items($post); // SPI
+        }
+
+        echo json_encode(array("success" => true, "data" => $data, "message" => lang("record_saved")));
+
         // $restock_process = $this->input->post('restock_process');
 
         // $post = [
@@ -5025,19 +5025,6 @@ class Projects extends MY_Controller
         //     "item_mixing" => $this->input->post('item_mixing[]'),
         //     "quantity" => $this->input->post('quantity[]')
         // ];
-
-        $post = $this->input->post();
-
-        if ($post["save_type_id"] == '2') {
-            $post = $this->save_project_recalc_stock($post);
-        } else if ($post["save_type_id"] == '1') {
-            $post = $this->save_project_material_request($post);
-        } else {
-            $post = $this->save_project_items($post);
-        }
-
-        echo json_encode(array("success" => true, "data" => $post, "message" => lang("record_saved")));
-        exit;
 
         // if(!empty($restock_process)) {
         // $this->Bom_item_mixing_groups_model->restock_process($id);
@@ -5088,9 +5075,9 @@ class Projects extends MY_Controller
         // }
     }
 
-    private function save_project_items($post)
+    private function save_project_items($post) // SPI
     {
-        $post["function"] = "project_items";
+        $post["function"] = "save_project_items";
 
         $project_id = isset($post["id"]) ? $post["id"] : null;
         $item_ids = isset($post["item_id"]) ? $post["item_id"] : null;
@@ -5101,38 +5088,59 @@ class Projects extends MY_Controller
         return $post;
     }
 
-    private function save_project_material_request($post)
+    private function save_project_material_request($post) // SPMR
     {
-        $post["function"] = "project_material_request";
+        $post["function"] = "save_project_material_request";
 
         $project_id = isset($post["id"]) ? $post["id"] : null;
         if ($project_id != null) {
-            $project_info = $this->db->query("SELECT p.id, p.title FROM projects p WHERE p.id = $project_id")->row();
+            $project_info = $this->Projects_model->get_project_by_id($project_id);
             $items_for_mr = $this->Bom_item_mixing_groups_model->dev2_get_project_item_for_mr($project_id);
 
+            $header_id = "";
+            $detail_id = array();
             if (isset($items_for_mr) && sizeof($items_for_mr)) {
                 $header_data = array(
-                    'project_id' => $project_info->id,
                     'project_name' => $project_info->title,
-                    'created_by' => $this->login_user->id,
-                    'requester_id' => $this->login_user->id,
+                    'project_id' => $project_info->id,
                     'mr_date' => get_today_date(),
-                    'status_id' => 1
+                    'status_id' => 1,
+                    'created_by' => $this->login_user->id,
+                    'requester_id' => $this->login_user->id
                 );
+                $header_id = $this->Materialrequests_model->save($header_data, 0);
 
-                $mr_id = $mr = $this->Materialrequests_model->save($header_data, 0);
-                $mr = $this->Materialrequests_model->get_one($mr_id);
+                foreach ($items_for_mr as $item) {
+                    $detail_data = array(
+                        'mr_id' => $header_id,
+                        'project_id' => $project_info->id,
+                        'project_name' => $project_info->title,
+                        'code' => $item->name,
+                        'title' => $item->production_name,
+                        'description' => $item->description,
+                        'quantity' => $item->ratio,
+                        'unit_type' => $item->unit,
+                        'currency' => 'THB',
+                        'currency_symbol' => '฿',
+                        'material_id' => $item->material_id,
+                        'bpim_id' => $item->id,
+                        'stock_id' => $item->stock_id
+                    );
+
+                    $newid = $this->Mr_items_model->save($detail_data, 0);
+                    if ($newid) {
+                        $this->Bom_project_item_materials_model->updateMaterialRequestIdById($item->id, $header_id);
+                        array_push($detail_id, $newid);
+                    }
+                }
+
+                $post["new_mr"] = $header_id;
             }
         }
-
-        $post["item_for_mr"] = $items_for_mr;
-        $post["sizeof_item_for_mr"] = isset($items_for_mr) && sizeof($items_for_mr) ? true : false;
-        $post["project_name"] = $project_info->title;
-        $post["new_mr"] = $mr;
         return $post;
     }
 
-    private function save_project_recalc_stock($post)
+    private function save_project_recalculate($post)
     {
         $post["function"] = "project_recalc_stock";
         return $post;
@@ -5199,9 +5207,9 @@ class Projects extends MY_Controller
         return $requesters_dropdown;
     }
 
-    function list_data()
+    function list_data() 
     {
-        //$this->access_only_team_members();
+        $this->access_only_team_members();
         $custom_fields = $this->Custom_fields_model->get_available_fields_for_table("projects", $this->login_user->is_admin, $this->login_user->user_type);
         $statuses = $this->input->post('status') ? implode(",", $this->input->post('status')) : "";
 
@@ -5221,8 +5229,6 @@ class Projects extends MY_Controller
         foreach ($list_data as $data) {
             $result[] = $this->_make_row($data, $custom_fields);
         }
-        //header('Access-Control-Allow-Origin: *');
-        //header("Content-type: application/json; charset=utf-8");
         echo json_encode(array("data" => $result));
     }
 

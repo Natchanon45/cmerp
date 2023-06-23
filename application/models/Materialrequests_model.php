@@ -314,4 +314,14 @@ class MaterialRequests_model extends Crud_model
 		return $query->row();
 	}
 
+	function dev2_updateApprovalStatus($id, $status_id, $approved_by)
+	{
+		$this->db->where('id', $id);
+		$this->db->update('materialrequests', array(
+			'status_id' => $status_id,
+			'approved_by' => $approved_by,
+			'approved_date' => date("Y-m-d H:i:s")
+		));
+	}
+
 }

@@ -241,12 +241,25 @@ class Mr_items_model extends Crud_model {
        return $q?$q->row():null;
    }
 
-   public function get_materialrequest_item_by_id($mr_id = 0)
-   {
+    public function get_materialrequest_item_by_id($mr_id = 0)
+    {
         $this->db->select("*")->from("mr_items")->where("mr_id", $mr_id);
         $query = $this->db->get();
 
-        return $query->result();
-   }
+        $list_data = $query->result();
+        foreach ($list_data as $data) {
+            $stock_group = $this->Bom_stocks_model->dev2_getRestockGroupNameByStockId($data->stock_id);
+
+            $data->stock_group_id = isset($stock_group->id) && $stock_group->id ? $stock_group->id : null;
+            $data->stock_group_name = isset($stock_group->name) && $stock_group->name ? $stock_group->name : null;
+        }
+        return $list_data;
+    }
+
+    function dev2_clearProjectMaterialStockId($id)
+    {
+        $this->db->where('mr_id', $id);
+        $this->db->update('mr_items', array('bpim_id' => null, 'stock_id' => null));
+    }
 
 }

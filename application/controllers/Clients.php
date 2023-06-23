@@ -1757,15 +1757,12 @@ class Clients extends MY_Controller {
         return $row_data;
     }
 	
-    function import_clients_modal_form() {
-	
-		if( empty( $this->getRolePermission['add_row'] ) ) {
-		
-			echo permissionBlock();
-			
+    function import_clients_modal_form()
+    {
+        if (!$this->login_user->is_admin) {
+            echo permissionBlock();
 			return;
-		}
-		
+        }
 
         $this->load->view("clients/import_clients_modal_form");
     }
