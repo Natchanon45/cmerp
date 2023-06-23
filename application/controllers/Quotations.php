@@ -65,8 +65,17 @@ class Quotations extends MY_Controller {
         $data["created"] = $this->Users_m->getInfo($data["created_by"]);
         $data["client"] = $this->Customers_m->getInfo($data["customer_id"]);
         $data["client_contact"] = $this->Customers_m->getContactInfo($data["client_id"]);
+        $data["print_url"] = get_uri("quotations/print/".str_replace("=", "", base64_encode($data['doc_id'].':'.$data['doc_number'])));
 
         $this->template->rander("quotations/view", $data);
+    }
+
+    function print(){
+        $this->data["doc"] = $doc = $this->Quotations_m->getEdoc($this->uri->segment(3), null);
+        if($doc["status"] != "success") redirect("forbidden");
+
+        $this->data["docmode"] = "private_print";
+        $this->load->view('edocs/quotation', $this->data);
     }
 
     function delete_doc() {

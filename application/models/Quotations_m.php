@@ -176,16 +176,15 @@ class Quotations_m extends MY_Model {
         $db = $this->db;
         $ci = get_instance();
 
-        if($docId == null && $sharekey == null){
-            return false;
-        }
-
         if($docId != null && $sharekey == null){
+            $docId = base64_decode($docId);
+            list($docId, $docNumber) = explode(":", $docId);
             $db->where("id", $docId);
+            $db->where("doc_number", $docNumber);
         }elseif($docId == null && $sharekey != null){
             $db->where("sharekey", $sharekey);
         }else{
-            return false;
+            return $this->data;
         }
 
         $db->where("deleted", 0);
@@ -194,9 +193,7 @@ class Quotations_m extends MY_Model {
                     ->from("quotation")
                     ->get()->row();
 
-        if(empty($qrow)){
-            return false;
-        }
+        if(empty($qrow)) return $this->data;
 
         $docId = $qrow->id;
 
@@ -206,47 +203,53 @@ class Quotations_m extends MY_Model {
                         ->order_by("sort", "asc")
                         ->get()->result();
 
-
         $client_id = $qrow->client_id;
         $created_by = $qrow->created_by;
 
-        $data["seller"] = $ci->Users_m->getInfo($created_by);
+        $this->data["seller"] = $ci->Users_m->getInfo($created_by);
 
-        $data["buyer"] = $ci->Customers_m->getInfo($client_id);
-        $data["buyer_contact"] = $ci->Customers_m->getContactInfo($client_id);
+        $this->data["buyer"] = $ci->Customers_m->getInfo($client_id);
+        $this->data["buyer_contact"] = $ci->Customers_m->getContactInfo($client_id);
 
-        $data["doc_number"] = $qrow->doc_number;
-        $data["doc_date"] = $qrow->doc_date;
-        $data["credit"] = $qrow->credit;
-        $data["doc_valid_until_date"] = $qrow->doc_valid_until_date;
-        $data["reference_number"] = $qrow->reference_number;
-        $data["remark"] = $qrow->remark;
+        $this->data["doc_number"] = $qrow->doc_number;
+        $this->data["doc_date"] = $qrow->doc_date;
+        $this->data["credit"] = $qrow->credit;
+        $this->data["doc_valid_until_date"] = $qrow->doc_valid_until_date;
+        $this->data["reference_number"] = $qrow->reference_number;
+        $this->data["remark"] = $qrow->remark;
 
-
-        $data["sub_total_before_discount"] = $qrow->sub_total_before_discount;
+        $this->data["sub_total_before_discount"] = $qrow->sub_total_before_discount;
 
         
-        $data["discount_type"] = $qrow->discount_type;
-        $data["discount_percent"] = $qrow->discount_percent;
-        $data["discount_amount"] = $qrow->discount_amount;
+        $this->data["discount_type"] = $qrow->discount_type;
+        $this->data["discount_percent"] = $qrow->discount_percent;
+        $this->data["discount_amount"] = $qrow->discount_amount;
         
         
-        $data["sub_total"] = $qrow->sub_total;
+        $this->data["sub_total"] = $qrow->sub_total;
 
-        $data["vat_inc"] = $qrow->vat_inc;
-        $data["vat_percent"] = $qrow->vat_percent;
-        $data["vat_value"] = $qrow->vat_value;
-        $data["total"] = $qrow->total;
-        $data["total_in_text"] = numberToText($qrow->total);
-        $data["wht_inc"] = $qrow->wht_inc;
-        $data["wht_percent"] = $qrow->wht_percent;
-        $data["wht_value"] = $qrow->wht_value;
-        $data["payment_amount"] = $qrow->payment_amount;
+        $this->data["vat_inc"] = $qrow->vat_inc;
+        $this->data["vat_percent"] = $qrow->vat_percent;
+        $this->data["vat_value"] = $qrow->vat_value;
+        $this->data["total"] = $qrow->total;
+        $this->data["total_in_text"] = numberToText($qrow->total);
+        $this->data["wht_inc"] = $qrow->wht_inc;
+        $this->data["wht_percent"] = $qrow->wht_percent;
+        $this->data["wht_value"] = $qrow->wht_value;
+        $this->data["payment_amount"] = $qrow->payment_amount;
 
-        $data["doc"] = $qrow;
-        $data["items"] = $qirows;
+        $this->data["sharekey_by"] = $qrow->sharekey_by;
+        $this->data["approved_by"] = $qrow->approved_by;
+        $this->data["approved_datetime"] = $qrow->approved_datetime;
+        $this->data["doc_status"] = $qrow->status;
 
-        return $data;
+        $this->data["doc"] = $qrow;
+        $this->data["items"] = $qirows;
+
+        $this->data["status"] = "success";
+        $this->data["message"] = "ok";
+
+        return $this->data;
     }
 
     function updateDoc($docId = null){
@@ -956,9 +959,12 @@ class Quotations_m extends MY_Model {
         $genKey = $this->json->gen_key;
         
         $sharekey = null;
+        $sharekey_by = null;
 
         if($genKey == true){
             $sharekey = "";
+            $sharekey_by = $this->login_user->id;
+
             while(true){
                 $sharekey = uniqid();
                 $db->where("sharekey", $sharekey);
@@ -969,7 +975,7 @@ class Quotations_m extends MY_Model {
         }
 
         $db->where("id", $docId);
-        $db->update("quotation", ["sharekey"=>$sharekey]);
+        $db->update("quotation", ["sharekey"=>$sharekey, "sharekey_by"=>$sharekey_by]);
 
         return $this->data;
     }
