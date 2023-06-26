@@ -4,6 +4,11 @@ if (!defined('BASEPATH')) exit('No direct script access allowed');
 class Receipts extends MY_Controller {
     function __construct() {
         parent::__construct();
+
+        if($this->Permission_m->permissions->accounting->receipt->access != true){
+            $this->session->set_flashdata('notice_error', lang('no_permissions'));
+            redirect(get_uri("accounting/sell"));
+        }
     }
 
     function index() {
@@ -16,7 +21,6 @@ class Receipts extends MY_Controller {
         }
 
         redirect("/accounting/sell/receipts");
-        //$this->template->rander("receipts/index");
     }
 
     function addedit(){
@@ -39,13 +43,13 @@ class Receipts extends MY_Controller {
         }
 
         if(empty($this->uri->segment(3))){
-            redirect('/receipts');
+            redirect(get_uri("accounting/sell"));
             return;
         }
 
         $data = $this->Receipts_m->getDoc($this->uri->segment(3));
         if ($data["status"] != "success"){
-            redirect('/receipts');
+            redirect(get_uri("accounting/sell"));
             return;
         }
 

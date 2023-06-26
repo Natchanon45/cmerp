@@ -4,6 +4,11 @@ if (!defined('BASEPATH')) exit('No direct script access allowed');
 class Billing_notes extends MY_Controller {
     function __construct() {
         parent::__construct();
+        
+        if($this->Permission_m->permissions->accounting->billing_note->access != true){
+            $this->session->set_flashdata('notice_error', lang('no_permissions'));
+            redirect(get_uri("accounting/sell"));
+        }
     }
 
     function index() {
@@ -16,7 +21,6 @@ class Billing_notes extends MY_Controller {
         }
 
         redirect("/accounting/sell/billing-notes");
-        //$this->template->rander("billing_notes/index");
     }
 
     function addedit(){
@@ -39,13 +43,13 @@ class Billing_notes extends MY_Controller {
         }
 
         if(empty($this->uri->segment(3))){
-            redirect('/billing_notes');
+            redirect(get_uri("accounting/sell"));
             return;
         }
 
         $data = $this->Billing_notes_m->getDoc($this->uri->segment(3));
         if ($data["status"] != "success"){
-            redirect('/billing_notes');
+            redirect(get_uri("accounting/sell"));
             return;
         }
 

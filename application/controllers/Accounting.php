@@ -5,9 +5,10 @@ class Accounting extends MY_Controller {
     function __construct() {
         parent::__construct();
         
-        if($this->Permission_m->canAccessAccounting() != true){
+        /*if($this->Permission_m->canAccessAccounting() != true){
+            $this->session->set_flashdata('notice_error', lang('no_permissions'));
             redirect("/");
-        }
+        }*/
     }
 
     function index(){
@@ -22,9 +23,22 @@ class Accounting extends MY_Controller {
 
     //บัญชีขาย
     function sell(){
-        $data["module"] = "quotations";
+        if($this->Permission_m->permissions->accounting->quotation->access == true){
+            $this->data["module"] = "quotations";
+        }elseif($this->Permission_m->permissions->accounting->billing_note->access == true){
+            $this->data["module"] = "billing-notes";
+        }elseif($this->Permission_m->permissions->accounting->invoice->access == true){
+            $this->data["module"] = "invoices";
+        }elseif($this->Permission_m->permissions->accounting->receip->access == true){
+            $this->data["module"] = "receips";
+        }else{
+            $this->session->set_flashdata('notice_error', lang('no_permissions'));
+            redirect("/");
+            return;
+        }
 
-        if($this->uri->segment(3) != null) $data["module"] = $this->uri->segment(3);
+
+        if($this->uri->segment(3) != null) $this->data["module"] = $this->uri->segment(3);
 
         $cusrows = $this->Customers_m->getRows(["id", "company_name"]);
         $client_ids[] = ["id"=>"", "text"=>"-- ลูกค้า --"];
@@ -34,9 +48,9 @@ class Accounting extends MY_Controller {
             }
         }
 
-        $data["client_ids"] = json_encode($client_ids);
+        $this->data["client_ids"] = json_encode($client_ids);
 
-        $this->template->rander("accounting/sell", $data);
+        $this->template->rander("accounting/sell", $this->data);
     }
 
     //บัญชีซื้อ

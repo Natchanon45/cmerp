@@ -107,6 +107,7 @@ class Left_menu {
 				if(!in_array($main_menu['id'], $allowed_menus)) continue;
 				if($main_menu['name'] == "leads") if($permissions["lead"] == null) continue;
 				if($main_menu['name'] == "settings") if(!isset($permissions["can_setting"])) continue;
+				if($main_menu['name'] == "accounting") if($this->ci->Permission_m->canAccessAccounting() != true) continue;
 			}
 			
             $value = get_setting('module_'.$main_menu['name']);
