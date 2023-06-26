@@ -74,18 +74,31 @@
         <div class="table-responsive pb50">
             <div id="accounting_navs">
                 <ul class="tabs">
-                    <li data-module="quotations" class="<?php if($module == "quotations") echo 'active custom-bg01'; ?>">
-                        <a class="<?php if($module == "quotations") echo 'custom-color'; ?>">ใบเสนอราคา</a>
-                    </li>
-                    <li data-module="billing-notes" class="<?php if($module == "billing-notes") echo 'active custom-bg01'; ?>">
-                        <a class="<?php if($module == "billing-notes") echo 'custom-color'; ?>">ใบวางบิล</a>
-                    </li>
-                    <li data-module="invoices" class="<?php if($module == "invoices") echo 'active custom-bg01'; ?>">
-                        <a class="<?php if($module == "invoices") echo 'custom-color'; ?>">ใบกำกับภาษี</a>
-                    </li>
-                    <li data-module="receipts" class="<?php if($module == "receipts") echo 'active custom-bg01'; ?>">
-                        <a class="<?php if($module == "receipts") echo 'custom-color'; ?>">ใบเสร็จรับเงิน</a>
-                    </li>
+                    <?php $number_of_enable_module = 0; ?>
+                    <?php if($this->Permission_m->permissions->accounting->quotation->access == true): ?>
+                        <?php $number_of_enable_module++; ?>
+                        <li data-module="quotations" class="<?php if($module == "quotations") echo 'active custom-bg01'; ?>">
+                            <a class="<?php if($module == "quotations") echo 'custom-color'; ?>">ใบเสนอราคา</a>
+                        </li>
+                    <?php endif; ?>
+                    <?php if($this->Permission_m->permissions->accounting->billing_note->access == true): ?>
+                        <?php $number_of_enable_module++; ?>
+                        <li data-module="billing-notes" class="<?php if($module == "billing-notes") echo 'active custom-bg01'; ?>">
+                            <a class="<?php if($module == "billing-notes") echo 'custom-color'; ?>">ใบวางบิล</a>
+                        </li>
+                    <?php endif; ?>
+                    <?php if($this->Permission_m->permissions->accounting->invoice->access == true): ?>
+                        <?php $number_of_enable_module++; ?>
+                        <li data-module="invoices" class="<?php if($module == "invoices") echo 'active custom-bg01'; ?>">
+                            <a class="<?php if($module == "invoices") echo 'custom-color'; ?>">ใบกำกับภาษี</a>
+                        </li>
+                    <?php endif; ?>
+                    <?php if($this->Permission_m->permissions->accounting->receipt->access == true): ?>
+                        <?php $number_of_enable_module++; ?>
+                        <li data-module="receipts" class="<?php if($module == "receipts") echo 'active custom-bg01'; ?>">
+                            <a class="<?php if($module == "receipts") echo 'custom-color'; ?>">ใบเสร็จรับเงิน</a>
+                        </li>
+                    <?php endif; ?>
                 </ul>
                 <ul class="buttons">
                     <li class="add"><a data-act='ajax-modal' class='btn btn-default'><i class='fa fa-plus-circle'></i><span></span></a></li>
@@ -94,6 +107,13 @@
         </div>
     </div>
 </div>
+<style type="text/css">
+<?php if($number_of_enable_module <= 1): ?>
+#accounting_navs .tabs li{
+    border-radius: 22px !important;
+}
+<?php endif; ?>
+</style>
 <script type="text/javascript">
 var active_module = "<?php echo $module; ?>";
 $(document).ready(function () {

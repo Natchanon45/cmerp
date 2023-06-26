@@ -1,3 +1,17 @@
+<style type="text/css">
+.permission-list fieldset{
+    border: 1px solid silver;
+    padding: 4px 12px;
+}
+
+.permission-list legend{
+    padding: 0;
+    margin: 0;
+    font-size: 1em;
+    width: auto;
+    border: 0;
+}
+</style>
 <div class="tab-content">
     <?php echo form_open(get_uri("roles/save_permissions"), array("id" => "permissions-form", "class" => "general-form dashed-row", "role" => "form")); ?>
     <input type="hidden" name="id" value="<?php echo $model_info->id; ?>" />
@@ -687,6 +701,37 @@
                         <input type="checkbox" name="create_product_item" value="Y" <?php if($create_product_item == true) echo "checked"; ?> >
                         <label for="create_product_item">สามารถเพิ่มรายการสินค้า</label>
                     </div>
+                </li>
+                <li class="accounting">
+                    <h5>ตั้งค่าสิทธิ์การเข้าถึงการจัดการบัญชี:</h5>
+                    <fieldset>
+                        <legend>ใบเสนอราคา:</legend>
+                        <div>
+                            <input type="checkbox" name="accounting_quotation_access" value="Y" <?php if($accounting['quotation']['access'] == true) echo "checked"; ?> >
+                            <label for="accounting_quotation_access">สามารถเห็นใบเสนอราคา</label>
+                        </div>
+                    </fieldset>
+                    <fieldset>
+                        <legend>ใบวางบิล:</legend>
+                        <div>
+                            <input type="checkbox" name="accounting_billing_note_access" value="Y" <?php if($accounting['billing_note']['access'] == true) echo "checked"; ?> >
+                            <label for="accounting_billing_note_access">สามารถเห็นใบวางบิล</label>
+                        </div>
+                    </fieldset>
+                    <fieldset>
+                        <legend>ใบกำกับภาษี:</legend>
+                        <div>
+                            <input type="checkbox" name="accounting_invoice_access" value="Y" <?php if($accounting['invoice']['access'] == true) echo "checked"; ?> >
+                            <label for="accounting_invoice_access">สามารถเห็นใบกำกับภาษี</label>
+                        </div>
+                    </fieldset>
+                    <fieldset>
+                        <legend>ใบเสร็จรับเงิน:</legend>
+                        <div>
+                            <input type="checkbox" name="accounting_receipt_access" value="Y" <?php if($accounting['receipt']['access'] == true) echo "checked"; ?> >
+                            <label for="accounting_receipt_access">สามารถเห็นใบเสร็จรับเงิน</label>
+                        </div>
+                    </fieldset>
                 </li>
                 <li>
                     <h5>ตั้งค่าสิทธิ์การเข้าถึงใบขอเบิก:</h5>

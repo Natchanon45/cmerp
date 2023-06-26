@@ -4,6 +4,11 @@ if (!defined('BASEPATH')) exit('No direct script access allowed');
 class Quotations extends MY_Controller {
     function __construct() {
         parent::__construct();
+        
+        if($this->Permission_m->permissions->accounting->quotation->access != true){
+            $this->session->set_flashdata('notice_error', lang('no_permissions'));
+            redirect(get_uri("accounting/sell"));
+        }
     }
 
     function index() {
@@ -17,7 +22,6 @@ class Quotations extends MY_Controller {
         }
 
         redirect("/accounting/sell/quotations");
-        //$this->template->rander("quotations/index");
     }
 
     function addedit(){
@@ -52,13 +56,13 @@ class Quotations extends MY_Controller {
         }
 
         if(empty($this->uri->segment(3))){
-            redirect('/quotations');
+            redirect(get_uri("/accounting/sell"));
             return;
         }
 
         $data = $this->Quotations_m->getDoc($this->uri->segment(3));
         if ($data["status"] != "success"){
-            redirect('/quotations');
+            redirect(get_uri("/accounting/sell"));
             return;
         }
 
