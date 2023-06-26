@@ -82,7 +82,15 @@
     <div class="modal-footer">
         <button class="btn btn-default upload-file-button pull-left btn-sm round" type="button" style="color:#7988a2"><i class="fa fa-camera"></i> <?php echo lang("upload_file"); ?></button>
         <button type="button" class="btn btn-default" data-dismiss="modal"><span class="fa fa-close"></span> <?php echo lang('close'); ?></button>
-        <button type="submit" class="btn btn-primary"><span class="fa fa-check-circle"></span> <?php echo lang('save'); ?></button>
+        <?php if($model_info->id != "")://update ?>
+            <?php if($this->Permission_m->update_note == true): ?>
+                <button type="submit" class="btn btn-primary"><span class="fa fa-check-circle"></span> <?php echo lang('save'); ?></button>
+            <?php endif;?>
+        <?php else://insert ?>
+            <?php if($this->Permission_m->add_note == true): ?>
+                <button type="submit" class="btn btn-primary"><span class="fa fa-check-circle"></span> <?php echo lang('save'); ?></button>
+            <?php endif;?>
+        <?php endif?>
     </div>
 </div>
 <?php echo form_close(); ?>

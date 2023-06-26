@@ -22,21 +22,21 @@
       </a></li>
     <?php } ?>
 
-    <li><a role="presentation" href="<?php echo_uri("stock/material_files/".$material_info->id); ?>" data-target="#material-files">
+    <li><a role="presentation" href="<?php echo_uri("stock/material_files/" . $material_info->id); ?>" data-target="#material-files">
       <?php echo lang('files'); ?>
     </a></li>
 
-    <!-- <?php // if(!isset($hidden_menu) || !in_array('material-remaining', $hidden_menu)) { ?>
-      <li><a role="presentation" href="<?php // echo_uri("stock/material_remainings/".$material_info->id); ?>" data-target="#material-remaining">
-        <?php // echo lang('stock_restock_list'); ?>
+    <?php if(!isset($hidden_menu) || !in_array('material-remaining', $hidden_menu)) { ?>
+      <li><a role="presentation" href="<?php echo_uri("stock/material_remainings/" . $material_info->id); ?>" data-target="#material-remaining">
+        <?php echo lang('stock_restock_list'); ?>
       </a></li>
-    <?php // } ?> -->
+    <?php } ?>
 
-    <!-- <?php // if(!isset($hidden_menu) || !in_array('material-used', $hidden_menu)) { ?>
-      <li><a role="presentation" href="<?php // echo_uri("stock/material_used/".$material_info->id); ?>" data-target="#material-used">
-        <?php // echo lang('stock_restock_used_list'); ?>
+    <?php if(!isset($hidden_menu) || !in_array('material-used', $hidden_menu)) { ?>
+      <li><a role="presentation" href="<?php echo_uri("stock/material_used/" . $material_info->id); ?>" data-target="#material-used">
+        <?php echo lang('stock_restock_used_list'); ?>
       </a></li>
-    <?php // } ?> -->
+    <?php } ?>
 
   </ul>
   <div class="tab-content">

@@ -250,8 +250,11 @@
                             <input type="text" value="<?php echo $access_note_specific; ?>" name="access_note_specific" id="note_types_specific_dropdown" class="w100p validate-hidden"  data-rule-required="true" data-msg-required="<?php echo lang('field_required'); ?>" placeholder="Choose note types"  />
                         </div>
                     </div>
-
-                    <div class="form-group">
+                    <div class="form-group" style="margin-top: 10px;">
+                        <div>
+                            <?php echo form_checkbox("add_note", "Y", $add_note ? true : false, "id='add_note'"); ?>
+                            <label for="add_note">สามารถเพิ่มเอกสารได้</label>
+                        </div>
                         <div>
                             <?php echo form_checkbox("update_note", "Y", $update_note ? true : false, "id='update_note'"); ?>
                             <label for="update_note">สามารถแก้ไขเอกสารได้</label>

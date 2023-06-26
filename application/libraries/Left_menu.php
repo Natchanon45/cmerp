@@ -100,29 +100,25 @@ class Left_menu {
         $sortable_items = $this->get_sortable_items_array();
 		$liss = array();
 
-        // $value = get_setting('module_purchaserequests');
-        // echo 'purchaserequests:'.$value."<br />\r\n";
+        $permissions = $this->ci->login_user->permissions;
 		foreach ( $sortable_items as $ka => $main_menu ) {
-			//log_message("error", json_encode($main_menu));
-            if(!$this->ci->login_user->is_admin && !in_array($main_menu['id'], $allowed_menus)) continue;
+
+			if($this->ci->login_user->is_admin != 1){
+				if(!in_array($main_menu['id'], $allowed_menus)) continue;
+				if($main_menu['name'] == "leads") if($permissions["lead"] == null) continue;
+				if($main_menu['name'] == "settings") if(!isset($permissions["can_setting"])) continue;
+			}
+			
             $value = get_setting('module_'.$main_menu['name']);
 
-            if($value!==null && !$value) {
-                continue;
-            }
+            if($value!==null && !$value) continue;
 
-
-			// $main_menu = json_decode( $va->detail );
-		  
-			// $main_menu = convertObJectToArray( $main_menu );
             $url = $main_menu['url'];
 			
 			$submenu = get_array_value($main_menu, "submenu");
 			$expend_class = $submenu ? " expand " : "";
 			
 			$active_class = uri_string() == $url? "active" : (get_instance()->uri->segment(1) == $url? "active" : "");
-			
-			//isset($main_menu["is_active_menu"]) 
 
 			$submenu_open_class = "";
 			if ($expend_class && $active_class) {
