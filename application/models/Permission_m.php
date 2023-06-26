@@ -9,6 +9,11 @@ class Permission_m extends MY_Model {
 	public $access_product_item_formula = false;
 	public $create_product_item = false;
 
+	public $accounting_quotation_access = false;
+	public $accounting_billing_note_access = false;
+	public $accounting_invoice_access = false;
+	public $accounting_receipt_access = false;
+
 	public $access_material_request = false;
 	public $create_material_request = false;
 	public $update_material_request = false;
@@ -53,6 +58,11 @@ class Permission_m extends MY_Model {
 		$this->access_product_item_formula = true;
 		$this->create_product_item = true;
 
+		$this->accounting_quotation_access = true;
+		$this->accounting_billing_note_access = true;
+		$this->accounting_invoice_access = true;
+		$this->accounting_receipt_access = true;
+
 		$this->access_material_request = true;
 		$this->create_material_request = true;
 		$this->update_material_request = true;
@@ -77,6 +87,12 @@ class Permission_m extends MY_Model {
 		//Product Item
 		if(isset($p->access_product_item_formula)) $this->access_product_item_formula = $p->access_product_item_formula;
 		if(isset($p->create_product_item)) $this->create_product_item = $p->create_product_item;
+
+		//Accounting
+		if(isset($p->accounting->quotation->access)) $this->accounting_quotation_access = $p->accounting->quotation->access;
+		if(isset($p->accounting->billing_note->access)) $this->accounting_billing_note_access = $p->accounting->billing_note->access;
+		if(isset($p->accounting->invoice->access)) $this->accounting_invoice_access = $p->accounting->invoice->access;
+		if(isset($p->accounting->receipt->access)) $this->accounting_receipt_access = $p->accounting->receipt->access;
 
 		//Material Request
 		if(isset($p->access_material_request)) $this->access_material_request = $p->access_material_request;
@@ -124,6 +140,15 @@ class Permission_m extends MY_Model {
 			if($this->access_purchase_request == false) $this->approve_purchase_request = false;
 		}
 
+	}
+
+	function canAccessAccounting(){
+		if($this->accounting_quotation_access == true) return true;
+		if($this->accounting_billing_note_access == true) return true;
+		if($this->accounting_invoice_access == true) return true;
+		if($this->accounting_receipt_access == true) return true;
+
+		return false;
 	}
 
 	function login_user_test()
