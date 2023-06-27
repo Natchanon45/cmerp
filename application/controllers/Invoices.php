@@ -5,7 +5,7 @@ class Invoices extends MY_Controller {
     function __construct() {
         parent::__construct();
         
-        if($this->Permission_m->permissions->accounting->invoice->access != true){
+        if($this->Permission_m->accounting["invoice"]["access"] != true){
             $this->session->set_flashdata('notice_error', lang('no_permissions'));
             redirect(get_uri("accounting/sell"));
         }
