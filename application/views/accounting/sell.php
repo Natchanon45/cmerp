@@ -75,25 +75,25 @@
             <div id="accounting_navs">
                 <ul class="tabs">
                     <?php $number_of_enable_module = 0; ?>
-                    <?php if($this->Permission_m->permissions->accounting->quotation->access == true): ?>
+                    <?php if($this->Permission_m->accounting["quotation"]["access"] == true): ?>
                         <?php $number_of_enable_module++; ?>
                         <li data-module="quotations" class="<?php if($module == "quotations") echo 'active custom-bg01'; ?>">
                             <a class="<?php if($module == "quotations") echo 'custom-color'; ?>">ใบเสนอราคา</a>
                         </li>
                     <?php endif; ?>
-                    <?php if($this->Permission_m->permissions->accounting->billing_note->access == true): ?>
+                    <?php if($this->Permission_m->accounting["billing_note"]["access"] == true): ?>
                         <?php $number_of_enable_module++; ?>
                         <li data-module="billing-notes" class="<?php if($module == "billing-notes") echo 'active custom-bg01'; ?>">
                             <a class="<?php if($module == "billing-notes") echo 'custom-color'; ?>">ใบวางบิล</a>
                         </li>
                     <?php endif; ?>
-                    <?php if($this->Permission_m->permissions->accounting->invoice->access == true): ?>
+                    <?php if($this->Permission_m->accounting["invoice"]["access"] == true): ?>
                         <?php $number_of_enable_module++; ?>
                         <li data-module="invoices" class="<?php if($module == "invoices") echo 'active custom-bg01'; ?>">
                             <a class="<?php if($module == "invoices") echo 'custom-color'; ?>">ใบกำกับภาษี</a>
                         </li>
                     <?php endif; ?>
-                    <?php if($this->Permission_m->permissions->accounting->receipt->access == true): ?>
+                    <?php if($this->Permission_m->accounting["receipt"]["access"] == true): ?>
                         <?php $number_of_enable_module++; ?>
                         <li data-module="receipts" class="<?php if($module == "receipts") echo 'active custom-bg01'; ?>">
                             <a class="<?php if($module == "receipts") echo 'custom-color'; ?>">ใบเสร็จรับเงิน</a>

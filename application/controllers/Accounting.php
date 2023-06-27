@@ -23,20 +23,19 @@ class Accounting extends MY_Controller {
 
     //บัญชีขาย
     function sell(){
-        if($this->Permission_m->permissions->accounting->quotation->access == true){
+        if($this->Permission_m->accounting["quotation"]["access"] == true){
             $this->data["module"] = "quotations";
-        }elseif($this->Permission_m->permissions->accounting->billing_note->access == true){
+        }elseif($this->Permission_m->accounting["billing_note"]["access"] == true){
             $this->data["module"] = "billing-notes";
-        }elseif($this->Permission_m->permissions->accounting->invoice->access == true){
+        }elseif($this->Permission_m->accounting["invoice"]["access"] == true){
             $this->data["module"] = "invoices";
-        }elseif($this->Permission_m->permissions->accounting->receip->access == true){
-            $this->data["module"] = "receips";
+        }elseif($this->Permission_m->accounting["receipt"]["access"] == true){
+            $this->data["module"] = "receipts";
         }else{
             $this->session->set_flashdata('notice_error', lang('no_permissions'));
             redirect("/");
             return;
         }
-
 
         if($this->uri->segment(3) != null) $this->data["module"] = $this->uri->segment(3);
 

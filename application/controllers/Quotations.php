@@ -5,7 +5,7 @@ class Quotations extends MY_Controller {
     function __construct() {
         parent::__construct();
         
-        if($this->Permission_m->permissions->accounting->quotation->access != true){
+        if($this->Permission_m->accounting["quotation"]["access"] != true){
             $this->session->set_flashdata('notice_error', lang('no_permissions'));
             redirect(get_uri("accounting/sell"));
         }

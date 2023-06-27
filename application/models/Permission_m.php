@@ -46,106 +46,105 @@ class Permission_m extends MY_Model {
 						        			->where("deleted", 0)
 						        			->get()->row();
 						        			
-			if(!empty($prow)){
-				$this->permissions = json_decode(json_encode(unserialize($prow->permissions)));
-				$this->setPermission();
-			}
+			if(!empty($prow)) $this->setPermission(json_decode(json_encode(unserialize($prow->permissions))));
 		}
 	}
 
 	function setAdmin(){
-		$this->access_note = "all";
-		$this->access_note_specific = null;
-		$this->add_note = true;
-		$this->update_note = true;
+		$permissions["access_note"] = $this->access_note = "all";
+		$permissions["access_note_specific"] = $this->access_note_specific = null;
+		$permissions["add_note"] = $this->add_note = true;
+		$permissions["update_note"] = $this->update_note = true;
 
-		$this->access_product_item_formula = true;
-		$this->create_product_item = true;
+		$permissions["access_product_item_formula"] = $this->access_product_item_formula = true;
+		$permissions["create_product_item"] = $this->create_product_item = true;
 
-		$this->accounting = [
-							"quotation"=>["access"=>true],
-							"billing_note"=>["access"=>true],
-							"invoice"=>["access"=>true],
-							"receipt"=>["access"=>true]
-						];
+		$permissions["accounting"] = $this->accounting = [
+													"quotation"=>["access"=>true],
+													"billing_note"=>["access"=>true],
+													"invoice"=>["access"=>true],
+													"receipt"=>["access"=>true]
+												];
 
-		$this->access_material_request = true;
-		$this->create_material_request = true;
-		$this->update_material_request = true;
-		$this->delete_material_request = true;
-		$this->approve_material_request = true;
+		$permissions["access_material_request"] = $this->access_material_request = true;
+		$permissions["create_material_request"] = $this->create_material_request = true;
+		$permissions["update_material_request"] = $this->update_material_request = true;
+		$permissions["delete_material_request"] = $this->delete_material_request = true;
+		$permissions["approve_material_request"] = $this->approve_material_request = true;
 
-		$this->access_purchase_request = true;
-		$this->create_purchase_request = true;
-		$this->update_purchase_request = true;
-		$this->delete_purchase_request = true;
-		$this->approve_purchase_request = true;
+		$permissions["access_purchase_request"] = $this->access_purchase_request = true;
+		$permissions["create_purchase_request"] = $this->create_purchase_request = true;
+		$permissions["update_purchase_request"] = $this->update_purchase_request = true;
+		$permissions["delete_purchase_request"] = $this->delete_purchase_request = true;
+		$permissions["approve_purchase_request"] = $this->approve_purchase_request = true;
+
+		$this->permissions = $permissions;
 	}
 
-	function setPermission(){
-		$p = $this->permissions;
-
+	function setPermission($permissions){
 		//Note
-		if(isset($p->access_note)) $this->access_note = $p->access_note;
-		if(isset($p->access_note_specific)) $this->access_note_specific = $p->access_note_specific;
-		if(isset($p->add_note)) $this->add_note = $p->add_note;
-		if(isset($p->update_note)) $this->update_note = $p->update_note;
+		if(isset($permissions->access_note)) $this->access_note = $permissions->access_note;
+		if(isset($permissions->access_note_specific)) $this->access_note_specific = $permissions->access_note_specific;
+		if(isset($permissions->add_note)) $this->add_note = $permissions->add_note;
+		if(isset($permissions->update_note)) $this->update_note = $permissions->update_note;
 
 		//Product Item
-		if(isset($p->access_product_item_formula)) $this->access_product_item_formula = $p->access_product_item_formula;
-		if(isset($p->create_product_item)) $this->create_product_item = $p->create_product_item;
+		if(isset($permissions->access_product_item_formula)) $this->access_product_item_formula = $permissions->access_product_item_formula;
+		if(isset($permissions->create_product_item)) $this->create_product_item = $permissions->create_product_item;
 
 		//Accounting
-		if(isset($p->accounting->quotation->access)) $this->accounting["quotation"]["access"] = $p->accounting->quotation->access;
-		if(isset($p->accounting->billing_note->access)) $this->accounting["billing_note"]["access"] = $p->accounting->billing_note->access;
-		if(isset($p->accounting->invoice->access)) $this->accounting["invoice"]["access"] = $p->accounting->invoice->access;
-		if(isset($p->accounting->receipt->access)) $this->accounting["receipt"]["access"] = $p->accounting->receipt->access;
+		if(isset($permissions->accounting->quotation->access)) $this->accounting["quotation"]["access"] = $permissions->accounting->quotation->access;
+		if(isset($permissions->accounting->billing_note->access)) $this->accounting["billing_note"]["access"] = $permissions->accounting->billing_note->access;
+		if(isset($permissions->accounting->invoice->access)) $this->accounting["invoice"]["access"] = $permissions->accounting->invoice->access;
+		if(isset($permissions->accounting->receipt->access)) $this->accounting["receipt"]["access"] = $permissions->accounting->receipt->access;
 
 		//Material Request
-		if(isset($p->access_material_request)) $this->access_material_request = $p->access_material_request;
+		if(isset($permissions->access_material_request)) $this->access_material_request = $permissions->access_material_request;
 
-		if(isset($p->create_material_request)){
-			$this->create_material_request = $p->create_material_request;
+		if(isset($permissions->create_material_request)){
+			$this->create_material_request = $permissions->create_material_request;
 			if($this->access_material_request == false) $this->create_material_request = false;
 		}
 
-		if(isset($p->update_material_request)){
-			$this->update_material_request = $p->update_material_request;
+		if(isset($permissions->update_material_request)){
+			$this->update_material_request = $permissions->update_material_request;
 			if($this->access_material_request == false) $this->update_material_request = false;
 		}
 
-		if(isset($p->delete_material_request)){
-			$this->delete_material_request = $p->delete_material_request;
+		if(isset($permissions->delete_material_request)){
+			$this->delete_material_request = $permissions->delete_material_request;
 			if($this->access_material_request == false) $this->delete_material_request = false;
 		}
 
-		if(isset($p->approve_material_request)){
-			$this->approve_material_request = $p->approve_material_request;
+		if(isset($permissions->approve_material_request)){
+			$this->approve_material_request = $permissions->approve_material_request;
 			if($this->access_material_request == false) $this->approve_material_request = false;
 		}
 
 		//Purchase Request
-		if(isset($p->access_purchase_request)) $this->access_purchase_request = $p->access_purchase_request;
+		if(isset($permissions->access_purchase_request)) $this->access_purchase_request = $permissions->access_purchase_request;
 
-		if(isset($p->create_purchase_request)){
-			$this->create_purchase_request = $p->create_purchase_request;
+		if(isset($permissions->create_purchase_request)){
+			$this->create_purchase_request = $permissions->create_purchase_request;
 			if($this->access_purchase_request == false) $this->create_purchase_request = false;
 		}
 
-		if(isset($p->update_purchase_request)){
-			$this->update_purchase_request = $p->update_purchase_request;
+		if(isset($permissions->update_purchase_request)){
+			$this->update_purchase_request = $permissions->update_purchase_request;
 			if($this->access_purchase_request == false) $this->update_purchase_request = false;
 		}
 
-		if(isset($p->delete_purchase_request)){
-			$this->delete_purchase_request = $p->delete_purchase_request;
+		if(isset($permissions->delete_purchase_request)){
+			$this->delete_purchase_request = $permissions->delete_purchase_request;
 			if($this->access_purchase_request == false) $this->delete_purchase_request = false;
 		}
 
-		if(isset($p->approve_purchase_request)){
-			$this->approve_purchase_request = $p->approve_purchase_request;
+		if(isset($permissions->approve_purchase_request)){
+			$this->approve_purchase_request = $permissions->approve_purchase_request;
 			if($this->access_purchase_request == false) $this->approve_purchase_request = false;
 		}
+
+		$this->permissions = $permissions;
 
 	}
 
@@ -157,10 +156,4 @@ class Permission_m extends MY_Model {
 
 		return false;
 	}
-
-	function login_user_test()
-	{
-		return $this->login_user;
-	}
-
 }
