@@ -2,6 +2,7 @@
 
 class Billing_notes_m extends MY_Model {
     private $code = "BL";
+    private $shareHtmlAddress = "share/billing-note/html/";
 
     function __construct() {
         parent::__construct();
@@ -193,6 +194,7 @@ class Billing_notes_m extends MY_Model {
             $this->data["doc_id"] = $docId;
             $this->data["quotation_id"] = $quotation_id;
             $this->data["doc_number"] = $bnrow->doc_number;
+            $this->data["share_link"] = $bnrow->sharekey != null ? get_uri($this->shareHtmlAddress."th/".$bnrow->sharekey) : null;
             $this->data["doc_date"] = $bnrow->doc_date;
             $this->data["credit"] = $bnrow->credit;
             $this->data["due_date"] = $bnrow->due_date;
@@ -221,6 +223,84 @@ class Billing_notes_m extends MY_Model {
         }
 
         $this->data["status"] = "success";
+
+        return $this->data;
+    }
+
+    function getEdoc($docId = null, $sharekey = null){
+        $db = $this->db;
+        $ci = get_instance();
+
+        if($docId != null && $sharekey == null){
+            $docId = base64_decode($docId);
+            list($docId, $docNumber) = explode(":", $docId);
+            $db->where("id", $docId);
+            $db->where("doc_number", $docNumber);
+        }elseif($docId == null && $sharekey != null){
+            $db->where("sharekey", $sharekey);
+        }else{
+            return $this->data;
+        }
+
+        $db->where("deleted", 0);
+
+        $bnrow = $db->select("*")
+                    ->from("billing_note")
+                    ->get()->row();
+
+        if(empty($bnrow)) return $this->data;
+
+        $docId = $bnrow->id;
+
+        $bnrows = $db->select("*")
+                        ->from("billing_note_items")
+                        ->where("billing_note_id", $docId)
+                        ->order_by("sort", "asc")
+                        ->get()->result();
+
+        $client_id = $bnrow->client_id;
+        $created_by = $bnrow->created_by;
+
+        $this->data["seller"] = $ci->Users_m->getInfo($created_by);
+
+        $this->data["buyer"] = $ci->Customers_m->getInfo($client_id);
+        $this->data["buyer_contact"] = $ci->Customers_m->getContactInfo($client_id);
+
+        $this->data["doc_number"] = $bnrow->doc_number;
+        $this->data["doc_date"] = $bnrow->doc_date;
+        $this->data["credit"] = $bnrow->credit;
+        $this->data["due_date"] = $bnrow->due_date;
+        $this->data["reference_number"] = $bnrow->reference_number;
+        $this->data["remark"] = $bnrow->remark;
+
+        $this->data["sub_total_before_discount"] = $bnrow->sub_total_before_discount;
+
+        $this->data["discount_type"] = $bnrow->discount_type;
+        $this->data["discount_percent"] = $bnrow->discount_percent;
+        $this->data["discount_amount"] = $bnrow->discount_amount;
+        
+        $this->data["sub_total"] = $bnrow->sub_total;
+
+        $this->data["vat_inc"] = $bnrow->vat_inc;
+        $this->data["vat_percent"] = $bnrow->vat_percent;
+        $this->data["vat_value"] = $bnrow->vat_value;
+        $this->data["total"] = $bnrow->total;
+        $this->data["total_in_text"] = numberToText($bnrow->total);
+        $this->data["wht_inc"] = $bnrow->wht_inc;
+        $this->data["wht_percent"] = $bnrow->wht_percent;
+        $this->data["wht_value"] = $bnrow->wht_value;
+        $this->data["payment_amount"] = $bnrow->payment_amount;
+
+        $this->data["sharekey_by"] = $bnrow->sharekey_by;
+        $this->data["approved_by"] = $bnrow->approved_by;
+        $this->data["approved_datetime"] = $bnrow->approved_datetime;
+        $this->data["doc_status"] = $bnrow->status;
+
+        $this->data["doc"] = $bnrow;
+        $this->data["items"] = $bnrows;
+
+        $this->data["status"] = "success";
+        $this->data["message"] = "ok";
 
         return $this->data;
     }
@@ -953,6 +1033,33 @@ class Billing_notes_m extends MY_Model {
         $this->data["dataset"] = $this->getIndexDataSetHTML($bnrow);
         $this->data["status"] = "success";
         $this->data["message"] = lang('doc_id');
+        return $this->data;
+    }
+
+    function genShareKey(){
+        $db = $this->db;
+        $docId = $this->json->doc_id;
+        $genKey = $this->json->gen_key;
+        
+        $sharekey = null;
+        $sharekey_by = null;
+
+        if($genKey == true){
+            $sharekey = "";
+            $sharekey_by = $this->login_user->id;
+
+            while(true){
+                $sharekey = uniqid();
+                $db->where("sharekey", $sharekey);
+                if($db->count_all_results("billing_note") < 1) break;
+            }
+
+            $this->data["sharelink"] = get_uri($this->shareHtmlAddress."th/".$sharekey);
+        }
+
+        $db->where("id", $docId);
+        $db->update("billing_note", ["sharekey"=>$sharekey, "sharekey_by"=>$sharekey_by]);
+
         return $this->data;
     }
 }

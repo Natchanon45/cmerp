@@ -56,10 +56,18 @@ class Billing_notes extends MY_Controller {
         $data["created"] = $this->Users_m->getInfo($data["created_by"]);
         $data["client"] = $this->Customers_m->getInfo($data["customer_id"]);
         $data["client_contact"] = $this->Customers_m->getContactInfo($data["client_id"]);
+        $data["print_url"] = get_uri("billing-notes/print/".str_replace("=", "", base64_encode($data['doc_id'].':'.$data['doc_number'])));
 
         $this->template->rander("billing_notes/view", $data);
     }
 
+    function print(){
+        $this->data["doc"] = $doc = $this->Billing_notes_m->getEdoc($this->uri->segment(3), null);
+        if($doc["status"] != "success") redirect("forbidden");
+
+        $this->data["docmode"] = "private_print";
+        $this->load->view('edocs/billing_note', $this->data);
+    }
 
     function delete_doc() {
         if($this->input->post('undo') == true){
@@ -97,5 +105,15 @@ class Billing_notes extends MY_Controller {
         $data = $this->Billing_notes_m->item();
 
         $this->load->view('billing_notes/item', $data);
+    }
+
+    function share(){
+        if(isset($this->json->task)){
+            if($this->json->task == "gen_sharekey") jout($this->Billing_notes_m->genShareKey());
+            return;   
+        }
+        
+        $data = $this->Billing_notes_m->getDoc($this->input->post("doc_id"));
+        $this->load->view('billing_notes/share', $data);
     }
 }
