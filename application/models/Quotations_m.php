@@ -1,5 +1,4 @@
 <?php
-
 class Quotations_m extends MY_Model {
     private $code = "QT";
     private $shareHtmlAddress = "share/quotation/html/";
@@ -220,11 +219,9 @@ class Quotations_m extends MY_Model {
 
         $this->data["sub_total_before_discount"] = $qrow->sub_total_before_discount;
 
-        
         $this->data["discount_type"] = $qrow->discount_type;
         $this->data["discount_percent"] = $qrow->discount_percent;
         $this->data["discount_amount"] = $qrow->discount_amount;
-        
         
         $this->data["sub_total"] = $qrow->sub_total;
 

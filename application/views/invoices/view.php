@@ -5,7 +5,8 @@
         <h1>ใบส่งสินค้า / ใบกำกับภาษี <?php echo $doc_number;?></h1>
         <div class="title-button-group">
             <a style="margin-left: 15px;" class="btn btn-default mt0 mb0 back-to-index-btn"  href="<?php echo get_uri("accounting/sell/invoices")?>" ><i class="fa fa-hand-o-left" aria-hidden="true"></i> ย้อนกลับไปตารางรายการ</a>
-            <a class="btn btn-default" onclick="window.print();">พิมพ์</a>
+            <a id="add_item_button" class="btn btn-default" data-post-doc_id="<?php echo $doc_id; ?>" data-act="ajax-modal" data-title="แชร์เอกสาร <?php echo $doc_number; ?>" data-action-url="<?php echo get_uri("/invoices/share"); ?>">แชร์</a>
+            <a onclick="window.open('<?php echo $print_url;?>', '' ,'width=980,height=720');" class="btn btn-default">พิมพ์</a>
         </div>
     </div>
 </div><!--#dcontroller-->
@@ -182,50 +183,24 @@
                 </tr>
             </tfoot>
         </table>
-        <div class="remark clear">
-            <p class="custom-color">หมายเหตุ</p>
-            <p><?php echo nl2br($remark); ?></p>
-        </div><!--.remark-->
+        <?php if(trim($remark) != ""): ?>
+            <div class="remark clear">
+                <p class="custom-color">หมายเหตุ</p>
+                <p><?php echo nl2br($remark); ?></p>
+            </div>
+        <?php endif; ?>
     </div><!--.docitem-->
-    <div class="docsignature clear">
-        <div class="customer">
-            <div class="on_behalf_of">ในนาม <?php if(isset($client["company_name"])) echo $client["company_name"]; ?></div>
-            <div class="clear">
-                <div class="name">
-                    <span class="l1"></span>
-                    <span class="l2">ผู้รับสินค้า / บริการ</span>
-                </div>
-                <div class="date">
-                    <span class="l1"></span>
-                    <span class="l2">วันที่</span>
-                </div>
-            </div>
-        </div><!--.customer -->
-        <div class="company">
-            <div class="on_behalf_of">ในนาม <?php echo get_setting("company_name"); ?></div>
-            <div class="clear">
-                <div class="name">
-                    <span class="l1">
-                        <?php $signature = $this->Users_m->getSignature($approved_by); ?>
-                        <?php if($signature != null): ?>
-                            <span class="signature"><img src='<?php echo str_replace("./", "/", $signature); ?>'></span>
-                        <?php endif; ?>
-                    </span>
-                    <span class="l2">ผู้อนุมัติ</span>
-                </div>
-                <div class="date">
-                    <span class="l1">
-                        <?php if($signature != null): ?>
-                            <span class="approved_date"><?php echo convertDate($approved_datetime, true); ?></span>
-                        <?php endif; ?>
-                    </span>
-                    <span class="l2">วันที่</span>
-                </div>
-            </div>
-        </div><!--.company-->
-    </div>
 </div><!--#printd-->
 <script type="text/javascript">
+window.addEventListener('keydown', function(event) {
+    if (event.keyCode === 80 && (event.ctrlKey || event.metaKey) && !event.altKey && (!event.shiftKey || window.chrome || window.opera)) {
+        event.preventDefault();
+        if (event.stopImmediatePropagation)event.stopImmediatePropagation();
+        else event.stopPropagation();
+        return;
+    }
+}, true);
+
 $(document).ready(function() {
     loadItems();
     $("#discount_percent, #discount_amount").blur(function(){

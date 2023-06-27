@@ -11,4 +11,22 @@ class Share extends PublicController {
         if($doc["status"] != "success") redirect("forbidden");
         $this->load->view('edocs/quotation', $this->data);
     }
+
+    function billing_note(){
+        $this->data["doc"] = $doc = $this->Billing_notes_m->getEdoc(null, $this->uri->segment(5));
+        if($doc["status"] != "success") redirect("forbidden");
+        $this->load->view('edocs/billing_note', $this->data);
+    }
+
+    function invoice(){
+        $this->data["doc"] = $doc = $this->Invoices_m->getEdoc(null, $this->uri->segment(5));
+        if($doc["status"] != "success") redirect("forbidden");
+        $this->load->view('edocs/invoice', $this->data);
+    }
+
+    function receipt(){
+        $this->data["doc"] = $doc = $this->Receipts_m->getEdoc(null, $this->uri->segment(5));
+        if($doc["status"] != "success") redirect("forbidden");
+        $this->load->view('edocs/receipt', $this->data);
+    }
 }

@@ -6,7 +6,7 @@
         <div class="title-button-group">
             <a style="margin-left: 15px;" class="btn btn-default mt0 mb0 back-to-index-btn" href="<?php echo get_uri("accounting/sell/quotations");?>" ><i class="fa fa-hand-o-left" aria-hidden="true"></i> ย้อนกลับไปตารางรายการ</a>
             <a id="add_item_button" class="btn btn-default" data-post-doc_id="<?php echo $doc_id; ?>" data-act="ajax-modal" data-title="แชร์เอกสาร <?php echo $doc_number; ?>" data-action-url="<?php echo get_uri("/quotations/share"); ?>">แชร์</a>
-            <a onclick="window.open('<?php echo $print_url;?>', '' ,'width=1000,height=1000');" class="btn btn-default">พิมพ์</a>
+            <a onclick="window.open('<?php echo $print_url;?>', '' ,'width=980,height=720');" class="btn btn-default">พิมพ์</a>
         </div>
     </div>
 </div><!--#dcontroller-->

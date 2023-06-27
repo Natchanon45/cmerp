@@ -83,7 +83,7 @@
 				</div>
 			</div>
 			<div class="right">
-				<div class="docname custom-color">ใบเสนอราคา</div>
+				<div class="docname custom-color">ใบส่งสินค้า / ใบกำกับภาษี</div>
 				<div class="docinfo">
 					<table>
 	                    <tr>
@@ -97,6 +97,10 @@
 	                    <tr>
 	                        <td class="custom-color">เครดิต</td>
 	                        <td><?php echo $doc["credit"]; ?> วัน</td>
+	                    </tr>
+	                    <tr>
+	                        <td class="custom-color">ครบกำหนด</td>
+	                        <td><?php echo convertDate($doc["due_date"], true); ?></td>
 	                    </tr>
 	                    <tr>
 	                        <td class="custom-color">ผู้ขาย</td>
