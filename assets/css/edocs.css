@@ -24,6 +24,7 @@ time, mark, audio, video {
     -moz-box-sizing: border-box;    /* Firefox, other Gecko */
     box-sizing: border-box;
     word-wrap: break-word;
+    -webkit-text-size-adjust: 100% /* Prevent Mobile Safari from adjusting font sizes*/
 }
 /* HTML5 display-role reset for older browsers */
 article, aside, details, figcaption, figure, 
@@ -238,7 +239,7 @@ header .button i{
 
 .paper .summary .total_in_text{
     float: left;
-    width: calc(100% - 280px);
+    max-width: calc(100% - 280px);
 }
 
 .paper .summary .total_in_text span{
