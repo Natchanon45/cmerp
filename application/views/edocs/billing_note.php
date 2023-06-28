@@ -10,7 +10,7 @@
 }
 
 .body .items table td:nth-child(2){
-	width: calc(100% - 510px);
+	max-width: calc(100% - 510px);
     text-align: left;
 }
 

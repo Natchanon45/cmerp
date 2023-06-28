@@ -1,16 +1,46 @@
 <style type="text/css">
 .permission-list fieldset{
     border: 1px solid silver;
-    padding: 4px 12px;
+    padding: 6px 12px;
+    margin-bottom: 22px;
 }
 
 .permission-list legend{
     padding: 0;
     margin: 0;
-    font-size: 1em;
+    font-size: 1.1em;
     width: auto;
     border: 0;
 }
+
+.permission-list ol, .permission-list ol li{
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    border: 0;
+    line-height: 26px;
+}
+
+.permission-list ol li.n{
+    line-height: 8px;
+}
+
+.permission-list ol li label, .permission-list ol li input{
+    display: inline-block;
+    margin: 0;
+    padding: 0;
+}
+
+.permission-list ol li input{
+    position: relative;
+    top: 1px;
+}
+
+.permission-list ol li label{
+    margin-left: 4px;
+}
+
+
 </style>
 <div class="tab-content">
     <?php echo form_open(get_uri("roles/save_permissions"), array("id" => "permissions-form", "class" => "general-form dashed-row", "role" => "form")); ?>
@@ -705,11 +735,16 @@
                 <li class="accounting">
                     <h5>ตั้งค่าสิทธิ์การเข้าถึงการจัดการบัญชี:</h5>
                     <fieldset>
-                        <legend>ใบเสนอราคา:</legend>
-                        <div>
-                            <input type="checkbox" name="accounting_quotation_access" value="Y" <?php if($accounting['quotation']['access'] == true) echo "checked"; ?> >
-                            <label for="accounting_quotation_access">สามารถเห็นใบเสนอราคา</label>
-                        </div>
+                        <legend>ใบเสนอราคา</legend>
+                        <ol>
+                            <li><input type="radio" name="accounting_quotation_access"><label>ไม่สามารถเข้าถึงใบเสนอราคา</label></li>
+                            <li><input type="radio" name="accounting_quotation_access"><label>สามารถเข้าถึง เฉพาะใบเสนอราคาของตัวเองเท่านัน</label></li>
+                            <li><input type="radio" name="accounting_quotation_access"><label>สามารถเข้าถึง ใบเสนอราคาทั้งหมด</label></li>
+                            <li class="n">&nbsp;</li>
+                            <li><input type="checkbox" name="accounting_quotation_create"><label>สามารถสร้างใบเสนอราคา</label></li>
+                            <li><input type="checkbox" name="accounting_quotation_update"><label>สามารถแก้ไขใบเสนอราคา</label></li>
+                            <li><input type="checkbox" name="accounting_quotation_approve"><label>สามารถอนุมัติใบเสนอราคา</label></li>
+                        </ol>
                     </fieldset>
                     <fieldset>
                         <legend>ใบวางบิล:</legend>
