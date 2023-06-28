@@ -902,6 +902,7 @@ class Projects extends MY_Controller
     /* prepare a row of project list table */
     private function _make_row($data, $custom_fields) 
     {
+        $dev2_canDeleteProject = $this->dev2_canDeleteProject($data->id);
         $progress = $data->total_points ? round(($data->completed_points / $data->total_points) * 100) : 0;
         $class = "progress-bar-primary";
         if ($progress == 100) {
@@ -947,7 +948,7 @@ class Projects extends MY_Controller
                 );
             } // btn-edit-project
 
-            if ($this->Permission_m->access_material_request == true || $this->Permission_m->access_purchase_request) {
+            if ($this->Permission_m->access_material_request || $this->Permission_m->access_purchase_request) {
                 $optoins .= modal_anchor(
                     get_uri("projects/modal_items"),
                     "<i class='fa fa-shopping-bag'></i>",
@@ -960,7 +961,7 @@ class Projects extends MY_Controller
                 );
             } // btn-bag-project
 
-            if ((get_array_value($this->login_user->permissions, "can_delete_projects") == true) || $this->login_user->is_admin == "1") {
+            if ($this->check_permission('can_delete_projects') && $dev2_canDeleteProject) {
                 $optoins .= js_anchor(
                     "<i class='fa fa-times fa-fw'></i>", 
                     array(
@@ -4976,27 +4977,6 @@ class Projects extends MY_Controller
         $view_data['project_items'] = $this->Bom_item_mixing_groups_model->get_project_items(['project_id' => $view_data['model_info']->id])->result();
         $view_data['project_materials'] = $this->Bom_item_mixing_groups_model->get_project_materials($view_data['project_items']);
 
-        // var_dump(arr($view_data['project_materials'])); exit;
-        $view_data['add_pr_row'] = $this->cp('purchaserequests', 'add_row');
-        $view_data["proveButton"] = '';
-        $view_data["approveDoc"] = '';
-        if ($project_id) {
-            $params = [];
-            $params['id'] = $project_id;
-            $params['tbName'] = 'projects';
-            $view_data["proveButton"] = $this->dao->getProveButton($params); // MARK
-
-            $sql = "
-                SELECT
-                    *
-                FROM prove_table
-                WHERE doc_id = " . $project_id . "
-                AND tbName = 'projects'
-                AND status_id = 1
-            ";
-            $view_data["approveDoc"] = $this->dao->fetch($sql);
-        }
-
         // var_dump(arr($view_data)); exit;
         $this->load->view('projects/modal_items', $view_data);
     }
@@ -5143,6 +5123,65 @@ class Projects extends MY_Controller
     private function save_project_recalculate($post)
     {
         $post["function"] = "project_recalc_stock";
+
+        $project_id = isset($post["id"]) ? $post["id"] : null;
+        if ($project_id != null) {
+            $project_info = $this->Projects_model->dev2_getProjectItemIdByProjectId($project_id);
+            $items_for_recalc = $this->Bom_item_mixing_groups_model->dev2_getProjectItemForRecalcByProjectId($project_id);
+
+            if (sizeof($items_for_recalc)) {
+                foreach ($items_for_recalc as $item) {
+                    $total_ratio = $item->ratio;
+                    if ($total_ratio < 0) {
+                        $total_ratio = $item->ratio * -1;
+                    }
+
+                    // $stock_sql = "
+                    // SELECT bs.id, bs.group_id, bs.material_id, bs.stock, bs.remaining, 
+                    // IFNULL(bpim.used, 0) AS used, bs.stock - IFNULL(bpim.used, 0) AS actual_remain 
+                    // FROM bom_stocks bs 
+                    // INNER JOIN bom_stock_groups bsg ON bsg.id = bs.group_id 
+                    // LEFT JOIN(
+                    //     SELECT stock_id, SUM(ratio) AS used 
+                    //     FROM bom_project_item_materials 
+                    //     WHERE material_id = '" . $item->material_id . "' 
+                    //     GROUP BY stock_id
+                    // ) AS bpim ON bs.id = bpim.stock_id 
+                    // WHERE bs.material_id = '" . $item->material_id . "' AND bs.remaining > 0 AND bs.stock - IFNULL(bpim.used, 0) > 0 
+                    // ORDER BY bsg.created_date ASC
+                    // ";
+                    // $stocks = $this->db->query($stock_sql)->result();
+
+                    $stocks = $this->Bom_item_mixing_groups_model->dev2_getStockRemainingByMaterialId($item->material_id);
+                    if (sizeof($stocks)) {
+                        foreach ($stocks as $s) {
+                            if ($total_ratio > 0) {
+                                $remaining = floatval($s->actual_remain);
+                                $used = min($total_ratio, $remaining);
+                                $total_ratio -= $used;
+
+                                $this->Bom_project_item_materials_model->dev2_insertProjectItemMaterialWithStockId(array(
+                                    'project_item_id' => $project_info->id,
+                                    'material_id' => $s->material_id,
+                                    'stock_id' => $s->id,
+                                    'ratio' => $used
+                                ));
+                            }
+                        }
+
+                        if ($total_ratio > 0) {
+                            $this->Bom_project_item_materials_model->dev2_insertProjectItemMaterialWithOutStockId(array(
+                                'project_item_id' => $project_info->id,
+                                'material_id' => $s->material_id,
+                                'ratio' => $total_ratio * -1
+                            ));
+                        }
+
+                        $this->Bom_project_item_materials_model->dev2_deleteProjectItemMaterialById($item->id);
+                    }
+                }
+            }
+        }
         return $post;
     }
 
@@ -5875,6 +5914,16 @@ class Projects extends MY_Controller
             endif;
         }
         echo json_encode(array("data" => $data));
+    }
+
+    function dev2_canDeleteProject($project_id)
+    {
+        $can_delete_project = true;
+        $count = $this->Projects_model->dev2_countItemByProjectId($project_id);
+        if (!empty($count) && $count > 0) {
+            $can_delete_project = false;
+        }
+        return $can_delete_project;
     }
 }
 

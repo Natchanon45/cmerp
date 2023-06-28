@@ -262,4 +262,10 @@ class Mr_items_model extends Crud_model {
         $this->db->update('mr_items', array('bpim_id' => null, 'stock_id' => null));
     }
 
+    function dev2_updateMaterialRequestItemByBomProjectItem($data)
+    {
+        $this->db->where('mr_id', $data['mr_id'])->where('material_id', $data['material_id']);
+        $this->db->update('mr_items', array('bpim_id' => $data['bpim_id'], 'stock_id' => $data['stock_id']));
+    }
+
 }

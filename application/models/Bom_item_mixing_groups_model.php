@@ -297,6 +297,39 @@ class Bom_item_mixing_groups_model extends Crud_model {
         return $query->result();
     }
 
+    function dev2_getProjectItemForRecalcByProjectId($project_id)
+    {
+        $sql = "SELECT bpim.id, bpim.stock_id, bpim.material_id, bm.name, bm.production_name, bm.description, bm.unit, bpim.ratio, bpim.mr_id 
+        FROM bom_project_item_materials AS bpim 
+        LEFT JOIN bom_project_items AS bpi ON bpi.id = bpim.project_item_id 
+        LEFT JOIN bom_materials AS bm ON bpim.material_id = bm.id 
+        WHERE bpi.project_id = '" . $project_id . "' AND bpim.mr_id IS NULL";
+
+        $query = $this->db->query($sql);
+        return $query->result();
+    }
+
+    function dev2_getStockRemainingByMaterialId($material_id)
+    {
+        $stock_sql = "
+        SELECT bs.id, bs.group_id, bs.material_id, bs.stock, bs.remaining, 
+        IFNULL(bpim.used, 0) AS used, bs.stock - IFNULL(bpim.used, 0) AS actual_remain 
+        FROM bom_stocks bs 
+        INNER JOIN bom_stock_groups bsg ON bsg.id = bs.group_id 
+        LEFT JOIN(
+            SELECT stock_id, SUM(ratio) AS used 
+            FROM bom_project_item_materials 
+            WHERE material_id = '" . $material_id . "' 
+            GROUP BY stock_id
+        ) AS bpim ON bs.id = bpim.stock_id 
+        WHERE bs.material_id = '" . $material_id . "' AND bs.remaining > 0 AND bs.stock - IFNULL(bpim.used, 0) > 0 
+        ORDER BY bsg.created_date ASC
+        ";
+
+        $stocks = $this->db->query($stock_sql)->result();
+        return $stocks;
+    }
+
     function dev2_save_project_item($project_id, $item_ids = [], $item_mixings = [], $quantities = [])
     {
         if (!empty($item_ids) && sizeof($item_ids)) {
@@ -321,13 +354,27 @@ class Bom_item_mixing_groups_model extends Crud_model {
                             foreach ($materials as $m) {
                                 $total_ratio = $quantity * floatval($m->ratio);
 
-                                $stock_sql = "SELECT bs.id, bs.group_id, bs.material_id, bs.remaining FROM bom_stocks bs INNER JOIN bom_stock_groups bsg ON bsg.id = bs.group_id WHERE bs.material_id = '" . $m->material_id . "' AND bs.remaining > 0 ORDER BY bsg.created_date ASC";
+                                // $stock_sql = "SELECT bs.id, bs.group_id, bs.material_id, bs.remaining FROM bom_stocks bs INNER JOIN bom_stock_groups bsg ON bsg.id = bs.group_id WHERE bs.material_id = '" . $m->material_id . "' AND bs.remaining > 0 ORDER BY bsg.created_date ASC";
+                                $stock_sql = "
+                                SELECT bs.id, bs.group_id, bs.material_id, bs.stock, bs.remaining, 
+                                IFNULL(bpim.used, 0) AS used, bs.stock - IFNULL(bpim.used, 0) AS actual_remain 
+                                FROM bom_stocks bs 
+                                INNER JOIN bom_stock_groups bsg ON bsg.id = bs.group_id 
+                                LEFT JOIN(
+                                    SELECT stock_id, SUM(ratio) AS used 
+                                    FROM bom_project_item_materials 
+                                    WHERE material_id = '" . $m->material_id . "' 
+                                    GROUP BY stock_id
+                                ) AS bpim ON bs.id = bpim.stock_id 
+                                WHERE bs.material_id = '" . $m->material_id . "' AND bs.remaining > 0 AND bs.stock - IFNULL(bpim.used, 0) > 0 
+                                ORDER BY bsg.created_date ASC
+                                ";
                                 $stocks = $this->db->query($stock_sql)->result();
 
                                 if (sizeof($stocks)) {
                                     foreach ($stocks as $s) {
                                         if ($total_ratio > 0) {
-                                            $remaining = floatval($s->remaining);
+                                            $remaining = floatval($s->actual_remain);
                                             $used = min($total_ratio, $remaining);
                                             $total_ratio -= $used;
 

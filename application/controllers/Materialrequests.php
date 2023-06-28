@@ -59,7 +59,7 @@ class Materialrequests extends MY_Controller
 			}
 
 			// Update material request status
-			$this->Materialrequests_model->dev2_updateApprovalStatus($mr_id, 1, $this->login_user->id);
+			$this->Materialrequests_model->dev2_updateApprovalStatus($mr_id, 3, $this->login_user->id);
 			redirect("materialrequests/view/" . $mr_id . "/success");
 		}
 	}
@@ -1304,7 +1304,6 @@ class Materialrequests extends MY_Controller
 				return;
 			}
 		}
-		// var_dump(arr($auth)); exit;
 
 		$view_data["custom_field_headers"] = $this->Custom_fields_model->get_custom_field_headers_for_table("materialrequests", $auth->is_admin, $auth->user_type);
 		$view_data["create_material_request"] = $auth->is_admin ? $auth->is_admin : $auth->permissions["create_material_request"];
@@ -1312,31 +1311,20 @@ class Materialrequests extends MY_Controller
 		$buttonTops = array();
 		if ($auth->is_admin) {
 			$buttonTops[] = js_anchor("<i class='fa fa-bars'></i> " . lang('category_management'), array("class" => "btn btn-primary", "title" => lang('category_management'), "id" => "cat-mng-btn"));
-			$buttonTops[] = js_anchor("<i class='fa fa-shopping-cart'></i> " . lang('add_materialrequests'), array("class" => "btn btn-primary", "title" => lang('add_materialrequests'), "id" => "add-pr-btn"));
+			// $buttonTops[] = js_anchor("<i class='fa fa-shopping-cart'></i> " . lang('add_materialrequests'), array("class" => "btn btn-primary", "title" => lang('add_materialrequests'), "id" => "add-pr-btn"));
 		} else {
 			if ($auth->permissions["update_material_request"]) {
 				$buttonTops[] = js_anchor("<i class='fa fa-bars'></i> " . lang('category_management'), array("class" => "btn btn-primary", "title" => lang('category_management'), "id" => "cat-mng-btn"));
 			}
-			if ($auth->permissions["create_material_request"]) {
-				$buttonTops[] = js_anchor("<i class='fa fa-shopping-cart'></i> " . lang('add_materialrequests'), array("class" => "btn btn-primary", "title" => lang('add_materialrequests'), "id" => "add-pr-btn"));
-			}
+			// if ($auth->permissions["create_material_request"]) {
+			// 	$buttonTops[] = js_anchor("<i class='fa fa-shopping-cart'></i> " . lang('add_materialrequests'), array("class" => "btn btn-primary", "title" => lang('add_materialrequests'), "id" => "add-pr-btn"));
+			// }
 		}
-		$view_data['buttonTops'] = implode('', $buttonTops);
 
 		$options = [];
-		// if (!$this->cp('materialrequests', 'prove_row')) {
-		// 	$options['where'] = " pr_status.id!='3' AND pr_status.id!='4' ";
-		// }
-
 		$view_data['mr_statuses'] = $this->Mr_status_model->get_details($options)->result();
 		$view_data['pr_suppliers'] = $this->Bom_suppliers_model->get_options()->result();
-
-		$view_data['view_row'] = $this->cp('materialrequests', 'view_row');
-		$view_data['add_row'] = $this->cp('materialrequests', 'add_row');
-		$view_data['edit_row'] = $this->cp('materialrequests', 'edit_row');
-		$view_data['delete_row'] = $this->cp('materialrequests', 'delete_row');
-		$view_data['prove_row'] = $this->cp('materialrequests', 'prove_row');
-		// var_dump(arr($view_data)); exit;
+		$view_data['buttonTops'] = implode('', $buttonTops);
 
 		$this->template->rander("materialrequests/index", $view_data);
 	}
@@ -2080,6 +2068,47 @@ class Materialrequests extends MY_Controller
 			echo json_encode(array("success" => true, "data" => $mr_data, "message" => lang("record_saved")));
 		} else {
 			echo json_encode(array("success" => false, "message" => lang("error_occurred")));
+		}
+	}
+
+	function dev2_setStatusStockReduce($key)
+	{
+		if ($key !== "google555") {
+			echo "Failure";
+		} else {
+			// get project id from material request that status is waiting for approve
+			$mr_list = $this->Materialrequests_model->dev2_getProjectIdFromMaterialRequestByStatusId(1);
+			
+			foreach ($mr_list as $mr) {
+				// get project item id by project id
+				$item_list = $this->Bom_project_item_materials_model->dev2_getProjectItemIdByProjectId($mr->project_id);
+				foreach ($item_list as $bpi) {
+					$this->Bom_project_item_materials_model->dev2_updateUsedStatusByProjectItemId($bpi->id, 0);
+					$this->Bom_project_item_materials_model->dev2_updateMaterialRequestIdByProjectItemId($bpi->id, $mr->id);
+				}
+			}
+			echo "Success";
+		}
+	}
+
+	function dev2_setStockIdForMaterialRequest($key)
+	{
+		if ($key !== "google555") {
+			echo "Failure";
+		} else {
+			$bom_list = $this->Bom_project_item_materials_model->dev2_getBomListByMaterialRequestIsNotNull();
+			if (sizeof($bom_list)) {
+				foreach ($bom_list as $bom) {
+					$this->Mr_items_model->dev2_updateMaterialRequestItemByBomProjectItem(array(
+						'mr_id' => $bom->mr_id,
+						'material_id' => $bom->material_id,
+						'bpim_id' => $bom->id,
+						'stock_id' => $bom->stock_id
+					));
+				}
+			}
+
+			echo "Success";
 		}
 	}
 

@@ -144,27 +144,27 @@
     <?php endif; ?>
     
     <!-- If project item material has been saved -->
-    <?php
-    if ($create_material_request) {
-      echo anchor(
-        get_uri("pdf_export/project_materials_pdf/" . $model_info->id),
-        "<i class='fa fa-download'></i> " . lang('download_pdf'),
-        array(
-          "title" => lang('download_pdf'),
-          "class" => "btn btn-default",
-          "target" => "_blank"
-        )
-      ); // btn-download
-    }
-    ?>
+    <!-- <?php
+    // if ($create_material_request) {
+    //   echo anchor(
+    //     get_uri("pdf_export/project_materials_pdf/" . $model_info->id),
+    //     "<i class='fa fa-download'></i> " . lang('download_pdf'),
+    //     array(
+    //       "title" => lang('download_pdf'),
+    //       "class" => "btn btn-default",
+    //       "target" => "_blank"
+    //     )
+    //   ); // btn-download
+    // }
+    ?> -->
 
     <!-- If have permission to create purchase request and lower material requirement -->
-    <?php if ($this->Permission_m->create_purchase_request && $create_material_request): ?>
+    <!-- <?php // if ($this->Permission_m->create_purchase_request && $create_material_request): ?>
       <button type="button" class="btn btn-danger pull-right" id="btn-pr">
         <i class="fa fa-shopping-cart"></i>
-        <?php echo ' ' . lang('request_purchasing_materials'); ?>
+        <?php // echo ' ' . lang('request_purchasing_materials'); ?>
       </button>
-    <?php endif; ?>
+    <?php // endif; ?> -->
 </div>
 <?php echo form_close(); ?>
 
@@ -413,7 +413,7 @@ tr.row-target .toggle-container {
     itemForm.appForm({
 			onSuccess: function (result) {
         console.log(result);
-        appAlert.success(result.message, { duration: 5101 });
+        appAlert.success(result.message, { duration: 3101 });
 
         let btnProjectBag = $('body').find(`.bom-item-modal[data-act="ajax-modal"][data-post-id="${result.data.id}"]`);
         setTimeout(function () {

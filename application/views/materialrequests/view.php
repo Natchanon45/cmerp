@@ -46,6 +46,10 @@
 	border: 3px solid;
     padding: 0.5rem 1rem;
 }
+
+.item-top td {
+	vertical-align: top;
+}
 </style>
 
 <?php $nodata = "<span style='color: red;'>ยังไม่มีข้อมูล</span>"; ?>
@@ -157,23 +161,23 @@
 			<h1 class="document_name custom-color"><?php echo lang("materialrequests"); ?></h1>
 			<div class="about_company">
 				<table>
-					<tr>
+					<tr class="item-top">
 						<td class="custom-color common-text" style="padding-right: 1rem;"><?php echo lang("document_number"); ?></td>
 						<td class="common-text"><?php echo $mat_req_info->doc_no; ?></td>
 					</tr>
-					<tr>
+					<tr class="item-top">
 						<td class="custom-color common-text"><?php echo lang("project_name"); ?></td>
 						<td class="common-text"><?php echo $mat_project_info->title; ?></td>
 					</tr>
-					<tr>
+					<tr class="item-top">
 						<td class="custom-color common-text"><?php echo lang("material_request_date"); ?></td>
 						<td class="common-text"><?php echo format_to_date($mat_req_info->mr_date); ?></td>
 					</tr>
-					<tr>
+					<tr class="item-top">
 						<td class="custom-color common-text"><?php echo lang("material_request_person"); ?></td>
 						<td class="common-text"><?php echo $mat_requester_info->first_name . " " . $mat_requester_info->last_name; ?></td>
 					</tr>
-					<tr>
+					<tr class="item-top">
 						<td class="custom-color common-text"><?php echo lang("positioning"); ?></td>
 						<td class="common-text"><?php echo $mat_requester_info->job_title; ?></td>
 					</tr>

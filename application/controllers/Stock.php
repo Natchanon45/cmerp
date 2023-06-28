@@ -2236,13 +2236,14 @@ class Stock extends MY_Controller
         $row_data = array( 
             $data->id,
             !empty($data->stock_name) ? anchor(get_uri('stock/restock_view/' . $data->group_id), $data->stock_name) : '-',
-            !empty($data->project_title) ? anchor(get_uri('projects/view/' . $data->project_id), $data->project_title) : '-',
+            !empty($data->project_title) ? anchor(get_uri('projects/view/' . $data->project_id), mb_strimwidth($data->project_title, 0, 55, "...")) : '-',
+            !empty($data->mr_id) ? anchor(get_uri('materialrequests/view/' . $data->mr_id), $this->Bom_item_mixing_groups_model->dev2_getMaterialRequestDocById($data->mr_id)) : '-',
             is_date_exists($data->created_at) ? format_to_date($data->created_at, false) : '-',
             $data->created_by ? $this->Account_category_model->created_by($data->created_by) : '-',
             !empty($data->note) ? $data->note : '-',
             $data->ratio ? to_decimal_format2($data->ratio) : 0,
             $data->material_unit ? strtoupper($data->material_unit) : ''
-        ); // MARK
+        ); 
 
         if ($this->check_permission('bom_restock_read_price')) {
             $row_data[] = to_decimal_format3($used_value);
@@ -2822,7 +2823,7 @@ class Stock extends MY_Controller
 
         $row_data = array(
             $data->id,
-            anchor(get_uri('stock/material_view/' . $data->material_id), $material_name),
+            anchor(get_uri('stock/material_view/' . $data->material_id), mb_strimwidth($material_name, 0, 55, "...")), 
             $data->serial_number ? $data->serial_number : '-',
             $files_link,
             is_date_exists($data->expiration_date) ? format_to_date($data->expiration_date, false) : '-',
@@ -3073,6 +3074,8 @@ class Stock extends MY_Controller
 
         $view_data["view"] = $this->input->post('view');
         $view_data['model_info'] = $this->Bom_stocks_model->get_one($restock_id);
+        $view_data['model_info']->actual_remain = $this->Bom_stocks_model->dev2_getActualRemainingByStockId($view_data['model_info']->id);
+        // var_dump(arr($view_data['model_info'])); exit;
 
         $group_id = $this->input->post('group_id');
         if (!empty($group_id) && empty($view_data['model_info']->group_id)) {
@@ -3105,6 +3108,7 @@ class Stock extends MY_Controller
             "material_id" => $this->input->post('material_id'),
             "stock_id" => $id,
             "ratio" => $ratio,
+            "used_status" => 1,
             "note" => $this->input->post('note') ? $this->input->post('note') : ''
         );
         $data = clean_data($data);
@@ -3218,8 +3222,9 @@ class Stock extends MY_Controller
 
         $row_data = array(
             $data->id,
-            anchor(get_uri('stock/material_view/' . $data->material_id), $material_name),
-            !empty($data->project_title) ? anchor(get_uri('projects/view/' . $data->project_id), $data->project_title) : '-',
+            anchor(get_uri('stock/material_view/' . $data->material_id), mb_strimwidth($material_name, 0, 55, "...")),
+            !empty($data->project_title) ? anchor(get_uri('projects/view/' . $data->project_id), mb_strimwidth($data->project_title, 0, 55, "...")) : '-',
+            !empty($data->mr_id) ? anchor(get_uri('materialrequests/view/' . $data->mr_id), $this->Bom_item_mixing_groups_model->dev2_getMaterialRequestDocById($data->mr_id)) : '-',
             is_date_exists($data->created_at) ? format_to_date($data->created_at, false) : '-',
             !empty($data->created_by) ? $this->Account_category_model->created_by($data->created_by) : '-',
             !empty($data->note) ? $data->note : '-',
@@ -4930,7 +4935,7 @@ class Stock extends MY_Controller
             !empty($data->note) ? $data->note : '-',
             $data->ratio ? to_decimal_format2($data->ratio) : 0,
             $data->item_unit ? strtoupper($data->item_unit) : ''
-        ); // MARK
+        ); 
 
         if ($this->check_permission('bom_restock_read_price')) {
             $row_data[] = to_decimal_format3($used_value);
