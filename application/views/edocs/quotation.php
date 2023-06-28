@@ -1,16 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <?php $this->load->view("edocs/include/head"); ?>
 <title><?php echo get_setting("company_name")." - ".$doc["doc_number"]; ?></title>	
 <style type="text/css">
-body {
-    max-width: 915px;
-    height: auto;
-}
-
 .body .items table td:nth-child(1){
 	width: 30px;
 	text-align: center;
