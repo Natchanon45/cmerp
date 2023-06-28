@@ -102,8 +102,9 @@ header{
     top: 0;
     z-index: 99;
     width: 100%;
-    height: 56px;
-    padding-top: 8px;
+    height: 90px;
+    padding-top: 22px;
+    padding-right: 18px;
     background: #fff;
     text-align: right;
     box-shadow: 1px 1px 8px #E4E6E7 !important;
@@ -112,8 +113,8 @@ header{
 
 header .button{
     display: inline-block;
-    padding: 7px 14px;
-    padding-top: 8px;
+    padding: 8px 18px;
+    padding-top: 9px;
     border: 1px solid #ccc;
     border-radius: 8px;
 }
@@ -128,13 +129,13 @@ header .button:active{
 }
 
 header .button i{
-    font-size: 22px;
+    font-size: 34px;
     margin: 0;
 }
 
 .container{
     margin: 0 auto;
-    padding-top: 70px;
+    padding-top: 100px;
     padding-bottom: 70px;
 }
 
@@ -199,8 +200,8 @@ header .button i{
 }
 
 .paper .body{
-    margin-bottom: 40px;
-    min-height: 860px;
+    margin-bottom: 20px;
+    min-height: 820px;
 }
 
 .paper .body .items table{
@@ -395,7 +396,6 @@ footer span{
         margin-right: 28px;*/
         padding: 0 0;
         margin: 30px 34px;
-        
     }
 
     body{
@@ -415,9 +415,8 @@ footer span{
     }
 
     .paper{
-        padding: 0;
-        margin: 0;
-        min-height:100%;
+        padding: 0 0px;
+        margin: 0 0px;
     }
 
     footer{
