@@ -29,69 +29,62 @@ class Materialrequests extends MY_Controller
 		$this->load->model('Permission_m');
 		$this->load->model('Materialrequest_m');
 		$this->load->model('Pr_categories_model');
+		$this->load->model('Account_category_model');
 	}
 
-	function approve($mrid)
+	function approve($mr_id = 0)
 	{
-		$items = $this->Mr_items_model->get_details(['mr_id' => $mrid, "item_type" => "all"])->result();
+		if ($mr_id == 0) {
+			$this->load->view("error/html/error_404");
+			return;
+		}
 
-		$resources = [];
-		$restock_item_ids = [];
-		$item_ids = [];
-		$item_stocks = [];
-		$item_prices = [];
+		// Get material request detail
+		$items = $this->Mr_items_model->get_materialrequest_item_by_id($mr_id);
 
-		$restock_ids = [];
-		$material_ids = [];
-		$stocks = [];
-		$prices = [];
-		$mr_used = false;
-		$mr_posible = false;
-
-		// Check if possible to reduce material/item
+		// Verify stock remaining to usabled
+		$usabled = array();		
 		foreach ($items as $item) {
-			if ($item->item_id > 0) {
-				$mr_posible = $this->Bom_item_stocks_model->check_posibility($item->item_id, $item->quantity);
-			} else if ($item->material_id > 0) {
-				$mr_posible = $this->Bom_stocks_model->check_posibility($item->material_id, $item->quantity);
-			}
+			array_push($usabled, $this->Bom_stocks_model->dev2_verifyStockUsabled($item->stock_id, $item->quantity));
 		}
 
-		// If possible, reduce the stock
-		if ($mr_posible) {
+		if (in_array(false, $usabled)) {
+			redirect("materialrequests/view/" . $mr_id . "/error");
+			return;
+		} else {
+			// Update stock remaining to used and update used status
 			foreach ($items as $item) {
-				if ($item->item_id > 0) {
-					$mr_used = $this->Bom_item_stocks_model->reduce_item_of_group($item->item_id, $item->quantity);
-				} else if ($item->material_id > 0) {
-					$mr_used = $this->Bom_stocks_model->reduce_material_of_group($item->material_id, $item->quantity);
-				}
+				$this->Bom_stocks_model->dev2_updateStockUsed($item->stock_id, $item->quantity);
+				$this->Bom_project_item_materials_model->dev2_updateUsedStatusById($item->bpim_id, 1);
 			}
 
-			$data = $this->Materialrequest_m->updateStatus($mrid, 3);
-
-			if ($data["process"] == "fail") {
-				$_SESSION['error'] = $data["message"];
-			}
-
-			redirect($_SERVER['HTTP_REFERER']);
-		}
-
-		// If not, aboard prove.
-		else {
-			$_SESSION['error'] = lang('OOS');
-			return redirect($_SERVER['HTTP_REFERER']);
+			// Update material request status
+			$this->Materialrequests_model->dev2_updateApprovalStatus($mr_id, 3, $this->login_user->id);
+			redirect("materialrequests/view/" . $mr_id . "/success");
 		}
 	}
 
-	function disapprove($mrid)
+	function disapprove($mr_id)
 	{
-		$data = $this->Materialrequest_m->updateStatus($mrid, 4);
-
-		if ($data["process"] == "fail") {
-			$_SESSION['error'] = $data["message"];
+		if ($mr_id == 0) {
+			$this->load->view("error/html/error_404");
+			return;
 		}
 
-		redirect($_SERVER['HTTP_REFERER']);
+		// Get material request detail
+		$items = $this->Mr_items_model->get_materialrequest_item_by_id($mr_id);
+
+		// Update used status
+		foreach ($items as $item) {
+			$this->Bom_project_item_materials_model->dev2_rejectMaterialRequestById($item->bpim_id);
+		}
+
+		// Clear project material stock id
+		$this->Mr_items_model->dev2_clearProjectMaterialStockId($mr_id);
+
+		// Update material request status 
+		$this->Materialrequests_model->dev2_updateApprovalStatus($mr_id, 4, $this->login_user->id);
+		redirect("materialrequests/view/" . $mr_id . "/reject");
 	}
 
 	function process_pr($mr_id = 0)
@@ -866,51 +859,58 @@ class Materialrequests extends MY_Controller
 	}
 
 	/* load pr details view */
-	function view($mr_id = 0)
+	function view($mr_id = 0, $message = null)
 	{
-		if ($this->Permission_m->access_material_request != true)
+		// Get permissions to access, update and approve the material request
+		$view_data["access_material_request"] = $this->Permission_m->access_material_request;
+		$view_data["update_material_request"] = $this->Permission_m->update_material_request;
+		$view_data["approve_material_request"] = $this->Permission_m->approve_material_request;
+		
+		// Check permission
+		if (!$view_data["access_material_request"]) {
 			redirect("forbidden");
-
-		if ($mr_id) {
-
-			$view_data = get_mr_making_data($mr_id);
-
-			//var_dump($view_data);exit;
-			if ($view_data) {
-				/*$access_info = $this->get_access_info("invoice");
-				$view_data["show_invoice_option"] = (get_setting("module_invoice") && $access_info->access_type == "all") ? true : false;
-				$access_info = $this->get_access_info("estimate");
-				$view_data["show_estimate_option"] = (get_setting("module_estimate") && $access_info->access_type == "all") ? true : false;*/
-
-				$view_data["mr_id"] = $mr_id;
-
-				$is_approved = (!$view_data['mr_info'] || $view_data['mr_info']->status_id == 3) ? true : false;
-				//$edit_row = ($is_approved && $this->cop('prove_row')) || (!$is_approved && $this->cop('edit_row'));
-				//$delete_row = ($is_approved && $this->cop('prove_row')) || (!$is_approved && $this->cop('delete_row'));
-
-				$options = [];
-				/*if(!$this->cp('materialrequests', 'prove_row')) {
-				$options['where'] = " pr_status.id!='3' AND pr_status.id!='4' ";
-				}*/
-				$view_data['mr_statuses'] = $this->Mr_status_model->get_details($options)->result();
-
-
-				//$view_data['edit_row'] = $edit_row;
-				//$view_data['delete_row'] = $delete_row;
-				$view_data['prove_row'] = $this->cop('prove_row');
-				$view_data['is_approved'] = $is_approved;
-
-				$param['id'] = $mr_id;
-				$param['tbName'] = $this->className;
-				$view_data["proveButton"] = $this->dao->getProveButton($param);
-
-
-
-				$this->template->rander("materialrequests/view", $view_data);
-			} else {
-				show_404();
-			}
 		}
+
+		// Check material request id.
+		if ($mr_id == 0) {
+			$this->load->view("error/html/error_404");
+			return;
+		}
+
+		// Retrieve the components of the requisition of raw materials. Retrieve the components of the requisition of raw materials.
+		$mat_req_info = $this->Materialrequests_model->get_materialrequest_by_id($mr_id);
+		$mat_project_info = $this->Projects_model->get_project_by_id($mat_req_info->project_id);
+		$mat_items_info = $this->Mr_items_model->get_materialrequest_item_by_id($mr_id);
+		$mat_requester_info = $this->Users_m->get_user_by_id($mat_req_info->requester_id);
+		$mat_client_info = $this->Clients_model->get_client_by_id($mat_project_info->client_id);
+		$mat_client_contact = $this->Users_m->get_user_by_cli($mat_client_info->id);
+
+		if (!empty($mat_req_info->approved_by) && $mat_req_info->approved_by) {
+			$mat_req_info->approved_by_name = $this->Account_category_model->created_by($mat_req_info->approved_by);
+		}
+
+		if ($message == "error") {
+			$view_data["error_message"] = lang('not_enough_stock');
+		}
+
+		if ($message == "success") {
+			$view_data["success_message"] = lang('approved_success');
+		}
+
+		if ($message == "reject") {
+			$view_data["reject_message"] = lang('rejected_message');
+		}
+
+		$view_data["mr_id"] = $mr_id;
+		$view_data["mat_req_info"] = $mat_req_info;
+		$view_data["mat_project_info"] = $mat_project_info;
+		$view_data["mat_client_info"] = $mat_client_info;
+		$view_data["mat_items_info"] = $mat_items_info;
+		$view_data["mat_client_contact"] = $mat_client_contact;
+		$view_data["mat_requester_info"] = $mat_requester_info;
+
+		// var_dump(arr($view_data)); exit;
+		$this->template->rander("materialrequests/view", $view_data);
 	}
 
 	private function check_access_to_this_mr($mr_data)
@@ -1304,7 +1304,6 @@ class Materialrequests extends MY_Controller
 				return;
 			}
 		}
-		// var_dump(arr($auth)); exit;
 
 		$view_data["custom_field_headers"] = $this->Custom_fields_model->get_custom_field_headers_for_table("materialrequests", $auth->is_admin, $auth->user_type);
 		$view_data["create_material_request"] = $auth->is_admin ? $auth->is_admin : $auth->permissions["create_material_request"];
@@ -1312,31 +1311,20 @@ class Materialrequests extends MY_Controller
 		$buttonTops = array();
 		if ($auth->is_admin) {
 			$buttonTops[] = js_anchor("<i class='fa fa-bars'></i> " . lang('category_management'), array("class" => "btn btn-primary", "title" => lang('category_management'), "id" => "cat-mng-btn"));
-			$buttonTops[] = js_anchor("<i class='fa fa-shopping-cart'></i> " . lang('add_materialrequests'), array("class" => "btn btn-primary", "title" => lang('add_materialrequests'), "id" => "add-pr-btn"));
+			// $buttonTops[] = js_anchor("<i class='fa fa-shopping-cart'></i> " . lang('add_materialrequests'), array("class" => "btn btn-primary", "title" => lang('add_materialrequests'), "id" => "add-pr-btn"));
 		} else {
 			if ($auth->permissions["update_material_request"]) {
 				$buttonTops[] = js_anchor("<i class='fa fa-bars'></i> " . lang('category_management'), array("class" => "btn btn-primary", "title" => lang('category_management'), "id" => "cat-mng-btn"));
 			}
-			if ($auth->permissions["create_material_request"]) {
-				$buttonTops[] = js_anchor("<i class='fa fa-shopping-cart'></i> " . lang('add_materialrequests'), array("class" => "btn btn-primary", "title" => lang('add_materialrequests'), "id" => "add-pr-btn"));
-			}
+			// if ($auth->permissions["create_material_request"]) {
+			// 	$buttonTops[] = js_anchor("<i class='fa fa-shopping-cart'></i> " . lang('add_materialrequests'), array("class" => "btn btn-primary", "title" => lang('add_materialrequests'), "id" => "add-pr-btn"));
+			// }
 		}
-		$view_data['buttonTops'] = implode('', $buttonTops);
 
 		$options = [];
-		// if (!$this->cp('materialrequests', 'prove_row')) {
-		// 	$options['where'] = " pr_status.id!='3' AND pr_status.id!='4' ";
-		// }
-
 		$view_data['mr_statuses'] = $this->Mr_status_model->get_details($options)->result();
 		$view_data['pr_suppliers'] = $this->Bom_suppliers_model->get_options()->result();
-
-		$view_data['view_row'] = $this->cp('materialrequests', 'view_row');
-		$view_data['add_row'] = $this->cp('materialrequests', 'add_row');
-		$view_data['edit_row'] = $this->cp('materialrequests', 'edit_row');
-		$view_data['delete_row'] = $this->cp('materialrequests', 'delete_row');
-		$view_data['prove_row'] = $this->cp('materialrequests', 'prove_row');
-		// var_dump(arr($view_data)); exit;
+		$view_data['buttonTops'] = implode('', $buttonTops);
 
 		$this->template->rander("materialrequests/index", $view_data);
 	}
@@ -1654,28 +1642,26 @@ class Materialrequests extends MY_Controller
 		$this->template->rander("materialrequests/POview", $view_data);
 	}
 
-
-
-
-	/*function approve($id) {
-	$pr = $this->Materialrequests_model->get_one($id);
-	if($pr) {
-	$pr->status_id = 3;
-	$pr->save($pr, $pr->id);
-	$prove = $this->Provetable_model->get_where(['doc_id'=>$id,'tbName'=>'materialrequests']);
-	if(!$prove) {
-	$prove = [];
-	$prove['id'] = 0;
-	$prove['doc_id'] = $mr_id;
-	$prove['tbName'] = 'materialrequests';
-	$prove['user_id'] = $this->login_user->id;
-	$prove['doc_date'] = date('Y-m-d H:i:s');
-	$prove['status_id'] = $mr_data['status_id'];
-	$this->Provetable_model->save($prove);
-	}
-	}
-	redirect('materialrequests/view/'.$id);
-	}*/
+	// function approve_unused($id)
+	// {
+	// 	$pr = $this->Materialrequests_model->get_one($id);
+	// 	if ($pr) {
+	// 		$pr->status_id = 3;
+	// 		$pr->save($pr, $pr->id);
+	// 		$prove = $this->Provetable_model->get_where(['doc_id' => $id, 'tbName' => 'materialrequests']);
+	// 		if (!$prove) {
+	// 			$prove = [];
+	// 			$prove['id'] = 0;
+	// 			$prove['doc_id'] = $mr_id;
+	// 			$prove['tbName'] = 'materialrequests';
+	// 			$prove['user_id'] = $this->login_user->id;
+	// 			$prove['doc_date'] = date('Y-m-d H:i:s');
+	// 			$prove['status_id'] = $mr_data['status_id'];
+	// 			$this->Provetable_model->save($prove);
+	// 		}
+	// 	}
+	// 	redirect('materialrequests/view/' . $id);
+	// }
 
 	function PO_data()
 	{
@@ -2043,7 +2029,7 @@ class Materialrequests extends MY_Controller
 		$post = $this->input->post();
 
 		if ($this->Permission_m->update_material_request != true) {
-			echo json_encode(array("success" => false, 'message' => lang('error_occurred')));
+			echo json_encode(array("success" => false, "message" => lang("error_occurred")));
 			return;
 		}
 
@@ -2081,7 +2067,48 @@ class Materialrequests extends MY_Controller
 		if ($affected === 1) {
 			echo json_encode(array("success" => true, "data" => $mr_data, "message" => lang("record_saved")));
 		} else {
-			echo json_encode(array("success" => false, 'message' => lang('error_occurred')));
+			echo json_encode(array("success" => false, "message" => lang("error_occurred")));
+		}
+	}
+
+	function dev2_setStatusStockReduce($key)
+	{
+		if ($key !== "google555") {
+			echo "Failure";
+		} else {
+			// get project id from material request that status is waiting for approve
+			$mr_list = $this->Materialrequests_model->dev2_getProjectIdFromMaterialRequestByStatusId(1);
+			
+			foreach ($mr_list as $mr) {
+				// get project item id by project id
+				$item_list = $this->Bom_project_item_materials_model->dev2_getProjectItemIdByProjectId($mr->project_id);
+				foreach ($item_list as $bpi) {
+					$this->Bom_project_item_materials_model->dev2_updateUsedStatusByProjectItemId($bpi->id, 0);
+					$this->Bom_project_item_materials_model->dev2_updateMaterialRequestIdByProjectItemId($bpi->id, $mr->id);
+				}
+			}
+			echo "Success";
+		}
+	}
+
+	function dev2_setStockIdForMaterialRequest($key)
+	{
+		if ($key !== "google555") {
+			echo "Failure";
+		} else {
+			$bom_list = $this->Bom_project_item_materials_model->dev2_getBomListByMaterialRequestIsNotNull();
+			if (sizeof($bom_list)) {
+				foreach ($bom_list as $bom) {
+					$this->Mr_items_model->dev2_updateMaterialRequestItemByBomProjectItem(array(
+						'mr_id' => $bom->mr_id,
+						'material_id' => $bom->material_id,
+						'bpim_id' => $bom->id,
+						'stock_id' => $bom->stock_id
+					));
+				}
+			}
+
+			echo "Success";
 		}
 	}
 

@@ -23,6 +23,7 @@
         { title: "<?php echo lang("id"); ?>", "class": "text-center w50" },
         { title: '<?php echo lang("stock_restock_name"); ?>' },
         { title: '<?php echo lang("project_name"); ?>' },
+        { title: '<?php echo lang("material_request_document"); ?>' },
         { title: '<?php echo lang("used_date"); ?>', class: 'w125' },
         { title: '<?php echo lang("used_by"); ?>' },
         { title: '<?php echo lang("note_real"); ?>' },
@@ -38,14 +39,14 @@
         printColumns: combineCustomFieldsColumns([0, 1, 3, 4, 5, 6, 7, 8, 9]),
         xlsColumns: combineCustomFieldsColumns([0, 1, 3, 4, 5, 6, 7, 8, 9]),
         summation: [
-          { column: 6, dataType: 'number' },
-          { column: 8, dataType: 'currency' }
+          { column: 7, dataType: 'number' },
+          { column: 9, dataType: 'currency' }
         ]
       <?php } else { ?>
         printColumns: combineCustomFieldsColumns([0, 1, 3, 4, 5, 6, 7]),
         xlsColumns: combineCustomFieldsColumns([0, 1, 3, 4, 5, 6, 7]),
         summation: [
-          { column: 6, dataType: 'number' }
+          { column: 7, dataType: 'number' }
         ]
       <?php } ?>
     });

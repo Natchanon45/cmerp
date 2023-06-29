@@ -257,7 +257,7 @@
                     <td>
                     <div class="input-suffix">
                         <input type="number" name="stock[]" required class="form-control stock-calc" min="0.0001" step="0.0001" value="1" />
-                        <div class="input-tag string-upper"><?php echo $item_dropdown[0]->unit_type; ?></div>
+                        <div class="input-tag string-upper"><?php echo isset($item_dropdown[0]->unit_type) ? $item_dropdown[0]->unit_type : ''; ?> </div>
                     </div>
                     </td>
                         <?php if ($can_read_price) { ?>

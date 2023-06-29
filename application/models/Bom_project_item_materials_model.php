@@ -42,7 +42,7 @@ class Bom_project_item_materials_model extends Crud_model {
             INNER JOIN bom_stock_groups bsg ON bsg.id = bs.group_id 
             LEFT JOIN bom_project_items bpi ON bpi.id = bpim.project_item_id 
             LEFT JOIN projects p ON p.id = bpi.project_id 
-            WHERE 1 $where 
+            WHERE 1 AND bpim.used_status = 1 $where 
             GROUP BY bpim.id 
         ");
     }
@@ -51,6 +51,77 @@ class Bom_project_item_materials_model extends Crud_model {
     {
         $query = $this->db->get_where('bom_project_item_materials', array('stock_id' => $id));
         return $query->num_rows();
+    }
+
+    public function updateMaterialRequestIdById($id, $mr_id)
+    {
+        $this->db->where('id', $id);
+        $this->db->update('bom_project_item_materials', array('mr_id' => $mr_id));
+    }
+
+    function dev2_getProjectItemIdByProjectId($project_id)
+    {
+        $this->db->select('id')->from('bom_project_items')->where('project_id', $project_id);
+        $query = $this->db->get();
+
+        return $query->result();
+    }
+
+    function dev2_updateUsedStatusById($id, $status_id)
+    {
+        $this->db->where('id', $id);
+        $this->db->update('bom_project_item_materials', array('used_status' => $status_id));
+    }
+
+    function dev2_rejectMaterialRequestById($id)
+    {
+        $this->db->where('id', $id);
+        $this->db->update('bom_project_item_materials', array('used_status' => 0, 'mr_id' => null));
+    }
+
+    function dev2_updateUsedStatusByProjectItemId($item_id, $status_id)
+    {
+        $this->db->where('project_item_id', $item_id);
+        $this->db->update('bom_project_item_materials', array('used_status' => $status_id));
+    }
+
+    function dev2_updateMaterialRequestIdByProjectItemId($item_id, $mr_id)
+    {
+        $this->db->where('project_item_id', $item_id)->where('ratio >', 0);
+        $this->db->update('bom_project_item_materials', array('mr_id' => $mr_id));
+    }
+
+    function dev2_deleteProjectItemMaterialById($id)
+    {
+        $this->db->where('id', $id);
+        $this->db->delete('bom_project_item_materials');
+    }
+
+    function dev2_insertProjectItemMaterialWithStockId($data)
+    {
+        $this->db->insert('bom_project_item_materials', array(
+            'project_item_id' => $data['project_item_id'],
+            'material_id' => $data['material_id'],
+            'stock_id' => $data['stock_id'],
+            'ratio' => $data['ratio']
+        ));
+    }
+
+    function dev2_insertProjectItemMaterialWithOutStockId($data)
+    {
+        $this->db->insert('bom_project_item_materials', array(
+            'project_item_id' => $data['project_item_id'],
+            'material_id' => $data['material_id'],
+            'ratio' => $data['ratio']
+        ));
+    }
+
+    function dev2_getBomListByMaterialRequestIsNotNull()
+    {
+        $this->db->select('*')->from('bom_project_item_materials')->where('mr_id is not null')->order_by('mr_id', 'desc');
+
+        $query = $this->db->get();
+        return $query->result();
     }
 
 }

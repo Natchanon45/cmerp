@@ -3,12 +3,13 @@
 if (!defined('BASEPATH'))
     exit('No direct script access allowed');
 
-include_once (dirname(__FILE__) . "/Action.php");
+include_once(dirname(__FILE__) . "/Action.php");
 
-class Projects extends MY_Controller {
+class Projects extends MY_Controller
+{
 
-    public function __construct() {
-        //var_dump(dirname(__FILE__) . "/Action.php");
+    public function __construct()
+    {
         parent::__construct();
         $this->load->model("Project_settings_model");
         $this->load->model("Checklist_items_model");
@@ -24,40 +25,50 @@ class Projects extends MY_Controller {
         $this->load->model('Permission_m');
         $this->load->model('Materialrequest_m');
         $this->load->model('Stock_m');
-        //$this->load->library('../controllers/Action');
     }
 
-    function list_Teams($pId=0) {
+    function list_Teams($pId = 0)
+    {
         $options = array("project_id" => $pId);
         $list_data = $this->Project_members_model->get_teams_list($options)->result();
-        //var_dump($list_data);exit;
         $result = array();
         foreach ($list_data as $data) {
             $result[] = $this->_make_row_teams($data);
         }
-        
+
         echo json_encode(array("data" => $result));
     }
-    // row Teams
-    private function _project_row_teams_data($id) {
+
+    // Row Teams
+    private function _project_row_teams_data($id)
+    {
         $options = array("id" => $id);
         $data = $this->Project_members_model->get_details($options)->row();
         // var_dump($data);exit;
         return $this->_make_row_teams($data);
     }
 
-    private function _make_row_teams($data) {
+    private function _make_row_teams($data)
+    {
         $total_members = "<span class='label label-light w100'><i class='fa fa-users'></i> " . count(explode(",", $data->members)) . "</span>";
         $team_title = $data->title;
-        $team_member = $team_title.'<div class="pull-right">'.modal_anchor(get_uri("team/members_list"), $total_members, array("title" => lang('team_members'), "data-post-members" => $data->members)) .'</div> ';
-        $team_action = js_anchor("<i class='fa fa-times fa-fw'></i>", array('title' => lang('delete_team'), "class" => "delete", "data-id" => $data->id, "data-action-url" => get_uri("projects/delete_project_member"), "data-action" => "delete"));
-        return array( $team_member, $team_action);
+        $team_member = $team_title . '<div class="pull-right">' . modal_anchor(get_uri("team/members_list"), $total_members, array("title" => lang('team_members'), "data-post-members" => $data->members)) . '</div> ';
+        $team_action = js_anchor(
+            "<i class='fa fa-times fa-fw'></i>",
+            array(
+                'title' => lang('delete_team'),
+                "class" => "delete",
+                "data-id" => $data->id,
+                "data-action-url" => get_uri("projects/delete_project_member"),
+                "data-action" => "delete"
+            )
+        );
+        return array($team_member, $team_action);
     }
-
     // ,js_anchor("<i class='fa fa-times fa-fw'></i>", array('title' => lang('delete_team'), "class" => "delete", "data-id" => $data->id, "data-action-url" => get_uri("team/delete"), "data-action" => "delete"))
-    
 
-    private function can_delete_projects() {
+    private function can_delete_projects()
+    {
         if ($this->login_user->user_type == "staff") {
             if ($this->can_manage_all_projects()) {
                 return true;
@@ -67,19 +78,16 @@ class Projects extends MY_Controller {
         }
     }
 
-    private function can_add_remove_project_members() {
-		
-		
-	//arr(  $this->getRolePermission );
-	//exit;
-		if( !empty( $this->getRolePermission['p']['can_manage_all_projects'] ) ) {
-			return true;
-		}
-		if( !empty( $this->getRolePermission['p']['can_add_remove_project_members'] ) ) {
-			return true;
-		}
-		
-		return false;
+    private function can_add_remove_project_members()
+    {
+        if (!empty($this->getRolePermission['p']['can_manage_all_projects'])) {
+            return true;
+        }
+        if (!empty($this->getRolePermission['p']['can_add_remove_project_members'])) {
+            return true;
+        }
+
+        return false;
         if ($this->login_user->user_type == "staff") {
             if ($this->login_user->is_admin) {
                 return true;
@@ -95,137 +103,146 @@ class Projects extends MY_Controller {
         }
     }
 
-    private function can_view_tasks($project_id = "", $task_id = "") {
+    private function can_view_tasks($project_id = "", $task_id = "")
+    {
         if ($this->login_user->user_type == "staff") {
             if ($this->can_manage_all_projects()) {
                 return true;
             } else {
                 if ($task_id && get_array_value($this->login_user->permissions, "show_assigned_tasks_only") == "1") {
-                    //user has permission to view only assigned tasks
+                    // User has permission to view only assigned tasks
                     $task_info = $this->Tasks_model->get_one($task_id);
                     $collaborators_array = explode(',', $task_info->collaborators);
                     if ($task_info->assigned_to == $this->login_user->id || in_array($this->login_user->id, $collaborators_array)) {
                         return true;
                     }
                 } else if ($this->is_user_a_project_member) {
-                    //all team members who has access to project can view tasks
+                    // All team members who has access to project can view tasks
                     return true;
                 }
             }
         } else {
-            //check settings for client's project permission
+            // Check settings for client's project permission
             if (get_setting("client_can_view_tasks")) {
-                //even the settings allow to create/edit task, the client can only create their own project's tasks
+                // Even the settings allow to create/edit task, the client can only create their own project's tasks
                 return $this->is_clients_project;
             }
         }
     }
 
-    private function can_edit_tasks() {
+    private function can_edit_tasks()
+    {
         if ($this->login_user->user_type == "staff") {
             if ($this->can_manage_all_projects()) {
                 return true;
             } else if (get_array_value($this->login_user->permissions, "can_edit_tasks") == "1") {
-                //check is user a project member
+                // Check is user a project member
                 return $this->is_user_a_project_member;
             }
         } else {
-            //check settings for client's project permission
+            // Check settings for client's project permission
             if (get_setting("client_can_edit_tasks")) {
                 return $this->is_clients_project;
             }
         }
     }
 
-    private function can_delete_tasks() {
+    private function can_delete_tasks()
+    {
         if ($this->login_user->user_type == "staff") {
             if ($this->can_manage_all_projects()) {
                 return true;
             } else if (get_array_value($this->login_user->permissions, "can_delete_tasks") == "1") {
-                //check is user a project member
+                // Check is user a project member
                 return $this->is_user_a_project_member;
             }
         } else {
-            //check settings for client's project permission
+            // Check settings for client's project permission
             if (get_setting("client_can_delete_tasks")) {
                 return $this->is_clients_project;
             }
         }
     }
 
-    private function can_comment_on_tasks() {
+    private function can_comment_on_tasks()
+    {
         if ($this->login_user->user_type == "staff") {
             if ($this->can_manage_all_projects()) {
                 return true;
             } else if (get_array_value($this->login_user->permissions, "can_comment_on_tasks") == "1") {
-                //check is user a project member
+                // Check is user a project member
                 return $this->is_user_a_project_member;
             }
         } else {
-            //check settings for client's project permission
+            // Check settings for client's project permission
             if (get_setting("client_can_comment_on_tasks")) {
-                //even the settings allow to create/edit task, the client can only create their own project's tasks
+                // Cven the settings allow to create/edit task, the client can only create their own project's tasks
                 return $this->is_clients_project;
             }
         }
     }
 
-    private function can_view_milestones() {
+    private function can_view_milestones()
+    {
         if ($this->login_user->user_type == "staff") {
             if ($this->can_manage_all_projects()) {
                 return true;
             } else {
-                //check is user a project member
+                // Check is user a project member
                 return $this->is_user_a_project_member;
             }
         } else {
-            //check settings for client's project permission
+            // Check settings for client's project permission
             if (get_setting("client_can_view_milestones")) {
-                //even the settings allow to view milestones, the client can only create their own project's milestones
+                // Even the settings allow to view milestones, the client can only create their own project's milestones
                 return $this->is_clients_project;
             }
         }
     }
 
-    private function can_create_milestones() {
+    private function can_create_milestones()
+    {
         if ($this->login_user->user_type == "staff") {
             if ($this->can_manage_all_projects()) {
                 return true;
             } else if (get_array_value($this->login_user->permissions, "can_create_milestones") == "1") {
-                //check is user a project member
+                // Check is user a project member
                 return $this->is_user_a_project_member;
             }
         }
     }
 
-    private function can_edit_milestones() {
+    private function can_edit_milestones()
+    {
         if ($this->login_user->user_type == "staff") {
             if ($this->can_manage_all_projects()) {
                 return true;
             } else if (get_array_value($this->login_user->permissions, "can_edit_milestones") == "1") {
-                //check is user a project member
+                // Check is user a project member
                 return $this->is_user_a_project_member;
             }
         }
     }
 
-    private function can_delete_milestones() {
+    private function can_delete_milestones()
+    {
         if ($this->login_user->user_type == "staff") {
             if ($this->can_manage_all_projects()) {
                 return true;
             } else if (get_array_value($this->login_user->permissions, "can_delete_milestones") == "1") {
-                //check is user a project member
+                // Check is user a project member
                 return $this->is_user_a_project_member;
             }
         }
     }
 
-    private function can_delete_files($uploaded_by = 0) {
+    private function can_delete_files($uploaded_by = 0)
+    {
         if ($this->login_user->user_type == "staff") {
             if ($this->can_manage_all_projects()) {
                 return true;
             } else if (get_array_value($this->login_user->permissions, "can_delete_files") == "1") {
-                //check is user a project member
+                // Check is user a project member
                 return $this->is_user_a_project_member;
             }
         } else {
@@ -235,57 +252,61 @@ class Projects extends MY_Controller {
         }
     }
 
-    private function can_view_files() {
+    private function can_view_files()
+    {
         if ($this->login_user->user_type == "staff") {
             if ($this->can_manage_all_projects()) {
                 return true;
             } else {
-                //check is user a project member
+                // Check is user a project member
                 return $this->is_user_a_project_member;
             }
         } else {
-            //check settings for client's project permission
+            // Check settings for client's project permission
             if (get_setting("client_can_view_project_files")) {
                 return $this->is_clients_project;
             }
         }
     }
 
-    private function can_add_files() {
+    private function can_add_files()
+    {
         if ($this->login_user->user_type == "staff") {
             if ($this->can_manage_all_projects()) {
                 return true;
             } else {
-                //check is user a project member
+                // Check is user a project member
                 return $this->is_user_a_project_member;
             }
         } else {
-            //check settings for client's project permission
+            // Check settings for client's project permission
             if (get_setting("client_can_add_project_files")) {
                 return $this->is_clients_project;
             }
         }
     }
 
-    private function can_comment_on_files() {
+    private function can_comment_on_files()
+    {
         if ($this->login_user->user_type == "staff") {
             if ($this->can_manage_all_projects()) {
                 return true;
             } else {
-                //check is user a project member
+                // Check is user a project member
                 return $this->is_user_a_project_member;
             }
         } else {
-            //check settings for client's project permission
+            // Check settings for client's project permission
             if (get_setting("client_can_comment_on_files")) {
-                //even the settings allow to create/edit task, the client can only comment on their own project's files
+                // Even the settings allow to create/edit task, the client can only comment on their own project's files
                 return $this->is_clients_project;
             }
         }
     }
 
-    private function can_view_gantt() {
-        //check gantt module
+    private function can_view_gantt()
+    {
+        // Check gantt module
         if (get_setting("module_gantt")) {
             if ($this->login_user->user_type == "staff") {
                 if ($this->can_manage_all_projects()) {
@@ -306,14 +327,16 @@ class Projects extends MY_Controller {
 
     /* load the project settings into ci settings */
 
-    private function init_project_settings($project_id) {
+    private function init_project_settings($project_id)
+    {
         $settings = $this->Project_settings_model->get_all_where(array("project_id" => $project_id))->result();
         foreach ($settings as $setting) {
             $this->config->set_item($setting->setting_name, $setting->setting_value);
         }
     }
 
-    private function can_view_timesheet($project_id = 0, $show_all_personal_timesheets = false) {
+    private function can_view_timesheet($project_id = 0, $show_all_personal_timesheets = false)
+    {
         if (!get_setting("module_project_timesheet")) {
             return false;
         }
@@ -349,24 +372,20 @@ class Projects extends MY_Controller {
     }
 
     /* load project view */
-
-    function index() {
+    function index()
+    {
         redirect("projects/all_projects");
     }
 
-    function all_projects($status = "") {
+    function all_projects($status = "")
+    {
         $view_data['project_labels_dropdown'] = json_encode($this->make_labels_dropdown("project", "", true));
-
         $view_data["custom_field_headers"] = $this->Custom_fields_model->get_custom_field_headers_for_table("projects", $this->login_user->is_admin, $this->login_user->user_type);
-
         $view_data["status"] = $status;
 
         if ($this->login_user->user_type === "staff") {
-			
-			 
             $view_data["can_edit_projects"] = $this->can_edit_projects();
             $view_data["can_delete_projects"] = $this->can_delete_projects();
-
             $this->template->rander("projects/index", $view_data);
         } else {
             $view_data['client_id'] = $this->login_user->client_id;
@@ -376,21 +395,21 @@ class Projects extends MY_Controller {
     }
 
     /* load project  add/edit modal */
+    function modal_form()
+    {
 
-    function modal_form() {
-		
-		$request = $this->input->post();
-		
+        $request = $this->input->post();
+
         $project_id = $this->input->post('id');
         $client_id = $this->input->post('client_id');
 
         if ($project_id) {
             if (!$this->can_edit_projects()) {
-               // redirect("forbidden");
+                // redirect("forbidden");
             }
         } else {
             if (!$this->can_create_projects()) {
-               /// redirect("forbidden");
+                /// redirect("forbidden");
             }
         }
 
@@ -407,7 +426,7 @@ class Projects extends MY_Controller {
             $view_data['model_info']->estimate_id = $estimate_id;
         }
 
-        
+
 
         $view_data["custom_fields"] = $this->Custom_fields_model->get_combined_details("projects", $view_data['model_info']->id, $this->login_user->is_admin, $this->login_user->user_type)->result();
 
@@ -418,30 +437,33 @@ class Projects extends MY_Controller {
         // var_dump(arr($view_data['clients_dropdown_new'])); exit;
 
         $view_data['label_suggestions'] = $this->make_labels_dropdown("project", $view_data['model_info']->labels);
-        
+
 
         $this->load->view('projects/modal_form', $view_data);
     }
 
     /* insert or update a project */
 
-    function save() {
+    function save()
+    {
 
         $id = $this->input->post('id');
 
         if ($id) {
             if (!$this->can_edit_projects()) {
-               // redirect("forbidden");
+                // redirect("forbidden");
             }
         } else {
             if (!$this->can_create_projects()) {
-               // redirect("forbidden");
+                // redirect("forbidden");
             }
         }
 
-        validate_submitted_data(array(
-            "title" => "required"
-        ));
+        validate_submitted_data(
+            array(
+                "title" => "required"
+            )
+        );
 
         $estimate_id = $this->input->post('estimate_id');
         $status = $this->input->post('status');
@@ -466,9 +488,9 @@ class Projects extends MY_Controller {
 
 
         //created by client? overwrite the client id for safety
-       // if ($this->login_user->user_type === "clinet") {
-           // $data["client_id"] = $this->login_user->client_id;
-       // }
+        // if ($this->login_user->user_type === "clinet") {
+        // $data["client_id"] = $this->login_user->client_id;
+        // }
 
 
         $data = clean_data($data);
@@ -524,7 +546,8 @@ class Projects extends MY_Controller {
 
     /* Show a modal to clone a project */
 
-    function clone_project_modal_form() {
+    function clone_project_modal_form()
+    {
 
         $project_id = $this->input->post('id');
 
@@ -546,7 +569,8 @@ class Projects extends MY_Controller {
 
     /* create a new project from another project */
 
-    function save_cloned_project() {
+    function save_cloned_project()
+    {
 
         ini_set('max_execution_time', 300); //300 seconds 
 
@@ -556,9 +580,11 @@ class Projects extends MY_Controller {
             //redirect("forbidden");
         }
 
-        validate_submitted_data(array(
-            "title" => "required"
-        ));
+        validate_submitted_data(
+            array(
+                "title" => "required"
+            )
+        );
 
 
         $copy_same_assignee_and_collaborators = $this->input->post("copy_same_assignee_and_collaborators");
@@ -743,7 +769,8 @@ class Projects extends MY_Controller {
         }
     }
 
-    private function _prepare_new_task_data_on_cloning_project($new_project_id, $milestones_array, $task, $copy_same_assignee_and_collaborators, $copy_tasks_start_date_and_deadline, $move_all_tasks_to_to_do) {
+    private function _prepare_new_task_data_on_cloning_project($new_project_id, $milestones_array, $task, $copy_same_assignee_and_collaborators, $copy_tasks_start_date_and_deadline, $move_all_tasks_to_to_do)
+    {
         //prepare new task data. 
         $task->project_id = $new_project_id;
         $milestone_id = get_array_value($milestones_array, $task->milestone_id);
@@ -771,7 +798,8 @@ class Projects extends MY_Controller {
         return $task_data;
     }
 
-    private function _save_custom_fields_on_cloning_project($task, $new_taks_id) {
+    private function _save_custom_fields_on_cloning_project($task, $new_taks_id)
+    {
         $old_custom_fields = $this->Custom_field_values_model->get_all_where(array("related_to_type" => "tasks", "related_to_id" => $task->id, "deleted" => 0))->result();
 
         //prepare new custom fields data
@@ -787,10 +815,11 @@ class Projects extends MY_Controller {
 
     /* delete a project */
 
-    function delete() {
-        if($this->login_user->is_admin != 1){
-            if(get_array_value($this->login_user->permissions, "can_delete_projects") != "1" || get_array_value($this->login_user->permissions, "can_manage_all_projects") != "1"){
-                echo json_encode(array("success" => false, 'message' => 'คุณไม่มีสิทธิ์ในการลบข้อมูล' ));
+    function delete()
+    {
+        if ($this->login_user->is_admin != 1) {
+            if (get_array_value($this->login_user->permissions, "can_delete_projects") != "1" || get_array_value($this->login_user->permissions, "can_manage_all_projects") != "1") {
+                echo json_encode(array("success" => false, 'message' => 'คุณไม่มีสิทธิ์ในการลบข้อมูล'));
                 return;
             }
         }
@@ -804,7 +833,8 @@ class Projects extends MY_Controller {
 
     /* list of projcts, prepared for datatable  */
 
-    function projects_list_data_of_team_member($team_member_id = 0) {
+    function projects_list_data_of_team_member($team_member_id = 0)
+    {
         $this->access_only_team_members();
 
         $custom_fields = $this->Custom_fields_model->get_available_fields_for_table("projects", $this->login_user->is_admin, $this->login_user->user_type);
@@ -830,7 +860,8 @@ class Projects extends MY_Controller {
         echo json_encode(array("data" => $result));
     }
 
-    function projects_list_data_of_client($client_id = 0) {
+    function projects_list_data_of_client($client_id = 0)
+    {
 
         $this->access_only_team_members_or_client_contact($client_id);
 
@@ -855,7 +886,8 @@ class Projects extends MY_Controller {
 
     /* return a row of project list  table */
 
-    private function _row_data($id) {
+    private function _row_data($id)
+    {
         $custom_fields = $this->Custom_fields_model->get_available_fields_for_table("projects", $this->login_user->is_admin, $this->login_user->user_type);
 
         $options = array(
@@ -868,26 +900,27 @@ class Projects extends MY_Controller {
     }
 
     /* prepare a row of project list table */
-
-    private function _make_row($data, $custom_fields) {
-
+    private function _make_row($data, $custom_fields) 
+    {
+        $dev2_canDeleteProject = $this->dev2_canDeleteProject($data->id);
         $progress = $data->total_points ? round(($data->completed_points / $data->total_points) * 100) : 0;
-
         $class = "progress-bar-primary";
         if ($progress == 100) {
             $class = "progress-bar-success";
-        }
+        } // set progress
 
-        $progress_bar = "<div class='progress' title='$progress%'>
-            <div  class='progress-bar $class' role='progressbar' aria-valuenow='$progress' aria-valuemin='0' aria-valuemax='100' style='width: $progress%'>
-            </div>
-        </div>";
+        $progress_bar = "
+        <div class='progress' title='$progress%'>
+            <div class='progress-bar $class' role='progressbar' aria-valuenow='$progress' aria-valuemin='0' aria-valuemax='100' style='width: $progress%'></div>
+        </div>
+        "; // generate progress bar
+
         $start_date = is_date_exists($data->start_date) ? format_to_date($data->start_date, false) : "-";
         $dateline = is_date_exists($data->deadline) ? format_to_date($data->deadline, false) : "-";
         $price = $data->price ? to_currency($data->price, $data->currency_symbol) : "-";
 
-        //has deadline? change the color of date based on status
-        if (is_date_exists($data->deadline)) {
+        // has deadline? change the color of date based on status
+        if (isset($data->deadline) && is_date_exists($data->deadline)) {
             if ($progress !== 100 && $data->status === "open" && get_my_local_time("Y-m-d") > $data->deadline) {
                 $dateline = "<span class='text-danger mr5'>" . $dateline . "</span> ";
             } else if ($progress !== 100 && $data->status === "open" && get_my_local_time("Y-m-d") == $data->deadline) {
@@ -896,41 +929,57 @@ class Projects extends MY_Controller {
         }
 
         $title = anchor(get_uri("projects/view/" . $data->id), $data->title);
-        if ($data->labels_list) {
+        if (isset($data->labels_list) && $data->labels_list) {
             $project_labels = make_labels_view_data($data->labels_list, true);
             $title .= "<br />" . $project_labels;
         }
 
         $optoins = "";
-
-        if(get_array_value($this->login_user->permissions, "can_manage_all_projects") == true || $this->login_user->is_admin == "1"){
+        if (get_array_value($this->login_user->permissions, "can_manage_all_projects") == true || $this->login_user->is_admin == "1") {
             if (get_array_value($this->login_user->permissions, "can_edit_projects") == true || $this->login_user->is_admin == "1") {
-                $optoins .= modal_anchor(get_uri("projects/modal_form"), "<i class='fa fa-pencil'></i>", array("class" => "edit", "title" => lang('edit_project'), "data-post-id" => $data->id));
-            }
-
-            if ($this->Permission_m->access_material_request == true || $this->Permission_m->access_purchase_request){
-                $optoins .= modal_anchor(get_uri("projects/modal_items"), "<i class='fa fa-shopping-bag'></i>", 
+                $optoins .= modal_anchor(
+                    get_uri("projects/modal_form"), 
+                    "<i class='fa fa-pencil'></i>", 
                     array(
-                        "class" => "edit bom-item-modal", 
-                        "data-modal-lg" => true,
-                        "title" => lang('item').' - '.$data->title, 
+                        "class" => "edit", 
+                        "title" => lang('edit_project'), 
                         "data-post-id" => $data->id
                     )
                 );
-            }
-            
-            if ((get_array_value($this->login_user->permissions, "can_delete_projects") == true) || $this->login_user->is_admin == "1") {
-                $optoins .= js_anchor("<i class='fa fa-times fa-fw'></i>", array('title' => lang('delete_project'), "class" => "delete", "data-id" => $data->id, "data-action-url" => get_uri("projects/delete"), "data-action" => "delete-confirmation"));
-            }
+            } // btn-edit-project
+
+            if ($this->Permission_m->access_material_request || $this->Permission_m->access_purchase_request) {
+                $optoins .= modal_anchor(
+                    get_uri("projects/modal_items"),
+                    "<i class='fa fa-shopping-bag'></i>",
+                    array(
+                        "class" => "edit bom-item-modal",
+                        "data-modal-lg" => true,
+                        "title" => lang('item') . ' - ' . $data->title,
+                        "data-post-id" => $data->id
+                    )
+                );
+            } // btn-bag-project
+
+            if ($this->check_permission('can_delete_projects') && $dev2_canDeleteProject) {
+                $optoins .= js_anchor(
+                    "<i class='fa fa-times fa-fw'></i>", 
+                    array(
+                        'title' => lang('delete_project'), 
+                        "class" => "delete", 
+                        "data-id" => $data->id, 
+                        "data-action-url" => get_uri("projects/delete"), 
+                        "data-action" => "delete-confirmation"
+                    )
+                );
+            } // btn-delete-project
         }
-        
+
         if ($this->login_user->user_type == "staff" && !$this->can_create_projects()) {
             $price = "-";
         }
-        
-        $owner = $this->Clients_model->getOwnerByClientId($data->client_id);
-        // var_dump(arr($data->client_id));
 
+        $owner = $this->Clients_model->getOwnerByClientId($data->client_id);
         $row_data = array(
             anchor(get_uri("projects/view/" . $data->id), $data->id),
             $title,
@@ -945,29 +994,26 @@ class Projects extends MY_Controller {
             lang($data->status)
         );
 
-        // var_dump(arr($row_data)); exit;
-
         foreach ($custom_fields as $field) {
             $cf_id = "cfv_" . $field->id;
             $row_data[] = $this->load->view("custom_fields/output_" . $field->field_type, array("value" => $data->$cf_id), true);
         }
 
         $row_data[] = $optoins;
-
         return $row_data;
     }
 
     /* load project details view */
-
-
-    private function can_edit_timesheet_settings($project_id) {
+    private function can_edit_timesheet_settings($project_id)
+    {
         $this->init_project_permission_checker($project_id);
         if ($project_id && $this->login_user->user_type === "staff" && $this->can_view_timesheet($project_id)) {
             return true;
         }
     }
 
-    private function can_edit_slack_settings() {
+    private function can_edit_slack_settings()
+    {
         if ($this->login_user->user_type === "staff" && $this->can_create_projects()) {
             return true;
         }
@@ -975,7 +1021,8 @@ class Projects extends MY_Controller {
 
     /* prepare project info data for reuse */
 
-    private function _get_project_info_data($project_id) {
+    private function _get_project_info_data($project_id)
+    {
         $options = array(
             "id" => $project_id,
             "client_id" => $this->login_user->client_id,
@@ -989,13 +1036,13 @@ class Projects extends MY_Controller {
         $view_data['project_info'] = $project_info;
         //var_dump($project_info);
 
-        $sql = "SELECT doc_id , tbName FROM `prove_table` WHERE doc_id = (SELECT mr.id FROM `materialrequests` mr WHERE `project_id` = ".$project_info->id." AND `deleted`=0) AND status_id = 1;";
+        $sql = "SELECT doc_id , tbName FROM `prove_table` WHERE doc_id = (SELECT mr.id FROM `materialrequests` mr WHERE `project_id` = " . $project_info->id . " AND `deleted`=0) AND status_id = 1;";
 
         $mr_proved = $this->db->query($sql)->row();
         //var_dump($mr_proved);exit;
-        if($mr_proved){
+        if ($mr_proved) {
             $view_data['mr_proved'] = true;
-        }else{
+        } else {
             $view_data['mr_proved'] = false;
         }
 
@@ -1024,14 +1071,16 @@ class Projects extends MY_Controller {
         }
     }
 
-    function show_my_starred_projects() {
+    function show_my_starred_projects()
+    {
         $view_data["projects"] = $this->Projects_model->get_starred_projects($this->login_user->id)->result();
         $this->load->view('projects/star/projects_list', $view_data);
     }
 
     /* load project overview section */
 
-    function overview($project_id) {
+    function overview($project_id)
+    {
         $this->access_only_team_members();
         $this->init_project_permission_checker($project_id);
 
@@ -1045,8 +1094,8 @@ class Projects extends MY_Controller {
         $view_data['activity_logs_params'] = array("log_for" => "project", "log_for_id" => $project_id, "limit" => 20, "offset" => $offset);
 
         $view_data["can_add_remove_project_members"] = $this->can_add_remove_project_members();
-		
-		//$this->can_add_remove_project_members();
+
+        //$this->can_add_remove_project_members();
         $view_data["can_access_clients"] = $this->can_access_clients();
 
         $view_data['custom_fields_list'] = $this->Custom_fields_model->get_combined_details("projects", $project_id, $this->login_user->is_admin, $this->login_user->user_type)->result();
@@ -1064,10 +1113,11 @@ class Projects extends MY_Controller {
         $info = $this->Timesheets_model->count_total_time($options);
         $view_data["total_project_hours"] = to_decimal_format($info->timesheet_total / 60 / 60);
 
-        $this->load->view('projects/overview', $view_data );
+        $this->load->view('projects/overview', $view_data);
     }
 
-    private function can_access_clients() {
+    private function can_access_clients()
+    {
         if (get_setting("client_can_view_tasks")) {
             if ($this->login_user->is_admin) {
                 return true;
@@ -1079,7 +1129,8 @@ class Projects extends MY_Controller {
 
     /* add-remove start mark from project */
 
-    function add_remove_star($project_id, $type = "add") {
+    function add_remove_star($project_id, $type = "add")
+    {
         if ($project_id) {
 
             if (get_setting("disable_access_favorite_project_option_for_clients") && $this->login_user->user_type == "client") {
@@ -1100,7 +1151,8 @@ class Projects extends MY_Controller {
 
     /* load project overview section */
 
-    function overview_for_client($project_id) {
+    function overview_for_client($project_id)
+    {
         if ($this->login_user->user_type === "client") {
             $view_data = $this->_get_project_info_data($project_id);
 
@@ -1128,9 +1180,10 @@ class Projects extends MY_Controller {
         }
     }
 
-    /* load project members add/edit modal */ 
+    /* load project members add/edit modal */
 
-    function project_member_modal_form() {
+    function project_member_modal_form()
+    {
         $view_data['model_info'] = $this->Project_members_model->get_one($this->input->post('id'));
         $project_id = $this->input->post('project_id') ? $this->input->post('project_id') : $view_data['model_info']->project_id;
         $this->init_project_permission_checker($project_id);
@@ -1158,13 +1211,13 @@ class Projects extends MY_Controller {
                 $users_dropdown[$user->id] = $user->member_name;
             }
         }
-        $sql= "SELECT * FROM team WHERE deleted = 0";
+        $sql = "SELECT * FROM team WHERE deleted = 0";
 
         $result = array();
         foreach ($this->db->query($sql)->result() as $data) {
             $result[] = $data;
         }
-        
+
         $view_data["teams"] = $result;
 
         // var_dump($view_data["teams"]);
@@ -1176,7 +1229,8 @@ class Projects extends MY_Controller {
     }
 
     // Add Teams Project 
-    function project_teams_member_modal_form() {
+    function project_teams_member_modal_form()
+    {
         $view_data['model_info'] = $this->Project_members_model->get_one($this->input->post('id'));
         $project_id = $this->input->post('project_id') ? $this->input->post('project_id') : $view_data['model_info']->project_id;
         $this->init_project_permission_checker($project_id);
@@ -1193,24 +1247,25 @@ class Projects extends MY_Controller {
 
         $view_data['project_id'] = $project_id;
         $add_user_type = $this->input->post("add_user_type");
-        
+
         $view_data['teams'] = $result;
 
         $this->load->view('projects/project_members/modal_teams_member', $view_data);
     }
 
     // Save Teams Projects
-    function save_Teams_Projects() {
-        
+    function save_Teams_Projects()
+    {
+
         $project_id = $this->input->post('project_id');
         $save_ids = array();
         $already_exists = false;
 
         $this->init_project_permission_checker($project_id);
-        
-                
+
+
         $teams = $this->input->post('teams');
-        
+
         if ($teams) {
             foreach ($teams as $teams_id) {
                 if ($teams_id) {
@@ -1249,7 +1304,8 @@ class Projects extends MY_Controller {
     }
 
     // Delete Teams
-    function delete_project_teams() {
+    function delete_project_teams()
+    {
         $id = $this->input->post('id');
         $project_member_info = $this->Project_members_model->get_one($id);
 
@@ -1278,11 +1334,12 @@ class Projects extends MY_Controller {
         }
     }
 
-    
+
 
     /* add a project members  */
 
-    function save_project_member() {
+    function save_project_member()
+    {
         $project_id = $this->input->post('project_id');
 
         $this->init_project_permission_checker($project_id);
@@ -1291,9 +1348,11 @@ class Projects extends MY_Controller {
             //redirect("forbidden");
         }
 
-        validate_submitted_data(array(
-            "user_id[]" => "required"
-        ));
+        validate_submitted_data(
+            array(
+                "user_id[]" => "required"
+            )
+        );
 
         $user_ids = $this->input->post('user_id');
         $teams = $this->input->post('teams');
@@ -1301,15 +1360,15 @@ class Projects extends MY_Controller {
         $save_ids = array();
         $already_exists = false;
         // var_dump($teams);
-        if($teams){
-            foreach($teams as $vt){
-            
+        if ($teams) {
+            foreach ($teams as $vt) {
+
                 $sql = "SELECT * FROM team WHERE team.id = $vt";
                 $result = $this->db->query($sql)->row();
-                $tmembers = explode(",",$result->members);
-                
-                if($result){
-                    foreach($tmembers as $kt){
+                $tmembers = explode(",", $result->members);
+
+                if ($result) {
+                    foreach ($tmembers as $kt) {
                         $data = array(
                             "project_id" => $project_id,
                             "user_id" => $kt,
@@ -1323,18 +1382,18 @@ class Projects extends MY_Controller {
                             $already_exists = true;
                         }
                     }
-                    
-                    
+
+
                 }
-                
+
             }
         }
-        
+
         // var_dump(implode(",",$user_ids)); 
-       
+
         // var_dump($user_ids);
 
-        
+
 
         if ($user_ids) {
             foreach ($user_ids as $user_id) {
@@ -1354,8 +1413,8 @@ class Projects extends MY_Controller {
                 }
             }
 
-           
-            
+
+
         }
         // var_dump($data);exit;
 
@@ -1381,7 +1440,8 @@ class Projects extends MY_Controller {
 
     /* return a row of project member list */
 
-    private function _project_member_row_data($id) {
+    private function _project_member_row_data($id)
+    {
         $options = array("id" => $id);
         $data = $this->Project_members_model->get_details($options)->row();
         return $this->_make_project_member_row($data);
@@ -1391,7 +1451,8 @@ class Projects extends MY_Controller {
 
 
     //stop timer note modal
-    function stop_timer_modal_form($project_id) {
+    function stop_timer_modal_form($project_id)
+    {
         $this->access_only_team_members();
 
         if ($project_id) {
@@ -1423,7 +1484,8 @@ class Projects extends MY_Controller {
     }
 
     //show timer note modal
-    function timer_note_modal_form() {
+    function timer_note_modal_form()
+    {
 
         $id = $this->input->post("id");
         if ($id) {
@@ -1442,7 +1504,8 @@ class Projects extends MY_Controller {
         }
     }
 
-    private function _get_timesheet_tasks_dropdown($project_id, $return_json = false) {
+    private function _get_timesheet_tasks_dropdown($project_id, $return_json = false)
+    {
         $tasks_dropdown = array("" => "-");
         $tasks_dropdown_json = array(array("id" => "", "text" => "- " . lang("task") . " -"));
 
@@ -1467,7 +1530,8 @@ class Projects extends MY_Controller {
 
     /* start/stop project timer */
 
-    function timer($project_id, $timer_status = "start") {
+    function timer($project_id, $timer_status = "start")
+    {
         $this->access_only_team_members();
         $note = $this->input->post("note");
         $task_id = $this->input->post("task_id");
@@ -1500,20 +1564,17 @@ class Projects extends MY_Controller {
     }
 
     /* load timesheets view for a project */
-
-    function timesheets($project_id) {
-
+    function timesheets($project_id)
+    {
         $this->init_project_permission_checker($project_id);
         $this->init_project_settings($project_id); //since we'll check this permission project wise
-
-
         if (!$this->can_view_timesheet($project_id)) {
-            //redirect("forbidden");
+            // redirect("forbidden");
         }
 
         $view_data['project_id'] = $project_id;
 
-        //client can't add log or update settings
+        // client can't add log or update settings
         $view_data['can_add_log'] = false;
 
         if ($this->login_user->user_type === "staff") {
@@ -1522,16 +1583,14 @@ class Projects extends MY_Controller {
 
         $view_data['project_members_dropdown'] = json_encode($this->_get_project_members_dropdown_list_for_filter($project_id));
         $view_data['tasks_dropdown'] = $this->_get_timesheet_tasks_dropdown($project_id, true);
-
         $view_data["custom_field_headers"] = $this->Custom_fields_model->get_custom_field_headers_for_table("timesheets", $this->login_user->is_admin, $this->login_user->user_type);
 
         $this->load->view("projects/timesheets/index", $view_data);
     }
 
     /* prepare project members dropdown */
-
-    private function _get_project_members_dropdown_list_for_filter($project_id) {
-
+    private function _get_project_members_dropdown_list_for_filter($project_id)
+    {
         $project_members = $this->Project_members_model->get_project_members_dropdown_list($project_id)->result();
         $project_members_dropdown = array(array("id" => "", "text" => "- " . lang("member") . " -"));
         foreach ($project_members as $member) {
@@ -1541,19 +1600,19 @@ class Projects extends MY_Controller {
     }
 
     /* load timelog add/edit modal */
-
-    function timelog_modal_form() {
+    function timelog_modal_form()
+    {
         $this->access_only_team_members();
         $view_data['time_format_24_hours'] = get_setting("time_format") == "24_hours" ? true : false;
         $model_info = $this->Timesheets_model->get_one($this->input->post('id'));
         $project_id = $this->input->post('project_id') ? $this->input->post('project_id') : $model_info->project_id;
 
-        //set the login user as a default selected member
+        // set the login user as a default selected member
         if (!$model_info->user_id) {
             $model_info->user_id = $this->login_user->id;
         }
 
-        //get related data
+        // get related data
         $related_data = $this->_prepare_all_related_data_for_timelog($project_id);
         $show_porject_members_dropdown = get_array_value($related_data, "show_porject_members_dropdown");
         $view_data["tasks_dropdown"] = get_array_value($related_data, "tasks_dropdown");
@@ -1562,7 +1621,7 @@ class Projects extends MY_Controller {
         $view_data["model_info"] = $model_info;
 
         if ($model_info->id) {
-            $show_porject_members_dropdown = false; //don't allow to edit the user on update.
+            $show_porject_members_dropdown = false; // don't allow to edit the user on update.
         }
 
         $view_data["project_id"] = $project_id;
@@ -1570,17 +1629,17 @@ class Projects extends MY_Controller {
         $view_data["projects_dropdown"] = $this->_get_projects_dropdown();
 
         $view_data["custom_fields"] = $this->Custom_fields_model->get_combined_details("timesheets", $view_data['model_info']->id, $this->login_user->is_admin, $this->login_user->user_type)->result();
-
         $this->load->view('projects/timesheets/modal_form', $view_data);
     }
 
-    private function _prepare_all_related_data_for_timelog($project_id = 0) {
-        //we have to check if any defined project exists, then go through with the project id
+    private function _prepare_all_related_data_for_timelog($project_id = 0)
+    {
+        // we have to check if any defined project exists, then go through with the project id
         $show_porject_members_dropdown = false;
         if ($project_id) {
             $tasks_dropdown = $this->_get_timesheet_tasks_dropdown($project_id, true);
 
-            //prepare members dropdown list
+            // prepare members dropdown list
             $allowed_members = $this->_get_members_to_manage_timesheet();
             $project_members = "";
 
@@ -1602,7 +1661,7 @@ class Projects extends MY_Controller {
                 }
             }
         } else {
-            //we have show an empty dropdown when there is no project_id defined
+            // we have show an empty dropdown when there is no project_id defined
             $tasks_dropdown = json_encode(array(array("id" => "", "text" => "-")));
             $project_members_dropdown = array(array("id" => "", "text" => "-"));
             $show_porject_members_dropdown = true;
@@ -1615,20 +1674,23 @@ class Projects extends MY_Controller {
         );
     }
 
-    function get_all_related_data_of_selected_project_for_timelog($project_id = "") {
+    function get_all_related_data_of_selected_project_for_timelog($project_id = "")
+    {
         if ($project_id) {
             $related_data = $this->_prepare_all_related_data_for_timelog($project_id);
 
-            echo json_encode(array(
-                "project_members_dropdown" => get_array_value($related_data, "project_members_dropdown"),
-                "tasks_dropdown" => json_decode(get_array_value($related_data, "tasks_dropdown"))
-            ));
+            echo json_encode(
+                array(
+                    "project_members_dropdown" => get_array_value($related_data, "project_members_dropdown"),
+                    "tasks_dropdown" => json_decode(get_array_value($related_data, "tasks_dropdown"))
+                )
+            );
         }
     }
 
     /* insert/update a timelog */
-
-    function save_timelog() {
+    function save_timelog()
+    {
         $this->access_only_team_members();
         $id = $this->input->post('id');
 
@@ -1642,27 +1704,27 @@ class Projects extends MY_Controller {
         $task_id = $this->input->post("task_id");
 
         if ($start_time) {
-            //start time and end time mode
-            //convert to 24hrs time format
+            // start time and end time mode
+            // convert to 24hrs time format
             if (get_setting("time_format") != "24_hours") {
                 $start_time = convert_time_to_24hours_format($start_time);
                 $end_time = convert_time_to_24hours_format($end_time);
             }
 
-            //join date with time
+            // join date with time
             $start_date_time = $this->input->post('start_date') . " " . $start_time;
             $end_date_time = $this->input->post('end_date') . " " . $end_time;
 
-            //add time offset
+            // add time offset
             $start_date_time = convert_date_local_to_utc($start_date_time);
             $end_date_time = convert_date_local_to_utc($end_date_time);
         } else {
-            //date and hour mode
+            // date and hour mode
             $date = $this->input->post("date");
             $start_date_time = $date . " 00:00:00";
             $end_date_time = $date . " 00:00:00";
 
-            //prepare hours
+            // prepare hours
             $hours = convert_humanize_data_to_hours($this->input->post("hours"));
             if (!$hours) {
                 echo json_encode(array("success" => false, 'message' => lang("hour_log_time_error_message")));
@@ -1679,19 +1741,16 @@ class Projects extends MY_Controller {
             "hours" => $hours
         );
 
-        //save user_id only on insert and it will not be editable
+        // save user_id only on insert and it will not be editable
         if (!$id) {
-            //insert mode
+            // insert mode
             $data["user_id"] = $this->input->post('user_id') ? $this->input->post('user_id') : $this->login_user->id;
         }
 
         $this->check_timelog_update_permission($id, get_array_value($data, "user_id"));
-
         $save_id = $this->Timesheets_model->save($data, $id);
         if ($save_id) {
-
             save_custom_fields("timesheets", $save_id, $this->login_user->is_admin, $this->login_user->user_type);
-
             echo json_encode(array("success" => true, "data" => $this->_timesheet_row_data($save_id), 'id' => $save_id, 'message' => lang('record_saved')));
         } else {
             echo json_encode(array("success" => false, 'message' => lang('error_occurred')));
@@ -1699,24 +1758,22 @@ class Projects extends MY_Controller {
     }
 
     /* insert/update a timelog */
-
-    function save_timelog_note() {
+    function save_timelog_note()
+    {
         $this->access_only_team_members();
-
-        validate_submitted_data(array(
-            "id" => "required"
-        ));
+        validate_submitted_data(
+            array(
+                "id" => "required"
+            )
+        );
 
         $id = $this->input->post('id');
         $data = array(
             "note" => $this->input->post("note")
         );
 
-
-        //check edit permission
+        // check edit permission
         $this->check_timelog_update_permission($id);
-
-
 
         $save_id = $this->Timesheets_model->save($data, $id);
         if ($save_id) {
@@ -1727,14 +1784,11 @@ class Projects extends MY_Controller {
     }
 
     /* delete/undo a timelog */
-
-    function delete_timelog() {
+    function delete_timelog()
+    {
         $this->access_only_team_members();
 
-
-
         $id = $this->input->post('id');
-
         $this->check_timelog_update_permission($id);
 
         if ($this->input->post('undo')) {
@@ -1752,8 +1806,9 @@ class Projects extends MY_Controller {
         }
     }
 
-    private function check_timelog_update_permission($log_id = null, $user_id = null) {
-        //check delete permission
+    private function check_timelog_update_permission($log_id = null, $user_id = null)
+    {
+        // check delete permission
         $members = $this->_get_members_to_manage_timesheet();
 
         if ($log_id) {
@@ -1763,16 +1818,14 @@ class Projects extends MY_Controller {
 
 
         if ($members != "all" && !in_array($user_id, $members)) {
-            //redirect("forbidden");
+            // redirect("forbidden");
         }
     }
-
     /* list of timesheets, prepared for datatable  */
 
-
     /* return a row of timesheet list  table */
-
-    private function _timesheet_row_data($id) {
+    private function _timesheet_row_data($id)
+    {
         $custom_fields = $this->Custom_fields_model->get_available_fields_for_table("timesheets", $this->login_user->is_admin, $this->login_user->user_type);
 
         $options = array("id" => $id, "custom_fields" => $custom_fields);
@@ -1781,8 +1834,8 @@ class Projects extends MY_Controller {
     }
 
     /* prepare a row of timesheet list table */
-
-    private function _make_timesheet_row($data, $custom_fields) {
+    private function _make_timesheet_row($data, $custom_fields)
+    {
         $image_url = get_avatar($data->logged_by_avatar);
         $user = "<span class='avatar avatar-xs mr10'><img src='$image_url' alt=''></span> $data->logged_by_user";
 
@@ -1791,7 +1844,7 @@ class Projects extends MY_Controller {
         $project_title = anchor(get_uri("projects/view/" . $data->project_id), $data->project_title);
         $task_title = modal_anchor(get_uri("projects/task_view"), $data->task_title, array("title" => lang('task_info') . " #$data->task_id", "data-post-id" => $data->task_id, "data-modal-lg" => "1"));
 
-        //if the rich text editor is enabled, don't show the note as title
+        // if the rich text editor is enabled, don't show the note as title
         $note_title = $data->note;
         if (get_setting('enable_rich_text_editor')) {
             $note_title = "";
@@ -1821,15 +1874,14 @@ class Projects extends MY_Controller {
         }
 
         $row_data[] = modal_anchor(get_uri("projects/timelog_modal_form"), "<i class='fa fa-pencil'></i>", array("class" => "edit", "title" => lang('edit_timelog'), "data-post-id" => $data->id))
-                . js_anchor("<i class='fa fa-times fa-fw'></i>", array('title' => lang('delete_timelog'), "class" => "delete", "data-id" => $data->id, "data-action-url" => get_uri("projects/delete_timelog"), "data-action" => "delete"));
+            . js_anchor("<i class='fa fa-times fa-fw'></i>", array('title' => lang('delete_timelog'), "class" => "delete", "data-id" => $data->id, "data-action-url" => get_uri("projects/delete_timelog"), "data-action" => "delete"));
 
         return $row_data;
     }
 
     /* load timesheets summary view for a project */
-
-    function timesheet_summary($project_id) {
-
+    function timesheet_summary($project_id)
+    {
         $this->init_project_permission_checker($project_id);
         $this->init_project_settings($project_id); //since we'll check this permission project wise
 
@@ -1837,16 +1889,14 @@ class Projects extends MY_Controller {
             //redirect("forbidden");
         }
 
-
-
         $view_data['project_id'] = $project_id;
-
         $view_data['group_by_dropdown'] = json_encode(
-                array(
-                    array("id" => "", "text" => "- " . lang("group_by") . " -"),
-                    array("id" => "member", "text" => lang("member")),
-                    array("id" => "task", "text" => lang("task"))
-        ));
+            array(
+                array("id" => "", "text" => "- " . lang("group_by") . " -"),
+                array("id" => "member", "text" => lang("member")),
+                array("id" => "task", "text" => lang("task"))
+            )
+        );
 
         $view_data['project_members_dropdown'] = json_encode($this->_get_project_members_dropdown_list_for_filter($project_id));
         $view_data['tasks_dropdown'] = $this->_get_timesheet_tasks_dropdown($project_id, true);
@@ -1855,29 +1905,25 @@ class Projects extends MY_Controller {
     }
 
     /* list of timesheets summary, prepared for datatable  */
-
-    function timesheet_summary_list_data() {
-
+    function timesheet_summary_list_data()
+    {
         $project_id = $this->input->post("project_id");
 
-
-        //client can't view all projects timesheet. project id is required.
+        // client can't view all projects timesheet. project id is required.
         if (!$project_id) {
             $this->access_only_team_members();
         }
 
         if ($project_id) {
             $this->init_project_permission_checker($project_id);
-            $this->init_project_settings($project_id); //since we'll check this permission project wise
+            $this->init_project_settings($project_id); // since we'll check this permission project wise
 
             if (!$this->can_view_timesheet($project_id, true)) {
-                //redirect("forbidden");
+                // redirect("forbidden");
             }
         }
 
-
         $group_by = $this->input->post("group_by");
-
         $options = array(
             "project_id" => $project_id,
             "status" => "none_open",
@@ -1889,20 +1935,17 @@ class Projects extends MY_Controller {
             "client_id" => $this->input->post("client_id")
         );
 
-        //get allowed member ids
+        // get allowed member ids
         $members = $this->_get_members_to_manage_timesheet();
         if ($members != "all" && $this->login_user->user_type == "staff") {
-            //if user has permission to access all members, query param is not required
-            //client can view all timesheet
+            // if user has permission to access all members, query param is not required
+            // client can view all timesheet
             $options["allowed_members"] = $members;
         }
 
         $list_data = $this->Timesheets_model->get_summary_details($options)->result();
-
         $result = array();
         foreach ($list_data as $data) {
-
-
             $member = "-";
             $task_title = "-";
 
@@ -1914,7 +1957,6 @@ class Projects extends MY_Controller {
             }
 
             $project_title = anchor(get_uri("projects/view/" . $data->project_id), $data->project_title);
-
             if ($group_by != "member") {
                 $task_title = modal_anchor(get_uri("projects/task_view"), $data->task_title, array("title" => lang('task_info') . " #$data->task_id", "data-post-id" => $data->task_id, "data-modal-lg" => "1"));
                 if (!$data->task_title) {
@@ -1922,10 +1964,7 @@ class Projects extends MY_Controller {
                 }
             }
 
-
             $duration = convert_seconds_to_time_format(abs($data->total_duration));
-
-
             $result[] = array(
                 $project_title,
                 anchor(get_uri("clients/view/" . $data->timesheet_client_id), $data->timesheet_client_company_name),
@@ -1939,10 +1978,9 @@ class Projects extends MY_Controller {
     }
 
     /* get all projects list */
-
-    private function _get_all_projects_dropdown_list() {
+    private function _get_all_projects_dropdown_list()
+    {
         $projects = $this->Projects_model->get_dropdown_list(array("title"));
-
         $projects_dropdown = array(array("id" => "", "text" => "- " . lang("project") . " -"));
         foreach ($projects as $id => $title) {
             $projects_dropdown[] = array("id" => $id, "text" => $title);
@@ -1951,23 +1989,21 @@ class Projects extends MY_Controller {
     }
 
     /* get all projects list according to the login user */
-
-    private function _get_all_projects_dropdown_list_for_timesheets_filter() {
+    private function _get_all_projects_dropdown_list_for_timesheets_filter()
+    {
         $options = array();
 
         if (!$this->can_manage_all_projects()) {
             $options["user_id"] = $this->login_user->id;
         }
 
-
-		$getRolePermission['filters'] = array();
-        $projects = $this->Projects_model->get_details( $options, $getRolePermission )->result();
+        $getRolePermission['filters'] = array();
+        $projects = $this->Projects_model->get_details($options, $getRolePermission)->result();
 
         $projects_dropdown = array(array("id" => "", "text" => "- " . lang("project") . " -"));
         foreach ($projects as $project) {
             $projects_dropdown[] = array("id" => $project->id, "text" => $project->title);
         }
-
         return $projects_dropdown;
     }
 
@@ -1975,9 +2011,8 @@ class Projects extends MY_Controller {
      * admin can manage all members timesheet
      * allowed member can manage other members timesheet accroding to permission
      */
-
-    private function _get_members_to_manage_timesheet() {
-
+    private function _get_members_to_manage_timesheet()
+    {
         $access_info = $this->get_access_info("timesheet_manage_permission");
 
         if ($access_info->access_type == "all") {
@@ -1990,8 +2025,8 @@ class Projects extends MY_Controller {
     }
 
     /* prepare dropdown list */
-
-    private function _prepare_members_dropdown_for_timesheet_filter($members) {
+    private function _prepare_members_dropdown_for_timesheet_filter($members)
+    {
         $where = array("user_type" => "staff");
 
         if ($members != "all") {
@@ -2008,9 +2043,9 @@ class Projects extends MY_Controller {
     }
 
     /* load all time sheets view  */
+    function all_timesheets()
+    {
 
-    function all_timesheets() {
-		
         $this->access_only_team_members();
         $members = $this->_get_members_to_manage_timesheet();
 
@@ -2024,19 +2059,20 @@ class Projects extends MY_Controller {
     }
 
     /* load all timesheets summary view */
-
-    function all_timesheet_summary() {
+    function all_timesheet_summary()
+    {
         $this->access_only_team_members();
 
         $members = $this->_get_members_to_manage_timesheet();
 
         $view_data['group_by_dropdown'] = json_encode(
-                array(
-                    array("id" => "", "text" => "- " . lang("group_by") . " -"),
-                    array("id" => "member", "text" => lang("member")),
-                    array("id" => "project", "text" => lang("project")),
-                    array("id" => "task", "text" => lang("task"))
-        ));
+            array(
+                array("id" => "", "text" => "- " . lang("group_by") . " -"),
+                array("id" => "member", "text" => lang("member")),
+                array("id" => "project", "text" => lang("project")),
+                array("id" => "task", "text" => lang("task"))
+            )
+        );
 
 
         $view_data['members_dropdown'] = json_encode($this->_prepare_members_dropdown_for_timesheet_filter($members));
@@ -2046,9 +2082,9 @@ class Projects extends MY_Controller {
         $this->load->view("projects/timesheets/all_summary_list", $view_data);
     }
 
-    /* load milestones view */
-
-    function milestones($project_id) {
+    /* Load milestones view */
+    function milestones($project_id)
+    {
         $this->init_project_permission_checker($project_id);
 
         if (!$this->can_view_milestones()) {
@@ -2056,17 +2092,15 @@ class Projects extends MY_Controller {
         }
 
         $view_data['project_id'] = $project_id;
-
         $view_data["can_create_milestones"] = $this->can_create_milestones();
         $view_data["can_edit_milestones"] = $this->can_edit_milestones();
         $view_data["can_delete_milestones"] = $this->can_delete_milestones();
-
         $this->load->view("projects/milestones/index", $view_data);
     }
 
     /* load milestone add/edit modal */
-
-    function milestone_modal_form() {
+    function milestone_modal_form()
+    {
         $id = $this->input->post('id');
         $view_data['model_info'] = $this->Milestones_model->get_one($this->input->post('id'));
         $project_id = $this->input->post('project_id') ? $this->input->post('project_id') : $view_data['model_info']->project_id;
@@ -2084,26 +2118,23 @@ class Projects extends MY_Controller {
         }
 
         $view_data['project_id'] = $project_id;
-
         $this->load->view('projects/milestones/modal_form', $view_data);
     }
 
     /* insert/update a milestone */
-
-    function save_milestone() {
-
+    function save_milestone()
+    {
         $id = $this->input->post('id');
         $project_id = $this->input->post('project_id');
-
         $this->init_project_permission_checker($project_id);
 
         if ($id) {
             if (!$this->can_edit_milestones()) {
-                //redirect("forbidden");
+                // redirect("forbidden");
             }
         } else {
             if (!$this->can_create_milestones()) {
-                //redirect("forbidden");
+                // redirect("forbidden");
             }
         }
 
@@ -2121,15 +2152,13 @@ class Projects extends MY_Controller {
     }
 
     /* delete/undo a milestone */
-
-    function delete_milestone() {
-
+    function delete_milestone()
+    {
         $id = $this->input->post('id');
         $info = $this->Milestones_model->get_one($id);
         $this->init_project_permission_checker($info->project_id);
-
         if (!$this->can_delete_milestones()) {
-            //redirect("forbidden");
+            // redirect("forbidden");
         }
 
         if ($this->input->post('undo')) {
@@ -2148,8 +2177,8 @@ class Projects extends MY_Controller {
     }
 
     /* list of milestones, prepared for datatable  */
-
-    function milestones_list_data($project_id = 0) {
+    function milestones_list_data($project_id = 0)
+    {
         $this->init_project_permission_checker($project_id);
 
         $options = array("project_id" => $project_id);
@@ -2162,8 +2191,8 @@ class Projects extends MY_Controller {
     }
 
     /* return a row of milestone list  table */
-
-    private function _milestone_row_data($id) {
+    private function _milestone_row_data($id)
+    {
         $options = array("id" => $id);
         $data = $this->Milestones_model->get_details($options)->row();
         $this->init_project_permission_checker($data->project_id);
@@ -2172,10 +2201,9 @@ class Projects extends MY_Controller {
     }
 
     /* prepare a row of milestone list table */
-
-    private function _make_milestone_row($data) {
-
-        //calculate milestone progress
+    private function _make_milestone_row($data)
+    {
+        // calculate milestone progress
         $progress = $data->total_points ? round(($data->completed_points / $data->total_points) * 100) : 0;
         $class = "progress-bar-primary";
         if ($progress == 100) {
@@ -2187,7 +2215,7 @@ class Projects extends MY_Controller {
             </div>
         </div>";
 
-        //define milesone color based on due date
+        // define milesone color based on due date
         $due_date = date("L", strtotime($data->due_date));
         $label_class = "";
         if ($progress == 100) {
@@ -2202,13 +2230,12 @@ class Projects extends MY_Controller {
 
         $day_or_year_name = "";
         if (date("Y", strtotime(get_current_utc_time())) === date("Y", strtotime($data->due_date))) {
-            $day_or_year_name = lang(strtolower(date("l", strtotime($data->due_date)))); //get day name from language
+            $day_or_year_name = lang(strtolower(date("l", strtotime($data->due_date)))); // get day name from language
         } else {
-            $day_or_year_name = date("Y", strtotime($data->due_date)); //get current year
+            $day_or_year_name = date("Y", strtotime($data->due_date)); // get current year
         }
 
-        $month_name = lang(strtolower(date("F", strtotime($data->due_date)))); //get month name from language
-
+        $month_name = lang(strtolower(date("F", strtotime($data->due_date)))); // get month name from language
         $due_date = "<div class='milestone pull-left' title='" . format_to_date($data->due_date) . "'>
             <span class='label $label_class'>" . $month_name . "</span>
             <h1>" . date("d", strtotime($data->due_date)) . "</h1>
@@ -2226,7 +2253,6 @@ class Projects extends MY_Controller {
             $optoins .= js_anchor("<i class='fa fa-times fa-fw'></i>", array('title' => lang('delete_milestone'), "class" => "delete", "data-id" => $data->id, "data-action-url" => get_uri("projects/delete_milestone"), "data-action" => "delete"));
         }
 
-
         $title = "<div><b>" . $data->title . "</b></div>";
         if ($data->description) {
             $title .= "<div>" . nl2br($data->description) . "<div>";
@@ -2242,48 +2268,36 @@ class Projects extends MY_Controller {
     }
 
     /* load task list view tab */
-
-    function tasks($project_id) {
-
+    function tasks($project_id)
+    {
         $this->init_project_permission_checker($project_id);
-
         if (!$this->can_view_tasks($project_id)) {
-            //redirect("forbidden");
+            // redirect("forbidden");
         }
 
         $view_data['project_id'] = $project_id;
         $view_data['view_type'] = "project_tasks";
-
         $view_data['can_create_tasks'] = $this->can_create_tasks();
         $view_data['can_edit_tasks'] = $this->can_edit_tasks();
         $view_data['can_delete_tasks'] = $this->can_delete_tasks();
-
         $view_data['milestone_dropdown'] = $this->_get_milestones_dropdown_list($project_id);
         $view_data['assigned_to_dropdown'] = $this->_get_project_members_dropdown_list($project_id);
         $view_data["custom_field_headers"] = $this->Custom_fields_model->get_custom_field_headers_for_table("tasks", $this->login_user->is_admin, $this->login_user->user_type);
-
         $view_data['task_statuses'] = $this->Task_status_model->get_details()->result();
-
         $view_data["show_assigned_tasks_only"] = get_array_value($this->login_user->permissions, "show_assigned_tasks_only");
-
         $this->load->view("projects/tasks/index", $view_data);
     }
 
     /* load task kanban view of view tab */
-
-    function tasks_kanban($project_id) {
-
+    function tasks_kanban($project_id)
+    {
         $this->init_project_permission_checker($project_id);
-
         if (!$this->can_view_tasks($project_id)) {
-            //redirect("forbidden");
+            // redirect("forbidden");
         }
 
         $view_data['project_id'] = $project_id;
-
         $view_data['can_create_tasks'] = $this->can_create_tasks();
-
-
         $view_data['milestone_dropdown'] = $this->_get_milestones_dropdown_list($project_id);
         $view_data['assigned_to_dropdown'] = $this->_get_project_members_dropdown_list($project_id);
         $view_data['task_statuses'] = $this->Task_status_model->get_details()->result();
@@ -2293,9 +2307,8 @@ class Projects extends MY_Controller {
     }
 
     /* get list of milestones for filter */
-
-    function get_milestones_for_filter() {
-
+    function get_milestones_for_filter()
+    {
         $this->access_only_team_members();
         $project_id = $this->input->post("project_id");
         if ($project_id) {
@@ -2303,7 +2316,8 @@ class Projects extends MY_Controller {
         }
     }
 
-    private function _get_milestones_dropdown_list($project_id = 0) {
+    private function _get_milestones_dropdown_list($project_id = 0)
+    {
         $milestones = $this->Milestones_model->get_details(array("project_id" => $project_id, "deleted" => 0))->result();
         $milestone_dropdown = array(array("id" => "", "text" => "- " . lang("milestone") . " -"));
 
@@ -2313,7 +2327,8 @@ class Projects extends MY_Controller {
         return json_encode($milestone_dropdown);
     }
 
-    private function _get_project_members_dropdown_list($project_id = 0) {
+    private function _get_project_members_dropdown_list($project_id = 0)
+    {
         $assigned_to_dropdown = array(array("id" => "", "text" => "- " . lang("assigned_to") . " -"));
         $assigned_to_list = $this->Project_members_model->get_project_members_dropdown_list($project_id, array(), true, true)->result();
         foreach ($assigned_to_list as $assigned_to) {
@@ -2323,7 +2338,8 @@ class Projects extends MY_Controller {
         return json_encode($assigned_to_dropdown);
     }
 
-    function all_tasks() {
+    function all_tasks()
+    {
         $this->access_only_team_members();
         $view_data['project_id'] = 0;
         $projects = $this->Tasks_model->get_my_projects_dropdown_list($this->login_user->id)->result();
@@ -2345,20 +2361,17 @@ class Projects extends MY_Controller {
             }
         }
 
-
         $view_data['team_members_dropdown'] = json_encode($team_members_dropdown);
         $view_data["custom_field_headers"] = $this->Custom_fields_model->get_custom_field_headers_for_table("tasks", $this->login_user->is_admin, $this->login_user->user_type);
-
         $view_data['task_statuses'] = $this->Task_status_model->get_details()->result();
-
         $view_data['projects_dropdown'] = json_encode($projects_dropdown);
         $view_data['can_create_tasks'] = $this->can_create_tasks(false);
 
         $this->template->rander("projects/tasks/my_tasks", $view_data);
     }
 
-    function all_tasks_kanban() {
-
+    function all_tasks_kanban()
+    {
         $projects = $this->Tasks_model->get_my_projects_dropdown_list($this->login_user->id)->result();
         $projects_dropdown = array(array("id" => "", "text" => "- " . lang("project") . " -"));
         foreach ($projects as $project) {
@@ -2369,8 +2382,8 @@ class Projects extends MY_Controller {
 
         $team_members_dropdown = array(array("id" => "", "text" => "- " . lang("team_member") . " -"));
         $assigned_to_list = $this->Users_model->get_dropdown_list(array("first_name", "last_name"), "id", array("deleted" => 0, "user_type" => "staff"));
-        foreach ($assigned_to_list as $key => $value) {
 
+        foreach ($assigned_to_list as $key => $value) {
             if ($key == $this->login_user->id) {
                 $team_members_dropdown[] = array("id" => $key, "text" => $value, "isSelected" => true);
             } else {
@@ -2379,17 +2392,16 @@ class Projects extends MY_Controller {
         }
 
         $view_data['team_members_dropdown'] = json_encode($team_members_dropdown);
-
         $view_data['projects_dropdown'] = json_encode($projects_dropdown);
         $view_data['can_create_tasks'] = $this->can_create_tasks(false);
-
         $view_data['task_statuses'] = $this->Task_status_model->get_details()->result();
 
         $this->template->rander("projects/tasks/kanban/all_tasks", $view_data);
     }
 
-    //check user's task editting permission on changing of project
-    function can_edit_task_of_the_project($project_id = 0) {
+    // check user's task editting permission on changing of project
+    function can_edit_task_of_the_project($project_id = 0)
+    {
         if ($project_id) {
             $this->init_project_permission_checker($project_id);
 
@@ -2401,17 +2413,14 @@ class Projects extends MY_Controller {
         }
     }
 
-    function all_tasks_kanban_data() {
-
+    function all_tasks_kanban_data()
+    {
         $this->access_only_team_members();
-
         $status = $this->input->post('status_id') ? implode(",", $this->input->post('status_id')) : "";
         $project_id = $this->input->post('project_id');
 
         $this->init_project_permission_checker($project_id);
-
         $specific_user_id = $this->input->post('specific_user_id');
-
         $options = array(
             "specific_user_id" => $specific_user_id,
             "status_ids" => $status,
@@ -2441,16 +2450,14 @@ class Projects extends MY_Controller {
     }
 
     /* prepare data for the projuect view's kanban tab  */
-
-    function project_tasks_kanban_data($project_id = 0) {
+    function project_tasks_kanban_data($project_id = 0)
+    {
         $this->init_project_permission_checker($project_id);
-
         if (!$this->can_view_tasks($project_id)) {
-            //redirect("forbidden");
+            // redirect("forbidden");
         }
 
         $specific_user_id = $this->input->post('specific_user_id');
-
         $options = array(
             "specific_user_id" => $specific_user_id,
             "project_id" => $project_id,
@@ -2463,10 +2470,8 @@ class Projects extends MY_Controller {
             "quick_filter" => $this->input->post('quick_filter')
         );
 
-
         $view_data["tasks"] = $this->Tasks_model->get_kanban_details($options)->result();
         $statuses = $this->Task_status_model->get_details();
-
         $view_data["total_columns"] = $statuses->num_rows();
         $view_data["columns"] = $statuses->result();
         $view_data['can_edit_tasks'] = $this->can_edit_tasks();
@@ -2475,18 +2480,19 @@ class Projects extends MY_Controller {
         $this->load->view('projects/tasks/kanban/kanban_view', $view_data);
     }
 
-    function set_task_comments_as_read($task_id = 0) {
+    function set_task_comments_as_read($task_id = 0)
+    {
         if ($task_id) {
             $this->Tasks_model->set_task_comments_as_read($task_id, $this->login_user->id);
         }
     }
 
-    function task_view($task_id = 0) {
+    function task_view($task_id = 0)
+    {
         $view_type = "";
-
-        if ($task_id) { //details page
+        if ($task_id) { // details page
             $view_type = "details";
-        } else { //modal view
+        } else { // modal view
             $task_id = $this->input->post('id');
         }
 
@@ -2497,11 +2503,10 @@ class Projects extends MY_Controller {
         $this->init_project_permission_checker($model_info->project_id);
 
         if (!$this->can_view_tasks($model_info->project_id, $task_id)) {
-            //redirect("forbidden");
+            // redirect("forbidden");
         }
 
         $view_data = $this->_initialize_all_related_data_of_project($model_info->project_id, $model_info->collaborators, $model_info->labels);
-
         $view_data['show_assign_to_dropdown'] = true;
         if ($this->login_user->user_type == "client") {
             $view_data['show_assign_to_dropdown'] = false;
@@ -2509,19 +2514,16 @@ class Projects extends MY_Controller {
 
         $view_data['can_edit_tasks'] = $this->can_edit_tasks();
         $view_data['can_comment_on_tasks'] = $this->can_comment_on_tasks();
-
         $view_data['model_info'] = $model_info;
         $view_data['collaborators'] = $this->_get_collaborators($model_info->collaborator_list, false);
-       
         $view_data['labels'] = make_labels_view_data($model_info->labels_list);
 
         $options = array("task_id" => $task_id, "login_user_id" => $this->login_user->id);
         $view_data['comments'] = $this->Project_comments_model->get_details($options)->result();
         $view_data['task_id'] = $task_id;
-
         $view_data['custom_fields_list'] = $this->Custom_fields_model->get_combined_details("tasks", $task_id, $this->login_user->is_admin, $this->login_user->user_type)->result();
 
-        //get checklist items
+        // get checklist items
         $checklist_items_array = array();
         $checklist_items = $this->Checklist_items_model->get_details(array("task_id" => $task_id))->result();
         foreach ($checklist_items as $checklist_item) {
@@ -2529,21 +2531,20 @@ class Projects extends MY_Controller {
         }
         $view_data["checklist_items"] = json_encode($checklist_items_array);
 
-        //get sub tasks
+        // get sub tasks
         $sub_tasks_array = array();
         $sub_tasks = $this->Tasks_model->get_details(array("parent_task_id" => $task_id))->result();
         foreach ($sub_tasks as $sub_task) {
             $sub_tasks_array[] = $this->_make_sub_task_row($sub_task);
         }
         $view_data["sub_tasks"] = json_encode($sub_tasks_array);
-
         $view_data["show_timer"] = get_setting("module_project_timesheet") ? true : false;
 
         if ($this->login_user->user_type === "client") {
             $view_data["show_timer"] = false;
         }
 
-        //disable the start timer button if user has any timer in this project or if it's an another project and the setting is disabled
+        // disable the start timer button if user has any timer in this project or if it's an another project and the setting is disabled
         $view_data["disable_timer"] = false;
         $user_has_any_timer = $this->Timesheets_model->user_has_any_timer($this->login_user->id);
         if ($user_has_any_timer && !get_setting("users_can_start_multiple_timers_at_a_time")) {
@@ -2558,25 +2559,20 @@ class Projects extends MY_Controller {
         }
 
         $view_data['project_id'] = $model_info->project_id;
-
         $view_data['can_create_tasks'] = $this->can_create_tasks();
-
         $view_data['parent_task_title'] = $this->Tasks_model->get_one($model_info->parent_task_id)->title;
-
         $view_data["view_type"] = $view_type;
-
         $view_data["blocked_by"] = $this->_make_dependency_tasks_view_data($this->_get_all_dependency_for_this_task_specific($model_info->blocked_by, $task_id, "blocked_by"), $task_id, "blocked_by");
         $view_data["blocking"] = $this->_make_dependency_tasks_view_data($this->_get_all_dependency_for_this_task_specific($model_info->blocking, $task_id, "blocking"), $task_id, "blocking");
-
         $view_data["project_deadline"] = $this->_get_project_deadline_for_task($model_info->project_id);
 
-        //count total worked hours in a task
+        // count total worked hours in a task
         $timesheet_options = array("project_id" => $model_info->project_id, "task_id" => $model_info->id);
 
-        //get allowed member ids
+        // get allowed member ids
         $members = $this->_get_members_to_manage_timesheet();
         if ($members != "all") {
-            //if user has permission to access all members, query param is not required
+            // if user has permission to access all members, query param is not required
             $timesheet_options["allowed_members"] = $members;
         }
 
@@ -2590,7 +2586,8 @@ class Projects extends MY_Controller {
         }
     }
 
-    private function _get_project_deadline_for_task($project_id) {
+    private function _get_project_deadline_for_task($project_id)
+    {
         $project_deadline_date = "";
         $project_deadline = $this->Projects_model->get_one($project_id)->deadline;
         if (get_setting("task_deadline_should_be_before_project_deadline") && is_date_exists($project_deadline)) {
@@ -2600,11 +2597,11 @@ class Projects extends MY_Controller {
         return $project_deadline_date;
     }
 
-    private function _initialize_all_related_data_of_project($project_id = 0, $collaborators = "", $task_labels = "") {
-        //we have to check if any defined project exists, then go through with the project id
+    private function _initialize_all_related_data_of_project($project_id = 0, $collaborators = "", $task_labels = "")
+    {
+        // we have to check if any defined project exists, then go through with the project id
         if ($project_id) {
             $this->init_project_permission_checker($project_id);
-
             $related_data = $this->get_all_related_data_of_project($project_id, $collaborators, $task_labels);
 
             $view_data['milestones_dropdown'] = $related_data["milestones_dropdown"];
@@ -2614,7 +2611,7 @@ class Projects extends MY_Controller {
         } else {
             $view_data["projects_dropdown"] = $this->_get_projects_dropdown();
 
-            //we have to show an empty dropdown when there is no project_id defined
+            // we have to show an empty dropdown when there is no project_id defined
             $view_data['milestones_dropdown'] = array(array("id" => "", "text" => "-"));
             $view_data['assign_to_dropdown'] = array(array("id" => "", "text" => "-"));
             $view_data['collaborators_dropdown'] = array();
@@ -2631,69 +2628,62 @@ class Projects extends MY_Controller {
         }
 
         $view_data['points_dropdown'] = $task_points;
-
         $view_data['statuses'] = $this->Task_status_model->get_details()->result();
-
         return $view_data;
     }
 
     /* task add/edit modal */
-
-    function task_modal_form() {
+    function task_modal_form()
+    {
         $id = $this->input->post('id');
         $add_type = $this->input->post('add_type');
         $last_id = $this->input->post('last_id');
         $ticket_id = $this->input->post('ticket_id');
-
         $model_info = $this->Tasks_model->get_one($id);
         $project_id = $this->input->post('project_id') ? $this->input->post('project_id') : $model_info->project_id;
 
         $final_project_id = $project_id;
         if ($add_type == "multiple" && $last_id) {
-            //we've to show the lastly added information if it's the operation of adding multiple tasks
+            // we've to show the lastly added information if it's the operation of adding multiple tasks
             $model_info = $this->Tasks_model->get_one($last_id);
 
-            //if we got lastly added task id, then we have to initialize all data of that in order to make dropdowns
+            // if we got lastly added task id, then we have to initialize all data of that in order to make dropdowns
             $final_project_id = $model_info->project_id;
         }
 
         $view_data = $this->_initialize_all_related_data_of_project($final_project_id, $model_info->collaborators, $model_info->labels);
-
         if ($id) {
             if (!$this->can_edit_tasks()) {
-                //redirect("forbidden");
+                // redirect("forbidden");
             }
         } else {
             if (!$this->can_create_tasks($project_id ? true : false)) {
-                //redirect("forbidden");
+                // redirect("forbidden");
             }
         }
 
         $view_data['model_info'] = $model_info;
-        
-        $view_data["projects_dropdown"] = $this->_get_projects_dropdown(); //projects dropdown is necessary on add multiple tasks
+        $view_data["projects_dropdown"] = $this->_get_projects_dropdown(); // projects dropdown is necessary on add multiple tasks
         $view_data["add_type"] = $add_type;
         $view_data['project_id'] = $project_id;
         $view_data['ticket_id'] = $ticket_id;
         $project_info = $this->Projects_model->get_details(array("id" => $project_id))->row();
         $team = $this->Project_members_model->get_team_work($project_id);
-       
-        
+
         $data_team = array();
-        foreach($team as $k ){
+        foreach ($team as $k) {
             $a = array($k->project_id);
-            if(in_array($project_info->id,$a)){
-            $data_team[] = array("id" => $k->id, "text" => $k->title);
-                
-            } 
+            if (in_array($project_info->id, $a)) {
+                $data_team[] = array("id" => $k->id, "text" => $k->title);
+            }
         }
+
         $view_data['team'] = $data_team;
-        
         $view_data['show_assign_to_dropdown'] = true;
         if ($this->login_user->user_type == "client") {
             $view_data['show_assign_to_dropdown'] = false;
         } else {
-            //set default assigne to for new tasks
+            // set default assigne to for new tasks
             if (!$id && !$view_data['model_info']->assigned_to) {
                 $view_data['model_info']->assigned_to = $this->login_user->id;
             }
@@ -2701,23 +2691,20 @@ class Projects extends MY_Controller {
 
         $view_data["custom_fields"] = $this->Custom_fields_model->get_combined_details("tasks", $view_data['model_info']->id, $this->login_user->is_admin, $this->login_user->user_type)->result();
 
-        //clone task
+        // clone task
         $is_clone = $this->input->post('is_clone');
         $view_data['is_clone'] = $is_clone;
-
         $view_data['view_type'] = $this->input->post("view_type");
-
         $view_data['has_checklist'] = $this->Checklist_items_model->get_details(array("task_id" => $id))->num_rows();
         $view_data['has_sub_task'] = $this->Tasks_model->get_all_where(array("parent_task_id" => $id, "deleted" => 0))->num_rows();
 
         $view_data["project_deadline"] = $this->_get_project_deadline_for_task($project_id);
-        
-
         $this->load->view('projects/tasks/modal_form', $view_data);
     }
 
-    //get projects dropdown
-    private function _get_projects_dropdown() {
+    // Get projects dropdown
+    private function _get_projects_dropdown()
+    {
         $project_options = array("status" => "open");
         if ($this->login_user->user_type == "staff") {
             if (!$this->can_manage_all_projects()) {
@@ -2729,28 +2716,25 @@ class Projects extends MY_Controller {
 
         $projects = $this->Projects_model->get_details($project_options)->result();
         $projects_dropdown = array("" => "-");
-
         if ($projects) {
             foreach ($projects as $project) {
                 $projects_dropdown[$project->id] = $project->title;
             }
         }
-
         return $projects_dropdown;
     }
 
-    private function get_all_related_data_of_project($project_id, $collaborators = "", $task_labels = "") {
-
+    private function get_all_related_data_of_project($project_id, $collaborators = "", $task_labels = "")
+    {
         if ($project_id) {
-
-            //get milestone dropdown
+            // get milestone dropdown
             $milestones = $this->Milestones_model->get_details(array("project_id" => $project_id, "deleted" => 0))->result();
             $milestones_dropdown = array(array("id" => "", "text" => "-"));
             foreach ($milestones as $milestone) {
                 $milestones_dropdown[] = array("id" => $milestone->id, "text" => $milestone->title);
             }
 
-            //get project members and collaborators dropdown
+            // get project members and collaborators dropdown
             $project_members = $this->Project_members_model->get_project_members_dropdown_list($project_id, "", $this->can_access_clients())->result();
             // var_dump($project_members);exit;
             $project_members_dropdown = array(array("id" => "", "text" => "-"));
@@ -2759,16 +2743,15 @@ class Projects extends MY_Controller {
             foreach ($project_members as $member) {
                 $project_members_dropdown[] = array("id" => $member->user_id, "text" => $member->member_name);
 
-                //if there is already any inactive user in collaborators list
-                //we've to show the user(s) for furthur operation
+                // if there is already any inactive user in collaborators list
+                // we've to show the user(s) for furthur operation
                 if (in_array($member->user_id, $collaborators_array) || $member->member_status == "active") {
                     $collaborators_dropdown[] = array("id" => $member->user_id, "text" => $member->member_name);
                 }
             }
 
-            //get labels suggestion
+            // Get labels suggestion
             $label_suggestions = $this->make_labels_dropdown("task", $task_labels);
-
             return array(
                 "milestones_dropdown" => $milestones_dropdown,
                 "assign_to_dropdown" => $project_members_dropdown,
@@ -2779,25 +2762,25 @@ class Projects extends MY_Controller {
     }
 
     /* get all related data of selected project */
-
-    function get_all_related_data_of_selected_project($project_id) {
-
+    function get_all_related_data_of_selected_project($project_id)
+    {
         if ($project_id) {
             $related_data = $this->get_all_related_data_of_project($project_id);
 
-            echo json_encode(array(
-                "milestones_dropdown" => $related_data["milestones_dropdown"],
-                "assign_to_dropdown" => $related_data["assign_to_dropdown"],
-                "collaborators_dropdown" => $related_data["collaborators_dropdown"],
-                "label_suggestions" => $related_data["label_suggestions"],
-            ));
+            echo json_encode(
+                array(
+                    "milestones_dropdown" => $related_data["milestones_dropdown"],
+                    "assign_to_dropdown" => $related_data["assign_to_dropdown"],
+                    "collaborators_dropdown" => $related_data["collaborators_dropdown"],
+                    "label_suggestions" => $related_data["label_suggestions"],
+                )
+            );
         }
     }
 
     /* insert/upadate/clone a task */
-
-    function save_task() {
-
+    function save_task()
+    {
         $project_id = $this->input->post('project_id');
         $id = $this->input->post('id');
         $add_type = $this->input->post('add_type');
@@ -2807,19 +2790,18 @@ class Projects extends MY_Controller {
         $is_clone = $this->input->post('is_clone');
         $main_task_id = "";
         if ($is_clone && $id) {
-            $main_task_id = $id; //store main task id to get items later
-            $id = ""; //on cloning task, save as new
+            $main_task_id = $id; // store main task id to get items later
+            $id = ""; // on cloning task, save as new
         }
-
         $this->init_project_permission_checker($project_id);
 
         if ($id) {
             if (!$this->can_edit_tasks()) {
-                //redirect("forbidden");
+                // redirect("forbidden");
             }
         } else {
             if (!$this->can_create_tasks()) {
-                //redirect("forbidden");
+                // redirect("forbidden");
             }
         }
 
@@ -2834,15 +2816,13 @@ class Projects extends MY_Controller {
         $status_id = $this->input->post('status_id');
         $team_get = $this->Project_members_model->get_team_work($project_id);
         $col_team = '';
-        foreach($team_get as $key => $val){
-            if($val->id == $team_select){
+        foreach ($team_get as $key => $val) {
+            if ($val->id == $team_select) {
                 $team_name = $val->title;
                 $col_team = $val->members;
             }
-        }  
-       
-        
-        
+        }
+
         $data = array(
             "title" => $this->input->post('title'),
             "description" => $this->input->post('description'),
@@ -2864,12 +2844,11 @@ class Projects extends MY_Controller {
         if (!$id) {
             $data["created_date"] = $now;
         }
-
         if ($ticket_id) {
             $data["ticket_id"] = $ticket_id;
         }
-        
-        //clint can't save the assign to and collaborators
+
+        // clint can't save the assign to and collaborators
         if ($this->login_user->user_type == "client") {
             if (!$id) { //it's new data to save
                 $data["assigned_to"] = 0;
@@ -2877,21 +2856,18 @@ class Projects extends MY_Controller {
             }
         } else {
             $data["assigned_to"] = $assigned_to;
-            if(empty($collaborators)){
+            if (empty($collaborators)) {
                 $data["collaborators"] = $col_team;
-            }else if(empty($team_select)){
+            } else if (empty($team_select)) {
                 $data["team_id"] = '';
                 $data["team_name"] = '';
-                $data["collaborators"] = $collaborators; 
+                $data["collaborators"] = $collaborators;
             }
-            
+
         }
-
-        
-
         $data = clean_data($data);
 
-        //set null value after cleaning the data
+        // set null value after cleaning the data
         if (!$data["start_date"]) {
             $data["start_date"] = NULL;
         }
@@ -2900,25 +2876,23 @@ class Projects extends MY_Controller {
             $data["deadline"] = NULL;
         }
 
-        //deadline must be greater or equal to start date
+        // Deadline must be greater or equal to start date
         if ($data["start_date"] && $data["deadline"] && $data["deadline"] < $data["start_date"]) {
             echo json_encode(array("success" => false, 'message' => lang('deadline_must_be_equal_or_greater_than_start_date')));
             return false;
         }
 
         $copy_checklist = $this->input->post("copy_checklist");
-
         $next_recurring_date = "";
 
         if ($recurring && get_setting("enable_recurring_option_for_tasks")) {
-            //set next recurring date for recurring tasks
-
+            // set next recurring date for recurring tasks
             if ($id) {
-                //update
-                if ($this->input->post('next_recurring_date')) { //submitted any recurring date? set it.
+                // update
+                if ($this->input->post('next_recurring_date')) { // submitted any recurring date? set it.
                     $next_recurring_date = $this->input->post('next_recurring_date');
                 } else {
-                    //re-calculate the next recurring date, if any recurring fields has changed.
+                    // re-calculate the next recurring date, if any recurring fields has changed.
                     $task_info = $this->Tasks_model->get_one($id);
                     if ($task_info->recurring != $data['recurring'] || $task_info->repeat_every != $data['repeat_every'] || $task_info->repeat_type != $data['repeat_type'] || $task_info->start_date != $data['start_date']) {
                         $recurring_start_date = $start_date ? $start_date : $task_info->created_date;
@@ -2926,20 +2900,19 @@ class Projects extends MY_Controller {
                     }
                 }
             } else {
-                //insert new
+                // insert new
                 $recurring_start_date = $start_date ? $start_date : get_array_value($data, "created_date");
                 $next_recurring_date = add_period_to_date($recurring_start_date, $repeat_every, $repeat_type);
             }
 
-
-            //recurring date must have to set a future date
+            // recurring date must have to set a future date
             if ($next_recurring_date && get_today_date() >= $next_recurring_date) {
                 echo json_encode(array("success" => false, 'message' => lang('past_recurring_date_error_message_title_for_tasks'), 'next_recurring_date_error' => lang('past_recurring_date_error_message'), "next_recurring_date_value" => $next_recurring_date));
                 return false;
             }
         }
 
-        //save status changing time for edit mode
+        // save status changing time for edit mode
         if ($id) {
             $task_info = $this->Tasks_model->get_one($id);
             if ($task_info->status_id !== $status_id) {
@@ -2949,9 +2922,8 @@ class Projects extends MY_Controller {
 
         $save_id = $this->Tasks_model->save($data, $id);
         if ($save_id) {
-
             if ($is_clone && $main_task_id) {
-                //clone task checklist
+                // clone task checklist
                 if ($copy_checklist) {
                     $checklist_items = $this->Checklist_items_model->get_all_where(array("task_id" => $main_task_id, "deleted" => 0))->result();
                     foreach ($checklist_items as $checklist_item) {
@@ -2964,11 +2936,11 @@ class Projects extends MY_Controller {
                     }
                 }
 
-                //clone sub tasks
+                // clone sub tasks
                 if ($this->input->post("copy_sub_tasks")) {
                     $sub_tasks = $this->Tasks_model->get_all_where(array("parent_task_id" => $main_task_id, "deleted" => 0))->result();
                     foreach ($sub_tasks as $sub_task) {
-                        //prepare new sub task data
+                        // prepare new sub task data
                         $sub_task_data = (array) $sub_task;
 
                         unset($sub_task_data["id"]);
@@ -2983,7 +2955,7 @@ class Projects extends MY_Controller {
                 }
             }
 
-            //save next recurring date 
+            // Save next recurring date 
             if ($next_recurring_date) {
                 $recurring_task_data = array(
                     "next_recurring_date" => $next_recurring_date
@@ -2991,24 +2963,23 @@ class Projects extends MY_Controller {
                 $this->Tasks_model->save_reminder_date($recurring_task_data, $save_id);
             }
 
-            // if created from ticket then save the task id
+            // If created from ticket then save the task id
             if ($ticket_id) {
                 $data = array("task_id" => $save_id);
                 $this->Tickets_model->save($data, $ticket_id);
             }
 
             $activity_log_id = get_array_value($data, "activity_log_id");
-
             $new_activity_log_id = save_custom_fields("tasks", $save_id, $this->login_user->is_admin, $this->login_user->user_type, $activity_log_id);
 
             if ($id) {
-                //updated
+                // updated
                 log_notification("project_task_updated", array("project_id" => $project_id, "task_id" => $save_id, "activity_log_id" => $new_activity_log_id ? $new_activity_log_id : $activity_log_id));
             } else {
-                //created
+                // created
                 log_notification("project_task_created", array("project_id" => $project_id, "task_id" => $save_id));
 
-                //save uploaded files as comment
+                // save uploaded files as comment
                 $target_path = get_setting("timeline_file_path");
                 $files_data = move_files_from_temp_dir_to_permanent_dir($target_path, "project_comment");
 
@@ -3021,30 +2992,30 @@ class Projects extends MY_Controller {
                     );
 
                     $comment_data = clean_data($comment_data);
-
-                    $comment_data["files"] = $files_data; //don't clean serilized data
+                    $comment_data["files"] = $files_data; // Don't clean serilized data
 
                     $this->Project_comments_model->save_comment($comment_data);
                 }
             }
-
             echo json_encode(array("success" => true, "data" => $this->_task_row_data($save_id), 'id' => $save_id, 'message' => lang('record_saved'), "add_type" => $add_type));
         } else {
             echo json_encode(array("success" => false, 'message' => lang('error_occurred')));
         }
     }
 
-    function save_sub_task() {
+    function save_sub_task()
+    {
         $project_id = $this->input->post('project_id');
-
-        validate_submitted_data(array(
-            "project_id" => "required|numeric",
-            "parent_task_id" => "required|numeric"
-        ));
+        validate_submitted_data(
+            array(
+                "project_id" => "required|numeric",
+                "parent_task_id" => "required|numeric"
+            )
+        );
 
         $this->init_project_permission_checker($project_id);
         if (!$this->can_create_tasks()) {
-            //redirect("forbidden");
+            // redirect("forbidden");
         }
 
         $data = array(
@@ -3056,7 +3027,7 @@ class Projects extends MY_Controller {
             "created_date" => get_current_utc_time()
         );
 
-        //don't get assign to id if login user is client
+        // Don't get assign to id if login user is client
         if ($this->login_user->user_type == "client") {
             $data["assigned_to"] = 0;
         } else {
@@ -3064,22 +3035,19 @@ class Projects extends MY_Controller {
         }
 
         $data = clean_data($data);
-
         $save_id = $this->Tasks_model->save($data);
 
         if ($save_id) {
             log_notification("project_task_created", array("project_id" => $project_id, "task_id" => $save_id));
-
             $task_info = $this->Tasks_model->get_details(array("id" => $save_id))->row();
-
             echo json_encode(array("success" => true, "task_data" => $this->_make_sub_task_row($task_info), "data" => $this->_task_row_data($save_id), 'id' => $save_id, 'message' => lang('record_saved')));
         } else {
             echo json_encode(array("success" => false, 'message' => lang('error_occurred')));
         }
     }
 
-    private function _make_sub_task_row($data, $return_type = "row") {
-
+    private function _make_sub_task_row($data, $return_type = "row")
+    {
         $checkbox_class = "checkbox-blank";
         $title_class = "";
 
@@ -3094,19 +3062,17 @@ class Projects extends MY_Controller {
         }
 
         $title = anchor(get_uri("projects/task_view/$data->id"), $data->title, array("class" => "font-13", "target" => "_blank"));
-
         $status_label = "<span class='pull-right'><span class='label mt0' style='background: $data->status_color;'>" . ($data->status_key_name ? lang($data->status_key_name) : $data->status_title) . "</span></span>";
 
         if ($return_type == "data") {
             return $status . $title . $status_label;
         }
-
         return "<div class='list-group-item mb5' data-id='$data->id'>" . $status . $title . $status_label . "</div>";
     }
 
     /* upadate a task status */
-
-    function save_task_status($id = 0) {
+    function save_task_status($id = 0)
+    {
         $this->access_only_team_members();
         $status_id = $this->input->post('value');
         $data = array(
@@ -3115,7 +3081,7 @@ class Projects extends MY_Controller {
 
         $task_info = $this->Tasks_model->get_details(array("id" => $id))->row();
         if (!can_edit_this_task_status($task_info->assigned_to)) {
-            //redirect("forbidden");
+            // redirect("forbidden");
         }
 
         if ($task_info->status_id !== $status_id) {
@@ -3123,7 +3089,6 @@ class Projects extends MY_Controller {
         }
 
         $save_id = $this->Tasks_model->save($data, $id);
-
         if ($save_id) {
             $task_info = $this->Tasks_model->get_details(array("id" => $id))->row();
             echo json_encode(array("success" => true, "data" => (($this->input->post("type") == "sub_task") ? $this->_make_sub_task_row($task_info, "data") : $this->_task_row_data($save_id)), 'id' => $save_id, "message" => lang('record_saved')));
@@ -3134,18 +3099,17 @@ class Projects extends MY_Controller {
         }
     }
 
-    function update_task_info($id = 0, $data_field = "") {
+    function update_task_info($id = 0, $data_field = "")
+    {
         if ($id) {
             $task_info = $this->Tasks_model->get_one($id);
             $this->init_project_permission_checker($task_info->project_id);
-
             if (!$this->can_edit_tasks()) {
-                //redirect("forbidden");
+                // redirect("forbidden");
             }
 
             $value = $this->input->post('value');
-
-            //deadline must be greater or equal to start date
+            // Deadline must be greater or equal to start date
             if ($data_field == "deadline" && $task_info->start_date && $value < $task_info->start_date) {
                 echo json_encode(array("success" => false, 'message' => lang('deadline_must_be_equal_or_greater_than_start_date')));
                 return false;
@@ -3200,7 +3164,6 @@ class Projects extends MY_Controller {
                 }
 
                 echo json_encode($success_array);
-
                 log_notification("project_task_updated", array("project_id" => $task_info->project_id, "task_id" => $save_id, "activity_log_id" => get_array_value($data, "activity_log_id")));
             } else {
                 echo json_encode(array("success" => false, lang('error_occurred')));
@@ -3209,20 +3172,22 @@ class Projects extends MY_Controller {
     }
 
     /* upadate a task status */
-
-    function save_task_sort_and_status() {
+    function save_task_sort_and_status()
+    {
         $project_id = $this->input->post('project_id');
         $this->init_project_permission_checker($project_id);
 
-        validate_submitted_data(array(
-            "id" => "required|numeric"
-        ));
+        validate_submitted_data(
+            array(
+                "id" => "required|numeric"
+            )
+        );
 
         $id = $this->input->post('id');
         $task_info = $this->Tasks_model->get_one($id);
 
         if (($this->login_user->user_type == "staff" && !can_edit_this_task_status($task_info->assigned_to)) || ($this->login_user->user_type == "client" && !$this->can_edit_tasks())) {
-            //redirect("forbidden");
+            // redirect("forbidden");
         }
 
         $status_id = $this->input->post('status_id');
@@ -3239,7 +3204,6 @@ class Projects extends MY_Controller {
         }
 
         $save_id = $this->Tasks_model->save($data, $id);
-
         if ($save_id) {
             if ($status_id) {
                 log_notification("project_task_updated", array("project_id" => $task_info->project_id, "task_id" => $save_id, "activity_log_id" => get_array_value($data, "activity_log_id")));
@@ -3250,16 +3214,14 @@ class Projects extends MY_Controller {
     }
 
     /* delete or undo a task */
-
-    function delete_task() {
-
+    function delete_task()
+    {
         $id = $this->input->post('id');
         $info = $this->Tasks_model->get_one($id);
 
         $this->init_project_permission_checker($info->project_id);
-
         if (!$this->can_delete_tasks()) {
-            //redirect("forbidden");
+            // Redirect("forbidden");
         }
 
         if ($this->input->post('undo')) {
@@ -3281,18 +3243,16 @@ class Projects extends MY_Controller {
     }
 
     /* list of tasks, prepared for datatable  */
-
-    function tasks_list_data($project_id = 0) {
+    function tasks_list_data($project_id = 0)
+    {
         $this->init_project_permission_checker($project_id);
-
         if (!$this->can_view_tasks($project_id)) {
-            //redirect("forbidden");
+            // Redirect("forbidden");
         }
-        $custom_fields = $this->Custom_fields_model->get_available_fields_for_table("tasks", $this->login_user->is_admin, $this->login_user->user_type);
 
+        $custom_fields = $this->Custom_fields_model->get_available_fields_for_table("tasks", $this->login_user->is_admin, $this->login_user->user_type);
         $status = $this->input->post('status_id') ? implode(",", $this->input->post('status_id')) : "";
         $milestone_id = $this->input->post('milestone_id');
-
         $options = array(
             "project_id" => $project_id,
             "assigned_to" => $this->input->post('assigned_to'),
@@ -3315,19 +3275,15 @@ class Projects extends MY_Controller {
     }
 
     /* list of tasks, prepared for datatable  */
-
-    function my_tasks_list_data($is_widget = 0) {
+    function my_tasks_list_data($is_widget = 0)
+    {
         $this->access_only_team_members();
-
         $status = $this->input->post('status_id') ? implode(",", $this->input->post('status_id')) : "";
         $project_id = $this->input->post('project_id');
 
         $this->init_project_permission_checker($project_id);
-
         $specific_user_id = $this->input->post('specific_user_id');
-
         $custom_fields = $this->Custom_fields_model->get_available_fields_for_table("tasks", $this->login_user->is_admin, $this->login_user->user_type);
-
         $options = array(
             "specific_user_id" => $specific_user_id,
             "project_id" => $project_id,
@@ -3353,7 +3309,6 @@ class Projects extends MY_Controller {
             $options["project_member_id"] = $this->login_user->id; //don't show all tasks to non-admin users
         }
 
-
         $list_data = $this->Tasks_model->get_details($options)->result();
         $result = array();
         foreach ($list_data as $data) {
@@ -3363,21 +3318,19 @@ class Projects extends MY_Controller {
     }
 
     /* return a row of task list table */
-
-    private function _task_row_data($id) {
+    private function _task_row_data($id)
+    {
         $custom_fields = $this->Custom_fields_model->get_available_fields_for_table("tasks", $this->login_user->is_admin, $this->login_user->user_type);
-
         $options = array("id" => $id, "custom_fields" => $custom_fields);
         $data = $this->Tasks_model->get_details($options)->row();
 
         $this->init_project_permission_checker($data->project_id);
-
         return $this->_make_task_row($data, $custom_fields);
     }
 
     /* prepare a row of task list table */
-
-    private function _make_task_row($data, $custom_fields) {
+    private function _make_task_row($data, $custom_fields)
+    {
         $unread_comments_class = "";
         $icon = "";
         if (isset($data->unread) && $data->unread && $data->unread != "0") {
@@ -3391,26 +3344,22 @@ class Projects extends MY_Controller {
         }
 
         $title .= modal_anchor(get_uri("projects/task_view"), $data->title . $icon, array("title" => lang('task_info') . " #$data->id", "data-post-id" => $data->id, "class" => $unread_comments_class, "data-modal-lg" => "1"));
-
         $task_labels = make_labels_view_data($data->labels_list, true);
-
         $title .= "<span class='pull-right ml5'>" . $task_labels . "</span>";
 
         $task_point = "";
         if ($data->points > 1) {
             $task_point .= "<span class='label label-light clickable'  title='Point'>" . $data->points . "</span> ";
         }
+
         $title .= "<span class='pull-right'>" . $task_point . "</span>";
-
         $project_title = anchor(get_uri("projects/view/" . $data->project_id), $data->project_title);
-
         $milestone_title = "-";
         if ($data->milestone_title) {
             $milestone_title = $data->milestone_title;
         }
 
         $assigned_to = "-";
-
         if ($data->assigned_to) {
             $image_url = get_avatar($data->assigned_to_avatar);
             $assigned_to_user = "<span class='avatar avatar-xs mr10'><img src='$image_url' alt='...'></span> $data->assigned_to_user";
@@ -3423,13 +3372,10 @@ class Projects extends MY_Controller {
             }
         }
 
-
         $collaborators = $this->_get_collaborators($data->collaborator_list);
-
         if (!$collaborators) {
             $collaborators = "-";
         }
-
 
         $checkbox_class = "checkbox-blank";
         if ($data->status_key_name === "done") {
@@ -3437,19 +3383,17 @@ class Projects extends MY_Controller {
         }
 
         if ($this->login_user->user_type == "staff" && can_edit_this_task_status($data->assigned_to)) {
-            //show changeable status checkbox and link to team members
+            // Show changeable status checkbox and link to team members
             $check_status = js_anchor("<span class='$checkbox_class'></span>", array('title' => "", "class" => "js-task", "data-id" => $data->id, "data-value" => $data->status_key_name === "done" ? "1" : "3", "data-act" => "update-task-status-checkbox")) . $data->id;
             $status = js_anchor($data->status_key_name ? lang($data->status_key_name) : $data->status_title, array('title' => "", "class" => "", "data-id" => $data->id, "data-value" => $data->status_id, "data-act" => "update-task-status"));
         } else {
-            //don't show clickable checkboxes/status to client
+            // Don't show clickable checkboxes/status to client
             if ($checkbox_class == "checkbox-blank") {
                 $checkbox_class = "checkbox-un-checked";
             }
             $check_status = "<span class='$checkbox_class'></span> " . $data->id;
             $status = $data->status_key_name ? lang($data->status_key_name) : $data->status_title;
         }
-
-
 
         $deadline_text = "-";
         if ($data->deadline && is_date_exists($data->deadline)) {
@@ -3460,7 +3404,6 @@ class Projects extends MY_Controller {
                 $deadline_text = "<span class='text-warning'>" . $deadline_text . "</span> ";
             }
         }
-
 
         $start_date = "-";
         if (is_date_exists($data->start_date)) {
@@ -3496,14 +3439,13 @@ class Projects extends MY_Controller {
         }
 
         $row_data[] = $options;
-
         return $row_data;
     }
 
-    private function _get_collaborators($collaborator_list, $clickable = true) {
+    private function _get_collaborators($collaborator_list, $clickable = true)
+    {
         $collaborators = "";
         if ($collaborator_list) {
-
             $collaborators_array = explode(",", $collaborator_list);
             foreach ($collaborators_array as $collaborator) {
                 $collaborator_parts = explode("--::--", $collaborator);
@@ -3530,9 +3472,9 @@ class Projects extends MY_Controller {
         return $collaborators;
     }
 
-    /* load comments view */
-
-    function comments($project_id) {
+    /* Load comments view */
+    function comments($project_id)
+    {
         $this->access_only_team_members();
 
         $options = array("project_id" => $project_id, "login_user_id" => $this->login_user->id);
@@ -3542,9 +3484,9 @@ class Projects extends MY_Controller {
     }
 
     /* load comments view */
-
-    function customer_feedback($project_id) {
-        $options = array("customer_feedback_id" => $project_id, "login_user_id" => $this->login_user->id); //customer feedback id and project id is same
+    function customer_feedback($project_id)
+    {
+        $options = array("customer_feedback_id" => $project_id, "login_user_id" => $this->login_user->id); // Customer feedback id and project id is same
         $view_data['comments'] = $this->Project_comments_model->get_details($options)->result();
         $view_data['customer_feedback_id'] = $project_id;
         $view_data['project_id'] = $project_id;
@@ -3552,8 +3494,8 @@ class Projects extends MY_Controller {
     }
 
     /* save project comments */
-
-    function save_comment() {
+    function save_comment()
+    {
         $id = $this->input->post('id');
 
         $target_path = get_setting("timeline_file_path");
@@ -3578,8 +3520,7 @@ class Projects extends MY_Controller {
         );
 
         $data = clean_data($data);
-
-        $data["files"] = $files_data; //don't clean serilized data
+        $data["files"] = $files_data; // Don't clean serilized data
 
         $save_id = $this->Project_comments_model->save_comment($data, $id);
         if ($save_id) {
@@ -3591,25 +3532,22 @@ class Projects extends MY_Controller {
                 $response_data = $this->load->view("projects/comments/comment_list", $view_data, true);
             }
             echo json_encode(array("success" => true, "data" => $response_data, 'message' => lang('comment_submited')));
-
-
             $comment_info = $this->Project_comments_model->get_one($save_id);
-
             $notification_options = array("project_id" => $comment_info->project_id, "project_comment_id" => $save_id);
 
-            if ($comment_info->file_id) { //file comment
+            if ($comment_info->file_id) { // File comment
                 $notification_options["project_file_id"] = $comment_info->file_id;
                 log_notification("project_file_commented", $notification_options);
-            } else if ($comment_info->task_id) { //task comment
+            } else if ($comment_info->task_id) { // Cask comment
                 $notification_options["task_id"] = $comment_info->task_id;
                 log_notification("project_task_commented", $notification_options);
-            } else if ($comment_info->customer_feedback_id) {  //customer feedback comment
+            } else if ($comment_info->customer_feedback_id) { // Customer feedback comment
                 if ($comment_id) {
                     log_notification("project_customer_feedback_replied", $notification_options);
                 } else {
                     log_notification("project_customer_feedback_added", $notification_options);
                 }
-            } else {  //project comment
+            } else { // Project comment
                 if ($comment_id) {
                     log_notification("project_comment_replied", $notification_options);
                 } else {
@@ -3621,24 +3559,22 @@ class Projects extends MY_Controller {
         }
     }
 
-    function delete_comment($id = 0) {
-
+    function delete_comment($id = 0)
+    {
         if (!$id) {
             exit();
         }
 
         $comment_info = $this->Project_comments_model->get_one($id);
 
-        //only admin and creator can delete the comment
+        // only admin and creator can delete the comment
         if (!($this->login_user->is_admin || $comment_info->created_by == $this->login_user->id)) {
             //redirect("forbidden");
         }
 
-
-        //delete the comment and files
+        // delete the comment and files
         if ($this->Project_comments_model->delete($id) && $comment_info->files) {
-
-            //delete the files
+            // delete the files
             $file_path = get_setting("timeline_file_path");
             $files = unserialize($comment_info->files);
 
@@ -3649,17 +3585,16 @@ class Projects extends MY_Controller {
     }
 
     /* load all replies of a comment */
-
-    function view_comment_replies($comment_id) {
+    function view_comment_replies($comment_id)
+    {
         $view_data['reply_list'] = $this->Project_comments_model->get_details(array("comment_id" => $comment_id))->result();
         $this->load->view("projects/comments/reply_list", $view_data);
     }
 
     /* show comment reply form */
-
-    function comment_reply_form($comment_id, $type = "project", $type_id = 0) {
+    function comment_reply_form($comment_id, $type = "project", $type_id = 0)
+    {
         $view_data['comment_id'] = $comment_id;
-
         if ($type === "project") {
             $view_data['project_id'] = $type_id;
         } else if ($type === "task") {
@@ -3669,17 +3604,17 @@ class Projects extends MY_Controller {
         } else if ($type == "customer_feedback") {
             $view_data['project_id'] = $type_id;
         }
+
         $this->load->view("projects/comments/reply_form", $view_data);
     }
 
     /* load files view */
-
-    function files($project_id) {
-
+    function files($project_id)
+    {
         $this->init_project_permission_checker($project_id);
 
         if (!$this->can_view_files()) {
-            //redirect("forbidden");
+            // redirect("forbidden");
         }
 
         $view_data['can_add_files'] = $this->can_add_files();
@@ -3689,9 +3624,9 @@ class Projects extends MY_Controller {
         $this->load->view("projects/files/index", $view_data);
     }
 
-    function view_file($file_id = 0) {
+    function view_file($file_id = 0)
+    {
         $file_info = $this->Project_files_model->get_details(array("id" => $file_id))->row();
-
         if ($file_info) {
 
             $this->init_project_permission_checker($file_info->project_id);
@@ -3701,7 +3636,6 @@ class Projects extends MY_Controller {
             }
 
             $view_data['can_comment_on_files'] = $this->can_comment_on_files();
-
             $file_url = get_source_url_of_file(make_array_of_file($file_info), get_setting("project_file_path") . $file_info->project_id . "/");
 
             $view_data["file_url"] = $file_url;
@@ -3722,15 +3656,14 @@ class Projects extends MY_Controller {
     }
 
     /* file upload modal */
-
-    function file_modal_form() {
+    function file_modal_form()
+    {
         $view_data['model_info'] = $this->Project_files_model->get_one($this->input->post('id'));
         $project_id = $this->input->post('project_id') ? $this->input->post('project_id') : $view_data['model_info']->project_id;
 
         $this->init_project_permission_checker($project_id);
-
         if (!$this->can_add_files()) {
-            //redirect("forbidden");
+            // redirect("forbidden");
         }
 
         $view_data['project_id'] = $project_id;
@@ -3738,25 +3671,20 @@ class Projects extends MY_Controller {
     }
 
     /* save project file data and move temp file to parmanent file directory */
-
-    function save_file() {
-
+    function save_file()
+    {
         $project_id = $this->input->post('project_id');
-
         $this->init_project_permission_checker($project_id);
-
         if (!$this->can_add_files()) {
-            //redirect("forbidden");
+            // redirect("forbidden");
         }
-
 
         $files = $this->input->post("files");
         $success = false;
         $now = get_current_utc_time();
-
         $target_path = getcwd() . "/" . get_setting("project_file_path") . $project_id . "/";
 
-        //process the fiiles which has been uploaded by dropzone
+        // Process the fiiles which has been uploaded by dropzone
         if ($files && get_array_value($files, 0)) {
             foreach ($files as $file) {
                 $file_name = $this->input->post('file_name_' . $file);
@@ -3783,7 +3711,7 @@ class Projects extends MY_Controller {
                 }
             }
         }
-        //process the files which has been submitted manually
+        // Process the files which has been submitted manually
         if ($_FILES) {
             $files = $_FILES['manualFiles'];
             if ($files && count($files) > 0) {
@@ -3821,33 +3749,31 @@ class Projects extends MY_Controller {
     }
 
     /* upload a post file */
-
-    function upload_file() {
+    function upload_file()
+    {
         upload_file_to_temp();
     }
 
     /* check valid file for project */
-
-    function validate_project_file() {
+    function validate_project_file()
+    {
         return validate_post_file($this->input->post("file_name"));
     }
 
     /* delete a file */
-
-    function delete_file() {
-
+    function delete_file()
+    {
         $id = $this->input->post('id');
         $info = $this->Project_files_model->get_one($id);
 
         $this->init_project_permission_checker($info->project_id);
 
         if (!$this->can_delete_files($info->uploaded_by)) {
-            //redirect("forbidden");
+            // redirect("forbidden");
         }
 
         if ($this->Project_files_model->delete($id)) {
-
-            //delete the files
+            // delete the files
             $file_path = get_setting("project_file_path");
             delete_app_files($file_path . $info->project_id . "/", array(make_array_of_file($info)));
 
@@ -3859,32 +3785,26 @@ class Projects extends MY_Controller {
     }
 
     /* download a file */
-
-    function download_file($id) {
-
+    function download_file($id)
+    {
         $file_info = $this->Project_files_model->get_one($id);
-
         $this->init_project_permission_checker($file_info->project_id);
         if (!$this->can_view_files()) {
-            //redirect("forbidden");
+            // redirect("forbidden");
         }
 
-        //serilize the path
+        // serilize the path
         $file_data = serialize(array(array("file_name" => $file_info->project_id . "/" . $file_info->file_name, "file_id" => $file_info->file_id, "service_type" => $file_info->service_type)));
 
-        //delete the file
+        // delete the file
         download_app_files(get_setting("project_file_path"), $file_data);
     }
 
-    /* download multiple files as zip */
-
-    function download_multiple_files($files_ids = "") {
-
+    /* Download multiple files as zip */
+    function download_multiple_files($files_ids = "")
+    {
         if ($files_ids) {
-
-
             $files_ids_array = explode('-', $files_ids);
-
             $files = $this->Project_files_model->get_files($files_ids_array);
 
             if ($files) {
@@ -3892,9 +3812,8 @@ class Projects extends MY_Controller {
                 $project_id = 0;
 
                 foreach ($files->result() as $file_info) {
-
-                    //we have to check the permission for each file
-                    //initialize the permission check only if the project id is different
+                    // We have to check the permission for each file
+                    // Initialize the permission check only if the project id is different
 
                     if ($project_id != $file_info->project_id) {
                         $this->init_project_permission_checker($file_info->project_id);
@@ -3902,22 +3821,21 @@ class Projects extends MY_Controller {
                     }
 
                     if (!$this->can_view_files()) {
-                        //redirect("forbidden");
+                        // redirect("forbidden");
                     }
 
                     $file_path_array[] = array("file_name" => $file_info->project_id . "/" . $file_info->file_name, "file_id" => $file_info->file_id, "service_type" => $file_info->service_type);
                 }
 
                 $serialized_file_data = serialize($file_path_array);
-
                 download_app_files(get_setting("project_file_path"), $serialized_file_data);
             }
         }
     }
 
-    /* batch update modal form */
-
-    function batch_update_modal_form($task_ids = "") {
+    /* Batch update modal form */
+    function batch_update_modal_form($task_ids = "")
+    {
         $this->access_only_team_members();
         $project_id = $this->input->post("project_id");
 
@@ -3932,20 +3850,20 @@ class Projects extends MY_Controller {
         }
     }
 
-    /* save batch tasks */
-
-    function save_batch_update() {
+    /* Save batch tasks */
+    function save_batch_update()
+    {
         $this->access_only_team_members();
-
-        validate_submitted_data(array(
-            "project_id" => "required|numeric"
-        ));
+        validate_submitted_data(
+            array(
+                "project_id" => "required|numeric"
+            )
+        );
 
         $project_id = $this->input->post('project_id');
         $this->init_project_permission_checker($project_id);
-
         if (!$this->can_edit_tasks()) {
-            //redirect("forbidden");
+            // redirect("forbidden");
         }
 
         $batch_fields = $this->input->post("batch_fields");
@@ -3960,7 +3878,6 @@ class Projects extends MY_Controller {
             }
 
             $data = clean_data($data);
-
             $task_ids = $this->input->post("task_ids");
             if ($task_ids) {
                 $tasks_ids_array = explode('-', $task_ids);
@@ -3970,11 +3887,11 @@ class Projects extends MY_Controller {
                     unset($data["activity_log_id"]);
                     unset($data["status_changed_at"]);
 
-                    //check user's permission on this task's project
+                    // Check user's permission on this task's project
                     $task_info = $this->Tasks_model->get_one($id);
                     $this->init_project_permission_checker($task_info->project_id);
                     if (!$this->can_edit_tasks()) {
-                        //redirect("forbidden");
+                        // redirect("forbidden");
                     }
 
                     if (array_key_exists("status_id", $data) && $task_info->status_id !== get_array_value($data, "status_id")) {
@@ -3982,16 +3899,14 @@ class Projects extends MY_Controller {
                     }
 
                     $save_id = $this->Tasks_model->save($data, $id);
-
                     if ($save_id) {
-                        //we don't send notification if the task is changing on the same position
+                        // We don't send notification if the task is changing on the same position
                         $activity_log_id = get_array_value($data, "activity_log_id");
                         if ($activity_log_id) {
                             log_notification("project_task_updated", array("project_id" => $project_id, "task_id" => $save_id, "activity_log_id" => $activity_log_id));
                         }
                     }
                 }
-
                 echo json_encode(array("success" => true, 'message' => lang('record_saved')));
             }
         } else {
@@ -4000,33 +3915,27 @@ class Projects extends MY_Controller {
         }
     }
 
-    /* download files by zip */
-
-    function download_comment_files($id) {
-
+    /* Download files by zip */
+    function download_comment_files($id)
+    {
         $info = $this->Project_comments_model->get_one($id);
 
         $this->init_project_permission_checker($info->project_id);
         if ($this->login_user->user_type == "client" && !$this->is_clients_project) {
-
-            //redirect("forbidden");
+            // Redirect("forbidden");
         } else if ($this->login_user->user_type == "user" && !$this->can_view_tasks()) {
-            //redirect("forbidden");
+            // Redirect("forbidden");
         }
-
         download_app_files(get_setting("timeline_file_path"), $info->files);
     }
 
-    /* list of files, prepared for datatable  */
-
-    function files_list_data($project_id = 0) {
-
+    /* List of files, prepared for datatable  */
+    function files_list_data($project_id = 0)
+    {
         $this->init_project_permission_checker($project_id);
-
         if (!$this->can_view_files()) {
-            //redirect("forbidden");
+            // redirect("forbidden");
         }
-
 
         $options = array("project_id" => $project_id);
         $list_data = $this->Project_files_model->get_details($options)->result();
@@ -4034,12 +3943,13 @@ class Projects extends MY_Controller {
         foreach ($list_data as $data) {
             $result[] = $this->_make_file_row($data);
         }
+
         echo json_encode(array("data" => $result));
     }
 
-    /* return a row of file list table */
-
-    private function _file_row_data($id) {
+    /* Return a row of file list table */
+    private function _file_row_data($id)
+    {
         $options = array("id" => $id);
         $data = $this->Project_files_model->get_details($options)->row();
 
@@ -4047,11 +3957,10 @@ class Projects extends MY_Controller {
         return $this->_make_file_row($data);
     }
 
-    /* prepare a row of file list table */
-
-    private function _make_file_row($data) {
+    /* Prepare a row of file list table */
+    private function _make_file_row($data)
+    {
         $file_icon = get_file_icon(strtolower(pathinfo($data->file_name, PATHINFO_EXTENSION)));
-
         $image_url = get_avatar($data->uploaded_by_user_image);
         $uploaded_by = "<span class='avatar avatar-xs mr10'><img src='$image_url' alt='...'></span> $data->uploaded_by_user_name";
 
@@ -4061,8 +3970,7 @@ class Projects extends MY_Controller {
             $uploaded_by = get_client_contact_profile_link($data->uploaded_by, $uploaded_by);
         }
 
-        $description = "<div class='pull-left'>" .
-                js_anchor(remove_file_prefix($data->file_name), array('title' => "", "data-toggle" => "app-modal", "data-sidebar" => "1", "data-url" => get_uri("projects/view_file/" . $data->id)));
+        $description = "<div class='pull-left'>" . js_anchor(remove_file_prefix($data->file_name), array('title' => "", "data-toggle" => "app-modal", "data-sidebar" => "1", "data-url" => get_uri("projects/view_file/" . $data->id)));
 
         if ($data->description) {
             $description .= "<br /><span>" . $data->description . "</span></div>";
@@ -4075,7 +3983,7 @@ class Projects extends MY_Controller {
             $options .= js_anchor("<i class='fa fa-times fa-fw'></i>", array('title' => lang('delete_file'), "class" => "delete", "data-id" => $data->id, "data-action-url" => get_uri("projects/delete_file"), "data-action" => "delete-confirmation"));
         }
 
-        //show checkmark to download multiple files
+        // Show checkmark to download multiple files
         $checkmark = js_anchor("<span class='checkbox-blank'></span>", array('title' => "", "class" => "", "data-id" => $data->id, "data-act" => "download-multiple-file-checkbox")) . $data->id;
 
         return array(
@@ -4088,19 +3996,19 @@ class Projects extends MY_Controller {
         );
     }
 
-    /* load notes view */
-
-    function notes($project_id) {
+    /* Load notes view */
+    function notes($project_id)
+    {
         $this->access_only_team_members();
         $view_data['project_id'] = $project_id;
         $this->load->view("projects/notes/index", $view_data);
     }
 
-    /* load history view */
-
-    function history($offset = 0, $log_for = "", $log_for_id = "", $log_type = "", $log_type_id = "") {
+    /* Load history view */
+    function history($offset = 0, $log_for = "", $log_for_id = "", $log_type = "", $log_type_id = "")
+    {
         if ($this->login_user->user_type !== "staff" && ($this->login_user->user_type == "client" && get_setting("client_can_view_activity") !== "1")) {
-            //redirect("forbidden");
+            // redirect("forbidden");
         }
 
         $view_data['offset'] = $offset;
@@ -4108,17 +4016,18 @@ class Projects extends MY_Controller {
         $this->load->view("projects/history/index", $view_data);
     }
 
-    /* load project members view */
+    /* Load project members view */
+    function members($project_id = 0)
+    {
+        $this->access_only_team_members();
 
-    function members($project_id = 0) {
-        //$this->access_only_team_members();
         $view_data['project_id'] = $project_id;
         $this->load->view("projects/project_members/index", $view_data);
     }
 
-    /* load payments tab  */
-
-    function payments($project_id) {
+    /* Load payments tab  */
+    function payments($project_id)
+    {
         $this->access_only_team_members();
         if ($project_id) {
             $view_data['project_info'] = $this->Projects_model->get_details(array("id" => $project_id))->row();
@@ -4127,25 +4036,24 @@ class Projects extends MY_Controller {
         }
     }
 
-    /* load invoices tab  */
-
-    function invoices($project_id) {
+    /* Load invoices tab  */
+    function invoices($project_id)
+    {
         $this->access_only_team_members();
         if ($project_id) {
             $view_data['project_id'] = $project_id;
             $view_data['project_info'] = $this->Projects_model->get_details(array("id" => $project_id))->row();
 
             $view_data["custom_field_headers"] = $this->Custom_fields_model->get_custom_field_headers_for_table("invoices", $this->login_user->is_admin, $this->login_user->user_type);
-
             $view_data["can_edit_invoices"] = $this->can_edit_invoices();
 
             $this->load->view("projects/invoices/index", $view_data);
         }
     }
 
-    /* load payments tab  */
-
-    function expenses($project_id) {
+    /* Load payments tab  */
+    function expenses($project_id)
+    {
         $this->access_only_team_members();
         if ($project_id) {
             $view_data['project_id'] = $project_id;
@@ -4153,59 +4061,57 @@ class Projects extends MY_Controller {
         }
     }
 
-    //save project status
-    function change_status($project_id, $status) {
-        //var_dump($status);exit;
-        if ($project_id && $this->can_create_projects() && ($status == "completed" || $status == "hold" || $status == "canceled" || $status == "open" )) {
-            //rollback if status change to open
-            if($status == "open"){
-                $item_group = $this->Bom_item_stock_groups_model->get_details(array("doc_id" => $project_id , "tbName" => "projects"));
-                
+    // Save project status
+    function change_status($project_id, $status)
+    {
+        // Var_dump($status);exit;
+        if ($project_id && $this->can_create_projects() && ($status == "completed" || $status == "hold" || $status == "canceled" || $status == "open")) {
+            // Rollback if status change to open
+            if ($status == "open") {
+                $item_group = $this->Bom_item_stock_groups_model->get_details(array("doc_id" => $project_id, "tbName" => "projects"));
+
             }
             $status_data = array("status" => $status);
             $save_id = $this->Projects_model->save($status_data, $project_id);
-            
-            //send notification
+
+            // Send notification
             if ($status == "completed") {
 
-                //first, create item group
+                // First, create item group
                 $project = $this->Projects_model->get_details(array("id" => $project_id))->row();
                 $data = array(
-					"name" => $project->title,
+                    "name" => $project->title,
                     "doc_id" => $project_id,
                     "tbName" => 'projects',
-					"created_by" => $this->login_user->id,
-					"created_date" => date('Y-m-d'),
-					"po_no" => ''
-				);
+                    "created_by" => $this->login_user->id,
+                    "created_date" => date('Y-m-d'),
+                    "po_no" => ''
+                );
                 $group_id = $this->Bom_item_stock_groups_model->save($data, 0);
 
-                //then, save item with project group id
-
+                // Then, save item with project group id
                 $items = $this->db->query("SELECT item_id, quantity FROM bom_project_items WHERE project_id = $project_id ")->result();
-                foreach($items as $item){
-                    $sql = "INSERT INTO `bom_item_stocks`(`group_id`, `item_id`, `stock`, `remaining`) VALUES (".$group_id.",".$item->item_id.",0,".$item->quantity.")";
+                foreach ($items as $item) {
+                    $sql = "INSERT INTO `bom_item_stocks`(`group_id`, `item_id`, `stock`, `remaining`) VALUES (" . $group_id . "," . $item->item_id . ",0," . $item->quantity . ")";
                     $this->dao->execDatas($sql);
                 }
                 log_notification("project_completed", array("project_id" => $save_id));
             }
-            
         }
     }
 
-    //load gantt tab
-    function gantt($project_id = 0) {
-
+    // Load gantt tab
+    function gantt($project_id = 0)
+    {
         if ($project_id) {
             $this->init_project_permission_checker($project_id);
-
             if (!$this->can_view_gantt()) {
-                //redirect("forbidden");
+                // redirect("forbidden");
             }
 
             $view_data['project_id'] = $project_id;
 
-            //prepare members list
+            // Prepare members list
             $view_data['milestone_dropdown'] = $this->_get_milestones_dropdown_list($project_id);
             $view_data['project_members_dropdown'] = $this->_get_project_members_dropdown_list($project_id);
 
@@ -4214,28 +4120,26 @@ class Projects extends MY_Controller {
                 $view_data['show_project_members_dropdown'] = false;
             }
 
-
             $statuses = $this->Task_status_model->get_details()->result();
-
             $status_dropdown = array();
 
             foreach ($statuses as $status) {
-                $status_dropdown[] = array("id" => $status->id, "text" => ( $status->key_name ? lang($status->key_name) : $status->title));
+                $status_dropdown[] = array("id" => $status->id, "text" => ($status->key_name ? lang($status->key_name) : $status->title));
             }
 
             $view_data['status_dropdown'] = json_encode($status_dropdown);
-
             $this->load->view("projects/gantt/index", $view_data);
         }
     }
 
-    //prepare gantt data for gantt chart
-    function gantt_data($project_id = 0, $group_by = "milestones", $milestone_id = 0, $user_id = 0, $status = "") {
+    // Prepare gantt data for gantt chart
+    function gantt_data($project_id = 0, $group_by = "milestones", $milestone_id = 0, $user_id = 0, $status = "")
+    {
         $can_edit_tasks = true;
         if ($project_id) {
             $this->init_project_permission_checker($project_id);
             if (!$this->can_view_gantt()) {
-                //redirect("forbidden");
+                // redirect("forbidden");
             }
 
             if (!$this->can_edit_tasks()) {
@@ -4251,7 +4155,7 @@ class Projects extends MY_Controller {
         );
 
         if (!$status) {
-            $options["exclude_status"] = 3; //don't show completed tasks by default
+            $options["exclude_status"] = 3; // Don't show completed tasks by default
         }
 
         $options["project_id"] = $project_id;
@@ -4289,15 +4193,14 @@ class Projects extends MY_Controller {
                 $group_name = $data->project_name;
             }
 
-            //prepare final group credentials
+            // Prepare final group credentials
             $group_id = $group_by . "-" . $group_id;
             if (!$group_name) {
                 $group_name = lang("not_specified");
             }
-
             $color = $data->status_color;
 
-            //has deadline? change the color of date based on status
+            // Has deadline? change the color of date based on status
             if ($data->status_id == "1" && is_date_exists($data->end_date) && get_my_local_time("Y-m-d") > $data->end_date) {
                 $color = "#d9534f";
             }
@@ -4306,30 +4209,31 @@ class Projects extends MY_Controller {
                 $end_date = $start_date;
             }
 
-            //don't add any tasks if more than 5 years before of after
+            // Don't add any tasks if more than 5 years before of after
             if ($this->invalid_date_of_gantt($start_date, $end_date)) {
                 continue;
             }
 
             if (!in_array($group_id, array_column($group_array, "id"))) {
-                //it's a group and not added, add it first
+                // It's a group and not added, add it first
                 $gantt_array_data = array(
                     "id" => $group_id,
                     "name" => $group_name,
                     "start" => $start_date,
                     "end" => add_period_to_date($start_date, 3, "days"),
-                    "draggable" => false, //disable group dragging
+                    "draggable" => false,
+                    // Disable group dragging
                     "custom_class" => "no-drag",
-                    "progress" => 0 //we've to add this to prevent error
+                    "progress" => 0 // We've to add this to prevent error
                 );
 
-                //add group seperately 
+                // Add group seperately 
                 $group_array[] = $gantt_array_data;
             }
 
-            //so, the group is already added
-            //prepare group start date
-            //get the first start date from tasks
+            // So, the group is already added
+            // Prepare group start date
+            // Get the first start date from tasks
             $group_key = array_search($group_id, array_column($group_array, "id"));
             if (get_array_value($group_array[$group_key], "start") > $start_date) {
                 $group_array[$group_key]["start"] = $start_date;
@@ -4337,44 +4241,42 @@ class Projects extends MY_Controller {
             }
 
             $dependencies = $group_id;
-
-            //link parent task
+            // Link parent task
             if ($data->parent_task_id) {
                 $dependencies .= ", " . $data->parent_task_id;
             }
 
-            //add task data under a group
+            // Add task data under a group
             $gantt_array_data = array(
                 "id" => $data->task_id,
                 "name" => $data->task_title,
                 "start" => $start_date,
                 "end" => $end_date,
                 "bg_color" => $color,
-                "progress" => 0, //we've to add this to prevent error
+                "progress" => 0,
+                // We've to add this to prevent error
                 "dependencies" => $dependencies,
-                "draggable" => $can_edit_tasks ? true : false, //disable dragging for non-permitted users
+                "draggable" => $can_edit_tasks ? true : false, // Disable dragging for non-permitted users
             );
-
             $tasks_array[$group_id][] = $gantt_array_data;
         }
-
         $gantt = array();
 
-        //prepare final gantt data
+        // Prepare final gantt data
         foreach ($tasks_array as $key => $tasks) {
             //add group first
             $gantt[] = get_array_value($group_array, array_search($key, array_column($group_array, "id")));
 
-            //add tasks
+            // Add tasks
             foreach ($tasks as $task) {
                 $gantt[] = $task;
             }
         }
-
         echo json_encode($gantt);
     }
 
-    private function invalid_date_of_gantt($start_date, $end_date) {
+    private function invalid_date_of_gantt($start_date, $end_date)
+    {
         $start_year = explode('-', $start_date);
         $start_year = get_array_value($start_year, 0);
 
@@ -4391,20 +4293,17 @@ class Projects extends MY_Controller {
     }
 
     /* load project settings modal */
-
-    function settings_modal_form() {
+    function settings_modal_form()
+    {
         $project_id = $this->input->post('project_id');
-
         $can_edit_timesheet_settings = $this->can_edit_timesheet_settings($project_id);
         $can_edit_slack_settings = $this->can_edit_slack_settings();
 
         if (!$project_id || !($can_edit_timesheet_settings || $can_edit_slack_settings)) {
-            //redirect("forbidden");
+            // redirect("forbidden");
         }
 
-
         $this->init_project_settings($project_id);
-
         $view_data['project_id'] = $project_id;
         $view_data['can_edit_timesheet_settings'] = $can_edit_timesheet_settings;
         $view_data['can_edit_slack_settings'] = $can_edit_slack_settings;
@@ -4413,20 +4312,21 @@ class Projects extends MY_Controller {
     }
 
     /* save project settings */
-
-    function save_settings() {
+    function save_settings()
+    {
         $project_id = $this->input->post('project_id');
-
         $can_edit_timesheet_settings = $this->can_edit_timesheet_settings($project_id);
         $can_edit_slack_settings = $this->can_edit_slack_settings();
 
         if (!$project_id || !($can_edit_timesheet_settings || $can_edit_slack_settings)) {
-            //redirect("forbidden");
+            // redirect("forbidden");
         }
 
-        validate_submitted_data(array(
-            "project_id" => "required|numeric"
-        ));
+        validate_submitted_data(
+            array(
+                "project_id" => "required|numeric"
+            )
+        );
 
         $settings = array();
         if ($can_edit_timesheet_settings) {
@@ -4443,11 +4343,10 @@ class Projects extends MY_Controller {
             if (!$value) {
                 $value = "";
             }
-
             $this->Project_settings_model->save_setting($project_id, $setting, $value);
         }
 
-        //send test message
+        // Send test message
         if ($can_edit_slack_settings && $this->input->post("send_a_test_message")) {
             $this->load->helper('notifications');
             if (send_slack_notification("test_slack_notification", $this->login_user->id, 0, $this->input->post("project_slack_webhook_url"))) {
@@ -4461,22 +4360,21 @@ class Projects extends MY_Controller {
     }
 
     /* checklist */
-
-    function save_checklist_item() {
-
+    function save_checklist_item()
+    {
         $task_id = $this->input->post("task_id");
-
-        validate_submitted_data(array(
-            "task_id" => "required|numeric"
-        ));
+        validate_submitted_data(
+            array(
+                "task_id" => "required|numeric"
+            )
+        );
 
         $project_id = $this->Tasks_model->get_one($task_id)->project_id;
-
         $this->init_project_permission_checker($project_id);
 
         if ($task_id) {
             if (!$this->can_edit_tasks()) {
-                //redirect("forbidden");
+                // redirect("forbidden");
             }
         }
 
@@ -4484,9 +4382,7 @@ class Projects extends MY_Controller {
             "task_id" => $task_id,
             "title" => $this->input->post("checklist-add-item")
         );
-
         $save_id = $this->Checklist_items_model->save($data);
-
         if ($save_id) {
             $item_info = $this->Checklist_items_model->get_one($save_id);
             echo json_encode(array("success" => true, "data" => $this->_make_checklist_item_row($item_info), 'id' => $save_id));
@@ -4495,9 +4391,11 @@ class Projects extends MY_Controller {
         }
     }
 
-    private function _make_checklist_item_row($data = array(), $return_type = "row") {
-        if(is_array($data))
-            $data = (object)$data;
+    private function _make_checklist_item_row($data = array(), $return_type = "row")
+    {
+        if (is_array($data))
+            $data = (object) $data;
+        
         $checkbox_class = "checkbox-blank";
         $title_class = "";
         $is_checked_value = 1;
@@ -4509,34 +4407,30 @@ class Projects extends MY_Controller {
             $title_class = "text-line-through text-off";
             $title_value = $data->title;
         }
-
         $status = js_anchor("<span class='$checkbox_class'></span>", array('title' => "", "data-id" => $data->id, "data-value" => $is_checked_value, "data-act" => "update-checklist-item-status-checkbox"));
         if (!$this->can_edit_tasks()) {
             $status = "";
         }
 
         $title = "<span class='font-13 $title_class'>" . $title_value . "</span>";
-
         $delete = ajax_anchor(get_uri("projects/delete_checklist_item/$data->id"), "<i class='fa fa-times pull-right p3'></i>", array("class" => "delete-checklist-item", "title" => lang("delete_checklist_item"), "data-fade-out-on-success" => "#checklist-item-row-$data->id"));
         if (!$this->can_edit_tasks()) {
             $delete = "";
         }
-
         if ($return_type == "data") {
             return $status . $delete . $title;
         }
-
         return "<div id='checklist-item-row-$data->id' class='list-group-item mb5 checklist-item-row' data-id='$data->id'>" . $status . $delete . $title . "</div>";
     }
 
-    function save_checklist_item_status($id = 0) {
+    function save_checklist_item_status($id = 0)
+    {
         $task_id = $this->Checklist_items_model->get_one($id)->task_id;
         $project_id = $this->Tasks_model->get_one($task_id)->project_id;
-
         $this->init_project_permission_checker($project_id);
 
         if (!$this->can_edit_tasks()) {
-            //redirect("forbidden");
+            // redirect("forbidden");
         }
 
         $data = array(
@@ -4544,7 +4438,6 @@ class Projects extends MY_Controller {
         );
 
         $save_id = $this->Checklist_items_model->save($data, $id);
-
         if ($save_id) {
             $item_info = $this->Checklist_items_model->get_one($save_id);
             echo json_encode(array("success" => true, "data" => $this->_make_checklist_item_row($item_info, "data"), 'id' => $save_id));
@@ -4553,37 +4446,37 @@ class Projects extends MY_Controller {
         }
     }
 
-    function save_checklist_items_sort() {
+    function save_checklist_items_sort()
+    {
         $sort_values = $this->input->post("sort_values");
         if ($sort_values) {
-            //extract the values from the comma separated string
+            // Extract the values from the comma separated string
             $sort_array = explode(",", $sort_values);
 
-            //update the value in db
+            // Update the value in db
             foreach ($sort_array as $value) {
-                $sort_item = explode("-", $value); //extract id and sort value
+                $sort_item = explode("-", $value); // Extract id and sort value
 
                 $id = get_array_value($sort_item, 0);
                 $sort = get_array_value($sort_item, 1);
 
                 validate_numeric_value($id);
-
                 $data = array("sort" => $sort);
                 $this->Checklist_items_model->save($data, $id);
             }
         }
     }
 
-    function delete_checklist_item($id) {
+    function delete_checklist_item($id)
+    {
 
         $task_id = $this->Checklist_items_model->get_one($id)->task_id;
         $project_id = $this->Tasks_model->get_one($task_id)->project_id;
-
         $this->init_project_permission_checker($project_id);
 
         if ($id) {
             if (!$this->can_edit_tasks()) {
-                //redirect("forbidden");
+                // redirect("forbidden");
             }
         }
 
@@ -4595,15 +4488,15 @@ class Projects extends MY_Controller {
     }
 
     /* get member suggestion with start typing '@' */
-
-    function get_member_suggestion_to_mention() {
-
-        validate_submitted_data(array(
-            "project_id" => "required|numeric"
-        ));
+    function get_member_suggestion_to_mention()
+    {
+        validate_submitted_data(
+            array(
+                "project_id" => "required|numeric"
+            )
+        );
 
         $project_id = $this->input->post("project_id");
-
         $project_members = $this->Project_members_model->get_project_members_dropdown_list($project_id, "", $this->can_access_clients())->result();
         $project_members_dropdown = array();
         foreach ($project_members as $member) {
@@ -4617,8 +4510,9 @@ class Projects extends MY_Controller {
         }
     }
 
-    //reset projects dropdown on changing of client 
-    function get_projects_of_selected_client_for_filter() {
+    // Reset projects dropdown on changing of client 
+    function get_projects_of_selected_client_for_filter()
+    {
         $this->access_only_team_members();
         $client_id = $this->input->post("client_id");
         if ($client_id) {
@@ -4629,15 +4523,14 @@ class Projects extends MY_Controller {
             }
             echo json_encode($projects_dropdown);
         } else {
-            //we have show all projects by de-selecting client
+            // we have show all projects by de-selecting client
             echo json_encode($this->_get_all_projects_dropdown_list());
         }
     }
 
-  
-
-    //show timesheets chart
-    function timesheet_chart($project_id = 0) {
+    // Show timesheets chart
+    function timesheet_chart($project_id = 0)
+    {
         $members = $this->_get_members_to_manage_timesheet();
 
         $view_data['members_dropdown'] = json_encode($this->_prepare_members_dropdown_for_timesheet_filter($members));
@@ -4647,11 +4540,12 @@ class Projects extends MY_Controller {
         $this->load->view("projects/timesheets/timesheet_chart", $view_data);
     }
 
-    //load global gantt view
-    function all_gantt() {
+    // Load global gantt view
+    function all_gantt()
+    {
         $this->access_only_team_members();
 
-        //only admin/ the user has permission to manage all projects, can see all projects, other team mebers can see only their own projects.
+        // Only admin/ the user has permission to manage all projects, can see all projects, other team mebers can see only their own projects.
         $options = array("status" => "open");
         if (!$this->can_manage_all_projects()) {
             $options["user_id"] = $this->login_user->id;
@@ -4659,26 +4553,24 @@ class Projects extends MY_Controller {
 
         $projects = $this->Projects_model->get_details($options)->result();
 
-
         if ($projects) {
             $this->init_project_permission_checker(get_array_value($projects, 0)->id);
             if (!$this->can_view_gantt()) {
-                //redirect("forbidden");
+                // redirect("forbidden");
             }
         }
 
-        //get projects dropdown
+        // Get projects dropdown
         $projects_dropdown = array(array("id" => "", "text" => "- " . lang("project") . " -"));
         foreach ($projects as $project) {
             $projects_dropdown[] = array("id" => $project->id, "text" => $project->title);
         }
 
         $view_data['projects_dropdown'] = json_encode($projects_dropdown);
-
         $project_id = 0;
         $view_data['project_id'] = $project_id;
 
-        //prepare members list
+        // Prepare members list
         $view_data['milestone_dropdown'] = $this->_get_milestones_dropdown_list($project_id);
 
         $team_members_dropdown = array(array("id" => "", "text" => "- " . lang("assigned_to") . " -"));
@@ -4688,36 +4580,34 @@ class Projects extends MY_Controller {
         }
 
         $view_data['project_members_dropdown'] = json_encode($team_members_dropdown);
-
         $view_data['show_project_members_dropdown'] = true;
         if ($this->login_user->user_type == "client") {
             $view_data['show_project_members_dropdown'] = false;
         }
 
         $statuses = $this->Task_status_model->get_details()->result();
-
         $status_dropdown = array();
 
         foreach ($statuses as $status) {
-            $status_dropdown[] = array("id" => $status->id, "text" => ( $status->key_name ? lang($status->key_name) : $status->title));
+            $status_dropdown[] = array("id" => $status->id, "text" => ($status->key_name ? lang($status->key_name) : $status->title));
         }
 
         $view_data['status_dropdown'] = json_encode($status_dropdown);
-
         $this->template->rander("projects/gantt/index", $view_data);
     }
 
-    //timesheets chart data
-    function timesheet_chart_data($project_id = 0) {
+    // timesheets chart data
+    function timesheet_chart_data($project_id = 0)
+    {
         if (!$project_id) {
             $project_id = $this->input->post("project_id");
         }
 
         $this->init_project_permission_checker($project_id);
-        $this->init_project_settings($project_id); //since we'll check this permission project wise
+        $this->init_project_settings($project_id); // since we'll check this permission project wise
 
         if (!$this->can_view_timesheet($project_id, true)) {
-            //redirect("forbidden");
+            // redirect("forbidden");
         }
 
         $timesheets = array();
@@ -4735,16 +4625,15 @@ class Projects extends MY_Controller {
             "project_id" => $project_id
         );
 
-        //get allowed member ids
+        // Get allowed member ids
         $members = $this->_get_members_to_manage_timesheet();
         if ($members != "all" && $this->login_user->user_type == "staff") {
-            //if user has permission to access all members, query param is not required
-            //client can view all timesheet
+            // If user has permission to access all members, query param is not required
+            // Client can view all timesheet
             $options["allowed_members"] = $members;
         }
 
         $timesheets_result = $this->Timesheets_model->get_timesheet_statistics($options)->result();
-
         $days_of_month = date("t", strtotime($start_date));
 
         for ($i = 0; $i <= $days_of_month; $i++) {
@@ -4782,18 +4671,19 @@ class Projects extends MY_Controller {
         echo json_encode(array("timesheets" => $timesheets_array, "ticks" => $ticks));
     }
 
-    function save_dependency_tasks() {
+    function save_dependency_tasks()
+    {
         $task_id = $this->input->post("task_id");
         if ($task_id) {
             $dependency_task = $this->input->post("dependency_task");
             $dependency_type = $this->input->post("dependency_type");
 
             if ($dependency_task) {
-                //add the new task with old
+                // Add the new task with old
                 $task_info = $this->Tasks_model->get_one($task_id);
                 $this->init_project_permission_checker($task_info->project_id);
                 if (!$this->can_edit_tasks()) {
-                    //redirect("forbidden");
+                    // redirect("forbidden");
                 }
 
                 $dependency_tasks = $task_info->$dependency_type;
@@ -4817,7 +4707,8 @@ class Projects extends MY_Controller {
         }
     }
 
-    private function _get_all_dependency_for_this_task($task_id) {
+    private function _get_all_dependency_for_this_task($task_id)
+    {
         $task_info = $this->Tasks_model->get_one($task_id);
         $blocked_by = $this->_get_all_dependency_for_this_task_specific($task_info->blocked_by, $task_id, "blocked_by");
         $blocking = $this->_get_all_dependency_for_this_task_specific($task_info->blocking, $task_id, "blocking");
@@ -4830,30 +4721,29 @@ class Projects extends MY_Controller {
                 $all_tasks = $blocking;
             }
         }
-
         return $all_tasks;
     }
 
-    function get_existing_dependency_tasks($task_id = 0) {
+    function get_existing_dependency_tasks($task_id = 0)
+    {
         if ($task_id) {
             $model_info = $this->Tasks_model->get_details(array("id" => $task_id))->row();
-
             $this->init_project_permission_checker($model_info->project_id);
 
             if (!$this->can_view_tasks($model_info->project_id, $task_id)) {
-                //redirect("forbidden");
+                // redirect("forbidden");
             }
 
             $all_dependency_tasks = $this->_get_all_dependency_for_this_task($task_id);
 
-            //add this task id
+            // add this task id
             if ($all_dependency_tasks) {
                 $all_dependency_tasks .= "," . $task_id;
             } else {
                 $all_dependency_tasks = $task_id;
             }
 
-            //make tasks dropdown
+            // make tasks dropdown
             $tasks_dropdown = array();
             $tasks = $this->Tasks_model->get_details(array("project_id" => $model_info->project_id, "exclude_task_ids" => $all_dependency_tasks))->result();
             foreach ($tasks as $task) {
@@ -4864,9 +4754,10 @@ class Projects extends MY_Controller {
         }
     }
 
-    private function _get_all_dependency_for_this_task_specific($task_ids = "", $task_id = 0, $type = "") {
+    private function _get_all_dependency_for_this_task_specific($task_ids = "", $task_id = 0, $type = "")
+    {
         if ($task_id && $type) {
-            //find the other tasks dependency with this task
+            // Find the other tasks dependency with this task
             $dependency_tasks = $this->Tasks_model->get_all_dependency_for_this_task($task_id, $type);
 
             if ($dependency_tasks) {
@@ -4876,12 +4767,12 @@ class Projects extends MY_Controller {
                     $task_ids = $dependency_tasks;
                 }
             }
-
             return $task_ids;
         }
     }
 
-    private function _make_dependency_tasks_view_data($task_ids = "", $task_id = 0, $type = "") {
+    private function _make_dependency_tasks_view_data($task_ids = "", $task_id = 0, $type = "")
+    {
         if ($task_ids) {
             $tasks = "";
 
@@ -4895,31 +4786,30 @@ class Projects extends MY_Controller {
         }
     }
 
-    private function _make_dependency_tasks_row_data($task_info, $task_id, $type) {
+    private function _make_dependency_tasks_row_data($task_info, $task_id, $type)
+    {
         $tasks = "";
-
         $tasks .= "<div id='dependency-task-row-$task_info->id' class='list-group-item mb5 dependency-task-row' style='border-left: 5px solid $task_info->status_color !important;'>";
 
         if ($this->can_edit_tasks()) {
             $tasks .= ajax_anchor(get_uri("projects/delete_dependency_task/$task_info->id/$task_id/$type"), "<i class='fa fa-times pull-right p3'></i>", array("class" => "delete-dependency-task", "title" => lang("delete"), "data-fade-out-on-success" => "#dependency-task-row-$task_info->id", "data-dependency-type" => $type));
         }
-
         $tasks .= modal_anchor(get_uri("projects/task_view"), $task_info->title, array("data-post-id" => $task_info->id, "data-modal-lg" => "1"));
-
         $tasks .= "</div>";
 
         return $tasks;
     }
 
-    function delete_dependency_task($dependency_task_id, $task_id, $type) {
+    function delete_dependency_task($dependency_task_id, $task_id, $type)
+    {
         $task_info = $this->Tasks_model->get_one($task_id);
         $this->init_project_permission_checker($task_info->project_id);
         if (!$this->can_edit_tasks()) {
-            //redirect("forbidden");
+            // redirect("forbidden");
         }
 
-        //the dependency task could be resided in both place
-        //so, we've to search on both        
+        // The dependency task could be resided in both place
+        // So, we've to search on both        
         $dependency_tasks_of_own = $task_info->$type;
         if ($type == "blocked_by") {
             $dependency_tasks_of_others = $this->Tasks_model->get_one($dependency_task_id)->blocking;
@@ -4927,7 +4817,7 @@ class Projects extends MY_Controller {
             $dependency_tasks_of_others = $this->Tasks_model->get_one($dependency_task_id)->blocked_by;
         }
 
-        //first check if it contains only a single task
+        // First check if it contains only a single task
         if (!strpos($dependency_tasks_of_own, ',') && $dependency_tasks_of_own == $dependency_task_id) {
             $data = array($type => "");
             $this->Tasks_model->update_custom_data($data, $task_id);
@@ -4935,7 +4825,7 @@ class Projects extends MY_Controller {
             $data = array((($type == "blocked_by") ? "blocking" : "blocked_by") => "");
             $this->Tasks_model->update_custom_data($data, $dependency_task_id);
         } else {
-            //have multiple values
+            // Have multiple values
             $dependency_tasks_of_own_array = explode(',', $dependency_tasks_of_own);
             $dependency_tasks_of_others_array = explode(',', $dependency_tasks_of_others);
 
@@ -4955,7 +4845,8 @@ class Projects extends MY_Controller {
         echo json_encode(array("success" => true));
     }
 
-    function like_comment($comment_id = 0) {
+    function like_comment($comment_id = 0)
+    {
         if ($comment_id) {
             $data = array(
                 "project_comment_id" => $comment_id,
@@ -4964,10 +4855,10 @@ class Projects extends MY_Controller {
 
             $existing = $this->Likes_model->get_one_where(array_merge($data, array("deleted" => 0)));
             if ($existing->id) {
-                //liked already, unlike now
+                // Liked already, unlike now
                 $this->Likes_model->delete($existing->id);
             } else {
-                //not liked, like now
+                // Not liked, like now
                 $data["created_at"] = get_current_utc_time();
                 $this->Likes_model->save($data);
             }
@@ -4979,7 +4870,8 @@ class Projects extends MY_Controller {
         }
     }
 
-    function save_gantt_task_date() {
+    function save_gantt_task_date()
+    {
         $task_id = $this->input->post("task_id");
         if (!$task_id) {
             show_404();
@@ -4989,12 +4881,11 @@ class Projects extends MY_Controller {
         $this->init_project_permission_checker($task_info->project_id);
 
         if (!$this->can_edit_tasks()) {
-            //redirect("forbidden");
+            // redirect("forbidden");
         }
 
         $start_date = $this->input->post("start_date");
         $deadline = $this->input->post("deadline");
-
         $data = array(
             "start_date" => $start_date,
             "deadline" => $deadline,
@@ -5002,7 +4893,6 @@ class Projects extends MY_Controller {
 
         $save_id = $this->Tasks_model->save_gantt_task_date($data, $task_id);
         if ($save_id) {
-
             /* Send notification
               $activity_log_id = get_array_value($data, "activity_log_id");
 
@@ -5010,24 +4900,24 @@ class Projects extends MY_Controller {
 
               log_notification("project_task_updated", array("project_id" => $task_info->project_id, "task_id" => $save_id, "activity_log_id" => $new_activity_log_id ? $new_activity_log_id : $activity_log_id));
              */
-
             echo json_encode(array("success" => true));
         } else {
             echo json_encode(array("success" => false, 'message' => lang('error_occurred')));
         }
     }
 
-    function show_my_open_timers() {
+    function show_my_open_timers()
+    {
         $timers = $this->Timesheets_model->get_open_timers($this->login_user->id);
         $view_data["timers"] = $timers->result();
         $this->load->view("projects/open_timers", $view_data);
     }
 
-    function task_timesheet($task_id, $project_id) {
+    function task_timesheet($task_id, $project_id)
+    {
         $this->init_project_permission_checker($project_id);
-
         if (!$this->can_view_timesheet($project_id, true)) {
-            //redirect("forbidden");
+            // redirect("forbidden");
         }
         $options = array(
             "project_id" => $project_id,
@@ -5035,11 +4925,11 @@ class Projects extends MY_Controller {
             "task_id" => $task_id,
         );
 
-        //get allowed member ids
+        // Get allowed member ids
         $members = $this->_get_members_to_manage_timesheet();
         if ($members != "all" && $this->login_user->user_type == "staff") {
-            //if user has permission to access all members, query param is not required
-            //client can view all timesheet
+            // If user has permission to access all members, query param is not required
+            // Client can view all timesheet
             $options["allowed_members"] = $members;
         }
 
@@ -5047,143 +4937,255 @@ class Projects extends MY_Controller {
         $this->load->view("projects/tasks/task_timesheet", $view_data);
     }
 
+    // BOM in project
+    function modal_items()
+    {
+        $this->check_module_availability("module_stock");
 
-    // BOM
-    function modal_items() {
-        //$this->check_module_availability("module_stock");
-        
         $view_data['can_read_price'] = $this->check_permission('bom_restock_read_price');
-
         $project_id = $this->input->post('id');
-        validate_submitted_data(array(
-          "id" => "numeric"
-        ));
-    
+        validate_submitted_data(
+            array(
+                "id" => "numeric"
+            )
+        );
+
         $view_data['label_column'] = "col-md-3";
         $view_data['field_column'] = "col-md-9";
-    
+
         $view_data["view"] = $this->input->post('view');
         $view_data['model_info'] = $this->Projects_model->get_one($project_id);
-        
+
+        $view_data['can_read_material_name'] = $this->check_permission('bom_material_read_production_name');
         $view_data['items'] = $this->Items_model->get_items([])->result();
-        // arr($view_data['items']);
-        foreach($view_data['items'] as $k => $item) {
+        foreach ($view_data['items'] as $k => $item) {
             unset($item->files);
             unset($item->description);
         }
 
-         $aa = $this->Bom_item_mixing_groups_model->get_detail_items([
-            'for_client_id' => $view_data['model_info']->client_id
-        ])->result();
-        
         $datas = [];
-        foreach($aa as $k => $v){
-            
+        $aa = $this->Bom_item_mixing_groups_model->get_detail_items(['for_client_id' => $view_data['model_info']->client_id])->result();
+        foreach ($aa as $k => $v) {
             $v->name = trim($v->name);
             $v->title = trim($v->title);
             $v->company_name = trim($v->company_name);
             $datas[] = $v;
-            // trim
         }
-        // var_dump($aa);
-        
+
         $view_data['item_mixings'] = $datas;
-       
+        $view_data['project_items'] = $this->Bom_item_mixing_groups_model->get_project_items(['project_id' => $view_data['model_info']->id])->result();
+        $view_data['project_materials'] = $this->Bom_item_mixing_groups_model->get_project_materials($view_data['project_items']);
 
-        $view_data['project_items'] = $this->Bom_item_mixing_groups_model
-            ->get_project_items(['project_id' => $view_data['model_info']->id])->result();
-        $view_data['project_materials'] = $this->Bom_item_mixing_groups_model
-            ->get_project_materials($view_data['project_items']);
-            
-        //arr($view_data['project_materials']);exit;
-
-        $view_data['add_pr_row'] = $this->cp('purchaserequests', 'add_row');
-        
-
-        $view_data["proveButton"] = '';
-        $approveDoc = null;
-        if($project_id) {
-            $params = [];
-            $params['id'] = $project_id;
-            $params['tbName'] = 'projects';
-            $view_data["proveButton"] = $this->dao->getProveButton( $params );
-
-            $sql = "
-                SELECT
-                    *
-                FROM prove_table
-                WHERE doc_id = ". $project_id ."
-                AND tbName = 'projects'
-                AND status_id = 1
-            ";
-            $view_data["approveDoc"] = $this->dao->fetch($sql);
-        }
-
-        //arr($view_data);
-
+        // var_dump(arr($view_data)); exit;
         $this->load->view('projects/modal_items', $view_data);
     }
 
-    function project_items_save() {
-        //var_dump($this->input->post('item_id[]'), $this->input->post('item_mixing[]'), $this->input->post('quantity[]'));exit;
-        //$this->check_module_availability("module_stock");
-        
-        $id = $this->input->post('id');
+    function project_items_save() // MARK
+    {
+        $post = $this->input->post();
+        $data = array();
 
-        $restock_process = $this->input->post('restock_process');
-
-        //var_dump($restock_process,!empty($restock_process),$id);exit;
-        if(!empty($restock_process)) {
-            $this->Bom_item_mixing_groups_model->restock_process($id);
-        }else{
-            validate_submitted_data(array(
-                "id" => "required|numeric"
-            ));
-
-            $mr = $this->Materialrequests_model->get_details(['project_id'=>$id])->row();
-            $project = $this->db->query("SELECT p.id, p.title FROM projects p WHERE p.id = $id ")->row();
-
-            //echo json_encode(array("success" => false, 'message' => lang('error_occurred')));
-            
-            //if this project haven't had material request yet
-            if(!$mr) {
-                $data = [
-                    'project_id'=>$id,
-                    'project_name' => $project->title,
-                    'requester_id'=>$this->login_user->id,
-                    'created_by'=>$this->login_user->id,
-                    'mr_date'=>get_today_date(),
-                    'status_id' => 1
-                ];
-                $mr_id = $mr = $this->Materialrequests_model->save($data, 0);
-                $mr = $this->Materialrequests_model->get_one($mr_id);
-            }
-            
-            $ps = $this->Bom_item_mixing_groups_model->project_items_save(
-                $id, 
-                $this->input->post('item_id[]'), 
-                $this->input->post('item_mixing[]'), 
-                $this->input->post('quantity[]'),
-                $mr->id
-            );
-            if (true) {
-                echo json_encode(array("success" => true, 'message' => lang('record_saved') , 'mrid' => $mr->id , 'addnew' => $ps));
-            } else {
-                echo json_encode(array("success" => false, 'message' => lang('error_occurred')));
-            }
-            return;
+        if ($post["save_type_id"] == "2") {
+            $data = $this->save_project_recalculate($post); // SPRC
+        } elseif ($post["save_type_id"] == "1") {
+            $data = $this->save_project_material_request($post); // SPMR
+        } else {
+            $data = $this->save_project_items($post); // SPI
         }
+
+        echo json_encode(array("success" => true, "data" => $data, "message" => lang("record_saved")));
+
+        // $restock_process = $this->input->post('restock_process');
+
+        // $post = [
+        //     "id" => $this->input->post('id'),
+        //     "restock_process" => $this->input->post('restock_process'),
+        //     "item_id" => $this->input->post('item_id[]'),
+        //     "item_mixing" => $this->input->post('item_mixing[]'),
+        //     "quantity" => $this->input->post('quantity[]')
+        // ];
+
+        // if(!empty($restock_process)) {
+        // $this->Bom_item_mixing_groups_model->restock_process($id);
+        // } else {
+        // validate_submitted_data(array(
+        //     "id" => "required|numeric"
+        // ));
+
+        // $mr = $this->Materialrequests_model->get_details(['project_id'=>$id])->row();
+        // $project = $this->db->query("SELECT p.id, p.title FROM projects p WHERE p.id = $id ")->row();
+
+        // echo json_encode(array("success" => false, 'message' => lang('error_occurred')));
+        // if this project haven't had material request yet
+        // if(!$mr) {
+        //     $data = [
+        //         'project_id'=>$id,
+        //         'project_name' => $project->title,
+        //         'requester_id'=>$this->login_user->id,
+        //         'created_by'=>$this->login_user->id,
+        //         'mr_date'=>get_today_date(),
+        //         'status_id' => 1
+        //     ];
+        //     $mr_id = $mr = $this->Materialrequests_model->save($data, 0);
+        //     $mr = $this->Materialrequests_model->get_one($mr_id);
+        // }
+
+        // $ps = $this->Bom_item_mixing_groups_model->project_items_save(
+        //     $id, 
+        //     $this->input->post('item_id[]'), 
+        //     $this->input->post('item_mixing[]'), 
+        //     $this->input->post('quantity[]'),
+        //     $mr->id
+        // );
+        // if ($ps) {
+        //     echo json_encode(array("success" => true, 'message' => lang('record_saved') , 'mrid' => $mr->id , 'addnew' => $ps, 'mr_req' => $this->input->post('mr_req')));
+        // } else {
+        //     echo json_encode(array("success" => false, 'message' => lang('error_occurred')));
+        // }
+        // return;
+        // }
 
         // TODO: Alert low quantity materials
-            
-        if (true) {
-            echo json_encode(array("success" => true, 'message' => lang('record_saved')));
-        } else {
-            echo json_encode(array("success" => false, 'message' => lang('error_occurred')));
-        }
+
+        // if (true) {
+        //     echo json_encode(array("success" => true, 'message' => lang('record_saved')));
+        // } else {
+        //     echo json_encode(array("success" => false, 'message' => lang('error_occurred')));
+        // }
     }
 
-    function create_material_request($project_id) {
+    private function save_project_items($post) // SPI
+    {
+        $post["function"] = "save_project_items";
+
+        $project_id = isset($post["id"]) ? $post["id"] : null;
+        $item_ids = isset($post["item_id"]) ? $post["item_id"] : null;
+        $item_mixings = isset($post["item_mixing"]) ? $post["item_mixing"] : null;
+        $quantities = isset($post["quantity"]) ? $post["quantity"] : null;
+
+        $this->Bom_item_mixing_groups_model->dev2_save_project_item($project_id, $item_ids, $item_mixings, $quantities);
+        return $post;
+    }
+
+    private function save_project_material_request($post) // SPMR
+    {
+        $post["function"] = "save_project_material_request";
+
+        $project_id = isset($post["id"]) ? $post["id"] : null;
+        if ($project_id != null) {
+            $project_info = $this->Projects_model->get_project_by_id($project_id);
+            $items_for_mr = $this->Bom_item_mixing_groups_model->dev2_get_project_item_for_mr($project_id);
+
+            $header_id = "";
+            $detail_id = array();
+            if (isset($items_for_mr) && sizeof($items_for_mr)) {
+                $header_data = array(
+                    'project_name' => $project_info->title,
+                    'project_id' => $project_info->id,
+                    'mr_date' => get_today_date(),
+                    'status_id' => 1,
+                    'created_by' => $this->login_user->id,
+                    'requester_id' => $this->login_user->id
+                );
+                $header_id = $this->Materialrequests_model->save($header_data, 0);
+
+                foreach ($items_for_mr as $item) {
+                    $detail_data = array(
+                        'mr_id' => $header_id,
+                        'project_id' => $project_info->id,
+                        'project_name' => $project_info->title,
+                        'code' => $item->name,
+                        'title' => $item->production_name,
+                        'description' => $item->description,
+                        'quantity' => $item->ratio,
+                        'unit_type' => $item->unit,
+                        'currency' => 'THB',
+                        'currency_symbol' => '฿',
+                        'material_id' => $item->material_id,
+                        'bpim_id' => $item->id,
+                        'stock_id' => $item->stock_id
+                    );
+
+                    $newid = $this->Mr_items_model->save($detail_data, 0);
+                    if ($newid) {
+                        $this->Bom_project_item_materials_model->updateMaterialRequestIdById($item->id, $header_id);
+                        array_push($detail_id, $newid);
+                    }
+                }
+
+                $post["new_mr"] = $header_id;
+            }
+        }
+        return $post;
+    }
+
+    private function save_project_recalculate($post)
+    {
+        $post["function"] = "project_recalc_stock";
+
+        $project_id = isset($post["id"]) ? $post["id"] : null;
+        if ($project_id != null) {
+            $project_info = $this->Projects_model->dev2_getProjectItemIdByProjectId($project_id);
+            $items_for_recalc = $this->Bom_item_mixing_groups_model->dev2_getProjectItemForRecalcByProjectId($project_id);
+
+            if (sizeof($items_for_recalc)) {
+                foreach ($items_for_recalc as $item) {
+                    $total_ratio = $item->ratio;
+                    if ($total_ratio < 0) {
+                        $total_ratio = $item->ratio * -1;
+                    }
+
+                    // $stock_sql = "
+                    // SELECT bs.id, bs.group_id, bs.material_id, bs.stock, bs.remaining, 
+                    // IFNULL(bpim.used, 0) AS used, bs.stock - IFNULL(bpim.used, 0) AS actual_remain 
+                    // FROM bom_stocks bs 
+                    // INNER JOIN bom_stock_groups bsg ON bsg.id = bs.group_id 
+                    // LEFT JOIN(
+                    //     SELECT stock_id, SUM(ratio) AS used 
+                    //     FROM bom_project_item_materials 
+                    //     WHERE material_id = '" . $item->material_id . "' 
+                    //     GROUP BY stock_id
+                    // ) AS bpim ON bs.id = bpim.stock_id 
+                    // WHERE bs.material_id = '" . $item->material_id . "' AND bs.remaining > 0 AND bs.stock - IFNULL(bpim.used, 0) > 0 
+                    // ORDER BY bsg.created_date ASC
+                    // ";
+                    // $stocks = $this->db->query($stock_sql)->result();
+
+                    $stocks = $this->Bom_item_mixing_groups_model->dev2_getStockRemainingByMaterialId($item->material_id);
+                    if (sizeof($stocks)) {
+                        foreach ($stocks as $s) {
+                            if ($total_ratio > 0) {
+                                $remaining = floatval($s->actual_remain);
+                                $used = min($total_ratio, $remaining);
+                                $total_ratio -= $used;
+
+                                $this->Bom_project_item_materials_model->dev2_insertProjectItemMaterialWithStockId(array(
+                                    'project_item_id' => $project_info->id,
+                                    'material_id' => $s->material_id,
+                                    'stock_id' => $s->id,
+                                    'ratio' => $used
+                                ));
+                            }
+                        }
+
+                        if ($total_ratio > 0) {
+                            $this->Bom_project_item_materials_model->dev2_insertProjectItemMaterialWithOutStockId(array(
+                                'project_item_id' => $project_info->id,
+                                'material_id' => $s->material_id,
+                                'ratio' => $total_ratio * -1
+                            ));
+                        }
+
+                        $this->Bom_project_item_materials_model->dev2_deleteProjectItemMaterialById($item->id);
+                    }
+                }
+            }
+        }
+        return $post;
+    }
+
+    function create_material_request($project_id)
+    {
         // if(!$pr_id && !$this->cp('purchaserequests','add_row')) {
         //     redirect("forbidden");
         //     return;
@@ -5197,53 +5199,44 @@ class Projects extends MY_Controller {
             redirect("forbidden");
             return;
         }*/
-        //$project = $this->Projects_model->get_one($project_id);
-        
-        $mr = $this->Materialrequests_model->get_details(['project_id'=>$project_id])->row();
+        // $project = $this->Projects_model->get_one($project_id);
+        $mr = $this->Materialrequests_model->get_details(['project_id' => $project_id])->row();
 
         //var_dump($mr);exit;
-        
 
-        if(!$mr) {
+        if (!$mr) {
             $data = [
-                'project_id'=>$project_id,
-                'requester_id'=>$this->login_user->id,
-                'created_by'=>$this->login_user->id,
+                'project_id' => $project_id,
+                'requester_id' => $this->login_user->id,
+                'created_by' => $this->login_user->id,
             ];
-            
+
             $mr_id = $mr = $this->Materialrequests_model->save($data, 0);
             $mr = $this->Materialrequests_model->get_one($mr_id);
-            
-            
-
         }
 
-       
         // temporary $this->check_access_to_store();
         $view_data = get_mr_making_data();
-        
 
         $conditions = array("created_by" => $this->login_user->id, "mr_id" => $mr->id, "deleted" => 0);
         $view_data["cart_materials_count"] = $this->Mr_items_model->get_all_where($conditions)->num_rows();
 
         //var_dump($view_data);exit;
-        
         $view_data['requester_dropdown'] = [];
         $view_data['mr_id'] = $mr->id;
-
         $view_data['pid'] = $project_id;
-        
+
         if ($this->login_user->user_type == "staff") {
             $view_data['requester_dropdown'] = $this->_get_requesters_dropdown();
         }
 
         //var_dump($view_data);
-            
         $this->template->rander("projects/process_pj", $view_data);
 
     }
 
-    private function _get_requesters_dropdown() {
+    private function _get_requesters_dropdown()
+    {
         $requesters_dropdown = array("" => "-");
         $requesters = $this->Users_model->get_dropdown_list(array("first_name", "last_name"), "id", array("`status`" => 'active'));
         foreach ($requesters as $key => $value) {
@@ -5252,11 +5245,10 @@ class Projects extends MY_Controller {
         return $requesters_dropdown;
     }
 
-	function list_data() {
-        //$this->access_only_team_members();
-
+    function list_data() 
+    {
+        $this->access_only_team_members();
         $custom_fields = $this->Custom_fields_model->get_available_fields_for_table("projects", $this->login_user->is_admin, $this->login_user->user_type);
-
         $statuses = $this->input->post('status') ? implode(",", $this->input->post('status')) : "";
 
         $options = array(
@@ -5270,39 +5262,37 @@ class Projects extends MY_Controller {
             $options["user_id"] = $this->login_user->id;
         }
 
-        $list_data = $this->Projects_model->get_details( $options, $this->getRolePermission )->result();
+        $list_data = $this->Projects_model->get_details($options, $this->getRolePermission)->result();
         $result = array();
         foreach ($list_data as $data) {
             $result[] = $this->_make_row($data, $custom_fields);
         }
-        //header('Access-Control-Allow-Origin: *');
-        //header("Content-type: application/json; charset=utf-8");
         echo json_encode(array("data" => $result));
     }
-    function list_data_options() {
-        //$this->access_only_team_members();
 
+    function list_data_options()
+    {
         $q = $this->input->get('q', '');
-
         $results = $this->Projects_model->get_list_data_options($q)->result();
-        $results = $results?$results:[];
+        $results = $results ? $results : [];
         $obj = new stdClass;
-        $obj->id='#';
-        $obj->value='#';
-        $obj->text='# กำหนดเอง';
+        $obj->id = '#';
+        $obj->value = '#';
+        $obj->text = '# กำหนดเอง';
         $results[] = $obj;
         echo json_encode($results);
     }
-    function timesheet_list_data() {
+
+    function timesheet_list_data()
+    {
 
         $project_id = $this->input->post("project_id");
 
         $this->init_project_permission_checker($project_id);
-        $this->init_project_settings($project_id); //since we'll check this permission project wise
-
+        $this->init_project_settings($project_id); // Since we'll check this permission project wise
 
         if (!$this->can_view_timesheet($project_id, true)) {
-            //redirect("forbidden");
+            // redirect("forbidden");
         }
 
         $custom_fields = $this->Custom_fields_model->get_available_fields_for_table("timesheets", $this->login_user->is_admin, $this->login_user->user_type);
@@ -5318,33 +5308,32 @@ class Projects extends MY_Controller {
             "custom_fields" => $custom_fields
         );
 
-        //get allowed member ids
+        // Get allowed member ids
         $members = $this->_get_members_to_manage_timesheet();
         if ($members != "all" && $this->login_user->user_type == "staff") {
-            //if user has permission to access all members, query param is not required
-            //client can view all timesheet
+            // if user has permission to access all members, query param is not required
+            // client can view all timesheet
             $options["allowed_members"] = $members;
         }
 
-		$getRolePermission['filters'] = array();
-        $list_data = $this->Timesheets_model->get_details( $options, $getRolePermission )->result();
+        $getRolePermission['filters'] = array();
+        $list_data = $this->Timesheets_model->get_details($options, $getRolePermission)->result();
         $result = array();
         foreach ($list_data as $data) {
             $result[] = $this->_make_timesheet_row($data, $custom_fields);
         }
         echo json_encode(array("data" => $result));
     }
-	
-	
-    function delete_project_member() {		
+
+    function delete_project_member()
+    {
         $id = $this->input->post('id');
         $project_member_info = $this->Project_members_model->get_one($id);
 
         $this->init_project_permission_checker($project_member_info->project_id);
         if (!$this->can_add_remove_project_members()) {
-            //redirect("forbidden");
+            // redirect("forbidden");
         }
-
 
         if ($this->input->post('undo')) {
             if ($this->Project_members_model->delete($id, true)) {
@@ -5353,8 +5342,7 @@ class Projects extends MY_Controller {
                 echo json_encode(array("success" => false, lang('error_occurred')));
             }
         } else {
-            if ( $this->Project_members_model->delete( $id ) ) {
-
+            if ($this->Project_members_model->delete($id)) {
                 $project_member_info = $this->Project_members_model->get_one($id);
 
                 log_notification("project_member_deleted", array("project_id" => $project_member_info->project_id, "to_user_id" => $project_member_info->user_id));
@@ -5364,12 +5352,11 @@ class Projects extends MY_Controller {
             }
         }
     }
-	
-	
-    function project_member_list_data($project_id = 0, $user_type = "") {
+
+    function project_member_list_data($project_id = 0, $user_type = "")
+    {
         $this->access_only_team_members();
         $this->init_project_permission_checker($project_id);
-
 
         //show the message icon to client contacts list only if the user can send message to client. 
         $can_send_message_to_client = false;
@@ -5382,20 +5369,18 @@ class Projects extends MY_Controller {
 
         $options = array("project_id" => $project_id, "user_type" => $user_type, "show_user_wise" => true);
         $list_data = $this->Project_members_model->get_details($options)->result();
-       // var_dump($list_data);exit;
+        // var_dump($list_data);exit;
         $result = array();
-        foreach ($list_data as $data ) {
-            $result[] = $this->_make_project_member_row( $data, $can_send_message_to_client);
+        foreach ($list_data as $data) {
+            $result[] = $this->_make_project_member_row($data, $can_send_message_to_client);
         }
         echo json_encode(array("data" => $result));
     }
-	
-	
-    private function _make_project_member_row( $data, $can_send_message_to_client = false) {
-		
-		
-	 
+
+    private function _make_project_member_row($data, $can_send_message_to_client = false)
+    {
         $member_image = "<span class='avatar avatar-xs mr10'><img src='" . get_avatar($data->member_image) . "' alt='...'></span> " . $data->member_name;
+        $link = "";
 
         if ($data->user_type == "staff") {
             $member = get_team_member_profile_link($data->user_id, $member_image);
@@ -5403,22 +5388,17 @@ class Projects extends MY_Controller {
             $member = get_client_contact_profile_link($data->user_id, $member_image);
         }
 
-        $link = "";
-
-        //check message module availability and show message button
+        // Check message module availability and show message button
         if (get_setting("module_message") && ($this->login_user->id != $data->user_id)) {
             $link = modal_anchor(get_uri("messages/modal_form/" . $data->user_id), "<i class='fa fa-envelope-o'></i>", array("class" => "edit", "title" => lang('send_message')));
         }
-
-        //check message icon permission for client contacts
+        // Check message icon permission for client contacts
         if (!$can_send_message_to_client && $data->user_type === "client") {
             $link = "";
         }
 
-
-        if ( $this->can_add_remove_project_members() ) {
-            $delete_link = js_anchor( "<i class='fa fa-times fa-fw'></i>", array('title' => lang('delete_member'), "class" => "delete", "data-id" => $data->id, "data-action-url" => get_uri("projects/delete_project_member"), "data-action" => "delete")) . '';
-
+        if ($this->can_add_remove_project_members()) {
+            $delete_link = js_anchor("<i class='fa fa-times fa-fw'></i>", array('title' => lang('delete_member'), "class" => "delete", "data-id" => $data->id, "data-action-url" => get_uri("projects/delete_project_member"), "data-action" => "delete")) . '';
             if (!$this->can_manage_all_projects() && ($this->login_user->id === $data->user_id)) {
                 $delete_link = "";
             }
@@ -5426,28 +5406,18 @@ class Projects extends MY_Controller {
         }
 
         $member = '<div class="pull-left">' . $member . '</div><div class="pull-right"><label class="label label-light ml10">' . $data->job_title . '</label></div>';
-
         return array($member, $link);
     }
-	
-    function view( $project_id = 0, $tab = "" ) {
-        /* $groups = $this->Bom_item_stock_groups_model->get_details(array("doc_id" => $project_id , "tbName" => "projects"))->result();
-        var_dump($groups);exit; */
- 
+
+    function view($project_id = 0, $tab = "")
+    {
         $this->init_project_permission_checker($project_id);
 
-        $view_data = $this->_get_project_info_data( $project_id );
-		
-		//arr( $view_data);
-		
-		if( empty( $view_data ) ) {
-			
-			echo page404();
-			
-			exit;
-		}
-		
-		//exit;
+        $view_data = $this->_get_project_info_data($project_id);
+        if (empty($view_data)) {
+            echo page404();
+            exit;
+        }
 
         $access_info = $this->get_access_info("invoice");
         $view_data["show_invoice_info"] = (get_setting("module_invoice") && $this->can_view_invoices()) ? true : false;
@@ -5456,19 +5426,14 @@ class Projects extends MY_Controller {
         $view_data["show_expense_info"] = (get_setting("module_expense") && $expense_access_info->access_type == "all") ? true : false;
 
         $view_data["show_actions_dropdown"] = $this->can_create_projects();
-
         $view_data["show_note_info"] = (get_setting("module_note")) ? true : false;
-
         $view_data["show_timmer"] = get_setting("module_project_timesheet") ? true : false;
 
         $this->init_project_settings($project_id);
         $view_data["show_timesheet_info"] = $this->can_view_timesheet($project_id);
-
         $view_data["show_tasks"] = true;
-
         $view_data["show_gantt_info"] = $this->can_view_gantt();
         $view_data["show_milestone_info"] = $this->can_view_milestones();
-
 
         if ($this->login_user->user_type === "client") {
             $view_data["show_timmer"] = false;
@@ -5480,25 +5445,22 @@ class Projects extends MY_Controller {
         }
 
         $view_data["show_files"] = $this->can_view_files();
-
         $view_data["tab"] = $tab;
-
-        $view_data["is_starred"] = strpos( $view_data['project_info']->starred_by, ":" . $this->login_user->id . ":") ? true : false;
-
+        $view_data["is_starred"] = strpos($view_data['project_info']->starred_by, ":" . $this->login_user->id . ":") ? true : false;
         $view_data['can_edit_timesheet_settings'] = $this->can_edit_timesheet_settings($project_id);
         $view_data['can_edit_slack_settings'] = $this->can_edit_slack_settings();
 
-        //var_dump($view_data);exit;
-
-        $this->template->rander( "projects/details_view", $view_data);
+        // var_dump($view_data); exit;
+        $this->template->rander("projects/details_view", $view_data);
     }
 
-    function process_pj($mr_id=0) {
-        if(!$mr_id && !$this->cp('purchaserequests','add_row')) {
+    function process_pj($mr_id = 0)
+    {
+        if (!$mr_id && !$this->cp('purchaserequests', 'add_row')) {
             redirect("forbidden");
             return;
         }
-        if($mr_id && !$this->cp('purchaserequests','edit_row')) {
+        if ($mr_id && !$this->cp('purchaserequests', 'edit_row')) {
             redirect("forbidden");
             return;
         }
@@ -5507,7 +5469,7 @@ class Projects extends MY_Controller {
             redirect("forbidden");
             return;
         }*/
-        
+
         // temporary $this->check_access_to_store();
         $view_data = get_mr_making_data();
         $conditions = array("created_by" => $this->login_user->id, "mr_id" => $mr_id, "deleted" => 0);
@@ -5518,39 +5480,40 @@ class Projects extends MY_Controller {
         if ($this->login_user->user_type == "staff") {
             $view_data['clients_dropdown'] = $this->_get_buyers_dropdown();
         }
-        
+
         $this->template->rander("projects/process_pj", $view_data);
 
     }
 
-    function item_list_data_of_login_user($mr_id=0) {
+    function item_list_data_of_login_user($mr_id = 0)
+    {
         // temporary $this->check_access_to_store();
-        $options = array("id"=>$mr_id, "created_by" => $this->login_user->id, 'item_type'=>'all','mrAllow' => 1);
-        if(!$mr_id) {
+        $options = array("id" => $mr_id, "created_by" => $this->login_user->id, 'item_type' => 'all', 'mrAllow' => 1);
+        if (!$mr_id) {
             $options['processing'] = true;
         }
-        $mr_info = $mr_id?$this->Materialrequests_model->get_details(array("id" => $mr_id))->row():null;
-        
+        $mr_info = $mr_id ? $this->Materialrequests_model->get_details(array("id" => $mr_id))->row() : null;
+
         $prove = $this->Provetable_model->getProve($mr_id, 'materialrequests')->row();
         $list_data = $this->Mr_items_model->get_details($options)->result();
         //var_dump($list_data);exit;
-       // var_dump($list_data);exit;
-        
+        // var_dump($list_data);exit;
+
         $result = array();
         foreach ($list_data as $data) {
-            
+
             $result[] = $this->_make_item_row($mr_info, $prove, $data);
         }
-        
+
 
         echo json_encode(array("data" => $result));
     }
 
     /* prepare a row of order item list table */
-
-    private function _make_item_row($mr, $prove, $data) {
+    private function _make_item_row($mr, $prove, $data)
+    {
         //$item = "<div class='item-row strong mb5' data-id='$data->id'><i class='fa fa-bars pull-left move-icon'></i> $data->title</div>";
-        $item = "<div class='item-row strong mb5' data-id='$data->id'>".$data->code.($this->cop('prove_row')?":".$data->title:"")."</div>";
+        $item = "<div class='item-row strong mb5' data-id='$data->id'>" . $data->code . ($this->cop('prove_row') ? ":" . $data->title : "") . "</div>";
         if ($data->description) {
             $item .= "<span>" . nl2br($data->description) . "</span>";
         }
@@ -5560,8 +5523,8 @@ class Projects extends MY_Controller {
         //$view_data['view_row'] = $this->cp('purchaserequests','view_row');
         //$view_data['add_row'] = $this->cp('purchaserequests','add_row');
 
-        $is_approved = ($prove && $prove->status_id=='1');
-        
+        $is_approved = ($prove && $prove->status_id == '1');
+
         $edit_row = ($is_approved && $this->cop('prove_row')) || (!$is_approved && $this->cop('edit_row'));
         $delete_row = ($is_approved && $this->cop('prove_row')) || (!$is_approved && $this->cop('delete_row'));
         //$this->dump([$is_approved, $this->cop('prove_row'), $this->cop('edit_row')]);
@@ -5578,35 +5541,37 @@ class Projects extends MY_Controller {
             /* $data->project_name,
             $data->supplier_name, */
             to_decimal_format($data->ratio) . " " . $type,
-            /* to_currency($data->rate, $data->currency_symbol, 4),
-            to_currency($data->total, $data->currency_symbol, 4), */
-            ($edit_row?modal_anchor(get_uri("purchaserequests/item_modal_form"), "<i class='fa fa-pencil'></i>", array("class" => "edit", "title" => lang('edit_item'), "data-post-id" => $data->id, "data-post-mr_id" => $data->mr_id, "data-post-item_type" => $data->item_type, "data-post-item_id" => (($data->item_type!='itm')?0:$data->item_id), "data-post-material_id" => (($data->item_type!='mtr')?0:$data->material_id))):'')
-            .($delete_row?js_anchor("<i class='fa fa-times fa-fw'></i>", array('title' => lang('delete'), "class" => "delete", "data-id" => $data->id, "data-action-url" => get_uri("purchaserequests/delete_item"), "data-action" => "delete")):'')
+                /* to_currency($data->rate, $data->currency_symbol, 4),
+                to_currency($data->total, $data->currency_symbol, 4), */
+            ($edit_row ? modal_anchor(get_uri("purchaserequests/item_modal_form"), "<i class='fa fa-pencil'></i>", array("class" => "edit", "title" => lang('edit_item'), "data-post-id" => $data->id, "data-post-mr_id" => $data->mr_id, "data-post-item_type" => $data->item_type, "data-post-item_id" => (($data->item_type != 'itm') ? 0 : $data->item_id), "data-post-material_id" => (($data->item_type != 'mtr') ? 0 : $data->material_id))) : '')
+            . ($delete_row ? js_anchor("<i class='fa fa-times fa-fw'></i>", array('title' => lang('delete'), "class" => "delete", "data-id" => $data->id, "data-action-url" => get_uri("purchaserequests/delete_item"), "data-action" => "delete")) : '')
         );
     }
 
     /* load item modal */
-
-    function item_modal_form() {
+    function item_modal_form()
+    {
         // temporary $this->check_access_to_store();
-        validate_submitted_data(array(
-            "id" => "numeric"
-        ));
+        validate_submitted_data(
+            array(
+                "id" => "numeric"
+            )
+        );
         $post = $this->input->post();
         $model_info = $this->Mr_items_model->get_one(@$post['id']);
         $this->check_access_to_this_pr_item($model_info);
 
         $view_data['model_info'] = $model_info;
         $view_data['code'] = $model_info->code;
-        $view_data['mr_id'] = @$post['id']?$model_info->mr_id:@$post['mr_id'];
+        $view_data['mr_id'] = @$post['id'] ? $model_info->mr_id : @$post['mr_id'];
         $view_data['item_id'] = $model_info->item_id;
         $view_data['material_id'] = intval($model_info->material_id);
-        $view_data['item_type'] = @$post['id']?$model_info->item_type:@$post['item_type'];
+        $view_data['item_type'] = @$post['id'] ? $model_info->item_type : @$post['item_type'];
         //$view_data['supplier_id'] = $model_info->supplier_id;
-        $view_data['currency'] = @$post['id']?$model_info->currency:'THB';
-        $view_data['currency'] = $view_data['currency']?$view_data['currency']:'THB';
-        $view_data['currency_symbol'] = @$post['id']?$model_info->currency_symbol:'฿';
-        $view_data['currency_symbol'] = $view_data['currency_symbol']?$view_data['currency_symbol']:'฿';
+        $view_data['currency'] = @$post['id'] ? $model_info->currency : 'THB';
+        $view_data['currency'] = $view_data['currency'] ? $view_data['currency'] : 'THB';
+        $view_data['currency_symbol'] = @$post['id'] ? $model_info->currency_symbol : '฿';
+        $view_data['currency_symbol'] = $view_data['currency_symbol'] ? $view_data['currency_symbol'] : '฿';
         $view_data['supplier_name'] = $model_info->supplier_name;
         $view_data['address'] = $model_info->address;
         $view_data['city'] = $model_info->city;
@@ -5625,26 +5590,29 @@ class Projects extends MY_Controller {
 
     /* add or edit an order item */
 
-    function save_item() {
+    function save_item()
+    {
         // temporary $this->check_access_to_store();
-        validate_submitted_data(array(
-            "id" => "numeric"
-        ));
-        
+        validate_submitted_data(
+            array(
+                "id" => "numeric"
+            )
+        );
+
         $id = $this->input->post('id', 0);
 
-        if(!$id && !$this->cp('purchaserequests','add_row')) {
+        if (!$id && !$this->cp('purchaserequests', 'add_row')) {
             redirect("forbidden");
             return;
         }
-        if($id && !$this->cp('purchaserequests','edit_row')) {
+        if ($id && !$this->cp('purchaserequests', 'edit_row')) {
             redirect("forbidden");
             return;
         }
 
         $item_type = $this->input->post('item_type');
         $item_info = null;
-        if($item_type) {
+        if ($item_type) {
             $item_info = $this->Mr_items_model->get_one($id);
         }
         //$this->check_access_to_this_pr_item($item_info);
@@ -5665,16 +5633,16 @@ class Projects extends MY_Controller {
                 "owner_id" => $this->login_user->id,
                 "created_by " => $this->login_user->id,
                 "address" => $this->input->post('address'),
-                "city"=>$this->input->post('city'),
-                "state"=>$this->input->post('state'),
-                "zip"=>$this->input->post('zip'),
-                "country"=>$this->input->post('country'),
-                "website"=>$this->input->post('website'),
-                "phone"=>$this->input->post('phone'),
-                "vat_number"=>$this->input->post('vat_number'),
-                "currency"=>$this->input->post('currency'),
-                "currency_symbol"=>$this->input->post('currency_symbol'),
-                "created_date"=>date('Y-m-d H:i:s')
+                "city" => $this->input->post('city'),
+                "state" => $this->input->post('state'),
+                "zip" => $this->input->post('zip'),
+                "country" => $this->input->post('country'),
+                "website" => $this->input->post('website'),
+                "phone" => $this->input->post('phone'),
+                "vat_number" => $this->input->post('vat_number'),
+                "currency" => $this->input->post('currency'),
+                "currency_symbol" => $this->input->post('currency_symbol'),
+                "created_date" => date('Y-m-d H:i:s')
             );
             $supplier_id = $this->Bom_suppliers_model->save($library_supplier_data);
         }
@@ -5684,12 +5652,12 @@ class Projects extends MY_Controller {
             $rate = unformat_currency($this->input->post('mr_item_rate'));
             $mr_item_data["pr_id"] = $mr_id;
             $mr_item_data["code"] = $this->input->post('code');
-            $mr_item_data["title"] = ($item_type=='itm')?$item_info->title:$this->input->post('mr_item_title');
+            $mr_item_data["title"] = ($item_type == 'itm') ? $item_info->title : $this->input->post('mr_item_title');
             $mr_item_data["unit_type"] = $this->input->post('mr_unit_type');
             $mr_item_data["rate"] = unformat_currency($this->input->post('mr_item_rate'));
             $mr_item_data["total"] = $rate * $quantity;
             $mr_item_data["item_type"] = $item_type;
-            $mr_item_data["item_id"] = $id&&$item_info?$item_info->item_id:$this->input->post('item_id', 0);
+            $mr_item_data["item_id"] = $id && $item_info ? $item_info->item_id : $this->input->post('item_id', 0);
             $mr_item_data["material_id"] = $this->input->post('material_id', 0);
             $mr_item_data["supplier_id"] = $supplier_id;
             $mr_item_data["supplier_name"] = $this->input->post('supplier_name', '');
@@ -5697,12 +5665,12 @@ class Projects extends MY_Controller {
             $mr_item_data["currency_symbol"] = $this->input->post('currency_symbol', '฿');
         } else {
             $rate = unformat_currency($this->input->post('mr_item_rate'));
-            $mr_item_data["title"] = ($item_type=='itm')?$item_info->title:$this->input->post('mr_item_title');
+            $mr_item_data["title"] = ($item_type == 'itm') ? $item_info->title : $this->input->post('mr_item_title');
             $mr_item_data["code"] = $this->input->post('code');
             $mr_item_data["unit_type"] = $this->input->post('mr_unit_type');
             $mr_item_data["rate"] = unformat_currency($this->input->post('mr_item_rate'));
             $mr_item_data["item_type"] = $item_type;
-            $mr_item_data["item_id"] = $id?$item_info->item_id:$this->input->post('item_id', 0);
+            $mr_item_data["item_id"] = $id ? $item_info->item_id : $this->input->post('item_id', 0);
             $mr_item_data["material_id"] = $this->input->post('material_id', 0);
             $mr_item_data["supplier_id"] = $supplier_id;
             $mr_item_data["supplier_name"] = $this->input->post('supplier_name', '');
@@ -5720,8 +5688,8 @@ class Projects extends MY_Controller {
         $mr_item_data["vat_number"] = $this->input->post('vat_number', '');
         $mr_item_id = $this->Mr_items_model->save($mr_item_data, $id);
         if ($mr_item_id) {
-            $options = array("id" => $mr_item_id, 'item_type'=>'all');
-            $mr_info = $mr_id?$this->Purchaserequests_model->get_details(array("id" => $mr_id))->row():null;
+            $options = array("id" => $mr_item_id, 'item_type' => 'all');
+            $mr_info = $mr_id ? $this->Purchaserequests_model->get_details(array("id" => $mr_id))->row() : null;
             $prove = $this->Provetable_model->getProve($mr_id, 'purchaserequests')->row();
             $item_info = $this->Mr_items_model->get_details($options)->row();
             //redirect('/purchaserequests/process_pr/'.$item_info->pr_id);
@@ -5735,8 +5703,9 @@ class Projects extends MY_Controller {
         }
     }
 
-    //update the sort value for order item
-    function update_item_sort_values($id = 0) {
+    // update the sort value for order item
+    function update_item_sort_values($id = 0)
+    {
         // temporary $this->check_access_to_store();
         $sort_values = $this->input->post("sort_values");
         if ($sort_values) {
@@ -5758,15 +5727,17 @@ class Projects extends MY_Controller {
     }
 
     /* delete or undo an order item */
-
-    function delete_item() {
-        if(!$this->cop('delete_row')) {
+    function delete_item()
+    {
+        if (!$this->cop('delete_row')) {
             redirect("forbidden");
         }
-       // temporary  $this->check_access_to_store();
-        validate_submitted_data(array(
-            "id" => "required|numeric"
-        ));
+        // temporary  $this->check_access_to_store();
+        validate_submitted_data(
+            array(
+                "id" => "required|numeric"
+            )
+        );
 
         $id = $this->input->post('id');
         $mr_item_info = $this->Mr_items_model->get_one($id);
@@ -5777,7 +5748,7 @@ class Projects extends MY_Controller {
             if ($this->Mr_items_model->delete($id, true)) {
                 $options = array("id" => $id);
                 $item_info = $this->Mr_items_model->get_details($options)->row();
-                $mr_info = $item_info->mr_id?$this->Purchaserequests_model->get_details(array("id" => $mr_id))->row():null;
+                $mr_info = $item_info->mr_id ? $this->Purchaserequests_model->get_details(array("id" => $mr_id))->row() : null;
                 $prove = $this->Provetable_model->getProve($mr_id, 'purchaserequests')->row();
                 echo json_encode(array("success" => true, "mr_id" => $item_info->pr_id, "data" => $this->_make_item_row($mr_info, $prove, $item_info), "mr_total_view" => $this->_get_mr_total_view($item_info->mr_id), "message" => lang('record_undone')));
             } else {
@@ -5794,27 +5765,29 @@ class Projects extends MY_Controller {
     }
 
     /* order total section */
-
-    private function _get_mr_total_view($mr_id = 0) {
+    private function _get_mr_total_view($mr_id = 0)
+    {
         if ($mr_id) {
             $view_data["mr_total_summary"] = $this->Materialrequests_model->get_mr_total_summary($mr_id);
             $view_data["mr_id"] = $mr_id;
-            $view_data["edit_row"] = false;//$this->cp('purchaserequests', 'edit_row');
+            $view_data["edit_row"] = false; //$this->cp('purchaserequests', 'edit_row');
             return $this->load->view('projects/mr_total_section', $view_data, true);
         } else {
             $view_data = get_pr_making_data();
-            $view_data["edit_row"] = false;//$this->cp('purchaserequests', 'edit_row');
+            $view_data["edit_row"] = false; //$this->cp('purchaserequests', 'edit_row');
             return $this->load->view('projects/processing_mr_total_section', $view_data, true);
         }
     }
 
-    function place_order() {
+    function place_order()
+    {
         // temporary $this->check_access_to_store();
         $mr_id = $_REQUEST['mr_id'];
         //var_dump($mr_id);exit;
-        
-        $mr_items = $this->Mr_items_model->get_details(array("created_by" => $this->login_user->id, "id" => $mr_id,'mrAllow' => 1))->result();
-        var_dump($mr_items);exit;
+
+        $mr_items = $this->Mr_items_model->get_details(array("created_by" => $this->login_user->id, "id" => $mr_id, 'mrAllow' => 1))->result();
+        var_dump($mr_items);
+        exit;
 
         if (!$mr_items) {
             echo json_encode(array("success" => false, "redirect_to" => get_uri("projects/process_pj"), 'message' => lang('at_least_one_item')));
@@ -5822,7 +5795,6 @@ class Projects extends MY_Controller {
             return;
             //show_404();
         }
-               
 
         // $mr_data = array(
         //     //"buyer_id" => $this->input->post("buyer_id") ? $this->input->post("buyer_id") : $this->login_user->client_id,
@@ -5838,39 +5810,38 @@ class Projects extends MY_Controller {
         // $mr_id = $this->Materialrequests_model->save($mr_data);
         // var_dump($mr_id);
         // exit;
-        
-        
+
+
         if ($mr_id) {
 
-            $checkMR = "SELECT * FROM mr_items WHERE mr_id = ".$mr_id." ";
+            $checkMR = "SELECT * FROM mr_items WHERE mr_id = " . $mr_id . " ";
             $res = $this->dao->fetchAll($checkMR);
-
 
             //var_dump($mr_items);exit;
             //save items to this order
             $this->load->model('Bom_material_pricings_model');
             /* if(!empty($res)){ */
-            if(empty($res)){
-                
-            }else{
+            if (empty($res)) {
+
+            } else {
                 foreach ($mr_items as $mr_item) {
-                    if(empty($mr_item->part_item_id)){
+                    if (empty($mr_item->part_item_id)) {
                         $mr_item->part_item_id = 0;
                     }
-                    if(empty($mr_item->material_id)){
+                    if (empty($mr_item->material_id)) {
                         $mr_item->material_id = 0;
                     }
                     // var_dump($mr_item);
-    
+
                     $sql = "
                     INSERT INTO `mr_items` 
                     (`mr_id`, `supplier_id`, `supplier_name`, `project_id`, `project_name`, `code`, `title`, `description`, `item_type`, `quantity`, `unit_type`, `rate`, `total`, `currency_symbol`, `created_by`, `item_id`,`material_id`) 
                         VALUES 
-                    (".$mr_id.", 0, '',".$mr_item->project_id.",'".$mr_item->project_name."','".$mr_item->code."','".$mr_item->title."','".$mr_item->description."','".$mr_item->item_type."','".$mr_item->ratio."','".$mr_item->unit_type."','".$mr_item->rate."','".$mr_item->total."','".$mr_item->currency_symbol."','".$this->login_user->id."','".$mr_item->part_item_id."','".$mr_item->material_id."'); 
+                    (" . $mr_id . ", 0, ''," . $mr_item->project_id . ",'" . $mr_item->project_name . "','" . $mr_item->code . "','" . $mr_item->title . "','" . $mr_item->description . "','" . $mr_item->item_type . "','" . $mr_item->ratio . "','" . $mr_item->unit_type . "','" . $mr_item->rate . "','" . $mr_item->total . "','" . $mr_item->currency_symbol . "','" . $this->login_user->id . "','" . $mr_item->part_item_id . "','" . $mr_item->material_id . "'); 
                     ";
 
                     //var_dump($sql);exit;
-    
+
                     $this->dao->execDatas($sql);
                     // $mr_item_data = array("mr_id" => $mr_id);
                     // $a = $this->Mr_items_model->save($mr_item, $mr_id);
@@ -5885,20 +5856,20 @@ class Projects extends MY_Controller {
                     //         'material_id'=>$mr_item->material_id,
                     //         'supplier_id'=> 0 
                     //     ];
-    
+
                     //     // $mr_item->supplier_id
                     //     $this->Bom_material_pricings_model->update_where($data, $where);
                     // }
                 }
             }
-            
+
 
             $redirect_to = get_uri("materialrequests/view/$mr_id");
             if ($this->login_user->user_type == "client") {
                 $redirect_to = get_uri("materialrequests/preview/$mr_id");
             }
 
-            //send notification
+            // Send notification
             log_notification("new_mr_received", array("mr_id" => $mr_id));
 
             echo json_encode(array("success" => true, "redirect_to" => $redirect_to, 'message' => lang('record_saved')));
@@ -5907,7 +5878,8 @@ class Projects extends MY_Controller {
         }
     }
 
-    private function _get_clients_dropdown() {
+    private function _get_clients_dropdown()
+    {
         $clients_dropdown = array("" => "-");
         $clients = $this->Clients_model->get_dropdown_list(array("company_name"), "id", array("is_lead" => 0));
         foreach ($clients as $key => $value) {
@@ -5916,7 +5888,8 @@ class Projects extends MY_Controller {
         return $clients_dropdown;
     }
 
-    private function _get_buyers_dropdown() {
+    private function _get_buyers_dropdown()
+    {
         $buyers_dropdown = array("" => "-");
         $buyers = $this->Users_model->get_dropdown_list(array("first_name", "last_name"), "id", array("`status`" => 'active'));
         foreach ($buyers as $key => $value) {
@@ -5932,13 +5905,24 @@ class Projects extends MY_Controller {
             $is_lead = $this->Clients_model->getClientTypeById($id);
             $data['code'] = $is_lead;
             if ($is_lead == "0"): {
-                $data['text'] = lang('client');
-            } else: {
-                $data['text'] = lang('lead');
-            } endif;
+                    $data['text'] = lang('client');
+                }
+            else: {
+                    $data['text'] = lang('lead');
+                }
+            endif;
         }
-
         echo json_encode(array("data" => $data));
+    }
+
+    function dev2_canDeleteProject($project_id)
+    {
+        $can_delete_project = true;
+        $count = $this->Projects_model->dev2_countItemByProjectId($project_id);
+        if (!empty($count) && $count > 0) {
+            $can_delete_project = false;
+        }
+        return $can_delete_project;
     }
 }
 
