@@ -5683,4 +5683,23 @@ class Stock extends MY_Controller
         echo $rows;
     }
 
+    public function dev2_updateStockAdjustment($key = null)
+    {
+        if ($key !== "google555") {
+            redirect("forbidden");
+        }
+
+        // get stock actual used for all material
+        $material_actual_used = $this->Bom_stocks_model->dev2_getMaterialActualUsed();
+        if (sizeof($material_actual_used)) {
+            foreach ($material_actual_used as $material) {
+                if ($material->stock_diff < 0) {
+                    $this->Bom_stocks_model->dev2_optimizeRemainingStock($material->id, $material->actual_remain);
+                }
+            }
+        }
+
+        echo "<pre>Stock adjust success.</pre>";
+    }
+
 }

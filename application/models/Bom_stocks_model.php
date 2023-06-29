@@ -222,4 +222,29 @@ class Bom_stocks_model extends Crud_model {
         return $actual_remain;
     }
 
+    function dev2_getMaterialActualUsed()
+    {
+        $sql = "
+        SELECT bs.id, bs.stock, bs.remaining, IFNULL(bpim.stock_qty, 0) AS actual_used, 
+        bs.stock - IFNULL(bpim.stock_qty, 0) AS actual_remain, bs.remaining - (bs.stock - IFNULL(bpim.stock_qty, 0)) AS stock_diff 
+        FROM bom_stocks bs 
+        INNER JOIN (
+            SELECT stock_id, SUM(ratio) AS stock_qty 
+            FROM bom_project_item_materials 
+            WHERE used_status = 1 
+            GROUP BY stock_id
+        ) AS bpim ON bs.id = bpim.stock_id 
+        WHERE bs.remaining > 0 ORDER BY bs.id ASC
+        ";
+
+        $query = $this->db->query($sql);
+        return $query->result();
+    }
+
+    function dev2_optimizeRemainingStock($stock_id, $actual_remain)
+    {
+        $this->db->where('id', $stock_id);
+        $this->db->update('bom_stocks', array('remaining' => $actual_remain));
+    }
+
 }
