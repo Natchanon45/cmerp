@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<?php $this->load->view("edocs/include/head"); ?>
+<?php $this->load->view("edocs/include/head"); ?><meta name="format-detection" content="telephone=no">
 <title><?php echo get_setting("company_name")." - ".$doc["doc_number"]; ?></title>	
 <style type="text/css">
 .body .items table td:nth-child(1){
@@ -45,7 +45,13 @@
 	<div class="paper wrapper">
 		<div class="header clear">
 			<div class="left">
-				<div class="logo"><img src="<?php echo get_file_from_setting("estimate_logo", get_setting('only_file_path')); ?>" /></div>
+				<div class="logo">
+	                <?php if(file_exists(get_file_from_setting("estimate_logo", get_setting('only_file_path'))) != null): ?>
+	                    <img src="<?php echo get_file_from_setting("estimate_logo", get_setting('only_file_path')); ?>" />
+	                <?php else: ?>
+	                    <span class="nologo">&nbsp;</span>
+	                <?php endif; ?>
+	            </div>
 				<div class="seller">
 					<p class="name"><?php echo get_setting("company_name"); ?></p>
 					<?php if(trim(get_setting("company_phone")) != ""): ?>

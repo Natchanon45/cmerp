@@ -27,9 +27,6 @@ class roles extends MY_Controller {
 
     //load the role view
     function index() {
-
-//echo $view_data['test'];
-       //$this->load->view('roles/index', $view_data);
         $this->template->rander("roles/index");
     }
 
