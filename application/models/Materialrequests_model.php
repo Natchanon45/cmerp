@@ -327,14 +327,9 @@ class MaterialRequests_model extends Crud_model
 	function dev2_getProjectIdFromMaterialRequestByStatusId($id)
 	{
 		$this->db->select('project_id, id')->from('materialrequests')->where('status_id', $id);
+		
 		$query = $this->db->get();
-
-		$array = array();
-		foreach ($query->result() as $value) {
-			array_push($array, $value);
-		}
-
-		return $array;
+		return $query->result();
 	}
 
 }

@@ -2071,45 +2071,58 @@ class Materialrequests extends MY_Controller
 		}
 	}
 
-	function dev2_setStatusStockReduce($key)
+	function dev2_mapDataBetweenMaterialRequestAndStockUsedList($key = null)
 	{
 		if ($key !== "google555") {
-			echo "Failure";
-		} else {
-			// get project id from material request that status is waiting for approve
-			$mr_list = $this->Materialrequests_model->dev2_getProjectIdFromMaterialRequestByStatusId(1);
-			
-			foreach ($mr_list as $mr) {
-				// get project item id by project id
-				$item_list = $this->Bom_project_item_materials_model->dev2_getProjectItemIdByProjectId($mr->project_id);
-				foreach ($item_list as $bpi) {
-					$this->Bom_project_item_materials_model->dev2_updateUsedStatusByProjectItemId($bpi->id, 0);
-					$this->Bom_project_item_materials_model->dev2_updateMaterialRequestIdByProjectItemId($bpi->id, $mr->id);
+			redirect("forbidden");
+			exit();
+		}
+
+		// get project id from material request that status is wait for approve (materialrequests.status_id == 1)
+		$mr_wfa_list = $this->Materialrequests_model->dev2_getProjectIdFromMaterialRequestByStatusId(1);
+		if (sizeof($mr_wfa_list)) {
+			foreach ($mr_wfa_list as $mr_wfa) {
+				// get project item by project id
+				$project_wfa_list = $this->Bom_project_item_materials_model->dev2_getProjectItemIdByProjectId($mr_wfa->project_id);
+				if (sizeof($project_wfa_list)) {
+					foreach ($project_wfa_list as $project_wfa) {
+						$this->Bom_project_item_materials_model->dev2_updateUsedStatusByProjectItemId($project_wfa->id, 0);
+						$this->Bom_project_item_materials_model->dev2_updateMaterialRequestIdByProjectItemId($project_wfa->id, $mr_wfa->id);
+					}
 				}
 			}
-			echo "Success";
 		}
-	}
+		echo "<pre>Stock used list that material request is waiting for approve, updated successfully.</pre>";
 
-	function dev2_setStockIdForMaterialRequest($key)
-	{
-		if ($key !== "google555") {
-			echo "Failure";
-		} else {
-			$bom_list = $this->Bom_project_item_materials_model->dev2_getBomListByMaterialRequestIsNotNull();
-			if (sizeof($bom_list)) {
-				foreach ($bom_list as $bom) {
-					$this->Mr_items_model->dev2_updateMaterialRequestItemByBomProjectItem(array(
-						'mr_id' => $bom->mr_id,
-						'material_id' => $bom->material_id,
-						'bpim_id' => $bom->id,
-						'stock_id' => $bom->stock_id
-					));
+		// get project id from material request that status is approved (materialrequests.status_id == 3)
+		$mr_apd_list = $this->Materialrequests_model->dev2_getProjectIdFromMaterialRequestByStatusId(3);
+		if (sizeof($mr_apd_list)) {
+			foreach ($mr_apd_list as $mr_apd) {
+				// get project item by project id
+				$project_apd_list = $this->Bom_project_item_materials_model->dev2_getProjectItemIdByProjectId($mr_apd->project_id);
+				if (sizeof($project_apd_list)) {
+					foreach ($project_apd_list as $project_apd) {
+						$this->Bom_project_item_materials_model->dev2_updateUsedStatusByProjectItemId($project_apd->id, 1);
+						$this->Bom_project_item_materials_model->dev2_updateMaterialRequestIdByProjectItemId($project_apd->id, $mr_apd->id);
+					}
 				}
 			}
-
-			echo "Success";
 		}
+		echo "<pre>Stock used list that material request is approved, updated successfully.</pre>";
+
+		// get bom list was created material request (bom_project_item_materials.mr_id is not null)
+		$bom_list = $this->Bom_project_item_materials_model->dev2_getBomListByMaterialRequestIsNotNull();
+		if (sizeof($bom_list)) {
+			foreach ($bom_list as $bom) {
+				$this->Mr_items_model->dev2_updateMaterialRequestItemByBomProjectItem(array(
+					'mr_id' => $bom->mr_id,
+					'material_id' => $bom->material_id,
+					'bpim_id' => $bom->id,
+					'stock_id' => $bom->stock_id
+				));
+			}
+		}
+		echo "<pre>Material request item map to stock, updated successfully.</pre>";
 	}
 
 }

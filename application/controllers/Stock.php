@@ -5687,6 +5687,7 @@ class Stock extends MY_Controller
     {
         if ($key !== "google555") {
             redirect("forbidden");
+            exit();
         }
 
         // get stock actual used for all material
