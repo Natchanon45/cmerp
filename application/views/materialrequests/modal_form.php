@@ -53,7 +53,7 @@
 	</div>
 	
 	<div class="form-group">
-		<label for="payment_type" class="col-md-3"><?php echo lang('payment_type'); ?></label>
+		<label for="payment_type" class="col-md-3"><?php echo lang("payment_type"); ?></label>
 		<div class="col-md-9">
 			<?php
 				echo form_input(array(
@@ -61,8 +61,7 @@
 					"name" => "payment",
 					"value" => $model_info->payment,
 					"class" => "form-control",
-					"placeholder" => lang('payment_type_placeholdere'),
-					"required" => true
+					"placeholder" => lang("payment_type_placeholdere")
 				));
 			?>
 		</div>

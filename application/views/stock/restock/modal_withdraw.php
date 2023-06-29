@@ -41,12 +41,24 @@
   </div>
 
   <div class="form-group">
+    <label for="actual_remaining" class="<?php echo $label_column; ?>">
+      <?php echo lang('actual_restock_remaining'); ?>
+    </label>
+    <div class="<?php echo $field_column; ?>">
+      <div class="input-suffix">
+        <input type="number" name="actual_remaining" id="actual_remaining" disabled class="form-control" min="1" step="0.0001" value="<?= $model_info->actual_remain ?>" />
+        <div class="input-tag string-upper"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="form-group">
     <label for="ratio" class="<?php echo $label_column; ?>">
       <?php echo lang('stock_restock_withdraw'); ?>
     </label>
     <div class="<?php echo $field_column; ?>">
       <div class="input-suffix">
-        <input type="number" name="ratio" id="ratio" required class="form-control" min="0.0001" max="<?= $model_info->remaining ?>" step="0.0001" value="0" />
+        <input type="number" name="ratio" id="ratio" required class="form-control" min="0.0001" max="<?= $model_info->actual_remain ?>" step="0.0001" value="0" />
         <div class="input-tag string-upper"></div>
       </div>
     </div>

@@ -374,4 +374,29 @@ class Projects_model extends Crud_model {
         return $this->db->query($sql);
     }
 
+    public function get_project_by_id($id = 0)
+    {
+        $this->db->select("*")->from("projects")->where("id", $id);
+        $query = $this->db->get();
+
+        return $query->row();
+    }
+
+    function dev2_getProjectItemIdByProjectId($project_id)
+    {
+        $query = $this->db->get_where('bom_project_items', array('project_id' => $project_id));
+        return $query->row();
+    }
+
+    function dev2_countItemByProjectId($project_id)
+    {
+        $count = 0;
+        if (!empty($project_id) && $project_id) {
+            $query = $this->db->get_where('bom_project_items', array('project_id' => $project_id));
+            $count = $query->num_rows();
+        }
+
+        return $count;
+    }
+
 }

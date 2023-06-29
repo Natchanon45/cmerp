@@ -158,4 +158,93 @@ class Bom_stocks_model extends Crud_model {
         return $query->num_rows();
     }
 
+    function dev2_getRestockNameByStockId($id)
+    {
+        $sql = "SELECT bsg.name FROM bom_stock_groups bsg LEFT JOIN bom_stocks bs ON bsg.id = bs.group_id WHERE 1 AND bs.id = '{$id}'";
+        $name = "-";
+        
+        if (isset($id) && !empty($id)) {
+            $query = $this->db->query($sql);
+            $name = $query->row()->name;
+        }
+        return $name;
+    }
+
+    function dev2_getRestockGroupNameByStockId($id)
+    {
+        $sql = "SELECT bsg.id, bsg.name FROM bom_stock_groups bsg LEFT JOIN bom_stocks bs ON bsg.id = bs.group_id WHERE 1 AND bs.id = '{$id}'";
+        
+        $query = null;
+        if (isset($id) && !empty($id)) {
+            $query = $this->db->query($sql)->row();
+        }
+        return $query;
+    }
+
+    function dev2_verifyStockUsabled($stock_id, $qty)
+    {
+        $sql = "SELECT remaining FROM bom_stocks WHERE id = '{$stock_id}'";
+        $query = $this->db->query($sql)->row();
+        $remaining = $query->remaining;
+        
+        return $remaining >= $qty;
+    }
+
+    function dev2_updateStockUsed($stock_id, $qty)
+    {
+        $sql = "UPDATE bom_stocks SET remaining = remaining - {$qty} WHERE id = '{$stock_id}'";
+        $this->db->query($sql);
+    }
+
+    function dev2_getActualRemainingByStockId($stock_id)
+    {
+        $actual_remain = 0;
+        $sql = "
+        SELECT 
+            CASE 
+                WHEN bs.stock - IFNULL(bpim.used_qty, 0) < 0 THEN 0 
+                ELSE bs.stock - IFNULL(bpim.used_qty, 0) 
+            END AS actual_remain 
+        FROM bom_stocks bs
+        INNER JOIN(
+            SELECT stock_id, SUM(ratio) AS used_qty 
+            FROM bom_project_item_materials 
+            WHERE stock_id = " . $stock_id . " GROUP BY stock_id
+        ) AS bpim ON bs.id = bpim.stock_id 
+        WHERE bs.id = " . $stock_id . "
+        ";
+
+        $query = $this->db->query($sql)->row();
+        if ($query) {
+            $actual_remain = $query->actual_remain;
+        }
+
+        return $actual_remain;
+    }
+
+    function dev2_getMaterialActualUsed()
+    {
+        $sql = "
+        SELECT bs.id, bs.stock, bs.remaining, IFNULL(bpim.stock_qty, 0) AS actual_used, 
+        bs.stock - IFNULL(bpim.stock_qty, 0) AS actual_remain, bs.remaining - (bs.stock - IFNULL(bpim.stock_qty, 0)) AS stock_diff 
+        FROM bom_stocks bs 
+        INNER JOIN (
+            SELECT stock_id, SUM(ratio) AS stock_qty 
+            FROM bom_project_item_materials 
+            WHERE used_status = 1 
+            GROUP BY stock_id
+        ) AS bpim ON bs.id = bpim.stock_id 
+        WHERE bs.remaining > 0 ORDER BY bs.id ASC
+        ";
+
+        $query = $this->db->query($sql);
+        return $query->result();
+    }
+
+    function dev2_optimizeRemainingStock($stock_id, $actual_remain)
+    {
+        $this->db->where('id', $stock_id);
+        $this->db->update('bom_stocks', array('remaining' => $actual_remain));
+    }
+
 }
