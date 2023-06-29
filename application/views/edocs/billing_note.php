@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<?php $this->load->view("edocs/include/head"); ?><meta name="format-detection" content="telephone=no">
+<?php $this->load->view("edocs/include/head"); ?>
 <title><?php echo get_setting("company_name")." - ".$doc["doc_number"]; ?></title>	
 <style type="text/css">
 .body .items table td:nth-child(1){

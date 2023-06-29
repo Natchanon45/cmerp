@@ -736,7 +736,7 @@
                     <h5>ตั้งค่าสิทธิ์การเข้าถึงการจัดการบัญชี:</h5>
                     <fieldset>
                         <legend>ใบเสนอราคา</legend>
-                        <ol>
+                        <!--<ol>
                             <li><input type="radio" name="accounting_quotation_access"><label>ไม่สามารถเข้าถึงใบเสนอราคา</label></li>
                             <li><input type="radio" name="accounting_quotation_access"><label>สามารถเข้าถึง เฉพาะใบเสนอราคาของตัวเองเท่านัน</label></li>
                             <li><input type="radio" name="accounting_quotation_access"><label>สามารถเข้าถึง ใบเสนอราคาทั้งหมด</label></li>
@@ -744,7 +744,11 @@
                             <li><input type="checkbox" name="accounting_quotation_create"><label>สามารถสร้างใบเสนอราคา</label></li>
                             <li><input type="checkbox" name="accounting_quotation_update"><label>สามารถแก้ไขใบเสนอราคา</label></li>
                             <li><input type="checkbox" name="accounting_quotation_approve"><label>สามารถอนุมัติใบเสนอราคา</label></li>
-                        </ol>
+                        </ol>-->
+                        <div>
+                            <input type="checkbox" name="accounting_quotation_access" value="Y" <?php if($accounting['quotation']['access'] == true) echo "checked"; ?> >
+                            <label for="accounting_quotation_access">สามารถเห็นใบเสนอราคา</label>
+                        </div>
                     </fieldset>
                     <fieldset>
                         <legend>ใบวางบิล:</legend>
