@@ -1,3 +1,8 @@
+.scrollable-page{
+    width: 100%;
+    overflow: scroll;
+}
+
 .clear:after{
     clear: both;
     display: table;
@@ -5,16 +10,15 @@
 }
 
 #dcontroller{
-    max-width: 1000px;
+    width: 1000px;
     margin: auto;
     margin-bottom: 14px;
 }
 
 #dcontroller h1{
-    padding-top: 18px;
-    padding-bottom: 0;
+    /*padding-top: 18px;
+    padding-bottom: 0;*/
 }
-
 
 #dcontroller .page-title{
     padding-top: 8px;
@@ -25,8 +29,8 @@
     background: #fff;
     display: block;
     min-height: 1100px;
+    width: 1000px;
     margin: 0 auto;
-    max-width: 1000px;
     margin-bottom: 80px;
     padding: 32px;
 }
@@ -50,6 +54,11 @@
     display: block;
     height: 80px;
     width: auto;
+}
+
+#printd .docheader .l .logo .nologo{
+    height: 80px;
+    width: 80px;
 }
 
 #printd .docheader .l .customer{
@@ -128,6 +137,45 @@
     border-bottom: 1px solid #cecece;
     vertical-align: top;
     padding: 8px;
+}
+
+#printd .docitem td:nth-child(1){
+    width: 30px;
+    text-align: left;
+}
+
+#printd .docitem td:nth-child(2){
+    max-width: calc(100% - 550px);
+    text-align: left;
+}
+
+#printd .docitem td:nth-child(3){
+    width: 110px;
+    text-align: right;
+}
+
+#printd .docitem td:nth-child(4){
+    width: 110px;
+    text-align: right;
+}
+
+#printd .docitem td:nth-child(5){
+    width: 110px;
+    text-align: right;
+}
+
+#printd .docitem td:nth-child(6){
+    width: 110px;
+    text-align: right;
+}
+
+#printd .docitem td:last-child{
+    width: 80px;
+    text-align: center;
+}
+
+#printd .docitem td .desc1{
+    font-weight: bold;
 }
 
 #printd .docitem td.edititem{
@@ -218,8 +266,9 @@
 #printd .docitem tfoot td.summary #discount_percent,
 #printd .docitem tfoot td.summary #discount_type,
 #printd .docitem tfoot td.summary #wht_percent{
-    width: 40px;
+    width: 48px;
     height: 26px;
+    line-height: 18px;
     border: 1px solid #cecece;
     padding: 0 4px;
     border-radius: 4px;
