@@ -1,7 +1,6 @@
 <link rel="stylesheet" href="/assets/css/printd.css?t=<?php echo time();?>">
-<link rel="stylesheet" href="/assets/css/printd-quotation.css?t=<?php echo time();?>">
 <div id="dcontroller" class="clearfix">
-    <div class="page-title clearfix mt15">
+    <div class="page-title clearfix mt15 clear">
         <h1>ใบเสนอราคา <?php echo $doc_number;?></h1>
         <div class="title-button-group">
             <a style="margin-left: 15px;" class="btn btn-default mt0 mb0 back-to-index-btn" href="<?php echo get_uri("accounting/sell/quotations");?>" ><i class="fa fa-hand-o-left" aria-hidden="true"></i> ย้อนกลับไปตารางรายการ</a>
@@ -13,7 +12,13 @@
 <div id="printd" class="clear">
     <div class="docheader clear">
         <div class="l">
-            <div class="logo"><img src="<?php echo get_file_from_setting("estimate_logo", get_setting('only_file_path')); ?>" /></div>
+            <div class="logo">
+                <?php if(file_exists(get_file_from_setting("estimate_logo", get_setting('only_file_path'))) != null): ?>
+                    <img src="<?php echo get_file_from_setting("estimate_logo", get_setting('only_file_path')); ?>" />
+                <?php else: ?>
+                    <span class="nologo">&nbsp;</span>
+                <?php endif; ?>
+            </div>
             <div class="company">
                 <p class="company_name"><?php echo get_setting("company_name"); ?></p>
                 <p><?php echo nl2br(get_setting("company_address")); ?></p>

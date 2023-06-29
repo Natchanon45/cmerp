@@ -135,7 +135,7 @@ header .button i{
 
 .container{
     margin: 0 auto;
-    padding-top: 100px;
+    padding-top: 112px;
     padding-bottom: 70px;
 }
 
@@ -166,6 +166,12 @@ header .button i{
     display: block;
     height: 80px;
     width: auto;
+}
+
+.paper .header .left .logo .nologo{
+    display: block;
+    height: 80px;
+    width: 80px
 }
 
 .paper .header .buyer{
@@ -201,7 +207,7 @@ header .button i{
 
 .paper .body{
     margin-bottom: 20px;
-    min-height: 820px;
+    min-height: 800px;
 }
 
 .paper .body .items table{
