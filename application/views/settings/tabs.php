@@ -46,6 +46,7 @@ if (get_setting("module_ticket") == "1") {
 
 $settings_menu["setup"][] = array("name" => "note_types", "url" => "note_types");
 $settings_menu["setup"][] = array("name" => "account_category", "url" => "account_category");
+$settings_menu["setup"][] = array("name" => "warehouse_category", "url" => "warehouse_category");
 
 if (get_setting("module_expense") == "1") {
     $settings_menu["setup"][] = array("name" => "expense_categories", "url" => "expense_categories");

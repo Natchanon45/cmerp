@@ -2445,3 +2445,12 @@ $lang["rejected_message"] = "ใบเบิกเปลี่ยนสถาน
 $lang["rejecter"] = "ผู้ไม่อนุมัติ";
 $lang["date_of_rejected"] = "วันที่ไม่อนุมัติ";
 $lang["material_request_document"] = "ใบเบิกวัตถุดิบ";
+
+// Start - Warehouse Category
+$lang["warehouse_category"] = "คลังสินค้า";
+$lang["warehouse_category_code"] = "รหัสคลังสินค้า";
+$lang["warehouse_category_name"] = "ชื่อคลังสินค้า";
+$lang["add_warehouse_category"] = "เพิ่มคลังสินค้า";
+$lang["edit_warehouse_category"] = "แก้ไขคลังสินค้า";
+$lang["cant_duplicated_code"] = "รหัสคลังสินค้าต้องไม่ซ้ำกัน";
+// End - Warehouse Category

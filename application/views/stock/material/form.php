@@ -102,6 +102,26 @@ if (empty($model_info->id)) {
 </div>
 
 <div class="form-group">
+	<label for="warehouse_id" class="<?php echo $label_column; ?>">
+		<?php echo lang('warehouse_category'); ?>
+	</label>
+	<div class="<?php echo $field_column; ?>">
+		<?php
+		echo form_input(
+			array(
+				"id" => "warehouse_id",
+				"name" => "warehouse_id",
+				"value" => $model_info->warehouse_id ? $model_info->warehouse_id : null,
+				"class" => "form-control",
+				"placeholder" => lang('warehouse_category'),
+				"readonly" => $readonly
+			)
+		);
+		?>
+	</div>
+</div>
+
+<div class="form-group">
 	<label for="description" class="<?php echo $label_column; ?>">
 		<?php echo lang('stock_material_description'); ?>
 	</label>
@@ -185,5 +205,6 @@ if (empty($model_info->id)) {
 		$('[data-toggle="tooltip"]').tooltip();
 		$('#category_id').select2({ data: <?php echo json_encode($category_dropdown); ?> });
 		$('#account_id').select2({ data: <?php echo json_encode($account_category); ?> });
+		$('#warehouse_id').select2({ data: <?php echo json_encode($warehouse_category); ?> });
 	});
 </script>

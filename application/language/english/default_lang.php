@@ -2038,3 +2038,12 @@ $lang["rejected_message"] = "Document has been rejected.";
 $lang["rejecter"] = "Rejecter";
 $lang["date_of_rejected"] = "Date of rejected";
 $lang["material_request_document"] = "Material Requisition Document";
+
+// Start - Warehouse Category
+$lang["warehouse_category"] = "Warehouse";
+$lang["warehouse_category_code"] = "Location code";
+$lang["warehouse_category_name"] = "Location name";
+$lang["add_warehouse_category"] = "Add location";
+$lang["edit_warehouse_category"] = "Edit location";
+$lang["cant_duplicated_code"] = "The location code can't be duplicated.";
+// End - Warehouse Category
