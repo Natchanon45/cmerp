@@ -15,6 +15,7 @@ class Stock extends MY_Controller
 
         $this->load->model("Permission_m");
         $this->load->model("Account_category_model");
+        $this->load->model("Warehouse_category_model");
     }
 
     function index()
@@ -1133,6 +1134,7 @@ class Stock extends MY_Controller
         $view_data['model_info'] = $this->Bom_materials_model->get_one($material_id);
         $view_data['category_dropdown'] = $this->Bom_materials_model->get_category_dropdown();
         $view_data['account_category'] = $this->Account_category_model->get_list_dropdown();
+        $view_data['warehouse_category'] = $this->Warehouse_category_model->dropdown();
 
         if (!empty($view_data['model_info']->id)) {
             $view_data['model_info']->can_delete = $this->dev2_materialCanDelete($view_data['model_info']->id)['status'];
@@ -1190,11 +1192,13 @@ class Stock extends MY_Controller
         $id = $this->input->post('id');
         $category_id = $this->input->post('category_id') ? $this->input->post('category_id') : 0;
         $account_id = $this->input->post('account_id') ? $this->input->post('account_id') : 0;
+        $warehouse_id = $this->input->post('warehouse_id') ? $this->input->post('warehouse_id') : 0;
 
         $data = array(
             "name" => $this->input->post('name'),
             "category_id" => $category_id,
             "account_id" => $account_id,
+            "warehouse_id" => $warehouse_id,
             "description" => $this->input->post('description') ? $this->input->post('description') : '',
             "type" => $this->input->post('type') ? $this->input->post('type') : '',
             "unit" => $this->input->post('unit'),
@@ -2384,12 +2388,16 @@ class Stock extends MY_Controller
 
         $view_data['is_admin'] = $this->login_user->is_admin;
         $view_data['add_pr_row'] = $this->cp('purchaserequests', 'add_row');
+        $view_data['warehouse_dropdown'] = json_encode($this->Warehouse_category_model->dropdown());
+        // var_dump(arr($view_data['warehouse_dropdown'])); exit();
+
         $this->template->rander("stock/material/report", $view_data);
     }
 
     function material_report_list()
     {
         $is_zero = $this->input->post("is_zero");
+        $warehouse_id = $this->input->post("warehouse_id");
 
         // $this->check_module_availability("module_stock");
         if (!$this->cop('view_row') || !$this->bom_can_access_material() || !$this->bom_can_access_restock()) {
@@ -2403,6 +2411,10 @@ class Stock extends MY_Controller
 
         if (isset($is_zero) && !empty($is_zero)) {
             $options["is_zero"] = $is_zero;
+        }
+
+        if (isset($warehouse_id) && !empty($warehouse_id)) {
+            $options["warehouse_id"] = $warehouse_id;
         }
 
         $list_data = $this->Bom_stock_groups_model->get_restocks2($options)->result();
