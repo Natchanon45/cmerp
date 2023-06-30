@@ -206,7 +206,7 @@ class Bom_stocks_model extends Crud_model {
                 ELSE bs.stock - IFNULL(bpim.used_qty, 0) 
             END AS actual_remain 
         FROM bom_stocks bs
-        INNER JOIN(
+        LEFT JOIN(
             SELECT stock_id, SUM(ratio) AS used_qty 
             FROM bom_project_item_materials 
             WHERE stock_id = " . $stock_id . " GROUP BY stock_id
