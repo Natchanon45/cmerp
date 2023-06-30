@@ -102,6 +102,10 @@ class Bom_stock_groups_model extends Crud_model {
         if ($is_zero == 0) {
             $where .= " AND bs.remaining > 0";
         }
+        $warehouse_id = get_array_value($options, "warehouse_id");
+        if ($warehouse_id) {
+            $where .= " AND bm.warehouse_id = $warehouse_id";
+        }
         $sql = "
             SELECT bs.*,
             bm.name `material_name`, bm.unit `material_unit`, bm.noti_threshold, bm.production_name,

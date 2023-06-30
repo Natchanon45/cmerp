@@ -59,7 +59,6 @@ class Account_category extends MY_Controller
             format_to_date($insert_result[0]->created_date)
         );
 
-
         echo json_encode(array("success" => true, "data" => $result, "id" =>$insert_id, "message" => lang("record_saved")));
     }
 

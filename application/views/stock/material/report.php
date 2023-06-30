@@ -85,7 +85,8 @@
 		$("#report-table").appTable({
 			source: '<?php echo_uri("stock/material_report_list") ?>',
 			filterDropdown: [
-				{ name: "is_zero", options: [ { "id": 0, "text": "<?php echo lang("remain_only"); ?>" }, { "id": 1, "text": "<?php echo lang("all_add_stock"); ?>" } ], class: "w150" }
+				{ name: "is_zero", options: [ { "id": 0, "text": "<?php echo lang("remain_only"); ?>" }, { "id": 1, "text": "<?php echo lang("all_add_stock"); ?>" } ], class: "w150" },
+				{ name: "warehouse_id", options: <?php echo $warehouse_dropdown; ?>, class: "w200" }
 			],
 			columns: [
 				{title: "<?php echo lang("id") ?>", "class": "text-center w10"},
@@ -102,7 +103,6 @@
 					{title: '<?php echo lang("stock_restock_remining_value"); ?>', class: 'w20 text-right'},
 					{title: '<?php echo lang("currency"); ?>', class: 'w20 text-right'},
 				<?php endif; ?>
-				// {title: '<i class="fa fa-bars"></i>', "class": "text-center option w125"}
 			],
 			<?php if ($can_read_price) :?>
 				printColumns: combineCustomFieldsColumns([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]),

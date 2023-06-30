@@ -317,4 +317,16 @@ class Bom_materials_model extends Crud_model
         return $rows;
 	}
 
+	function dev2_getCountWarehouseById($id = 0)
+	{
+		$rows = 0;
+		$sql = "SELECT id FROM bom_materials WHERE warehouse_id = {$id}";
+
+		if (isset($id) && $id != 0) {
+			$query = $this->db->query($sql);
+			$rows = $query->num_rows();
+		}
+		return $rows;
+	}
+
 }

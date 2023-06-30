@@ -144,19 +144,19 @@
     <?php endif; ?>
     
     <!-- If project item material has been saved -->
-    <!-- <?php
-    // if ($create_material_request) {
-    //   echo anchor(
-    //     get_uri("pdf_export/project_materials_pdf/" . $model_info->id),
-    //     "<i class='fa fa-download'></i> " . lang('download_pdf'),
-    //     array(
-    //       "title" => lang('download_pdf'),
-    //       "class" => "btn btn-default",
-    //       "target" => "_blank"
-    //     )
-    //   ); // btn-download
-    // }
-    ?> -->
+    <?php
+    if ($create_material_request) {
+      echo anchor(
+        get_uri("pdf_export/project_materials_pdf/" . $model_info->id),
+        "<i class='fa fa-download'></i> " . lang('download_pdf'),
+        array(
+          "title" => lang('download_pdf'),
+          "class" => "btn btn-default",
+          "target" => "_blank"
+        )
+      ); // btn-download
+    }
+    ?>
 
     <!-- If have permission to create purchase request and lower material requirement -->
     <!-- <?php // if ($this->Permission_m->create_purchase_request && $create_material_request): ?>
