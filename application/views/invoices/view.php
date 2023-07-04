@@ -13,7 +13,7 @@
     <div class="docheader clear">
         <div class="l">
             <div class="logo">
-                <?php if(file_exists(get_file_from_setting("estimate_logo", get_setting('only_file_path'))) != null): ?>
+                <?php if(file_exists($_SERVER['DOCUMENT_ROOT'].get_file_from_setting("estimate_logo", true)) != false): ?>
                     <img src="<?php echo get_file_from_setting("estimate_logo", get_setting('only_file_path')); ?>" />
                 <?php else: ?>
                     <span class="nologo">&nbsp;</span>
