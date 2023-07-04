@@ -14,7 +14,9 @@ class Permission_m extends MY_Model {
 							"quotation"=>["access"=>false],
 							"billing_note"=>["access"=>false],
 							"invoice"=>["access"=>false],
-							"receipt"=>["access"=>false]
+							"receipt"=>["access"=>false],
+							"credit_note"=>["access"=>false],
+							"debit_note"=>["access"=>false]
 						];
 
 	public $access_material_request = false;
@@ -63,7 +65,9 @@ class Permission_m extends MY_Model {
 													"quotation"=>["access"=>true],
 													"billing_note"=>["access"=>true],
 													"invoice"=>["access"=>true],
-													"receipt"=>["access"=>true]
+													"receipt"=>["access"=>true],
+													"credit_note"=>["access"=>true],
+													"debit_note"=>["access"=>true]
 												];
 
 		$permissions["access_material_request"] = $this->access_material_request = true;
@@ -97,6 +101,8 @@ class Permission_m extends MY_Model {
 		if(isset($permissions->accounting->billing_note->access)) $this->accounting["billing_note"]["access"] = $permissions->accounting->billing_note->access;
 		if(isset($permissions->accounting->invoice->access)) $this->accounting["invoice"]["access"] = $permissions->accounting->invoice->access;
 		if(isset($permissions->accounting->receipt->access)) $this->accounting["receipt"]["access"] = $permissions->accounting->receipt->access;
+		if(isset($permissions->accounting->credit_note->access)) $this->accounting["credit_note"]["access"] = $permissions->accounting->credit_note->access;
+		if(isset($permissions->accounting->debit_note->access)) $this->accounting["debit_note"]["access"] = $permissions->accounting->debit_note->access;
 
 		//Material Request
 		if(isset($permissions->access_material_request)) $this->access_material_request = $permissions->access_material_request;
@@ -153,6 +159,8 @@ class Permission_m extends MY_Model {
 		if($this->accounting["billing_note"]["access"] == true) return true;
 		if($this->accounting["invoice"]["access"] == true) return true;
 		if($this->accounting["receipt"]["access"] == true) return true;
+		if($this->accounting["credit_note"]["access"] == true) return true;
+		if($this->accounting["debit_note"]["access"] == true) return true;
 
 		return false;
 	}

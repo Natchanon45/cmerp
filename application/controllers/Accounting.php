@@ -4,16 +4,10 @@ if (!defined('BASEPATH')) exit('No direct script access allowed');
 class Accounting extends MY_Controller {
     function __construct() {
         parent::__construct();
-        
-        /*if($this->Permission_m->canAccessAccounting() != true){
-            $this->session->set_flashdata('notice_error', lang('no_permissions'));
-            redirect("/");
-        }*/
     }
 
     function index(){
         redirect("/accounting/sell");
-        //$this->template->rander("accounting/index");
     }
 
     //ผังบัญชี
@@ -31,6 +25,8 @@ class Accounting extends MY_Controller {
             $this->data["module"] = "invoices";
         }elseif($this->Permission_m->accounting["receipt"]["access"] == true){
             $this->data["module"] = "receipts";
+        }elseif($this->Permission_m->accounting["credit_note"]["access"] == true){
+            $this->data["module"] = "credit-notes";
         }else{
             $this->session->set_flashdata('notice_error', lang('no_permissions'));
             redirect("/");

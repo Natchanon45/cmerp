@@ -751,24 +751,39 @@
                         </div>
                     </fieldset>
                     <fieldset>
-                        <legend>ใบวางบิล:</legend>
+                        <legend>ใบวางบิล</legend>
                         <div>
                             <input type="checkbox" name="accounting_billing_note_access" value="Y" <?php if($accounting['billing_note']['access'] == true) echo "checked"; ?> >
                             <label for="accounting_billing_note_access">สามารถเห็นใบวางบิล</label>
                         </div>
                     </fieldset>
                     <fieldset>
-                        <legend>ใบกำกับภาษี:</legend>
+                        <legend>ใบกำกับภาษี</legend>
                         <div>
                             <input type="checkbox" name="accounting_invoice_access" value="Y" <?php if($accounting['invoice']['access'] == true) echo "checked"; ?> >
                             <label for="accounting_invoice_access">สามารถเห็นใบกำกับภาษี</label>
                         </div>
                     </fieldset>
                     <fieldset>
-                        <legend>ใบเสร็จรับเงิน:</legend>
+                        <legend>ใบเสร็จรับเงิน</legend>
                         <div>
                             <input type="checkbox" name="accounting_receipt_access" value="Y" <?php if($accounting['receipt']['access'] == true) echo "checked"; ?> >
                             <label for="accounting_receipt_access">สามารถเห็นใบเสร็จรับเงิน</label>
+                        </div>
+                    </fieldset>
+
+                    <fieldset>
+                        <legend>ใบลดหนี้</legend>
+                        <div>
+                            <input type="checkbox" name="accounting_credit_note_access" value="Y" <?php if($accounting['credit_note']['access'] == true) echo "checked"; ?> >
+                            <label for="accounting_credit_note_access">สามารถเห็นใบลดหนี้</label>
+                        </div>
+                    </fieldset>
+                    <fieldset>
+                        <legend>ใบเพิ่มหนี้</legend>
+                        <div>
+                            <input type="checkbox" name="accounting_debit_note_access" value="Y" <?php if($accounting['debit_note']['access'] == true) echo "checked"; ?> >
+                            <label for="accounting_debit_note_access">สามารถเห็นใบเพิ่มหนี้</label>
                         </div>
                     </fieldset>
                 </li>

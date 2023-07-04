@@ -4,6 +4,7 @@
         <div class="col-md-9">
             <input type="hidden" id="product_id" value="<?php echo $product_id; ?>">
             <input type="text" id="product_name" value="<?php echo $product_name; ?>" placeholder="<?php echo lang('select_or_create_new_item'); ?>" class="form-control" >
+            <!--<a id="product_name_dropdwon_icon" tabindex="-1" href="javascript:void(0);" style="color: #B3B3B3;float: right; padding: 5px 7px; margin-top: -35px; font-size: 18px;"><span>×</span></a>-->
         </div>
     </div>
     <div class="form-group">
@@ -42,6 +43,7 @@
     <button type="button" id="btnSubmit" class="btn btn-primary"><span class="fa fa-check-circle"></span> <?php echo lang('save'); ?></button>
 </div>
 <script type="text/javascript">
+
 $(document).ready(function () {
     $("#btnSubmit").click(function() {
         axios.post('<?php echo current_url(); ?>', {
@@ -70,6 +72,7 @@ $(document).ready(function () {
             }else{
                 alert(data.message);
             }
+      
         }).catch(function (error) {
 
         });
@@ -93,19 +96,14 @@ $(document).ready(function () {
             }
         }
     }).change(function (e) {
-        if (e.val === "+") {
-            $("#product_name").select2("destroy").val("").focus();
-            $("#product_id").val(""); //set the flag to add new item in library
-        } else if (e.val) {
-            $("#product_id").val(e.added.id);
-            $("#product_name").val(e.added.text);
-            $("#product_description").val(e.added.description);
-            $("#quantity").val("1");
-            $("#unit").val(e.added.unit);
-            $("#price").val(e.added.price);
+        $("#product_id").val(e.added.id);
+        $("#product_name").val(e.added.text);
+        $("#product_description").val(e.added.description);
+        $("#quantity").val("1");
+        $("#unit").val(e.added.unit);
+        $("#price").val(e.added.price);
 
-            calculatePrice();
-        }
+        calculatePrice();
     });
 
     <?php if(isset($item_id)): ?>
