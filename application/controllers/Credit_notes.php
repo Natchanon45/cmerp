@@ -25,11 +25,17 @@ class Credit_notes extends MY_Controller {
 
     function addedit(){
         if(isset($this->json->task)){
-            if($this->json->task == "save_doc") jout($this->Credit_notes_m->saveDoc());
-            return;   
+            if($this->json->task == "get_invs"){
+                jout($this->Credit_notes_m->getHTMLInvoices($this->input->post("customer_id")));
+            }elseif($this->json->task == "create_doc"){
+                jout($this->Credit_notes_m->createDocByInvoiceId($this->json->invoice_id));
+            }
+
+            return;
         }
 
         $data = $this->Credit_notes_m->getDoc($this->input->post("id"));
+        $data["cusrows"] = $this->Customers_m->getRows();
 
         $this->load->view('credit_notes/addedit', $data);
     }

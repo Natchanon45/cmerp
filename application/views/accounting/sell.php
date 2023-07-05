@@ -1,7 +1,5 @@
 <style>
- .modal-dialog {
-    width: 1080px;
-  }
+
 #accounting_navs:after, .tabs:after, .buttons:after{
     display: block;
     clear: both;

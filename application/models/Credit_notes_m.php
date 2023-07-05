@@ -15,7 +15,7 @@ class Credit_notes_m extends MY_Model {
     function getNewDocNumber(){
         $this->db->where("DATE_FORMAT(created_datetime,'%Y-%m')", date("Y-m"));
         $this->db->where("deleted", 0);
-        $running_number = $this->db->get("invoice")->num_rows() + 1;
+        $running_number = $this->db->get("credit_note")->num_rows() + 1;
 
         $doc_number = $this->getCode().date("Ym").sprintf("%04d", $running_number);
 
@@ -31,10 +31,10 @@ class Credit_notes_m extends MY_Model {
     function getIndexDataSetHTML($cnrow){
         $doc_status = "<select class='dropdown_status' data-doc_id='".$cnrow->id."'>";
 
-        if($cnrow->status == "P"){
-            $doc_status .= "<option selected>รอเก็บเงิน</option>";
-            $doc_status .= "<option value='R'>สร้างใบเสร็จรับเงิน</option>";
-            $doc_status .= "<option value='V'>ยกเลิก</option>";
+        if($cnrow->status == "W"){
+            $doc_status .= "<option selected>รอดำเนินการ</option>";
+            //$doc_status .= "<option value='R'>คืนเงิน</option>";
+            //$doc_status .= "<option value='V'>ยกเลิก</option>";
         }elseif($cnrow->status == "R"){
             $doc_status .= "<option selected>เปิดใบเสร็จแล้ว</option>";
         }elseif($cnrow->status == "V"){
@@ -44,8 +44,8 @@ class Credit_notes_m extends MY_Model {
         $doc_status .= "</select>";
 
         $reference_number_column = $cnrow->reference_number;
-        if($cnrow->billing_note_id != null){
-            $reference_number_column = "<a href='".get_uri("billing-notes/view/".$cnrow->billing_note_id)."'>".$cnrow->reference_number."</a>";
+        if($cnrow->invoice_id != null){
+            $reference_number_column = "<a href='".get_uri("invoices/view/".$cnrow->invoice_id)."'>".$cnrow->reference_number."</a>";
         }
 
         $data = [
@@ -235,6 +235,123 @@ class Credit_notes_m extends MY_Model {
 
         $this->data["status"] = "success";
         $this->data["message"] = "ok";
+
+        return $this->data;
+    }
+
+    function createDocByInvoiceId($invoice_id){
+        $db = $this->db;
+
+        $invrow = $db->select("*")
+                        ->from("invoice")
+                        ->where("id", $invoice_id)
+                        ->where("deleted", 0)
+                        ->where("status", "P")
+                        ->get()->row();
+
+        if(empty($invrow)){log_message("error", $db->last_query());
+            return $this->data;
+        }
+
+        $invirows = $db->select("*")
+                        ->from("invoice_items")
+                        ->where("id", $invoice_id)
+                        ->order_by("sort", "asc")
+                        ->get()->result();
+
+        $invoice_id = $invrow->id;
+        $doc_number = $this->getNewDocNumber();
+        $doc_date = date("Y-m-d");
+        $credit = $invrow->credit;
+        $due_date = $invrow->due_date;
+        $reference_number = $invrow->doc_number;
+        $project_id = $invrow->project_id;
+        $client_id = $invrow->client_id;
+        $original_amount = 0;
+        $corrected_amount = 0;
+        $sub_total_before_discount = $invrow->sub_total_before_discount;
+
+        $discount_type = $invrow->discount_type;
+        $discount_percent = $invrow->discount_percent;
+        $discount_amount = $invrow->discount_amount;
+
+        $sub_total = $invrow->sub_total;
+        $vat_inc = $invrow->vat_inc;
+        $vat_percent = $invrow->vat_percent;
+        $vat_value = $invrow->vat_value;
+
+        $total = $invrow->total;
+        $wht_inc = $invrow->wht_inc;
+        $wht_percent = $invrow->wht_percent;
+        $wht_value = $invrow->wht_value;
+
+        $payment_amount = $invrow->payment_amount;
+        $created_by = $this->login_user->id;
+        $created_datetime = date("Y-m-d H:i:s");
+        $status = "W";
+
+        $db->trans_begin();
+        
+        $db->insert("credit_note", [
+                                    "invoice_id"=>$invoice_id,
+                                    "doc_number"=>$doc_number,
+                                    "doc_date"=>$doc_date,
+                                    "credit"=>$credit,
+                                    "due_date"=>$due_date,
+                                    "reference_number"=>$reference_number,
+                                    "project_id"=>$project_id,
+                                    "client_id"=>$client_id,
+                                    "original_amount"=>$original_amount,
+                                    "corrected_amount"=>$corrected_amount,
+                                    "sub_total_before_discount"=>$sub_total_before_discount,
+                                    "discount_type"=>$discount_type,
+                                    "discount_percent"=>$discount_amount,
+                                    "discount_amount"=>$discount_amount,
+                                    "sub_total"=>$sub_total,
+                                    "vat_inc"=>$vat_inc,
+                                    "vat_percent"=>$vat_percent,
+                                    "vat_value"=>$vat_value,
+                                    "total"=>$total,
+                                    "wht_inc"=>$wht_inc,
+                                    "wht_percent"=>$wht_percent,
+                                    "wht_value"=>$wht_value,
+                                    "payment_amount"=>$payment_amount,
+                                    "created_by"=>$invoice_id,
+                                    "created_datetime"=>$invoice_id,
+                                    "status"=>$status,
+                                    "deleted"=>0
+                                ]);
+
+        $credit_note_id = $db->insert_id();
+
+        if(!empty($invirows)){
+            foreach($invirows as $invirow){
+                $db->insert("credit_note_items", [
+                                                    "credit_note_id"=>$credit_note_id,
+                                                    "product_id"=>$invirow->product_id,
+                                                    "product_name"=>$invirow->product_name,
+                                                    "product_description"=>$invirow->product_description,
+                                                    "quantity"=>$invirow->quantity,
+                                                    "unit"=>$invirow->unit,
+                                                    "price"=>0,
+                                                    "total_price"=>0,
+                                                    "sort"=>$invirow->id
+                                                ]);
+            }
+        }
+
+        $this->data["doc_id"] = $credit_note_id;
+
+        if ($db->trans_status() === FALSE){
+            $db->trans_rollback();
+            return $this->data;
+        }
+
+        $db->trans_commit();
+
+        $this->data["url"] = get_uri("credit-notes/view/".$credit_note_id);
+        $this->data["status"] = "success";
+        $this->data["message"] = "success";
 
         return $this->data;
     }
@@ -867,5 +984,40 @@ class Credit_notes_m extends MY_Model {
         $db->update("invoice", ["sharekey"=>$sharekey, "sharekey_by"=>$sharekey_by]);
 
         return $this->data;
+    }
+
+
+    function getHTMLInvoices() {
+        $db = $this->db;
+
+        if(!isset($this->json->customer_id)) return ["html"=>"<tr class='norecord'><td colspan='6'>กรุณาเลือกชื่อลูกค้า เพื่อค้นหาเอกสาร</td></tr>"];
+        if($this->json->customer_id == "") return ["html"=>"<tr class='norecord'><td colspan='6'>กรุณาเลือกชื่อลูกค้า เพื่อค้นหาเอกสาร</td></tr>"];
+
+        $db->select("*")->from("invoice");
+        $db->where("client_id", $this->json->customer_id);
+        $db->where("status", "P");
+        $db->where("deleted", 0);
+
+        $invrows = $db->order_by("doc_number", "desc")->get()->result();
+
+        $html = "<tr class='norecord'><td colspan='6'>ไม่พบข้อมูลใบกำกับภาษี</td></tr>";
+
+        if(!empty($invrows)){
+            $html = "";
+            foreach($invrows as $invrow){
+                $html .= "<tr>";
+                    $html .= "<td>".convertDate($invrow->doc_date, true)."</td>";
+                    $html .= "<td>".$invrow->doc_number."</td>";
+                    $html .= "<td>".$this->Clients_m->getCompanyName($invrow->client_id)."</td>";
+                    $html .= "<td>".$invrow->total."</td>";
+                    $html .= "<td>".$this->Invoices_m->getStatusName($invrow->status)."</td>";
+                    $html .= "<td><a data-invoice_id='".$invrow->id."' class='choose-inv-button custom-color-button'>เลือก</a></td>";
+                $html .= "</tr>";
+            }
+        }
+
+        $data["html"] = $html;
+
+        return $data;
     }
 }

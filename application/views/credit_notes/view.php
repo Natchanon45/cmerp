@@ -1,10 +1,10 @@
 <link rel="stylesheet" href="/assets/css/printd.css?t=<?php echo time();?>">
 <div id="dcontroller" class="clearfix">
     <div class="page-title clearfix mt15">
-        <h1>ใบส่งสินค้า / ใบกำกับภาษี <?php echo $doc_number;?></h1>
+        <h1>ใบลดหนี้ <?php echo $doc_number;?></h1>
         <div class="title-button-group">
-            <a style="margin-left: 15px;" class="btn btn-default mt0 mb0 back-to-index-btn"  href="<?php echo get_uri("accounting/sell/invoices")?>" ><i class="fa fa-hand-o-left" aria-hidden="true"></i> ย้อนกลับไปตารางรายการ</a>
-            <a id="add_item_button" class="btn btn-default" data-post-doc_id="<?php echo $doc_id; ?>" data-act="ajax-modal" data-title="แชร์เอกสาร <?php echo $doc_number; ?>" data-action-url="<?php echo get_uri("/invoices/share"); ?>">แชร์</a>
+            <a style="margin-left: 15px;" class="btn btn-default mt0 mb0 back-to-index-btn"  href="<?php echo get_uri("accounting/sell/credit-notes")?>" ><i class="fa fa-hand-o-left" aria-hidden="true"></i> ย้อนกลับไปตารางรายการ</a>
+            <a id="add_item_button" class="btn btn-default" data-post-doc_id="<?php echo $doc_id; ?>" data-act="ajax-modal" data-title="แชร์เอกสาร <?php echo $doc_number; ?>" data-action-url="<?php echo get_uri("/credit-notes/share"); ?>">แชร์</a>
             <a onclick="window.open('<?php echo $print_url;?>', '' ,'width=980,height=720');" class="btn btn-default">พิมพ์</a>
         </div>
     </div>
@@ -57,7 +57,7 @@
             </div><!-- .company -->
         </div><!--.l-->
         <div class="r">
-            <h1 class="document_name custom-color">ใบส่งสินค้า / ใบกำกับภาษี<!--<span class="note custom-color">ต้นฉบับ (เอกสารออกเป็นชุด)</span>--></h1>
+            <h1 class="document_name custom-color">ใบลดหนี้<!--<span class="note custom-color">ต้นฉบับ (เอกสารออกเป็นชุด)</span>--></h1>
             <div class="about_company">
                 <table>
                     <tr>
