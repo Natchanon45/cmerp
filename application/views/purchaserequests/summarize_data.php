@@ -1,29 +1,25 @@
-<div class="table-responsive">
-    <form id="records-data-form" name="records-data-form">
-        <table id="records-data-table" class="display" cellspacing="0" width="100%">
-            <?php if (sizeof($records_data_list)): ?>
+<!-- <div class="table-responsive">
+    <form id="summarize-data-form" name="summarize-data-form">
+        <table id="summarize-data-table" class="display" cellspacing="0" width="100%">
+            <?php if ($summarize_data_list): ?>
                 <thead>
                     <tr>
                         <th class="text-center w5p"><i class="fa fa-check-square-o"></th>
                         <th class="text-center w5p"><?php echo lang('id'); ?></th>
-                        <th><?php echo lang('project_name'); ?></th>
                         <th><?php echo lang('stock_material_production_name'); ?></th>
-                        <th class="w10p"><?php echo lang('material_shortage_date'); ?></th>
                         <th class="text-right w10p"><?php echo lang('quantity_of_shortage'); ?></th>
                         <th class="w5p"><?php echo lang('stock_material_unit'); ?></th>
                         <th class="text-center w5p"><i class="fa fa-bars"></i></th>
                     </tr>
                 </thead>
                 <tbody>
-                <?php foreach($records_data_list as $data): ?>
-                        <tr class="line-item">
+                    <?php foreach ($summarize_data_list as $data): ?>
+                        <tr class="line-item-summary">
                             <td class="text-center w5p">
-                                <input type="checkbox" id="bpim-id" name="bpim-id" value="<?php echo $data['id']; ?>">
+                                <input type="checkbox" id="material-id" name="material-id" value="<?php echo $data['id']; ?>">
                             </td>
                             <td class="text-center w5p"><?php echo $data['id']; ?></td>
-                            <td><?php echo $data['project']; ?></td>
                             <td><?php echo $data['material']; ?></td>
-                            <td><?php echo $data['created']; ?></td>
                             <td class="text-right decimal-shortage"><?php echo $data['ratio']; ?></td>
                             <td><?php echo $data['unit']; ?></td>
                             <td class="option text-center">
@@ -33,7 +29,7 @@
                                 </a>
                             </td>
                         </tr>
-                <?php endforeach; ?>
+                    <?php endforeach; ?>
                 </tbody>
             <?php endif; ?>
         </table>
@@ -68,75 +64,10 @@
             }, 25);
         }, 25);
     });
-    
-    const submitButton = createSubmitButton();
-    submitButton.addEventListener('click', (event) => {
-        event.preventDefault();
-        let listChecked = {
-            data: []
-        };
-
-        lineItem.forEach((element) => {
-            let checkbox = element.firstElementChild.firstElementChild;
-            if (checkbox.checked) {
-                listChecked.data.push(checkbox.value);
-            }
-        });
-
-        if (listChecked.data.length) {
-            $.redirect(
-                '<?php echo_uri('purchaserequests/createprbyid'); ?>',
-                { data: JSON.stringify(listChecked.data) },
-                'POST',
-                '_self'
-            );
-        }
-    });
-
-    const formData = document.querySelector('#records-data-form');
-    const lineItem = document.querySelectorAll('.line-item');
-    lineItem.forEach((element) => {
-        element.setAttribute('style', 'cursor: pointer;');
-        element.addEventListener('click', (event) => {
-            event.preventDefault();
-
-            let checkbox = element.firstElementChild.firstElementChild;
-            checkbox.checked = !checkbox.checked;
-        });
-    });
-
-    const btnDelete = document.querySelectorAll('.delete');
-    btnDelete.forEach((element) => {
-        element.addEventListener('click', (event) => {
-            event.preventDefault();
-
-            let lineId = element.firstElementChild.textContent;
-            let line = element.parentElement.parentElement;
-
-            if (confirm('Do you want to delete this item?')) {
-                line.remove();
-            }
-        });
-    });
-
-    function createSubmitButton() {
-        let divBtnSubmit = document.createElement('div');
-        let buttonSubmit = document.createElement('button');
-
-        buttonSubmit.setAttribute('type', 'button');
-        buttonSubmit.setAttribute('class', 'btn btn-danger');
-        buttonSubmit.setAttribute('id', 'btn-submit');
-        buttonSubmit.textContent = '<?php echo lang('to_issue_pr'); ?>';
-
-        divBtnSubmit.setAttribute('class', 'dataTables_filter');
-        divBtnSubmit.appendChild(buttonSubmit);
-
-        return divBtnSubmit;
-    };
 </script>
 
 <style type="text/css">
-    #records-data-table {
+    #summarize-data-table {
         font-size: small;
     }
 
@@ -167,4 +98,4 @@
         margin: .6rem 0rem 0rem .6rem;
         padding: 0;
     }
-</style>
+</style> -->

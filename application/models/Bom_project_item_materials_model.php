@@ -173,4 +173,18 @@ class Bom_project_item_materials_model extends Crud_model {
         return $query->result();
     }
 
+    function dev2_getBomMaterialToCreatePrSummary()
+    {
+        $sql = "
+        SELECT bpim.material_id, bs.name, bs.production_name, bs.unit, SUM(bpim.ratio) AS ratio 
+        FROM bom_project_item_materials bpim 
+        LEFT JOIN bom_materials bs ON bpim.material_id = bs.id 
+        WHERE bpim.pr_id IS NULL AND bpim.stock_id IS NULL AND bpim.ratio < 0 
+        GROUP BY bpim.material_id
+        ";
+
+        $query = $this->db->query($sql);
+        return $query->result();
+    }
+
 }

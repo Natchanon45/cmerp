@@ -1809,6 +1809,12 @@ class PurchaseRequests extends MY_Controller
 		echo json_encode(array('success' => true, 'data' => $data_detail, 'message' => lang('record_saved')));
 	}
 
+	function dev2_summarize_data()
+	{
+		$view_data['summarize_data_list'] = $this->dev2_summarizeDataResult();
+		$this->load->view("purchaserequests/summarize_data", $view_data);
+	}
+
 	function dev2_records_data()
 	{
 		$view_data['records_data_list'] = $this->dev2_recordDataResult();
@@ -1840,7 +1846,6 @@ class PurchaseRequests extends MY_Controller
 				)
 			);
 		}
-
 		echo json_encode(array("data" => $result));
 	}
 
@@ -1859,7 +1864,22 @@ class PurchaseRequests extends MY_Controller
 				'unit' => $item->unit ? strtoupper($item->unit) : '-'
 			);
 		}
+		return $result;
+	}
 
+	function dev2_summarizeDataResult()
+	{
+		$listData = $this->Bom_project_item_materials_model->dev2_getBomMaterialToCreatePrSummary();
+		
+		$result = array();
+		foreach ($listData as $item) {
+			$result[] = array(
+				'id' => $item->material_id,
+				'material' => $item->name ? anchor(get_uri('' . $item->material_id), $item->name . ' - ' . $item->production_name) : lang('material_was_deleted'),
+				'ratio' => to_decimal_format2($item->ratio),
+				'unit' => $item->unit ? strtoupper($item->unit) : '-'
+			);
+		}
 		return $result;
 	}
 

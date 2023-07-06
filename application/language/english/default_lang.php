@@ -1984,7 +1984,7 @@ $lang["status_already_approved"] = "Approved";
 $lang["status_already_rejected"] = "Not approved";
 $lang["back_to_materialrequest"] = "Back to Material Request";
 $lang["category_management"] = "Category Management";
-$lang["materialrequests"] = "Material Requistion";
+$lang["materialrequests"] = "Material Requisition";
 $lang["document_number"] = "Document No.";
 $lang["add_materialrequests"] = "Add New Request";
 $lang["delete_materialrequests"] = "Delete Request";
@@ -2038,6 +2038,8 @@ $lang["rejected_message"] = "Document has been rejected.";
 $lang["rejecter"] = "Rejecter";
 $lang["date_of_rejected"] = "Date of rejected";
 $lang["material_request_document"] = "Material Requisition Document";
+$lang["re_calc_stock"] = "Recalculate";
+$lang["create_matreq"] = "Create MR Doc.";
 
 // Start - Warehouse Category
 $lang["warehouse_category"] = "Warehouse";
