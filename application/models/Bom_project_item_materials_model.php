@@ -124,4 +124,53 @@ class Bom_project_item_materials_model extends Crud_model {
         return $query->result();
     }
 
+    function dev2_getBomMaterialToCreatePrAll()
+    {
+        $sql = "SELECT * FROM bom_project_item_materials bpim WHERE bpim.pr_id IS NULL AND bpim.stock_id IS NULL AND bpim.ratio < 0 ORDER BY bpim.material_id";
+
+        $query = $this->db->query($sql);
+        return $query->result();
+    }
+
+    function dev2_getBomMaterialToCreatePrByProjectItemId($project_item_id)
+    {
+        $sql = "SELECT * FROM bom_project_item_materials bpim 
+        WHERE bpim.project_item_id = '" . $project_item_id . "' 
+        AND bpim.pr_id IS NULL AND bpim.stock_id IS NULL AND bpim.ratio < 0 ORDER BY bpim.id";
+
+        $query = $this->db->query($sql);
+        return $query->result();
+    }
+
+    function dev2_getBomMaterialToCreatePrByProjectId($project_id)
+    {
+        $sql = "SELECT bpim.material_id, SUM(bpim.ratio) AS total_ratio FROM bom_project_items bpi 
+        LEFT JOIN bom_project_item_materials bpim ON bpi.id = bpim.project_item_id 
+        WHERE bpi.project_id = '" . $project_id . "' AND bpim.pr_id IS NULL AND bpim.stock_id IS NULL AND bpim.ratio < 0 
+        GROUP BY bpim.material_id ORDER BY bpim.material_id";
+
+        $query = $this->db->query($sql);
+        return $query->result();
+    }
+
+    function dev2_getBomMaterialToCreatePrList()
+    {
+        $sql = "
+        SELECT bpim.id, bpi.project_id, bpi.project_name, bpim.material_id, 
+        bs.name, bs.production_name, bpim.ratio, bs.unit, bpim.created_at 
+        FROM bom_project_item_materials bpim 
+        LEFT JOIN bom_materials bs ON bpim.material_id = bs.id 
+        LEFT JOIN(
+            SELECT a.id AS project_item_id, a.project_id, b.title AS project_name 
+            FROM bom_project_items a INNER JOIN projects b ON a.project_id = b.id
+        ) AS bpi ON bpim.project_item_id = bpi.project_item_id 
+        WHERE 
+        bpim.pr_id IS NULL AND bpim.stock_id IS NULL AND bpim.ratio < 0 
+        ORDER BY bpi.project_id
+        ";
+
+        $query = $this->db->query($sql);
+        return $query->result();
+    }
+
 }

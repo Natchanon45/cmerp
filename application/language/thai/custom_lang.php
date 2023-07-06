@@ -2454,3 +2454,16 @@ $lang["add_warehouse_category"] = "เพิ่มคลังสินค้า
 $lang["edit_warehouse_category"] = "แก้ไขคลังสินค้า";
 $lang["cant_duplicated_code"] = "รหัสคลังสินค้าต้องไม่ซ้ำกัน";
 // End - Warehouse Category
+
+// Start - Purchase Requisition
+$lang["pr_by_project"] = "ใบขอซื้อสำหรับโปรเจค ";
+$lang["close_pr_page"] = "ปิดหน้าใบขอซื้อ";
+$lang["material_shortage"] = "วัตถุดิบที่ขาด";
+$lang["by_records"] = "แยกรายการ";
+$lang["by_summarize"] = "สรุปรวม";
+$lang["material_was_deleted"] = "ข้อมูลวัตถุดิบถูกลบไปแล้ว";
+$lang["project_was_deleted"] = "ข้อมูลโปรเจคถูกลบไปแล้ว";
+$lang["material_shortage_date"] = "วันที่วัตถุดิบขาด";
+$lang["quantity_of_shortage"] = "จำนวนที่ขาด";
+$lang["to_issue_pr"] = "นำไปออกไปขอซื้อ";
+// End - Purchase Requisition

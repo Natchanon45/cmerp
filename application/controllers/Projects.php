@@ -4975,6 +4975,8 @@ class Projects extends MY_Controller
         $view_data['item_mixings'] = $datas;
         $view_data['project_items'] = $this->Bom_item_mixing_groups_model->get_project_items(['project_id' => $view_data['model_info']->id])->result();
         $view_data['project_materials'] = $this->Bom_item_mixing_groups_model->get_project_materials($view_data['project_items']);
+        $view_data['can_create_mr'] = $this->dev2_canCreateMaterialRequest($project_id);
+        $view_data['can_recalc'] = $this->dev2_canRecalculate($project_id);
 
         // var_dump(arr($view_data)); exit;
         $this->load->view('projects/modal_items', $view_data);
@@ -5924,6 +5926,27 @@ class Projects extends MY_Controller
         }
         return $can_delete_project;
     }
+
+    function dev2_canCreateMaterialRequest($project_id)
+    {
+        $can_create_mr = false;
+        $count = $this->Projects_model->dev2_countItemCanCreateMrByProjectId($project_id);
+        if ($count > 0) {
+            $can_create_mr = true;
+        }
+        return $can_create_mr;
+    }
+
+    function dev2_canRecalculate($project_id)
+    {
+        $can_recalc = false;
+        $count = $this->Projects_model->dev2_countItemRecalculateByProjectId($project_id);
+        if ($count > 0) {
+            $can_recalc = true;
+        }
+        return $can_recalc;
+    }
+
 }
 
 /* End of file projects.php */

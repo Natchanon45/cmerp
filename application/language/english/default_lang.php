@@ -2047,3 +2047,16 @@ $lang["add_warehouse_category"] = "Add location";
 $lang["edit_warehouse_category"] = "Edit location";
 $lang["cant_duplicated_code"] = "The location code can't be duplicated.";
 // End - Warehouse Category
+
+// Start - Purchase Requisition
+$lang["pr_by_project"] = "Create PR for Project ";
+$lang["close_pr_page"] = "Close page";
+$lang["material_shortage"] = "Material Shortage";
+$lang["by_records"] = "By record";
+$lang["by_summarize"] = "By summarize";
+$lang["material_was_deleted"] = "Material data has been deleted";
+$lang["project_was_deleted"] = "Project data has been deleted";
+$lang["material_shortage_date"] = "Date of shortage";
+$lang["quantity_of_shortage"] = "Quantity of shortage";
+$lang["to_issue_pr"] = "To issues purchase requisition";
+// End - Purchase Requisition
