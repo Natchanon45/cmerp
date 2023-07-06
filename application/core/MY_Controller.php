@@ -2,7 +2,7 @@
 class MY_Controller extends CI_Controller {
 
     public $login_user;
-    protected $data;
+    protected $data = ["print_mode"=>"private", "og_site_name"=>"", "og_url"=>"", "og_type"=>"", "og_title"=>"", "og_description"=>"", "og_image"=>""];
     protected $json = null;
     protected $access_type = "";
     protected $allowed_members = array();
@@ -34,9 +34,6 @@ class MY_Controller extends CI_Controller {
         }
 
         $this->login_user = $this->Users_model->get_access_info( $login_user_id );
-
-        $this->data["print_mode"] = "private";
-
 
 	 //arr($this->login_user);
 
@@ -1061,11 +1058,10 @@ class MY_Controller extends CI_Controller {
 
 
 class PublicController extends CI_Controller {
-    protected $data = null;
+    protected $data = ["print_mode"=>"public", "og_site_name"=>"", "og_url"=>"", "og_type"=>"", "og_title"=>"", "og_description"=>"", "og_image"=>""];
 
     function __construct() {
         parent::__construct();
-        $this->data["print_mode"] = "public";
     }
 }
 
