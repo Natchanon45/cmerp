@@ -8,7 +8,7 @@
 <div id="page-content" class="p20 clearfix">
     <div class="process-pr-preview">
         <div class="panel panel-default">
-            <?php echo form_open(get_uri("purchaserequests/prbyproject_save"), array("id" => "project-pr-form", "class" => "general-form", "role" => "form")); ?>
+            <?php echo form_open(get_uri("purchaserequests/pr_project_save"), array("id" => "project-pr-form", "class" => "general-form", "role" => "form")); ?>
             <div class="page-title clearfix">
                 <h1><?php echo lang('pr_by_project') . $project_info->title; ?></h1>
                 <div class="title-button-group"></div>
@@ -108,7 +108,7 @@
             <div class="panel-footer clearfix">
                 <button type="submit" class="btn btn-primary pull-right ml10">
                     <span class="fa fa-check-circle"></span>
-                    <?php echo lang('place_order1'); ?>
+                    <?php echo lang('btn_create_pr'); ?>
                 </button>
             </div>
             <?php echo form_close(); ?>

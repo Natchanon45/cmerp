@@ -595,5 +595,3 @@ class PurchaseRequests_model extends Crud_model
     }
 
 }
-
-?>

@@ -6,19 +6,21 @@
         <!-- <div class="panel clearfix" id="low-stock"><table id="low-stock-table-item" class="display" cellspacing="0" width="100%"></table></div> -->
     <?php // endif; ?>
 
-    <div class="panel clearfix">
+    <div class="panel clearfix hide">
         <ul id="pr-tabs" data-toggle="ajax-tab" class="nav nav-tabs bg-white title" role="tablist">
             <li class="title-tab"><h4 class="pl15 pt10 pr15"><?php echo lang('material_shortage'); ?></h4></li>
+            
             <li>
-                <a id="by-records-button" class="active" role="presentation" href="<?php echo_uri('purchaserequests/dev2_records_data/'); ?>" data-target="#records-data">
-                    <?php echo lang('by_records'); ?>
-                </a>
-            </li>
-            <li>
-                <a id="by-summarize-button" role="presentation" href="<?php echo_uri('purchaserequests/dev2_summarize_data/'); ?>" data-target="#summarize-data">
+                <a id="by-summarize-button" class="active" role="presentation" href="<?php echo_uri('purchaserequests/dev2_summarize_data/'); ?>" data-target="#summarize-data">
                     <?php echo lang('by_summarize'); ?>
                 </a>
             </li>
+            <li>
+                <a id="by-records-button" role="presentation" href="<?php echo_uri('purchaserequests/dev2_records_data/'); ?>" data-target="#records-data">
+                    <?php echo lang('by_records'); ?>
+                </a>
+            </li>
+            
 
             <!-- <li>
                 <a id="monthly-pr-button" class="active" role="presentation" href="javascript:void();" data-target="#monthly-purchaserequests">

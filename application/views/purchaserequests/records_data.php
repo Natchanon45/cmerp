@@ -1,10 +1,11 @@
 <div class="table-responsive">
     <form id="records-data-form" name="records-data-form">
         <table id="records-data-table" class="display" cellspacing="0" width="100%">
-            <?php if (sizeof($records_data_list)): ?>
+            
+            <!-- Header -->
                 <thead>
                     <tr>
-                        <th class="text-center w5p"><i class="fa fa-check-square-o"></th>
+                        <th class="text-center w5p"><i class="fa fa-check-square-o" id="records-toggle-check" value="0"></th>
                         <th class="text-center w5p"><?php echo lang('id'); ?></th>
                         <th><?php echo lang('project_name'); ?></th>
                         <th><?php echo lang('stock_material_production_name'); ?></th>
@@ -14,8 +15,11 @@
                         <th class="text-center w5p"><i class="fa fa-bars"></i></th>
                     </tr>
                 </thead>
+
+            <!-- Detail -->
+                <?php if (sizeof($records_data_list)): ?>
                 <tbody>
-                <?php foreach($records_data_list as $data): ?>
+                    <?php foreach($records_data_list as $data): ?>
                         <tr class="line-item">
                             <td class="text-center w5p">
                                 <input type="checkbox" id="bpim-id" name="bpim-id" value="<?php echo $data['id']; ?>">
@@ -33,9 +37,10 @@
                                 </a>
                             </td>
                         </tr>
-                <?php endforeach; ?>
+                    <?php endforeach; ?>
                 </tbody>
-            <?php endif; ?>
+                <?php endif; ?>
+            
         </table>
     </form>
 </div>
@@ -43,8 +48,6 @@
 <script src="/assets/js/jquery.redirect.js"></script>
 <script type="text/javascript">
     $(document).ready(function() {
-        $('.panel').addClass('hide');
-
         setTimeout(() => {
             $('#records-data-table').DataTable({
                 "bPaginate": true,
@@ -58,17 +61,32 @@
             $('#records-data-table_wrapper').prepend(submitButton);
             $('#records-data-table_length')[0].firstElementChild.lastChild.remove();
             $('#records-data-table_length')[0].firstElementChild.firstChild.remove();
-            $('#records-data-table_length')[0].firstElementChild.firstChild.setAttribute('class', 'page-len');
+            $('#records-data-table_length')[0].firstElementChild.firstChild.setAttribute('class', 'records-page-len');
             $('#records-data-table_info').css('margin', '.6rem 0 .6rem .6rem');
             $('#records-data-table_paginate').css('margin', '.6rem .6rem .7rem 0');
-            $('.page-len').select2();
+            $('.records-page-len').select2();
 
             setTimeout(() => {
                 $('.panel').removeClass('hide');
             }, 25);
         }, 25);
     });
+
+    function createSubmitButton() {
+        let buttonSubmit = document.createElement('button');
+        buttonSubmit.setAttribute('type', 'button');
+        buttonSubmit.setAttribute('class', 'btn btn-danger');
+        buttonSubmit.setAttribute('id', 'btn-submit');
+        buttonSubmit.textContent = '<?php echo lang('to_issue_pr'); ?>';
+
+        let divBtnSubmit = document.createElement('div');
+        divBtnSubmit.setAttribute('class', 'dataTables_filter');
+        divBtnSubmit.appendChild(buttonSubmit);
+
+        return divBtnSubmit;
+    };
     
+    // btn-submit-click
     const submitButton = createSubmitButton();
     submitButton.addEventListener('click', (event) => {
         event.preventDefault();
@@ -85,15 +103,15 @@
 
         if (listChecked.data.length) {
             $.redirect(
-                '<?php echo_uri('purchaserequests/createprbyid'); ?>',
-                { data: JSON.stringify(listChecked.data) },
+                '<?php echo_uri('purchaserequests/pr_records'); ?>',
+                { data: listChecked.data },
                 'POST',
                 '_self'
             );
         }
     });
 
-    const formData = document.querySelector('#records-data-form');
+    // line-item-click
     const lineItem = document.querySelectorAll('.line-item');
     lineItem.forEach((element) => {
         element.setAttribute('style', 'cursor: pointer;');
@@ -105,6 +123,7 @@
         });
     });
 
+    // btn-delete-click
     const btnDelete = document.querySelectorAll('.delete');
     btnDelete.forEach((element) => {
         element.addEventListener('click', (event) => {
@@ -112,26 +131,63 @@
 
             let lineId = element.firstElementChild.textContent;
             let line = element.parentElement.parentElement;
+            let url = '<?php echo echo_uri('purchaserequests/dev2_deleteShortageByBpimId'); ?>';
 
             if (confirm('Do you want to delete this item?')) {
-                line.remove();
+                ApiFetchPostAsync(url, { id: lineId }).then((result) => {
+                    console.log(result);
+
+                    if (result.success) {
+                        line.remove();
+                        appAlert.warning(
+                            result.message,
+                            { duration: 2500 }
+                        );
+                    } else {
+                        appAlert.error(
+                            result.message,
+                            { duration: 3000 }
+                        );
+                    }
+                });
             }
         });
     });
 
-    function createSubmitButton() {
-        let divBtnSubmit = document.createElement('div');
-        let buttonSubmit = document.createElement('button');
+    // btn-toggle-click
+    const btnToggleChecked = document.querySelector('#records-toggle-check');
+    btnToggleChecked.addEventListener('click', (event) => {
+        event.preventDefault();
 
-        buttonSubmit.setAttribute('type', 'button');
-        buttonSubmit.setAttribute('class', 'btn btn-danger');
-        buttonSubmit.setAttribute('id', 'btn-submit');
-        buttonSubmit.textContent = '<?php echo lang('to_issue_pr'); ?>';
+        let current = parseInt(event.target.getAttribute('value'));
+        if (current === 0) {
+            event.target.setAttribute('value', '1');
+            lineItem.forEach((element) => {
+                element.firstElementChild.firstElementChild.checked = true;
+            });
+        } else {
+            event.target.setAttribute('value', '0');
+            lineItem.forEach((element) => {
+                element.firstElementChild.firstElementChild.checked = false;
+            });
+        }
+    });
 
-        divBtnSubmit.setAttribute('class', 'dataTables_filter');
-        divBtnSubmit.appendChild(buttonSubmit);
-
-        return divBtnSubmit;
+    // api-fetch-post-async
+    const ApiFetchPostAsync = async (url = "", data = {}) => {
+        const response = await fetch(url, {
+            method: "POST",
+            mode: "cors",
+            cache: "no-cache",
+            credentials: "same-origin",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            redirect: "follow",
+            referrerPolicy: "no-referrer",
+            body: JSON.stringify(data)
+        });
+        return response.json();
     };
 </script>
 
@@ -159,12 +215,16 @@
         animation-duration: 1.2s;
     }
 
-    .page-len {
+    .records-page-len {
         border-radius: 2px;
         padding: 7px 10px;
         outline: none;
         width: 80px;
         margin: .6rem 0rem 0rem .6rem;
         padding: 0;
+    }
+
+    #records-toggle-check {
+        cursor: pointer;
     }
 </style>

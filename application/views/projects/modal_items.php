@@ -82,7 +82,7 @@
                                 <?php
                                   if(isset($s->value) && $s->value) {
                                     $total += $s->value;
-                                    echo to_currency($s->value);
+                                    echo to_currency($s->value, lang('THB'));
                                   } else {
                                     echo '-';
                                   }
@@ -100,7 +100,7 @@
                           <tr>
                             <td colspan="2"></td>
                             <td class="text-right"><strong><?php echo lang('total'); ?></strong></td>
-                            <td class="text-right"><strong><?php echo to_currency($total); ?></strong></td>
+                            <td class="text-right"><strong><?php echo to_currency($total, lang('THB')); ?></strong></td>
                             <td></td>
                           </tr>
                         </tfoot>

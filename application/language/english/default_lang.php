@@ -40,7 +40,7 @@ $lang["created_by"] = "Created by";
 $lang["updated"] = "Updated";
 $lang["deleted"] = "Deleted";
 $lang["currency"] = "Currency";
-$lang["THB"] = "THB";
+$lang["THB"] = " THB";
 $lang["USD"] = "USD";
 $lang["new"] = "New";
 $lang["open"] = "Open";
@@ -1956,7 +1956,7 @@ $lang["stock_material_can_read_production_name"] = "Can view material production
 $lang["stock_material_can_create"] = "Can create materials";
 $lang["stock_material_can_update"] = "Can edit materials";
 $lang["stock_material_can_delete"] = "Can delete materials";
-$lang["stock_material_report"] = "Material report";
+$lang["stock_material_report"] = "Material stock report";
 
 $lang["stock_restock_permissions"] = "Set restock permissions";
 $lang["stock_restock_can_read_self"] = "Can view only personal restocks";
@@ -2040,6 +2040,11 @@ $lang["date_of_rejected"] = "Date of rejected";
 $lang["material_request_document"] = "Material Requisition Document";
 $lang["re_calc_stock"] = "Recalculate";
 $lang["create_matreq"] = "Create MR Doc.";
+$lang["finished_goods_report"] = "FG Stock Report";
+$lang["finished_goods"] = "Finished Goods";
+$lang["finished_goods_restock"] = "Restock FG";
+$lang["raw_mats"] = "Raw Materials";
+$lang["raw_mats_restock"] = "Restock RM";
 
 // Start - Warehouse Category
 $lang["warehouse_category"] = "Warehouse";
@@ -2051,9 +2056,12 @@ $lang["cant_duplicated_code"] = "The location code can't be duplicated.";
 // End - Warehouse Category
 
 // Start - Purchase Requisition
+$lang["purchaserequests"] = "Purchase Requisition";
+$lang["pr_create_rm"] = "Create Purchase Requisition";
 $lang["pr_by_project"] = "Create PR for Project ";
 $lang["close_pr_page"] = "Close page";
-$lang["material_shortage"] = "Material Shortage";
+$lang["material_shortage"] = "Material shortage";
+$lang["material_name"] = "Material name";
 $lang["by_records"] = "By record";
 $lang["by_summarize"] = "By summarize";
 $lang["material_was_deleted"] = "Material data has been deleted";
@@ -2061,4 +2069,5 @@ $lang["project_was_deleted"] = "Project data has been deleted";
 $lang["material_shortage_date"] = "Date of shortage";
 $lang["quantity_of_shortage"] = "Quantity of shortage";
 $lang["to_issue_pr"] = "To issues purchase requisition";
+$lang["btn_create_pr"] = "Craete PR";
 // End - Purchase Requisition

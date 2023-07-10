@@ -20,7 +20,7 @@
           <div class="icon">
             <i class="fa fa-tags" aria-hidden="true"></i>
           </div>
-          <h4 class="fw-500"><?php echo lang('stock_materials'); ?></h4>
+          <h4 class="fw-500"><?php echo lang('raw_mats'); ?></h4>
         </a>
       </div>
     <?php }?>
@@ -31,7 +31,7 @@
           <div class="icon">
             <i class="fa fa-database" aria-hidden="true"></i>
           </div>
-          <h4 class="fw-500"><?php echo lang('stock_restocks'); ?></h4>
+          <h4 class="fw-500"><?php echo lang('raw_mats_restock'); ?></h4>
         </a>
       </div>
     <?php }?>
@@ -42,7 +42,7 @@
           <div class="icon">
             <i class="fa fa-tags" aria-hidden="true"></i>
           </div>
-          <h4 class="fw-500"><?php echo lang('stock_item'); ?></h4> 
+          <h4 class="fw-500"><?php echo lang('finished_goods'); ?></h4> 
         </a>
       </div>
     <?php }?>
@@ -53,7 +53,7 @@
           <div class="icon">
             <i class="fa fa-database" aria-hidden="true"></i>
           </div>
-          <h4 class="fw-500"><?php echo lang('stock_restocks_item'); ?></h4>
+          <h4 class="fw-500"><?php echo lang('finished_goods_restock'); ?></h4>
         </a>
       </div>
     <?php }?>
@@ -86,7 +86,7 @@
           <div class="icon">
             <i class="fa fa-bar-chart" aria-hidden="true"></i>
           </div>
-          <h4 class="fw-500"><?php echo lang('stock_item_report'); ?></h4>
+          <h4 class="fw-500"><?php echo lang('finished_goods_report'); ?></h4>
         </a>
       </div>
     <?php }?>
@@ -95,11 +95,20 @@
       <div class="grid xl-20 lg-30 md-1-3">
         <a class="box-card-01 box-shadow" href="<?php echo_uri('materialrequests'); ?>">
           <div class="icon">
-            <img src="<?php echo base_url();?>assets/Icons/rq.png" style="width: 27px;">
+          <i class="fa fa-cubes" aria-hidden="true"></i>
           </div>
-          <h4 class="fw-500">ใบขอเบิก</h4>
+          <h4 class="fw-500"><?php echo lang('materialrequests'); ?></h4>
         </a>
       </div>
     <?php }?>
+
+    <div class="grid xl-20 lg-30 md-1-3">
+        <a class="box-card-01 box-shadow" href="<?php echo_uri('purchaserequests'); ?>">
+          <div class="icon">
+          <i class="fa fa-cubes" aria-hidden="true"></i>
+          </div>
+          <h4 class="fw-500"><?php echo lang('material_shortage'); ?></h4>
+        </a>
+      </div>
   </div>
 </div>

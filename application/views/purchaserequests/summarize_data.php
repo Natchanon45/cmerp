@@ -1,10 +1,11 @@
-<!-- <div class="table-responsive">
+<div class="table-responsive">
     <form id="summarize-data-form" name="summarize-data-form">
         <table id="summarize-data-table" class="display" cellspacing="0" width="100%">
-            <?php if ($summarize_data_list): ?>
+            
+            <!-- Header -->
                 <thead>
                     <tr>
-                        <th class="text-center w5p"><i class="fa fa-check-square-o"></th>
+                        <th class="text-center w5p"><i class="fa fa-check-square-o" id="summarize-toggle-check" value="0"></th>
                         <th class="text-center w5p"><?php echo lang('id'); ?></th>
                         <th><?php echo lang('stock_material_production_name'); ?></th>
                         <th class="text-right w10p"><?php echo lang('quantity_of_shortage'); ?></th>
@@ -12,6 +13,9 @@
                         <th class="text-center w5p"><i class="fa fa-bars"></i></th>
                     </tr>
                 </thead>
+
+            <!-- Detail -->
+                <?php if ($summarize_data_list): ?>
                 <tbody>
                     <?php foreach ($summarize_data_list as $data): ?>
                         <tr class="line-item-summary">
@@ -31,7 +35,8 @@
                         </tr>
                     <?php endforeach; ?>
                 </tbody>
-            <?php endif; ?>
+                <?php endif; ?>
+            
         </table>
     </form>
 </div>
@@ -39,10 +44,8 @@
 <script src="/assets/js/jquery.redirect.js"></script>
 <script type="text/javascript">
     $(document).ready(function() {
-        $('.panel').addClass('hide');
-
         setTimeout(() => {
-            $('#records-data-table').DataTable({
+            $('#summarize-data-table').DataTable({
                 "bPaginate": true,
                 "bLengthChange": true,
                 "bFilter": true,
@@ -51,19 +54,139 @@
                 "bAutoWidth": false
             });
 
-            $('#records-data-table_wrapper').prepend(submitButton);
-            $('#records-data-table_length')[0].firstElementChild.lastChild.remove();
-            $('#records-data-table_length')[0].firstElementChild.firstChild.remove();
-            $('#records-data-table_length')[0].firstElementChild.firstChild.setAttribute('class', 'page-len');
-            $('#records-data-table_info').css('margin', '.6rem 0 .6rem .6rem');
-            $('#records-data-table_paginate').css('margin', '.6rem .6rem .7rem 0');
-            $('.page-len').select2();
+            $('#summarize-data-table_wrapper').prepend(submitButton);
+            $('#summarize-data-table_length')[0].firstElementChild.lastChild.remove();
+            $('#summarize-data-table_length')[0].firstElementChild.firstChild.remove();
+            $('#summarize-data-table_length')[0].firstElementChild.firstChild.setAttribute('class', 'summarize-page-len');
+            $('#summarize-data-table_info').css('margin', '.6rem 0 .6rem .6rem');
+            $('#summarize-data-table_paginate').css('margin', '.6rem .6rem .7rem 0');
+            $('.summarize-page-len').select2();
 
             setTimeout(() => {
                 $('.panel').removeClass('hide');
             }, 25);
         }, 25);
     });
+
+    // swal("Hello world!");
+
+    function createSubmitButton() {
+        let buttonSubmit = document.createElement('button');
+        buttonSubmit.setAttribute('type', 'button');
+        buttonSubmit.setAttribute('class', 'btn btn-danger');
+        buttonSubmit.setAttribute('id', 'btn-submit');
+        buttonSubmit.textContent = '<?php echo lang('to_issue_pr'); ?>';
+
+        let divBtnSubmit = document.createElement('div');
+        divBtnSubmit.setAttribute('class', 'dataTables_filter');
+        divBtnSubmit.appendChild(buttonSubmit);
+
+        return divBtnSubmit;
+    };
+
+    // btn-submit-click
+    const submitButton = createSubmitButton();
+    submitButton.addEventListener('click', (event) => {
+        event.preventDefault();
+        let listChecked = {
+            data: []
+        };
+
+        lineItem.forEach((element) => {
+            let checkbox = element.firstElementChild.firstElementChild;
+            if (checkbox.checked) {
+                listChecked.data.push(checkbox.value);
+            }
+        });
+
+        if (listChecked.data.length) {
+            $.redirect(
+                '<?php echo_uri('purchaserequests/pr_summarize'); ?>',
+                { data: listChecked.data },
+                'POST',
+                '_self'
+            );
+        }
+    });
+    
+    // line-item-click
+    const lineItem = document.querySelectorAll('.line-item-summary');
+    lineItem.forEach((element) => {
+        element.setAttribute('style', 'cursor: pointer;');
+        element.addEventListener('click', (event) => {
+            event.preventDefault();
+
+            let checkbox = element.firstElementChild.firstElementChild;
+            checkbox.checked = !checkbox.checked;
+        });
+    });
+
+    // btn-delete-click
+    const btnDelete = document.querySelectorAll('.delete');
+    btnDelete.forEach((element) => {
+        element.addEventListener('click', (event) => {
+            event.preventDefault();
+
+            let lineId = element.firstElementChild.textContent;
+            let line = element.parentElement.parentElement;
+            let url = '<?php echo echo_uri('purchaserequests/dev2_deleteShortageByMaterialId'); ?>';
+
+            if (confirm('Do you want to delete this item?')) {
+                ApiFetchPostAsync(url, { id: lineId }).then((result) => {
+                    // console.log(result);
+
+                    if (result.success) {
+                        line.remove();
+                        appAlert.warning(
+                            result.message,
+                            { duration: 2500 }
+                        );
+                    } else {
+                        appAlert.error(
+                            result.message,
+                            { duration: 2500 }
+                        );
+                    }
+                });
+            }
+        });
+    });
+
+    // btn-toggle-click
+    const btnToggleChecked = document.querySelector('#summarize-toggle-check');
+    btnToggleChecked.addEventListener('click', (event) => {
+        event.preventDefault();
+
+        let current = parseInt(event.target.getAttribute('value'));
+        if (current === 0) {
+            event.target.setAttribute('value', '1');
+            lineItem.forEach((element) => {
+                element.firstElementChild.firstElementChild.checked = true;
+            });
+        } else {
+            event.target.setAttribute('value', '0');
+            lineItem.forEach((element) => {
+                element.firstElementChild.firstElementChild.checked = false;
+            });
+        }
+    });
+
+    // api-fetch-post-async
+    const ApiFetchPostAsync = async (url = "", data = {}) => {
+        const response = await fetch(url, {
+            method: "POST",
+            mode: "cors",
+            cache: "no-cache",
+            credentials: "same-origin",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            redirect: "follow",
+            referrerPolicy: "no-referrer",
+            body: JSON.stringify(data)
+        });
+        return response.json();
+    };
 </script>
 
 <style type="text/css">
@@ -90,7 +213,7 @@
         animation-duration: 1.2s;
     }
 
-    .page-len {
+    .summarize-page-len {
         border-radius: 2px;
         padding: 7px 10px;
         outline: none;
@@ -98,4 +221,8 @@
         margin: .6rem 0rem 0rem .6rem;
         padding: 0;
     }
-</style> -->
+
+    #summarize-toggle-check {
+        cursor: pointer;
+    }
+</style>
