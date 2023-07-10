@@ -1222,26 +1222,35 @@ class PurchaseRequests extends MY_Controller
 		$view_data["custom_field_headers"] = $this->Custom_fields_model->get_custom_field_headers_for_table("purchaserequests", $this->login_user->is_admin, $this->login_user->user_type);
 
 		$buttonTops = array();
-		$buttonTops[] = anchor(
-			get_uri("purchaserequests/categories"),
-			"<i class='fa fa-bars'></i> " . lang('category_manager'),
+		$buttonTops[] = js_anchor(
+			"<i class='fa fa-chevron-left'></i> " . lang('back_to_stock'),
 			array(
-				"class" => "btn btn-primary",
-				"title" => lang('category_manager'),
-				"id" => "cat-mng-btn"
+				"class" => 'btn btn-primary',
+				"title" => lang('stock'),
+				"id" => 'back-to-stock'
 			)
 		);
 
-		if ($this->Permission_m->create_purchase_request) {
-			$buttonTops[] = js_anchor(
-				"<i class='fa fa-shopping-cart'></i> " . lang('add_pr'), 
-				array(
-					"class" => "btn btn-primary", 
-					"title" => lang('add_pr'), 
-					"id" => "add-pr-btn"
-				)
-			);
-		}
+		// $buttonTops[] = anchor(
+		// 	get_uri("purchaserequests/categories"),
+		// 	"<i class='fa fa-bars'></i> " . lang('category_manager'),
+		// 	array(
+		// 		"class" => "btn btn-primary",
+		// 		"title" => lang('category_manager'),
+		// 		"id" => "cat-mng-btn"
+		// 	)
+		// );
+
+		// if ($this->Permission_m->create_purchase_request) {
+		// 	$buttonTops[] = js_anchor(
+		// 		"<i class='fa fa-shopping-cart'></i> " . lang('add_pr'), 
+		// 		array(
+		// 			"class" => "btn btn-primary", 
+		// 			"title" => lang('add_pr'), 
+		// 			"id" => "add-pr-btn"
+		// 		)
+		// 	);
+		// }
 
 		$view_data['buttonTops'] = implode('', $buttonTops);
 		$view_data['pr_status_indexs'] = [["id" => "", "text" => "- " . lang("status") . " -"], ["id" => 1, "text" => "New"], ["id" => 2, "text" => "Request Approval"], ["id" => 3, "text" => "Approved"], ["id" => 4, "text" => "Rejected"]];

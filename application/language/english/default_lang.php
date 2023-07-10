@@ -2043,8 +2043,10 @@ $lang["create_matreq"] = "Create MR Doc.";
 $lang["finished_goods_report"] = "FG Stock Report";
 $lang["finished_goods"] = "Finished Goods";
 $lang["finished_goods_restock"] = "Restock FG";
+$lang["finished_goods_restock_add"] = "Add Restock FG";
 $lang["raw_mats"] = "Raw Materials";
 $lang["raw_mats_restock"] = "Restock RM";
+$lang["raw_mats_restock_add"] = "Add Restock RM";
 
 // Start - Warehouse Category
 $lang["warehouse_category"] = "Warehouse";
@@ -2071,3 +2073,11 @@ $lang["quantity_of_shortage"] = "Quantity of shortage";
 $lang["to_issue_pr"] = "To issues purchase requisition";
 $lang["btn_create_pr"] = "Craete PR";
 // End - Purchase Requisition
+
+// Custom - DataTable
+$lang["showing"] = "Showing";
+$lang["of"] = "Of";
+$lang["entries"] = "Entries";
+$lang["no_data_available"] = "No data available in table";
+$lang["back_to_stock"] = "Back to stock page";
+$lang["restart_calc"] = "Restart";

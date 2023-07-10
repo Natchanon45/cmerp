@@ -62,6 +62,36 @@
             $('#summarize-data-table_paginate').css('margin', '.6rem .6rem .7rem 0');
             $('.summarize-page-len').select2();
 
+            let searchInput = $('#summarize-data-table_filter label input')[0];
+            $('#summarize-data-table_filter label')[0].textContent = '<?php echo ucwords(lang('search')) . ':'; ?>';
+            $('#summarize-data-table_filter label')[0].appendChild(searchInput);
+
+            let tableInfo = $('#summarize-data-table_info')[0];
+            tableInfo.textContent = tableInfo.textContent.replace('Showing', '<?php echo ucwords(lang('showing')); ?>');
+            tableInfo.textContent = tableInfo.textContent.replace('to', '<?php echo strtolower(lang('to')); ?>');
+            tableInfo.textContent = tableInfo.textContent.replace('of', '<?php echo strtolower(lang('of')); ?>');
+            tableInfo.textContent = tableInfo.textContent.replace('entries', '<?php echo strtolower(lang('entries')); ?>');
+
+            <?php if (!sizeof($summarize_data_list)): ?>
+                $('.dataTables_empty')[0].textContent = '<?php echo lang('no_data_available'); ?>';
+            <?php endif; ?>
+
+            let leftAngle = document.createElement('i');
+            leftAngle.classList = 'fa fa-angle-double-left fa-lg';
+            leftAngle.setAttribute('aria-hidden', 'true');
+
+            let rightAngle = document.createElement('i');
+            rightAngle.classList = 'fa fa-angle-double-right fa-lg pointer';
+            rightAngle.setAttribute('aria-hidden', 'true');
+
+            let btnPrevious = $('#summarize-data-table_previous')[0];
+            btnPrevious.textContent = btnPrevious.textContent.replace('Previous', '');
+            btnPrevious.appendChild(leftAngle);
+
+            let btnNext = $('#summarize-data-table_next')[0];
+            btnNext.textContent = btnNext.textContent.replace('Next', '');
+            btnNext.appendChild(rightAngle);
+
             setTimeout(() => {
                 $('.panel').removeClass('hide');
             }, 25);

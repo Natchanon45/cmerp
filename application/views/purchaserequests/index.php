@@ -7,15 +7,18 @@
     <?php // endif; ?>
 
     <div class="panel clearfix hide">
+        <!-- <h1>
+            <a class="title-back" href="<?php // echo_uri('stock'); ?>"><i class="fa fa-chevron-left" aria-hidden="true"></i></a>
+        </h1> -->
         <ul id="pr-tabs" data-toggle="ajax-tab" class="nav nav-tabs bg-white title" role="tablist">
             <li class="title-tab"><h4 class="pl15 pt10 pr15"><?php echo lang('material_shortage'); ?></h4></li>
             
-            <li>
+            <li class="title-tab">
                 <a id="by-summarize-button" class="active" role="presentation" href="<?php echo_uri('purchaserequests/dev2_summarize_data/'); ?>" data-target="#summarize-data">
                     <?php echo lang('by_summarize'); ?>
                 </a>
             </li>
-            <li>
+            <li class="title-tab">
                 <a id="by-records-button" role="presentation" href="<?php echo_uri('purchaserequests/dev2_records_data/'); ?>" data-target="#records-data">
                     <?php echo lang('by_records'); ?>
                 </a>
@@ -33,11 +36,11 @@
                 </a>
             </li> -->
 
-            <!-- <div class="tab-title clearfix no-border">
+            <div class="tab-title clearfix no-border">
                 <div class="title-button-group">
-                    <?php // echo $this->Permission_m->access_purchase_request ? $buttonTops : ''; ?>
+                    <?php echo $buttonTops; ?>
                 </div>
-            </div> -->
+            </div>
         </ul>
 
         <div class="tab-content">
@@ -315,12 +318,16 @@
             // loadLowStockTableItem("#low-stock-table-item");
         <?php // endif; ?>
 
-        $("#add-pr-btn").click(function () {
-            window.location.href = "<?php echo get_uri("purchaserequests/process_pr");?>";
-        });
+        // $("#add-pr-btn").click(function () {
+        //     window.location.href = "<?php echo get_uri("purchaserequests/process_pr");?>";
+        // });
 
-        $("#cat-mng-btn").on('click', function () {
-            window.location.href = "<?php echo get_uri("purchaserequests/categories");?>";
+        // $("#cat-mng-btn").on('click', function () {
+        //     window.location.href = "<?php // echo get_uri("purchaserequests/categories");?>";
+        // });
+
+        $('#back-to-stock').on('click', function () {
+            window.location = '<?php echo_uri('stock'); ?>';
         });
     });
 

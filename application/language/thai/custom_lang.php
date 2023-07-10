@@ -2448,9 +2448,10 @@ $lang["material_request_document"] = "ใบเบิกวัตถุดิบ
 $lang["finished_goods_report"] = "รายงานสินค้าสำเร็จ";
 $lang["finished_goods"] = "สินค้าสำเร็จ";
 $lang["finished_goods_restock"] = "นำเข้าสินค้าสำเร็จ";
+$lang["finished_goods_restock_add"] = "เพิ่มการนำเข้าสินค้าสำเร็จ";
 $lang["raw_mats"] = "วัตถุดิบ";
 $lang["raw_mats_restock"] = "นำเข้าวัตถุดิบ";
-
+$lang["raw_mats_restock_add"] = "เพิ่มนำเข้าวัตถุดิบ";
 
 // Start - Warehouse Category
 $lang["warehouse_category"] = "คลังสินค้า";
@@ -2476,3 +2477,10 @@ $lang["quantity_of_shortage"] = "จำนวนที่ขาด";
 $lang["to_issue_pr"] = "นำไปออกไปขอซื้อ";
 $lang["btn_create_pr"] = "ทำการขอซื้อ";
 // End - Purchase Requisition
+
+$lang["showing"] = "แสดงผล";
+$lang["of"] = "จาก";
+$lang["entries"] = "รายการ";
+$lang["no_data_available"] = "ไม่พบข้อมูล";
+$lang["back_to_stock"] = "กลับหน้าคลังสินค้า";
+$lang["restart_calc"] = "เริ่มใหม่";

@@ -8,8 +8,8 @@
         <?php echo lang('stock_calculator'); ?>
       </h1>
       <div class="title-button-group">
-        <a href="" class="btn btn-default" title="เริ่มใหม่">
-          <i class="fa fa-refresh" aria-hidden="true"></i> เริ่มใหม่
+        <a href="" class="btn btn-default" title="<?php echo lang('restart_calc'); ?>">
+          <i class="fa fa-refresh" aria-hidden="true"></i> <?php echo lang('restart_calc'); ?>
         </a>
       </div>
     </div>
@@ -175,6 +175,8 @@
     var tableBody = typeContainer.find('#table-body'), btnAdd = typeContainer.find('#btn-add-material');
     btnAdd.click(function(e){
       e.preventDefault();
+
+      btnAdd.addClass('hide');
       tableBody.prepend(`
         <tr>
           <td style="width:20px;"></td>
@@ -209,11 +211,15 @@
       `);
       processBinding();
     });
+
     processBinding();
+
     function processBinding(){
       typeContainer.find('.btn-delete-material').unbind();
       typeContainer.find('.btn-delete-material').click(function(e){
         e.preventDefault();
+
+        btnAdd.removeClass('hide');
         $(this).closest('tr').remove();
         processBinding();
       });
