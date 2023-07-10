@@ -307,7 +307,7 @@
         };
     <?php endif; ?>
     $(document).ready(function () {
-        loadPrTable("#monthly-pr-table", "monthly");
+        // loadPrTable("#monthly-pr-table", "monthly");
 
         <?php // if($this->Permission_m->access_purchase_request == true):?>
             // loadLowProjectTable("#low-project-table");
