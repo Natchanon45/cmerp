@@ -207,7 +207,7 @@ header .button i{
 
 .paper .body{
     margin-bottom: 20px;
-    min-height: 800px;
+    min-height: 760px;
 }
 
 .paper .body .items table{
@@ -298,7 +298,7 @@ header .button i{
 }
 
 .paper .footer{
-    height: 120px;
+    height: 180px;
     line-height: 1px;
     page-break-inside: avoid;
 }
@@ -316,13 +316,16 @@ header .button i{
 }
 
 .on_behalf_of{
+    overflow-wrap: break-word; 
+    line-height: 20px;
     position: relative;
     top: 15px;
+    height: 1px;
 }
 
 .signature{
     position: relative;
-    top: 15px;
+    top: 30px;
 }
 
 .paper .footer .name{
