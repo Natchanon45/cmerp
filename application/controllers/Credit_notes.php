@@ -48,11 +48,6 @@ class Credit_notes extends MY_Controller {
             return;
         }
 
-        if(empty($this->uri->segment(3))){
-            redirect(get_uri("accounting/sell"));
-            return;
-        }
-
         $data = $this->Credit_notes_m->getDoc($this->uri->segment(3));
         if ($data["status"] != "success"){
             redirect(get_uri("accounting/sell"));

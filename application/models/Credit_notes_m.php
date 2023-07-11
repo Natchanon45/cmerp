@@ -49,8 +49,8 @@ class Credit_notes_m extends MY_Model {
         }
 
         $data = [
-                    "<a href='".get_uri("invoices/view/".$cnrow->id)."'>".convertDate($cnrow->doc_date, 2)."</a>",
-                    "<a href='".get_uri("invoices/view/".$cnrow->id)."'>".$cnrow->doc_number."</a>",
+                    "<a href='".get_uri("credit-notes/view/".$cnrow->id)."'>".convertDate($cnrow->doc_date, 2)."</a>",
+                    "<a href='".get_uri("credit-notes/view/".$cnrow->id)."'>".$cnrow->doc_number."</a>",
                     $reference_number_column,
                     "<a href='".get_uri("clients/view/".$cnrow->client_id)."'>".$this->Clients_m->getCompanyName($cnrow->client_id)."</a>",
                     convertDate($cnrow->due_date, true), number_format($cnrow->total, 2), $doc_status,
@@ -91,8 +91,9 @@ class Credit_notes_m extends MY_Model {
         return $dataset;
     }
 
-    function getDoc($docId){
+    function getDoc($docId = NULL){
         $db = $this->db;
+        if($docId == null) return $this->data;
 
         $this->data["doc_date"] = date("Y-m-d");
         $this->data["credit"] = "0";
@@ -139,6 +140,11 @@ class Credit_notes_m extends MY_Model {
             $this->data["credit"] = $cnrow->credit;
             $this->data["due_date"] = $cnrow->due_date;
             $this->data["reference_number"] = $cnrow->reference_number;
+
+            $this->data["original_amount"] = $cnrow->original_amount;
+            $this->data["corrected_amount"] = $cnrow->corrected_amount;
+            $this->data["difference"] = $cnrow->original_amount - $cnrow->corrected_amount;
+
             $this->data["discount_type"] = $cnrow->discount_type;
             $this->data["discount_percent"] = $cnrow->discount_percent;
             $this->data["discount_amount"] = $cnrow->discount_amount;
@@ -249,13 +255,11 @@ class Credit_notes_m extends MY_Model {
                         ->where("status", "P")
                         ->get()->row();
 
-        if(empty($invrow)){log_message("error", $db->last_query());
-            return $this->data;
-        }
+        if(empty($invrow)) return $this->data;
 
         $invirows = $db->select("*")
                         ->from("invoice_items")
-                        ->where("id", $invoice_id)
+                        ->where("invoice_id", $invoice_id)
                         ->order_by("sort", "asc")
                         ->get()->result();
 
@@ -267,8 +271,8 @@ class Credit_notes_m extends MY_Model {
         $reference_number = $invrow->doc_number;
         $project_id = $invrow->project_id;
         $client_id = $invrow->client_id;
-        $original_amount = 0;
-        $corrected_amount = 0;
+        $original_amount = $invrow->sub_total;
+        $corrected_amount = $invrow->sub_total;
         $sub_total_before_discount = $invrow->sub_total_before_discount;
 
         $discount_type = $invrow->discount_type;
@@ -331,11 +335,11 @@ class Credit_notes_m extends MY_Model {
                                                     "product_id"=>$invirow->product_id,
                                                     "product_name"=>$invirow->product_name,
                                                     "product_description"=>$invirow->product_description,
-                                                    "quantity"=>$invirow->quantity,
+                                                    "quantity"=>0,
                                                     "unit"=>$invirow->unit,
                                                     "price"=>0,
                                                     "total_price"=>0,
-                                                    "sort"=>$invirow->id
+                                                    "sort"=>$invirow->sort
                                                 ]);
             }
         }
@@ -370,20 +374,17 @@ class Credit_notes_m extends MY_Model {
         $wht_inc = "N";
         $wht_percent = $this->Taxes_m->getWhtPercent();
         $wht_value = 0;
-        
+
+        $q = $db->select("*")->from("credit_note")->where("deleted", 0);
+                        
         if($docId == null && isset($this->json->doc_id)){
             $docId = $this->json->doc_id;
 
+            $cnrow = $q->where("id", $docId)->get()->row();
+            if(empty($cnrow)) return $this->data;
+
             $vat_inc = $this->json->vat_inc == true ? "Y":"N";
             $wht_inc = $this->json->wht_inc == true ? "Y":"N";
-            
-            $cnrow = $db->select("*")
-                        ->from("invoice")
-                        ->where("id", $docId)
-                        ->where("deleted", 0)
-                        ->get()->row();
-
-            if(empty($cnrow)) return $this->data;
 
             $discount_type = $this->json->discount_type;
 
@@ -399,18 +400,12 @@ class Credit_notes_m extends MY_Model {
             if($wht_inc == "Y") $wht_percent = getNumber($this->json->wht_percent);
 
         }else{
-            $cnrow = $db->select("*")
-                        ->from("invoice")
-                        ->where("id", $docId)
-                        ->where("deleted", 0)
-                        ->get()->row();
-
-            if(empty($cnrow)) return $this->data;            
+            $cnrow = $q->where("id", $docId)->get()->row();
+            if(empty($cnrow)) return $this->data;
 
             $discount_type = $cnrow->discount_type;
             $discount_percent = $cnrow->discount_percent;
             $discount_amount = $cnrow->discount_amount;
-
 
             $vat_inc = $cnrow->vat_inc;
             $wht_inc = $cnrow->wht_inc;
@@ -418,10 +413,14 @@ class Credit_notes_m extends MY_Model {
             if($vat_inc == "Y") $vat_percent = $cnrow->vat_percent;
             if($wht_inc == "Y") $wht_percent = $cnrow->wht_percent;
         }
+
+        $original_amount = $cnrow->original_amount;
+        $corrected_amount = $cnrow->corrected_amount;
+        $difference = $original_amount - $corrected_amount;
         
         $sub_total_before_discount = $db->select("SUM(total_price) AS SUB_TOTAL")
-                                        ->from("invoice_items")
-                                        ->where("invoice_id", $docId)
+                                        ->from("credit_note_items")
+                                        ->where("credit_note_id", $docId)
                                         ->get()->row()->SUB_TOTAL;
 
         if($sub_total_before_discount == null) $sub_total_before_discount = 0;
@@ -434,8 +433,6 @@ class Credit_notes_m extends MY_Model {
             if($discount_amount < 0) $discount_amount = 0;
         }
 
-
-
         $sub_total = $sub_total_before_discount - $discount_amount;
 
         if($vat_inc == "Y") $vat_value = ($sub_total * $vat_percent)/100;
@@ -445,7 +442,7 @@ class Credit_notes_m extends MY_Model {
         $payment_amount = $total - $wht_value;
 
         $db->where("id", $docId);
-        $db->update("invoice", [
+        $db->update("credit_note", [
                                     "sub_total_before_discount"=>$sub_total_before_discount,
                                     "discount_type"=>$discount_type,
                                     "discount_percent"=>$discount_percent,
@@ -460,6 +457,14 @@ class Credit_notes_m extends MY_Model {
                                     "wht_value"=>$wht_value,
                                     "payment_amount"=>$payment_amount
                                 ]);
+
+        log_message("error", $original_amount);
+        log_message("error", $corrected_amount);
+        log_message("error", $difference);
+
+        $this->data["original_amount"] = number_format($original_amount, 2);
+        $this->data["corrected_amount"] = number_format($corrected_amount, 2);
+        $this->data["difference"] = number_format($difference, 2);
 
         $this->data["sub_total_before_discount"] = number_format($sub_total_before_discount, 2);
         $this->data["discount_type"] = $discount_type;
@@ -532,7 +537,7 @@ class Credit_notes_m extends MY_Model {
 
         if($docId != ""){
             $cnrow = $db->select("status")
-                        ->from("invoice")
+                        ->from("credit_note")
                         ->where("id", $docId)
                         ->where("deleted", 0)
                         ->get()->row();
@@ -545,13 +550,13 @@ class Credit_notes_m extends MY_Model {
 
             $db->where("id", $docId);
             $db->where("deleted", 0);
-            $db->update("invoice", [
+            $db->update("credit_note", [
                                         "remark"=>$remark
                                     ]);
         }else{
             /*$doc_number = $this->getNewDocNumber();
 
-            $db->insert("invoice", [
+            $db->insert("credit_note", [
                                         "doc_number"=>$doc_number,
                                         "doc_date"=>$doc_date,
                                         "credit"=>$credit,
@@ -573,7 +578,7 @@ class Credit_notes_m extends MY_Model {
             return $this->data;            
         }
         
-        $this->data["target"] = get_uri("invoices/view/". $docId);
+        $this->data["target"] = get_uri("credit-notes/view/". $docId);
         $this->data["status"] = "success";
 
         return $this->data;
@@ -584,7 +589,7 @@ class Credit_notes_m extends MY_Model {
         $docId = $this->input->post("id");
 
         $cnrow = $db->select("status")
-                        ->from("invoice")
+                        ->from("credit_note")
                         ->where("id", $docId)
                         ->where("deleted", 0)
                         ->get()->row();
@@ -598,7 +603,7 @@ class Credit_notes_m extends MY_Model {
         }
 
         $db->where("id", $docId);
-        $db->update("invoice", ["deleted"=>1]);
+        $db->update("credit_note", ["deleted"=>1]);
 
         $this->data["success"] = true;
         $this->data["message"] = lang('record_deleted');
@@ -611,10 +616,10 @@ class Credit_notes_m extends MY_Model {
         $docId = $this->input->post("id");
 
         $db->where("id", $docId);
-        $db->update("invoice", ["deleted"=>0]);
+        $db->update("credit_note", ["deleted"=>0]);
 
         $cnrow = $db->select("*")
-                    ->from("invoice")
+                    ->from("credit_note")
                     ->where("id", $docId)
                     ->get()->row();
 
@@ -629,7 +634,7 @@ class Credit_notes_m extends MY_Model {
         $db = $this->db;
         
         $cnrow = $db->select("id, status")
-                        ->from("invoice")
+                        ->from("credit_note")
                         ->where("id", $this->json->doc_id)
                         ->where("deleted", 0)
                         ->get()->row();
@@ -637,8 +642,8 @@ class Credit_notes_m extends MY_Model {
         if(empty($cnrow)) return $this->data;
 
         $invirows = $db->select("*")
-                        ->from("invoice_items")
-                        ->where("invoice_id", $this->json->doc_id)
+                        ->from("credit_note_items")
+                        ->where("credit_note_id", $this->json->doc_id)
                         ->order_by("id", "asc")
                         ->get()->result();
 
@@ -675,7 +680,7 @@ class Credit_notes_m extends MY_Model {
         $itemId = $this->input->post("item_id");
 
         $cnrow = $db->select("id")
-                        ->from("invoice")
+                        ->from("credit_note")
                         ->where("id", $docId)
                         ->where("deleted", 0)
                         ->get()->row();
@@ -693,9 +698,9 @@ class Credit_notes_m extends MY_Model {
 
         if(!empty($itemId)){
             $qirow = $db->select("*")
-                        ->from("invoice_items")
+                        ->from("credit_note_items")
                         ->where("id", $itemId)
-                        ->where("invoice_id", $docId)
+                        ->where("credit_note_id", $docId)
                         ->get()->row();
 
             if(empty($qirow)) return $this->data;
@@ -744,7 +749,7 @@ class Credit_notes_m extends MY_Model {
         $docId = isset($this->json->doc_id)?$this->json->doc_id:null;
 
         $cnrow = $db->select("id")
-                    ->from("invoice")
+                    ->from("credit_note")
                     ->where("id", $docId)
                     ->where("deleted", 0)
                     ->get()->row();

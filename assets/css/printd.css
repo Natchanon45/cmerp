@@ -275,6 +275,13 @@
     outline: none;
 }
 
+#printd .docitem tfoot td.summary #s-difference{
+    border-bottom: 1px solid #cecece;
+    padding-bottom: 10px;
+    margin-bottom: 8px;
+}
+
+
 #printd .docitem tfoot td.summary #discount_type{
     padding: 0;
     text-align: center;
@@ -339,7 +346,7 @@
     display: block;
     width: 382px;
     margin-top: 8px !important;
-    padding-top: 12px !important;
+    padding-top: 11px !important;
     border-top: 1px solid #cecece;
     text-align: left;
 }

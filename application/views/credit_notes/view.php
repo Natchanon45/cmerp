@@ -13,7 +13,7 @@
     <div class="docheader clear">
         <div class="l">
             <div class="logo">
-                <?php if(file_exists(get_file_from_setting("estimate_logo", get_setting('only_file_path'))) != null): ?>
+                <?php if(file_exists($_SERVER['DOCUMENT_ROOT'].get_file_from_setting("estimate_logo", true)) != false): ?>
                     <img src="<?php echo get_file_from_setting("estimate_logo", get_setting('only_file_path')); ?>" />
                 <?php else: ?>
                     <span class="nologo">&nbsp;</span>
@@ -124,12 +124,24 @@
                 <tr><td colspan="7">&nbsp;</td></tr>
                 <tr>
                     <td colspan="3">
-                        <?php if($doc_status == "W"): ?>
-                            <p><?php echo modal_anchor(get_uri("invoices/item"), "<i class='fa fa-plus-circle'></i> " . lang('add_item_product'), array("id"=>"add_item_button", "class" => "btn btn-default", "title" => lang('add_item_product'), "data-post-doc_id" => $doc_id)); ?></p>
-                        <?php endif; ?>
-                        <p><input type="text" id="total_in_text" readonly></p>
+                        
                     </td>
                     <td colspan="4" class="summary">
+                        <p id="s-original-amount">
+                            <span class="c1 custom-color">มูลค่าตามเอกสารเดิม</span>
+                            <span class="c2"><input type="text" id="original_amount" readonly></span>
+                            <span class="c3"><span class="currency">บาท</span></span>
+                        </p>
+                        <p id="s-corrected-amount">
+                            <span class="c1 custom-color">มูลค่าที่ถูกต้อง</span>
+                            <span class="c2"><input type="text" id="corrected_amount" readonly></span>
+                            <span class="c3"><span class="currency">บาท</span></span>
+                        </p>
+                        <p id="s-difference">
+                            <span class="c1 custom-color">ผลต่าง</span>
+                            <span class="c2"><input type="text" id="difference" readonly></span>
+                            <span class="c3"><span class="currency">บาท</span></span>
+                        </p>
                         <p id="s-sub-total-before-discount">
                             <span class="c1 custom-color">รวมเป็นเงิน</span>
                             <span class="c2"><input type="text" id="sub_total_before_discount" readonly></span>
@@ -143,7 +155,7 @@
                                     <option value="F" <?php if($discount_type == "F") echo "selected";?>>฿</option>
                                 </select>
                             </span>
-                            <span class="c2"><input type="text" id="discount_amount" value="<?php echo $discount_amount; ?>" readonly></span>
+                            <span class="c2"><input type="text" id="discount_amount" readonly></span>
                             <span class="c3"><span class="currency">บาท</span></span>
                         </p>
                         <p id="s-sub-total">
@@ -281,6 +293,10 @@ function loadSummary(){
         wht_percent: $("#wht_percent").val()
     }).then(function(response) {
         data = response.data;
+
+        $("#original_amount").val(data.original_amount);
+        $("#corrected_amount").val(data.corrected_amount);
+        $("#difference").val(data.difference);
 
         $("#sub_total_before_discount").val(data.sub_total_before_discount);
         $("#discount_percent").val(data.discount_percent);
