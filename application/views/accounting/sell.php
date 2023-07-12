@@ -201,6 +201,17 @@ function loadDataGrid(){
                         {id:"P", text:"รอดำเนินการ"},
                         {id:"R", text:"คืนเงิน"}
                     ];
+    }else if(active_module == "debit-notes"){
+        $(".buttons li.add").css("display", "block");
+        $(".buttons li.add a").attr("data-title", "เลือกเอกสารที่เกี่ยวข้อง");
+        $(".buttons li.add a").attr("data-action-url", "<?php echo get_uri("debit-notes/addedit"); ?>");
+
+        $(".buttons li.add span").append("เพิ่มใบเพิ่มหนี้");
+        doc_status = [
+                        {id:"", text:"-- <?php echo lang("status"); ?> --"},
+                        {id:"W", text:"รอดำเนินการ"},
+                        {id:"R", text:"รอเก็บเงิน"}
+                    ];
     }
 
     $("#datagrid").appTable({

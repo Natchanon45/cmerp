@@ -117,6 +117,21 @@
     font-weight: bold;
 }
 
+#printd .moreinfo{
+    margin-top: 16px;
+    margin-bottom: 12px;
+}
+
+#printd .moreinfo .remark select{
+    width: 800px;
+    border: 1px solid #cecece;
+    border-radius: 4px;
+    padding-top: 4px;
+    padding-bottom: 5px;
+    padding-left: 4px;
+    padding-right: 4px;
+}
+
 #printd .docitem{
     margin-top:12px;
 }
