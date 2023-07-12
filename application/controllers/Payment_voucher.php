@@ -72,8 +72,8 @@ class Payment_voucher extends MY_Controller {
         }
 
         $data["created"] = $this->Users_m->getInfo($data["created_by"]);
-        $data["client"] = $this->Customers_m->getInfo($data["customer_id"]);
-        $data["client_contact"] = $this->Customers_m->getContactInfo($data["client_id"]);
+        $data["supplier"] = $this->Suppliers_m->getInfo($data["supplier_id"]);
+        $data["supplier_contact"] = $this->Suppliers_m->getContactInfo($data["supplier_id"]);
         $data["print_url"] = get_uri("payment-voucher/print/".str_replace("=", "", base64_encode($data['doc_id'].':'.$data['doc_number'])));
 
         // var_dump(arr($data)); exit();
@@ -85,7 +85,7 @@ class Payment_voucher extends MY_Controller {
         if($doc["status"] != "success") redirect("forbidden");
 
         $this->data["docmode"] = "private_print";
-        $this->load->view('edocs/quotation', $this->data);
+        $this->load->view('edocs/payment_voucher', $this->data);
     }
 
     function delete_doc() {

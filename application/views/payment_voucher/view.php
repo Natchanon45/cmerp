@@ -1,10 +1,10 @@
 <link rel="stylesheet" href="/assets/css/printd.css?t=<?php echo time();?>">
 <div id="dcontroller" class="clearfix">
     <div class="page-title clearfix mt15 clear">
-        <h1>ใบเสนอราคา <?php echo $doc_number;?></h1>
+        <h1>ใบสำคัญจ่าย <?php echo $doc_number;?></h1>
         <div class="title-button-group">
-            <a style="margin-left: 15px;" class="btn btn-default mt0 mb0 back-to-index-btn" href="<?php echo get_uri("accounting/sell/quotations");?>" ><i class="fa fa-hand-o-left" aria-hidden="true"></i> ย้อนกลับไปตารางรายการ</a>
-            <a id="add_item_button" class="btn btn-default" data-post-doc_id="<?php echo $doc_id; ?>" data-act="ajax-modal" data-title="แชร์เอกสาร <?php echo $doc_number; ?>" data-action-url="<?php echo get_uri("/quotations/share"); ?>">แชร์</a>
+            <a style="margin-left: 15px;" class="btn btn-default mt0 mb0 back-to-index-btn" href="<?php echo get_uri("accounting/buy/payment-voucher");?>" ><i class="fa fa-hand-o-left" aria-hidden="true"></i> ย้อนกลับไปตารางรายการ</a>
+            <!--<a id="add_item_button" class="btn btn-default" data-post-doc_id="<?php echo $doc_id; ?>" data-act="ajax-modal" data-title="แชร์เอกสาร <?php echo $doc_number; ?>" data-action-url="<?php echo get_uri("/payment-voucher/share"); ?>">แชร์</a>-->
             <a onclick="window.open('<?php echo $print_url;?>', '' ,'width=980,height=720');" class="btn btn-default">พิมพ์</a>
         </div>
     </div>
@@ -13,7 +13,7 @@
     <div class="docheader clear">
         <div class="l">
             <div class="logo">
-                <?php if(file_exists(get_file_from_setting("estimate_logo", get_setting('only_file_path'))) != null): ?>
+                <?php if(file_exists($_SERVER['DOCUMENT_ROOT'].get_file_from_setting("estimate_logo", true)) != false): ?>
                     <img src="<?php echo get_file_from_setting("estimate_logo", get_setting('only_file_path')); ?>" />
                 <?php else: ?>
                     <span class="nologo">&nbsp;</span>
@@ -33,31 +33,31 @@
                 <?php endif;?>
             </div><!-- .company -->
             <div class="customer">
-                <p class="custom-color"><?php echo lang("client"); ?></p>
-                <?php if($client != null): ?>
-                    <p class="customer_name"><?php echo $client["company_name"] ?></p>
-                    <p><?php if($client != null) echo nl2br($client["address"]); ?></p>
+                <p class="custom-color">ผู้ขาย</p>
+                <?php if($supplier != null): ?>
+                    <p class="customer_name"><?php echo $supplier["company_name"] ?></p>
+                    <p><?php if($supplier != null) echo nl2br($supplier["address"]); ?></p>
                     <p>
                         <?php
-                            $client_address = $client["city"];
-                            if($client_address != "" && $client["state"] != "")$client_address .= ", ".$client["city"];
-                            elseif($client_address == "" && $client["state"] != "")$client_address .= $client["city"];
-                            if($client_address != "" && $client["zip"] != "") $client_address .= " ".$client["zip"];
-                            elseif($client_address == "" && $client["zip"] != "") $client_address .= $client["zip"];
-                            echo $client_address;
+                            $supplier_address = $supplier["city"];
+                            if($supplier_address != "" && $supplier["state"] != "")$supplier_address .= ", ".$supplier["city"];
+                            elseif($supplier_address == "" && $supplier["state"] != "")$supplier_address .= $supplier["city"];
+                            if($supplier_address != "" && $supplier["zip"] != "") $supplier_address .= " ".$supplier["zip"];
+                            elseif($supplier_address == "" && $supplier["zip"] != "") $supplier_address .= $supplier["zip"];
+                            echo $supplier_address;
                         ?>    
                     </p>
-                    <?php if(trim($client["country"]) != ""): ?>
-                        <p><?php echo $client["country"]; ?></p>
+                    <?php if(trim($supplier["country"]) != ""): ?>
+                        <p><?php echo $supplier["country"]; ?></p>
                     <?php endif; ?>
-                    <?php if(trim($client["vat_number"]) != ""): ?>
-                        <p><?php echo lang("vat_number") . ": " . $client["vat_number"]; ?></p>
+                    <?php if(trim($supplier["vat_number"]) != ""): ?>
+                        <p><?php echo lang("vat_number") . ": " . $supplier["vat_number"]; ?></p>
                     <?php endif; ?>
                 <?php endif; ?>
             </div><!-- .company -->
         </div><!--.l-->
         <div class="r">
-            <h1 class="document_name custom-color">ใบเสนอราคา</h1>
+            <h1 class="document_name custom-color">ใบสำคัญจ่าย</h1>
             <div class="about_company">
                 <table>
                     <tr>
@@ -88,15 +88,15 @@
                 <table>
                     <tr>
                         <td class="custom-color">ผู้ติดต่อ</td>
-                        <td><?php if(isset($client_contact)) echo $client_contact["first_name"]." ".$client_contact["last_name"]; ?></td>
+                        <td><?php if(isset($supplier_contact)) echo $supplier_contact["first_name"]." ".$supplier_contact["last_name"]; ?></td>
                     </tr>
                     <tr>
                         <td class="custom-color">เบอร์โทร</td>
-                        <td><?php if(isset($client_contact)) echo $client_contact["phone"]; ?></td>
+                        <td><?php if(isset($supplier_contact)) echo $supplier_contact["phone"]; ?></td>
                     </tr>
                     <tr>
                         <td class="custom-color">อีเมล์</td>
-                        <td><?php if(isset($client_contact)) echo $client_contact["email"]; ?></td>
+                        <td><?php if(isset($supplier_contact)) echo $supplier_contact["email"]; ?></td>
                     </tr>
                 </table>
             </div>
@@ -121,7 +121,7 @@
                 <tr>
                     <td colspan="3">
                         <?php if($doc_status == "W"): ?>
-                            <p><?php echo modal_anchor(get_uri("quotations/item"), "<i class='fa fa-plus-circle'></i> " . lang('add_item_product'), array("id"=>"add_item_button", "class" => "btn btn-default", "title" => lang('add_item_product'), "data-post-doc_id" => $doc_id)); ?></p>
+                            <p><?php echo modal_anchor(get_uri("payment-voucher/item"), "<i class='fa fa-plus-circle'></i> " . lang('add_item_product'), array("id"=>"add_item_button", "class" => "btn btn-default", "title" => lang('add_item_product'), "data-post-doc_id" => $doc_id)); ?></p>
                         <?php endif; ?>
                         <p><input type="text" id="total_in_text" readonly></p>
                     </td>
@@ -238,7 +238,7 @@ function loadItems(){
                     tbody += "<td>"+items[i]["total_price"]+"</td>";
                     tbody += "<td class='edititem'>";
                         if(data.doc_status == "W"){
-                            tbody += "<a class='edit' data-post-doc_id='<?php echo $doc_id; ?>' data-post-item_id='"+items[i]["id"]+"' data-act='ajax-modal' data-action-url='<?php echo_uri("quotations/item"); ?>' ><i class='fa fa-pencil'></i></a>";
+                            tbody += "<a class='edit' data-post-doc_id='<?php echo $doc_id; ?>' data-post-item_id='"+items[i]["id"]+"' data-act='ajax-modal' data-action-url='<?php echo_uri("payment-voucher/item"); ?>' ><i class='fa fa-pencil'></i></a>";
                             tbody += "<a class='delete' data-item_id='"+items[i]["id"]+"'><i class='fa fa-times fa-fw'></i></a>";
                         }
                     tbody += "</td>";

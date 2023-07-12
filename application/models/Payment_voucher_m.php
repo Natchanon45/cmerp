@@ -56,7 +56,7 @@ class Payment_voucher_m extends MY_Model {
         $data = [
                     "<a href='".get_uri("payment-voucher/view/".$pvrow->id)."'>".convertDate($pvrow->doc_date, true)."</a>",
                     "<a href='".get_uri("payment-voucher/view/".$pvrow->id)."'>".$pvrow->doc_number."</a>",
-                    "<a href='".get_uri("clients/view/".$pvrow->client_id)."'>".$this->Clients_m->getCompanyName($pvrow->client_id)."</a>",
+                    "<a href='".get_uri("clients/view/".$pvrow->supplier_id)."'>".$this->Clients_m->getCompanyName($pvrow->supplier_id)."</a>",
                     number_format($pvrow->total, 2), $doc_status,
                     "<a data-post-id='".$pvrow->id."' data-action-url='".get_uri("payment-voucher/addedit")."' data-act='ajax-modal' class='edit'><i class='fa fa-pencil'></i></a>"
                 ];
@@ -69,7 +69,7 @@ class Payment_voucher_m extends MY_Model {
 
         $db->select("*")->from("payment_voucher");
 
-        /*if($this->input->post("status") != null){
+        if($this->input->post("status") != null){
             $db->where("status", $this->input->post("status"));
         }
 
@@ -78,9 +78,9 @@ class Payment_voucher_m extends MY_Model {
             $db->where("doc_date <=", $this->input->post("end_date"));
         }
 
-        if($this->input->post("client_id") != null){
-            $db->where("client_id", $this->input->post("client_id"));
-        }*/
+        if($this->input->post("supplier_id") != null){
+            $db->where("supplier_id", $this->input->post("supplier_id"));
+        }
 
         $db->where("deleted", 0);
 
@@ -108,9 +108,7 @@ class Payment_voucher_m extends MY_Model {
         $this->data["vat_inc"] = "N";
         $this->data["wht_inc"] = "N";
         $this->data["project_id"] = null;
-        $this->data["customer_id"] = null;
-        $this->data["client_id"] = null;
-        $this->data["lead_id"] = null;
+        $this->data["supplier_id"] = null;
         $this->data["remark"] = null;
         $this->data["created_by"] = null;
         $this->data["created_datetime"] = null;
@@ -127,21 +125,10 @@ class Payment_voucher_m extends MY_Model {
 
             if(empty($pvrow)) return $this->data;
 
-            $lead_id = $client_id = null;
-            
-            if($this->Customers_m->isLead($pvrow->client_id) == true){
-                $this->data["customer_id"] = $lead_id = $pvrow->client_id;
-                $this->data["customer_is_lead"] = 1;
-            }else{
-                $this->data["customer_id"] = $client_id = $pvrow->client_id;
-                $this->data["customer_is_lead"] = 0;
-            }
-
             $this->data["doc_id"] = $docId;
             $this->data["doc_number"] = $pvrow->doc_number;
             $this->data["share_link"] = $pvrow->sharekey != null ? get_uri($this->shareHtmlAddress."th/".$pvrow->sharekey) : null;
             $this->data["doc_date"] = $pvrow->doc_date;
-            $this->data["credit"] = $pvrow->credit;
             $this->data["doc_valid_until_date"] = $pvrow->doc_valid_until_date;
             $this->data["reference_number"] = $pvrow->reference_number;
             $this->data["discount_type"] = $pvrow->discount_type;
@@ -151,8 +138,7 @@ class Payment_voucher_m extends MY_Model {
             $this->data["vat_percent"] = number_format_drop_zero_decimals($pvrow->vat_percent, 2)."%";
             $this->data["wht_inc"] = $pvrow->wht_inc;
             $this->data["project_id"] = $pvrow->project_id;
-            $this->data["client_id"] = $client_id;
-            $this->data["lead_id"] = $lead_id;
+            $this->data["supplier_id"] = $pvrow->supplier_id;
             $this->data["remark"] = $pvrow->remark;
             $this->data["created_by"] = $pvrow->created_by;
             $this->data["created_datetime"] = $pvrow->created_datetime;
@@ -197,17 +183,16 @@ class Payment_voucher_m extends MY_Model {
                         ->order_by("sort", "asc")
                         ->get()->result();
 
-        $client_id = $pvrow->client_id;
+        $supplier_id = $pvrow->supplier_id;
         $created_by = $pvrow->created_by;
 
         $this->data["seller"] = $ci->Users_m->getInfo($created_by);
 
-        $this->data["buyer"] = $ci->Customers_m->getInfo($client_id);
-        $this->data["buyer_contact"] = $ci->Customers_m->getContactInfo($client_id);
+        $this->data["buyer"] = $ci->Suppliers_m->getInfo($supplier_id);
+        $this->data["buyer_contact"] = $ci->Suppliers_m->getContactInfo($supplier_id);
 
         $this->data["doc_number"] = $pvrow->doc_number;
         $this->data["doc_date"] = $pvrow->doc_date;
-        $this->data["credit"] = $pvrow->credit;
         $this->data["doc_valid_until_date"] = $pvrow->doc_valid_until_date;
         $this->data["reference_number"] = $pvrow->reference_number;
         $this->data["remark"] = $pvrow->remark;
@@ -401,23 +386,10 @@ class Payment_voucher_m extends MY_Model {
 
         $docId = $this->json->doc_id;
         $doc_date = convertDate($this->json->doc_date);
-        $credit = intval($this->json->credit) < 0 ? 0:intval($this->json->credit);
-        $doc_valid_until_date = date('Y-m-d', strtotime($doc_date." + ".$credit." days"));
         $reference_number = $this->json->reference_number;
-        $client_id = $this->json->client_id;
-        $lead_id = $this->json->lead_id;
+        $supplier_id = $this->json->supplier_id;
         $project_id = $this->json->project_id;
         $remark = $this->json->remark;
-
-        if($client_id == "" && $lead_id == ""){
-            $this->data["status"] = "validate";
-            $this->data["messages"]["client_id"] = "โปรดใส่ข้อมูล";
-            return $this->data;
-        }
-
-        $customer_id = null;
-        if($client_id != "") $customer_id = $client_id;
-        if($lead_id != "") $customer_id = $lead_id;
 
         if($docId != ""){
             $pvrow = $db->select("status")
@@ -442,10 +414,9 @@ class Payment_voucher_m extends MY_Model {
             $db->where("deleted", 0);
             $db->update("payment_voucher", [
                                         "doc_date"=>$doc_date,
-                                        "credit"=>$credit,
                                         "doc_valid_until_date"=>$doc_valid_until_date,
                                         "reference_number"=>$reference_number,
-                                        "client_id"=>$customer_id,
+                                        "supplier_id"=>$supplier_id,
                                         "project_id"=>$project_id,
                                         "remark"=>$remark
                                     ]);
@@ -455,17 +426,17 @@ class Payment_voucher_m extends MY_Model {
             $db->insert("payment_voucher", [
                                         "doc_number"=>$doc_number,
                                         "doc_date"=>$doc_date,
-                                        "credit"=>$credit,
-                                        "doc_valid_until_date"=>$doc_valid_until_date,
                                         "reference_number"=>$reference_number,
                                         "vat_inc"=>"N",
-                                        "client_id"=>$customer_id,
+                                        "supplier_id"=>$supplier_id,
                                         "project_id"=>$project_id,
                                         "remark"=>$remark,
                                         "created_by"=>$this->login_user->id,
                                         "created_datetime"=>date("Y-m-d H:i:s"),
                                         "status"=>"W"
                                     ]);
+
+            log_message("error", "Hello->".$db->last_query());
 
             $docId = $db->insert_id();
         }

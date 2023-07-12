@@ -45,6 +45,7 @@
 
 $(document).ready(function () {
     $("#btnSubmit").click(function() {
+        
         axios.post('<?php echo current_url(); ?>', {
             task: 'save',
             doc_id : "<?php echo $doc_id; ?>",
