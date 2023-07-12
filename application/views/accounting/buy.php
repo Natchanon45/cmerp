@@ -152,6 +152,7 @@ function loadDataGrid(){
     var grid_filters = null;
 
     if (active_module == 'purchase_request') {
+        $(".buttons li.add a").css('display', 'block');
         $(".buttons li.add a").attr('data-action-url', '<?php echo get_uri('purchase_request/addedit'); ?>');
         $(".buttons li.add span").append('<?php echo lang('purchase_request_add'); ?>');
 
