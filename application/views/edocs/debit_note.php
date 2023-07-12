@@ -36,7 +36,8 @@
 </style>
 </head>
 <?php if($print_mode == "private"): ?>
-<body onload="window.print()" onfocus="window.close()">
+<!--<body onload="window.print()" onfocus="window.close()">-->
+<body>
 <?php else: ?>
 <body>
 <header><?php $this->load->view("edocs/include/header"); ?></header>
@@ -89,7 +90,7 @@
 				</div>
 			</div>
 			<div class="right">
-				<div class="docname custom-color">ใบเสร็จรับเงิน</div>
+				<div class="docname custom-color">ใบเพิ่มหนี้</div>
 				<div class="docinfo">
 					<table>
 	                    <tr>
@@ -99,6 +100,14 @@
 	                    <tr>
 	                        <td class="custom-color">วันที่</td>
 	                        <td><?php echo convertDate($doc["doc_date"], true); ?></td>
+	                    </tr>
+	                    <tr>
+	                        <td class="custom-color">เครดิต</td>
+	                        <td><?php echo $doc["credit"]; ?> วัน</td>
+	                    </tr>
+	                    <tr>
+	                        <td class="custom-color">ครบกำหนด</td>
+	                        <td><?php echo convertDate($doc["due_date"], true); ?></td>
 	                    </tr>
 	                    <tr>
 	                        <td class="custom-color">ผู้ขาย</td>
@@ -168,6 +177,18 @@
 			<div class="summary clear">
 				<div class="total_in_text"><span><?php echo "(".$doc["total_in_text"].")"; ?></span></div>
 				<div class="total_all">
+					<div class="row">
+						<div class="c1 custom-color">มูลค่าตามเอกสารเดิม</div>
+						<div class="c2"><span><?php echo number_format($doc["original_amount"], 2); ?></span><span><?php echo lang("THB");?></span></div>
+					</div>
+					<div class="row">
+						<div class="c1 custom-color">มูลค่าที่ถูกต้อง</div>
+						<div class="c2"><span><?php echo number_format($doc["corrected_amount"], 2); ?></span><span><?php echo lang("THB");?></span></div>
+					</div>
+					<div class="row">
+						<div class="c1 custom-color">ผลต่าง</div>
+						<div class="c2"><span><?php echo number_format($doc["difference"], 2); ?></span><span><?php echo lang("THB");?></span></div>
+					</div><br>
 					<div class="row">
 						<div class="c1 custom-color">รวมเป็นเงิน</div>
 						<div class="c2"><span><?php echo number_format($doc["sub_total_before_discount"], 2); ?></span><span><?php echo lang("THB");?></span></div>

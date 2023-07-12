@@ -57,11 +57,11 @@ a {
 }
 
 .custom-bg{
-    background: rgba(169, 50, 38, 1) !important;
+    background: rgba(200, 64, 136, 1) !important;
 }
 
 .custom-bg01{
-    background: rgba(169, 50, 38, 0.1) !important;
+    background: rgba(200, 64, 136, 0.1) !important;
 }
 
 .custom-color {
@@ -70,17 +70,17 @@ a {
 
 .custom-color-button{
     text-align: center;
-    color: rgba(169, 50, 38, 0.8) !important;
+    color: rgba(200, 64, 136, 0.8) !important;
     background: #fff;
-    border: 1px solid rgba(169, 50, 38, 0.8);
+    border: 1px solid rgba(200, 64, 136, 0.8);
     -webkit-transition: 0.5s;
 }
 
 .custom-color-button:hover{
     cursor: pointer;
-    color: rgba(169, 50, 38, 1) !important;
-    background: rgba(169, 50, 38, 0.1) !important;
-    border: 1px solid rgba(169, 50, 38, 1);
+    color: rgba(200, 64, 136, 1) !important;
+    background: rgba(200, 64, 136, 0.1) !important;
+    border: 1px solid rgba(200, 64, 136, 1);
 }
 
 .custom-color-button i{
@@ -94,7 +94,7 @@ input.custom-color-input{
 }
 
 input.custom-color-input:focus{
-    border: 1px solid rgba(169, 50, 38, 1) !important;
+    border: 1px solid rgba(200, 64, 136, 1) !important;
 }
 
 .bg-success{

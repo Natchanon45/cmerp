@@ -91,7 +91,7 @@
             <label>ลิงก์เอกสาร:</label>
             <input type="text" id="share_link" class="custom-color-input" value="<?php echo $share_link; ?>" readonly>
             <div class='buttons clear'>
-                <span id="generate_link"><input type="checkbox" <?php if($share_link != null) echo "checked"; ?>><i>สร้างลิงก์</i></span>
+                <span id="generate_link"><input type="checkbox" <?php if($share_link != null) echo "checked"; ?>><i>สร้างลิงก์และคัดลอกลิงก์</i></span>
                 <span id="copy_button"><a class="custom-color-button">คัดลอกลิงค์</a></span>
             </div>
         </div>
@@ -100,6 +100,7 @@
         <button type="button" class="btn btn-default" data-dismiss="modal"><span class="fa fa-close"></span>ปิดหน้าต่าง</button>
     </div>
 </div>
+
 <script type="text/javascript">
 $(document).ready(function() {
     $("#generate_link input").change(function() {

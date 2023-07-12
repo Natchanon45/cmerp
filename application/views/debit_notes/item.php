@@ -42,6 +42,7 @@
     <button type="button" id="btnSubmit" class="btn btn-primary"><span class="fa fa-check-circle"></span> <?php echo lang('save'); ?></button>
 </div>
 <script type="text/javascript">
+
 $(document).ready(function () {
     $("#btnSubmit").click(function() {
         axios.post('<?php echo current_url(); ?>', {
@@ -56,6 +57,7 @@ $(document).ready(function () {
             price: $("#price").val()
         }).then(function (response) {
             data = response.data;
+            console.log(data);
             $(".fnotvalid").remove();
 
             if(data.status == "validate"){
@@ -70,10 +72,10 @@ $(document).ready(function () {
             }else{
                 alert(data.message);
             }
+      
         }).catch(function (error) {
 
         });
-
     });
 
     $("#product_name").select2({
@@ -93,19 +95,14 @@ $(document).ready(function () {
             }
         }
     }).change(function (e) {
-        if (e.val === "+") {
-            $("#product_name").select2("destroy").val("").focus();
-            $("#product_id").val(""); //set the flag to add new item in library
-        } else if (e.val) {
-            $("#product_id").val(e.added.id);
-            $("#product_name").val(e.added.text);
-            $("#product_description").val(e.added.description);
-            $("#quantity").val("1");
-            $("#unit").val(e.added.unit);
-            $("#price").val(e.added.price);
+        $("#product_id").val(e.added.id);
+        $("#product_name").val(e.added.text);
+        $("#product_description").val(e.added.description);
+        $("#quantity").val("1");
+        $("#unit").val(e.added.unit);
+        $("#price").val(e.added.price);
 
-            calculatePrice();
-        }
+        calculatePrice();
     });
 
     <?php if(isset($item_id)): ?>

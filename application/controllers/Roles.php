@@ -343,6 +343,8 @@ class roles extends MY_Controller {
         $accounting_billing_note_access = $this->input->post('accounting_billing_note_access') == "Y" ? true : false;
         $accounting_invoice_access = $this->input->post('accounting_invoice_access') == "Y" ? true : false;
         $accounting_receipt_access = $this->input->post('accounting_receipt_access') == "Y" ? true : false;
+        $accounting_credit_note_access = $this->input->post('accounting_credit_note_access') == "Y" ? true : false;
+        $accounting_debit_note_access = $this->input->post('accounting_debit_note_access') == "Y" ? true : false;
 
         if($this->input->post('access_material_request') == "Y") $access_material_request = true;
         if($this->input->post('create_material_request') == "Y") $create_material_request = true;
@@ -445,7 +447,9 @@ class roles extends MY_Controller {
                 "quotation"=>["access"=>$accounting_quotation_access],
                 "billing_note"=>["access"=>$accounting_billing_note_access],
                 "invoice"=>["access"=>$accounting_invoice_access],
-                "receipt"=>["access"=>$accounting_receipt_access]
+                "receipt"=>["access"=>$accounting_receipt_access],
+                "credit_note"=>["access"=>$accounting_credit_note_access],
+                "debit_note"=>["access"=>$accounting_debit_note_access]
             ],
         	"access_material_request"=>$access_material_request,
         	"create_material_request"=>$create_material_request,
@@ -671,10 +675,12 @@ class roles extends MY_Controller {
             $view_data['access_product_item_formula'] = get_array_value($permissions, "access_product_item_formula");
             $view_data['create_product_item'] = get_array_value($permissions, "create_product_item");
 
-            $view_data['accounting']['quotation']['access'] = !isset($permissions["accounting"]["quotation"]) ? false : get_array_value($permissions["accounting"]["quotation"], "access");
-            $view_data['accounting']['billing_note']['access'] = !isset($permissions["accounting"]["billing_note"]) ? false : get_array_value($permissions["accounting"]["billing_note"], "access");
-            $view_data['accounting']['invoice']['access'] = !isset($permissions["accounting"]["invoice"]) ? false : get_array_value($permissions["accounting"]["invoice"], "access");
-            $view_data['accounting']['receipt']['access'] = !isset($permissions["accounting"]["receipt"]) ? false : get_array_value($permissions["accounting"]["receipt"], "access");
+            $view_data['accounting']['quotation']['access'] = !isset($permissions["accounting"]["quotation"]) ? false : $permissions["accounting"]["quotation"]["access"];
+            $view_data['accounting']['billing_note']['access'] = !isset($permissions["accounting"]["billing_note"]) ? false : $permissions["accounting"]["billing_note"]["access"];
+            $view_data['accounting']['invoice']['access'] = !isset($permissions["accounting"]["invoice"]) ? false : $permissions["accounting"]["invoice"]["access"];
+            $view_data['accounting']['receipt']['access'] = !isset($permissions["accounting"]["receipt"]) ? false : $permissions["accounting"]["receipt"]["access"];
+            $view_data['accounting']['credit_note']['access'] = !isset($permissions["accounting"]["credit_note"]) ? false : $permissions["accounting"]["credit_note"]["access"];
+            $view_data['accounting']['debit_note']['access'] = !isset($permissions["accounting"]["debit_note"]) ? false : $permissions["accounting"]["debit_note"]["access"];
 
             $view_data['access_material_request'] = get_array_value($permissions, "access_material_request");
             $view_data['create_material_request'] = get_array_value($permissions, "create_material_request");
