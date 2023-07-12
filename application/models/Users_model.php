@@ -387,4 +387,10 @@ class Users_model extends Crud_model {
         return $this->db->query($sql);
     }
 
+    function getUserById($id)
+    {
+        $user = $this->db->get_where('users', array('id' => $id))->row();
+        return $user;
+    }
+
 }

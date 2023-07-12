@@ -2476,11 +2476,33 @@ $lang["material_shortage_date"] = "วันที่วัตถุดิบข
 $lang["quantity_of_shortage"] = "จำนวนที่ขาด";
 $lang["to_issue_pr"] = "นำไปออกไปขอซื้อ";
 $lang["btn_create_pr"] = "ทำการขอซื้อ";
+$lang["supplier_name"] = "ผู้จัดจำหน่าย";
+$lang["select_supplier"] = "เลือกผู้จัดจำหน่าย";
 // End - Purchase Requisition
 
+// Custom - DataTable
 $lang["showing"] = "แสดงผล";
 $lang["of"] = "จาก";
 $lang["entries"] = "รายการ";
 $lang["no_data_available"] = "ไม่พบข้อมูล";
 $lang["back_to_stock"] = "กลับหน้าคลังสินค้า";
 $lang["restart_calc"] = "เริ่มใหม่";
+
+$lang["purchase_request"] = "ใบขอซื้อ";
+$lang["purchase_request_add"] = "เพิ่มใบขอซื้อ";
+$lang["request_date"] = "วันที่ขอซื้อ";
+$lang["request_by"] = "ผู้ขอซื้อ";
+$lang["pr_no"] = "เลขที่ใบขอซื้อ";
+$lang["pr_type"] = "ประเภทใบขอซื้อ";
+$lang["pr_pending"] = "รออนุมัติ";
+$lang["pr_approved"] = "อนุมัติ";
+$lang["pr_rejected"] = "ไม่อนุมัติ";
+$lang["direct_material"] = "วัตถุดิบที่ใช้ในการผลิต";
+$lang["indirect_material"] = "วัตถุดิบทั่วไป";
+$lang["finised_goods"] = "สินค้าสำเร็จรูป";
+$lang["assets"] = "ทรัพย์สิน";
+$lang["services"] = "บริการ";
+$lang["expenses"] = "ค่าใช้จ่าย";
+
+$lang["purchase_order"] = "ใบสั่งซื้อ";
+$lang["goods_receipt"] = "ใบรับสินค้า";

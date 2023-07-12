@@ -68,7 +68,7 @@
     <ul class="nav nav-tabs bg-white title" role="tablist">
         <!--<li><a href="#">ผังบัญชี</a></li>-->
         <li class="active"><a>บัญชีขาย</a></li>
-        <!--<li><a href="#">บัญชีซื้อ</a></li>-->
+        <li><a href="<?php echo get_uri("accounting/buy"); ?>">บัญชีซื้อ</a></li>
     </ul>
     <div class="panel panel-default">
         <div class="table-responsive pb50">

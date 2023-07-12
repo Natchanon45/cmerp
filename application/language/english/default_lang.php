@@ -2072,6 +2072,9 @@ $lang["material_shortage_date"] = "Date of shortage";
 $lang["quantity_of_shortage"] = "Quantity of shortage";
 $lang["to_issue_pr"] = "To issues purchase requisition";
 $lang["btn_create_pr"] = "Craete PR";
+$lang["supplier_name"] = "Supplier Name";
+$lang["select_supplier"] = "Select Supplier";
+$lang["accounting"] = "Accounting";
 // End - Purchase Requisition
 
 // Custom - DataTable
@@ -2081,3 +2084,22 @@ $lang["entries"] = "Entries";
 $lang["no_data_available"] = "No data available in table";
 $lang["back_to_stock"] = "Back to stock page";
 $lang["restart_calc"] = "Restart";
+
+$lang["purchase_request"] = "Purchase Requisition";
+$lang["purchase_request_add"] = "Add new PR";
+$lang["request_date"] = "Request Date";
+$lang["request_by"] = "Request By";
+$lang["pr_no"] = "PR number";
+$lang["pr_type"] = "PR Type";
+$lang["pr_pending"] = "Waiting for approve";
+$lang["pr_approved"] = "Approved";
+$lang["pr_rejected"] = "Rejected";
+$lang["direct_material"] = "Direct Material";
+$lang["indirect_material"] = "Indirect Material";
+$lang["finised_goods"] = "Finished Goods";
+$lang["assets"] = "Assets";
+$lang["services"] = "Services";
+$lang["expenses"] = "Expenses";
+
+$lang["purchase_order"] = "Purchase Order";
+$lang["goods_receipt"] = "Goods Receipt";

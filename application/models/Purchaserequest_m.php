@@ -182,5 +182,166 @@ class Purchaserequest_m extends CI_Model {
         return json_encode(["data"=>array_values($materials), "success"=>1, "message"=>"Success"]);
     }
 
+    function dev2_getPrStatusDropdown()
+    {
+        $data[] = array(
+            "id" => "", "text" => "-- " . lang("status") . " --"
+        );
+        $data[] = array(
+            "id" => "1", "text" => lang('pr_pending')
+        );
+        $data[] = array(
+            "id" => "2", "text" => lang('pr_approved')
+        );
+        $data[] = array(
+            "id" => "3", "text" => lang('pr_rejected')
+        );
+
+        return $data;
+    }
+
+    function dev2_getPrTypeDropdown()
+    {
+        $data[] = array(
+            "id" => "", "text" => "-- " . lang('pr_type') . " --"
+        );
+
+        $result = $this->db->get('pr_type')->result();
+        foreach ($result as $item) {
+            $data[] = array(
+                "id" => $item->id, "text" => lang($item->keyword)
+            );
+        }
+
+        return $data;
+    }
+
+    function dev2_getPrTypeById($id)
+    {
+        $query = $this->db->get_where('pr_type', array('id' => $id))->row();
+        return lang($query->keyword);
+    }
+
+    function indexDataSet()
+    {
+        $this->db->select('*')->from('pr_header');
+
+        if ($this->input->post('status') != null) {
+            $this->db->where('status', $this->input->post('status'));
+        }
+
+        if ($this->input->post('pr_type') != null) {
+            $this->db->where('pr_type', $this->input->post('pr_type'));
+        }
+
+        if ($this->input->post('start_date') != null && $this->input->post('end_date')) {
+            $this->db->where('requisition_date >=', $this->input->post('start_date'));
+            $this->db->where('requisition_date <=', $this->input->post('end_date'));
+        }
+
+        if ($this->input->post('supplier_id') != null) {
+            $this->db->where('supplier_id', $this->input->post('supplier_id'));
+        }
+
+        $this->db->where('deleted_flag', 0);
+
+        $result = $this->db->order_by('pr_no', 'desc')->get()->result();
+
+        $dataSet = array();
+        foreach ($result as $item) {
+            $dataSet[] = $this->getIndexDataSetHTML($item);
+        }
+
+        return $dataSet;
+    }
+
+    function getIndexDataSetHTML($item) {
+        $status = '<select class="select-status custom-color" data-doc_id="' . $item->id . '">';
+
+        if ($item->status == 1) {
+            $status .= '
+                <option selected>' . lang('pr_pending') . '</option>
+                <option value="2">' . lang('pr_approved') . '</option>
+                <option value="3">' . lang('pr_rejected') . '</option>
+            ';
+        }
+
+        if ($item->status == 2) {
+            $status .= '
+                <option selected>' . lang('pr_approved') . '</option>
+            ';
+        }
+
+        if ($item->status == 3) {
+            $status .= '
+                <option selected>' . lang('pr_rejected') . '</option>
+            ';
+        }
+
+        $status .= '</select>';
+
+        $request_by = '-';
+        if ($item->created_by) {
+            $user = $this->Users_model->getUserById($item->created_by);
+
+            $url =  get_avatar($user->image);
+            $span = '<span class="avatar avatar-xs mr10"><img src="' . $url . '" alt=""></span>' . $user->first_name . ' ' . $user->last_name;
+            $request_by = get_team_member_profile_link($user->id, $span);
+        }
+        
+        $data = array(
+            "<a href='" . get_uri('purchase_request/view/' . $item->id) . "'>" . convertDate($item->requisition_date, true) . "</a>",
+            "<a href='" . get_uri('purchase_request/view/' . $item->id) . "'>" . $item->pr_no . "</a>",
+            $item->pr_type ? $this->dev2_getPrTypeById($item->pr_type) : '-',
+            "<a href='" . get_uri('stock/supplier_view/' . $item->supplier_id) . "'>" . mb_strimwidth($item->supplier_name, 0, 60, '...') . "</a>",
+            $request_by,
+            $status,
+            "<a data-post-id='" . $item->id . "' data-action-url='" . get_uri('purchase_request/addedit') . "' data-act='ajax-modal' class='edit'><i class='fa fa-pencil'></i></a>"
+        );
+
+        return $data;
+    }
+
+    function getDoc($id)
+    {
+        $db = $this->db;
+
+        $this->data["doc_date"] = date("Y-m-d");
+        $this->data["credit"] = "0";
+        $this->data["doc_valid_until_date"] = date("Y-m-d");
+        $this->data["discount_type"] = "P";
+        $this->data["discount_percent"] = 0;
+        $this->data["discount_amount"] = 0;
+        $this->data["vat_inc"] = "N";
+        $this->data["wht_inc"] = "N";
+        $this->data["supplier_id"] = null;
+        $this->data["remark"] = null;
+        $this->data["created_by"] = null;
+        $this->data["created_datetime"] = null;
+        $this->data["approved_by"] = null;
+        $this->data["approved_datetime"] = null;
+        $this->data["doc_status"] = null;
+
+        if (!empty($id)) {
+            $query = $db->get_where('pr_header', array('deleted_flag' => 0, 'id' => $id))->row();
+            if (empty($query)) {
+                return $this->data;
+            }
+
+            $this->data["doc_id"] = $query->id;
+            $this->data["doc_number"] = $query->pr_no;
+            $this->data["doc_date"] = $query->requisition_date;
+            $this->data["supplier_id"] = $query->supplier_id;
+            $this->data["created_by"] = $query->created_by;
+            $this->data["created_datetime"] = $query->created_date;
+            $this->data["approved_by"] = $query->approved_by;
+            $this->data["approved_datetime"] = $query->approved_date;
+            $this->data["doc_status"] = $query->status;
+        }
+
+        $this->data["status"] = "success";
+
+        return $this->data;
+    }
     
 }

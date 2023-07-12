@@ -156,13 +156,38 @@ class Bom_suppliers_model extends Crud_model {
 
         $result = $this->db->get()->result();
         $data[] = array(
-            "id" => "", "text" => "- " . lang("select_a_supplier") . " -"
+            "id" => "", "text" => "- " . lang("select_supplier") . " -"
         );
 
         foreach ($result as $item) {
             $data[] = array(
                 "id" => $item->id, "text" => $item->company_name
             );
+        }
+
+        return $data;
+    }
+
+    function dev2_getSupplierDropdownWithCode()
+    {
+        $this->db->select('id, company_name, code_supplier');
+        $this->db->from('bom_suppliers');
+
+        $result = $this->db->get()->result();
+        $data[] = array(
+            "id" => "", "text" => "-- " . lang("select_supplier") . " --"
+        );
+
+        foreach ($result as $item) {
+            if ($item->code_supplier) {
+                $data[] = array(
+                    "id" => $item->id, "text" => $item->code_supplier . ' - ' . $item->company_name
+                );
+            } else {
+                $data[] = array(
+                    "id" => $item->id, "text" => $item->company_name
+                );
+            }
         }
 
         return $data;

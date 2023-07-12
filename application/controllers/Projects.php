@@ -3331,6 +3331,7 @@ class Projects extends MY_Controller
     /* prepare a row of task list table */
     private function _make_task_row($data, $custom_fields)
     {
+        // var_dump(arr($data)); exit;
         $unread_comments_class = "";
         $icon = "";
         if (isset($data->unread) && $data->unread && $data->unread != "0") {

@@ -71,6 +71,7 @@ class Quotations extends MY_Controller {
         $data["client_contact"] = $this->Customers_m->getContactInfo($data["client_id"]);
         $data["print_url"] = get_uri("quotations/print/".str_replace("=", "", base64_encode($data['doc_id'].':'.$data['doc_number'])));
 
+        // var_dump(arr($data)); exit();
         $this->template->rander("quotations/view", $data);
     }
 

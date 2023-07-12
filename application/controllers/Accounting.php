@@ -9,6 +9,8 @@ class Accounting extends MY_Controller {
             $this->session->set_flashdata('notice_error', lang('no_permissions'));
             redirect("/");
         }*/
+
+        $this->load->model('Purchaserequest_m');
     }
 
     function index(){
@@ -53,7 +55,28 @@ class Accounting extends MY_Controller {
     }
 
     //บัญชีซื้อ
-    function buy(){
-        $this->template->rander("accounting/buy");
+    function buy() {
+        if ($this->check_permission('access_purchase_request')) {
+            $this->data['module'] = 'purchase_request';
+        } elseif ($this->check_permission('access_purchase_order')) {
+            $this->data['module'] = 'purchase_order';
+        } elseif ($this->check_permission('access_purchase_order')) {
+            $this->data['module'] = 'goods_receipt';
+        } else {
+            $this->session->set_flashdata('notice_error', lang('no_permissions'));
+            redirect('/');
+            return;
+        }
+
+        if($this->uri->segment(3) != null) $this->data["module"] = $this->uri->segment(3);
+
+        // Supplier Dropdown
+        $this->data['supplier_dropdown'] = json_encode($this->Bom_suppliers_model->dev2_getSupplierDropdownWithCode());
+        // PR Status Dropdown
+        $this->data['status_dropdown'] = json_encode($this->Purchaserequest_m->dev2_getPrStatusDropdown());
+        // PR Type Dropdown
+        $this->data['type_dropdown'] = json_encode($this->Purchaserequest_m->dev2_getPrTypeDropdown());
+
+        $this->template->rander("accounting/buy", $this->data);
     }
 }
