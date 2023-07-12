@@ -374,7 +374,7 @@ class Bom_item_mixing_groups_model extends Crud_model {
                                 if (sizeof($stocks)) {
                                     foreach ($stocks as $s) {
                                         if ($total_ratio > 0) {
-                                            $remaining = floatval($s->actual_remain);
+                                            $remaining = floatval(min($s->remaining, $s->actual_remain));
                                             $used = min($total_ratio, $remaining);
                                             $total_ratio -= $used;
 

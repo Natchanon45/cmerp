@@ -5154,9 +5154,10 @@ class Projects extends MY_Controller
 
                     $stocks = $this->Bom_item_mixing_groups_model->dev2_getStockRemainingByMaterialId($item->material_id);
                     if (sizeof($stocks)) {
+                        $this->Bom_project_item_materials_model->dev2_deleteProjectItemMaterialById($item->id);
                         foreach ($stocks as $s) {
                             if ($total_ratio > 0) {
-                                $remaining = floatval($s->actual_remain);
+                                $remaining = floatval(min($s->remaining, $s->actual_remain));
                                 $used = min($total_ratio, $remaining);
                                 $total_ratio -= $used;
 
@@ -5176,8 +5177,6 @@ class Projects extends MY_Controller
                                 'ratio' => $total_ratio * -1
                             ));
                         }
-
-                        $this->Bom_project_item_materials_model->dev2_deleteProjectItemMaterialById($item->id);
                     }
                 }
             }
