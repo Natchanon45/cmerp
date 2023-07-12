@@ -175,6 +175,7 @@ function loadDataGrid(){
             { title: '<i class="fa fa-bars"></i>', class: 'text-center option w10p' }
         ];
     }else if(active_module == 'payment-voucher') {
+        $(".buttons li.add a").css('display', 'block');
         $(".buttons li.add a").attr('data-action-url', '<?php echo get_uri('payment-voucher/addedit'); ?>');
         $(".buttons li.add span").append('เพิ่มใบสำคัญจ่าย');
 
