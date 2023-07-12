@@ -218,4 +218,40 @@ class Bom_suppliers_model extends Crud_model {
         return $supplier_name;
     }
 
+    function getInfo($supplier_id)
+    {
+        $query = $this->db->get_where('bom_suppliers', array('id' => $supplier_id))->row();
+        if (empty($query)) {
+            return null;
+        }
+
+        return array(
+            "company_name" => $query->company_name,
+            "address" => $query->address,
+            "city" => $query->city,
+            "state" => $query->state,
+            "zip" => $query->zip,
+            "country" => $query->country,
+            "website" => $query->website,
+            "phone" => $query->phone,
+            "vat_number" => $query->vat_number
+        );
+    }
+
+    function getContactInfo($supplier_id)
+    {
+        $query = $this->db->get_where('bom_supplier_contacts', array('supplier_id' => $supplier_id, 'is_primary' => 1))->row();
+        if (empty($query)) {
+            return null;
+        }
+
+        return array(
+            "id" => $query->id,
+            "first_name" => $query->first_name,
+            "last_name" => $query->last_name,
+            "phone" => $query->phone,
+            "email" => $query->email
+        );
+    }
+
 }

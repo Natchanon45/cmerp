@@ -9,8 +9,9 @@ class Purchase_request extends MY_Controller {
             $this->session->set_flashdata('notice_error', lang('no_permissions'));
             redirect(get_uri("accounting/buy"));
         }
-
+        
         $this->load->model('Purchaserequest_m');
+        $this->load->model('Purchase_request_m');
     }
 
     function index() {
@@ -50,30 +51,31 @@ class Purchase_request extends MY_Controller {
     // }
 
     function view() {
-        // if(isset($this->json->task)){
-        //     if($this->json->task == "load_items") jout($this->Quotations_m->items());
-        //     if($this->json->task == "update_doc") jout($this->Quotations_m->updateDoc());
-        //     if($this->json->task == "delete_item") jout($this->Quotations_m->deleteItem());
-        //     return;
-        // }
-
-        if(empty($this->uri->segment(3))){
-            redirect(get_uri("/accounting/buy"));
+        if(isset($this->json->task)){
+            if($this->json->task == "load_items") jout($this->Purchase_request_m->items());
+            // if($this->json->task == "update_doc") jout($this->Quotations_m->updateDoc());
+            // if($this->json->task == "delete_item") jout($this->Quotations_m->deleteItem());
             return;
         }
 
-        $data = $this->Purchaserequest_m->getDoc($this->uri->segment(3));
+        if(empty($this->uri->segment(3))){
+            redirect(get_uri('/accounting/buy'));
+            return;
+        }
+
+        $data = $this->Purchase_request_m->getDoc($this->uri->segment(3));
         if ($data['status'] != 'success'){
             redirect(get_uri('/accounting/buy'));
             return;
         }
 
         $data["created"] = $this->Users_m->getInfo($data["created_by"]);
-        // $data["client"] = $this->Customers_m->getInfo($data["customer_id"]);
-        // $data["client_contact"] = $this->Customers_m->getContactInfo($data["client_id"]);
-        // $data["print_url"] = get_uri("quotations/print/".str_replace("=", "", base64_encode($data['doc_id'].':'.$data['doc_number'])));
+        $data["supplier"] = $this->Bom_suppliers_model->getInfo($data["supplier_id"]);
+        $data["supplier_contact"] = $this->Bom_suppliers_model->getContactInfo($data["supplier_id"]);
+        $data["print_url"] = get_uri('purchase_request/print/' . str_replace('=', '', base64_encode($data['doc_id'] . ':' . $data['doc_number'])));
 
-        $this->template->rander("quotations/view", $data);
+        // var_dump(arr($data)); exit();
+        $this->template->rander('purchase_request/view', $data);
     }
 
     // function print(){
