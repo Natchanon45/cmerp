@@ -254,4 +254,40 @@ class Bom_suppliers_model extends Crud_model {
         );
     }
 
+    function getRows($fields = [])
+    {
+        $db = $this->db;
+        $s = "*";
+
+        if (count($fields) > 0) {
+            $s = "";
+            foreach ($fields as $field) {
+                $s .= $field . ",";
+            }
+        }
+
+        $q = $db->select($s)->from("bom_suppliers");
+        $cusrows = $q->get()->result();
+
+        return $cusrows;
+    }
+
+    function getPrType($fields = [])
+    {
+        $db = $this->db;
+        $s = "*";
+
+        if (count($fields) > 0) {
+            $s = "";
+            foreach ($fields as $field) {
+                $s .= $field . ",";
+            }
+        }
+
+        $q = $db->select($s)->from("pr_type");
+        $cusrows = $q->get()->result();
+
+        return $cusrows;
+    }
+
 }

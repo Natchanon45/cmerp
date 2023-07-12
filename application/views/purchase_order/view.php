@@ -1,10 +1,10 @@
 <link rel="stylesheet" href="/assets/css/printd.css?t=<?php echo time();?>">
 <div id="dcontroller" class="clearfix">
     <div class="page-title clearfix mt15 clear">
-        <h1><?php echo lang('purchase_request'); ?> <?php echo $doc_number;?></h1>
+        <h1>ใบเสนอราคา <?php echo $doc_number;?></h1>
         <div class="title-button-group">
-            <a style="margin-left: 15px;" class="btn btn-default mt0 mb0 back-to-index-btn" href="<?php echo get_uri("accounting/buy/purchase_request");?>" ><i class="fa fa-hand-o-left" aria-hidden="true"></i> ย้อนกลับไปตารางรายการ</a>
-            <a id="add_item_button" class="btn btn-default" data-post-doc_id="<?php echo $doc_id; ?>" data-act="ajax-modal" data-title="แชร์เอกสาร <?php echo $doc_number; ?>" data-action-url="<?php echo get_uri("purchase_request/share"); ?>">แชร์</a>
+            <a style="margin-left: 15px;" class="btn btn-default mt0 mb0 back-to-index-btn" href="<?php echo get_uri("accounting/sell/quotations");?>" ><i class="fa fa-hand-o-left" aria-hidden="true"></i> ย้อนกลับไปตารางรายการ</a>
+            <a id="add_item_button" class="btn btn-default" data-post-doc_id="<?php echo $doc_id; ?>" data-act="ajax-modal" data-title="แชร์เอกสาร <?php echo $doc_number; ?>" data-action-url="<?php echo get_uri("/quotations/share"); ?>">แชร์</a>
             <a onclick="window.open('<?php echo $print_url;?>', '' ,'width=980,height=720');" class="btn btn-default">พิมพ์</a>
         </div>
     </div>
@@ -33,31 +33,31 @@
                 <?php endif;?>
             </div><!-- .company -->
             <div class="customer">
-                <p class="custom-color"><?php echo lang("supplier_name"); ?></p>
-                <?php if($supplier != null): ?>
-                    <p class="customer_name"><?php echo $supplier["company_name"] ?></p>
-                    <p><?php if($supplier != null) echo nl2br($supplier["address"]); ?></p>
+                <p class="custom-color"><?php echo lang("client"); ?></p>
+                <?php if($client != null): ?>
+                    <p class="customer_name"><?php echo $client["company_name"] ?></p>
+                    <p><?php if($client != null) echo nl2br($client["address"]); ?></p>
                     <p>
                         <?php
-                            $supplier_address = $supplier["city"];
-                            if($supplier_address != "" && $supplier["state"] != "")$supplier_address .= ", ".$supplier["city"];
-                            elseif($supplier_address == "" && $supplier["state"] != "")$supplier_address .= $supplier["city"];
-                            if($supplier_address != "" && $supplier["zip"] != "") $supplier_address .= " ".$supplier["zip"];
-                            elseif($supplier_address == "" && $supplier["zip"] != "") $supplier_address .= $supplier["zip"];
-                            echo $supplier_address;
+                            $client_address = $client["city"];
+                            if($client_address != "" && $client["state"] != "")$client_address .= ", ".$client["city"];
+                            elseif($client_address == "" && $client["state"] != "")$client_address .= $client["city"];
+                            if($client_address != "" && $client["zip"] != "") $client_address .= " ".$client["zip"];
+                            elseif($client_address == "" && $client["zip"] != "") $client_address .= $client["zip"];
+                            echo $client_address;
                         ?>    
                     </p>
-                    <?php if(trim($supplier["country"]) != ""): ?>
-                        <p><?php echo $supplier["country"]; ?></p>
+                    <?php if(trim($client["country"]) != ""): ?>
+                        <p><?php echo $client["country"]; ?></p>
                     <?php endif; ?>
-                    <?php if(trim($supplier["vat_number"]) != ""): ?>
-                        <p><?php echo lang("vat_number") . ": " . $supplier["vat_number"]; ?></p>
+                    <?php if(trim($client["vat_number"]) != ""): ?>
+                        <p><?php echo lang("vat_number") . ": " . $client["vat_number"]; ?></p>
                     <?php endif; ?>
                 <?php endif; ?>
             </div><!-- .company -->
         </div><!--.l-->
         <div class="r">
-            <h1 class="document_name custom-color"><?php echo lang('purchase_request'); ?></h1>
+            <h1 class="document_name custom-color">ใบเสนอราคา</h1>
             <div class="about_company">
                 <table>
                     <tr>
@@ -73,7 +73,7 @@
                         <td><?php echo $credit; ?> วัน</td>
                     </tr>
                     <tr>
-                        <td class="custom-color">ผู้ขอซื้อ</td>
+                        <td class="custom-color">ผู้ขาย</td>
                         <td><?php if($created != null) echo $created["first_name"]." ".$created["last_name"]; ?></td>
                     </tr>
                     <?php if(trim($reference_number) != ""): ?>
@@ -88,15 +88,15 @@
                 <table>
                     <tr>
                         <td class="custom-color">ผู้ติดต่อ</td>
-                        <td><?php if(isset($supplier_contact)) echo $supplier_contact["first_name"]." ".$supplier_contact["last_name"]; ?></td>
+                        <td><?php if(isset($client_contact)) echo $client_contact["first_name"]." ".$client_contact["last_name"]; ?></td>
                     </tr>
                     <tr>
                         <td class="custom-color">เบอร์โทร</td>
-                        <td><?php if(isset($supplier_contact)) echo $supplier_contact["phone"]; ?></td>
+                        <td><?php if(isset($client_contact)) echo $client_contact["phone"]; ?></td>
                     </tr>
                     <tr>
                         <td class="custom-color">อีเมล์</td>
-                        <td><?php if(isset($supplier_contact)) echo $supplier_contact["email"]; ?></td>
+                        <td><?php if(isset($client_contact)) echo $client_contact["email"]; ?></td>
                     </tr>
                 </table>
             </div>
@@ -120,8 +120,8 @@
                 <tr><td colspan="7">&nbsp;</td></tr>
                 <tr>
                     <td colspan="3">
-                        <?php if($doc_status == "1"): ?>
-                            <p><?php echo modal_anchor(get_uri("purchase_request/item"), "<i class='fa fa-plus-circle'></i> " . lang('add_item_product'), array("id"=>"add_item_button", "class" => "btn btn-default", "title" => lang('add_item_product'), "data-post-doc_id" => $doc_id)); ?></p>
+                        <?php if($doc_status == "W"): ?>
+                            <p><?php echo modal_anchor(get_uri("quotations/item"), "<i class='fa fa-plus-circle'></i> " . lang('add_item_product'), array("id"=>"add_item_button", "class" => "btn btn-default", "title" => lang('add_item_product'), "data-post-doc_id" => $doc_id)); ?></p>
                         <?php endif; ?>
                         <p><input type="text" id="total_in_text" readonly></p>
                     </td>
@@ -133,8 +133,8 @@
                         </p>
                         <p id="s-discount">
                             <span class="c1 custom-color">
-                                ส่วนลด&nbsp;<input type="number" id="discount_percent" value="<?php echo $discount_percent; ?>" <?php if($doc_status != "1") echo "disabled"; ?>>
-                                <select id="discount_type" <?php if($doc_status != "1") echo "disabled"; ?>>
+                                ส่วนลด&nbsp;<input type="number" id="discount_percent" value="<?php echo $discount_percent; ?>" <?php if($doc_status != "W") echo "disabled"; ?>>
+                                <select id="discount_type" <?php if($doc_status != "W") echo "disabled"; ?>>
                                     <option value="P" <?php if($discount_type == "P") echo "selected";?>>%</option>
                                     <option value="F" <?php if($discount_type == "F") echo "selected";?>>฿</option>
                                 </select>
@@ -148,7 +148,7 @@
                             <span class="c3"><span class="currency">บาท</span></span>
                         </p>
                         <p id="s-vat">
-                            <span class="c1 custom-color"><input type="checkbox" id="vat_inc" <?php if($vat_inc == "Y") echo "checked" ?> <?php if($doc_status != "1") echo "disabled"; ?>>ภาษีมูลค่าเพิ่ม <?php echo $this->Taxes_m->getVatPercent()."%"; ?></span>
+                            <span class="c1 custom-color"><input type="checkbox" id="vat_inc" <?php if($vat_inc == "Y") echo "checked" ?> <?php if($doc_status != "W") echo "disabled"; ?>>ภาษีมูลค่าเพิ่ม <?php echo $this->Taxes_m->getVatPercent()."%"; ?></span>
                             <span class="c2"><input type="text" id="vat_value" readonly></span>
                             <span class="c3"><span class="currency">บาท</span></span>
                         </p>
@@ -159,8 +159,8 @@
                         </p>
                         <p id="s-wht">
                             <span class="c1 custom-color">
-                                <input type="checkbox" id="wht_inc" <?php if($wht_inc == "Y") echo "checked" ?> <?php if($doc_status != "1") echo "disabled"; ?>>หักภาษี ณ ที่จ่าย
-                                <select id="wht_percent" class="wht custom-color <?php echo $wht_inc == "Y"?"v":"h"; ?>" <?php if($doc_status != "1") echo "disabled"; ?>>
+                                <input type="checkbox" id="wht_inc" <?php if($wht_inc == "Y") echo "checked" ?> <?php if($doc_status != "W") echo "disabled"; ?>>หักภาษี ณ ที่จ่าย
+                                <select id="wht_percent" class="wht custom-color <?php echo $wht_inc == "Y"?"v":"h"; ?>" <?php if($doc_status != "W") echo "disabled"; ?>>
                                     <option value="3">3%</option>
                                     <option value="5">5%</option>
                                     <option value="0.50">0.5%</option>
@@ -237,8 +237,8 @@ function loadItems(){
                     tbody += "<td>"+items[i]["price"]+"</td>";
                     tbody += "<td>"+items[i]["total_price"]+"</td>";
                     tbody += "<td class='edititem'>";
-                        if(data.doc_status == "1"){
-                            tbody += "<a class='edit' data-post-doc_id='<?php echo $doc_id; ?>' data-post-item_id='"+items[i]["id"]+"' data-act='ajax-modal' data-action-url='<?php echo_uri("purchase_request/item"); ?>' ><i class='fa fa-pencil'></i></a>";
+                        if(data.doc_status == "W"){
+                            tbody += "<a class='edit' data-post-doc_id='<?php echo $doc_id; ?>' data-post-item_id='"+items[i]["id"]+"' data-act='ajax-modal' data-action-url='<?php echo_uri("quotations/item"); ?>' ><i class='fa fa-pencil'></i></a>";
                             tbody += "<a class='delete' data-item_id='"+items[i]["id"]+"'><i class='fa fa-times fa-fw'></i></a>";
                         }
                     tbody += "</td>";

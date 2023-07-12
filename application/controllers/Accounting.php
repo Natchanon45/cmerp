@@ -60,7 +60,7 @@ class Accounting extends MY_Controller {
             $this->data['module'] = 'purchase_request';
         } elseif ($this->check_permission('access_purchase_order')) {
             $this->data['module'] = 'purchase_order';
-        } elseif ($this->check_permission('access_purchase_order')) {
+        } elseif ($this->check_permission('access_goods_receipt')) {
             $this->data['module'] = 'goods_receipt';
         }elseif ($this->check_permission('access_purchase_order')) {
             $this->data['module'] = 'payment-voucher';
@@ -88,6 +88,7 @@ class Accounting extends MY_Controller {
         }
         $this->data["client_ids"] = json_encode($client_ids);
 
+        // var_dump(arr($this->data)); exit();
         $this->template->rander("accounting/buy", $this->data);
     }
 }

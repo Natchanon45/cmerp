@@ -29,4 +29,11 @@ class Share extends PublicController {
         if($doc["status"] != "success") redirect("forbidden");
         $this->load->view('edocs/receipt', $this->data);
     }
+
+    function purchase_request()
+    {
+        $this->data["doc"] = $doc = $this->Purchase_request_m->getEdoc(null, $this->uri->segment(5));
+        if($doc["status"] != "success") redirect("forbidden");
+        $this->load->view('edocs/purchase_request', $this->data);
+    }
 }

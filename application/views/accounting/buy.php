@@ -68,9 +68,10 @@
 }
 
 .select-status {
-    border: none;
-    appearance: none;
+    padding: auto .5rem;
+    width: 100%;
     outline: none;
+    border-radius: .2rem;
     cursor: pointer;
     background-color: transparent;
 }
@@ -97,11 +98,11 @@
                             <a class="<?php if($module == "purchase_order") echo 'custom-color'; ?>"><?php echo lang('purchase_order'); ?></a>
                         </li>
                     <?php endif; ?>
-                    <?php if ($this->Permission_m->access_purchase_request): $number_of_enable_module++; ?>
-                        <li data-module="goods_receipt" class="<?php if($module == "goods_receipt") echo 'active custom-bg01'; ?>">
-                            <a class="<?php if($module == "goods_receipt") echo 'custom-color'; ?>"><?php echo lang('goods_receipt'); ?></a>
+                    <!-- <?php //if ($this->Permission_m->access_purchase_request): $number_of_enable_module++; ?>
+                        <li data-module="goods_receipt" class="<?php //if($module == "goods_receipt") echo 'active custom-bg01'; ?>">
+                            <a class="<?php //if($module == "goods_receipt") echo 'custom-color'; ?>"><?php //echo lang('goods_receipt'); ?></a>
                         </li>
-                    <?php endif; ?>
+                    <?php //endif; ?> -->
                     <?php if ($this->Permission_m->access_purchase_request): $number_of_enable_module++; ?>
                         <li data-module="payment-voucher" class="<?php if($module == "payment-voucher") echo 'active custom-bg01'; ?>">
                             <a class="<?php if($module == "payment-voucher") echo 'custom-color'; ?>">ใบสำคัญจ่าย</a>
@@ -187,6 +188,30 @@ function loadDataGrid(){
                              {title: "สถานะ", "class":"text-left w15p"},
                              {title: "<i class='fa fa-bars'></i>", "class":"text-center option w10p"}
                          ];
+    }else if (active_module == 'purchase_order') {
+        // $(".buttons li.add a").attr('data-action-url', '<?php //echo get_uri('purchase_order/addedit'); ?>');
+        // $(".buttons li.add span").append('<?php //echo 'เพิ่มใบสั่งซื้อ'; ?>');
+        $(".buttons li.add a").css('display', 'none');
+
+        status_dropdown = '<?php echo $status_dropdown; ?>';
+        supplier_dropdown = '<?php echo $supplier_dropdown; ?>';
+        type_dropdown = '<?php echo $type_dropdown; ?>';
+
+        grid_filters = [
+            { name: 'status', class: 'w150', options: JSON.parse(status_dropdown) },
+            { name: 'pr_type', class: 'w200', options: JSON.parse(type_dropdown) },
+            { name: 'supplier_id', class: 'w250', options: JSON.parse(supplier_dropdown) }
+        ];
+        
+        grid_columns = [
+            { title: '<?php echo 'วันที่สั่งซื้อ'; ?>', class: 'w10p' },
+            { title: '<?php echo 'เลขที่สั่งซื้อ'; ?>', class: 'w10p' },
+            { title: '<?php echo lang('pr_type'); ?>', class: 'w10p' },
+            { title: '<?php echo lang('supplier_name'); ?>', class: 'w25p' },
+            { title: '<?php echo lang('request_by'); ?>', class: 'w15p' },
+            { title: '<?php echo lang('status'); ?>', class: 'option w10p' },
+            { title: '<i class="fa fa-bars"></i>', class: 'text-center option w10p' }
+        ];
     }
 
     // else if(active_module == "billing-notes"){
@@ -229,32 +254,34 @@ function loadDataGrid(){
         // ]
     });
     $("#datagrid").on("draw.dt", function () {
-        // $(".dropdown_status").on( "change", function() {
-        //     if(active_module == "quotations"){
-        //         if($(this).val() == "B-2"){
-        //             $("#popup").attr("data-action-url", "<?php // echo get_uri("quotations/test"); ?>").trigger( "click" );  
-        //         }
-        //     }
+        $(".dropdown_status").on("change", function() {
+            if(active_module == "quotations"){
+                if($(this).val() == "B-2"){
+                    $("#popup").attr("data-action-url", "<?php echo get_uri("quotations/test"); ?>").trigger( "click" );  
+                }
+            }
 
-        //     axios.post("<?php // echo_uri(); ?>"+active_module, {
-        //         task: 'update_doc_status',
-        //         doc_id: $(this).data("doc_id"),
-        //         update_status_to: $(this).val(),
-        //     }).then(function (response) {
-        //         data = response.data;
-        //         if(data.status == "success"){
-        //             if(typeof data.task !== 'undefined') {
-        //                 location.href = data.url;
-        //                 return;
-        //             }
-        //             appAlert.success(data.message, {duration: 5000});
-        //         }else{
-        //             appAlert.error(data.message, {duration: 5000});
-        //         }
+            axios.post("<?php echo_uri(); ?>"+active_module, {
+                task: 'update_doc_status',
+                doc_id: $(this).data("doc_id"),
+                update_status_to: $(this).val(),
+            }).then(function (response) {
+                data = response.data;
+                // console.log(data);
 
-        //         $("#datagrid").appTable({newData: data.dataset, dataId: data.doc_id});
-        //     }).catch(function (error) {});
-        // });
+                if(data.status == "success"){
+                    if(typeof data.task !== 'undefined') {
+                        location.href = data.url;
+                        return;
+                    }
+                    appAlert.success(data.message, {duration: 5000});
+                }else{
+                    appAlert.error(data.message, {duration: 5000});
+                }
+
+                $("#datagrid").appTable({newData: data.dataset, dataId: data.doc_id});
+            }).catch(function (error) {});
+        });
     });
 }
 </script>

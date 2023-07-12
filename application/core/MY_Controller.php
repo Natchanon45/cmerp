@@ -1066,6 +1066,8 @@ class PublicController extends CI_Controller {
     function __construct() {
         parent::__construct();
         $this->data["print_mode"] = "public";
+
+        $this->load->model('Purchase_request_m');
     }
 }
 

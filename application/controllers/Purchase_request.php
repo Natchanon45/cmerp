@@ -19,42 +19,29 @@ class Purchase_request extends MY_Controller {
             jout(array("data" => $this->Purchaserequest_m->indexDataSet()));
             return;
         } elseif (isset($this->json->task)) {
-            if($this->json->task == "update_doc_status") jout($this->Quotations_m->updateStatus());
-            if($this->json->task == "get_partial_billing_note") jout($this->Quotations_m->getTotalDocPartialBillingNote());
+            if($this->json->task == "update_doc_status") jout($this->Purchase_request_m->updateStatus());
             return;
         }
 
         redirect("/accounting/buy/purchase_request");
     }
 
-    // function addedit(){
-    //     if(isset($this->json->task)){
-    //         if($this->json->task == "save_doc") jout($this->Quotations_m->saveDoc());
-    //         return;   
-    //     }
+    function addedit(){
+        if(isset($this->json->task)){
+            if($this->json->task == "save_doc") jout($this->Purchase_request_m->saveDoc());
+            return;   
+        }
 
-    //     $data = $this->Quotations_m->getDoc($this->input->post("id"));
+        $data = $this->Purchase_request_m->getDoc($this->input->post("id"));
 
-    //     $this->load->view( 'quotations/addedit', $data);
-    // }
-
-    // function partial_payment_type(){
-    //     if(isset($this->json->task)){
-    //         if($this->json->task == "update_doc_status") jout($this->Quotations_m->updateStatus());
-    //         return;   
-    //     }
-
-    //     $data = $this->Quotations_m->getDoc($this->uri->segment(3));
-    //     if($data["status"] != "success") return;
-
-    //     $this->load->view( 'quotations/partial_payment_type', $data);
-    // }
+        $this->load->view('purchase_request/addedit', $data);
+    }
 
     function view() {
         if(isset($this->json->task)){
             if($this->json->task == "load_items") jout($this->Purchase_request_m->items());
-            // if($this->json->task == "update_doc") jout($this->Quotations_m->updateDoc());
-            // if($this->json->task == "delete_item") jout($this->Quotations_m->deleteItem());
+            if($this->json->task == "update_doc") jout($this->Purchase_request_m->updateDoc());
+            if($this->json->task == "delete_item") jout($this->Purchase_request_m->deleteItem());
             return;
         }
 
@@ -78,61 +65,61 @@ class Purchase_request extends MY_Controller {
         $this->template->rander('purchase_request/view', $data);
     }
 
-    // function print(){
-    //     $this->data["doc"] = $doc = $this->Quotations_m->getEdoc($this->uri->segment(3), null);
-    //     if($doc["status"] != "success") redirect("forbidden");
+    function print(){
+        $this->data["doc"] = $doc = $this->Purchase_request_m->getEdoc($this->uri->segment(3), null);
+        if($doc["status"] != "success") redirect("forbidden");
 
-    //     $this->data["docmode"] = "private_print";
-    //     $this->load->view('edocs/quotation', $this->data);
-    // }
+        $this->data["docmode"] = "private_print";
+        $this->load->view('edocs/purchase_request', $this->data);
+    }
 
-    // function delete_doc() {
-    //     if($this->input->post('undo') == true){
-    //         jout($this->Quotations_m->undoDoc());
-    //         return;
-    //     }
+    function delete_doc() {
+        if($this->input->post('undo') == true){
+            jout($this->Purchase_request_m->undoDoc());
+            return;
+        }
 
-    //     jout($this->Quotations_m->deleteDoc());
-    // }
+        jout($this->Purchase_request_m->deleteDoc());
+    }
 
-    // function items(){
-    //     jout($this->Quotations_m->items());
-    // }
+    function items(){
+        jout($this->Purchase_request_m->items());
+    }
 
-    // function item() {
-    //     if(isset($this->json->task)){
-    //         if($this->json->task == "save") jout($this->Quotations_m->saveItem());
-    //         return;   
-    //     }
+    function item() {
+        if(isset($this->json->task)){
+            if($this->json->task == "save") jout($this->Purchase_request_m->saveItem());
+            return;   
+        }
 
-    //     $suggestion = [];
+        $suggestion = [];
 
-    //     if($this->input->get("task") != null){
-    //         if($this->input->get("task") == "suggest_products"){
-    //             $sprows = $this->Products_m->getRows();
-    //             if(!empty($sprows)){
-    //                 foreach($sprows as $sprow){
-    //                     $suggestion[] = ["id" => $sprow->id, "text" => $sprow->title, "description"=>$sprow->description, "unit"=>$sprow->unit_type, "price"=>$sprow->rate];
-    //                 }
-    //             }
-    //             $suggestion[] = array("id" => "+", "text" => "+ " . lang("create_new_item"));
-    //             jout($suggestion);
-    //         }
-    //         return;
-    //     }
+        if($this->input->get("task") != null){
+            if($this->input->get("task") == "suggest_products"){
+                $sprows = $this->Bom_materials_model->getRows();
+                if(!empty($sprows)){
+                    foreach($sprows as $sprow){
+                        $suggestion[] = ["id" => $sprow->id, "text" => $sprow->name . ' - ' . $sprow->production_name, "description"=>$sprow->description, "unit"=>$sprow->unit, "price"=>0];
+                    }
+                }
+                $suggestion[] = array("id" => "+", "text" => "+ " . lang("create_new_item"));
+                jout($suggestion);
+            }
+            return;
+        }
 
-    //     $data = $this->Quotations_m->item();
+        $data = $this->Purchase_request_m->item();
 
-    //     $this->load->view('quotations/item', $data);
-    // }
+        $this->load->view('purchase_request/item', $data);
+    }
 
-    // function share(){
-    //     if(isset($this->json->task)){
-    //         if($this->json->task == "gen_sharekey") jout($this->Quotations_m->genShareKey());
-    //         return;   
-    //     }
+    function share(){
+        if(isset($this->json->task)){
+            if($this->json->task == "gen_sharekey") jout($this->Purchase_request_m->genShareKey());
+            return;
+        }
         
-    //     $data = $this->Quotations_m->getDoc($this->input->post("doc_id"));
-    //     $this->load->view('quotations/share', $data);
-    // }
+        $data = $this->Purchase_request_m->getDoc($this->input->post("doc_id"));
+        $this->load->view('purchase_request/share', $data);
+    }
 }

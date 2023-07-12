@@ -3,6 +3,7 @@ class Purchaserequest_m extends CI_Model {
 
     function __construct() {
         $this->load->model("Material_m");
+        $this->load->model("Bom_suppliers_model");
     }
 
     function row($prid){
@@ -256,7 +257,7 @@ class Purchaserequest_m extends CI_Model {
     }
 
     function getIndexDataSetHTML($item) {
-        $status = '<select class="select-status custom-color" data-doc_id="' . $item->id . '">';
+        $status = '<select class="dropdown_status select-status" data-doc_id="' . $item->id . '">';
 
         if ($item->status == 1) {
             $status .= '
@@ -288,12 +289,14 @@ class Purchaserequest_m extends CI_Model {
             $span = '<span class="avatar avatar-xs mr10"><img src="' . $url . '" alt=""></span>' . $user->first_name . ' ' . $user->last_name;
             $request_by = get_team_member_profile_link($user->id, $span);
         }
+
+        $supplier = $this->Bom_suppliers_model->getInfo($item->supplier_id);
         
         $data = array(
             "<a href='" . get_uri('purchase_request/view/' . $item->id) . "'>" . convertDate($item->requisition_date, true) . "</a>",
             "<a href='" . get_uri('purchase_request/view/' . $item->id) . "'>" . $item->pr_no . "</a>",
             $item->pr_type ? $this->dev2_getPrTypeById($item->pr_type) : '-',
-            "<a href='" . get_uri('stock/supplier_view/' . $item->supplier_id) . "'>" . mb_strimwidth($item->supplier_name, 0, 60, '...') . "</a>",
+            "<a href='" . get_uri('stock/supplier_view/' . $item->supplier_id) . "'>" . mb_strimwidth($supplier['company_name'], 0, 60, '...') . "</a>",
             $request_by,
             $status,
             "<a data-post-id='" . $item->id . "' data-action-url='" . get_uri('purchase_request/addedit') . "' data-act='ajax-modal' class='edit'><i class='fa fa-pencil'></i></a>"
