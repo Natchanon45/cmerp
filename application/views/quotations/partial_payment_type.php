@@ -10,7 +10,6 @@
 .pt1{
     text-align: right;
 }
-
 </style>
 <div class="pt general-form modal-body clearfix">
     <div class="form-group">

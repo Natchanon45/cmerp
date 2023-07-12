@@ -1,31 +1,55 @@
 <div id="page-content" class="p20 clearfix">
-    <?php if($this->Permission_m->access_purchase_request == true):?>
-        <div class="panel clearfix" id="low-project"><table id="low-project-table" class="display" cellspacing="0" width="100%"></table></div>
-        <div class="panel clearfix" id="low-stock"><table id="low-stock-table" class="display" cellspacing="0" width="100%"></table></div>
-        <div class="panel clearfix" id="low-stock"><table id="low-stock-table-item" class="display" cellspacing="0" width="100%"></table></div>
-    <?php endif; ?>
-    <div class="panel clearfix">
+
+    <?php // if($this->Permission_m->access_purchase_request): ?>
+        <!-- <div class="panel clearfix" id="low-project"><table id="low-project-table" class="display" cellspacing="0" width="100%"></table></div> -->
+        <!-- <div class="panel clearfix" id="low-stock"><table id="low-stock-table" class="display" cellspacing="0" width="100%"></table></div> -->
+        <!-- <div class="panel clearfix" id="low-stock"><table id="low-stock-table-item" class="display" cellspacing="0" width="100%"></table></div> -->
+    <?php // endif; ?>
+
+    <div class="panel clearfix hide">
+        <!-- <h1>
+            <a class="title-back" href="<?php // echo_uri('stock'); ?>"><i class="fa fa-chevron-left" aria-hidden="true"></i></a>
+        </h1> -->
         <ul id="pr-tabs" data-toggle="ajax-tab" class="nav nav-tabs bg-white title" role="tablist">
-            <li class="title-tab"><h4 class="pl15 pt10 pr15"><?php echo lang('purchase_requests'); ?></h4></li>
-            <li><a id="monthly-pr-button" class="active" role="presentation" href="javascript:;" data-target="#monthly-purchaserequests"><?php echo lang("monthly"); ?></a></li>
-            <li><a role="presentation" href="<?php echo_uri("purchaserequests/yearly/"); ?>" data-target="#yearly-purchaserequests"><?php echo lang('yearly'); ?></a></li>
+            <li class="title-tab"><h4 class="pl15 pt10 pr15"><?php echo lang('material_shortage'); ?></h4></li>
+            
+            <li class="title-tab">
+                <a id="by-summarize-button" class="active" role="presentation" href="<?php echo_uri('purchaserequests/dev2_summarize_data/'); ?>" data-target="#summarize-data">
+                    <?php echo lang('by_summarize'); ?>
+                </a>
+            </li>
+            <li class="title-tab">
+                <a id="by-records-button" role="presentation" href="<?php echo_uri('purchaserequests/dev2_records_data/'); ?>" data-target="#records-data">
+                    <?php echo lang('by_records'); ?>
+                </a>
+            </li>
+            
+
+            <!-- <li>
+                <a id="monthly-pr-button" class="active" role="presentation" href="javascript:void();" data-target="#monthly-purchaserequests">
+                    <?php // echo lang("monthly"); ?>
+                </a>
+            </li> -->
+            <!-- <li>
+                <a id="yearly-pr-button" role="presentation" href="<?php // echo_uri("purchaserequests/yearly/"); ?>" data-target="#yearly-purchaserequests">
+                    <?php // echo lang('yearly'); ?>
+                </a>
+            </li> -->
 
             <div class="tab-title clearfix no-border">
                 <div class="title-button-group">
-                    <?php
-                        if($this->Permission_m->access_purchase_request == true){
-                            echo $buttonTops;
-                        }
-                    ?>
+                    <?php echo $buttonTops; ?>
                 </div>
             </div>
         </ul>
 
         <div class="tab-content">
+            <div role="tabpanel" class="tab-pane fade" id="records-data"></div>
+            <div role="tabpanel" class="tab-pane fade" id="summarize-data"></div>
+
             <div role="tabpanel" class="tab-pane fade" id="monthly-purchaserequests">
                 <div class="table-responsive">
-                    <table id="monthly-pr-table" class="display" cellspacing="0" width="100%">   
-                    </table>
+                    <table id="monthly-pr-table" class="display" cellspacing="0" width="100%"></table>
                 </div>
             </div>
             <div role="tabpanel" class="tab-pane fade" id="yearly-purchaserequests"></div>
@@ -140,7 +164,7 @@
             $(selector).appTable({
                 source: '<?php echo_uri("purchaserequests/list_lacked_stock_materials") ?>',
                 order: [[0, "desc"]],
-                //filterDropdown: [{name: "supplier_id", class: "w150", options: <?php //$this->load->view("purchaserequests/pr_suppliers_dropdown"); ?>}],
+                // filterDropdown: [{name: "supplier_id", class: "w150", options: <?php //$this->load->view("purchaserequests/pr_suppliers_dropdown"); ?>}],
                 columns: [
                     {title: "<?php echo lang("ID") ?> ", "class": "w5p"},
                     {title: "<?php echo lang("import_name") ?> "},
@@ -286,20 +310,24 @@
         };
     <?php endif; ?>
     $(document).ready(function () {
-        loadPrTable("#monthly-pr-table", "monthly");
+        // loadPrTable("#monthly-pr-table", "monthly");
 
-        <?php if($this->Permission_m->access_purchase_request == true):?>
-            loadLowProjectTable("#low-project-table");
-            loadLowStockTable("#low-stock-table");
-            loadLowStockTableItem("#low-stock-table-item");
-        <?php endif; ?>
+        <?php // if($this->Permission_m->access_purchase_request == true):?>
+            // loadLowProjectTable("#low-project-table");
+            // loadLowStockTable("#low-stock-table");
+            // loadLowStockTableItem("#low-stock-table-item");
+        <?php // endif; ?>
 
-        $("#add-pr-btn").click(function () {
-            window.location.href = "<?php echo get_uri("purchaserequests/process_pr");?>";
-        });
+        // $("#add-pr-btn").click(function () {
+        //     window.location.href = "<?php echo get_uri("purchaserequests/process_pr");?>";
+        // });
 
-        $("#cat-mng-btn").on('click', function () {
-            window.location.href = "<?php echo get_uri("purchaserequests/categories");?>";
+        // $("#cat-mng-btn").on('click', function () {
+        //     window.location.href = "<?php // echo get_uri("purchaserequests/categories");?>";
+        // });
+
+        $('#back-to-stock').on('click', function () {
+            window.location = '<?php echo_uri('stock'); ?>';
         });
     });
 

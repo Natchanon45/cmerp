@@ -23,8 +23,8 @@ class Invoices_m extends MY_Model {
     }
 
     function getStatusName($status_code){
-        if($status_code == "W"){
-            return "รออนุมัติ";
+        if($status_code == "P"){
+            return "รอเก็บเงิน";
         }
     }
 

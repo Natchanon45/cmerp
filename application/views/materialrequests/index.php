@@ -329,11 +329,11 @@
 		loadPrTableList("#monthly-mr-table", "monthly");
 		loadPrTableList("#yearly-mr-table", "yearly");
 
-		<?php if ($create_material_request): ?>
-			loadLowProjectTable("#low-project-table");
-			loadLowStockTable("#low-stock-table");
-			loadLowStockTableItem("#low-stock-table-item");
-		<?php endif; ?>
+		<?php // if ($create_material_request): ?>
+			// loadLowProjectTable("#low-project-table");
+			// loadLowStockTable("#low-stock-table");
+			// loadLowStockTableItem("#low-stock-table-item");
+		<?php // endif; ?>
 
 		$("#add-pr-btn").click(function () {
 			window.location.href = "<?php echo get_uri("materialrequests/process_pr"); ?>";
@@ -342,6 +342,10 @@
 		$("#cat-mng-btn").click(function () {
 			window.location.href = '<?php echo get_uri("materialrequests/categories"); ?>';
 		});
+
+		$('#back-to-stock').on('click', function () {
+            window.location = '<?php echo_uri('stock'); ?>';
+        });
 	});
 
 </script>

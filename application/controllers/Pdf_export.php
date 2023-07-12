@@ -2369,9 +2369,15 @@ class Pdf_export extends CI_Controller {
                         
                     }
                 
-                    
-                    $divTop =   170;
+                    $titleLength = strlen($info->title);
+                    $divTop =   190;
                     $divleft = 27;
+                    if ($titleLength > 100) {
+                        $divTop += 20;
+                    }
+                    if ($titleLength < 45) {
+                        $divTop -= 20;
+                    }
                     $table_stock = '         
     
                     <div style="position:absolute; top:'.$divTop.'px; left: '.$divleft.'px; width: 100%">
@@ -2389,25 +2395,24 @@ class Pdf_export extends CI_Controller {
                     ';
                     
                     $divTop =   40;
-                    $divleft = 526;
+                    $divleft = 480;
                     $table_info ='
                         <div style="position:absolute; top:'.$divTop.'px; left: '.$divleft.'px; width: 750px">
-                            <table style="width: 230px; border: none;">
+                            <table style="width: 270px; border: none;">
                                 <tr>
                                         <th colspan="2" style="text-align: center; border: none; border-bottom: 1.5px solid #999; font-size: 30px; "><span class="label" style="font-weight:bold;">โครงการ</span></th>
-                                        
                                 </tr>
                                 <tr>
-                                    <td style="border: none;"> <span class="label">เลขที่</span></td>
+                                    <td style="border: none; vertical-align: top; width: 66px;"> <span class="label">เลขที่</span></td>
                                     <td style="border: none;">'.$info->id.'</td>
                                    
                                 </tr>
                                 <tr>
-                                    <td style="border: none;"><span class="label">ชื่อโครงการ</span></td>
-                                    <td style="border: none;">'.$info->title.'</td>
+                                    <td style="border: none; vertical-align: top;"><span class="label">ชื่อโครงการ</span></td>
+                                    <td style="border: none;">'. $info->title . '</td>
                                 </tr>
                                 <tr>
-                                    <td style="border: none;"><span class="label">วันที่</span></td>
+                                    <td style="border: none; vertical-align: top;"><span class="label">วันที่</span></td>
                                     <td style="border: none;">'.$this->DateConvert($info->created_date).'</td>
                                 </tr>
                             </table>

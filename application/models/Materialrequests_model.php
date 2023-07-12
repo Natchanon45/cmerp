@@ -332,4 +332,10 @@ class MaterialRequests_model extends Crud_model
 		return $query->result();
 	}
 
+	function dev2_getMrStatusByProjectId($project_id)
+	{
+		$query = $this->db->get_where('materialrequests', array('project_id' => $project_id, 'status_id !=' => 4))->result();
+		return $query;
+	}
+
 }

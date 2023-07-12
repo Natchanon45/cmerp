@@ -117,6 +117,21 @@
     font-weight: bold;
 }
 
+#printd .moreinfo{
+    margin-top: 16px;
+    margin-bottom: 12px;
+}
+
+#printd .moreinfo .remark select{
+    width: 800px;
+    border: 1px solid #cecece;
+    border-radius: 4px;
+    padding-top: 4px;
+    padding-bottom: 5px;
+    padding-left: 4px;
+    padding-right: 4px;
+}
+
 #printd .docitem{
     margin-top:12px;
 }
@@ -275,6 +290,13 @@
     outline: none;
 }
 
+#printd .docitem tfoot td.summary #s-difference{
+    border-bottom: 1px solid #cecece;
+    padding-bottom: 10px;
+    margin-bottom: 8px;
+}
+
+
 #printd .docitem tfoot td.summary #discount_type{
     padding: 0;
     text-align: center;
@@ -339,7 +361,7 @@
     display: block;
     width: 382px;
     margin-top: 8px !important;
-    padding-top: 12px !important;
+    padding-top: 11px !important;
     border-top: 1px solid #cecece;
     text-align: left;
 }

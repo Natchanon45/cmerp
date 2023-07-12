@@ -100,7 +100,6 @@
         <button type="button" class="btn btn-default" data-dismiss="modal"><span class="fa fa-close"></span>ปิดหน้าต่าง</button>
     </div>
 </div>
-
 <script type="text/javascript">
 $(document).ready(function() {
     $("#generate_link input").change(function() {

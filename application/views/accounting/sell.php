@@ -1,4 +1,5 @@
 <style>
+
 #accounting_navs:after, .tabs:after, .buttons:after{
     display: block;
     clear: both;
@@ -68,7 +69,9 @@
     <ul class="nav nav-tabs bg-white title" role="tablist">
         <!--<li><a href="#">ผังบัญชี</a></li>-->
         <li class="active"><a>บัญชีขาย</a></li>
-        <!--<li><a href="#">บัญชีซื้อ</a></li>-->
+        <?php if($this->login_user->is_admin): ?>
+        <li><a href="<?php echo get_uri("accounting/buy"); ?>">บัญชีซื้อ</a></li>
+        <?php endif; ?>
     </ul>
     <div class="panel panel-default">
         <div class="table-responsive pb50">
@@ -97,6 +100,19 @@
                         <?php $number_of_enable_module++; ?>
                         <li data-module="receipts" class="<?php if($module == "receipts") echo 'active custom-bg01'; ?>">
                             <a class="<?php if($module == "receipts") echo 'custom-color'; ?>">ใบเสร็จรับเงิน</a>
+                        </li>
+                    <?php endif; ?>
+
+                    <?php if($this->Permission_m->accounting["credit_note"]["access"] == true): ?>
+                        <?php $number_of_enable_module++; ?>
+                        <li data-module="credit-notes" class="<?php if($module == "credit-notes") echo 'active custom-bg01'; ?>">
+                            <a class="<?php if($module == "credit_notes") echo 'custom-color'; ?>">ใบลดหนี้</a>
+                        </li>
+                    <?php endif; ?>
+                    <?php if($this->Permission_m->accounting["debit_note"]["access"] == true): ?>
+                        <?php $number_of_enable_module++; ?>
+                        <li data-module="debit-notes" class="<?php if($module == "debit-notes") echo 'active custom-bg01'; ?>">
+                            <a class="<?php if($module == "debit_notes") echo 'custom-color'; ?>">ใบเพิ่มหนี้</a>
                         </li>
                     <?php endif; ?>
                 </ul>
@@ -148,14 +164,13 @@ function loadDataGrid(){
                         ];
 
     var summation_column = 5;
+    $(".buttons li.add").css("display", "block");
 
     if(active_module == "quotations"){
-        $(".buttons li.add").css("display", "block");
         $(".buttons li.add a").attr("data-action-url", "<?php echo get_uri("quotations/addedit"); ?>");
         $(".buttons li.add span").append("เพิ่มใบเสนอราคา");
         doc_status = [{id:"", text:"-- <?php echo lang("status"); ?> --"}, {id:"W", text:"รออนุมัติ"}, {id:"A", text:"อนุมัติ"}, {id:"P", text:"แบ่งจ่าย"}, {id:"I", text:"ดำเนินการแล้ว"}, {id:"R", text:"ไม่อนุมัติ"}];
     }else if(active_module == "billing-notes"){
-        $(".buttons li.add").css("display", "block");
         $(".buttons li.add a").attr("data-action-url", "<?php echo get_uri("billing-notes/addedit"); ?>");
         $(".buttons li.add span").append("เพิ่มใบวางบิล");
         doc_status = [{id:"", text:"-- <?php echo lang("status"); ?> --"}, {id:"W", text:"รอวางบิล"}, {id:"A", text:"วางบิลแล้ว"}, {id:"I", text:"เปิดบิลแล้ว"}, {id:"V", text:"ยกเลิก"}];
@@ -163,7 +178,6 @@ function loadDataGrid(){
         $(".buttons li.add").css("display", "none");
         doc_status = [{id:"", text:"-- <?php echo lang("status"); ?> --"}, {id:"P", text:"รอเก็บเงิน"}, {id:"R", text:"เปิดใบเสร็จแล้ว"}, {id:"V", text:"ยกเลิก"}];
     }else if(active_module == "receipts"){
-        $(".buttons li.add").css("display", "block");
         $(".buttons li.add a").attr("data-action-url", "<?php echo get_uri("receipts/addedit"); ?>");
         $(".buttons li.add span").append("เพิ่มใบเสร็จรับเงิน");
         doc_status = [{id:"", text:"-- <?php echo lang("status"); ?> --"}, {id:"W", text:"รอดำเนินการ"}, {id:"P", text:"เก็บเงินแล้ว"}, {id:"V", text:"ยกเลิก"}];
@@ -178,6 +192,28 @@ function loadDataGrid(){
                         ];
 
         summation_column = 4;
+    }else if(active_module == "credit-notes"){
+        $(".buttons li.add").css("display", "block");
+        $(".buttons li.add a").attr("data-title", "เลือกเอกสารที่เกี่ยวข้อง");
+        $(".buttons li.add a").attr("data-action-url", "<?php echo get_uri("credit-notes/addedit"); ?>");
+
+        $(".buttons li.add span").append("เพิ่มใบลดหนี้");
+        doc_status = [
+                        {id:"", text:"-- <?php echo lang("status"); ?> --"},
+                        {id:"P", text:"รอดำเนินการ"},
+                        {id:"R", text:"คืนเงิน"}
+                    ];
+    }else if(active_module == "debit-notes"){
+        $(".buttons li.add").css("display", "block");
+        $(".buttons li.add a").attr("data-title", "เลือกเอกสารที่เกี่ยวข้อง");
+        $(".buttons li.add a").attr("data-action-url", "<?php echo get_uri("debit-notes/addedit"); ?>");
+
+        $(".buttons li.add span").append("เพิ่มใบเพิ่มหนี้");
+        doc_status = [
+                        {id:"", text:"-- <?php echo lang("status"); ?> --"},
+                        {id:"W", text:"รอดำเนินการ"},
+                        {id:"R", text:"รอเก็บเงิน"}
+                    ];
     }
 
     $("#datagrid").appTable({

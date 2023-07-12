@@ -82,7 +82,7 @@
                                 <?php
                                   if(isset($s->value) && $s->value) {
                                     $total += $s->value;
-                                    echo to_currency($s->value);
+                                    echo to_currency($s->value, lang('THB'));
                                   } else {
                                     echo '-';
                                   }
@@ -100,7 +100,7 @@
                           <tr>
                             <td colspan="2"></td>
                             <td class="text-right"><strong><?php echo lang('total'); ?></strong></td>
-                            <td class="text-right"><strong><?php echo to_currency($total); ?></strong></td>
+                            <td class="text-right"><strong><?php echo to_currency($total, lang('THB')); ?></strong></td>
                             <td></td>
                           </tr>
                         </tfoot>
@@ -121,6 +121,7 @@
     <button type="button" class="btn btn-default" data-dismiss="modal"><span class="fa fa-close"></span> <?php echo lang('close'); ?></button>
     <!-- If the logged in user have permission to create a material request document -->
     <?php if ($this->Permission_m->create_material_request): ?>
+      
       <!-- If the document has not been saved before. -->
       <?php if (!$create_material_request): ?>
         <button type="submit" class="btn btn-info" id="btn-submit" name="save_type_id" value="0">
@@ -128,19 +129,26 @@
           <?php echo ' ' . lang('save'); ?>
         </button>
       <?php endif; ?>
+      
       <!-- If the material request document have been created -->
       <?php if ($create_material_request): ?>
-        <button type="submit" class="btn btn-primary" id="btn-submit" name="save_type_id" value="1">
-          <span class="fa fa-book"></span>
-          <?php echo " " . lang('create_matreq'); ?>
-        </button>
-        <!-- btn-req-create -->
-        <button type="submit" class="btn btn-warning" id="btn-submit" name="save_type_id" value="2">
-          <span class="fa fa-refresh"></span>
-          <?php echo " " . lang('re_calc_stock'); ?>
-        </button>
-        <!-- btn-re-calc -->
+        <?php if ($can_create_mr): ?>
+          <button type="submit" class="btn btn-primary" id="btn-submit" name="save_type_id" value="1">
+            <span class="fa fa-book"></span>
+            <?php echo " " . lang('create_matreq'); ?>
+          </button>
+          <!-- btn-req-create -->
+        <?php endif; ?>
+
+        <?php if ($can_recalc): ?>
+          <button type="submit" class="btn btn-warning" id="btn-submit" name="save_type_id" value="2">
+            <span class="fa fa-refresh"></span>
+            <?php echo " " . lang('re_calc_stock'); ?>
+          </button>
+          <!-- btn-re-calc -->
+        <?php endif; ?>
       <?php endif; ?>
+
     <?php endif; ?>
     
     <!-- If project item material has been saved -->
@@ -159,8 +167,8 @@
     ?>
 
     <!-- If have permission to create purchase request and lower material requirement -->
-    <!-- <?php // if ($this->Permission_m->create_purchase_request && $create_material_request): ?>
-      <button type="button" class="btn btn-danger pull-right" id="btn-pr">
+    <!-- <?php // if ($this->Permission_m->create_purchase_request && $can_recalc): ?>
+      <button type="button" class="btn btn-danger pull-right" id="btn-create-pr">
         <i class="fa fa-shopping-cart"></i>
         <?php // echo ' ' . lang('request_purchasing_materials'); ?>
       </button>
@@ -412,7 +420,7 @@ tr.row-target .toggle-container {
     var itemForm = $("#item-form");
     itemForm.appForm({
 			onSuccess: function (result) {
-        console.log(result);
+        // console.log(result);
         appAlert.success(result.message, { duration: 3101 });
 
         let btnProjectBag = $('body').find(`.bom-item-modal[data-act="ajax-modal"][data-post-id="${result.data.id}"]`);
@@ -426,5 +434,10 @@ tr.row-target .toggle-container {
         }
 			}
 		});
+
+    // $('#btn-create-pr').on('click', function(e) {
+    //   let url = '<?php // echo get_uri('purchaserequests/prbyproject/' . $model_info->id); ?>';
+    //   window.open(url, '_blank');
+    // });
   });
 </script>

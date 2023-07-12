@@ -24,6 +24,7 @@ class Stock extends MY_Controller
         $view_data['access_material'] = $this->bom_can_access_material();
         $view_data['access_restock'] = $this->bom_can_access_restock();
         $view_data['access_calculator'] = $this->bom_can_access_calculator();
+        
         $this->template->rander("stock/index", $view_data);
     }
 

@@ -399,4 +399,34 @@ class Projects_model extends Crud_model {
         return $count;
     }
 
+    function dev2_countItemCanCreateMrByProjectId($project_id)
+    {
+        $count = 0;
+        $sql = "SELECT bpim.id FROM bom_project_item_materials bpim 
+        INNER JOIN bom_project_items bpi ON bpim.project_item_id = bpi.id 
+        WHERE bpi.project_id = '" . $project_id . "' AND bpim.ratio > 0 AND bpim.used_status = 0 AND bpim.mr_id IS NULL 
+        ORDER BY bpim.material_id ASC";
+
+        if (isset($project_id) && $project_id != 0) {
+            $query = $this->db->query($sql);
+            $count = $query->num_rows();
+        }
+        return $count;
+    }
+
+    function dev2_countItemRecalculateByProjectId($project_id)
+    {
+        $count = 0;
+        $sql = "SELECT bpim.id FROM bom_project_item_materials bpim 
+        INNER JOIN bom_project_items bpi ON bpim.project_item_id = bpi.id 
+        WHERE bpi.project_id = '" . $project_id . "' AND bpim.ratio < 0 AND bpim.used_status = 0 AND bpim.pr_id IS NULL 
+        ORDER BY bpim.material_id ASC";
+
+        if (isset($project_id) && $project_id != 0) {
+            $query = $this->db->query($sql);
+            $count = $query->num_rows();
+        }
+        return $count;
+    }
+
 }

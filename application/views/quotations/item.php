@@ -42,7 +42,6 @@
     <button type="button" id="btnSubmit" class="btn btn-primary"><span class="fa fa-check-circle"></span> <?php echo lang('save'); ?></button>
 </div>
 <script type="text/javascript">
-
 $(document).ready(function () {
     $("#btnSubmit").click(function() {
         axios.post('<?php echo current_url(); ?>', {

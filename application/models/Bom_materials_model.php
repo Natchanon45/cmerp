@@ -329,4 +329,26 @@ class Bom_materials_model extends Crud_model
 		return $rows;
 	}
 
+	function getRows()
+	{
+		$db = $this->db;
+
+		$db->select("*")
+			->from("bom_materials");
+
+		if ($this->input->post("keyword")) {
+			$keyword = $this->input->post("keyword");
+			$db->like("production_name", $keyword);
+			$db->or_like("barcode", $keyword);
+		}
+
+		if ($this->input->get("keyword")) {
+			$keyword = $this->input->get("keyword");
+			$db->like("production_name", $keyword);
+			$db->or_like("barcode", $keyword);
+		}
+
+		return $db->get()->result();
+	}
+
 }

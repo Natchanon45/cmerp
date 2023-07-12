@@ -148,7 +148,7 @@
 
     <div class="form-group">
       <label for="note" class="<?php echo $label_column; ?>">
-        <?php echo lang('note_real'); ?>
+        <?php echo lang('note_real') . "231"; ?>
       </label>
       <div class="<?php echo $field_column; ?>">
         <?php
@@ -176,11 +176,8 @@
             <?php
             $this->load->view(
               "includes/file_list",
-              array(
-                "files" => $model_info->files,
-                "image_only" => true
-              )
-            );
+              array("files" => $model_info->files)
+            ); // show-file-list
             ?>
           </div>
         </div>
@@ -190,7 +187,7 @@
     <?php
     if (!$disabled) {
       $this->load->view("includes/dropzone_preview");
-    } // load dropzone
+    } // load-dropzone
     ?>
   </div>
 
@@ -199,10 +196,10 @@
       <?php if (!$disabled): ?>
         <button class="btn btn-default upload-file-button pull-left btn-sm round" type="button" style="color: #7988a2;">
           <i class="fa fa-camera"></i>
-          <?php echo lang("upload_image"); ?>
+          <?php echo lang("upload_file"); ?>
         <?php endif; ?>
       </button>
-    <?php } ?>
+    <?php } // button-upload ?>
     <button type="button" class="btn btn-default" data-dismiss="modal">
       <span class="fa fa-close"></span>
       <?php echo lang('close'); ?>

@@ -40,7 +40,7 @@ $lang["created_by"] = "Created by";
 $lang["updated"] = "Updated";
 $lang["deleted"] = "Deleted";
 $lang["currency"] = "Currency";
-$lang["THB"] = "THB";
+$lang["THB"] = " THB";
 $lang["USD"] = "USD";
 $lang["new"] = "New";
 $lang["open"] = "Open";
@@ -1956,7 +1956,7 @@ $lang["stock_material_can_read_production_name"] = "Can view material production
 $lang["stock_material_can_create"] = "Can create materials";
 $lang["stock_material_can_update"] = "Can edit materials";
 $lang["stock_material_can_delete"] = "Can delete materials";
-$lang["stock_material_report"] = "Material report";
+$lang["stock_material_report"] = "Material stock report";
 
 $lang["stock_restock_permissions"] = "Set restock permissions";
 $lang["stock_restock_can_read_self"] = "Can view only personal restocks";
@@ -1984,7 +1984,7 @@ $lang["status_already_approved"] = "Approved";
 $lang["status_already_rejected"] = "Not approved";
 $lang["back_to_materialrequest"] = "Back to Material Request";
 $lang["category_management"] = "Category Management";
-$lang["materialrequests"] = "Material Requistion";
+$lang["materialrequests"] = "Material Requisition";
 $lang["document_number"] = "Document No.";
 $lang["add_materialrequests"] = "Add New Request";
 $lang["delete_materialrequests"] = "Delete Request";
@@ -2038,6 +2038,15 @@ $lang["rejected_message"] = "Document has been rejected.";
 $lang["rejecter"] = "Rejecter";
 $lang["date_of_rejected"] = "Date of rejected";
 $lang["material_request_document"] = "Material Requisition Document";
+$lang["re_calc_stock"] = "Recalculate";
+$lang["create_matreq"] = "Create MR Doc.";
+$lang["finished_goods_report"] = "FG Stock Report";
+$lang["finished_goods"] = "Finished Goods";
+$lang["finished_goods_restock"] = "Restock FG";
+$lang["finished_goods_restock_add"] = "Add Restock FG";
+$lang["raw_mats"] = "Raw Materials";
+$lang["raw_mats_restock"] = "Restock RM";
+$lang["raw_mats_restock_add"] = "Add Restock RM";
 
 // Start - Warehouse Category
 $lang["warehouse_category"] = "Warehouse";
@@ -2047,3 +2056,50 @@ $lang["add_warehouse_category"] = "Add location";
 $lang["edit_warehouse_category"] = "Edit location";
 $lang["cant_duplicated_code"] = "The location code can't be duplicated.";
 // End - Warehouse Category
+
+// Start - Purchase Requisition
+$lang["purchaserequests"] = "Purchase Requisition";
+$lang["pr_create_rm"] = "Create Purchase Requisition";
+$lang["pr_by_project"] = "Create PR for Project ";
+$lang["close_pr_page"] = "Close page";
+$lang["material_shortage"] = "Material shortage";
+$lang["material_name"] = "Material name";
+$lang["by_records"] = "By record";
+$lang["by_summarize"] = "By summarize";
+$lang["material_was_deleted"] = "Material data has been deleted";
+$lang["project_was_deleted"] = "Project data has been deleted";
+$lang["material_shortage_date"] = "Date of shortage";
+$lang["quantity_of_shortage"] = "Quantity of shortage";
+$lang["to_issue_pr"] = "To issues purchase requisition";
+$lang["btn_create_pr"] = "Craete PR";
+$lang["supplier_name"] = "Supplier Name";
+$lang["select_supplier"] = "Select Supplier";
+$lang["accounting"] = "Accounting";
+// End - Purchase Requisition
+
+// Custom - DataTable
+$lang["showing"] = "Showing";
+$lang["of"] = "Of";
+$lang["entries"] = "Entries";
+$lang["no_data_available"] = "No data available in table";
+$lang["back_to_stock"] = "Back to stock page";
+$lang["restart_calc"] = "Restart";
+
+$lang["purchase_request"] = "Purchase Requisition";
+$lang["purchase_request_add"] = "Add new PR";
+$lang["request_date"] = "Request Date";
+$lang["request_by"] = "Request By";
+$lang["pr_no"] = "PR number";
+$lang["pr_type"] = "PR Type";
+$lang["pr_pending"] = "Waiting for approve";
+$lang["pr_approved"] = "Approved";
+$lang["pr_rejected"] = "Rejected";
+$lang["direct_material"] = "Direct Material";
+$lang["indirect_material"] = "Indirect Material";
+$lang["finised_goods"] = "Finished Goods";
+$lang["assets"] = "Assets";
+$lang["services"] = "Services";
+$lang["expenses"] = "Expenses";
+
+$lang["purchase_order"] = "Purchase Order";
+$lang["goods_receipt"] = "Goods Receipt";

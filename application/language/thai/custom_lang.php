@@ -38,7 +38,7 @@ $lang["created_by"] = "สร้างโดย";
 $lang["updated"] = "แก้ไขแล้ว";
 $lang["deleted"] = "ลบแล้ว";
 $lang["currency"] = "สกุลเงิน";
-$lang["THB"] = "บาท";
+$lang["THB"] = " บาท";
 $lang["USD"] = "ดอลล่าร์";
 $lang["new"] = "ใหม่";
 $lang["open"] = "เปิด";
@@ -2205,7 +2205,7 @@ $lang["place_order_materialrequest"] = "ทำการขอเบิก";
 $lang['edit_materialrequest']='แก้ไขขอเบิก';
 
 /* Keng Musion */
-$lang["purchaserequests"] = "ใบขอซื้อ (PR)";
+$lang["purchaserequests"] = "ใบขอซื้อ";
 $lang["purchaserequests_"] = "ใบขอซื้อ";
 $lang["purchase_requests"] = "ใบขอซื้อ (PR)";
 $lang["purchaserequest"] = "ใบขอซื้อ (PR)";
@@ -2445,6 +2445,13 @@ $lang["rejected_message"] = "ใบเบิกเปลี่ยนสถาน
 $lang["rejecter"] = "ผู้ไม่อนุมัติ";
 $lang["date_of_rejected"] = "วันที่ไม่อนุมัติ";
 $lang["material_request_document"] = "ใบเบิกวัตถุดิบ";
+$lang["finished_goods_report"] = "รายงานสินค้าสำเร็จ";
+$lang["finished_goods"] = "สินค้าสำเร็จ";
+$lang["finished_goods_restock"] = "นำเข้าสินค้าสำเร็จ";
+$lang["finished_goods_restock_add"] = "เพิ่มการนำเข้าสินค้าสำเร็จ";
+$lang["raw_mats"] = "วัตถุดิบ";
+$lang["raw_mats_restock"] = "นำเข้าวัตถุดิบ";
+$lang["raw_mats_restock_add"] = "เพิ่มนำเข้าวัตถุดิบ";
 
 // Start - Warehouse Category
 $lang["warehouse_category"] = "คลังสินค้า";
@@ -2454,3 +2461,48 @@ $lang["add_warehouse_category"] = "เพิ่มคลังสินค้า
 $lang["edit_warehouse_category"] = "แก้ไขคลังสินค้า";
 $lang["cant_duplicated_code"] = "รหัสคลังสินค้าต้องไม่ซ้ำกัน";
 // End - Warehouse Category
+
+// Start - Purchase Requisition
+$lang["pr_create_rm"] = "เพิ่มใบขอซื้อวัตถุดิบ";
+$lang["pr_by_project"] = "ใบขอซื้อสำหรับโปรเจค ";
+$lang["close_pr_page"] = "ปิดหน้าใบขอซื้อ";
+$lang["material_shortage"] = "วัตถุดิบที่ขาด";
+$lang["material_name"] = "ชื่อวัตถุดิบ";
+$lang["by_records"] = "แยกรายการ";
+$lang["by_summarize"] = "สรุปรวม";
+$lang["material_was_deleted"] = "ข้อมูลวัตถุดิบถูกลบไปแล้ว";
+$lang["project_was_deleted"] = "ข้อมูลโปรเจคถูกลบไปแล้ว";
+$lang["material_shortage_date"] = "วันที่วัตถุดิบขาด";
+$lang["quantity_of_shortage"] = "จำนวนที่ขาด";
+$lang["to_issue_pr"] = "นำไปออกไปขอซื้อ";
+$lang["btn_create_pr"] = "ทำการขอซื้อ";
+$lang["supplier_name"] = "ผู้จัดจำหน่าย";
+$lang["select_supplier"] = "เลือกผู้จัดจำหน่าย";
+// End - Purchase Requisition
+
+// Custom - DataTable
+$lang["showing"] = "แสดงผล";
+$lang["of"] = "จาก";
+$lang["entries"] = "รายการ";
+$lang["no_data_available"] = "ไม่พบข้อมูล";
+$lang["back_to_stock"] = "กลับหน้าคลังสินค้า";
+$lang["restart_calc"] = "เริ่มใหม่";
+
+$lang["purchase_request"] = "ใบขอซื้อ";
+$lang["purchase_request_add"] = "เพิ่มใบขอซื้อ";
+$lang["request_date"] = "วันที่ขอซื้อ";
+$lang["request_by"] = "ผู้ขอซื้อ";
+$lang["pr_no"] = "เลขที่ใบขอซื้อ";
+$lang["pr_type"] = "ประเภทใบขอซื้อ";
+$lang["pr_pending"] = "รออนุมัติ";
+$lang["pr_approved"] = "อนุมัติ";
+$lang["pr_rejected"] = "ไม่อนุมัติ";
+$lang["direct_material"] = "วัตถุดิบที่ใช้ในการผลิต";
+$lang["indirect_material"] = "วัตถุดิบทั่วไป";
+$lang["finised_goods"] = "สินค้าสำเร็จรูป";
+$lang["assets"] = "ทรัพย์สิน";
+$lang["services"] = "บริการ";
+$lang["expenses"] = "ค่าใช้จ่าย";
+
+$lang["purchase_order"] = "ใบสั่งซื้อ";
+$lang["goods_receipt"] = "ใบรับสินค้า";

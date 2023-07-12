@@ -52,40 +52,42 @@ class Custom_fields extends MY_Controller
 	private function realization_leads_custom_field($custom_fields)
 	{
 		$index = 0;
+		$list_data = array();
 
-		foreach ($custom_fields as $field) {
-			$data_options = "";
-			if (isset($field->options)) {
-				$data_options = implode(",", json_decode($field->options));
+		if (sizeof($custom_fields)) {
+			foreach ($custom_fields as $field) {
+				$data_options = "";
+				if (isset($field->options)) {
+					$data_options = implode(",", json_decode($field->options));
+				}
+				
+				$list_data[$index] = new stdClass();
+				$list_data[$index]->id = $field->code;
+				$list_data[$index]->title = $field->title;
+				$list_data[$index]->placeholder = $field->placeholder;
+				$list_data[$index]->example_variable_name = "";
+				$list_data[$index]->options = $data_options;
+				$list_data[$index]->field_type = $field->field_type;
+				$list_data[$index]->related_to = "leads";
+				$list_data[$index]->sort = $field->sort;
+				$list_data[$index]->required = $field->required == "Y" ? 1 : 0;
+				$list_data[$index]->show_in_table = $field->show_in_table == "Y" ? 1 : 0;
+				$list_data[$index]->show_in_invoice = "0";
+				$list_data[$index]->show_in_estimate = "0";
+				$list_data[$index]->show_in_order = "0";
+				$list_data[$index]->visible_to_admins_only = 0;
+				$list_data[$index]->hide_from_clients = $field->show_in_client == "Y" ? 1 : 0;
+				$list_data[$index]->disable_editing_by_clients = $field->show_in_lead == "Y" ? 1 : 0;
+				$list_data[$index]->show_on_kanban_card = $field->show_on_kanban == "Y" ? 1 : 0;
+				$list_data[$index]->deleted = 0;
+
+				$index++;
 			}
-			
-			$list_data[$index] = new stdClass();
-			$list_data[$index]->id = $field->code;
-			$list_data[$index]->title = $field->title;
-			$list_data[$index]->placeholder = $field->placeholder;
-			$list_data[$index]->example_variable_name = "";
-			$list_data[$index]->options = $data_options;
-			$list_data[$index]->field_type = $field->field_type;
-			$list_data[$index]->related_to = "leads";
-			$list_data[$index]->sort = $field->sort;
-			$list_data[$index]->required = $field->required == "Y" ? 1 : 0;
-			$list_data[$index]->show_in_table = $field->show_in_table == "Y" ? 1 : 0;
-			$list_data[$index]->show_in_invoice = "0";
-			$list_data[$index]->show_in_estimate = "0";
-			$list_data[$index]->show_in_order = "0";
-			$list_data[$index]->visible_to_admins_only = 0;
-			$list_data[$index]->hide_from_clients = $field->show_in_client == "Y" ? 1 : 0;
-			$list_data[$index]->disable_editing_by_clients = $field->show_in_lead == "Y" ? 1 : 0;
-			$list_data[$index]->show_on_kanban_card = $field->show_on_kanban == "Y" ? 1 : 0;
-			$list_data[$index]->deleted = 0;
-
-			$index++;
 		}
-
 		return $list_data;
 	}
 
-	private function toJsonOptions($data) // dev2
+	private function toJsonOptions($data)
 	{
 		return json_encode(explode(",", $data));
 	}

@@ -89,7 +89,7 @@
 				</div>
 			</div>
 			<div class="right">
-				<div class="docname custom-color">ใบวางบิล</div>
+				<div class="docname custom-color">ใบเสร็จรับเงิน</div>
 				<div class="docinfo">
 					<table>
 	                    <tr>
