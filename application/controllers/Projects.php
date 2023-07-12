@@ -1038,7 +1038,8 @@ class Projects extends MY_Controller
 
         $sql = "SELECT doc_id , tbName FROM `prove_table` WHERE doc_id = (SELECT mr.id FROM `materialrequests` mr WHERE `project_id` = " . $project_info->id . " AND `deleted`=0) AND status_id = 1;";
 
-        $mr_proved = $this->db->query($sql)->row();
+        // MARK
+        $mr_proved = $this->dev2_mrprove($project_info->id);
         //var_dump($mr_proved);exit;
         if ($mr_proved) {
             $view_data['mr_proved'] = true;
@@ -4980,7 +4981,7 @@ class Projects extends MY_Controller
         $this->load->view('projects/modal_items', $view_data);
     }
 
-    function project_items_save() // MARK
+    function project_items_save()
     {
         $post = $this->input->post();
         $data = array();
@@ -5924,6 +5925,24 @@ class Projects extends MY_Controller
         }
         return $can_delete_project;
     }
+
+    function dev2_mrprove($project_id)
+    {
+        $result = $this->Materialrequests_model->dev2_getMrStatusByProjectId($project_id);
+        // var_dump(arr($result));
+
+        if (sizeof($result)) {
+            foreach ($result as $item) {
+                if ($item->status_id != 3) {
+                    return false;
+                }
+            }
+            return true;
+        } else {
+            return false;
+        }
+    }
+
 }
 
 /* End of file projects.php */
