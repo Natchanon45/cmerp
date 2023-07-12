@@ -102,6 +102,11 @@
                             <a class="<?php if($module == "goods_receipt") echo 'custom-color'; ?>"><?php echo lang('goods_receipt'); ?></a>
                         </li>
                     <?php endif; ?>
+                    <?php if ($this->Permission_m->access_purchase_request): $number_of_enable_module++; ?>
+                        <li data-module="payment-voucher" class="<?php if($module == "payment-voucher") echo 'active custom-bg01'; ?>">
+                            <a class="<?php if($module == "payment-voucher") echo 'custom-color'; ?>">ใบสำคัญจ่าย</a>
+                        </li>
+                    <?php endif; ?>
                 </ul>
                 <ul class="buttons">
                     <li class="add"><a data-act='ajax-modal' class='btn btn-default'><i class='fa fa-plus-circle'></i><span></span></a></li>
@@ -168,6 +173,17 @@ function loadDataGrid(){
             { title: '<?php echo lang('status'); ?>', class: 'option w10p' },
             { title: '<i class="fa fa-bars"></i>', class: 'text-center option w10p' }
         ];
+    }else if(active_module == 'payment-voucher') {
+        grid_filters = null;
+
+        grid_columns = [
+                             {title: "วันที่", "class":"w10p"},
+                             {title: "เลขที่เอกสาร", "class":"w10p"},
+                             {title: "ลูกค้า", "class":"w30p"},
+                             {title: "ยอดรวมสุทธิ", "class":"text-right w15p"},
+                             {title: "สถานะ", "class":"text-left w15p"},
+                             {title: "<i class='fa fa-bars'></i>", "class":"text-center option w10p"}
+                         ];
     }
 
     // else if(active_module == "billing-notes"){
@@ -209,7 +225,6 @@ function loadDataGrid(){
         //     {column: summation_column, dataType: 'currency'}
         // ]
     });
-
     $("#datagrid").on("draw.dt", function () {
         // $(".dropdown_status").on( "change", function() {
         //     if(active_module == "quotations"){

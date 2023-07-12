@@ -62,7 +62,9 @@ class Accounting extends MY_Controller {
             $this->data['module'] = 'purchase_order';
         } elseif ($this->check_permission('access_purchase_order')) {
             $this->data['module'] = 'goods_receipt';
-        } else {
+        }elseif ($this->check_permission('access_purchase_order')) {
+            $this->data['module'] = 'payment-voucher';
+        }else {
             $this->session->set_flashdata('notice_error', lang('no_permissions'));
             redirect('/');
             return;
@@ -76,6 +78,15 @@ class Accounting extends MY_Controller {
         $this->data['status_dropdown'] = json_encode($this->Purchaserequest_m->dev2_getPrStatusDropdown());
         // PR Type Dropdown
         $this->data['type_dropdown'] = json_encode($this->Purchaserequest_m->dev2_getPrTypeDropdown());
+
+        $cusrows = $this->Customers_m->getRows(["id", "company_name"]);
+        $client_ids[] = ["id"=>"", "text"=>"-- ลูกค้า --"];
+        if(!empty($cusrows)){
+            foreach($cusrows as $cusrow){
+                $client_ids[] = ["id"=>$cusrow->id, "text"=>$cusrow->company_name];
+            }
+        }
+        $this->data["client_ids"] = json_encode($client_ids);
 
         $this->template->rander("accounting/buy", $this->data);
     }
