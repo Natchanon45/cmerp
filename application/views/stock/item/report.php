@@ -7,11 +7,11 @@
                                 </a>
                                 <?php echo lang('stock_item_report'); ?>
                         </h1>
-                        <?php if ($add_pr_row) :?>
-                                <button type="button" class="btn btn-warning pull-right" id="btn-pr">
-                                        <i class="fa fa-shopping-cart"></i> <?php echo lang('request_low_item'); ?>
-                                </button>
-                        <?php endif; ?>
+                        <?php // if ($add_pr_row) :?>
+                                <!-- <button type="button" class="btn btn-warning pull-right" id="btn-pr">
+                                        <i class="fa fa-shopping-cart"></i> <?php // echo lang('request_low_item'); ?>
+                                </button> -->
+                        <?php // endif; ?>
                 </div>
                 <div class="table-responsive">
                         <table id="report-table" class="display" cellspacing="0" width="100%"></table>
@@ -26,6 +26,10 @@
         display:inline-block;
         color:orange;
         font-weight:bold;
+}
+
+#report-table {
+        font-size: small;
 }
 </style>
 

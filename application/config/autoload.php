@@ -227,6 +227,8 @@ $autoload['model'] = array(
     'Billing_notes_m',
     'Invoices_m',
     'Receipts_m',
+    'Suppliers_m',
+    'Payment_voucher_m',
     'Credit_notes_m',
     'Debit_notes_m'
 );

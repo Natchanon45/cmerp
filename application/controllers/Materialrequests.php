@@ -1321,6 +1321,15 @@ class Materialrequests extends MY_Controller
 			// }
 		}
 
+		$buttonTops[] = js_anchor(
+			"<i class='fa fa-chevron-left'></i> " . lang('back_to_stock'),
+			array(
+				"class" => 'btn btn-primary',
+				"title" => lang('stock'),
+				"id" => 'back-to-stock'
+			)
+		);
+
 		$options = [];
 		$view_data['mr_statuses'] = $this->Mr_status_model->get_details($options)->result();
 		$view_data['pr_suppliers'] = $this->Bom_suppliers_model->get_options()->result();

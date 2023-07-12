@@ -149,4 +149,145 @@ class Bom_suppliers_model extends Crud_model {
         return $result;
     }
 
+    function dev2_getSupplierDropdown()
+    {
+        $this->db->select('id, company_name');
+        $this->db->from('bom_suppliers');
+
+        $result = $this->db->get()->result();
+        $data[] = array(
+            "id" => "", "text" => "- " . lang("select_supplier") . " -"
+        );
+
+        foreach ($result as $item) {
+            $data[] = array(
+                "id" => $item->id, "text" => $item->company_name
+            );
+        }
+
+        return $data;
+    }
+
+    function dev2_getSupplierDropdownWithCode()
+    {
+        $this->db->select('id, company_name, code_supplier');
+        $this->db->from('bom_suppliers');
+
+        $result = $this->db->get()->result();
+        $data[] = array(
+            "id" => "", "text" => "-- " . lang("select_supplier") . " --"
+        );
+
+        foreach ($result as $item) {
+            if ($item->code_supplier) {
+                $data[] = array(
+                    "id" => $item->id, "text" => $item->code_supplier . ' - ' . $item->company_name
+                );
+            } else {
+                $data[] = array(
+                    "id" => $item->id, "text" => $item->company_name
+                );
+            }
+        }
+
+        return $data;
+    }
+
+    function dev2_getBomSupplierByMaterialId($material_id)
+    {
+        $result = array();
+        $sql = "SELECT bs.id, bs.company_name, bmp.ratio, bmp.price FROM bom_suppliers bs RIGHT JOIN bom_material_pricings bmp ON 
+        bs.id = bmp.supplier_id WHERE bmp.material_id = '" . $material_id . "' ORDER BY bs.id ASC";
+
+        if (isset($material_id) && $material_id) {
+            $query = $this->db->query($sql);
+            $result = $query->row();
+        }
+
+        return $result;
+    }
+
+    function dev2_getSupplierNameById($supplier_id)
+    {
+        $supplier_name = "";
+        $query = $this->db->get_where('bom_suppliers', array('id' => $supplier_id));
+
+        if ($query) {
+            $supplier_name = $query->row()->company_name;
+        }
+        return $supplier_name;
+    }
+
+    function getInfo($supplier_id)
+    {
+        $query = $this->db->get_where('bom_suppliers', array('id' => $supplier_id))->row();
+        if (empty($query)) {
+            return null;
+        }
+
+        return array(
+            "company_name" => $query->company_name,
+            "address" => $query->address,
+            "city" => $query->city,
+            "state" => $query->state,
+            "zip" => $query->zip,
+            "country" => $query->country,
+            "website" => $query->website,
+            "phone" => $query->phone,
+            "vat_number" => $query->vat_number
+        );
+    }
+
+    function getContactInfo($supplier_id)
+    {
+        $query = $this->db->get_where('bom_supplier_contacts', array('supplier_id' => $supplier_id, 'is_primary' => 1))->row();
+        if (empty($query)) {
+            return null;
+        }
+
+        return array(
+            "id" => $query->id,
+            "first_name" => $query->first_name,
+            "last_name" => $query->last_name,
+            "phone" => $query->phone,
+            "email" => $query->email
+        );
+    }
+
+    function getRows($fields = [])
+    {
+        $db = $this->db;
+        $s = "*";
+
+        if (count($fields) > 0) {
+            $s = "";
+            foreach ($fields as $field) {
+                $s .= $field . ",";
+            }
+        }
+
+        $q = $db->select($s)->from("bom_suppliers");
+        $cusrows = $q->get()->result();
+
+        return $cusrows;
+    }
+
+    function getPrType($fields = [])
+    {
+        $db = $this->db;
+        $s = "*";
+
+        if (count($fields) > 0) {
+            $s = "";
+            foreach ($fields as $field) {
+                $s .= $field . ",";
+            }
+        }
+
+        $q = $db->select($s)->from("pr_type");
+        $cusrows = $q->get()->result();
+
+        return $cusrows;
+    }
+
 }

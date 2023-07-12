@@ -5,15 +5,15 @@
                 <a class="title-back" href="<?php echo get_uri('stock'); ?>">
                     <i class="fa fa-chevron-left" aria-hidden="true"></i>
                 </a>
-                <?php echo lang('stock_restocks_item'); ?>
+                <?php echo lang('finished_goods_restock'); ?>
             </h1>
             <div class="title-button-group">
                 <?php
                 if ($can_create) {
                     echo modal_anchor(
                         get_uri("stock/restock_item_modal"),
-                        "<i class='fa fa-plus-circle'></i> " . lang('stock_restock_item_add'),
-                        array("class" => "btn btn-default", "title" => lang('stock_restock_item_add'))
+                        "<i class='fa fa-plus-circle'></i> " . lang('finished_goods_restock_add'),
+                        array("class" => "btn btn-default", "title" => lang('finished_goods_restock_add'))
                     );
                 }
                 ?>

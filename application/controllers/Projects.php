@@ -3332,6 +3332,7 @@ class Projects extends MY_Controller
     /* prepare a row of task list table */
     private function _make_task_row($data, $custom_fields)
     {
+        // var_dump(arr($data)); exit;
         $unread_comments_class = "";
         $icon = "";
         if (isset($data->unread) && $data->unread && $data->unread != "0") {
@@ -4976,6 +4977,8 @@ class Projects extends MY_Controller
         $view_data['item_mixings'] = $datas;
         $view_data['project_items'] = $this->Bom_item_mixing_groups_model->get_project_items(['project_id' => $view_data['model_info']->id])->result();
         $view_data['project_materials'] = $this->Bom_item_mixing_groups_model->get_project_materials($view_data['project_items']);
+        $view_data['can_create_mr'] = $this->dev2_canCreateMaterialRequest($project_id);
+        $view_data['can_recalc'] = $this->dev2_canRecalculate($project_id);
 
         // var_dump(arr($view_data)); exit;
         $this->load->view('projects/modal_items', $view_data);
@@ -4995,64 +4998,6 @@ class Projects extends MY_Controller
         }
 
         echo json_encode(array("success" => true, "data" => $data, "message" => lang("record_saved")));
-
-        // $restock_process = $this->input->post('restock_process');
-
-        // $post = [
-        //     "id" => $this->input->post('id'),
-        //     "restock_process" => $this->input->post('restock_process'),
-        //     "item_id" => $this->input->post('item_id[]'),
-        //     "item_mixing" => $this->input->post('item_mixing[]'),
-        //     "quantity" => $this->input->post('quantity[]')
-        // ];
-
-        // if(!empty($restock_process)) {
-        // $this->Bom_item_mixing_groups_model->restock_process($id);
-        // } else {
-        // validate_submitted_data(array(
-        //     "id" => "required|numeric"
-        // ));
-
-        // $mr = $this->Materialrequests_model->get_details(['project_id'=>$id])->row();
-        // $project = $this->db->query("SELECT p.id, p.title FROM projects p WHERE p.id = $id ")->row();
-
-        // echo json_encode(array("success" => false, 'message' => lang('error_occurred')));
-        // if this project haven't had material request yet
-        // if(!$mr) {
-        //     $data = [
-        //         'project_id'=>$id,
-        //         'project_name' => $project->title,
-        //         'requester_id'=>$this->login_user->id,
-        //         'created_by'=>$this->login_user->id,
-        //         'mr_date'=>get_today_date(),
-        //         'status_id' => 1
-        //     ];
-        //     $mr_id = $mr = $this->Materialrequests_model->save($data, 0);
-        //     $mr = $this->Materialrequests_model->get_one($mr_id);
-        // }
-
-        // $ps = $this->Bom_item_mixing_groups_model->project_items_save(
-        //     $id, 
-        //     $this->input->post('item_id[]'), 
-        //     $this->input->post('item_mixing[]'), 
-        //     $this->input->post('quantity[]'),
-        //     $mr->id
-        // );
-        // if ($ps) {
-        //     echo json_encode(array("success" => true, 'message' => lang('record_saved') , 'mrid' => $mr->id , 'addnew' => $ps, 'mr_req' => $this->input->post('mr_req')));
-        // } else {
-        //     echo json_encode(array("success" => false, 'message' => lang('error_occurred')));
-        // }
-        // return;
-        // }
-
-        // TODO: Alert low quantity materials
-
-        // if (true) {
-        //     echo json_encode(array("success" => true, 'message' => lang('record_saved')));
-        // } else {
-        //     echo json_encode(array("success" => false, 'message' => lang('error_occurred')));
-        // }
     }
 
     private function save_project_items($post) // SPI
@@ -5120,7 +5065,7 @@ class Projects extends MY_Controller
         return $post;
     }
 
-    private function save_project_recalculate($post)
+    private function save_project_recalculate($post) // SPRC
     {
         $post["function"] = "project_recalc_stock";
 
@@ -5135,22 +5080,6 @@ class Projects extends MY_Controller
                     if ($total_ratio < 0) {
                         $total_ratio = $item->ratio * -1;
                     }
-
-                    // $stock_sql = "
-                    // SELECT bs.id, bs.group_id, bs.material_id, bs.stock, bs.remaining, 
-                    // IFNULL(bpim.used, 0) AS used, bs.stock - IFNULL(bpim.used, 0) AS actual_remain 
-                    // FROM bom_stocks bs 
-                    // INNER JOIN bom_stock_groups bsg ON bsg.id = bs.group_id 
-                    // LEFT JOIN(
-                    //     SELECT stock_id, SUM(ratio) AS used 
-                    //     FROM bom_project_item_materials 
-                    //     WHERE material_id = '" . $item->material_id . "' 
-                    //     GROUP BY stock_id
-                    // ) AS bpim ON bs.id = bpim.stock_id 
-                    // WHERE bs.material_id = '" . $item->material_id . "' AND bs.remaining > 0 AND bs.stock - IFNULL(bpim.used, 0) > 0 
-                    // ORDER BY bsg.created_date ASC
-                    // ";
-                    // $stocks = $this->db->query($stock_sql)->result();
 
                     $stocks = $this->Bom_item_mixing_groups_model->dev2_getStockRemainingByMaterialId($item->material_id);
                     if (sizeof($stocks)) {
@@ -5924,6 +5853,28 @@ class Projects extends MY_Controller
         }
         return $can_delete_project;
     }
+
+    function dev2_canCreateMaterialRequest($project_id)
+    {
+        $can_create_mr = false;
+        $count = $this->Projects_model->dev2_countItemCanCreateMrByProjectId($project_id);
+        if ($count > 0) {
+            $can_create_mr = true;
+        }
+        return $can_create_mr;
+    }
+
+    function dev2_canRecalculate($project_id)
+    {
+        $can_recalc = false;
+        $count = $this->Projects_model->dev2_countItemRecalculateByProjectId($project_id);
+        if ($count > 0) {
+            $can_recalc = true;
+        }
+        return $can_recalc;
+    }
+
+
 
     function dev2_mrprove($project_id)
     {

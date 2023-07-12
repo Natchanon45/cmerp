@@ -168,7 +168,7 @@ if (empty($model_info->id)) {
                 ?>
                 <tr>
                     <td>
-                        <input type="text" name="restock_serial[]" <?php if ($readonly) { echo 'readonly'; if (!$k->can_delete) echo ' readonly'; } ?> class="form-control data-sern" maxlength="40" value="<?php echo $k->serial_number ? $k->serial_number : ""; ?>">
+                        <input type="text" name="restock_serial[]" <?php if ($readonly) { echo 'readonly'; } if (!$k->can_delete) { echo ' readonly'; } ?> class="form-control data-sern" maxlength="40" value="<?php echo $k->serial_number ? $k->serial_number : ""; ?>">
                     </td>
                     <td>
                         <input type="hidden" name="restock_id[]" value="<?= $k->id ?>" />
@@ -192,7 +192,7 @@ if (empty($model_info->id)) {
                         </td>
                         <td>
                             <div class="input-suffix">
-                                <input type="number" name="stock[]" required <?php if ($readonly) { echo 'readonly'; } ?> class="form-control stock-calc" min="0.0001" step="0.0001" value="<?php echo $k->stock; ?>" />
+                                <input type="number" name="stock[]" required <?php if ($readonly) { echo 'readonly'; } if (!$k->can_delete) { echo ' readonly'; } ?> class="form-control stock-calc" min="0.0001" step="0.0001" value="<?php echo $k->stock; ?>" />
                                 <div class="input-tag string-upper"><?php echo $k->material_unit; ?></div>
                             </div>
                         </td>
@@ -200,7 +200,7 @@ if (empty($model_info->id)) {
                             <td>
                                 <div class="input-suffix">
                                     <input 
-                                        type="number" name="price[]" required <?php if ($readonly) { echo 'readonly'; if (!$k->can_delete) echo ' readonly'; } ?>
+                                        type="number" name="price[]" required <?php if ($readonly) { echo 'readonly'; } if (!$k->can_delete) { echo ' readonly'; } ?>
                                         class="form-control price-calc" min="0" step="0.01" value="<?php echo $k->price; ?>" 
                                     />
                                     <div class="input-tag-2"><?php echo lang('THB'); ?></div>
@@ -209,7 +209,7 @@ if (empty($model_info->id)) {
                             <td>
                                 <div class="input-suffix">
                                     <input 
-                                        type="number" name="priceunit[]" <?php if ($readonly) { echo 'readonly'; if (!$k->can_delete) echo ' readonly'; } ?> 
+                                        type="number" name="priceunit[]" <?php if ($readonly) { echo 'readonly'; } if (!$k->can_delete) { echo ' readonly'; } ?> 
                                         class="form-control price-per-unit" min="0" step="0.01" value="<?php echo $pricePerUnit; ?>" 
                                     />
                                     <div class="input-tag-2"><?php echo lang('THB'); ?></div>

@@ -5,16 +5,15 @@ if (!defined('BASEPATH'))
 
 class PurchaseRequests extends MY_Controller
 {
-
 	function __construct()
 	{
 		parent::__construct();
-		
+
 		$this->init_permission_checker("order");
 		$this->className = "purchaserequests";
+		$this->load->helper("notifications");
 		$this->load->model("Provetable_model");
 		$this->load->model("Db_model");
-		$this->load->helper("notifications");
 		$this->load->model("Pr_categories_model");
 		$this->load->model("Permission_m");
 		$this->load->model("Purchaserequest_m");
@@ -23,7 +22,6 @@ class PurchaseRequests extends MY_Controller
 	function approve($mrid)
 	{
 		$data = $this->Purchaserequest_m->updateStatus($mrid, 3);
-
 		if ($data["process"] == "fail") {
 			$_SESSION['error'] = $data["message"];
 		}
@@ -34,7 +32,6 @@ class PurchaseRequests extends MY_Controller
 	function disapprove($mrid)
 	{
 		$data = $this->Purchaserequest_m->updateStatus($mrid, 4);
-
 		if ($data["process"] == "fail") {
 			$_SESSION['error'] = $data["message"];
 		}
@@ -51,7 +48,6 @@ class PurchaseRequests extends MY_Controller
 		$view_data = get_pr_making_data();
 		$conditions = array("created_by" => $this->login_user->id, "pr_id" => $pr_id, "deleted" => 0);
 		$view_data["cart_items_count"] = $this->Pr_items_model->get_all_where($conditions)->num_rows();
-
 		$view_data["clients_dropdown"] = "";
 		$view_data["pr_id"] = $pr_id;
 		if ($this->login_user->user_type == "staff") {
@@ -72,7 +68,6 @@ class PurchaseRequests extends MY_Controller
 		$prove = $this->Provetable_model->getProve($pr_id, "purchaserequests")->row();
 		$list_data = $this->Pr_items_model->get_details($options)->result();
 		$result = array();
-
 		foreach ($list_data as $data) {
 			$result[] = $this->_make_item_row($pr_info, $prove, $data);
 		}
@@ -87,8 +82,8 @@ class PurchaseRequests extends MY_Controller
 		if ($data->description) {
 			$item .= "<span>" . nl2br($data->description) . "</span>";
 		}
-		$type = $data->unit_type ? $data->unit_type : "";
 
+		$type = $data->unit_type ? $data->unit_type : "";
 		$edit_row = false;
 		$delete_row = false;
 
@@ -149,7 +144,7 @@ class PurchaseRequests extends MY_Controller
 		$view_data["vat_number"] = $model_info->vat_number;
 		$view_data["suppliers"] = [];
 		$view_data["currencies"] = [];
-		
+
 		$this->load->view("purchaserequests/item_modal_form", $view_data);
 	}
 
@@ -161,18 +156,17 @@ class PurchaseRequests extends MY_Controller
 				"id" => "numeric"
 			)
 		);
-
 		$id = $this->input->post("id", 0);
 
-		if (!$id && !$this->cp("purchaserequests", "add_row")) {
-			redirect("forbidden");
-			return;
-		}
+		// if (!$id && !$this->cp("purchaserequests", "add_row")) {
+		// 	redirect("forbidden");
+		// 	return;
+		// }
 
-		if ($id && !$this->cp("purchaserequests", "edit_row")) {
-			redirect("forbidden");
-			return;
-		}
+		// if ($id && !$this->cp("purchaserequests", "edit_row")) {
+		// 	redirect("forbidden");
+		// 	return;
+		// }
 
 		$item_type = $this->input->post("item_type");
 		$item_info = null;
@@ -1219,48 +1213,53 @@ class PurchaseRequests extends MY_Controller
 		echo json_encode(array("data" => $result));
 	}
 
-
 	function index()
 	{
-		if ($this->Permission_m->access_purchase_request != true)
+		if (!$this->Permission_m->access_purchase_request) {
 			redirect("forbidden");
+		}
 
 		$view_data["custom_field_headers"] = $this->Custom_fields_model->get_custom_field_headers_for_table("purchaserequests", $this->login_user->is_admin, $this->login_user->user_type);
 
 		$buttonTops = array();
+		$buttonTops[] = js_anchor(
+			"<i class='fa fa-chevron-left'></i> " . lang('back_to_stock'),
+			array(
+				"class" => 'btn btn-primary',
+				"title" => lang('stock'),
+				"id" => 'back-to-stock'
+			)
+		);
 
-		$buttonTops[] = anchor(get_uri("purchaserequests/categories"), "<i class='fa fa-bars'></i> " . lang('category_manager'), array("class" => "btn btn-primary", "title" => lang('category_manager'), "id" => "cat-mng-btn"));
+		// $buttonTops[] = anchor(
+		// 	get_uri("purchaserequests/categories"),
+		// 	"<i class='fa fa-bars'></i> " . lang('category_manager'),
+		// 	array(
+		// 		"class" => "btn btn-primary",
+		// 		"title" => lang('category_manager'),
+		// 		"id" => "cat-mng-btn"
+		// 	)
+		// );
 
-		if ($this->Permission_m->create_purchase_request == true) {
-			$buttonTops[] = js_anchor("<i class='fa fa-shopping-cart'></i> " . lang('add_pr'), array("class" => "btn btn-primary", "title" => lang('add_pr'), "id" => "add-pr-btn"));
-		}
+		// if ($this->Permission_m->create_purchase_request) {
+		// 	$buttonTops[] = js_anchor(
+		// 		"<i class='fa fa-shopping-cart'></i> " . lang('add_pr'), 
+		// 		array(
+		// 			"class" => "btn btn-primary", 
+		// 			"title" => lang('add_pr'), 
+		// 			"id" => "add-pr-btn"
+		// 		)
+		// 	);
+		// }
 
 		$view_data['buttonTops'] = implode('', $buttonTops);
-
-		/*$options = [];
-		if(!$this->cp('purchaserequests', 'prove_row')) {
-		$options['where'] = " pr_status.id!='3' AND pr_status.id!='4' ";
-		}
-		$view_data['pr_statuses'] = $this->Pr_status_model->get_details($options)->result();*/
-
 		$view_data['pr_status_indexs'] = [["id" => "", "text" => "- " . lang("status") . " -"], ["id" => 1, "text" => "New"], ["id" => 2, "text" => "Request Approval"], ["id" => 3, "text" => "Approved"], ["id" => 4, "text" => "Rejected"]];
-
-
 		$view_data['pr_suppliers'] = $this->Bom_suppliers_model->get_options()->result();
 
-		/*$view_data['view_row'] = $this->cp('purchaserequests','view_row');
-		$view_data['add_row'] = $this->cp('purchaserequests','add_row');
-		$view_data['edit_row'] = $this->cp('purchaserequests','edit_row');
-		$view_data['delete_row'] = $this->cp('purchaserequests','delete_row');
-		$view_data['prove_row'] = $this->cp('purchaserequests','prove_row');*/
-
+		// var_dump(arr($view_data)); exit();
 		$this->template->rander("purchaserequests/index", $view_data);
 	}
-
-
-
-
-
+	
 	private function _make_row($data, $custom_fields)
 	{
 		$pr_url = "";
@@ -1749,6 +1748,414 @@ class PurchaseRequests extends MY_Controller
 
 		echo json_encode(array("data" => array_values($imports), "success" => 1, "message" => "Success"));
 	}
+
+	function pr_project($project_id)
+	{
+		if (!$this->check_permission('create_purchase_request')) {
+			redirect("forbidden");
+		}
+
+		$view_data['project_info'] = $this->Projects_model->get_one($project_id);
+		$view_data['project_item'] = $this->Bom_project_item_materials_model->dev2_getProjectItemIdByProjectId($project_id);
+		$view_data['project_material'] = $this->Bom_project_item_materials_model->dev2_getBomMaterialToCreatePrByProjectId($project_id);
+		$view_data['supplier_dropdown'] = $this->Bom_suppliers_model->dev2_getSupplierDropdown();
+
+		foreach ($view_data['project_material'] as $item) {
+			$additional = $this->Bom_materials_model->get_one($item->material_id);
+			$supplier = $this->Bom_suppliers_model->dev2_getBomSupplierByMaterialId($item->material_id);
+			$item->material_name = $additional->name . ' ' . $additional->production_name;
+			$item->pr_quantity = $item->total_ratio * -1;
+			$item->unit = strtoupper($additional->unit);
+			$item->fix_supplier = $supplier;
+		}
+		
+		// var_dump(arr($view_data)); exit();
+		$this->template->rander("purchaserequests/pr_project", $view_data);
+	}
+
+	function pr_project_save()
+	{
+		$post = $this->input->post();
+		$post['supplier_unique'] = array_unique($post['supplier_id']);
+
+		$pr_list = array();
+		$data = array();
+		$data_detail = array();
+		if (sizeof($post['supplier_unique'])) {
+			foreach ($post['supplier_unique'] as $id) {
+				$data[$id] = array(
+					'pr_type' => 1,
+					'supplier_id' => $id,
+					'supplier_name' => $this->Bom_suppliers_model->dev2_getSupplierNameById($id),
+					'requisition_date' => date('Y-m-d'),
+					'created_by' => $this->login_user->id
+				);
+				$pr_list[$id] = $this->Purchaserequests_model->dev2_prPostHeader($data[$id]);
+				
+				$number = 1;
+				foreach ($post['supplier_id'] as $key => $value) {
+					if ($id == $value) {
+						$data_detail[$key] = array(
+							'pr_id' => $pr_list[$id],
+							'item_no' => $number,
+							'project_id' => $post['project_id'],
+							'project_name' => $post['project_name'],
+							'material_id' => $post['material_id'][$key],
+							'material_name' => $post['material_name'][$key],
+							'pr_quantity' => floatval($post['pr_quantity'][$key]),
+							'pr_unit' => $post['pr_unit'][$key],
+							'pr_price' => floatval($post['pr_price'][$key]),
+							'created_by' => $this->login_user->id
+						);
+
+						$this->Purchaserequests_model->dev2_prPostDetail($data_detail[$key]);
+						$number++;
+					}
+				}
+			}
+		}
+
+		echo json_encode(array('success' => true, 'data' => $data_detail, 'message' => lang('record_saved')));
+	}
+
+	function dev2_summarize_data()
+	{
+		$view_data['summarize_data_list'] = $this->dev2_summarizeDataResult();
+		$this->load->view("purchaserequests/summarize_data", $view_data);
+	}
+
+	function dev2_records_data()
+	{
+		$view_data['records_data_list'] = $this->dev2_recordDataResult();
+		$this->load->view("purchaserequests/records_data", $view_data);
+	}
+
+	function dev2_recordDataList()
+	{
+		$listData = $this->Bom_project_item_materials_model->dev2_getBomMaterialToCreatePrList();
+
+		$result = array();
+		foreach ($listData as $item) {
+			$result[] = array(
+				'<input type="checkbox" id="bpim-id" name="bpim-id[]" value="' . $item->id . '">',
+				$item->id,
+				anchor(get_uri('' . $item->project_id), $item->project_name ? $item->project_name : lang('project_was_deleted')),
+				anchor(get_uri('' . $item->material_id), $item->name ? $item->name . ' - ' . $item->production_name : lang('material_was_deleted')),
+				format_to_date($item->created_at),
+				to_decimal_format2($item->ratio),
+				$item->unit ? strtoupper($item->unit) : '-',
+				js_anchor(
+					"<i class='fa fa-times fa-fw'></i>", 
+					array(
+						"title" => lang("delete_category"), 
+						"class" => "delete", "data-id" => $item->id, 
+						"data-action-url" => get_uri("purchaserequests/dev2_deleteShortageById"), 
+						"data-action" => "delete-confirmation"
+					)
+				)
+			);
+		}
+		echo json_encode(array("data" => $result));
+	}
+
+	function dev2_recordDataResult()
+	{
+		$listData = $this->Bom_project_item_materials_model->dev2_getBomMaterialToCreatePrList();
+
+		$result = array();
+		foreach ($listData as $item) {
+			$result[] = array(
+				'id' => $item->id,
+				'project' => $item->project_name ? anchor(get_uri('' . $item->project_id), $item->project_name) : lang('project_was_deleted'),
+				'material' => $item->name ? anchor(get_uri('' . $item->material_id), $item->name . ' - ' . $item->production_name) : lang('material_was_deleted'),
+				'created' => convertDate($item->created_at, true),
+				'ratio' => to_decimal_format2($item->ratio),
+				'unit' => $item->unit ? strtoupper($item->unit) : '-'
+			);
+		}
+		return $result;
+	}
+
+	function dev2_summarizeDataResult()
+	{
+		$listData = $this->Bom_project_item_materials_model->dev2_getBomMaterialToCreatePrSummary();
+
+		$result = array();
+		foreach ($listData as $item) {
+			$result[] = array(
+				'id' => $item->material_id,
+				'material' => $item->name ? anchor(get_uri('' . $item->material_id), $item->name . ' - ' . $item->production_name) : lang('material_was_deleted'),
+				'ratio' => to_decimal_format2($item->ratio),
+				'unit' => $item->unit ? strtoupper($item->unit) : '-'
+			);
+		}
+		return $result;
+	}
+
+	function dev2_deleteShortageByMaterialId()
+	{
+		if (!$this->check_permission('delete_purchase_request')) {
+			redirect("forbidden");
+		}
+
+		$post = json_decode(file_get_contents('php://input'), true);
+		$result = array();
+		
+		try {
+			$deleted = $this->Bom_project_item_materials_model->dev2_deleteBomMaterialToCreatePrInMaterialsId($post['id']);
+			$result = array(
+				'success' => true,
+				'data' => $post,
+				'affected' => $deleted,
+				'message' => lang('record_deleted')
+			);
+		} catch (Exception $e) {
+			$result = array(
+				'success' => true,
+				'data' => $post,
+				'message' => $e->getMessage()
+			);
+		}
+
+		echo json_encode($result);
+	}
+
+	function dev2_deleteShortageByBpimId()
+	{
+		if (!$this->check_permission('delete_purchase_request')) {
+			redirect("forbidden");
+		}
+
+		$post = json_decode(file_get_contents('php://input'), true);
+		$result = array();
+
+		try {
+			$deleted = $this->Bom_project_item_materials_model->dev2_deleteBomMaterialToCreatePrByBpimId($post['id']);
+			$result = array(
+				'success' => true,
+				'data' => $post,
+				'affected' => $deleted,
+				'message' => lang('record_deleted')
+			);
+		} catch (Exception $e) {
+			$result = array(
+				'success' => true,
+				'data' => $post,
+				'message' => $e->getMessage()
+			);
+		}
+
+		echo json_encode($result);
+	}
+
+	function pr_records()
+	{
+		if (!$this->check_permission('create_purchase_request')) {
+			redirect("forbidden");
+		}
+
+		$post = $this->input->post('data');
+		if (!isset($post) || count($post) == 0) {
+			redirect('purchaserequests');
+		}
+
+		$select_items = $this->Bom_project_item_materials_model->dev2_getBomMaterialToCreatePrInBpimId(implode(',', $post));
+		foreach ($select_items as $item) {
+			$bom_supplier = $this->Bom_suppliers_model->dev2_getBomSupplierByMaterialId($item->material_id);
+			$item->material_name = $item->name . ' ' . $item->production_name;
+			$item->pr_quantity = $item->ratio * -1;
+			$item->unit = strtoupper($item->unit);
+			$item->fix_supplier = $bom_supplier;
+		}
+
+		$view_data['select_materials'] = $select_items;
+		$view_data['supplier_dropdown'] = $this->Bom_suppliers_model->dev2_getSupplierDropdown();
+		// var_dump(arr($view_data)); exit;
+
+		$this->template->rander("purchaserequests/pr_records", $view_data);
+	}
+
+	function pr_summarize()
+	{
+		if (!$this->check_permission('create_purchase_request')) {
+			redirect('forbidden');
+		}
+
+		$post = $this->input->post('data');
+		if (!isset($post) || count($post) == 0) {
+			redirect('purchaserequests');
+		}
+
+		$select_items = $this->Bom_project_item_materials_model->dev2_getBomMaterialToCreatePrInMaterialsId(implode(',', $post));
+		foreach ($select_items as $item) {
+			$bom_supplier = $this->Bom_suppliers_model->dev2_getBomSupplierByMaterialId($item->material_id);
+			$item->material_name = $item->name . ' ' . $item->production_name;
+			$item->pr_quantity = $item->ratio * -1;
+			$item->unit = strtoupper($item->unit);
+			$item->fix_supplier = $bom_supplier;
+		}
+
+		$view_data['select_materials'] = $select_items;
+		$view_data['supplier_dropdown'] = $this->Bom_suppliers_model->dev2_getSupplierDropdown();
+		// var_dump(arr($view_data)); exit;
+
+		$this->template->rander("purchaserequests/pr_summarize", $view_data);
+	}
+
+	function pr_records_save() 
+	{
+		$post = json_decode(file_get_contents('php://input'), true);
+		$post['supplier_unique'] = array_unique($post['supplier_ids']);
+
+		$pr_list = array();
+		$pr_item_list = array();
+
+		$data = array();
+		$data_detail = array();
+
+		if (sizeof($post['supplier_unique'])) {
+			try {
+				foreach ($post['supplier_unique'] as $id) {
+					$data[$id] = array(
+						'pr_type' => 1,
+						'supplier_id' => $id,
+						'supplier_name' => $this->Bom_suppliers_model->dev2_getSupplierNameById($id),
+						'requisition_date' => date('Y-m-d'),
+						'created_by' => $this->login_user->id
+					);
+
+					$pr_list[$id] = $this->Purchaserequests_model->dev2_prPostHeader($data[$id]);
+
+					$number = 1;
+					foreach ($post['supplier_ids'] as $key => $value) {
+						if ($id == $value) {
+							$data_detail[$key] = array(
+								'pr_id' => $pr_list[$id],
+								'item_no' => $number,
+								'bpim_id' => $post['bpim_ids'][$key],
+								'material_id' => $post['material_ids'][$key],
+								'material_name' => $post['material_names'][$key],
+								'pr_quantity' => floatval($post['pr_quantitys'][$key]),
+								'pr_unit' => $post['pr_units'][$key],
+								'pr_price' => floatval($post['pr_prices'][$key]),
+								'created_by' => $this->login_user->id
+							); 
+
+							$pr_item_list[$key] = $this->Purchaserequests_model->dev2_prPostDetail($data_detail[$key]);
+
+							$this->Bom_project_item_materials_model->dev2_updatePrIdByBpimId($pr_list[$id], $post['bpim_ids'][$key]);
+							$number++;
+						}
+					}
+				}
+
+				$post['pr_list'] = $pr_list;
+				$post['pr_item_list'] = $pr_item_list;
+				$post['pr_header_list'] = $data;
+				$post['pr_detail_list'] = $data_detail;
+
+				$result = array(
+					'success' => true,
+					'data' => $post,
+					'message' => lang('record_saved')
+				); // MARK
+			} catch (Exception $e) {
+				$result = array(
+					'success' => false,
+					'data' => $post,
+					'message' => $e->getMessage()
+				);
+			}
+		} else {
+			$result = array(
+				'success' => false,
+				'data' => $post,
+				'message' => 'please check supplier data'
+			);
+		}
+
+		echo json_encode($result);
+	}
+
+	function pr_summarize_save() 
+	{
+		$post = json_decode(file_get_contents('php://input'), true);
+		$post['supplier_unique'] = array_unique($post['supplier_ids']);
+
+		$pr_list = array();
+		$pr_item_list = array();
+
+		$data = array();
+		$data_detail = array();
+
+		if (sizeof($post['supplier_unique'])) {
+			try {
+				foreach ($post['supplier_unique'] as $id) {
+					$data[$id] = array(
+						'pr_type' => 1,
+						'supplier_id' => $id,
+						'supplier_name' => $this->Bom_suppliers_model->dev2_getSupplierNameById($id),
+						'requisition_date' => date('Y-m-d'),
+						'created_by' => $this->login_user->id
+					);
+
+					$pr_list[$id] = $this->Purchaserequests_model->dev2_prPostHeader($data[$id]);
+
+					$number = 1;
+					foreach ($post['supplier_ids'] as $key => $value) {
+						if ($id == $value) {
+							$data_detail[$key] = array(
+								'pr_id' => $pr_list[$id],
+								'item_no' => $number,
+								'material_id' => $post['material_ids'][$key],
+								'material_name' => $post['material_names'][$key],
+								'pr_quantity' => floatval($post['pr_quantitys'][$key]),
+								'pr_unit' => $post['pr_units'][$key],
+								'pr_price' => floatval($post['pr_prices'][$key]),
+								'created_by' => $this->login_user->id
+							); 
+
+							$pr_item_list[$key] = $this->Purchaserequests_model->dev2_prPostDetail($data_detail[$key]);
+
+							$this->Bom_project_item_materials_model->dev2_updatePrIdByMaterialId($pr_list[$id], $post['material_ids'][$key]);
+							$number++;
+						}
+					}
+				}
+
+				$post['pr_list'] = $pr_list;
+				$post['pr_item_list'] = $pr_item_list;
+				$post['pr_header_list'] = $data;
+				$post['pr_detail_list'] = $data_detail;
+
+				$result = array(
+					'success' => true,
+					'data' => $post,
+					'message' => lang('record_saved')
+				); // MARK
+			} catch (Exception $e) {
+				$result = array(
+					'success' => false,
+					'data' => $post,
+					'message' => $e->getMessage()
+				);
+			}
+		} else {
+			$result = array(
+				'success' => false,
+				'data' => $post,
+				'message' => 'please check supplier data'
+			);
+		}
+
+		echo json_encode($result);
+	}
+
+	function pr_success()
+	{
+		$this->load->view('purchaserequests/pr_success');
+	}
+
 }
 
 /* End of file purchaserequests.php */
