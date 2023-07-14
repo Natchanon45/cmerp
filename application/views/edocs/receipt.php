@@ -217,7 +217,7 @@
 				<div class="signature clear">
 					<div class="name">
 	                    <span class="l1"></span>
-	                    <span class="l2">ผู้สั่งซื้อสินค้า</span>
+	                    <span class="l2">ผู้จ่ายเงิน</span>
 	                </div>
 	                <div class="date">
 	                    <span class="l1"></span>
@@ -235,7 +235,7 @@
 	                            <img src='<?php echo str_replace("./", "/", $signature); ?>'>
 	                        <?php endif; ?>
 	                    </span>
-	                    <span class="l2">ผู้อนุมัติ</span>
+	                    <span class="l2">ผู้รับเงิน</span>
 	                </div>
 	                <div class="date">
 	                    <span class="l1">
