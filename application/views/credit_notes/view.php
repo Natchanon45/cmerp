@@ -40,15 +40,15 @@
                     <p>
                         <?php
                             $client_address = $client["city"];
-                            if($client_address != "" && $client["state"] != "")$client_address .= ", ".$client["city"];
-                            elseif($client_address == "" && $client["state"] != "")$client_address .= $client["city"];
+                            if($client_address != "" && $client["state"] != "")$client_address .= ", ".$client["state"];
+                            elseif($client_address == "" && $client["state"] != "")$client_address .= $client["state"];
                             if($client_address != "" && $client["zip"] != "") $client_address .= " ".$client["zip"];
                             elseif($client_address == "" && $client["zip"] != "") $client_address .= $client["zip"];
                             echo $client_address;
                         ?>    
                     </p>
                     <?php if(trim($client["country"]) != ""): ?>
-                        <p><?php echo $client["country"]; ?></p>
+                        <p><?php //echo $client["country"]; ?></p>
                     <?php endif; ?>
                     <?php if(trim($client["vat_number"]) != ""): ?>
                         <p><?php echo lang("vat_number") . ": " . $client["vat_number"]; ?></p>

@@ -40,15 +40,15 @@
                     <p>
                         <?php
                             $client_address = $client["city"];
-                            if($client_address != "" && $client["state"] != "")$client_address .= ", ".$client["city"];
-                            elseif($client_address == "" && $client["state"] != "")$client_address .= $client["city"];
+                            if($client_address != "" && $client["state"] != "")$client_address .= ", ".$client["state"];
+                            elseif($client_address == "" && $client["state"] != "")$client_address .= $client["state"];
                             if($client_address != "" && $client["zip"] != "") $client_address .= " ".$client["zip"];
                             elseif($client_address == "" && $client["zip"] != "") $client_address .= $client["zip"];
                             echo $client_address;
                         ?>    
                     </p>
                     <?php if(trim($client["country"]) != ""): ?>
-                        <p><?php echo $client["country"]; ?></p>
+                        <p><?php //echo $client["country"]; ?></p>
                     <?php endif; ?>
                     <?php if(trim($client["vat_number"]) != ""): ?>
                         <p><?php echo lang("vat_number") . ": " . $client["vat_number"]; ?></p>
@@ -195,6 +195,44 @@
             </div>
         <?php endif; ?>
     </div><!--.docitem-->
+    <div class="docsignature clear">
+        <div class="customer">
+            <div class="on_behalf_of">ในนาม <?php echo $client["company_name"] ?></div>
+            <div class="clear">
+                <div class="name">
+                    <span class="l1"></span>
+                    <span class="l2">ผู้รับสินค้า / บริการ</span>
+                </div>
+                <div class="date">
+                    <span class="l1"></span>
+                    <span class="l2">วันที่</span>
+                </div>
+            </div>
+        </div><!--.customer -->
+        <div class="company">
+            <div class="on_behalf_of">ในนาม <?php echo get_setting("company_name"); ?></div>
+            <div class="clear">
+                <div class="name">
+                    <span class="l1">
+                        <span class="signature">
+                            <?php if($approved_by != null): ?>
+                                <img src='<?php echo "/".$this->Users_m->getSignature($approved_by); ?>'>
+                            <?php endif; ?>
+                        </span>
+                    </span>
+                    <span class="l2">ผู้อนุมัต</span>
+                </div>
+                <div class="date">
+                    <span class="l1">
+                        <?php if($approved_by != null): ?>
+                            <span class="approved_date"><?php echo convertDate($approved_datetime, true); ?></span>
+                        <?php endif; ?>
+                    </span>
+                    <span class="l2">วันที่</span>
+                </div>
+            </div>
+        </div><!--.company-->
+    </div><!--.docsignature-->
 </div><!--#printd-->
 <script type="text/javascript">
 window.addEventListener('keydown', function(event) {

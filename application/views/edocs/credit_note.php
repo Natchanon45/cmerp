@@ -73,15 +73,15 @@
                     	<p>
 	                        <?php
 	                            $client_address = $doc["buyer"]["city"];
-	                            if($client_address != "" && $doc["buyer"]["state"] != "")$client_address .= ", ".$doc["buyer"]["city"];
-	                            elseif($client_address == "" && $doc["buyer"]["state"] != "")$client_address .= $doc["buyer"]["city"];
+	                            if($client_address != "" && $doc["buyer"]["state"] != "")$client_address .= ", ".$doc["buyer"]["state"];
+	                            elseif($client_address == "" && $doc["buyer"]["state"] != "")$client_address .= $doc["buyer"]["state"];
 	                            if($client_address != "" && $doc["buyer"]["zip"] != "") $client_address .= " ".$doc["buyer"]["zip"];
 	                            elseif($client_address == "" && $doc["buyer"]["zip"] != "") $client_address .= $doc["buyer"]["zip"];
 	                            echo $client_address;
 	                        ?>    
 	                    </p>
 	                    <?php if(trim($doc["buyer"]["country"]) != ""): ?>
-	                        <p><?php echo $doc["buyer"]["country"]; ?></p>
+	                        <p><?php //echo $doc["buyer"]["country"]; ?></p>
 	                    <?php endif; ?>
 	                    <?php if(trim($doc["buyer"]["vat_number"]) != ""): ?>
 	                        <p><?php echo lang("vat_number") . ": " . $doc["buyer"]["vat_number"]; ?></p>
