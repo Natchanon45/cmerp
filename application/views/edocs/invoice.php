@@ -72,15 +72,15 @@
                     	<p>
 	                        <?php
 	                            $client_address = $doc["buyer"]["city"];
-	                            if($client_address != "" && $doc["buyer"]["state"] != "")$client_address .= ", ".$doc["buyer"]["city"];
-	                            elseif($client_address == "" && $doc["buyer"]["state"] != "")$client_address .= $doc["buyer"]["city"];
+	                            if($client_address != "" && $doc["buyer"]["state"] != "")$client_address .= ", ".$doc["buyer"]["state"];
+	                            elseif($client_address == "" && $doc["buyer"]["state"] != "")$client_address .= $doc["buyer"]["state"];
 	                            if($client_address != "" && $doc["buyer"]["zip"] != "") $client_address .= " ".$doc["buyer"]["zip"];
 	                            elseif($client_address == "" && $doc["buyer"]["zip"] != "") $client_address .= $doc["buyer"]["zip"];
 	                            echo $client_address;
 	                        ?>    
 	                    </p>
 	                    <?php if(trim($doc["buyer"]["country"]) != ""): ?>
-	                        <p><?php echo $doc["buyer"]["country"]; ?></p>
+	                        <p><?php //echo $doc["buyer"]["country"]; ?></p>
 	                    <?php endif; ?>
 	                    <?php if(trim($doc["buyer"]["vat_number"]) != ""): ?>
 	                        <p><?php echo lang("vat_number") . ": " . $doc["buyer"]["vat_number"]; ?></p>
@@ -225,7 +225,7 @@
 				<div class="signature clear">
 					<div class="name">
 	                    <span class="l1"></span>
-	                    <span class="l2">ผู้สั่งซื้อสินค้า</span>
+	                    <span class="l2">ผู้รับสินค้า / บริการ</span>
 	                </div>
 	                <div class="date">
 	                    <span class="l1"></span>
@@ -238,16 +238,15 @@
 				<div class="signature clear">
 					<div class="name">
 	                    <span class="l1">
-	                    	<?php $signature = $this->Users_m->getSignature($doc["approved_by"]); ?>
-	                    	<?php if($doc["doc_status"] == "A" && $signature != null): ?>
-	                            <img src='<?php echo str_replace("./", "/", $signature); ?>'>
+	                    	<?php if($doc["approved_by"] != null): ?>
+	                            <img src='<?php echo "/".$this->Users_m->getSignature($doc["approved_by"]); ?>'>
 	                        <?php endif; ?>
 	                    </span>
-	                    <span class="l2">ผู้อนุมัติ</span>
+	                    <span class="l2">ผู้อนุมัต</span>
 	                </div>
 	                <div class="date">
 	                    <span class="l1">
-	                    	<?php if($doc["doc_status"] == "A"): ?>
+	                    	<?php if($doc["approved_by"] != null): ?>
 	                            <span class="approved_date"><?php echo convertDate($doc["approved_datetime"], true); ?></span>
 	                        <?php endif; ?>
 	                    </span>

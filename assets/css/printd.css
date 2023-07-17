@@ -26,6 +26,7 @@
 }
 
 #printd{
+    position: relative;
     background: #fff;
     display: block;
     min-height: 1100px;
@@ -33,6 +34,7 @@
     margin: 0 auto;
     margin-bottom: 80px;
     padding: 32px;
+    padding-bottom: 320px;
 }
 
 #printd p{
@@ -410,7 +412,9 @@
 }
 
 #printd .docsignature{
-    margin-top: 60px;
+    position: absolute;
+    bottom: 100px;
+    width: calc(100% - 64px);
     page-break-inside: avoid;
 }
 
@@ -441,7 +445,7 @@
 #printd .docsignature .l1{
     display: block;
     position: relative;
-    height: 60px;
+    height: 80px;
     border-bottom: 1px solid #000;
     text-align: center;
     margin-bottom: 4px;
@@ -458,7 +462,7 @@
 #printd .docsignature .l1 .signature img{
     display: inline-block;
     width: auto;
-    height: 36px;
+    height: 42px;
 }
 
 #printd .docsignature .l1 .approved_date{
