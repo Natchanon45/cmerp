@@ -959,7 +959,8 @@ $tabs = array();
 $tabs[] = '<li><a  role="presentation" class="active" href="javascript:;" data-target="#tab-timeline"> '.lang('timeline').'</a></li>';
 
 
-if( !empty( $this->getRolePermission['p']['can_view_team_members_contact_info']   ) ) {
+// if( !empty( $this->getRolePermission['p']['can_view_team_members_contact_info']   ) ) {
+if( $user_info->id == $this->login_user->id || $this->login_user->is_admin ) {
 	
 	$tabs[] = '<li><a  role="presentation" href="'.get_uri("team_members/general_info/" . $user_info->id).'" data-target="#tab-general-info"> '.lang('general_info').'</a></li>';
 }
