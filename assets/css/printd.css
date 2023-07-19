@@ -135,6 +135,7 @@
 }
 
 #printd .docitem{
+    min-height: 600px;
     margin-top:12px;
 }
 

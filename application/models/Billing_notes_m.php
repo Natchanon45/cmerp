@@ -1022,6 +1022,9 @@ class Billing_notes_m extends MY_Model {
 
         $db->trans_commit();
 
+        $this->data["status"] = "success";
+        $this->data["message"] = lang("record_saved");
+
         if(isset($this->data["task"])) return $this->data;
 
         $bnrow = $db->select("*")
@@ -1031,8 +1034,6 @@ class Billing_notes_m extends MY_Model {
                     ->get()->row();
 
         $this->data["dataset"] = $this->getIndexDataSetHTML($bnrow);
-        $this->data["status"] = "success";
-        $this->data["message"] = lang('doc_id');
         return $this->data;
     }
 

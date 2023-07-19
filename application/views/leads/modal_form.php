@@ -10,7 +10,7 @@
     
     <div class="form-group">
         <label for="vat_number" class="<?php echo $label_column; ?>"><?php echo lang('vat_number'); ?></label>
-        <div class="<?php echo $field_column; ?>">
+        <div class="col-md-7">
             <?php
             echo form_input(array(
                 "id" => "vat_number",
@@ -21,7 +21,11 @@
             ));
             ?>
         </div>
+        <div class="col-md-2">
+            <button type="button" id="btn-dbd" class="btn btn-info w100p">DBD</button>
+        </div>
     </div>
+
     <div class="form-group">
         <label for="company_name" class="<?php echo $label_column; ?>"><?php echo lang('company_client_name'); ?></label>
         <div class="<?php echo $field_column; ?>">
@@ -276,4 +280,60 @@ $(document).ready(function () {
 
     $('#owner_id').select2({data: <?php echo json_encode($owners_dropdown); ?>});
 });
-</script>    
+
+const btnDBD = document.querySelector('#btn-dbd');
+btnDBD.addEventListener('click', async (e) => {
+    e.preventDefault();
+
+    let juristicId = document.querySelector('#vat_number');
+
+    if (juristicId.value.length === 13) {
+        await juristic_api(juristicId.value);
+        await zip_api();
+    }
+});
+
+async function juristic_api(id) {
+    // Call an open api of dbd
+    const response = await fetch(`https://openapi.dbd.go.th/api/v1/juristic_person/${id}`);
+    const result = await response.json();
+
+    let info = result.data[0]["cd:OrganizationJuristicPerson"];
+    let address = info["cd:OrganizationJuristicAddress"];
+
+    // Set required data
+    let _company = info["cd:OrganizationJuristicNameTH"];
+    let _address = `${address["cr:AddressType"]["cd:Address"]} ${address["cr:AddressType"]["cd:CitySubDivision"]["cr:CitySubDivisionTextTH"]}`;
+    let _city = address["cr:AddressType"]["cd:City"]["cr:CityTextTH"];
+    let _state = address["cr:AddressType"]["cd:CountrySubDivision"]["cr:CountrySubDivisionTextTH"];
+
+    // Push to each input
+    $('#company_name').val(_company);
+    $('#address').val(_address);
+    $('#city').val(_city);
+    $('#state').val(_state);
+};
+
+async function zip_api() {
+    const url = '<?php echo get_uri('leads/getZipCode'); ?>';
+    const data = {
+        state: $('#state').val(),
+        city: $('#city').val()
+    };
+
+    const response = await fetch(url, {
+        method: "POST",
+        mode: "cors",
+        credentials: "same-origin",
+        body: JSON.stringify(data),
+        headers: {
+            "Content-Type": "application/json"
+        }
+    });
+
+    const result = await response.json();
+    if (result.data.zip) {
+        $('#zip').val(result.data.zip);
+    }
+}
+</script>
