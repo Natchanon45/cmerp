@@ -9,11 +9,10 @@
     <div class="form-group">
         <label for="doc_type" class=" col-md-3"><?php echo lang('pr_type'); ?></label>
         <div class="col-md-9">
-            <?php $type_rows = $this->Bom_suppliers_model->getPrType(); ?>
+            <?php $type_rows = $this->Bom_suppliers_model->getPurchaseType(); ?>
             <select id="doc_type" class="form-control">
-                <option value="">-</option>
                 <?php foreach($type_rows as $type): ?>
-                    <option value="<?php echo $type->id; ?>" <?php if($pr_type == $type->id) echo "selected"?>><?php echo lang($type->keyword); ?></option>
+                    <option value="<?php echo $type["id"]; ?>" <?php if($pr_type == $type["id"]) echo "selected"?>><?php echo $type["text"]; ?></option>
                 <?php endforeach; ?>
             </select>
         </div>
@@ -49,66 +48,57 @@
         </div>
     </div>
 
-    <!-- <div class="form-group">
-        <label for="lead_id" class=" col-md-3">ลูกค้าผู้มุ่งหวัง</label>
+    <div class="form-group">
+        <label for="project_id" class=" col-md-3"><?php echo 'อ้างอิง' . lang('project'); ?></label>
         <div class="col-md-9">
-            <?php // $lrows = $this->Leads_m->getRows(); ?>
-            <select id="lead_id" class="form-control">
-                <option value="">-</option>
-                <?php // foreach($lrows as $lrow): ?>
-                    <option value="<?php // echo $lrow->id; ?>" <?php // if($lead_id == $lrow->id) echo "selected"?>><?php // echo $lrow->company_name; ?></option>
-                <?php // endforeach; ?>
-            </select>
-        </div>
-    </div> -->
-
-    <!-- <div class="form-group">
-        <label for="project_id" class=" col-md-3"><?php // echo lang('project'); ?></label>
-        <div class="col-md-9">
-            <?php // $prows = $this->Projects_m->getRows(); ?>
+            <?php $prows = $this->Projects_m->getRows(); ?>
             <select id="project_id" class="form-control">
                 <option value="">-</option>
-                <?php // foreach($prows as $prow): ?>
-                    <option value="<?php // echo $prow->id; ?>" <?php // if($project_id == $prow->id) echo "selected"?>><?php // echo $prow->title; ?></option>
-                <?php // endforeach; ?>
+                <?php foreach($prows as $prow): ?>
+                    <option value="<?php echo $prow->id; ?>" <?php if($project_id == $prow->id) echo "selected"?>><?php echo $prow->title; ?></option>
+                <?php endforeach; ?>
             </select>
         </div>
-    </div> -->
+    </div>
 
+    <?php $pr_placeholder = "เอกสารภายในใช้เพื่อขออนุมัติการสั่งซื้อ เป็นเอกสารที่บอกถึงความต้องการในการจัดซื้อว่าต้องการอะไรบ้าง เพื่อให้ฝ่ายจัดซื้อไปจัดหาวัตุดิบ, สินค้า, บริการหรือสิ่งของที่ต้องการ เพื่อเปรียบเทียบราคาของผู้จัดจำหน่่ายหรือผู้ให้บริการแต่ละเจ้า"; ?>
     <div class="form-group">
         <label for="remark" class=" col-md-3">หมายเหตุ</label>
         <div class=" col-md-9">
-            <textarea id="remark" name="remark" placeholder="หมายเหตุ" class="form-control"><?php echo $remark; ?></textarea>
+            <textarea id="remark" name="remark" placeholder="<?php echo $pr_placeholder; ?>" class="form-control" style="height: 120px;"><?php echo $remark; ?></textarea>
         </div>
     </div>
 </div>
 
 <div class="modal-footer">
     <button type="button" class="btn btn-default" data-dismiss="modal"><span class="fa fa-close"></span> <?php echo lang('close'); ?></button>
-    <?php if($doc_status == "1" || !isset($doc_id)): ?>
+    <?php if($doc_status == "W" || !isset($doc_id)): ?>
         <button type="button" id="btnSubmit" class="btn btn-primary"><span class="fa fa-check-circle"></span> <?php echo lang('save'); ?></button>
     <?php endif; ?>
 </div>
 
 <script type="text/javascript">
 $(document).ready(function() {
-    <?php if($doc_status == "1" || !isset($doc_id)): ?>
+    <?php if($doc_status == "W" || !isset($doc_id)): ?>
         $('#supplier_id').select2();
+        $('#project_id').select2();
+        $('#doc_type').select2();
 
         $("#btnSubmit").click(function() {
             axios.post('<?php echo current_url(); ?>', {
                 task: 'save_doc',
-                doc_id : "<?php if(isset($doc_id)) echo $doc_id; ?>",
-                doc_date:$("#doc_date").val(),
+                doc_id: "<?php if(isset($doc_id)) echo $doc_id; ?>",
+                doc_date: $("#doc_date").val(),
                 doc_type: $("#doc_type").val(),
                 credit: $("#credit").val(),
                 doc_valid_until_date: $("#doc_valid_until_date").val(),
                 reference_number: $("#reference_number").val(),
                 supplier_id: $("#supplier_id").val(),
+                project_id: $("#project_id").val(),
                 remark: $("#remark").val()
             }).then(function (response) {
                 data = response.data;
-                console.log(data);
+                // console.log(data);
 
                 $(".fnotvalid").remove();
 
@@ -151,7 +141,23 @@ $(document).ready(function() {
 
         $("#credit").blur(function(){
             cal_valid_date_from_credit();
-        });        
+        });
+    <?php elseif ($doc_status == "A" || $doc_status == "R"): ?>
+        $("#doc_date").val("<?php echo date('d/m/Y', strtotime($doc_date)); ?>");
+        $("#doc_valid_until_date").val("<?php echo date('d/m/Y', strtotime($doc_valid_until_date)); ?>");
+
+        $("#doc_date").prop("disabled", true);
+        $("#doc_type").prop("disabled", true);
+        $("#credit").prop("disabled", true);
+        $("#doc_valid_until_date").prop("disabled", true);
+        $("#reference_number").prop("disabled", true);
+        $("#supplier_id").prop("disabled", true);
+        $("#project_id").prop("disabled", true);
+        $("#remark").prop("disabled", true);
+    <?php endif; ?>
+
+    <?php if (!empty($doc_id)): ?>
+        $("#doc_type").prop("disabled", true);
     <?php endif; ?>
 });
 

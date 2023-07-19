@@ -1066,6 +1066,7 @@ class PublicController extends CI_Controller {
         $this->data["print_mode"] = "public";
 
         $this->load->model('Purchase_request_m');
+        $this->load->model('Purchase_order_m');
     }
 }
 

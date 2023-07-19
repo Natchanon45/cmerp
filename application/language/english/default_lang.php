@@ -2084,16 +2084,19 @@ $lang["entries"] = "Entries";
 $lang["no_data_available"] = "No data available in table";
 $lang["back_to_stock"] = "Back to stock page";
 $lang["restart_calc"] = "Restart";
+$lang["reference_number"] = "Reference No.";
 
 $lang["purchase_request"] = "Purchase Requisition";
-$lang["purchase_request_add"] = "Add new PR";
+$lang["purchase_request_add"] = "Create new PR";
 $lang["request_date"] = "Request Date";
 $lang["request_by"] = "Request By";
-$lang["pr_no"] = "PR number";
-$lang["pr_type"] = "PR Type";
-$lang["pr_pending"] = "Waiting for approve";
+$lang["pr_no"] = "PR Number";
+$lang["pr_type"] = "Purchase Type";
+$lang["pr_pending"] = "Awaiting approval";
 $lang["pr_approved"] = "Approved";
 $lang["pr_rejected"] = "Rejected";
+$lang["total_amount"] = "Total amount";
+
 $lang["direct_material"] = "Direct Material";
 $lang["indirect_material"] = "Indirect Material";
 $lang["finised_goods"] = "Finished Goods";
@@ -2102,4 +2105,13 @@ $lang["services"] = "Services";
 $lang["expenses"] = "Expenses";
 
 $lang["purchase_order"] = "Purchase Order";
+$lang["purchase_order_add"] = "Create new PO";
+$lang["purchase_by"] = "Purchase by";
+$lang["po_no"] = "PO Number";
+$lang["po_type"] = "PO Type";
+
 $lang["goods_receipt"] = "Goods Receipt";
+$lang["goods_receipt_add"] = "Create new GR";
+
+$lang["payment_voucher"] = "Payment Voucher";
+$lang["payment_voucher_add"] = "Create new PV";

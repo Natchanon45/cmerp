@@ -189,13 +189,13 @@ class Purchaserequest_m extends CI_Model {
             "id" => "", "text" => "-- " . lang("status") . " --"
         );
         $data[] = array(
-            "id" => "1", "text" => lang('pr_pending')
+            "id" => "W", "text" => lang('pr_pending')
         );
         $data[] = array(
-            "id" => "2", "text" => lang('pr_approved')
+            "id" => "A", "text" => lang('pr_approved')
         );
         $data[] = array(
-            "id" => "3", "text" => lang('pr_rejected')
+            "id" => "R", "text" => lang('pr_rejected')
         );
 
         return $data;
@@ -206,21 +206,39 @@ class Purchaserequest_m extends CI_Model {
         $data[] = array(
             "id" => "", "text" => "-- " . lang('pr_type') . " --"
         );
-
-        $result = $this->db->get('pr_type')->result();
-        foreach ($result as $item) {
-            $data[] = array(
-                "id" => $item->id, "text" => lang($item->keyword)
-            );
-        }
+        $data[] = array(
+            "id" => "1", "text" => lang('direct_material')
+        );
+        $data[] = array(
+            "id" => "2", "text" => lang('indirect_material')
+        );
+        $data[] = array(
+            "id" => "3", "text" => lang('finised_goods')
+        );
+        $data[] = array(
+            "id" => "4", "text" => lang('assets')
+        );
+        $data[] = array(
+            "id" => "5", "text" => lang('services')
+        );
+        $data[] = array(
+            "id" => "6", "text" => lang('expenses')
+        );
 
         return $data;
     }
 
     function dev2_getPrTypeById($id)
     {
-        $query = $this->db->get_where('pr_type', array('id' => $id))->row();
-        return lang($query->keyword);
+        $type = array(
+            "1" => "direct_material",
+            "2" => "indirect_material",
+            "3" => "finised_goods",
+            "4" => "assets",
+            "5" => "services",
+            "6" => "expenses"
+        );
+        return lang($type[$id]);
     }
 
     function indexDataSet()

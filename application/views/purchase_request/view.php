@@ -40,15 +40,15 @@
                     <p>
                         <?php
                             $supplier_address = $supplier["city"];
-                            if($supplier_address != "" && $supplier["state"] != "")$supplier_address .= ", ".$supplier["city"];
-                            elseif($supplier_address == "" && $supplier["state"] != "")$supplier_address .= $supplier["city"];
+                            if($supplier_address != "" && $supplier["state"] != "")$supplier_address .= ", ".$supplier["state"];
+                            elseif($supplier_address == "" && $supplier["state"] != "")$supplier_address .= $supplier["state"];
                             if($supplier_address != "" && $supplier["zip"] != "") $supplier_address .= " ".$supplier["zip"];
                             elseif($supplier_address == "" && $supplier["zip"] != "") $supplier_address .= $supplier["zip"];
                             echo $supplier_address;
                         ?>    
                     </p>
                     <?php if(trim($supplier["country"]) != ""): ?>
-                        <p><?php echo $supplier["country"]; ?></p>
+                        <p><?php // echo $supplier["country"]; ?></p>
                     <?php endif; ?>
                     <?php if(trim($supplier["vat_number"]) != ""): ?>
                         <p><?php echo lang("vat_number") . ": " . $supplier["vat_number"]; ?></p>
@@ -120,7 +120,7 @@
                 <tr><td colspan="7">&nbsp;</td></tr>
                 <tr>
                     <td colspan="3">
-                        <?php if($doc_status == "1"): ?>
+                        <?php if($doc_status == "W"): ?>
                             <p><?php echo modal_anchor(get_uri("purchase_request/item"), "<i class='fa fa-plus-circle'></i> " . lang('add_item_product'), array("id"=>"add_item_button", "class" => "btn btn-default", "title" => lang('add_item_product'), "data-post-doc_id" => $doc_id)); ?></p>
                         <?php endif; ?>
                         <p><input type="text" id="total_in_text" readonly></p>
@@ -133,8 +133,8 @@
                         </p>
                         <p id="s-discount">
                             <span class="c1 custom-color">
-                                ส่วนลด&nbsp;<input type="number" id="discount_percent" value="<?php echo $discount_percent; ?>" <?php if($doc_status != "1") echo "disabled"; ?>>
-                                <select id="discount_type" <?php if($doc_status != "1") echo "disabled"; ?>>
+                                ส่วนลด&nbsp;<input type="number" id="discount_percent" value="<?php echo $discount_percent; ?>" <?php if($doc_status != "W") echo "disabled"; ?>>
+                                <select id="discount_type" <?php if($doc_status != "W") echo "disabled"; ?>>
                                     <option value="P" <?php if($discount_type == "P") echo "selected";?>>%</option>
                                     <option value="F" <?php if($discount_type == "F") echo "selected";?>>฿</option>
                                 </select>
@@ -148,7 +148,7 @@
                             <span class="c3"><span class="currency">บาท</span></span>
                         </p>
                         <p id="s-vat">
-                            <span class="c1 custom-color"><input type="checkbox" id="vat_inc" <?php if($vat_inc == "Y") echo "checked" ?> <?php if($doc_status != "1") echo "disabled"; ?>>ภาษีมูลค่าเพิ่ม <?php echo $this->Taxes_m->getVatPercent()."%"; ?></span>
+                            <span class="c1 custom-color"><input type="checkbox" id="vat_inc" <?php if($vat_inc == "Y") echo "checked" ?> <?php if($doc_status != "W") echo "disabled"; ?>>ภาษีมูลค่าเพิ่ม <?php echo $this->Taxes_m->getVatPercent()."%"; ?></span>
                             <span class="c2"><input type="text" id="vat_value" readonly></span>
                             <span class="c3"><span class="currency">บาท</span></span>
                         </p>
@@ -159,8 +159,8 @@
                         </p>
                         <p id="s-wht">
                             <span class="c1 custom-color">
-                                <input type="checkbox" id="wht_inc" <?php if($wht_inc == "Y") echo "checked" ?> <?php if($doc_status != "1") echo "disabled"; ?>>หักภาษี ณ ที่จ่าย
-                                <select id="wht_percent" class="wht custom-color <?php echo $wht_inc == "Y"?"v":"h"; ?>" <?php if($doc_status != "1") echo "disabled"; ?>>
+                                <input type="checkbox" id="wht_inc" <?php if($wht_inc == "Y") echo "checked" ?> <?php if($doc_status != "W") echo "disabled"; ?>>หักภาษี ณ ที่จ่าย
+                                <select id="wht_percent" class="wht custom-color <?php echo $wht_inc == "Y"?"v":"h"; ?>" <?php if($doc_status != "W") echo "disabled"; ?>>
                                     <option value="3">3%</option>
                                     <option value="5">5%</option>
                                     <option value="0.50">0.5%</option>
@@ -192,6 +192,7 @@
         <?php endif; ?>
     </div><!--.docitem-->
 </div><!--#printd-->
+
 <script type="text/javascript">
 window.addEventListener('keydown', function(event) {
     if (event.keyCode === 80 && (event.ctrlKey || event.metaKey) && !event.altKey && (!event.shiftKey || window.chrome || window.opera)) {
@@ -219,6 +220,8 @@ function loadItems(){
         doc_id: '<?php echo $doc_id; ?>'
     }).then(function (response) {
         data = response.data;
+        // console.log(response);
+
         if(data.status == "notfound"){
             $(".docitem tbody").empty().append("<tr><td colspan='7' class='notfound'>"+data.message+"</td></tr>");
         }else if(data.status == "success"){
@@ -237,7 +240,7 @@ function loadItems(){
                     tbody += "<td>"+items[i]["price"]+"</td>";
                     tbody += "<td>"+items[i]["total_price"]+"</td>";
                     tbody += "<td class='edititem'>";
-                        if(data.doc_status == "1"){
+                        if(data.doc_status == "W"){
                             tbody += "<a class='edit' data-post-doc_id='<?php echo $doc_id; ?>' data-post-item_id='"+items[i]["id"]+"' data-act='ajax-modal' data-action-url='<?php echo_uri("purchase_request/item"); ?>' ><i class='fa fa-pencil'></i></a>";
                             tbody += "<a class='delete' data-item_id='"+items[i]["id"]+"'><i class='fa fa-times fa-fw'></i></a>";
                         }
@@ -250,9 +253,7 @@ function loadItems(){
                 deleteItem($(this).data("item_id"));
             });
         }
-
         loadSummary();
-
     }).catch(function (error) {
         console.log(error);
     });
@@ -277,18 +278,16 @@ function loadSummary(){
         wht_percent: $("#wht_percent").val()
     }).then(function(response) { 
         data = response.data;
+        // console.log(response);
 
         $("#sub_total_before_discount").val(data.sub_total_before_discount);
         $("#discount_percent").val(data.discount_percent);
         $("#discount_amount").val(data.discount_amount);
         $("#sub_total").val(data.sub_total);
-
         $("#wht_percent").val(data.wht_percent);
         $("#wht_value").val(data.wht_value);
-
         $("#total").val(data.total);
         $("#total_in_text").val("("+data.total_in_text+")");
-
         $("#payment_amount").val(data.payment_amount);
 
          if(data.discount_type == "P"){
@@ -344,6 +343,7 @@ function deleteItem(item_id){
         doc_id: '<?php echo $doc_id; ?>',
         item_id: item_id
     }).then(function (response) {
+        // console.log(response);
         loadItems();
     });
 }
