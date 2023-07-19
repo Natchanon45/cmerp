@@ -1917,6 +1917,15 @@ class Leads extends MY_Controller
             $this->db->trans_commit();
         }
     }*/
+
+	function getZipCode()
+	{
+		$post = json_decode(file_get_contents('php://input'), true);
+		$data = $this->Leads_m->getZipCode($post);
+
+		echo json_encode(array("success" => true, "data" => $data));
+	}
+
 }
 
 /* End of file leads.php */
