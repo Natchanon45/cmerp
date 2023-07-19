@@ -46,7 +46,7 @@
 		<div class="header clear">
 			<div class="left">
 				<div class="logo">
-	                <?php if(file_exists(get_file_from_setting("estimate_logo", get_setting('only_file_path'))) != null): ?>
+	                <?php if(file_exists($_SERVER['DOCUMENT_ROOT'].get_file_from_setting("estimate_logo", true)) != false): ?>
 	                    <img src="<?php echo get_file_from_setting("estimate_logo", get_setting('only_file_path')); ?>" />
 	                <?php else: ?>
 	                    <span class="nologo">&nbsp;</span>
@@ -65,31 +65,31 @@
 	                <?php endif;?>
 				</div>
 				<div class="buyer">
-					<p class="custom-color"><?php echo lang("client"); ?></p>
-					<?php if($doc["buyer"] != null): ?>
-						<p class="customer_name"><?php echo $doc["buyer"]["company_name"] ?></p>
-                    	<p><?php if($doc["buyer"] != null) echo nl2br($doc["buyer"]["address"]); ?></p>
+					<p class="custom-color"><?php echo lang("supplier_name"); ?></p>
+					<?php if($doc["seller"] != null): ?>
+						<p class="customer_name"><?php echo $doc["seller"]["company_name"] ?></p>
+                    	<p><?php if($doc["seller"] != null) echo nl2br($doc["seller"]["address"]); ?></p>
                     	<p>
 	                        <?php
-	                            $client_address = $doc["buyer"]["city"];
-	                            if($client_address != "" && $doc["buyer"]["state"] != "")$client_address .= ", ".$doc["buyer"]["city"];
-	                            elseif($client_address == "" && $doc["buyer"]["state"] != "")$client_address .= $doc["buyer"]["city"];
-	                            if($client_address != "" && $doc["buyer"]["zip"] != "") $client_address .= " ".$doc["buyer"]["zip"];
-	                            elseif($client_address == "" && $doc["buyer"]["zip"] != "") $client_address .= $doc["buyer"]["zip"];
+	                            $client_address = $doc["seller"]["city"];
+	                            if($client_address != "" && $doc["seller"]["state"] != "")$client_address .= ", ".$doc["seller"]["state"];
+	                            elseif($client_address == "" && $doc["seller"]["state"] != "")$client_address .= $doc["seller"]["state"];
+	                            if($client_address != "" && $doc["seller"]["zip"] != "") $client_address .= " ".$doc["seller"]["zip"];
+	                            elseif($client_address == "" && $doc["seller"]["zip"] != "") $client_address .= $doc["seller"]["zip"];
 	                            echo $client_address;
 	                        ?>    
 	                    </p>
-	                    <?php if(trim($doc["buyer"]["country"]) != ""): ?>
-	                        <p><?php echo $doc["buyer"]["country"]; ?></p>
+	                    <?php if(trim($doc["seller"]["country"]) != ""): ?>
+	                        <p><?php // echo $doc["seller"]["country"]; ?></p>
 	                    <?php endif; ?>
-	                    <?php if(trim($doc["buyer"]["vat_number"]) != ""): ?>
-	                        <p><?php echo lang("vat_number") . ": " . $doc["buyer"]["vat_number"]; ?></p>
+	                    <?php if(trim($doc["seller"]["vat_number"]) != ""): ?>
+	                        <p><?php echo lang("vat_number") . ": " . $doc["seller"]["vat_number"]; ?></p>
 	                    <?php endif; ?>
 					<?php endif; ?>
 				</div>
 			</div>
 			<div class="right">
-				<div class="docname custom-color">ใบสั่งซื้อ</div>
+				<div class="docname custom-color"><?php echo lang('purchase_order'); ?></div>
 				<div class="docinfo">
 					<table>
 	                    <tr>
@@ -105,8 +105,8 @@
 	                        <td><?php echo $doc["credit"]; ?> วัน</td>
 	                    </tr>
 	                    <tr>
-	                        <td class="custom-color">ผู้ขาย</td>
-	                        <td><?php if($doc["seller"] != null) echo $doc["seller"]["first_name"]." ".$doc["seller"]["last_name"]; ?></td>
+	                        <td class="custom-color"><?php echo lang('purchase_by'); ?></td>
+	                        <td><?php if($doc["buyer"] != null) echo $doc["buyer"]["first_name"]." ".$doc["buyer"]["last_name"]; ?></td>
 	                    </tr>
 	                    <?php if(trim($doc["reference_number"]) != ""): ?>
 	                        <tr>
@@ -120,15 +120,15 @@
 					<table>
 	                    <tr>
 	                        <td class="custom-color">ผู้ติดต่อ</td>
-	                        <td><?php if(isset($doc["client_contact"])) echo $doc["client_contact"]["first_name"]." ".$doc["client_contact"]["last_name"]; ?></td>
+	                        <td><?php if(isset($doc["seller_contact"])) echo $doc["seller_contact"]["first_name"]." ".$doc["seller_contact"]["last_name"]; ?></td>
 	                    </tr>
 	                    <tr>
 	                        <td class="custom-color">เบอร์โทร</td>
-	                        <td><?php if(isset($doc["client_contact"])) echo $doc["client_contact"]["phone"]; ?></td>
+	                        <td><?php if(isset($doc["seller_contact"])) echo $doc["seller_contact"]["phone"]; ?></td>
 	                    </tr>
 	                    <tr>
 	                        <td class="custom-color">อีเมล์</td>
-	                        <td><?php if(isset($doc["client_contact"])) echo $doc["client_contact"]["email"]; ?></td>
+	                        <td><?php if(isset($doc["seller_contact"])) echo $doc["seller_contact"]["email"]; ?></td>
 	                    </tr>
 	                </table>
 				</div>
@@ -217,11 +217,11 @@
 		</div><!--.body-->
 		<div class="footer clear">
 			<div class="c1">
-				<div class="on_behalf_of">ในนาม <?php echo $doc["buyer"]["company_name"] ?></div>
+				<div class="on_behalf_of"><?php // echo $doc["seller"]["company_name"]; ?></div>
 				<div class="signature clear">
 					<div class="name">
 	                    <span class="l1"></span>
-	                    <span class="l2">ผู้สั่งซื้อ</span>
+	                    <span class="l2"><?php echo lang('purchase_by'); ?></span>
 	                </div>
 	                <div class="date">
 	                    <span class="l1"></span>
@@ -230,7 +230,7 @@
 				</div>
 			</div>
 			<div class="c2">
-				<div class="on_behalf_of">ในนาม <?php echo get_setting("company_name"); ?></div>
+				<div class="on_behalf_of"><?php // echo get_setting("company_name"); ?></div>
 				<div class="signature clear">
 					<div class="name">
 	                    <span class="l1">

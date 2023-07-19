@@ -49,14 +49,16 @@ $(document).ready(function () {
             task: 'save',
             doc_id : "<?php echo $doc_id; ?>",
             item_id : "<?php if(isset($item_id)) echo $item_id; ?>",
-            product_id:$("#product_id").val(),
-            product_name:$("#product_name").val(),
+            product_id: $("#product_id").val(),
+            product_name: $("#product_name").val(),
             product_description: $("#product_description").val(),
             quantity: $("#quantity").val(),
             unit: $("#unit").val(),
             price: $("#price").val()
         }).then(function (response) {
             data = response.data;
+            // console.log(response);
+
             $(".fnotvalid").remove();
 
             if(data.status == "validate"){
@@ -72,9 +74,8 @@ $(document).ready(function () {
                 alert(data.message);
             }
         }).catch(function (error) {
-
+            console.log(error);
         });
-
     });
 
     $("#product_name").select2({
@@ -86,7 +87,8 @@ $(document).ready(function () {
             data: function (keyword, page) {
                 return {
                     keyword: keyword,
-                    task: "suggest_products"
+                    task: "suggest_products",
+                    type: '<?php echo $doc_type; ?>'
                 };
             },
             results: function (data, page) {
@@ -96,7 +98,7 @@ $(document).ready(function () {
     }).change(function (e) {
         if (e.val === "+") {
             $("#product_name").select2("destroy").val("").focus();
-            $("#product_id").val(""); //set the flag to add new item in library
+            $("#product_id").val(""); // set the flag to add new item in library
         } else if (e.val) {
             $("#product_id").val(e.added.id);
             $("#product_name").val(e.added.text);
@@ -111,9 +113,9 @@ $(document).ready(function () {
 
     <?php if(isset($item_id)): ?>
         $("#product_name").select2('data', {
-                                                id:"<?php echo $product_name; ?>",
-                                                text: "<?php echo $product_name; ?>"
-                                            });
+            id:"<?php echo $product_name; ?>",
+            text: "<?php echo $product_name; ?>"
+        });
     <?php endif; ?>
 
     $(".numb").blur(function(){

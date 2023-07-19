@@ -959,7 +959,8 @@ $tabs = array();
 $tabs[] = '<li><a  role="presentation" class="active" href="javascript:;" data-target="#tab-timeline"> '.lang('timeline').'</a></li>';
 
 
-if( !empty( $this->getRolePermission['p']['can_view_team_members_contact_info']   ) ) {
+// if( !empty( $this->getRolePermission['p']['can_view_team_members_contact_info']   ) ) {
+    if( $user_info->id == $this->login_user->id || $this->login_user->is_admin ) {
 	
 	$tabs[] = '<li><a  role="presentation" href="'.get_uri("team_members/general_info/" . $user_info->id).'" data-target="#tab-general-info"> '.lang('general_info').'</a></li>';
 }
@@ -1114,7 +1115,8 @@ $view_data['tabs'] = implode( '', $tabs );
 		$view_data['addSignalButton'] = ''; 
 		
 		
-		if( $this->getSubmitButton( $user_id ) ) {
+		// if( $this->getSubmitButton( $user_id ) ) {
+        if ($this->login_user->is_admin || $user_id == $this->login_user->id) {
             $view_data['button'] = '<button type="submit" class="btn btn-primary"><span class="fa fa-check-circle"></span> '. lang('save') .'</button>'; 
             $view_data['addSignalButton'] = modal_anchor( get_uri( "team_members/modal_form_signature"), "<i class='fa fa-plus-circle'></i> " . "เพิ่มลายเซ็น", array("class" => "btn btn-default", "title" => 'เพิ่มลายเซ็น', "data-post-user_id" => $view_data['user_info']->id ) ); 
 

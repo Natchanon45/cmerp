@@ -47,26 +47,26 @@
 
                                 if (isset($list->fix_supplier->ratio) && $list->fix_supplier->ratio > $start_quantity) {
                                     $start_quantity = $list->fix_supplier->ratio;
-                                    $start_price = round($list->fix_supplier->price / $list->fix_supplier->ratio, 3);
+                                    $start_price = round($list->fix_supplier->price / $list->fix_supplier->ratio, 2);
                                     $start_total = round($list->fix_supplier->price, 2);
                                 }
 
                                 if (isset($list->fix_supplier->ratio) && $list->fix_supplier->ratio < $start_quantity) {
-                                    $start_price = round($list->fix_supplier->price / $list->fix_supplier->ratio, 3);
+                                    $start_price = round($list->fix_supplier->price / $list->fix_supplier->ratio, 2);
                                     $start_total = round($start_quantity * $start_price, 2);
                                 }
                                 ?>
                                 <td>
-                                    <input type="number" name="pr_quantity" id="pr_quantity_<?php echo $index + 1; ?>" class="form-control text-right" value="<?php echo $start_quantity; ?>" min="<?php echo $list->pr_quantity; ?>" step="0.0001" required>
+                                    <input type="number" name="pr_quantity" id="pr_quantity_<?php echo $index + 1; ?>" class="form-control text-right" value="<?php echo $start_quantity; ?>" min="<?php echo $list->pr_quantity; ?>" required>
                                 </td>
                                 <td>
                                     <input type="text" name="pr_unit" id="pr_unit_<?php echo $index + 1; ?>" class="form-control" value="<?php echo $list->unit; ?>" readonly>
                                 </td>
                                 <td>
-                                    <input type="number" name="pr_price" id="pr_price_<?php echo $index + 1; ?>" class="form-control" value="<?php echo $start_price; ?>" min="0.000" step="0.001" required>
+                                    <input type="number" name="pr_price" id="pr_price_<?php echo $index + 1; ?>" class="form-control" value="<?php echo $start_price; ?>" required>
                                 </td>
                                 <td>
-                                    <input type="number" name="pr_price_total" id="pr_price_total_<?php echo $index + 1; ?>" class="form-control" value="<?php echo $start_total; ?>" min="0.00" step="0.01" required>
+                                    <input type="number" name="pr_price_total" id="pr_price_total_<?php echo $index + 1; ?>" class="form-control" value="<?php echo $start_total; ?>" required>
                                 </td>
                             </tr>
                         </tbody>
@@ -218,7 +218,7 @@
             result = total / quantity;
         }
 
-        return result.toFixed(3);
+        return result.toFixed(2);
     }
 
     // api-fetch-post-async

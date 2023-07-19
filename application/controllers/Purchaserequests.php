@@ -2132,7 +2132,7 @@ class PurchaseRequests extends MY_Controller
 					'success' => true,
 					'data' => $post,
 					'message' => lang('record_saved')
-				); // MARK
+				);
 			} catch (Exception $e) {
 				$result = array(
 					'success' => false,
