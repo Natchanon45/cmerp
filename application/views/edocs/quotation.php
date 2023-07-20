@@ -120,15 +120,15 @@
 					<table>
 	                    <tr>
 	                        <td class="custom-color">ผู้ติดต่อ</td>
-	                        <td><?php if(isset($doc["client_contact"])) echo $doc["client_contact"]["first_name"]." ".$doc["client_contact"]["last_name"]; ?></td>
+	                        <td><?php if(isset($doc["buyer_contact"])) echo $doc["buyer_contact"]["first_name"]." ".$doc["buyer_contact"]["last_name"]; ?></td>
 	                    </tr>
 	                    <tr>
 	                        <td class="custom-color">เบอร์โทร</td>
-	                        <td><?php if(isset($doc["client_contact"])) echo $doc["client_contact"]["phone"]; ?></td>
+	                        <td><?php if(isset($doc["buyer_contact"])) echo $doc["buyer_contact"]["phone"]; ?></td>
 	                    </tr>
 	                    <tr>
 	                        <td class="custom-color">อีเมล์</td>
-	                        <td><?php if(isset($doc["client_contact"])) echo $doc["client_contact"]["email"]; ?></td>
+	                        <td><?php if(isset($doc["buyer_contact"])) echo $doc["buyer_contact"]["email"]; ?></td>
 	                    </tr>
 	                </table>
 				</div>
