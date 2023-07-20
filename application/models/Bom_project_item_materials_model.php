@@ -190,7 +190,7 @@ class Bom_project_item_materials_model extends Crud_model {
     function dev2_getBomMaterialToCreatePrInMaterialsId($material_ids)
     {
         $sql = "
-        SELECT bpim.material_id, bs.name, bs.production_name, bs.unit, SUM(bpim.ratio) AS ratio 
+        SELECT bpim.material_id, bs.name, bs.production_name, bs.description, bs.unit, SUM(bpim.ratio) AS ratio 
         FROM bom_project_item_materials bpim 
         LEFT JOIN bom_materials bs ON bpim.material_id = bs.id 
         WHERE bpim.pr_id IS NULL AND bpim.stock_id IS NULL AND bpim.ratio < 0 AND bpim.material_id IN (" . $material_ids . ") 
@@ -204,7 +204,7 @@ class Bom_project_item_materials_model extends Crud_model {
     function dev2_getBomMaterialToCreatePrInBpimId($bpim_ids)
     {
         $sql = "
-        SELECT bpim.id, bpim.material_id, bs.name, bs.production_name, bs.unit, bpim.ratio 
+        SELECT bpim.id, bpim.material_id, bs.name, bs.production_name, bs.description, bs.unit, bpim.ratio 
         FROM bom_project_item_materials bpim 
         LEFT JOIN bom_materials bs ON bpim.material_id = bs.id 
         WHERE bpim.pr_id IS NULL AND bpim.stock_id IS NULL AND bpim.ratio < 0 

@@ -1962,7 +1962,7 @@ class PurchaseRequests extends MY_Controller
 		$select_items = $this->Bom_project_item_materials_model->dev2_getBomMaterialToCreatePrInBpimId(implode(',', $post));
 		foreach ($select_items as $item) {
 			$bom_supplier = $this->Bom_suppliers_model->dev2_getBomSupplierByMaterialId($item->material_id);
-			$item->material_name = $item->name . ' ' . $item->production_name;
+			$item->material_name = $item->name . ' - ' . $item->production_name;
 			$item->pr_quantity = $item->ratio * -1;
 			$item->unit = strtoupper($item->unit);
 			$item->fix_supplier = $bom_supplier;
@@ -1989,7 +1989,7 @@ class PurchaseRequests extends MY_Controller
 		$select_items = $this->Bom_project_item_materials_model->dev2_getBomMaterialToCreatePrInMaterialsId(implode(',', $post));
 		foreach ($select_items as $item) {
 			$bom_supplier = $this->Bom_suppliers_model->dev2_getBomSupplierByMaterialId($item->material_id);
-			$item->material_name = $item->name . ' ' . $item->production_name;
+			$item->material_name = $item->name . ' - ' . $item->production_name;
 			$item->pr_quantity = $item->ratio * -1;
 			$item->unit = strtoupper($item->unit);
 			$item->fix_supplier = $bom_supplier;
@@ -2018,10 +2018,12 @@ class PurchaseRequests extends MY_Controller
 				foreach ($post['supplier_unique'] as $id) {
 					$data[$id] = array(
 						'pr_type' => 1,
+						'project_id' => 0,
 						'supplier_id' => $id,
-						'supplier_name' => $this->Bom_suppliers_model->dev2_getSupplierNameById($id),
-						'requisition_date' => date('Y-m-d'),
-						'created_by' => $this->login_user->id
+						'doc_date' => date('Y-m-d'),
+						'doc_valid_until_date' => date('Y-m-d'),
+						'created_by' => $this->login_user->id,
+						'created_datetime' => date('Y-m-d h:i:s')
 					);
 
 					$pr_list[$id] = $this->Purchaserequests_model->dev2_prPostHeader($data[$id]);
@@ -2031,14 +2033,15 @@ class PurchaseRequests extends MY_Controller
 						if ($id == $value) {
 							$data_detail[$key] = array(
 								'pr_id' => $pr_list[$id],
-								'item_no' => $number,
+								'sort' => $number,
 								'bpim_id' => $post['bpim_ids'][$key],
-								'material_id' => $post['material_ids'][$key],
-								'material_name' => $post['material_names'][$key],
-								'pr_quantity' => floatval($post['pr_quantitys'][$key]),
-								'pr_unit' => $post['pr_units'][$key],
-								'pr_price' => floatval($post['pr_prices'][$key]),
-								'created_by' => $this->login_user->id
+								'product_id' => $post['material_ids'][$key],
+								'product_name' => $post['material_names'][$key],
+								'product_description' => $post['material_descs'][$key],
+								'quantity' => floatval($post['pr_quantitys'][$key]),
+								'unit' => $post['pr_units'][$key],
+								'price' => floatval($post['pr_prices'][$key]),
+								'total_price' => floatval($post['pr_price_totals'][$key])
 							); 
 
 							$pr_item_list[$key] = $this->Purchaserequests_model->dev2_prPostDetail($data_detail[$key]);
@@ -2058,7 +2061,7 @@ class PurchaseRequests extends MY_Controller
 					'success' => true,
 					'data' => $post,
 					'message' => lang('record_saved')
-				); // MARK
+				);
 			} catch (Exception $e) {
 				$result = array(
 					'success' => false,
@@ -2093,10 +2096,12 @@ class PurchaseRequests extends MY_Controller
 				foreach ($post['supplier_unique'] as $id) {
 					$data[$id] = array(
 						'pr_type' => 1,
+						'project_id' => 0,
 						'supplier_id' => $id,
-						'supplier_name' => $this->Bom_suppliers_model->dev2_getSupplierNameById($id),
-						'requisition_date' => date('Y-m-d'),
-						'created_by' => $this->login_user->id
+						'doc_date' => date('Y-m-d'),
+						'doc_valid_until_date' => date('Y-m-d'),
+						'created_by' => $this->login_user->id,
+						'created_datetime' => date('Y-m-d h:i:s')
 					);
 
 					$pr_list[$id] = $this->Purchaserequests_model->dev2_prPostHeader($data[$id]);
@@ -2106,14 +2111,15 @@ class PurchaseRequests extends MY_Controller
 						if ($id == $value) {
 							$data_detail[$key] = array(
 								'pr_id' => $pr_list[$id],
-								'item_no' => $number,
-								'material_id' => $post['material_ids'][$key],
-								'material_name' => $post['material_names'][$key],
-								'pr_quantity' => floatval($post['pr_quantitys'][$key]),
-								'pr_unit' => $post['pr_units'][$key],
-								'pr_price' => floatval($post['pr_prices'][$key]),
-								'created_by' => $this->login_user->id
-							); 
+								'sort' => $number,
+								'product_id' => $post['material_ids'][$key],
+								'product_name' => $post['material_names'][$key],
+								'product_description' => $post['material_descs'][$key],
+								'quantity' => floatval($post['pr_quantitys'][$key]),
+								'unit' => $post['pr_units'][$key],
+								'price' => floatval($post['pr_prices'][$key]),
+								'total_price' => floatval($post['pr_price_totals'][$key])
+							);
 
 							$pr_item_list[$key] = $this->Purchaserequests_model->dev2_prPostDetail($data_detail[$key]);
 
@@ -2154,6 +2160,11 @@ class PurchaseRequests extends MY_Controller
 	function pr_success()
 	{
 		$this->load->view('purchaserequests/pr_success');
+	}
+
+	function pr_failure()
+	{
+		$this->load->view('purchaserequests/pr_failure');
 	}
 
 }
