@@ -205,6 +205,11 @@ header .button i{
     margin-top: 8px;
 }
 
+.paper .header .right .docinfo td:first-child,
+.paper .header .right .buyercontact td:first-child{
+    width: 100px;
+}
+
 .paper .body{
     margin-bottom: 20px;
     min-height: 760px;
