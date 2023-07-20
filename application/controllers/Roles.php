@@ -340,8 +340,9 @@ class roles extends MY_Controller {
         if($this->input->post('create_product_item') == "Y") $create_product_item = true;
 
         $accounting_quotation_access = $this->input->post('accounting_quotation_access') == "Y" ? true : false;
-        $accounting_billing_note_access = $this->input->post('accounting_billing_note_access') == "Y" ? true : false;
         $accounting_invoice_access = $this->input->post('accounting_invoice_access') == "Y" ? true : false;
+        $accounting_tax_invoice_access = $this->input->post('accounting_tax_invoice_access') == "Y" ? true : false;
+        $accounting_billing_note_access = $this->input->post('accounting_billing_note_access') == "Y" ? true : false;
         $accounting_receipt_access = $this->input->post('accounting_receipt_access') == "Y" ? true : false;
         $accounting_credit_note_access = $this->input->post('accounting_credit_note_access') == "Y" ? true : false;
         $accounting_debit_note_access = $this->input->post('accounting_debit_note_access') == "Y" ? true : false;
@@ -445,8 +446,9 @@ class roles extends MY_Controller {
         	"create_product_item"=>$create_product_item,
             "accounting"=>[
                 "quotation"=>["access"=>$accounting_quotation_access],
-                "billing_note"=>["access"=>$accounting_billing_note_access],
                 "invoice"=>["access"=>$accounting_invoice_access],
+                "tax_invoice"=>["access"=>$accounting_tax_invoice_access],
+                "billing_note"=>["access"=>$accounting_billing_note_access],
                 "receipt"=>["access"=>$accounting_receipt_access],
                 "credit_note"=>["access"=>$accounting_credit_note_access],
                 "debit_note"=>["access"=>$accounting_debit_note_access]
@@ -676,8 +678,9 @@ class roles extends MY_Controller {
             $view_data['create_product_item'] = get_array_value($permissions, "create_product_item");
 
             $view_data['accounting']['quotation']['access'] = !isset($permissions["accounting"]["quotation"]) ? false : $permissions["accounting"]["quotation"]["access"];
-            $view_data['accounting']['billing_note']['access'] = !isset($permissions["accounting"]["billing_note"]) ? false : $permissions["accounting"]["billing_note"]["access"];
             $view_data['accounting']['invoice']['access'] = !isset($permissions["accounting"]["invoice"]) ? false : $permissions["accounting"]["invoice"]["access"];
+            $view_data['accounting']['tax_invoice']['access'] = !isset($permissions["accounting"]["tax_invoice"]) ? false : $permissions["accounting"]["tax_invoice"]["access"];
+            $view_data['accounting']['billing_note']['access'] = !isset($permissions["accounting"]["billing_note"]) ? false : $permissions["accounting"]["billing_note"]["access"];
             $view_data['accounting']['receipt']['access'] = !isset($permissions["accounting"]["receipt"]) ? false : $permissions["accounting"]["receipt"]["access"];
             $view_data['accounting']['credit_note']['access'] = !isset($permissions["accounting"]["credit_note"]) ? false : $permissions["accounting"]["credit_note"]["access"];
             $view_data['accounting']['debit_note']['access'] = !isset($permissions["accounting"]["debit_note"]) ? false : $permissions["accounting"]["debit_note"]["access"];

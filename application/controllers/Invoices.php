@@ -9,6 +9,8 @@ class Invoices extends MY_Controller {
             $this->session->set_flashdata('notice_error', lang('no_permissions'));
             redirect(get_uri("accounting/sell"));
         }
+
+        $this->data["company_setting"] = $this->Settings_m->getCompany();
     }
 
     function index() {
@@ -16,11 +18,24 @@ class Invoices extends MY_Controller {
             jout(["data"=>$this->Invoices_m->indexDataSet()]);
             return;
         }elseif(isset($this->json->task)){
+            if($this->json->task == "get_doc") jout($this->Invoices_m->getDoc($this->json->doc_id));
             if($this->json->task == "update_doc_status") jout($this->Invoices_m->updateStatus());
             return;    
         }
 
         redirect("/accounting/sell/invoices");
+    }
+
+    function payment(){
+        if(isset($this->json->task)){
+            if($this->json->task == "get_doc") jout($this->Invoices_m->addPayment($this->json->doc_id));
+            return;   
+        }        
+
+        $this->data["doc"] = $doc = $this->Invoices_m->getDoc($this->input->post("doc_id"));
+        if($doc["status"] != "success") return;
+
+        $this->load->view( 'invoices/payment', $this->data);
     }
 
     function addedit(){
@@ -53,6 +68,7 @@ class Invoices extends MY_Controller {
             return;
         }
 
+        $data["company_setting"] = $this->Settings_m->getCompany();
         $data["created"] = $this->Users_m->getInfo($data["created_by"]);
         $data["client"] = $this->Customers_m->getInfo($data["customer_id"]);
         $data["client_contact"] = $this->Customers_m->getContactInfo($data["client_id"]);

@@ -84,16 +84,22 @@
                             <a class="<?php if($module == "quotations") echo 'custom-color'; ?>">ใบเสนอราคา</a>
                         </li>
                     <?php endif; ?>
+                    <?php if($this->Permission_m->accounting["invoice"]["access"] == true): ?>
+                        <?php $number_of_enable_module++; ?>
+                        <li data-module="invoices" class="<?php if($module == "invoices") echo 'active custom-bg01'; ?>">
+                            <a class="<?php if($module == "invoices") echo 'custom-color'; ?>">ใบแจ้งหนี้</a>
+                        </li>
+                    <?php endif; ?>
+                    <?php if($this->Permission_m->accounting["tax_invoice"]["access"] == true && $company_setting["company_vat_registered"] == "Y"): ?>
+                        <?php $number_of_enable_module++; ?>
+                        <li data-module="tax-invoices" class="<?php if($module == "tax-invoices") echo 'active custom-bg01'; ?>">
+                            <a class="<?php if($module == "tax-invoices") echo 'custom-color'; ?>">ใบกำกับภาษี</a>
+                        </li>
+                    <?php endif; ?>
                     <?php if($this->Permission_m->accounting["billing_note"]["access"] == true): ?>
                         <?php $number_of_enable_module++; ?>
                         <li data-module="billing-notes" class="<?php if($module == "billing-notes") echo 'active custom-bg01'; ?>">
                             <a class="<?php if($module == "billing-notes") echo 'custom-color'; ?>">ใบวางบิล</a>
-                        </li>
-                    <?php endif; ?>
-                    <?php if($this->Permission_m->accounting["invoice"]["access"] == true): ?>
-                        <?php $number_of_enable_module++; ?>
-                        <li data-module="invoices" class="<?php if($module == "invoices") echo 'active custom-bg01'; ?>">
-                            <a class="<?php if($module == "invoices") echo 'custom-color'; ?>">ใบกำกับภาษี</a>
                         </li>
                     <?php endif; ?>
                     <?php if($this->Permission_m->accounting["receipt"]["access"] == true): ?>
@@ -170,13 +176,17 @@ function loadDataGrid(){
         $(".buttons li.add a").attr("data-action-url", "<?php echo get_uri("quotations/addedit"); ?>");
         $(".buttons li.add span").append("เพิ่มใบเสนอราคา");
         doc_status = [{id:"", text:"-- <?php echo lang("status"); ?> --"}, {id:"W", text:"รออนุมัติ"}, {id:"A", text:"อนุมัติ"}, {id:"P", text:"แบ่งจ่าย"}, {id:"I", text:"ดำเนินการแล้ว"}, {id:"R", text:"ไม่อนุมัติ"}];
+    }else if(active_module == "invoices"){
+        $(".buttons li.add a").attr("data-action-url", "<?php echo get_uri("invoices/addedit"); ?>");
+        $(".buttons li.add span").append("เพิ่มใบแจ้งหนี้");
+        doc_status = [{id:"", text:"-- <?php echo lang("status"); ?> --"}, {id:"P", text:"รอเก็บเงิน"}, {id:"R", text:"เปิดใบเสร็จแล้ว"}, {id:"V", text:"ยกเลิก"}];
+    }else if(active_module == "tax-invoices"){
+        $(".buttons li.add").css("display", "none");
+        doc_status = [{id:"", text:"-- <?php echo lang("status"); ?> --"}, {id:"P", text:"รอเก็บเงิน"}, {id:"R", text:"เปิดใบเสร็จแล้ว"}, {id:"V", text:"ยกเลิก"}];
     }else if(active_module == "billing-notes"){
         $(".buttons li.add a").attr("data-action-url", "<?php echo get_uri("billing-notes/addedit"); ?>");
         $(".buttons li.add span").append("เพิ่มใบวางบิล");
         doc_status = [{id:"", text:"-- <?php echo lang("status"); ?> --"}, {id:"W", text:"รอวางบิล"}, {id:"A", text:"วางบิลแล้ว"}, {id:"I", text:"เปิดบิลแล้ว"}, {id:"V", text:"ยกเลิก"}];
-    }else if(active_module == "invoices"){
-        $(".buttons li.add").css("display", "none");
-        doc_status = [{id:"", text:"-- <?php echo lang("status"); ?> --"}, {id:"P", text:"รอเก็บเงิน"}, {id:"R", text:"เปิดใบเสร็จแล้ว"}, {id:"V", text:"ยกเลิก"}];
     }else if(active_module == "receipts"){
         $(".buttons li.add a").attr("data-action-url", "<?php echo get_uri("receipts/addedit"); ?>");
         $(".buttons li.add span").append("เพิ่มใบเสร็จรับเงิน");
@@ -237,6 +247,9 @@ function loadDataGrid(){
 
     $("#datagrid").on("draw.dt", function () {
         $(".dropdown_status").on( "change", function() {
+            var doc_id = $(this).data("doc_id");
+            var doc_number = $(this).data("doc_number");
+
             if(active_module == "quotations" && $(this).val() == "P"){
                 var total_billing_note = 0;
                 axios.post("<?php echo_uri(); ?>"+active_module, {
@@ -252,6 +265,35 @@ function loadDataGrid(){
                         updateStatus($(this).data("doc_id"), $(this).val());
                     }
                 });
+            }else if(active_module == "invoices"){
+                if($(this).val() == "P"){
+                    axios.post("<?php echo_uri(); ?>"+active_module, {
+                        task: 'get_doc',
+                        doc_id: doc_id
+                    }).then(function (response) {
+                        data = response.data;
+
+                        $("#popup").attr("data-title", "รับชำระเงิน #"+data.doc_number);
+                        $("#popup").attr("data-doc_id", data.doc_id);
+                        $("#popup").attr("data-action-url", "<?php echo_uri("invoices/payment/"); ?>").trigger( "click" );
+
+
+                        
+                        /*if(total_billing_note <= 0){
+                            $("#popup").attr("data-title", "แบ่งจ่ายใบวางบิล");
+                            $("#popup").attr("data-action-url", "<?php echo_uri("quotations/partial-payment-type/"); ?>"+$(this).data("doc_id")).trigger( "click" );
+                        }else{
+                            updateStatus($(this).data("doc_id"), $(this).val());
+                        }*/
+                    }).finally(() => {
+                        /*if(total_billing_note <= 0){
+                            $("#popup").attr("data-title", "แบ่งจ่ายใบวางบิล");
+                            $("#popup").attr("data-action-url", "<?php echo_uri("quotations/partial-payment-type/"); ?>"+$(this).data("doc_id")).trigger( "click" );
+                        }else{
+                            updateStatus($(this).data("doc_id"), $(this).val());
+                        }*/
+                    });
+                }
             }else{
                 updateStatus($(this).data("doc_id"), $(this).val());
             }
@@ -276,7 +318,7 @@ function updateStatus(docId, updateStatusTo){
             appAlert.error(data.message, {duration: 5000});
         }
 
-        //$("#datagrid").appTable({newData: data.dataset, dataId: data.doc_id});
+        $("#datagrid").appTable({newData: data.dataset, dataId: data.doc_id});
     }).catch(function (error) {});
 }
 </script>

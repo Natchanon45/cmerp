@@ -32,6 +32,16 @@
                     </div>
 
                     <div class="form-group">
+                        <label for="company_vat_registered" class=" col-md-2"><?php echo lang('company_vat_registered'); ?></label>
+                        <div class=" col-md-10">
+                            <select id="company_vat_registered" name="company_vat_registered" class="form-control">
+                                <option value="Y" <?php if(get_setting("company_vat_registered") == "Y") echo 'selected'; ?>><?php echo lang('company_vat_registered_y'); ?></option>
+                                <option value="N" <?php if(get_setting("company_vat_registered") == "N") echo 'selected'; ?>><?php echo lang('company_vat_registered_n'); ?></option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
                         <label for="company_address" class=" col-md-2"><?php echo lang('address'); ?></label>
                         <div class=" col-md-10">
                             <?php
@@ -101,7 +111,19 @@
                             ?>
                         </div>
                     </div>
-
+                    <div class="form-group">
+                        <label for="company_vat_number" class=" col-md-2">ตราประทับองค์กร</label>
+                        <div class=" col-md-10">
+                            <?php
+                            $estimate_logo = "estimate_logo";
+                            if (!get_setting($estimate_logo)) {
+                                $estimate_logo = "invoice_logo";
+                            }
+                            ?>
+                            <img id="estimate-logo-preview" src="<?php echo get_file_from_setting($estimate_logo); ?>" alt="..." />
+                        </div>
+                        
+                    </div>
                 </div>
                 <div class="panel-footer">
                     <button type="submit" class="btn btn-primary"><span class="fa fa-check-circle"></span> <?php echo lang('save'); ?></button>
@@ -120,6 +142,5 @@
                 appAlert.success(result.message, {duration: 10000});
             }
         });
-
     });
 </script>

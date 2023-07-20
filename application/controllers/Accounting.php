@@ -9,8 +9,9 @@ class Accounting extends MY_Controller {
             $this->session->set_flashdata('notice_error', lang('no_permissions'));
             redirect("/");
         }*/
-
         $this->load->model('Purchaserequest_m');
+
+        $this->data["company_setting"] = $this->Settings_m->getCompany();
     }
 
     function index(){
@@ -26,10 +27,12 @@ class Accounting extends MY_Controller {
     function sell(){
         if($this->Permission_m->accounting["quotation"]["access"] == true){
             $this->data["module"] = "quotations";
-        }elseif($this->Permission_m->accounting["billing_note"]["access"] == true){
-            $this->data["module"] = "billing-notes";
         }elseif($this->Permission_m->accounting["invoice"]["access"] == true){
             $this->data["module"] = "invoices";
+        }elseif($this->Permission_m->accounting["tax_invoice"]["access"] == true){
+            $this->data["module"] = "tax-invoices";
+        }elseif($this->Permission_m->accounting["billing_note"]["access"] == true){
+            $this->data["module"] = "billing-notes";
         }elseif($this->Permission_m->accounting["receipt"]["access"] == true){
             $this->data["module"] = "receipts";
         }elseif($this->Permission_m->accounting["credit_note"]["access"] == true){
