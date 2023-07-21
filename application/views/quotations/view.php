@@ -213,7 +213,9 @@
                     <span class="l1">
                         <span class="signature">
                             <?php if($approved_by != null): ?>
-                                <img src='<?php echo "/".$this->Users_m->getSignature($approved_by); ?>'>
+                                <?php if(null != $signature = $this->Users_m->getSignature($approved_by)): ?>
+                                    <img src='<?php echo "/".$signature; ?>'>
+                                <?php endif; ?>
                             <?php endif; ?>
                         </span>
                     </span>
