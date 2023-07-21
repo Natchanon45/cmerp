@@ -252,15 +252,17 @@
 					<div class="name">
 	                    <span class="l1">
 	                    	<?php $signature = $this->Users_m->getSignature($doc["approved_by"]); ?>
-	                    	<?php if($doc["doc_status"] == "A" && $signature != null): ?>
-	                            <img src='<?php echo str_replace("./", "/", $signature); ?>'>
+	                    	<?php if($doc["approved_by"] != null): ?>
+	                    		<?php if(null != $signature = $this->Users_m->getSignature($doc["approved_by"])): ?>
+	                            	<img src='<?php echo "/".$signature; ?>'>
+	                        	<?php endif; ?>
 	                        <?php endif; ?>
 	                    </span>
 	                    <span class="l2">ผู้อนุมัติ</span>
 	                </div>
 	                <div class="date">
 	                    <span class="l1">
-	                    	<?php if($doc["doc_status"] == "A"): ?>
+	                    	<?php if($doc["approved_by"] != null): ?>
 	                            <span class="approved_date"><?php echo convertDate($doc["approved_datetime"], true); ?></span>
 	                        <?php endif; ?>
 	                    </span>
