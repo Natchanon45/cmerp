@@ -13,10 +13,6 @@
     color: #ff0000;
     font-weight: bold;transform: rotate(5deg);
 }
-
-.form-group.company-stamp{
-    margin-top: 30px;
-}
 </style>
 <div id="page-content" class="p20 clearfix">
     <div class="row">
@@ -136,7 +132,7 @@
                         <div class=" col-md-10">
                             <div id="company-stamp-preview" class="pull-left mr15">
                                 <?php if($company_setting["company_stamp"] != ""): ?>
-                                    <img src="<?php echo get_file_from_setting($company_stamp); ?>" />
+                                    <img src="<?php echo get_file_from_setting("company_stamp"); ?>" />
                                 <?php else: ?>
                                     <span id="company-stamp-empty">Your Company</span>
                                 <?php endif;?>
