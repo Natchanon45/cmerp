@@ -110,6 +110,8 @@ $(document).ready(function() {
             gen_key: this.checked
         }).then(function (response) {
             data = response.data;
+            // console.log(response);
+
             if(typeof data.sharelink != "undefined"){
                 $("#share_link").val(data.sharelink);
             }else{

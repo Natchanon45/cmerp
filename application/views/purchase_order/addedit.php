@@ -7,6 +7,18 @@
     </div>
 
     <div class="form-group">
+        <label for="doc_type" class=" col-md-3"><?php echo lang('po_type'); ?></label>
+        <div class="col-md-9">
+            <?php $type_rows = $this->Bom_suppliers_model->getPurchaseType(); ?>
+            <select id="doc_type" class="form-control">
+                <?php foreach($type_rows as $type): ?>
+                    <option value="<?php echo $type["id"]; ?>" <?php if($doc_type == $type["id"]) echo "selected"?>><?php echo $type["text"]; ?></option>
+                <?php endforeach; ?>
+            </select>
+        </div>
+    </div>
+
+    <div class="form-group">
         <label for="credit" class=" col-md-3">เครดิต (วัน)</label>
         <div class="col-md-9" style="display: grid;grid-template-columns: auto auto;align-items: center; justify-items: center;justify-content: start;">
             <input type="number" id="credit" value="<?php echo $credit; ?>" class="form-control" autocomplete="off" >
@@ -24,33 +36,20 @@
     </div>
 
     <div class="form-group">
-        <label for="client_id" class=" col-md-3"><?php echo lang('client'); ?></label>
+        <label for="supplier_id" class=" col-md-3"><?php echo lang('select_supplier'); ?></label>
         <div class="col-md-9">
-            <?php $crows = $this->Clients_m->getRows(); ?>
-            <select id="client_id" class="form-control">
+            <?php $crows = $this->Bom_suppliers_model->getRows(); ?>
+            <select id="supplier_id" class="form-control">
                 <option value="">-</option>
                 <?php foreach($crows as $crow): ?>
-                    <option value="<?php echo $crow->id; ?>" <?php if($client_id == $crow->id) echo "selected"?>><?php echo $crow->company_name; ?></option>
+                    <option value="<?php echo $crow->id; ?>" <?php if($supplier_id == $crow->id) echo "selected"?>><?php echo $crow->company_name; ?></option>
                 <?php endforeach; ?>
             </select>
         </div>
     </div>
 
     <div class="form-group">
-        <label for="lead_id" class=" col-md-3">ลูกค้าผู้มุ่งหวัง</label>
-        <div class="col-md-9">
-            <?php $lrows = $this->Leads_m->getRows(); ?>
-            <select id="lead_id" class="form-control">
-                <option value="">-</option>
-                <?php foreach($lrows as $lrow): ?>
-                    <option value="<?php echo $lrow->id; ?>" <?php if($lead_id == $lrow->id) echo "selected"?>><?php echo $lrow->company_name; ?></option>
-                <?php endforeach; ?>
-            </select>
-        </div>
-    </div>
-
-    <div class="form-group">
-        <label for="project_id" class=" col-md-3"><?php echo lang('project'); ?></label>
+        <label for="project_id" class=" col-md-3"><?php echo 'อ้างอิง' .  lang('project'); ?></label>
         <div class="col-md-9">
             <?php $prows = $this->Projects_m->getRows(); ?>
             <select id="project_id" class="form-control">
@@ -61,13 +60,16 @@
             </select>
         </div>
     </div>
+
+    <?php $po_placeholder = "ใบสั่งซื้อเป็นเอกสารข้อตกลงหรือสัญญาในเชิงพาณิชย์ ที่ออกโดยผู้ซื้อเพื่อสั่งซื้อวัตถุดิบ, สินค้าหรือบริการจากผู้จัดจำหน่ายหรือผู้ให้บริการ โดยระบุชนิด, จำนวนและราคา พร้อมทั้งอาจจะรวมถึงเงื่อนไขต่างๆ ตามที่ได้ตกลงกับผู้จัดจำหน่าย"; ?>
     <div class="form-group">
         <label for="remark" class=" col-md-3">หมายเหตุ</label>
         <div class=" col-md-9">
-            <textarea id="remark" name="remark" placeholder="หมายเหตุ" class="form-control"><?php echo $remark; ?></textarea>
+            <textarea id="remark" name="remark" placeholder="<?php echo $po_placeholder; ?>" class="form-control" style="height: 120px;"><?php echo $remark; ?></textarea>
         </div>
     </div>
 </div>
+
 <div class="modal-footer">
     <button type="button" class="btn btn-default" data-dismiss="modal"><span class="fa fa-close"></span> <?php echo lang('close'); ?></button>
     <?php if($doc_status == "W" || !isset($doc_id)): ?>
@@ -78,30 +80,26 @@
 <script type="text/javascript">
 $(document).ready(function() {
     <?php if($doc_status == "W" || !isset($doc_id)): ?>
+        $('#supplier_id').select2();
         $('#project_id').select2();
-
-        $("#client_id").select2().on("change", function (e) {
-            $("#lead_id").select2("val", "");
-        });
-
-        $("#lead_id").select2().on("change", function (e) {
-            $("#client_id").select2("val", "");
-        });
+        $('#doc_type').select2();
 
         $("#btnSubmit").click(function() {
             axios.post('<?php echo current_url(); ?>', {
                 task: 'save_doc',
-                doc_id : "<?php if(isset($doc_id)) echo $doc_id; ?>",
-                doc_date:$("#doc_date").val(),
+                doc_id: "<?php if(isset($doc_id)) echo $doc_id; ?>",
+                doc_date: $("#doc_date").val(),
+                doc_type: $("#doc_type").val(),
                 credit: $("#credit").val(),
-                doc_valid_until_date: $("#doc_valid_until_date").val(),
+                due_date: $("#doc_valid_until_date").val(),
                 reference_number: $("#reference_number").val(),
-                client_id: $("#client_id").val(),
-                lead_id: $("#lead_id").val(),
+                supplier_id: $("#supplier_id").val(),
                 project_id: $("#project_id").val(),
                 remark: $("#remark").val()
             }).then(function (response) {
                 data = response.data;
+                console.log(data);
+
                 $(".fnotvalid").remove();
 
                 if(data.status == "validate"){
@@ -139,11 +137,27 @@ $(document).ready(function() {
         });
 
         doc_date.datepicker("setDate", "<?php echo date('d/m/Y', strtotime($doc_date)); ?>");
-        doc_valid_until_date.datepicker("setDate", "<?php echo date('d/m/Y', strtotime($doc_valid_until_date)); ?>");
+        doc_valid_until_date.datepicker("setDate", "<?php echo date('d/m/Y', strtotime($due_date)); ?>");
 
         $("#credit").blur(function(){
             cal_valid_date_from_credit();
-        });        
+        });
+    <?php elseif ($doc_status == "A" || $doc_status == "R"): ?>
+        $("#doc_date").val("<?php echo date('d/m/Y', strtotime($doc_date)); ?>");
+        $("#doc_valid_until_date").val("<?php echo date('d/m/Y', strtotime($due_date)); ?>");
+
+        $("#doc_date").prop("disabled", true);
+        $("#doc_type").prop("disabled", true);
+        $("#credit").prop("disabled", true);
+        $("#doc_valid_until_date").prop("disabled", true);
+        $("#reference_number").prop("disabled", true);
+        $("#supplier_id").prop("disabled", true);
+        $("#project_id").prop("disabled", true);
+        $("#remark").prop("disabled", true);
+    <?php endif; ?>
+
+    <?php if (!empty($doc_id)): ?>
+        $("#doc_type").prop("disabled", true);
     <?php endif; ?>
 });
 

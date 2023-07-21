@@ -25,25 +25,25 @@ $(document).ready(function () {
             }
         }
     });
+    
     $("#company_name").focus();
-
-     $('[data-toggle="tooltip"]').tooltip();
+    $('[data-toggle="tooltip"]').tooltip();
 
     <?php if (isset($currency_dropdown)) { ?>
-            if ($('#currency').length) {
-                $('#currency').select2({data: <?php echo json_encode($currency_dropdown); ?>});
-            }
+        if ($('#currency').length) {
+            $('#currency').select2({data: <?php echo json_encode($currency_dropdown); ?>});
+        }
     <?php } ?>
 
     <?php if (isset($groups_dropdown)) { ?>
-            $("#group_ids").select2({
-                multiple: true,
-                data: <?php echo json_encode($groups_dropdown); ?>
-            });
+        $("#group_ids").select2({
+            multiple: true,
+            data: <?php echo json_encode($groups_dropdown); ?>
+        });
     <?php } ?>
 
     <?php if ($this->login_user->is_admin || get_array_value($this->login_user->permissions, "client") === "all") { ?>
-            $('#created_by').select2({data: <?php echo $team_members_dropdown; ?>});
+        $('#created_by').select2({data: <?php echo $team_members_dropdown; ?>});
     <?php } ?>
 });
 </script>    

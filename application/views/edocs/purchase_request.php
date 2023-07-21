@@ -72,15 +72,15 @@
                     	<p>
 	                        <?php
 	                            $client_address = $doc["seller"]["city"];
-	                            if($client_address != "" && $doc["seller"]["state"] != "")$client_address .= ", ".$doc["seller"]["city"];
-	                            elseif($client_address == "" && $doc["seller"]["state"] != "")$client_address .= $doc["seller"]["city"];
+	                            if($client_address != "" && $doc["seller"]["state"] != "")$client_address .= ", ".$doc["seller"]["state"];
+	                            elseif($client_address == "" && $doc["seller"]["state"] != "")$client_address .= $doc["seller"]["state"];
 	                            if($client_address != "" && $doc["seller"]["zip"] != "") $client_address .= " ".$doc["seller"]["zip"];
 	                            elseif($client_address == "" && $doc["seller"]["zip"] != "") $client_address .= $doc["seller"]["zip"];
 	                            echo $client_address;
 	                        ?>    
 	                    </p>
 	                    <?php if(trim($doc["seller"]["country"]) != ""): ?>
-	                        <p><?php echo $doc["seller"]["country"]; ?></p>
+	                        <p><?php // echo $doc["seller"]["country"]; ?></p>
 	                    <?php endif; ?>
 	                    <?php if(trim($doc["seller"]["vat_number"]) != ""): ?>
 	                        <p><?php echo lang("vat_number") . ": " . $doc["seller"]["vat_number"]; ?></p>
@@ -154,15 +154,15 @@
 				            	<tr>
 				                    <td><?php echo $i++; ?></td>
 				                    <td>
-				                    	<span class="product_name"><?php echo $item->material_name; ?></span>
-				                    	<?php if(trim($item->material_description) != ""): ?>
-				                    		<span class="product_description"><?php echo trim($item->material_description); ?></span>
+				                    	<span class="product_name"><?php echo $item->product_name; ?></span>
+				                    	<?php if(trim($item->product_description) != ""): ?>
+				                    		<span class="product_description"><?php echo trim($item->product_description); ?></span>
 				                    	<?php endif;?>
 				                    </td>
-				                    <td><?php echo $item->pr_quantity; ?></td>
-				                    <td><?php echo $item->pr_unit; ?></td>
-				                    <td><?php echo number_format($item->pr_price, 2); ?></td>
-				                    <td><?php echo number_format($item->pr_total_price, 2); ?></td>
+				                    <td><?php echo $item->quantity; ?></td>
+				                    <td><?php echo $item->unit; ?></td>
+				                    <td><?php echo number_format($item->price, 2); ?></td>
+				                    <td><?php echo number_format($item->total_price, 2); ?></td>
 				                </tr>
 			            	<?php endforeach; ?>
 		            	<?php endif; ?>
@@ -243,7 +243,7 @@
 	                </div>
 	                <div class="date">
 	                    <span class="l1">
-	                    	<?php if($doc["doc_status"] == "2"): ?>
+	                    	<?php if($doc["doc_status"] == "A"): ?>
 	                            <span class="approved_date"><?php echo convertDate($doc["approved_datetime"], true); ?></span>
 	                        <?php endif; ?>
 	                    </span>

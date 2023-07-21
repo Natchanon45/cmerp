@@ -2490,8 +2490,9 @@ $lang["entries"] = "รายการ";
 $lang["no_data_available"] = "ไม่พบข้อมูล";
 $lang["back_to_stock"] = "กลับหน้าคลังสินค้า";
 $lang["restart_calc"] = "เริ่มใหม่";
+$lang["reference_number"] = "เลขที่อ้างอิง";
 
-$lang["purchase_request"] = "ใบขอซื้อ";
+$lang["purchase_request"] = "ใบขอซื้อ (PR)";
 $lang["purchase_request_add"] = "เพิ่มใบขอซื้อ";
 $lang["request_date"] = "วันที่ขอซื้อ";
 $lang["request_by"] = "ผู้ขอซื้อ";
@@ -2500,12 +2501,23 @@ $lang["pr_type"] = "ประเภทใบขอซื้อ";
 $lang["pr_pending"] = "รออนุมัติ";
 $lang["pr_approved"] = "อนุมัติ";
 $lang["pr_rejected"] = "ไม่อนุมัติ";
+$lang["total_amount"] = "ยอดรวมสุทธิ";
+
 $lang["direct_material"] = "วัตถุดิบที่ใช้ในการผลิต";
 $lang["indirect_material"] = "วัตถุดิบทั่วไป";
 $lang["finised_goods"] = "สินค้าสำเร็จรูป";
-$lang["assets"] = "ทรัพย์สิน";
+$lang["assets"] = "สินทรัพย์";
 $lang["services"] = "บริการ";
 $lang["expenses"] = "ค่าใช้จ่าย";
 
-$lang["purchase_order"] = "ใบสั่งซื้อ";
-$lang["goods_receipt"] = "ใบรับสินค้า";
+$lang["purchase_order"] = "ใบสั่งซื้อ (PO)";
+$lang["purchase_order_add"] = "เพิ่มใบสั่งซื้อ";
+$lang["purchase_by"] = "ผู้สั่งซื้อ";
+$lang["po_no"] = "เลขที่ใบสั่งซื้อ";
+$lang["po_type"] = "ประเภทใบสั่งซื้อ";
+
+$lang["goods_receipt"] = "ใบรับสินค้า (GR)";
+$lang["goods_receipt_add"] = "เพิ่มใบรับสินค้า";
+
+$lang["payment_voucher"] = "ใบสำคัญจ่าย (PV)";
+$lang["payment_voucher_add"] = "เพิ่มใบสำคัญจ่าย";

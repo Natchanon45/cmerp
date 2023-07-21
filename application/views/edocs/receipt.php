@@ -116,15 +116,15 @@
 					<table>
 	                    <tr>
 	                        <td class="custom-color">ผู้ติดต่อ</td>
-	                        <td><?php if(isset($doc["client_contact"])) echo $doc["client_contact"]["first_name"]." ".$doc["client_contact"]["last_name"]; ?></td>
+	                        <td><?php if(isset($doc["buyer_contact"])) echo $doc["buyer_contact"]["first_name"]." ".$doc["buyer_contact"]["last_name"]; ?></td>
 	                    </tr>
 	                    <tr>
 	                        <td class="custom-color">เบอร์โทร</td>
-	                        <td><?php if(isset($doc["client_contact"])) echo $doc["client_contact"]["phone"]; ?></td>
+	                        <td><?php if(isset($doc["buyer_contact"])) echo $doc["buyer_contact"]["phone"]; ?></td>
 	                    </tr>
 	                    <tr>
 	                        <td class="custom-color">อีเมล์</td>
-	                        <td><?php if(isset($doc["client_contact"])) echo $doc["client_contact"]["email"]; ?></td>
+	                        <td><?php if(isset($doc["buyer_contact"])) echo $doc["buyer_contact"]["email"]; ?></td>
 	                    </tr>
 	                </table>
 				</div>
@@ -231,7 +231,9 @@
 					<div class="name">
 	                    <span class="l1">
 	                    	<?php if($doc["approved_by"] != null): ?>
-	                            <img src='<?php echo "/".$this->Users_m->getSignature($doc["approved_by"]); ?>'>
+	                    		<?php if(null != $signature = $this->Users_m->getSignature($doc["approved_by"])): ?>
+	                            	<img src='<?php echo "/".$signature; ?>'>
+	                        	<?php endif; ?>
 	                        <?php endif; ?>
 	                    </span>
 	                    <span class="l2">ผู้รับเงิน</span>

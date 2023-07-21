@@ -311,4 +311,18 @@ class Leads_m extends MY_Model {
 
         return $this->db->query($sql);
     }
+
+    function getZipCode($options)
+    {
+        $sql = "SELECT * FROM `local_gov_address` WHERE `state` LIKE '%" . $options["state"] . "%' AND `city` LIKE '%" . $options["city"] . "%'";
+        $data = array();
+
+        if (sizeof($options)) {
+            $query = $this->db->query($sql);
+            $data = $query->row();
+        }
+
+        return $data;
+    }
+
 }
