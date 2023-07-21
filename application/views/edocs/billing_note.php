@@ -239,7 +239,9 @@
 					<div class="name">
 	                    <span class="l1">
 	                    	<?php if($doc["approved_by"] != null): ?>
-	                            <img src='<?php echo "/".$this->Users_m->getSignature($doc["approved_by"]); ?>'>
+	                    		<?php if(null != $signature = $this->Users_m->getSignature($doc["approved_by"])): ?>
+	                            	<img src='<?php echo "/".$signature; ?>'>
+	                        	<?php endif; ?>
 	                        <?php endif; ?>
 	                    </span>
 	                    <span class="l2">ผู้วางบิล</span>
