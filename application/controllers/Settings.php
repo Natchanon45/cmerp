@@ -364,10 +364,13 @@ class Settings extends MY_Controller {
 
         foreach ($settings as $setting) {
             $value = $this->input->post($setting);
+            $saveable = true;
 
             if ($setting === "company_stamp") {
+                if(get_array_value($_FILES, "company_stamp_file") == null) continue;
+
                 $value = str_replace("~", ":", $value);
-                $value = serialize(move_temp_file("estimate-logo.png", get_setting("system_file_path"), "", $value));
+                $value = serialize(move_temp_file("company-stamp.png", get_setting("system_file_path"), "", $value));
             }
 
             if (is_null($value)) {
@@ -376,10 +379,11 @@ class Settings extends MY_Controller {
 
             //process the file which has uploaded using manual file submit
             if ($setting === "company_stamp" && $_FILES) {
-                $estimate_logo_file = get_array_value($_FILES, "estimate_logo_file");
-                $estimate_logo_file_name = get_array_value($estimate_logo_file, "tmp_name");
-                if ($estimate_logo_file_name) {
-                    $value = serialize(move_temp_file("estimate-logo.png", get_setting("system_file_path"), "", $estimate_logo_file_name));
+                $company_stamp_file = get_array_value($_FILES, "company_stamp_file");
+                $company_stamp_file_name = get_array_value($company_stamp_file, "tmp_name");
+
+                if ($company_stamp_file_name) {
+                    $value = serialize(move_temp_file("company-stamp.png", get_setting("system_file_path"), "", $company_stamp_file_name));
                     $reload_page = true;
                 }
             }
@@ -389,14 +393,18 @@ class Settings extends MY_Controller {
                 $saveable = false;
             }
 
-            if ($setting === "company_stamp") {
-                //delete old file
-                log_message("error", json_encode(get_system_files_setting_value("estimate_logo")));
-                delete_app_files(get_setting("system_file_path"), get_system_files_setting_value("estimate_logo"));
-            }
+            if ($saveable) {
+                if ($setting == "company_stamp") {
+                    //delete old file
 
-            $this->Settings_model->save_setting($setting, $value);
+                    delete_app_files(get_setting("system_file_path"), get_system_files_setting_value("company_stamp"));
+                }
+                //log_message("error", $value);
+
+                $this->Settings_model->save_setting($setting, $value);
+            }   
         }
+
         echo json_encode(array("success" => true, 'message' => lang('settings_updated')));
     }
 

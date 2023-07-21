@@ -149,7 +149,7 @@
                                     <i class="fa fa-upload"></i> <?php echo lang("upload"); ?>
                                 </label>
                             </div>
-                            <input type="hidden" id="company_stamp" name="company_stamp" value=""  />
+                            <input type="hidden" id="company_stamp" name="company_stamp"  />
                         </div>
                     </div>
                 </div>
@@ -180,6 +180,8 @@
                 }else{
                     appAlert.error(result.message);
                 }
+
+                $("#company_stamp").val("");
 
                 if ($("#company_stamp").val() || result.reload_page) {
                     location.reload();
