@@ -1,3 +1,23 @@
+<style type="text/css">
+#company-stamp-preview img{
+    height: 100%;
+    max-height: 120px;
+    width: auto;
+}
+
+#company-stamp-empty{
+    display: block;
+    border: 4px double #ff0000;
+    padding: 10px 28px;
+    border-radius: 4px;
+    color: #ff0000;
+    font-weight: bold;transform: rotate(5deg);
+}
+
+.form-group.company-stamp{
+    margin-top: 30px;
+}
+</style>
 <div id="page-content" class="p20 clearfix">
     <div class="row">
         <div class="col-sm-3 col-lg-2">
@@ -111,18 +131,30 @@
                             ?>
                         </div>
                     </div>
-                    <div class="form-group">
-                        <label for="company_vat_number" class=" col-md-2">ตราประทับองค์กร</label>
+                    <div class="form-group company-stamp">
+                        <label for="company_stamp_file_upload" class=" col-md-2">ตราประทับองค์กร</label>
                         <div class=" col-md-10">
-                            <?php
-                            $estimate_logo = "estimate_logo";
-                            if (!get_setting($estimate_logo)) {
-                                $estimate_logo = "invoice_logo";
-                            }
-                            ?>
-                            <img id="estimate-logo-preview" src="<?php echo get_file_from_setting($estimate_logo); ?>" alt="..." />
+                            <div id="company-stamp-preview" class="pull-left mr15">
+                                <?php if($company_setting["company_stamp"] != ""): ?>
+                                    <img src="<?php echo get_file_from_setting($company_stamp); ?>" />
+                                <?php else: ?>
+                                    <span id="company-stamp-empty">Your Company</span>
+                                <?php endif;?>
+                            </div>
+                            <div class="mt10 ml10 pull-left">
+                                <?php
+                                echo form_upload(array(
+                                    "id" => "company_stamp_file_upload",
+                                    "name" => "company_stamp_file",
+                                    "class" => "no-outline hidden-input-file"
+                                ));
+                                ?>
+                                <label for="company_stamp_file_upload" class="btn btn-default btn-xs">
+                                    <i class="fa fa-upload"></i> <?php echo lang("upload"); ?>
+                                </label>
+                            </div>
+                            <input type="hidden" id="company_stamp" name="company_stamp" value=""  />
                         </div>
-                        
                     </div>
                 </div>
                 <div class="panel-footer">
@@ -138,9 +170,43 @@
     $(document).ready(function () {
         $("#company-settings-form").appForm({
             isModal: false,
+            beforeAjaxSubmit: function (data) {
+                $.each(data, function (index, obj) {
+                    if (obj.name === "company_stamp") {
+                        var image = replaceAll(":", "~", data[index]["value"]);
+                        data[index]["value"] = image;
+                    }
+                });
+            },
             onSuccess: function (result) {
-                appAlert.success(result.message, {duration: 10000});
+                if(result.success){
+                    appAlert.success(result.message, {duration: 10000});
+                }else{
+                    appAlert.error(result.message);
+                }
+
+                if ($("#company_stamp").val() || result.reload_page) {
+                    location.reload();
+                }
             }
+        });
+        
+        $("#company_stamp_file_upload").change(function () {
+            file = this.files ? this.files[0] : "";
+            var fileTypes = ["image/jpeg", "image/png", "image/gif"];
+            if (file) {
+                if (fileTypes.indexOf(file.type) === -1) {
+                    appAlert.error("<?php echo lang("invalid_file_type"); ?>");
+                    appLoader.hide();
+                    return false;
+                } else if (file.size / 1024 > 3072) {
+                    appAlert.error("<?php echo lang("max_file_size_3mb_message"); ?>");
+                    appLoader.hide();
+                    return false;
+                }
+            }
+
+            $("#company-stamp-preview").empty().append("<img src='"+URL.createObjectURL(file)+"'>");
         });
     });
 </script>

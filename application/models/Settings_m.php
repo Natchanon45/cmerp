@@ -13,7 +13,8 @@ class Settings_m extends MY_Model {
                                 "company_address"=>"",
                                 "company_phone"=>"",
                                 "company_email"=>"",
-                                "company_website"=>""
+                                "company_website"=>"",
+                                "company_stamp"=>""
                             ];
 
 
