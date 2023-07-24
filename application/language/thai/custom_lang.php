@@ -2488,6 +2488,7 @@ $lang["no_data_available"] = "ไม่พบข้อมูล";
 $lang["back_to_stock"] = "กลับหน้าคลังสินค้า";
 $lang["restart_calc"] = "เริ่มใหม่";
 $lang["reference_number"] = "เลขที่อ้างอิง";
+$lang["doc_date"] = "วันที่";
 
 $lang["purchase_request"] = "ใบขอซื้อ (PR)";
 $lang["purchase_request_add"] = "เพิ่มใบขอซื้อ";
@@ -2515,6 +2516,7 @@ $lang["po_type"] = "ประเภทใบสั่งซื้อ";
 
 $lang["goods_receipt"] = "ใบรับสินค้า (GR)";
 $lang["goods_receipt_add"] = "เพิ่มใบรับสินค้า";
+$lang["receive_date"] = "วันที่รับสินค้า";
 
 $lang["payment_voucher"] = "ใบสำคัญจ่าย (PV)";
 $lang["payment_voucher_add"] = "เพิ่มใบสำคัญจ่าย";

@@ -2085,6 +2085,7 @@ $lang["no_data_available"] = "No data available in table";
 $lang["back_to_stock"] = "Back to stock page";
 $lang["restart_calc"] = "Restart";
 $lang["reference_number"] = "Reference No.";
+$lang["doc_date"] = "Document Date";
 
 $lang["purchase_request"] = "Purchase Requisition";
 $lang["purchase_request_add"] = "Create new PR";
@@ -2112,6 +2113,7 @@ $lang["po_type"] = "PO Type";
 
 $lang["goods_receipt"] = "Goods Receipt";
 $lang["goods_receipt_add"] = "Create new GR";
+$lang["receive_date"] = "Receive date";
 
 $lang["payment_voucher"] = "Payment Voucher";
 $lang["payment_voucher_add"] = "Create new PV";
