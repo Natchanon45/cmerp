@@ -9,6 +9,8 @@ class MaterialRequests_model extends Crud_model
 	{
 		$this->table = 'materialrequests';
 		parent::__construct($this->table);
+
+		$this->load->model('Projects_model');
 	}
 
 	function get_details($options = array())
@@ -314,6 +316,12 @@ class MaterialRequests_model extends Crud_model
 		return $query->row();
 	}
 
+	function get_materialrequest_item_by_id($item_id = 0)
+	{
+		$query = $this->db->get_where('mr_items', array('id' => $item_id));
+		return $query->row();
+	}
+
 	function dev2_updateApprovalStatus($id, $status_id, $approved_by)
 	{
 		$this->db->where('id', $id);
@@ -335,6 +343,171 @@ class MaterialRequests_model extends Crud_model
 	function dev2_getMrStatusByProjectId($project_id)
 	{
 		$query = $this->db->get_where('materialrequests', array('project_id' => $project_id, 'status_id !=' => 4))->result();
+		return $query;
+	}
+
+	function dev2_postMaterialRequestHeader($data)
+	{
+		$param = array(
+            'prefix' => 'MR',
+            'LPAD' => 4,
+            'column' => 'doc_no',
+            'table' => 'materialrequests'
+        );
+        $data['doc_no'] = $this->Db_model->genDocNo($param);
+		$data['project_name'] = $this->Projects_model->getProjectNameById($data['project_id']);
+		$this->db->insert('materialrequests', $data);
+
+		return $this->db->insert_id();
+	}
+
+	function dev2_putMaterialRequestHeader($data, $id)
+	{
+		$this->db->set('mr_type', $data['mr_type']);
+		$this->db->set('mr_date', $data['mr_date']);
+		$this->db->set('catid', $data['catid']);
+		$this->db->set('project_id', $data['project_id']);
+		$this->db->set('project_name', $this->Projects_model->getProjectNameById($data['project_id']));
+		$this->db->set('requester_id', $data['requester_id']);
+		$this->db->set('note', $data['note']);
+		$this->db->where('id', $id);
+		$this->db->update('materialrequests');
+
+		return $this->db->affected_rows();
+	}
+
+	private function getStockNameByStockId($stock_id, $bpim_id)
+	{
+		$sql = "SELECT bs.id AS stock_id, bsg.id, bsg.name, bs.material_id, bs.stock, (bs.price / bs.stock) AS price, bs.price AS price_total, bs.remaining, bpim.actual_used, (bs.stock - bpim.actual_used) AS actual_remaining ";
+		$sql .= "FROM bom_stocks AS bs LEFT JOIN bom_stock_groups AS bsg ON bs.group_id = bsg.id ";
+		$sql .= "LEFT JOIN (SELECT stock_id, SUM(ratio) AS actual_used FROM bom_project_item_materials WHERE stock_id = " . $stock_id . " AND id <> " . $bpim_id . ") AS bpim ON bs.id = bpim.stock_id ";
+		$sql .= "WHERE bs.id = " . $stock_id;
+
+		if (empty($stock_id) && empty($bpim_id)) return null;
+		$query = $this->db->query($sql);
+
+		if (empty($query)) return null;
+		return $query->row();
+	}
+
+	function dev2_getItemListByMaterialRequestId($mr_id)
+	{
+		$datas = array();
+		if (!empty($mr_id)) {
+			$datas = $this->db->get_where('mr_items', array('mr_id' => $mr_id))->result();
+			if (sizeof($datas)) {
+				foreach ($datas as $data) {
+					$data->description = mb_strimwidth($data->description, 1, 50, '...');
+					$data->quantity = number_format($data->quantity, $this->Settings_m->getDecimalPlacesNumber());
+					$data->stocks = $this->getStockNameByStockId($data->stock_id, $data->bpim_id);
+				}
+			}
+		}
+
+		return $datas;
+	}
+
+	function dev2_deleteMaterialRequestItem($data = array())
+	{
+		$info = $this->db->get_where('mr_items', $data)->row();
+
+		if ($info->bpim_id) {
+			$this->deleteBomProjectItemMaterialById($info->bpim_id);
+		}
+
+		if ($info->id) {
+			$this->deleteMaterialRequestItemById($info->id);
+		}
+
+		return $info;
+	}
+
+	private function deleteBomProjectItemMaterialById($bpim_id)
+	{
+		$this->db->where('id', $bpim_id);
+		$this->db->delete('bom_project_item_materials');
+	}
+
+	private function deleteMaterialRequestItemById($id)
+	{
+		$this->db->where('id', $id);
+		$this->db->delete('mr_items');
+	}
+
+	function postMaterialRequestItemFromMaterialRequest($data)
+	{
+		$this->db->insert('mr_items', $data);
+        return $this->db->insert_id();
+	}
+
+	function patchMaterialRequestItemFromMaterialRequest($data)
+	{
+		$this->db->set('stock_id', $data['stock_id']);
+        $this->db->set('quantity', $data['quantity']);
+        $this->db->where('id', $data['id']);
+        $this->db->update('mr_items');
+        return $this->db->affected_rows();
+	}
+
+	function getMaterialListByRequestType($type = 1)
+	{
+		$sql1 = "
+		SELECT 
+			bm.id, 
+			CONCAT(bm.name, ' - ', bm.production_name) AS material_name 
+		FROM bom_materials AS bm 
+		LEFT JOIN (
+			SELECT material_id, SUM(stock) AS stock 
+			FROM bom_stocks 
+			WHERE material_id <> 0 
+			GROUP BY material_id
+		) AS bs ON bm.id = bs.material_id 
+		LEFT JOIN (
+			SELECT material_id, SUM(ratio) AS ratio 
+			FROM bom_project_item_materials 
+			WHERE ratio > 0 
+			GROUP BY material_id
+		) AS bpim ON bm.id = bpim.material_id 
+		WHERE 
+			IFNULL(bs.stock, 0) > 0 AND IFNULL(bpim.ratio, 0) > 0 AND IFNULL(bs.stock - bpim.ratio, 0) > 0 
+		ORDER BY `bm`.`id` ASC
+		";
+
+		$data = array();
+		$query = $this->db->query($sql1)->result();
+		foreach ($query as $item) {
+			$data[] = array(
+				"id" => $item->id, "text" => $item->material_name
+			);
+		}
+
+		return $data;
+	}
+
+	function getStockMaterialListByMaterialId($material_id)
+	{
+		$sql = "
+		SELECT
+			bs.id, bs.group_id, bsg.name,
+			bs.stock - IFNULL(bpim.actual_used, 0) AS actual_remain 
+		FROM bom_stocks AS bs 
+		LEFT JOIN bom_stock_groups bsg ON bs.group_id = bsg.id 
+		LEFT JOIN (
+			SELECT stock_id, SUM(ratio) AS actual_used 
+			FROM bom_project_item_materials 
+			WHERE ratio > 0 AND material_id = " . $material_id . " 
+			GROUP BY stock_id
+		) AS bpim ON bs.id = bpim.stock_id 
+		WHERE 1 AND bs.material_id = " . $material_id . " 
+		AND bs.stock - IFNULL(bpim.actual_used, 0) > 0 
+		ORDER BY bs.id
+		";
+
+		$query = $this->db->query($sql)->result();
+		foreach ($query as $item) {
+			$item->remaining = number_format($item->actual_remain, 2);
+		}
+
 		return $query;
 	}
 

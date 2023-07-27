@@ -107,6 +107,21 @@ class Bom_project_item_materials_model extends Crud_model {
         ));
     }
 
+    function postProjectItemMaterialFromMaterialRequest($data)
+    {
+        $this->db->insert('bom_project_item_materials', $data);
+        return $this->db->insert_id();
+    }
+
+    function patchProjectItemMaterialFromMaterialRequest($data)
+    {
+        $this->db->set('stock_id', $data['stock_id']);
+        $this->db->set('ratio', $data['ratio']);
+        $this->db->where('id', $data['id']);
+        $this->db->update('bom_project_item_materials');
+        return $this->db->affected_rows();
+    }
+
     function dev2_insertProjectItemMaterialWithOutStockId($data)
     {
         $this->db->insert('bom_project_item_materials', array(

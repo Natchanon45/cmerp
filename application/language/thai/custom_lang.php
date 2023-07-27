@@ -2520,3 +2520,8 @@ $lang["receive_date"] = "วันที่รับสินค้า";
 
 $lang["payment_voucher"] = "ใบสำคัญจ่าย (PV)";
 $lang["payment_voucher_add"] = "เพิ่มใบสำคัญจ่าย";
+
+$lang["material_request_type"] = "ประเภทการเบิก";
+$lang["project_refer"] = "อ้างอิงโปรเจค";
+$lang["material_request_no"] = "เลขที่ใบเบิก";
+$lang["request_quantity"] = "จำนวนที่ขอเบิก";

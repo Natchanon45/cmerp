@@ -53,4 +53,14 @@ class Pr_categories_model extends Crud_model
 		$this->db->delete("pr_categories", array("id" => $id));
 		return $this->db->affected_rows();
 	}
+
+	function dev2_getCategoryTitleById($id)
+	{
+		$this->db->select('title');
+		$this->db->where('id', $id);
+		
+		$query = $this->db->get('pr_categories')->row();
+		return $query->title;
+	}
+
 }

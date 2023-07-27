@@ -116,10 +116,12 @@ $(document).ready(function() {
                         });
                     });
                     
+                    $('#po_list').val("");
                     $('#po_list').select2({
                         tags: true,
                         data: po_list
                     });
+                    
 
                     response.data.po_list.length === 0 ? $('#po_list').attr('readonly', true) : $('#po_list').removeAttr('readonly');
                 }

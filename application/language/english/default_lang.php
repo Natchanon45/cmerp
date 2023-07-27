@@ -523,7 +523,8 @@ $lang["invoice_items"] = "Invoice product items";
 $lang["edit_invoice"] = "Edit invoice";
 $lang["delete_invoice"] = "Delete invoice";
 $lang["item"] = "Product Item";
-$lang["add_item"] = "Add product item";
+$lang["add_item"] = "Add item";
+$lang["add_item_product"] = "Add product item";
 $lang["create_new_item"] = "Create new product item";
 $lang["select_or_create_new_item"] = "Select from list or create new product item...";
 $lang["quantity"] = "Quantity";
@@ -2117,3 +2118,8 @@ $lang["receive_date"] = "Receive date";
 
 $lang["payment_voucher"] = "Payment Voucher";
 $lang["payment_voucher_add"] = "Create new PV";
+
+$lang["material_request_type"] = "Request type";
+$lang["project_refer"] = "Project reference";
+$lang["material_request_no"] = "Request No.";
+$lang["request_quantity"] = "Request quantity";
