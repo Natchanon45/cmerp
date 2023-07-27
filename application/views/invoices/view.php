@@ -1,10 +1,13 @@
 <link rel="stylesheet" href="/assets/css/printd.css?t=<?php echo time();?>">
 <div id="dcontroller" class="clearfix">
     <div class="page-title clearfix mt15">
-        <h1>ใบวางบิล <?php echo $doc_number;?></h1>
+        <h1>ใบแจ้งหนี้ <?php echo $doc_number;?></h1>
         <div class="title-button-group">
             <a style="margin-left: 15px;" class="btn btn-default mt0 mb0 back-to-index-btn"  href="<?php echo get_uri("accounting/sell/invoices")?>" ><i class="fa fa-hand-o-left" aria-hidden="true"></i> ย้อนกลับไปตารางรายการ</a>
             <a id="add_item_button" class="btn btn-default" data-post-doc_id="<?php echo $doc_id; ?>" data-act="ajax-modal" data-title="แชร์เอกสาร <?php echo $doc_number; ?>" data-action-url="<?php echo get_uri("/invoices/share"); ?>">แชร์</a>
+            <?php if($doc_status != "W"): ?>
+                <a class="btn btn-default mt0 mb0 back-to-index-btn" href="<?php echo get_uri("invoices/payment/".$doc_id)?>">ข้อมูลการชำระ</a>
+            <?php endif; ?>
             <a onclick="window.open('<?php echo $print_url;?>', '' ,'width=980,height=720');" class="btn btn-default">พิมพ์</a>
         </div>
     </div>
@@ -124,7 +127,7 @@
                 <tr><td colspan="7">&nbsp;</td></tr>
                 <tr>
                     <td colspan="3">
-                        <?php if($doc_status == "W" && $is_partial_billing != "Y"): ?>
+                        <?php if($doc_status == "W"): ?>
                             <p><?php echo modal_anchor(get_uri("invoices/item"), "<i class='fa fa-plus-circle'></i> " . lang('add_item_product'), array("id"=>"add_item_button", "class" => "btn btn-default", "title" => lang('add_item_product'), "data-post-doc_id" => $doc_id)); ?></p>
                         <?php endif; ?>
                         <p><input type="text" id="total_in_text" readonly></p>
@@ -137,8 +140,8 @@
                         </p>
                         <p id="s-discount">
                             <span class="c1 custom-color">
-                                ส่วนลด&nbsp;<input type="number" id="discount_percent" value="<?php echo $discount_percent; ?>" <?php if($doc_status != "W" || $is_partial_billing == "Y") echo "disabled"; ?>>
-                                <select id="discount_type" <?php if($doc_status != "W" || $is_partial_billing == "Y") echo "disabled"; ?>>
+                                ส่วนลด&nbsp;<input type="number" id="discount_percent" value="<?php echo $discount_percent; ?>" <?php if($doc_status != "W") echo "disabled"; ?>>
+                                <select id="discount_type" <?php if($doc_status != "W") echo "disabled"; ?>>
                                     <option value="P" <?php if($discount_type == "P") echo "selected";?>>%</option>
                                     <option value="F" <?php if($discount_type == "F") echo "selected";?>>฿</option>
                                 </select>
@@ -151,26 +154,13 @@
                             <span class="c2"><input type="text" id="sub_total" readonly></span>
                             <span class="c3"><span class="currency">บาท</span></span>
                         </p>
-                        <?php if($is_partial_billing == "Y"): ?>
-                            <p id="s-partials">
-                                <span class="unpaid-amount">( ยอดค้างชำระ: <i><?php echo $unpaid_amount; ?></i> <?php echo ($partials_type == "P"?"%":"บาท"); ?> )</span>
-                                <span class="r">
-                                    <span class="c1 custom-color">
-                                        <i class="custom-color">แบ่งชำระ<?php if($partials_type == "A") echo "เป็นจำนวน" ?></i>
-                                        <?php if($partials_type == "P"): ?>
-                                            <input type="text" id="partials_percent" value="<?php echo $partials_percent; ?>"> <i class="custom-color">%</i>
-                                        <?php endif; ?>
-                                    </span>
-                                    <span class="c2"><input type="text" id="partials_amount" value="<?php echo $partials_amount; ?>" <?php if($partials_type == "P") echo "readonly"; ?>></span>
-                                    <span class="c3"></span>
-                                </span>
+                        <?php if($vat_inc == "Y"): ?>
+                            <p id="s-vat">
+                                <span class="c1 custom-color"><input type="checkbox" id="vat_inc" <?php if($vat_inc == "Y") echo "checked" ?> <?php if($doc_status != "W") echo "disabled"; ?>>ภาษีมูลค่าเพิ่ม <?php echo $this->Taxes_m->getVatPercent()."%"; ?></span>
+                                <span class="c2"><input type="text" id="vat_value" readonly></span>
+                                <span class="c3"><span class="currency">บาท</span></span>
                             </p>
                         <?php endif; ?>
-                        <p id="s-vat">
-                            <span class="c1 custom-color"><input type="checkbox" id="vat_inc" <?php if($vat_inc == "Y") echo "checked" ?> <?php if($doc_status != "W" || $is_partial_billing == "Y") echo "disabled"; ?>>ภาษีมูลค่าเพิ่ม <?php echo $this->Taxes_m->getVatPercent()."%"; ?></span>
-                            <span class="c2"><input type="text" id="vat_value" readonly></span>
-                            <span class="c3"><span class="currency">บาท</span></span>
-                        </p>
                         <p id="s-total">
                             <span class="c1 custom-color">จำนวนเงินรวมทั้งสิ้น</span>
                             <span class="c2"><input type="text" id="total" readonly ></span>
@@ -263,7 +253,7 @@ window.addEventListener('keydown', function(event) {
 
 $(document).ready(function() {
     loadItems();
-    $("#discount_percent, #discount_amount, #partials_percent, #partials_amount").blur(function(){
+    $("#discount_percent, #discount_amount").blur(function(){
         loadSummary();
     });
 
@@ -339,14 +329,6 @@ function loadSummary(){
                     wht_percent: $("#wht_percent").val()
                 };
 
-    <?php if($partials_type == "P"): ?>
-        data["partials_percent"] = tonum($("#partials_percent").val());
-    <?php endif; ?>
-
-    <?php if($partials_type == "A"): ?>
-        data["partials_amount"] = tonum($("#partials_amount").val());
-    <?php endif; ?>
-
     axios.post('<?php echo current_url(); ?>', data).then(function(response) {
         let data = response.data;
 
@@ -385,18 +367,6 @@ function loadSummary(){
             $("#s-sub-total-before-discount, #s-discount").removeClass("v").addClass("h");
             $("#s-sub-total .t1").removeClass("v").addClass("h");
             $("#s-sub-total .t2").removeClass("h").addClass("v");
-        }
-
-        if(data.is_partial_billing == "Y"){
-            $("#s-partials .unpaid-amount i").empty().append(data.unpaid_amount);
-            if(data.partials_type == "P"){
-                $("#partials_percent").val(data.partials_percent);
-                $("#partials_amount").val(data.partials_amount);
-            }
-
-            if(data.partials_type == "A"){
-                $("#partials_amount").val(data.partials_amount);
-            }
         }
         
         if(data.vat_inc == "Y"){

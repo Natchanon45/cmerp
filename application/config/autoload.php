@@ -217,6 +217,7 @@ $autoload['model'] = array(
     'Labels_m',
     'Settings_m',
     'Users_m',
+    'Payments_m',
     'Customers_m',
     'Clients_m',
     'Leads_m',

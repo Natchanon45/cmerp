@@ -480,6 +480,109 @@
     text-align: center;
 }
 
+/*#printd_payment{
+    display: block;
+    width: 1000px;
+    margin: 0 auto;
+    margin-bottom: 80px;
+}*/
+
+.payment_record{
+    line-height: 40px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background: #fff;
+    box-shadow: rgba(50, 50, 93, 0.25) 0px 2px 5px -1px, rgba(0, 0, 0, 0.3) 0px 1px 3px -1px;
+}
+
+.payment_record .payment_receive_method{
+    float: left;
+    width: 50%;
+    border-right: 1px solid #ccc;
+    padding: 16px;
+}
+
+.payment_record .total_pay{
+    border-radius: 8px;
+    position: relative;
+    background: #f5fcf8;
+    color: #4bc17a;
+    display: block;
+    width: 100%;
+    text-align: right;
+    font-size: 17px;
+    padding: 8px;
+    padding-bottom: 6px;
+}
+
+.payment_record .total_pay strong{
+    font-size: 1.2em;
+}
+
+.payment_record .total_pay i{
+    position: absolute;
+    top: 20px;
+    left: 10px;   
+}
+
+.payment_record .total_payment_amount{
+    float: left;
+    width: 50%;
+    padding: 12px;
+}
+
+.payment_record .green{
+    color: #4bc17a;
+    font-size: 1.6em;
+}
+
+.payment_record .orange{
+    color: #f47459;
+    font-size: 1.6em;
+}
+
+
+
+.payment_record strong{
+    font-weight: bold;
+}
+
+.payment_record table{
+    width: 100%;
+}
+
+.payment_record table td{
+    vertical-align: top;
+}
+
+.payment_record table td:nth-child(1){
+    width: 50%;
+}
+
+.payment_record table td:nth-child(2){
+    width: 50%;
+    text-align: right;
+}
+
+.payment_record table td.issued_receipt{
+    height: 64px;
+    vertical-align: bottom;
+}
+
+#payment_header .receive_button,
+.payment_record .issue_receipt_button{
+    display: inline-block;
+    width: 100px;
+    line-height: 32px;
+    border-radius: 12px;
+}
+
+#payment_header .receive_button:active,
+.payment_record .issue_receipt_button:active{
+    position: relative;
+    top: 1px;
+}
+
 @media print {
     body{
         font-size: 11px;

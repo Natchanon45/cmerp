@@ -26,18 +26,6 @@ class Invoices extends MY_Controller {
         redirect("/accounting/sell/invoices");
     }
 
-    function payment(){
-        if(isset($this->json->task)){
-            if($this->json->task == "get_doc") jout($this->Invoices_m->addPayment($this->json->doc_id));
-            return;   
-        }        
-
-        $this->data["doc"] = $doc = $this->Invoices_m->getDoc($this->input->post("doc_id"));
-        if($doc["status"] != "success") return;
-
-        $this->load->view( 'invoices/payment', $this->data);
-    }
-
     function addedit(){
         if(isset($this->json->task)){
             if($this->json->task == "save_doc") jout($this->Invoices_m->saveDoc());
@@ -75,6 +63,49 @@ class Invoices extends MY_Controller {
         $data["print_url"] = get_uri("invoices/print/".str_replace("=", "", base64_encode($data['doc_id'].':'.$data['doc_number'])));
 
         $this->template->rander("invoices/view", $data);
+    }
+
+    function payment() {
+        /*if(isset($this->json->task)){
+            if($this->json->task == "load_items") jout($this->Invoices_m->items());
+            return;
+        }*/
+
+        $this->data["payment"] = $payment = $this->Invoices_m->getPayment($this->uri->segment(3));
+        if ($payment["status"] != "success"){
+            redirect(get_uri("accounting/sell"));
+            return;
+        }
+
+        /*$data["company_setting"] = $this->Settings_m->getCompany();
+        $data["created"] = $this->Users_m->getInfo($data["created_by"]);
+        $data["client"] = $this->Customers_m->getInfo($data["customer_id"]);
+        $data["client_contact"] = $this->Customers_m->getContactInfo($data["client_id"]);
+        $data["print_url"] = get_uri("invoices/print/".str_replace("=", "", base64_encode($data['doc_id'].':'.$data['doc_number'])));*/
+
+        $this->template->rander("invoices/payment", $this->data);
+    }
+
+    function payment_receive(){
+        /*if(isset($this->json->task)){
+            if($this->json->task == "get_doc") jout($this->Invoices_m->addPayment($this->json->doc_id));
+            return;   
+        }*/       
+
+        $this->data["doc"] = $doc = $this->Invoices_m->getDoc($this->input->post("doc_id"));
+        //Net Await Payment Receive Amount
+
+
+
+        if($doc["status"] == "W") exit;
+
+        $this->data["payment"] = $this->Payments_m->getPaymentReceiveInfo();
+
+        //$this->data["payment_methods"] = $this->Payments_m->getRows();
+
+        if($doc["status"] != "success") return;
+
+        $this->load->view( 'invoices/payment_receive', $this->data);
     }
 
     function print(){

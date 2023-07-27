@@ -33,10 +33,9 @@ class Invoices_m extends MY_Model {
 
         if($ivrow->status == "W"){
             $doc_status .= "<option selected>รออนุมัติ</option>";
-            $doc_status .= "<option value='A'>อนุมัติ</option>";
-        }elseif($ivrow->status == "A"){
-            $doc_status .= "<option selected>อนุมัติ</option>";
-            $doc_status .= "<option value='P'>รับชำระ</option>";
+            $doc_status .= "<option value='O'>อนุมัติ</option>";
+        }elseif($ivrow->status == "O"){
+            $doc_status .= "<option selected>รอรับชำระ</option>";
         }elseif($ivrow->status == "P"){
             $doc_status .= "<option selected>ชำระเงินแล้ว</option>";   
         }
@@ -126,8 +125,6 @@ class Invoices_m extends MY_Model {
         $this->data["discount_amount"] = 0;
         $this->data["vat_inc"] = "N";
         $this->data["unpaid_amount"] = 0;
-        $this->data["partials_percent"] = 0;
-        $this->data["partials_amount"] = 0;
         $this->data["wht_inc"] = "N";
         $this->data["project_id"] = null;
         $this->data["client_id"] = null;
@@ -139,9 +136,6 @@ class Invoices_m extends MY_Model {
         $this->data["approved_datetime"] = null;
         $this->data["doc_status"] = NULL;
 
-        $this->data["is_partial_billing"] = "N";
-        $this->data["partials_type"] = null;
-
         if(!empty($docId)){
             $ivrow = $db->select("*")
                         ->from("invoice")
@@ -152,12 +146,10 @@ class Invoices_m extends MY_Model {
             if(empty($ivrow)) return $this->data;
 
             $quotation_id = $ivrow->quotation_id;
-            $quotation_is_partial = "N";
-            $quotation_partial_type = null;
             $unpaid_amount = 0;
 
             if($quotation_id != null){
-                $qrow = $db->select("total, is_partials, partials_type")
+                $qrow = $db->select("total")
                             ->from("quotation")
                             ->where("id", $quotation_id)
                             ->where("deleted", 0)
@@ -170,22 +162,6 @@ class Invoices_m extends MY_Model {
 
                 $billed_amount = 0;
                 $quotation_total = $qrow->total;
-                $quotation_is_partial = $qrow->is_partials;
-                $quotation_partial_type = $qrow->partials_type;
-
-                if($quotation_is_partial == "Y"){
-                    $billed_amount = $db->select("SUM(partials_amount) AS billed_amount")
-                                                ->from("invoice")
-                                                ->where("quotation_id", $quotation_id)
-                                                ->where("deleted", 0)
-                                                ->get()->row()->billed_amount;
-
-                    if($quotation_partial_type == "A"){
-                        $unpaid_amount = $quotation_total - $billed_amount;
-                    }else{
-                        $unpaid_amount = (($quotation_total - $billed_amount)/$quotation_total) * 100;
-                    }
-                }
             }
 
             $lead_id = $client_id = null;
@@ -210,8 +186,6 @@ class Invoices_m extends MY_Model {
             $this->data["discount_percent"] = $ivrow->discount_percent;
             $this->data["discount_amount"] = $ivrow->discount_amount;
             $this->data["unpaid_amount"] = number_format($unpaid_amount, 2);
-            $this->data["partials_percent"] = $ivrow->partials_percent;
-            $this->data["partials_amount"] = $ivrow->partials_amount;
             $this->data["vat_inc"] = $ivrow->vat_inc;
             $this->data["vat_percent"] = number_format_drop_zero_decimals($ivrow->vat_percent, 2)."%";
             $this->data["wht_inc"] = $ivrow->wht_inc;
@@ -224,9 +198,6 @@ class Invoices_m extends MY_Model {
             $this->data["approved_by"] = $ivrow->approved_by;
             $this->data["approved_datetime"] = $ivrow->approved_datetime;
             $this->data["doc_status"] = $ivrow->status;
-
-            $this->data["is_partial_billing"] = $quotation_is_partial;
-            $this->data["partials_type"] = $quotation_partial_type;
         }
 
         $this->data["status"] = "success";
@@ -401,58 +372,23 @@ class Invoices_m extends MY_Model {
         $quotation_sub_total = 0;
         $quotation_total = 0;
         $billed_amount = 0;
-        $is_partial_billing = "N";
-        $can_update_partial_billing = "N";
-        $partials_type = null;
-        $partials_percent = null;
-        $partials_amount = null;
 
         if($quotation_id != null){
-            $qrow = $db->select("sub_total, total, is_partials, partials_type")
+            $qrow = $db->select("sub_total, total")
                         ->from("quotation")
                         ->where("id", $quotation_id)
                         ->where("deleted", 0)
                         ->get()->row();
 
             if(!empty($qrow)){
-                $partials_type = $qrow->partials_type;
                 $quotation_sub_total = $qrow->sub_total;
                 $quotation_total = $qrow->total;
-
-                if($qrow->is_partials == "Y"){
-                    $is_partial_billing = "Y";
-
-                    $billed_amount = $db->select("SUM(partials_amount) AS billed_amount")
-                                        ->from("invoice")
-                                        ->where("quotation_id", $quotation_id)
-                                        ->where("deleted", 0)
-                                        ->get()->row()->billed_amount;
-
-                    if($billed_amount == null) $billed_amount = 0;
-
-                    if($partials_type == "P"){
-                        $partials_percent = getNumber($this->json->partials_percent);
-                        $partials_amount = ($partials_percent * $quotation_sub_total)/100;
-                        $billed_amount = $billed_amount + $partials_amount;
-                    }
-
-                    if($partials_type == "A"){
-                        $partials_amount = getNumber($this->json->partials_amount);
-                        $billed_amount = $billed_amount + $partials_amount;
-                    }
-
-                    if($vat_inc == "Y") $vat_value = ($partials_amount * $vat_percent) / 100;
-                    $total = $partials_amount + $vat_value;
-
-                    if($wht_inc == "Y") $wht_value = ($partials_amount * $wht_percent) / 100;
-                    $payment_amount = $total - $wht_value;
-                }
             }else{
                 log_message("error", "SYSERR=>Invoices_m->updateDoc: ".$db->last_query());
             }
         }
 
-        if($quotation_id == null || $is_partial_billing == "N"){
+        if($quotation_id == null){
             if($vat_inc == "Y") $vat_value = ($sub_total * $vat_percent) / 100;
             $total = $sub_total + $vat_value;
 
@@ -467,8 +403,6 @@ class Invoices_m extends MY_Model {
                                     "discount_percent"=>$discount_percent,
                                     "discount_amount"=>$discount_amount,
                                     "sub_total"=>$sub_total,
-                                    "partials_percent"=>$partials_percent,
-                                    "partials_amount"=>$partials_amount,
                                     "vat_inc"=>$vat_inc,
                                     "vat_percent"=>$vat_percent,
                                     "vat_value"=>$vat_value,
@@ -479,41 +413,11 @@ class Invoices_m extends MY_Model {
                                     "payment_amount"=>$payment_amount
                                 ]);
 
-
-        if($is_partial_billing == "Y"){
-            $bnsum = $db->select("SUM(partials_amount) AS sub_total_vat_excluded, SUM(total) AS collected_amount")
-                                    ->from("invoice")
-                                    ->where("quotation_id", $quotation_id)
-                                    ->where("deleted", 0)
-                                    ->get()->row();
-
-            $sub_total_vat_excluded = $bnsum->sub_total_vat_excluded === null ? 0 : $bnsum->sub_total_vat_excluded;
-            $collected_amount = $bnsum->collected_amount === null ? 0 : $bnsum->collected_amount;
-
-            if($partials_type == "A"){
-                $this->data["unpaid_amount"] = number_format($quotation_sub_total - $sub_total_vat_excluded, 2);
-            }else{
-                $this->data["unpaid_amount"] = number_format((($quotation_sub_total - $sub_total_vat_excluded) / $quotation_sub_total) * 100, 2);
-            }
-
-            $db->where("id", $quotation_id);
-            $db->where("deleted", 0);
-            if($collected_amount >= $quotation_total){
-                $db->update("quotation", ["status"=>"I"]);
-            }else{
-                $db->update("quotation", ["status"=>"P"]);
-            }
-        }
-
         $this->data["sub_total_before_discount"] = number_format($sub_total_before_discount, 2);
         $this->data["discount_type"] = $discount_type;
         $this->data["discount_percent"] = number_format($discount_percent, 2);
         $this->data["discount_amount"] = number_format($discount_amount, 2);
         $this->data["sub_total"] = number_format($sub_total, 2);
-        $this->data["is_partial_billing"] = $is_partial_billing;
-        $this->data["partials_type"] = $partials_type;
-        $this->data["partials_percent"] = ($partials_percent !== null) ? number_format($partials_percent, 2) : null;
-        $this->data["partials_amount"] = ($partials_amount !== null) ? number_format($partials_amount, 2) : null;
         $this->data["vat_inc"] = $vat_inc;
         $this->data["vat_percent"] = number_format_drop_zero_decimals($vat_percent, 2);
         $this->data["vat_value"] = number_format($vat_value, 2);
@@ -883,8 +787,8 @@ class Invoices_m extends MY_Model {
 
         if(empty($ivrow)) return $this->data;
         if($ivrow->status == $updateStatusTo){
+            $this->data["status"] = "notchange";
             $this->data["dataset"] = $this->getIndexDataSetHTML($ivrow);
-            $this->data["message"] = "ไม่สามารถแก้ไขสถานะเอกสารได้ เนื่องจากเอกสารมีการเปลี่ยนแปลงสถานะแล้ว";
             return $this->data;
         }
 
@@ -895,130 +799,14 @@ class Invoices_m extends MY_Model {
 
         $this->db->trans_begin();
 
-        if($updateStatusTo == "A"){
-            /*if($currentStatus == "I" || $currentStatus == "V"){
-                $this->data["dataset"] = $this->getIndexDataSetHTML($ivrow);
-                return $this->data;
-            }*/
-
+        if($updateStatusTo == "O"){
             $db->where("id", $docId);
             $db->where("deleted", 0);
             $db->update("invoice", [
                                         "approved_by"=>$this->login_user->id,
                                         "approved_datetime"=>date("Y-m-d H:i:s"),
-                                        "status"=>"A"
+                                        "status"=>"O"
                                     ]);
-
-        }elseif($updateStatusTo == "I"){
-            if($currentStatus == "V"){
-                $this->data["dataset"] = $this->getIndexDataSetHTML($ivrow);
-                return $this->data;
-            }
-
-            $db->where("id", $docId);
-            $db->where("deleted", 0);
-            $db->update("invoice", [
-                                        "approved_by"=>$this->login_user->id,
-                                        "approved_datetime"=>date("Y-m-d H:i:s"),
-                                        "status"=>"I"
-                                    ]);
-
-        }elseif($updateStatusTo == "CREATE_INVOICE"){
-            if($currentStatus == "V"){
-                $this->data["dataset"] = $this->getIndexDataSetHTML($ivrow);
-                return $this->data;
-            }
-
-            $invrow = $db->select("doc_number")
-                            ->from("invoice")
-                            ->where("invoice_id", $invoice_id)
-                            ->where("status !=", "V")
-                            ->where("deleted", 0)
-                            ->get()->row();
-
-            if(!empty($invrow)){
-                $db->trans_rollback();
-                $this->data["dataset"] = $this->getIndexDataSetHTML($ivrow);
-                $this->data["message"] = "ไม่สามารถสร้างใบกำกับภาษีได้ เนื่องจากมีการเปิดบิลที่ ".$invrow->doc_number." เรียบร้อยแล้ว";
-                return $this->data;
-            }
-
-
-            $db->where("id", $docId);
-            $db->update("invoice", [
-                                        "approved_by"=>$this->login_user->id,
-                                        "approved_datetime"=>date("Y-m-d H:i:s"),
-                                        "status"=>"I"
-                                    ]);
-
-            $invoice_number = $this->Invoices_m->getNewDocNumber();
-            $invoice_date = date("Y-m-d");
-            $invoice_credit = $ivrow->credit;
-            $invoice_due_date = date("Y-m-d", strtotime($invoice_date. " + ".$invoice_credit." days"));
-
-            $db->insert("invoice", [
-                                        "invoice_id"=>$invoice_id,
-                                        "doc_number"=>$invoice_number,
-                                        "doc_date"=>$invoice_date,
-                                        "credit"=>$invoice_credit,
-                                        "due_date"=>$invoice_due_date,
-                                        "reference_number"=>"#",
-                                        "project_id"=>$ivrow->project_id,
-                                        "client_id"=>$ivrow->client_id,
-                                        "sub_total_before_discount"=>$ivrow->sub_total_before_discount,
-                                        "discount_type"=>$ivrow->discount_type,
-                                        "discount_percent"=>$ivrow->discount_percent,
-                                        "discount_amount"=>$ivrow->discount_amount,
-                                        "sub_total"=>$ivrow->sub_total,
-                                        "vat_inc"=>$ivrow->vat_inc,
-                                        "vat_percent"=>$ivrow->vat_percent,
-                                        "vat_value"=>$ivrow->vat_value,
-                                        "total"=>$ivrow->total,
-                                        "wht_inc"=>$ivrow->wht_inc,
-                                        "wht_percent"=>$ivrow->wht_percent,
-                                        "wht_value"=>$ivrow->wht_value,
-                                        "payment_amount"=>$ivrow->payment_amount,
-                                        "remark"=>$ivrow->remark,
-                                        "created_by"=>$this->login_user->id,
-                                        "created_datetime"=>date("Y-m-d H:i:s"),
-                                        "status"=>"P",
-                                        "deleted"=>0
-                                    ]);
-
-            $invoice_id = $db->insert_id();
-
-            $bnirows = $db->select("*")
-                        ->from("invoice_items")
-                        ->where("invoice_id", $invoice_id)
-                        ->order_by("sort", "ASC")
-                        ->get()->result();
-
-            if(empty(!$bnirows)){
-                foreach($bnirows as $bnirow){
-                    $db->insert("invoice_items", [
-                                                        "invoice_id"=>$invoice_id,
-                                                        "product_id"=>$bnirow->product_id,
-                                                        "product_name"=>$bnirow->product_name,
-                                                        "product_description"=>$bnirow->product_description,
-                                                        "quantity"=>$bnirow->quantity,
-                                                        "unit"=>$bnirow->unit,
-                                                        "price"=>$bnirow->price,
-                                                        "total_price"=>$bnirow->total_price,
-                                                        "sort"=>$bnirow->sort
-                                                    ]);
-                }
-            }
-
-            $this->data["task"] = "create_invoice";
-            $this->data["status"] = "success";
-            $this->data["url"] = get_uri("invoices/view/".$invoice_id);
-
-        }elseif($updateStatusTo == "V"){
-            $db->where("id", $docId);
-            $db->update("invoice", [
-                                        "status"=>"V"
-                                    ]);
-
         }
 
         if ($db->trans_status() === FALSE){
@@ -1069,5 +857,63 @@ class Invoices_m extends MY_Model {
         $db->update("invoice", ["sharekey"=>$sharekey, "sharekey_by"=>$sharekey_by]);
 
         return $this->data;
+    }
+
+    function getPayment($docId){
+        $db = $this->db;
+
+        $ivrow = $db->select("*")
+                    ->from("invoice")
+                    ->where("id", $docId)
+                    ->where("status !=", "W")
+                    ->where("deleted", 0)
+                    ->get()->row();
+
+        if(empty($ivrow)){
+            return $this->data;
+        }
+
+        $total_payment_amount = $db->select("SUM(payment_amount) AS total_payment_amount")
+                                    ->from("invoice_payment")
+                                    ->where("invoice_id", $ivrow->id)
+                                    ->get()->row()->total_payment_amount;
+
+        if($total_payment_amount == null) $total_payment_amount = 0;
+
+        $this->data["doc_id"] = $ivrow->id;
+        $this->data["doc_number"] = $ivrow->doc_number;
+        $this->data["due_date"] = date("Y-m-d");
+        $this->data["invoice_full_payment_amount"] = $ivrow->total;
+        $this->data["total_net_amount_to_receive_payment"] = $ivrow->total;
+        $this->data["total_paid"] = $total_payment_amount;
+        $this->data["net_await_payment_receive_amount"] = $ivrow->total - $total_payment_amount;
+        $this->data["doc_status"] = $ivrow->status;
+        $this->data["payment_records"] = [];
+
+        $ivprows = $db->select("*")
+                        ->from("invoice_payment")
+                        ->where("invoice_id", $ivrow->id)
+                        ->get()->result();
+
+        if(empty($ivprows)){
+            foreach($ivprows as $ivprow){
+                $pr["record_number"] = $ivprow->record_number;
+                $pr["payment_method_id"] = $ivprow->payment_method_id;
+                $pr["title"] = $ivprow->title;
+                $pr["payment_amount"] = $ivprow->payment_amount;
+                $pr["wht_inc"] = $ivprow->wht_inc;
+                $pr["wht_value"] = $ivprow->wht_value;
+                $pr["issued_receipt"] = $ivprow->issued_receipt;
+
+                $this->data["payment_records"][] = $pr;
+            }
+        }
+
+        $this->data["status"] = "success";
+        $this->data["message"] = "success";
+
+        return $this->data;
+
+
     }
 }
