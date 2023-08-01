@@ -64,7 +64,7 @@
 }
 
 #datagrid {
-    /* font-size: smaller; */
+    font-size: normal;
 }
 
 .select-status {
@@ -76,6 +76,8 @@
     background-color: transparent;
 }
 </style>
+
+<?php $modal_header = str_replace("http:", "", str_replace("/", "", base_url())); ?>
 <a id="popup" data-act="ajax-modal" class="btn ajax-modal"></a>
 <div id="page-content" class="p20 clearfix">
     <ul class="nav nav-tabs bg-white title" role="tablist">
@@ -98,19 +100,19 @@
                             <a class="<?php if($module == "purchase_order") echo 'custom-color'; ?>"><?php echo lang('purchase_order'); ?></a>
                         </li>
                     <?php endif; ?>
-                    <?php if ($this->Permission_m->access_purchase_request): $number_of_enable_module++; ?>
-                        <li data-module="goods_receipt" class="<?php if($module == "goods_receipt") echo 'active custom-bg01'; ?>">
-                            <a class="<?php if($module == "goods_receipt") echo 'custom-color'; ?>"><?php echo lang('goods_receipt'); ?></a>
-                        </li>
-                    <?php endif; ?>
-                    <?php if ($this->Permission_m->access_purchase_request): $number_of_enable_module++; ?>
-                        <li data-module="payment_voucher" class="<?php if($module == "payment_voucher") echo 'active custom-bg01'; ?>">
-                            <a class="<?php if($module == "payment_voucher") echo 'custom-color'; ?>"><?php echo lang('payment_voucher'); ?></a>
-                        </li>
-                    <?php endif; ?>
+                    <?php // if ($this->Permission_m->access_purchase_request): $number_of_enable_module++; ?>
+                        <!-- <li data-module="goods_receipt" class="<?php // if($module == "goods_receipt") echo 'active custom-bg01'; ?>">
+                            <a class="<?php // if($module == "goods_receipt") echo 'custom-color'; ?>"><?php // echo lang('goods_receipt'); ?></a>
+                        </li> -->
+                    <?php // endif; ?>
+                    <?php // if ($this->Permission_m->access_purchase_request): $number_of_enable_module++; ?>
+                        <!-- <li data-module="payment_voucher" class="<?php // if($module == "payment_voucher") echo 'active custom-bg01'; ?>">
+                            <a class="<?php // if($module == "payment_voucher") echo 'custom-color'; ?>"><?php // echo lang('payment_voucher'); ?></a>
+                        </li> -->
+                    <?php // endif; ?>
                 </ul>
                 <ul class="buttons">
-                    <li class="add"><a data-act='ajax-modal' class='btn btn-default'><i class='fa fa-plus-circle'></i><span></span></a></li>
+                    <li class="add"><a data-act='ajax-modal' class='btn btn-default' data-title='<?php echo $modal_header; ?>'><i class='fa fa-plus-circle'></i><span></span></a></li>
                 </ul>
             </div>
         </div>
@@ -127,9 +129,9 @@
 
 <script type="text/javascript">
 var active_module = '<?php echo $module; ?>';
-$(document).ready(function () {
+$(document).ready(function() {
     loadDataGrid();
-    $(".tabs li").click(function(){
+    $(".tabs li").click(function() {
         $(".tabs li").removeClass("active, custom-bg01");
         $(".tabs li a").removeClass("custom-color");
         $(this).addClass("active, custom-bg01");
@@ -142,7 +144,7 @@ $(document).ready(function () {
     });
 });
 
-function loadDataGrid(){
+function loadDataGrid() {
     $("#datagrid_wrapper").empty();
     $("#accounting_navs .buttons li.add span").empty();
     $("<table id='datagrid' class='display' cellspacing='0' width='100%''></table>").insertAfter("#accounting_navs");
@@ -188,21 +190,6 @@ function loadDataGrid(){
         grid_summation = [
             { column: 5, dataType: 'currency' }
         ];
-    } else if (active_module == 'payment_voucher') {
-        $(".buttons").removeClass('hide');
-        $(".buttons li.add a").attr('data-action-url', '<?php echo get_uri('payment_voucher/addedit'); ?>');
-        $(".buttons li.add span").append('<?php echo lang('payment_voucher_add'); ?>');
-
-        grid_filters = null;
-
-        grid_columns = [
-                             {title: "วันที่", "class":"w10p"},
-                             {title: "เลขที่เอกสาร", "class":"w10p"},
-                             {title: "ลูกค้า", "class":"w30p"},
-                             {title: "ยอดรวมสุทธิ", "class":"text-right w15p"},
-                             {title: "สถานะ", "class":"text-left w15p"},
-                             {title: "<i class='fa fa-bars'></i>", "class":"text-center option w10p"}
-                         ];
     } else if (active_module == 'purchase_order') {
         $(".buttons").addClass('hide');
         $(".buttons li.add a").attr('data-action-url', '<?php echo get_uri('purchase_order/addedit'); ?>');
@@ -236,11 +223,27 @@ function loadDataGrid(){
         grid_summation = [
             { column: 6, dataType: 'currency' }
         ];
-    } else if (active_module == 'goods_receipt') {
-        $(".buttons").removeClass('hide');
-        $(".buttons li.add a").attr('data-action-url', '<?php echo get_uri('goods_receipt/addedit'); ?>');
-        $(".buttons li.add span").append('<?php echo lang('goods_receipt_add'); ?>');
-    }
+    } 
+    // else if (active_module == 'goods_receipt') {
+        // $(".buttons").removeClass('hide');
+        // $(".buttons li.add a").attr('data-action-url', '<?php // echo get_uri('goods_receipt/addedit'); ?>');
+        // $(".buttons li.add span").append('<?php // echo lang('goods_receipt_add'); ?>');
+    // } else if (active_module == 'payment_voucher') {
+        // $(".buttons").removeClass('hide');
+        // $(".buttons li.add a").attr('data-action-url', '<?php // echo get_uri('payment_voucher/addedit'); ?>');
+        // $(".buttons li.add span").append('<?php // echo lang('payment_voucher_add'); ?>');
+
+        // grid_filters = null;
+
+        // grid_columns = [
+        //     { title: "วันที่", "class":"w10p" },
+        //     { title: "เลขที่เอกสาร", "class":"w10p" },
+        //     { title: "ลูกค้า", "class":"w30p" },
+        //     { title: "ยอดรวมสุทธิ", "class":"text-right w15p" },
+        //     { title: "สถานะ", "class":"text-left w15p" },
+        //     { title: "<i class='fa fa-bars'></i>", "class":"text-center option w10p" }
+        // ];
+    // }
 
     $("#datagrid").appTable({
         source: '<?php echo_uri(); ?>' + active_module,
@@ -257,8 +260,8 @@ function loadDataGrid(){
         summation: grid_summation
     });
 
-    $("#datagrid").on("draw.dt", function () {
-        $(".dropdown_status").on("change", function () {
+    $("#datagrid").on("draw.dt", function() {
+        $(".dropdown_status").on("change", function() {
             if (active_module == "quotations") {
                 if($(this).val() == "B-2"){
                     $("#popup").attr("data-action-url", "<?php echo get_uri("quotations/test"); ?>").trigger("click");  
@@ -269,9 +272,8 @@ function loadDataGrid(){
                 task: 'update_doc_status',
                 doc_id: $(this).data("doc_id"),
                 update_status_to: $(this).val(),
-            }).then(function (response) {
+            }).then(function(response) {
                 data = response.data;
-                // console.log(data);
 
                 if (data.status == "success") {
                     if (typeof data.task !== 'undefined') {
@@ -287,7 +289,7 @@ function loadDataGrid(){
                     newData: data.dataset, 
                     dataId: data.doc_id
                 });
-            }).catch(function (error) {
+            }).catch(function(error) {
                 console.log(error);
             });
         });

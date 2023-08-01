@@ -39,13 +39,25 @@ class Materialrequests extends MY_Controller
 			return;
 		}
 
+		$info = $this->Materialrequests_model->get_one($mr_id);
+
 		// Get material request detail
 		$items = $this->Mr_items_model->get_materialrequest_item_by_id($mr_id);
+		if (sizeof($items) == 0) {
+			redirect("materialrequests/view/" . $mr_id . "/nodata");
+			return;
+		}
 
 		// Verify stock remaining to usabled
-		$usabled = array();		
-		foreach ($items as $item) {
-			array_push($usabled, $this->Bom_stocks_model->dev2_verifyStockUsabled($item->stock_id, $item->quantity));
+		$usabled = array();
+		if ($info->mr_type == 2) {
+			foreach ($items as $item) {
+				array_push($usabled, $this->Bom_item_stocks_model->dev2_verifyStockUsabled($item->stock_id, $item->quantity));
+			}
+		} else {
+			foreach ($items as $item) {
+				array_push($usabled, $this->Bom_stocks_model->dev2_verifyStockUsabled($item->stock_id, $item->quantity));
+			}
 		}
 
 		if (in_array(false, $usabled)) {
@@ -53,9 +65,16 @@ class Materialrequests extends MY_Controller
 			return;
 		} else {
 			// Update stock remaining to used and update used status
-			foreach ($items as $item) {
-				$this->Bom_stocks_model->dev2_updateStockUsed($item->stock_id, $item->quantity);
-				$this->Bom_project_item_materials_model->dev2_updateUsedStatusById($item->bpim_id, 1);
+			if ($info->mr_type == 2) {
+				foreach ($items as $item) {
+					$this->Bom_item_stocks_model->dev2_updateStockUsed($item->stock_id, $item->quantity);
+					$this->Bom_project_item_items_model->dev2_updateUsedStatusById($item->bpim_id, 1);
+				}
+			} else {
+				foreach ($items as $item) {
+					$this->Bom_stocks_model->dev2_updateStockUsed($item->stock_id, $item->quantity);
+					$this->Bom_project_item_materials_model->dev2_updateUsedStatusById($item->bpim_id, 1);
+				}
 			}
 
 			// Update material request status
@@ -64,19 +83,32 @@ class Materialrequests extends MY_Controller
 		}
 	}
 
-	function disapprove($mr_id)
+	function disapprove($mr_id = 0)
 	{
 		if ($mr_id == 0) {
 			$this->load->view("error/html/error_404");
 			return;
 		}
 
+		// Get material request info
+		$info = $this->Materialrequests_model->get_one($mr_id);
+
 		// Get material request detail
 		$items = $this->Mr_items_model->get_materialrequest_item_by_id($mr_id);
+		if (sizeof($items) == 0) {
+			redirect("materialrequests/view/" . $mr_id . "/nodata");
+			return;
+		}
 
 		// Update used status
-		foreach ($items as $item) {
-			$this->Bom_project_item_materials_model->dev2_rejectMaterialRequestById($item->bpim_id);
+		if ($info->mr_type == 2) {
+			foreach ($items as $item) {
+				$this->Bom_project_item_items_model->dev2_rejectMaterialRequestById($item->bpim_id);
+			}
+		} else {
+			foreach ($items as $item) {
+				$this->Bom_project_item_materials_model->dev2_rejectMaterialRequestById($item->bpim_id);
+			}
 		}
 
 		// Clear project material stock id
@@ -84,6 +116,7 @@ class Materialrequests extends MY_Controller
 
 		// Update material request status 
 		$this->Materialrequests_model->dev2_updateApprovalStatus($mr_id, 4, $this->login_user->id);
+
 		redirect("materialrequests/view/" . $mr_id . "/reject");
 	}
 
@@ -844,15 +877,32 @@ class Materialrequests extends MY_Controller
 		}
 
 		// Retrieve the components of the requisition of raw materials. Retrieve the components of the requisition of raw materials.
-		$mat_req_info = $this->Materialrequests_model->get_materialrequest_by_id($mr_id);
-		$mat_project_info = $this->Projects_model->get_project_by_id($mat_req_info?->project_id);
-		$mat_items_info = $this->Mr_items_model->get_materialrequest_item_by_id($mr_id);
-		$mat_requester_info = $this->Users_m->get_user_by_id($mat_req_info?->requester_id);
-		$mat_client_info = $this->Clients_model->get_client_by_id($mat_project_info?->client_id);
-		$mat_client_contact = $this->Users_m->get_user_by_cli($mat_client_info?->id);
+		$view_data["mr_id"] = $mr_id;
+		$view_data["mat_req_info"] = $this->Materialrequests_model->get_materialrequest_by_id($mr_id);
+		$view_data["mat_items_info"] = $this->Mr_items_model->get_materialrequest_item_by_id($mr_id);
+		
+		if (isset($view_data["mat_req_info"]->project_id) && !empty($view_data["mat_req_info"]->project_id)) {
+			$view_data["mat_project_info"] = $this->Projects_model->get_project_by_id($view_data["mat_req_info"]->project_id);
+		}
 
-		if (!empty($mat_req_info->approved_by) && $mat_req_info->approved_by) {
-			$mat_req_info->approved_by_name = $this->Account_category_model->created_by($mat_req_info?->approved_by);
+		if (isset($view_data["mat_req_info"]->requester_id) && !empty($view_data["mat_req_info"]->requester_id)) {
+			$view_data["mat_requester_info"] = $this->Users_m->get_user_by_id($view_data["mat_req_info"]->requester_id);
+		}
+		
+		if (isset($view_data["mat_project_info"]->client_id) && !empty($view_data["mat_project_info"]->client_id)) {
+			$view_data["mat_client_info"] = $this->Clients_model->get_client_by_id($view_data["mat_project_info"]->client_id);
+		}
+
+		if (isset($view_data["mat_client_info"]->id) && !empty($view_data["mat_client_info"]->id)) {
+			$view_data['mat_client_contact'] = $this->Users_m->get_user_by_cli($view_data["mat_client_info"]->id);
+		}
+
+		if (isset($view_data["mat_req_info"]->approved_by) && !empty($view_data["mat_req_info"]->approved_by)) {
+			$view_data["mat_req_info"]->approved_by_name = $this->Account_category_model->created_by($view_data["mat_req_info"]->approved_by);
+		}
+
+		if ($message == "nodata") {
+			$view_data["error_message"] = lang('nodata_item_request');
 		}
 
 		if ($message == "error") {
@@ -866,14 +916,6 @@ class Materialrequests extends MY_Controller
 		if ($message == "reject") {
 			$view_data["reject_message"] = lang('rejected_message');
 		}
-
-		$view_data["mr_id"] = $mr_id;
-		$view_data["mat_req_info"] = $mat_req_info;
-		$view_data["mat_project_info"] = $mat_project_info;
-		$view_data["mat_client_info"] = $mat_client_info;
-		$view_data["mat_items_info"] = $mat_items_info;
-		$view_data["mat_client_contact"] = $mat_client_contact;
-		$view_data["mat_requester_info"] = $mat_requester_info;
 
 		// var_dump(arr($view_data)); exit();
 		$this->template->rander("materialrequests/view", $view_data);
@@ -1305,14 +1347,13 @@ class Materialrequests extends MY_Controller
 		}
 
 		if ($view_data["create_material_request"]) {
-			$buttonTops[] = js_anchor(
+			$buttonTops[] = modal_anchor(
+				get_uri('materialrequests/modal_form'),
 				'<i class="fa fa-plus-circle"></i> ' . lang('add_materialrequests'),
 				array(
+					'id' => 'add-mr-btn-new',
 					'class' => 'btn btn-default',
-					'data-act' => 'ajax-modal',
-					'data-action-url' => get_uri('materialrequests/modal_form'),
-					'title' => lang('add_materialrequests'),
-					'id' => 'add-mr-btn'
+					'title' => lang('add_materialrequests')
 				)
 			);
 		}
@@ -1969,29 +2010,60 @@ class Materialrequests extends MY_Controller
 
 		if (sizeof($result)) {
 			foreach ($result as $data) {
+				$buttons = array();
 				$status_color = "#efc050";
 				$status_text = lang("status_waiting_for_approve");
-				$operation = "<a href='javascript:void();' data-action-url='" . get_uri("materialrequests/modal_form") . "' data-post-id='" . $data->id . "' title='" . lang('edit_materialrequest') . "' class='edit' data-act='ajax-modal'><i class='fa fa-pencil'></i></a>";
-				$operation .= "<a href='javascript:void();' data-action-url='" . get_uri("materialrequests/delete") . "' class='delete' data-action='delete-confirmation' data-id='" . $data->id . "' title='" . lang('delete_materialrequests') . "'><i class='fa fa-times fa-fw'></i></a>";
-
+				$buttons[] = modal_anchor(
+					get_uri('materialrequests/modal_form'),
+					'<i class="fa fa-pencil"></i>',
+					array(
+						'data-post-id' => $data->id,
+						'data-act' => 'ajax-modal',
+						'title' => lang('edit_materialrequest'),
+						'class' => 'edit'
+					)
+				);
+				$buttons[] = '<a href="javascript:void(0);" data-action-url="' . get_uri("materialrequests/delete") . '" class="delete" data-action="delete-confirmation" data-id="' . $data->id . '" title="' . lang('delete_materialrequests') . '"><i class="fa fa-times fa-fw"></i></a>';
+				
 				if ($data->status_id == 3) {
+					$buttons = array();
 					$status_color = "#009b77";
 					$status_text = lang("status_already_approved");
-					$operation = "<a href='javascript:void();' data-action-url='" . get_uri("materialrequests/modal_form") . "' data-post-id='" . $data->id . "' title='" . lang('edit_materialrequest') . "' class='edit' data-act='ajax-modal'><i class='fa fa-eye'></i></a>";
+					$buttons[] = modal_anchor(
+						get_uri('materialrequests/modal_form'),
+						'<i class="fa fa-eye"></i>',
+						array(
+							'data-post-id' => $data->id,
+							'data-act' => 'ajax-modal',
+							'title' => lang('edit_materialrequest'),
+							'class' => 'edit'
+						)
+					);
 				}
 
 				if ($data->status_id == 4) {
+					$buttons = array();
 					$status_color = "#ff1a1a";
 					$status_text = lang("status_already_rejected");
-					$operation = "<a href='javascript:void();' data-action-url='" . get_uri("materialrequests/modal_form") . "' data-post-id='" . $data->id . "' title='" . lang('edit_materialrequest') . "' class='edit' data-act='ajax-modal'><i class='fa fa-eye'></i></a>";
+					$buttons[] = modal_anchor(
+						get_uri('materialrequests/modal_form'),
+						'<i class="fa fa-eye"></i>',
+						array(
+							'data-post-id' => $data->id,
+							'data-act' => 'ajax-modal',
+							'title' => lang('edit_materialrequest'),
+							'class' => 'edit'
+						)
+					);
 				}
 
+				$operation = implode('', $buttons);
 				$row[] = array(
 					"id" => $data->id,
 					"doc_no" => $data->doc_no ? anchor(get_uri("materialrequests/view/" . $data->id), $data->doc_no) : lang("have_no_document_number"),
 					"category_name" => $data->title,
 					"project_name" => $data->project_id ? anchor(get_uri("projects/view/" . $data->project_id), $data->project_name ? $data->project_name : $data->project_names) : lang("have_no_project_name"),
-					"client_name" => $data->company_name,
+					"client_name" => $data->company_name ? $data->company_name : '-',
 					"user_name" => $data->first_name . " " . $data->last_name,
 					"request_date" => format_to_date($data->mr_date),
 					"status" => "<span style='background-color: $status_color;' class='label'>$status_text</span>",
@@ -2065,7 +2137,7 @@ class Materialrequests extends MY_Controller
 		}
 	}
 
-	function mr_create_save()
+	function mr_create_save() // dev2
 	{
 		$post = $this->input->post();
 
@@ -2104,19 +2176,19 @@ class Materialrequests extends MY_Controller
 		
 		$status_color = "#efc050";
 		$status_text = lang("status_waiting_for_approve");
-		$operation = "<a href='javascript:void();' data-action-url='" . get_uri("materialrequests/modal_form") . "' data-post-id='" . $result->id . "' title='" . lang('edit_materialrequest') . "' class='edit' data-act='ajax-modal'><i class='fa fa-pencil'></i></a>";
-		$operation .= "<a href='javascript:void();' data-action-url='" . get_uri("materialrequests/delete") . "' class='delete' data-action='delete-confirmation' data-id='" . $result->id . "' title='" . lang('delete_materialrequests') . "'><i class='fa fa-times fa-fw'></i></a>";
+		$operation = "<a href='javascript:void(0);' data-action-url='" . get_uri("materialrequests/modal_form") . "' data-post-id='" . $result->id . "' title='" . lang('edit_materialrequest') . "' class='edit' data-act='ajax-modal'><i class='fa fa-pencil'></i></a>";
+		$operation .= "<a href='javascript:void(0);' data-action-url='" . get_uri("materialrequests/delete") . "' class='delete' data-action='delete-confirmation' data-id='" . $result->id . "' title='" . lang('delete_materialrequests') . "'><i class='fa fa-times fa-fw'></i></a>";
 
 		if ($result->status_id == 3) {
 			$status_color = "#009b77";
 			$status_text = lang("status_already_approved");
-			$operation = "<a href='javascript:void();' data-action-url='" . get_uri("materialrequests/modal_form") . "' data-post-id='" . $result->id . "' title='" . lang('edit_materialrequest') . "' class='edit' data-act='ajax-modal'><i class='fa fa-eye'></i></a>";
+			$operation = "<a href='javascript:void(0);' data-action-url='" . get_uri("materialrequests/modal_form") . "' data-post-id='" . $result->id . "' title='" . lang('edit_materialrequest') . "' class='edit' data-act='ajax-modal'><i class='fa fa-eye'></i></a>";
 		}
 
 		if ($result->status_id == 4) {
 			$status_color = "#ff1a1a";
 			$status_text = lang("status_already_rejected");
-			$operation = "<a href='javascript:void();' data-action-url='" . get_uri("materialrequests/modal_form") . "' data-post-id='" . $result->id . "' title='" . lang('edit_materialrequest') . "' class='edit' data-act='ajax-modal'><i class='fa fa-eye'></i></a>";
+			$operation = "<a href='javascript:void(0);' data-action-url='" . get_uri("materialrequests/modal_form") . "' data-post-id='" . $result->id . "' title='" . lang('edit_materialrequest') . "' class='edit' data-act='ajax-modal'><i class='fa fa-eye'></i></a>";
 		}
 
 		$request_by = '-';
@@ -2198,17 +2270,21 @@ class Materialrequests extends MY_Controller
 
 	function view_items($mr_id)
 	{
-		jout($this->Materialrequests_model->dev2_getItemListByMaterialRequestId($mr_id));
+		$mr_info = $this->Materialrequests_model->get_one($mr_id);
+		$items = $this->Materialrequests_model->dev2_getItemListByMaterialRequestId($mr_id, $mr_info->mr_type);
+
+		jout($items);
 	}
 
 	function item_delete()
 	{
+		$req = $this->json;
 		$data = array(
-			'mr_id' => $this->json->doc_id,
-			'id' => $this->json->item_id
+			'id' => $req->item_id,
+			'mr_id' => $req->doc_id
 		);
 
-		$info = $this->Materialrequests_model->dev2_deleteMaterialRequestItem($data);
+		$info = $this->Materialrequests_model->dev2_deleteMaterialRequestItem($data, $req->doc_type);
 		jout($info);
 	}
 
@@ -2216,13 +2292,40 @@ class Materialrequests extends MY_Controller
 	{
 		$view_data['post'] = $this->input->post();
 
-		$view_data['mat_req_info'] = $this->Materialrequests_model->get_materialrequest_by_id($view_data['post']['doc_id']);
-		if (isset($view_data['post']['item_id'])) {
+		if (isset($view_data['post']['doc_id']) && !empty($view_data['post']['doc_id'])) {
+			$view_data['mat_req_info'] = $this->Materialrequests_model->get_materialrequest_by_id($view_data['post']['doc_id']);
+		}
+
+		if (isset($view_data['post']['item_id']) && !empty($view_data['post']['item_id'])) {
 			$view_data['mat_item_info'] = $this->Materialrequests_model->get_materialrequest_item_by_id($view_data['post']['item_id']);
 		}
 
 		// var_dump(arr($view_data)); exit();
 		$this->load->view("materialrequests/item_add", $view_data);
+	}
+
+	function item_edit()
+	{
+		$view_data['post'] = $this->input->post();
+
+		if (isset($view_data['post']['doc_id']) && !empty($view_data['post']['doc_id'])) {
+			$view_data['mat_req_info'] = $this->Materialrequests_model->get_materialrequest_by_id($view_data['post']['doc_id']);
+		}
+
+		if (isset($view_data['post']['item_id']) && !empty($view_data['post']['item_id'])) {
+			$view_data['mat_item_info'] = $this->Materialrequests_model->get_materialrequest_item_by_id($view_data['post']['item_id']);
+		}
+
+		if (isset($view_data['mat_item_info']->stock_id) && !empty($view_data['mat_item_info']->stock_id)) {
+			if ($view_data['mat_req_info']->mr_type == 2) {
+				$view_data['mat_stock_info'] = $this->Bom_item_stocks_model->dev2_getRestockingByStockId($view_data['mat_item_info']->stock_id);	
+			} else {
+				$view_data['mat_stock_info'] = $this->Bom_stocks_model->dev2_getRestockingByStockId($view_data['mat_item_info']->stock_id);
+			}
+		}
+
+		// var_dump(arr($view_data)); exit();
+		$this->load->view("materialrequests/item_edit", $view_data);
 	}
 
 	function item_add_save()
@@ -2240,28 +2343,45 @@ class Materialrequests extends MY_Controller
 		);
 
 		// get material info
-		$bs = $this->Bom_materials_model->get_one($data['material_id']);
+		$bs = '';
+		if (isset($data['mr_type']) && $data['mr_type'] == '2') {
+			$bs = $this->Items_model->get_one($data['material_id']);
+		} else {
+			$bs = $this->Bom_materials_model->get_one($data['material_id']);
+		}
 
 		// prepare data and insert to bom project item material
 		$bpim_id = null;
 		if ($data['bpim_id'] == '0') {
 			$bpim = array(
 				'project_item_id' => $this->Projects_model->getItemIdByProjectId($data['project_id']),
-				'material_id' => $data['material_id'],
 				'stock_id' => $data['stock_id'],
 				'ratio' => $data['quantity'],
 				'mr_id' => $data['mr_id'],
 				'used_status' => 0,
+				'entry_flag' => 1,
 				'created_by' => $this->login_user->id
 			);
-			$bpim_id = $this->Bom_project_item_materials_model->postProjectItemMaterialFromMaterialRequest($bpim);
+
+			if (isset($data['mr_type']) && $data['mr_type'] == '2') {
+				$bpim['item_id'] = $data['material_id'];
+				$bpim_id = $this->Bom_project_item_items_model->postProjectItemItemFromMaterialRequest($bpim);
+			} else {
+				$bpim['material_id'] = $data['material_id'];
+				$bpim_id = $this->Bom_project_item_materials_model->postProjectItemMaterialFromMaterialRequest($bpim);
+			}
 		} else {
 			$bpim = array(
 				'id' => $data['bpim_id'],
 				'stock_id' => $data['stock_id'],
 				'ratio' => $data['quantity']
 			);
-			$this->Bom_project_item_materials_model->patchProjectItemMaterialFromMaterialRequest($bpim);
+
+			if (isset($data['mr_type']) && $data['mr_type'] == '2') {
+				$this->Bom_project_item_items_model->patchProjectItemItemFromMaterialRequest($bpim);
+			} else {
+				$this->Bom_project_item_materials_model->patchProjectItemMaterialFromMaterialRequest($bpim);
+			}
 			$bpim_id = $data['bpim_id'];
 		}
 		
@@ -2272,23 +2392,35 @@ class Materialrequests extends MY_Controller
 				'mr_id' => $data['mr_id'],
 				'project_id' => $data['project_id'],
 				'project_name' => $data['project_name'],
-				'code' => $bs->name,
-				'title' => $bs->production_name,
 				'description' => $bs->description,
 				'quantity' => $data['quantity'],
-				'unit_type' => $bs->unit,
-				'material_id' => $data['material_id'],
 				'bpim_id' => $bpim_id,
 				'stock_id' => $data['stock_id'],
 				'created_by' => $this->login_user->id
 			);
-			$mri_id = $this->Materialrequests_model->postMaterialRequestItemFromMaterialRequest($mri);
+
+			if (isset($data['mr_type']) && $data['mr_type'] == '2') {
+				$mri['item_id'] = $data['material_id'];
+				$mri['code'] = $bs->item_code ? $bs->item_code : null;
+				$mri['title'] = $bs->title ? $bs->title : null;
+				$mri['unit_type'] = $bs->unit_type;
+
+				$mri_id = $this->Materialrequests_model->postItemRequestItemFromMaterialRequest($mri);
+			} else {
+				$mri['material_id'] = $data['material_id'];
+				$mri['code'] = $bs->name;
+				$mri['title'] = $bs->production_name;
+				$mri['unit_type'] = $bs->unit;
+
+				$mri_id = $this->Materialrequests_model->postMaterialRequestItemFromMaterialRequest($mri);
+			}
 		} else {
 			$mri = array(
 				'id' => $data['item_id'],
 				'stock_id' => $data['stock_id'],
 				'quantity' => $data['quantity']
 			);
+
 			$this->Materialrequests_model->patchMaterialRequestItemFromMaterialRequest($mri);
 			$mri_id = $data['item_id'];
 		}
@@ -2307,12 +2439,18 @@ class Materialrequests extends MY_Controller
 		jout($list);
 	}
 
+	function stock_item_list($item_id)
+	{
+		$list = $this->Materialrequests_model->getStockItemListByItemId($item_id);
+		jout($list);
+	}
+
 	function print($id)
 	{
 		$this->data['mat_req_info'] = $this->Materialrequests_model->get_materialrequest_by_id($id);
 		$this->data['mat_item_info'] = $this->Mr_items_model->get_materialrequest_item_by_id($id);
-		$this->data['mat_requester_info'] = $this->Users_m->get_user_by_id($this->data['mat_req_info']?->requester_id);
-		$this->data['mat_project_info'] = $this->Projects_model->get_project_by_id($this->data['mat_req_info']?->project_id);
+		$this->data['mat_requester_info'] = $this->Users_m->get_user_by_id($this->data['mat_req_info']->requester_id);
+		$this->data['mat_project_info'] = $this->Projects_model->get_project_by_id($this->data['mat_req_info']->project_id);
 		$this->data["docmode"] = "private_print";
 
 		// var_dump(arr($this->data)); exit();

@@ -122,8 +122,8 @@ $(document).ready(function() {
             changeMonth: true,
             changeYear: true,
             autoclose: true
-        }).on("changeDate", function (e) {
-            cal_valid_date_from_credit();
+        }).on("changeDate", function() {
+            // cal_valid_date_from_credit();
         });
 
         doc_valid_until_date = $("#doc_valid_until_date").datepicker({
@@ -132,15 +132,15 @@ $(document).ready(function() {
             changeMonth: true,
             changeYear: true,
             autoclose: true
-        }).on("changeDate", function (e) {
-            cal_credit_from_valid_until_date();
+        }).on("changeDate", function() {
+            // cal_credit_from_valid_until_date();
         });
 
         doc_date.datepicker("setDate", "<?php echo date('d/m/Y', strtotime($doc_date)); ?>");
         doc_valid_until_date.datepicker("setDate", "<?php echo date('d/m/Y', strtotime($doc_valid_until_date)); ?>");
 
         $("#credit").blur(function(){
-            cal_valid_date_from_credit();
+            // cal_valid_date_from_credit();
         });
     <?php elseif ($doc_status == "A" || $doc_status == "R"): ?>
         $("#doc_date").val("<?php echo date('d/m/Y', strtotime($doc_date)); ?>");
@@ -161,7 +161,7 @@ $(document).ready(function() {
     <?php endif; ?>
 });
 
-function cal_valid_date_from_credit(){
+function cal_valid_date_from_credit() {
     doc_date = $("#doc_date").datepicker('getDate');
     credit = Number($("#credit").val());
     if(credit < 0) credit = 0;

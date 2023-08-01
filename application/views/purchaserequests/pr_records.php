@@ -177,13 +177,13 @@
                             window.open(`<?php echo get_uri('purchase_request/view/'); ?>${value}`, '_blank');
                         }, delay);
 
-                        delay += 100;
+                        delay += 300;
                     }
 
                     // Success - back to index
                     setTimeout(() => {
                         window.location = '<?php echo echo_uri('purchaserequests'); ?>';
-                    }, delay);
+                    }, delay + 500);
                 } else {
                     // Failure - popup error then back to index
                     window.location = '<?php echo echo_uri('purchaserequests/pr_failure'); ?>';

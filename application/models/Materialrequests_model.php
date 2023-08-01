@@ -376,30 +376,51 @@ class MaterialRequests_model extends Crud_model
 		return $this->db->affected_rows();
 	}
 
-	private function getStockNameByStockId($stock_id, $bpim_id)
+	private function getStockNameByStockId($stock_id, $bpim_id, $mr_type)
 	{
-		$sql = "SELECT bs.id AS stock_id, bsg.id, bsg.name, bs.material_id, bs.stock, (bs.price / bs.stock) AS price, bs.price AS price_total, bs.remaining, bpim.actual_used, (bs.stock - bpim.actual_used) AS actual_remaining ";
-		$sql .= "FROM bom_stocks AS bs LEFT JOIN bom_stock_groups AS bsg ON bs.group_id = bsg.id ";
-		$sql .= "LEFT JOIN (SELECT stock_id, SUM(ratio) AS actual_used FROM bom_project_item_materials WHERE stock_id = " . $stock_id . " AND id <> " . $bpim_id . ") AS bpim ON bs.id = bpim.stock_id ";
-		$sql .= "WHERE bs.id = " . $stock_id;
+		$sql1 = "SELECT bs.id AS stock_id, bsg.id, bsg.name, bs.material_id, bs.stock, (bs.price / bs.stock) AS price, bs.price AS price_total, bs.remaining, bpim.actual_used, (bs.stock - bpim.actual_used) AS actual_remaining ";
+		$sql1 .= "FROM bom_stocks AS bs LEFT JOIN bom_stock_groups AS bsg ON bs.group_id = bsg.id ";
+		$sql1 .= "LEFT JOIN (SELECT stock_id, SUM(ratio) AS actual_used FROM bom_project_item_materials WHERE stock_id = " . $stock_id . " AND id <> " . $bpim_id . ") AS bpim ON bs.id = bpim.stock_id ";
+		$sql1 .= "WHERE bs.id = " . $stock_id;
+
+		$sql2 = "SELECT bs.id AS stock_id, bsg.id, bsg.name, bs.item_id AS material_id, bs.stock, (bs.price / bs.stock) AS price, bs.price AS price_total, bs.remaining, bpim.actual_used, (bs.stock - bpim.actual_used) AS actual_remaining ";
+		$sql2 .= "FROM bom_item_stocks AS bs LEFT JOIN bom_item_groups AS bsg ON bs.group_id = bsg.id ";
+		$sql2 .= "LEFT JOIN (SELECT stock_id, SUM(ratio) AS actual_used FROM bom_project_item_items WHERE stock_id = " . $stock_id . " AND id <> " . $bpim_id . ") AS bpim ON bs.id = bpim.stock_id ";
+		$sql2 .= "WHERE bs.id = " . $stock_id;
 
 		if (empty($stock_id) && empty($bpim_id)) return null;
+
+		$sql = $sql1;
+		if ($mr_type == 2) {
+			$sql = $sql2;
+		}
 		$query = $this->db->query($sql);
 
 		if (empty($query)) return null;
 		return $query->row();
 	}
 
-	function dev2_getItemListByMaterialRequestId($mr_id)
+	function dev2_getItemListByMaterialRequestId($mr_id, $mr_type)
 	{
 		$datas = array();
 		if (!empty($mr_id)) {
 			$datas = $this->db->get_where('mr_items', array('mr_id' => $mr_id))->result();
 			if (sizeof($datas)) {
 				foreach ($datas as $data) {
-					$data->description = mb_strimwidth($data->description, 1, 50, '...');
+					$data->description = (isset($data->description) && !empty($data->description)) ? mb_strimwidth($data->description, 1, 50, '...') : '';
 					$data->quantity = number_format($data->quantity, $this->Settings_m->getDecimalPlacesNumber());
-					$data->stocks = $this->getStockNameByStockId($data->stock_id, $data->bpim_id);
+					$data->stocks = $this->getStockNameByStockId($data->stock_id, $data->bpim_id, $mr_type);
+					$data->edit = modal_anchor(
+						get_uri("materialrequests/item_edit"),
+						'<i class="fa fa-pencil"></i>',
+						array(
+							'title' => lang('edit_item'),
+							'class' => 'edit',
+							'data-act' => 'ajax-modal',
+							'data-post-doc_id' => $data->mr_id,
+							'data-post-item_id' => $data->id
+						)
+					);
 				}
 			}
 		}
@@ -407,19 +428,29 @@ class MaterialRequests_model extends Crud_model
 		return $datas;
 	}
 
-	function dev2_deleteMaterialRequestItem($data = array())
+	function dev2_deleteMaterialRequestItem($data = array(), $mr_type = '1')
 	{
 		$info = $this->db->get_where('mr_items', $data)->row();
 
-		if ($info->bpim_id) {
-			$this->deleteBomProjectItemMaterialById($info->bpim_id);
+		if (isset($info->bpim_id) && !empty($info->bpim_id)) {
+			if ($mr_type == '2') {
+				$this->deleteBomProjectItemItemsById($info->bpim_id);
+			} else {
+				$this->deleteBomProjectItemMaterialById($info->bpim_id);
+			}
 		}
 
-		if ($info->id) {
+		if (isset($info->id) && !empty($info->id)) {
 			$this->deleteMaterialRequestItemById($info->id);
 		}
 
 		return $info;
+	}
+
+	private function deleteBomProjectItemItemsById($bpim_id)
+	{
+		$this->db->where('id', $bpim_id);
+		$this->db->delete('bom_project_item_items');
 	}
 
 	private function deleteBomProjectItemMaterialById($bpim_id)
@@ -436,8 +467,34 @@ class MaterialRequests_model extends Crud_model
 
 	function postMaterialRequestItemFromMaterialRequest($data)
 	{
-		$this->db->insert('mr_items', $data);
-        return $this->db->insert_id();
+		$verify = $this->db->get_where('mr_items', array(
+			'mr_id' => $data['mr_id'],
+			'material_id' => $data['material_id'],
+			'stock_id' => $data['stock_id']
+		));
+
+		if ($verify->num_rows() > 0) {
+            return $verify->row()->id;
+        } else {
+			$this->db->insert('mr_items', $data);
+			return $this->db->insert_id();
+		}
+	}
+
+	function postItemRequestItemFromMaterialRequest($data)
+	{
+		$verify = $this->db->get_where('mr_items', array(
+			'mr_id' => $data['mr_id'],
+			'item_id' => $data['item_id'],
+			'stock_id' => $data['stock_id']
+		));
+
+		if ($verify->num_rows() > 0) {
+            return $verify->row()->id;
+        } else {
+			$this->db->insert('mr_items', $data);
+			return $this->db->insert_id();
+		}
 	}
 
 	function patchMaterialRequestItemFromMaterialRequest($data)
@@ -454,27 +511,42 @@ class MaterialRequests_model extends Crud_model
 		$sql1 = "
 		SELECT 
 			bm.id, 
-			CONCAT(bm.name, ' - ', bm.production_name) AS material_name 
+			CONCAT(bm.name, ' - ', bm.production_name) AS material_name, 
+			IFNULL(bs.remaining, 0) AS remaining 
 		FROM bom_materials AS bm 
 		LEFT JOIN (
-			SELECT material_id, SUM(stock) AS stock 
+			SELECT material_id, SUM(remaining) AS remaining 
 			FROM bom_stocks 
-			WHERE material_id <> 0 
+			WHERE material_id > 0 AND remaining > 0 
 			GROUP BY material_id
 		) AS bs ON bm.id = bs.material_id 
-		LEFT JOIN (
-			SELECT material_id, SUM(ratio) AS ratio 
-			FROM bom_project_item_materials 
-			WHERE ratio > 0 
-			GROUP BY material_id
-		) AS bpim ON bm.id = bpim.material_id 
-		WHERE 
-			IFNULL(bs.stock, 0) > 0 AND IFNULL(bpim.ratio, 0) > 0 AND IFNULL(bs.stock - bpim.ratio, 0) > 0 
-		ORDER BY `bm`.`id` ASC
+		WHERE IFNULL(bs.remaining, 0) > 0 
+		ORDER BY bm.id ASC
 		";
 
+		$sql2 = "
+		SELECT
+			bm.id, 
+			CASE WHEN bm.item_code IS NULL THEN bm.title ELSE CONCAT(bm.item_code, ' - ', bm.title) END AS material_name, 
+			IFNULL(bs.remaining, 0) AS remaining 
+		FROM items AS bm 
+		LEFT JOIN (
+			SELECT item_id, SUM(remaining) AS remaining 
+			FROM bom_item_stocks 
+			WHERE item_id > 0 AND remaining > 0
+			GROUP BY item_id
+		) AS bs ON bm.id = bs.item_id 
+		WHERE IFNULL(bs.remaining, 0) > 0 
+		ORDER BY bm.id ASC
+		";
+
+		$sql = $sql1;
+		if ($type == 2) {
+			$sql = $sql2;
+		}
+
 		$data = array();
-		$query = $this->db->query($sql1)->result();
+		$query = $this->db->query($sql)->result();
 		foreach ($query as $item) {
 			$data[] = array(
 				"id" => $item->id, "text" => $item->material_name
@@ -486,19 +558,50 @@ class MaterialRequests_model extends Crud_model
 
 	function getStockMaterialListByMaterialId($material_id)
 	{
-		$sql = "
-		SELECT
-			bs.id, bs.group_id, bsg.name,
-			bs.stock - IFNULL(bpim.actual_used, 0) AS actual_remain 
+		$sql = "SELECT bs.id, bs.group_id, bsg.name, 
+			IF (
+				bs.remaining < bs.stock - IFNULL(bpim.actual_used, 0), 
+				bs.remaining, 
+				bs.stock - IFNULL(bpim.actual_used, 0)
+			) AS actual_remain 
 		FROM bom_stocks AS bs 
 		LEFT JOIN bom_stock_groups bsg ON bs.group_id = bsg.id 
 		LEFT JOIN (
 			SELECT stock_id, SUM(ratio) AS actual_used 
 			FROM bom_project_item_materials 
-			WHERE ratio > 0 AND material_id = " . $material_id . " 
+			WHERE material_id = " . $material_id . " AND ratio > 0 
 			GROUP BY stock_id
 		) AS bpim ON bs.id = bpim.stock_id 
-		WHERE 1 AND bs.material_id = " . $material_id . " 
+		WHERE bs.material_id = " . $material_id . " AND bs.remaining > 0 
+		AND bs.stock - IFNULL(bpim.actual_used, 0) > 0 
+		ORDER BY bs.id
+		";
+
+		$query = $this->db->query($sql)->result();
+		foreach ($query as $item) {
+			$item->remaining = number_format($item->actual_remain, 2);
+		}
+
+		return $query;
+	}
+
+	function getStockItemListByItemId($item_id)
+	{
+		$sql = "SELECT bs.id, bs.group_id, bsg.name, 
+			IF (
+				bs.remaining < bs.stock - IFNULL(bpim.actual_used, 0), 
+				bs.remaining, 
+				bs.stock - IFNULL(bpim.actual_used, 0)
+			) AS actual_remain 
+		FROM bom_item_stocks AS bs 
+		LEFT JOIN bom_item_groups bsg ON bs.group_id = bsg.id 
+		LEFT JOIN (
+			SELECT stock_id, SUM(ratio) AS actual_used 
+			FROM bom_project_item_items 
+			WHERE item_id = " . $item_id . " AND ratio > 0 
+			GROUP BY stock_id
+		) AS bpim ON bs.id = bpim.stock_id 
+		WHERE bs.item_id = " . $item_id . " AND bs.remaining > 0 
 		AND bs.stock - IFNULL(bpim.actual_used, 0) > 0 
 		ORDER BY bs.id
 		";

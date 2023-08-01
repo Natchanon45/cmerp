@@ -1749,18 +1749,22 @@ class PurchaseRequests extends MY_Controller
 		echo json_encode(array("data" => array_values($imports), "success" => 1, "message" => "Success"));
 	}
 
-	function pr_project($project_id)
+	function pr_project($project_id = 0) // MARK
 	{
+		if ($project_id == 0) {
+			redirect("forbidden");
+		}
+
 		if (!$this->check_permission('create_purchase_request')) {
 			redirect("forbidden");
 		}
 
 		$view_data['project_info'] = $this->Projects_model->get_one($project_id);
 		$view_data['project_item'] = $this->Bom_project_item_materials_model->dev2_getProjectItemIdByProjectId($project_id);
-		$view_data['project_material'] = $this->Bom_project_item_materials_model->dev2_getBomMaterialToCreatePrByProjectId($project_id);
+		$view_data['select_materials'] = $this->Bom_project_item_materials_model->dev2_getBomMaterialToCreatePrByProjectId($project_id);
 		$view_data['supplier_dropdown'] = $this->Bom_suppliers_model->dev2_getSupplierDropdown();
 
-		foreach ($view_data['project_material'] as $item) {
+		foreach ($view_data['select_materials'] as $item) {
 			$additional = $this->Bom_materials_model->get_one($item->material_id);
 			$supplier = $this->Bom_suppliers_model->dev2_getBomSupplierByMaterialId($item->material_id);
 			$item->material_name = $additional->name . ' ' . $additional->production_name;
@@ -1769,7 +1773,7 @@ class PurchaseRequests extends MY_Controller
 			$item->fix_supplier = $supplier;
 		}
 		
-		// var_dump(arr($view_data)); exit();
+		var_dump(arr(array())); exit();
 		$this->template->rander("purchaserequests/pr_project", $view_data);
 	}
 
@@ -1948,7 +1952,7 @@ class PurchaseRequests extends MY_Controller
 		echo json_encode($result);
 	}
 
-	function pr_records()
+	function pr_records() // MARK
 	{
 		if (!$this->check_permission('create_purchase_request')) {
 			redirect("forbidden");
@@ -1970,8 +1974,8 @@ class PurchaseRequests extends MY_Controller
 
 		$view_data['select_materials'] = $select_items;
 		$view_data['supplier_dropdown'] = $this->Bom_suppliers_model->dev2_getSupplierDropdown();
-		// var_dump(arr($view_data)); exit;
-
+		
+		// var_dump(arr($view_data)); exit();
 		$this->template->rander("purchaserequests/pr_records", $view_data);
 	}
 

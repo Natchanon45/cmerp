@@ -93,7 +93,7 @@
 	const loadMrTableList = (selector, range) => {
 		$(selector).appTable({
 			source: '<?php echo_uri("materialrequests/material_request_list"); ?>',
-			order: [[0, 'asc']],
+			order: [[0, 'desc']],
 			dateRangeType: range,
 			filterDropdown: [
 				{
@@ -125,10 +125,6 @@
 	$(document).ready(function () {
 		loadMrTableList("#monthly-mr-table", "monthly");
 		loadMrTableList("#yearly-mr-table", "yearly");
-
-		$("#add-pr-btn").click(function () {
-			window.location.href = "<?php echo get_uri("materialrequests/process_pr"); ?>";
-		});
 
 		$("#cat-mng-btn").click(function () {
 			window.location.href = '<?php echo get_uri("materialrequests/categories"); ?>';

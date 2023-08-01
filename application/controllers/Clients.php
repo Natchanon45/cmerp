@@ -102,7 +102,7 @@ class Clients extends MY_Controller {
         //get custom fields
         //$view_data["custom_fields"] = $this->Custom_fields_model->get_combined_details("clients", $client_id, $this->login_user->is_admin, $this->login_user->user_type)->result();
         $view_data["custom_fields"] = $this->Clients_m->customFields();
-        var_dump(arr($view_data)); exit();
+        // var_dump(arr($view_data)); exit();
 
         $this->load->view('clients/modal_form', $view_data);
     }

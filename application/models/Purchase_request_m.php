@@ -184,6 +184,7 @@ class Purchase_request_m extends MY_Model
             $this->data["vat_inc"] = $qrow->vat_inc;
             $this->data["vat_percent"] = number_format_drop_zero_decimals($qrow->vat_percent, 2) . "%";
             $this->data["wht_inc"] = $qrow->wht_inc;
+            $this->data["wht_percent"] = number_format_drop_zero_decimals($qrow->wht_percent, 0);
             $this->data["project_id"] = $qrow->project_id;
             $this->data["supplier_id"] = $qrow->supplier_id;
             $this->data["remark"] = $qrow->remark;

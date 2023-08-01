@@ -75,8 +75,12 @@ class Bom_project_item_materials_model extends Crud_model {
 
     function dev2_rejectMaterialRequestById($id)
     {
-        $this->db->where('id', $id);
-        $this->db->update('bom_project_item_materials', array('used_status' => 0, 'mr_id' => null));
+        $this->db->where('id', $id)->where('entry_flag', 1)->delete('bom_project_item_materials');
+        
+        if ($this->db->affected_rows() == 0) {
+            $this->db->where('id', $id);
+            $this->db->update('bom_project_item_materials', array('mr_id' => null));
+        }
     }
 
     function dev2_updateUsedStatusByProjectItemId($item_id, $status_id)
@@ -109,8 +113,18 @@ class Bom_project_item_materials_model extends Crud_model {
 
     function postProjectItemMaterialFromMaterialRequest($data)
     {
-        $this->db->insert('bom_project_item_materials', $data);
-        return $this->db->insert_id();
+        $verify = $this->db->get_where('bom_project_item_materials', array(
+            'mr_id' => $data['mr_id'],
+            'material_id' => $data['material_id'],
+            'stock_id' => $data['stock_id']
+        ));
+
+        if ($verify->num_rows() > 0) {
+            return $verify->row()->id;
+        } else {
+            $this->db->insert('bom_project_item_materials', $data);
+            return $this->db->insert_id();
+        }
     }
 
     function patchProjectItemMaterialFromMaterialRequest($data)
