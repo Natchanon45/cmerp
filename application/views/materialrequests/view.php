@@ -1,31 +1,25 @@
-<link rel="stylesheet" href="/assets/css/printd.css?t=<?php echo time(); ?>">
-<link rel="stylesheet" href="/assets/css/printd-quotation.css?t=<?php echo time(); ?>">
+<link rel="stylesheet" href="/assets/css/printd.css?t=<?php echo time();?>">
 
 <style type="text/css">
-#item-table-list {
-	font-size: small;
-	margin: 0;
-	padding: 0;
-	width: 100%;
+.page-title .title-button-group {
+    float: right !important;
+    margin: 10px 15px 0px 15px !important;
 }
 
-#item-table-list th {
-	border-top: 1px solid #c3c3c3 !important;
-	border-bottom: 1px solid #c3c3c3 !important;
-	border-left: none;
-	border-right: none;
+.docitem {
+    margin-top: 1.2rem !important;
 }
 
-#item-table-list td {
-	border-bottom: 1px solid #c3c3c3 !important;
+.text-left {
+    text-align: left !important;
 }
 
-.mr-list {
-	height: 44px;
+.w220px {
+    width: 220px !important;
 }
 
-.mr-list td {
-	padding: 4px !important;
+.mt2r {
+    margin-top: 2rem !important;
 }
 
 .page-absolute {
@@ -38,297 +32,213 @@
 
 .rejected-logo {
 	right: 20rem;
-	bottom: 15rem;
-	font-size: 2rem;
+	bottom: 25rem;
+	font-size: 3.5rem;
 	color: red;
 	opacity: 0.5;
-	transform: rotate(-40deg);
+	transform: rotate(-35deg);
 	border: 3px solid;
     padding: 0.5rem 1rem;
 }
 
-.item-top td {
-	vertical-align: top;
+.doc-detail td:first-child {
+    width: fit-content !important;
+    padding-right: 10px;
 }
 </style>
 
-<?php $nodata = "<span style='color: red;'>ยังไม่มีข้อมูล</span>"; ?>
-
 <div id="dcontroller" class="clearfix">
-	<div class="page-title clearfix mt15">
-		<!-- Left top -->
-		<h1><?php echo lang("mr_number") . $mat_req_info->doc_no; ?></h1>
-
-		<!-- Right top -->
-		<div class="title-button-group">
-			<a href="<?php echo get_uri("materialrequests"); ?>" style="margin-left: 15px;" class="btn btn-default mt0 mb0 back-to-index-btn">
+    <div class="page-title clearfix mt15 clear">
+        <h1><?php echo lang('material_request_no'); ?> <?php echo $mat_req_info->doc_no;?></h1>
+        <div class="title-button-group">
+            <a href="<?php echo get_uri("materialrequests"); ?>" style="margin-left: 15px;" class="btn btn-default mt0 mb0 back-to-index-btn">
 				<i class="fa fa-hand-o-left" aria-hidden="true"></i>
 				<?php echo lang("back"); ?>
 			</a>
 
-			<?php if ($approve_material_request): ?>
+            <?php if ($approve_material_request): ?>
 				<?php if ($mat_req_info->status_id == 1 || $mat_req_info->status_id == 2): ?>
-					<a href="<?php echo get_uri("materialrequests/approve/" . $mat_req_info->id); ?>" class="btn btn-info mt0 mb0 approval-btn approve-btn"><?php echo lang("status_already_approved"); ?></a>
-					<a href="<?php echo get_uri("materialrequests/disapprove/" . $mat_req_info->id); ?>" class="btn btn-danger mt0 mb0 approval-btn approve-btn"><?php echo lang("status_already_rejected"); ?></a>
+					<a href="<?php echo get_uri('materialrequests/approve/' . $mat_req_info->id); ?>" class="btn btn-info mt0 mb0 approval-btn approve-btn"><?php echo lang("status_already_approved"); ?></a>
+					<a href="<?php echo get_uri('materialrequests/disapprove/' . $mat_req_info->id); ?>" class="btn btn-danger mt0 mb0 approval-btn approve-btn"><?php echo lang("status_already_rejected"); ?></a>
 				<?php endif; ?>
 			<?php endif; ?>
 
-			<?php if ($mat_req_info->status_id != 4): ?>
-				<span class="dropdown inline-block">
-					<button class="btn btn-info dropdown-toggle  mt0 mb0" type="button" data-toggle="dropdown" aria-expanded="true">
-						<i class="fa fa-cogs"></i>
-						<?php echo lang("actions"); ?>
-						<span class="caret"></span>
-					</button>
-					<ul class="dropdown-menu" role="menu">
-						<?php if ($update_material_request): ?>
-							<?php if ($mat_req_info->status_id == 1 || $mat_req_info->status_id == 2): ?>
-								<li role="presentation">
-									<?php echo modal_anchor(get_uri("materialrequests/modal_form"), "<i class='fa fa-edit'></i> " . lang('edit_materialrequest'), array("title" => lang('edit_materialrequest'), "data-post-id" => $mat_req_info->id, "role" => "menuitem", "tabindex" => "-1")); ?>
-								</li>
-							<?php endif; ?>
-							<li role="presentation" id="btn-print"><?php echo js_anchor("<i class='fa fa-print'></i> " . lang("print")); ?></li>
-						<?php endif; ?>
-					</ul>
-				</span>
-			<?php endif; ?>
-		</div>
-	</div>
+            <?php if ($mat_req_info->status_id != 4): ?>
+                <a onclick="window.open('<?php echo get_uri('materialrequests/print/' . $mat_req_info->id);?>', '' ,'width=980,height=720');" class="btn btn-default mt0 mb0">
+                    <i class='fa fa-print'></i> <?php echo lang('print'); ?>
+                </a>
+            <?php endif; ?>
+        </div>
+    </div>
 
-	<!-- Status Line -->
-	<div class="panel panel-default  p15 no-border m0">
-		<b><?php echo lang("status"); ?></b>
-		<?php if ($mat_req_info-> status_id == 1 || $mat_req_info->status_id == 2): ?>
-			<span class="mr10">
-				<span class="mt0 label label-default large" style="background-color: #efc050"><?php echo lang("status_waiting_for_approve"); ?></span>
-			</span>
-		<?php elseif ($mat_req_info->status_id == 3): ?>
-			<span class="mr10">
-				<span class="mt0 label label-default large" style="background-color: #009b77"><?php echo lang("status_already_approved"); ?></span>
-			</span>
-		<?php elseif ($mat_req_info->status_id == 4): ?>
-			<span class="mr10">
-				<span class="mt0 label label-default large" style="background-color: #ff1a1a"><?php echo lang("status_already_rejected"); ?></span>
-			</span>
-		<?php endif; ?>
-	</div>
-	<div id="not-enough" class="alert alert-danger mt15 mb0 hide" role="alert"><?php echo $error_message; ?></div>
-	<div id="approved-success" class="alert alert-success mt15 mb0 hide" role="alert"><?php echo $success_message; ?></div>
-	<div id="reject-message" class="alert alert-danger mt15 mb0 hide" role="alert"><?php echo $reject_message; ?></div>
-</div>
+    <div id="not-enough" class="alert alert-danger mt15 mb0 hide" role="alert"><?php echo @$error_message; ?></div>
+	<div id="approved-success" class="alert alert-success mt15 mb0 hide" role="alert"><?php echo @$success_message; ?></div>
+	<div id="reject-message" class="alert alert-danger mt15 mb0 hide" role="alert"><?php echo @$reject_message; ?></div>
+</div><!--#dcontroller-->
 
 <div id="printd" class="clear page-relative">
-	<!-- Document Header -->
-	<div class="docheader clear">
-		<!-- Header Left -->
-		<div class="l">
-			<div class="logo">
-				<img src="<?php echo get_file_from_setting("estimate_logo", get_setting('only_file_path')); ?>" alt="logo">
-			</div>
+    <div class="docheader clear">
+        <div class="l">
+            <div class="logo">
+                <?php if (file_exists($_SERVER['DOCUMENT_ROOT'] . get_file_from_setting('estimate_logo', true)) != false): ?>
+                    <img src="<?php echo get_file_from_setting('estimate_logo', get_setting('only_file_path')); ?>" />
+                <?php else: ?>
+                    <span class="nologo">&nbsp;</span>
+                <?php endif; ?>
+            </div>
 
-			<div class="company">
-				<p class="company_name"><?php echo get_setting("company_name"); ?></p>
-				<p class=""><?php echo get_setting("company_address"); ?></p>
+            <div class="company">
+                <p class="company_name"><?php echo get_setting('company_name'); ?></p>
+                <p><?php echo nl2br(get_setting('company_address')); ?></p>
+                <?php if (trim(get_setting('company_phone')) != ''): ?>
+                    <p><?php echo lang('phone') . ': ' . get_setting('company_phone'); ?></p>
+                <?php endif; ?>
+                <?php if (trim(get_setting('company_website')) != ''): ?>
+                    <p><?php echo lang('website') . ': ' . get_setting('company_website'); ?></p>
+                <?php endif; ?>
+                <?php if (trim(get_setting('company_vat_number')) != 'company_vat_number'): ?>
+                    <p><?php echo lang('vat_number') . ': ' . get_setting('company_vat_number'); ?></p>
+                <?php endif; ?>
+            </div><!-- .company -->
+        </div><!--.l-->
 
-				<?php if (get_setting("company_phone")): ?>
-					<p><?php echo lang("phone") . ": " . get_setting("company_phone"); ?></p>
-				<?php endif; ?>
+        <div class="r">
+            <h1 class="document_name custom-color"><?php echo $mat_req_info->mr_type == 1 ? lang('material_request_document') : lang('fg_request_document'); ?></h1>
+            <div class="about_company">
+                <table class="doc-detail">
+                    <tr>
+                        <td class="custom-color"><?php echo lang('document_number'); ?></td>
+                        <td><?php echo (isset($mat_req_info->doc_no) && !empty($mat_req_info->doc_no)) ? $mat_req_info->doc_no : '-'; ?></td>
+                    </tr>
+                    <tr>
+                        <td class="custom-color"><?php echo ucwords(lang('material_request_date')); ?></td>
+                        <td><?php echo (isset($mat_req_info->mr_date) && !empty($mat_req_info->mr_date)) ? convertDate($mat_req_info->mr_date, true) : '-'; ?></td>
+                    </tr>
+                    <tr>
+                        <td class="custom-color"><?php echo ucwords(lang('material_request_person')); ?></td>
+                        <td>
+                            <?php
+                                echo (isset($mat_requester_info->first_name) && !empty($mat_requester_info->first_name)) ? $mat_requester_info->first_name : '';
+                                echo ' ';
+                                echo (isset($mat_requester_info->last_name) && !empty($mat_requester_info->last_name)) ? $mat_requester_info->last_name : '';
+                            ?>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="custom-color"><?php echo ucwords(lang('positioning')); ?></td>
+                        <td><?php echo (isset($mat_requester_info->job_title) && !empty($mat_requester_info->job_title)) ? $mat_requester_info->job_title : '-'; ?></td>
+                    </tr>
+                    <tr>
+                        <td class="custom-color"><?php echo ucwords(lang('project_refer')); ?></td>
+                        <td><?php echo (isset($mat_project_info->title) && !empty($mat_project_info->title)) ? $mat_project_info->title : '-'; ?></td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div><!--.docheader-->
 
-				<?php if (get_setting("company_website")): ?>
-					<p><?php echo lang("website") . ": " . get_setting("company_website"); ?></p>
-				<?php endif; ?>
+    <div class="docitem mt2r">
+        <table>
+            <thead>
+                <tr>
+                    <td>#</td>
+                    <td><?php echo lang('details'); ?></td>
+                    <td class="text-left w220px" colspan="2"><?php echo lang('stock_restock_name'); ?></td>
+                    <td><?php echo lang('quantity'); ?></td>
+                    <td><?php echo lang('stock_material_unit'); ?></td>
+                    <td></td>
+                </tr>
+            </thead>
+            <tbody></tbody>
+            <tfoot>
+                <tr><td colspan="7">&nbsp;</td></tr>
+                <tr>
+                    <td colspan="3">
+                        <?php if($mat_req_info->status_id == "1"): ?>
+                            <p><?php echo modal_anchor(get_uri("materialrequests/item_add"), "<i class='fa fa-plus-circle'></i> " . lang('add_item'), array("id"=>"add_item_button", "class" => "btn btn-default", "title" => lang('add_item'), "data-post-doc_id" => $mat_req_info->id)); ?></p>
+                        <?php endif; ?>
+                        <p><input type="text" id="total_in_text" readonly></p>
+                    </td>
+                    <td colspan="4" class="summary"></td>
+                </tr>
+            </tfoot>
+        </table>
+        <?php if (trim($mat_req_info->note) != ""): ?>
+            <div class="remark clear">
+                <p class="custom-color"><?php echo lang('remark'); ?></p>
+                <p><?php echo nl2br($mat_req_info->note); ?></p>
+            </div>
+        <?php endif; ?>
+    </div><!--.docitem-->
+    
+    <div class="docsignature clear">
+        <div class="customer">
+            <div class="on_behalf_of"><?php // echo "ในนาม" . $client["company_name"]; ?></div>
+            <div class="clear">
+                <div class="name">
+                    <span class="l1">
+                        <span class="signature">
+                            <?php if ($mat_req_info->status_id != 4): if ($mat_req_info->requester_id != null): if (null != $requester_sign = $this->Users_m->getSignature($mat_req_info->requester_id)): ?>
+                                <img src="<?php echo ($requester_sign != null) ? '/' . $requester_sign : ''; ?>">
+                            <?php endif; endif; endif; ?>
+                        </span>
+                    </span>
+                    <span class="l2"><?php echo lang('material_request_person'); ?></span>
+                </div>
+                <div class="date">
+                    <span class="l1">
+                        <?php if ($mat_req_info->mr_date != null && $mat_req_info->status_id != 4): ?>
+                            <span class="approved_date"><?php echo convertDate($mat_req_info->mr_date, true); ?></span>
+                        <?php endif; ?>
+                    </span>
+                    <span class="l2"><?php echo lang('date'); ?></span>
+                </div>
+            </div>
+        </div><!--.customer -->
+        <div class="company">
+            <div class="on_behalf_of"><?php // echo "ในนาม" . get_setting("company_name"); ?></div>
+            <div class="clear">
+                <div class="name">
+                    <span class="l1">
+                        <span class="signature">
+                            <?php if ($mat_req_info->approved_by != null && $mat_req_info->status_id == 3): if (null != $signature = $this->Users_m->getSignature($mat_req_info->approved_by)): ?>
+                                <img src="<?php echo '/' . $signature; ?>">
+                            <?php endif; endif; ?>
+                        </span>
+                    </span>
+                    <span class="l2"><?php echo lang('approver'); ?></span>
+                </div>
+                <div class="date">
+                    <span class="l1">
+                        <?php if ($mat_req_info->approved_date != null && $mat_req_info->status_id == 3): ?>
+                            <span class="approved_date"><?php echo convertDate($mat_req_info->approved_date, true); ?></span>
+                        <?php endif; ?>
+                    </span>
+                    <span class="l2"><?php echo lang('date'); ?></span>
+                </div>
+            </div>
+        </div><!--.company-->
+    </div><!--.docsignature-->
 
-				<?php if (get_setting("company_vat_number")): ?>
-					<p><?php echo lang("vat_number") . ": " . get_setting("company_vat_number"); ?></p>
-				<?php endif; ?>
-			</div>
-
-			<!-- Customer -->
-			<div class="customer">
-				<?php if ($mat_client_info): ?>
-					<p class="custom-color"><?php echo lang("client"); ?></p>
-					<p class="custom-name"><?php echo $mat_client_info->company_name; ?></p>
-					<?php echo $mat_client_info->address ? "<p>" . $mat_client_info->address . "</p>" : ""; ?>
-					<?php echo $mat_client_info->city ? "<p>" . lang("city") . " " . $mat_client_info->city . "</p>" : ""; ?>
-					<?php echo $mat_client_info->state ? "<p>" . lang("state") . $mat_client_info->state . " " . $mat_client_info->zip . "</p>" : ""; ?>
-					<?php echo $mat_client_info->vat_number ? "<p>" . lang("vat_number") . ": " . $mat_client_info->vat_number . "</p>" : ""; ?>
-				<?php endif; ?>
-			</div>
-		</div>
-
-		<!-- Header Right -->
-		<div class="r">
-			<h1 class="document_name custom-color"><?php echo lang("materialrequests"); ?></h1>
-			<div class="about_company">
-				<table>
-					<tr class="item-top">
-						<td class="custom-color common-text" style="padding-right: 1rem;"><?php echo lang("document_number"); ?></td>
-						<td class="common-text"><?php echo $mat_req_info->doc_no; ?></td>
-					</tr>
-					<tr class="item-top">
-						<td class="custom-color common-text"><?php echo lang("project_name"); ?></td>
-						<td class="common-text"><?php echo $mat_project_info->title; ?></td>
-					</tr>
-					<tr class="item-top">
-						<td class="custom-color common-text"><?php echo lang("material_request_date"); ?></td>
-						<td class="common-text"><?php echo format_to_date($mat_req_info->mr_date); ?></td>
-					</tr>
-					<tr class="item-top">
-						<td class="custom-color common-text"><?php echo lang("material_request_person"); ?></td>
-						<td class="common-text"><?php echo $mat_requester_info->first_name . " " . $mat_requester_info->last_name; ?></td>
-					</tr>
-					<tr class="item-top">
-						<td class="custom-color common-text"><?php echo lang("positioning"); ?></td>
-						<td class="common-text"><?php echo $mat_requester_info->job_title; ?></td>
-					</tr>
-				</table>
-			</div>
-			<div class="about_customer">
-				<table>
-					<tr>
-						<td class="custom-color"><?php echo lang("contact_name"); ?></td>
-						<td>
-							<?php
-							if ($mat_client_contact) {
-								echo $mat_client_contact->first_name ? $mat_client_contact->first_name : "";
-								echo $mat_client_contact->last_name ? $mat_client_contact->last_name : "";
-							} else {
-								echo "-";
-							}
-							?>
-						</td>
-					</tr>
-					<tr>
-						<td class="custom-color"><?php echo lang("phone"); ?></td>
-						<td>
-							<?php
-							if ($mat_client_contact) {
-								echo $mat_client_contact->phone ? $mat_client_contact->phone : "-";
-							} else {
-								echo "-";
-							}
-							?>
-						</td>
-					</tr>
-					<tr>
-						<td class="custom-color"><?php echo lang("email"); ?></td>
-						<td>
-							<?php
-							if ($mat_client_contact) {
-								echo $mat_client_contact->email ? $mat_client_contact->email : "-";
-							} else {
-								echo "-";
-							}
-							?>
-						</td>
-					</tr>
-				</table>
-			</div>
-		</div>
-	</div>
-
-	<!-- Document Item -->
-	<div class="docitem" style="margin: 2rem 0;">
-		<table id="item-table-list">
-			<thead>
-				<tr style="height: 40px;">
-					<th width="5%" style="text-align: center;">#</th>
-					<th width="45%" style="text-align: center;"><?php echo lang("product_material_record"); ?></th>
-					<th width="25%" style="text-align: center;"><?php echo lang("stock_restock_name"); ?></th>
-					<th width="15%" style="text-align: right;"><?php echo lang("quantity"); ?></th>
-					<th width="9%" style="text-align: center;"><?php echo lang("stock_material_unit"); ?></th>
-					<th width="1%"></th>
-				</tr>
-			</thead>
-			<tbody>
-				<?php if (sizeof($mat_items_info)): ?>
-					<?php foreach($mat_items_info as $key => $item): ?>
-						<tr class="mr-list">
-							<td style="text-align: center;"><?php echo $key + 1; ?></td>
-							<td>
-								<b><?php echo mb_strimwidth($item->code . " : " . $item->title, 0, 55, "..."); ?></b><br />
-								<p style="color: #9a9797;"><?php echo nl2br(mb_strimwidth($item->description, 0, 55, "...")); ?></p>
-							</td>
-							<td style="text-align: left;" class="custom-color"><?php echo isset($item->stock_group_id) && !empty($item->stock_group_id) ? anchor(get_uri("stock/restock_view/" . $item->stock_group_id), $item->stock_group_name, array("target" => "_blank")) : '-'; ?></td>
-							<td style="text-align: right;"><?php echo to_decimal_format3($item->quantity); ?></td>
-							<td style="text-align: center;"><?php echo strtoupper($item->unit_type); ?></td>
-							<td></td>
-						</tr>
-					<?php endforeach; ?>
-				<?php endif; ?>
-			</tbody>
-		</table>
-	</div>
-
-	<!-- Remark -->
-	<div class="remark clear">
-		<p class="custom-color"><?php echo lang("remark"); ?></p>
-		<p><?php echo $mat_req_info->note; ?></p>
-	</div>
-
-	<!-- Document Footer -->
-	<div class="docsignature clear">
-
-		<div class="customer">
-			<div class="on_behalf_of"></div>
-			<div class="clear">
-				<div class="name">
-					<span class="l1" style="height: 30px !important;"><?php echo $mat_requester_info->first_name . " " . $mat_requester_info->last_name; ?></span>
-					<span class="l2"><?php echo lang("material_request_person"); ?></span>
-				</div>
-				<div class="date">
-					<span class="l1" style="height: 30px !important;"><?php echo format_to_date($mat_req_info->mr_date); ?></span>
-					<span class="l2"><?php echo lang("material_request_date"); ?></span>
-				</div>
-			</div>
-		</div>
-
-		<?php if ($mat_req_info->status_id == 4): ?>
-			<div class="company">
-				<div class="on_behalf_of"></div>
-				<div class="clear">
-					<div class="name">
-						<span class="l1" style="height: 30px !important;"><?php echo $mat_req_info->approved_by ? $mat_req_info->approved_by_name : ""; ?></span>
-						<span class="l2"><?php echo lang("rejecter"); ?></span>
-					</div>
-					<div class="date">
-						<span class="l1" style="height: 30px !important;"><?php echo $mat_req_info->approved_date ? format_to_date($mat_req_info->approved_date) : ""; ?></span>
-						<span class="l2"><?php echo lang("date_of_rejected"); ?></span>
-					</div>
-				</div>
-			</div>
-		<?php else: ?>
-			<div class="company">
-				<div class="on_behalf_of"></div>
-				<div class="clear">
-					<div class="name">
-						<span class="l1" style="height: 30px !important;"><?php echo $mat_req_info->approved_by ? $mat_req_info->approved_by_name : ""; ?></span>
-						<span class="l2"><?php echo lang("approver"); ?></span>
-					</div>
-					<div class="date">
-						<span class="l1" style="height: 30px !important;"><?php echo $mat_req_info->approved_date ? format_to_date($mat_req_info->approved_date) : ""; ?></span>
-						<span class="l2"><?php echo lang("day_of_approved"); ?></span>
-					</div>
-				</div>
-			</div>
-		<?php endif; ?>
-
-	</div>
-	<div class="page-absolute rejected-logo hide"><?php echo lang('status_already_rejected'); ?></div>
-</div>
+    <?php if ($mat_req_info->status_id == 4): ?>
+        <div class="page-absolute rejected-logo"><?php echo strtoupper(lang('status_already_rejected')); ?></div>
+    <?php endif; ?>
+</div><!--#printd-->
 
 <script type="text/javascript">
-$(document).ready(function() {
-	$("#item-table-list").DataTable({
-		"bPaginate": false,
-		"bLengthChange": false,
-		"bFilter": false,
-		"bSort": false,
-		"bInfo": false,
-		"bAutoWidth": false
-	});
+window.addEventListener('keydown', function(event) {
+    if (event.keyCode === 80 && (event.ctrlKey || event.metaKey) && !event.altKey && (!event.shiftKey || window.chrome || window.opera)) {
+        event.preventDefault();
+        if (event.stopImmediatePropagation)event.stopImmediatePropagation();
+        else event.stopPropagation();
+        return;
+    }
+}, true);
 
-	<?php if (isset($error_message) && $error_message): ?>
+$(document).ready(function() {
+    loadItems();
+
+    <?php if (isset($error_message) && $error_message): ?>
 		$("#not-enough").removeClass('hide');
 
 		setTimeout(function(e) {
@@ -353,8 +263,59 @@ $(document).ready(function() {
 	<?php endif; ?>
 });
 
-const btnPrint = document.querySelector("#btn-print");
-btnPrint.addEventListener("click", () => {
-	window.print();
-});
+function loadItems() {
+    axios.get('<?php echo_uri('materialrequests/view_items/' . $mat_req_info->id); ?>').then(function (response) {
+        data = response.data;
+
+        let tbody = "";
+        data.map((item, index) => {
+            tbody += `
+                <tr>
+                    <td>${index + 1}</td>
+                    <td>
+                        <p class="desc1">${item.code} - ${item.title}</p>
+                        <p class="desc2">${item.description}</p>
+                    </td>
+                    <td class="text-left" colspan="2">
+                        <?php if ($mat_req_info->mr_type == '2'): ?>
+                            <a href="<?php echo_uri('stock/restock_item_view/'); ?>${item.stocks == null ? '-' : item.stocks?.id}">${item.stocks == null ? '-' : item.stocks?.name}</a>
+                        <?php else: ?>
+                            <a href="<?php echo_uri('stock/restock_view/'); ?>${item.stocks == null ? '-' : item.stocks?.id}">${item.stocks == null ? '-' : item.stocks?.name}</a>
+                        <?php endif; ?>
+                    </td>
+                    <td>${item.quantity}</td>
+                    <td>${item.unit_type}</td>
+                    <td class="edititem">
+                    <?php if ($mat_req_info->status_id == 1): ?>
+                        ${item.edit}
+                        <a class="delete" data-item_id="${item.id}" data-bpim_id="${item.bpim_id}"><i class="fa fa-times fa-fw"></i></a>
+                    <?php endif; ?>
+                    </td>
+                </tr>
+            `;
+        });
+
+        $(".docitem tbody").empty().append(tbody);
+        $(".edititem .delete").click(function() {
+            deleteItem($(this).data("item_id"), $(this).data("bpim_id"));
+        });
+    }).catch(function (error) {
+        console.log(error);
+    });
+}
+
+function deleteItem(item_id, bpim_id) {
+    let url = '<?php echo_uri('materialrequests/item_delete'); ?>';
+    let data = {
+        doc_id: '<?php echo $mat_req_info->id; ?>',
+        doc_type: '<?php echo $mat_req_info->mr_type; ?>',
+        project_id: '<?php echo $mat_req_info->project_id; ?>',
+        bpim_id: bpim_id,
+        item_id: item_id
+    }
+
+    axios.post(url, data).then(function (response) {
+        loadItems();
+    });
+}
 </script>

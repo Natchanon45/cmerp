@@ -69,8 +69,8 @@
     <ul class="nav nav-tabs bg-white title" role="tablist">
         <!--<li><a href="#">ผังบัญชี</a></li>-->
         <li class="active"><a>บัญชีขาย</a></li>
-        <?php if($this->login_user->is_admin): ?>
-        <!--<li><a href="<?php // echo get_uri("accounting/buy"); ?>">บัญชีซื้อ</a></li>-->
+        <?php if ($this->login_user->is_admin): ?>
+        <li><a href="<?php echo get_uri("accounting/buy"); ?>">บัญชีซื้อ</a></li>
         <?php endif; ?>
     </ul>
     <div class="panel panel-default">

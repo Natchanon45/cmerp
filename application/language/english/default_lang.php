@@ -523,7 +523,8 @@ $lang["invoice_items"] = "Invoice product items";
 $lang["edit_invoice"] = "Edit invoice";
 $lang["delete_invoice"] = "Delete invoice";
 $lang["item"] = "Product Item";
-$lang["add_item"] = "Add product item";
+$lang["add_item"] = "Add item";
+$lang["add_item_product"] = "Add product item";
 $lang["create_new_item"] = "Create new product item";
 $lang["select_or_create_new_item"] = "Select from list or create new product item...";
 $lang["quantity"] = "Quantity";
@@ -1981,7 +1982,7 @@ $lang["expiration_date"] = "Expiration date";
 // dev2
 $lang["status_waiting_for_approve"] = "Waiting for approve";
 $lang["status_already_approved"] = "Approved";
-$lang["status_already_rejected"] = "Not approved";
+$lang["status_already_rejected"] = "Rejected";
 $lang["back_to_materialrequest"] = "Back to Material Request";
 $lang["category_management"] = "Category Management";
 $lang["materialrequests"] = "Material Requisition";
@@ -2032,12 +2033,14 @@ $lang["item_cate_duplicate"] = "Item category name must be unique.";
 $lang["used_by"] = "Used by";
 $lang["used_date"] = "Used date";
 $lang["status_material_request"] = "MR Doc.";
+$lang["nodata_item_request"] = "The requested item was not found.";
 $lang["not_enough_stock"] = "Due to insufficient raw materials, documents cannot be approved.";
 $lang["approved_success"] = "Document has been approved.";
 $lang["rejected_message"] = "Document has been rejected.";
 $lang["rejecter"] = "Rejecter";
 $lang["date_of_rejected"] = "Date of rejected";
-$lang["material_request_document"] = "Material Requisition Document";
+$lang["material_request_document"] = "Material Request";
+$lang["fg_request_document"] = "FG Request";
 $lang["re_calc_stock"] = "Recalculate";
 $lang["create_matreq"] = "Create MR Doc.";
 $lang["finished_goods_report"] = "FG Stock Report";
@@ -2085,6 +2088,7 @@ $lang["no_data_available"] = "No data available in table";
 $lang["back_to_stock"] = "Back to stock page";
 $lang["restart_calc"] = "Restart";
 $lang["reference_number"] = "Reference No.";
+$lang["doc_date"] = "Document Date";
 
 $lang["purchase_request"] = "Purchase Requisition";
 $lang["purchase_request_add"] = "Create new PR";
@@ -2097,7 +2101,7 @@ $lang["pr_approved"] = "Approved";
 $lang["pr_rejected"] = "Rejected";
 $lang["total_amount"] = "Total amount";
 
-$lang["direct_material"] = "Direct Material";
+$lang["direct_material"] = "Raw Material";
 $lang["indirect_material"] = "Indirect Material";
 $lang["finised_goods"] = "Finished Goods";
 $lang["assets"] = "Assets";
@@ -2112,6 +2116,12 @@ $lang["po_type"] = "PO Type";
 
 $lang["goods_receipt"] = "Goods Receipt";
 $lang["goods_receipt_add"] = "Create new GR";
+$lang["receive_date"] = "Receive date";
 
 $lang["payment_voucher"] = "Payment Voucher";
 $lang["payment_voucher_add"] = "Create new PV";
+
+$lang["material_request_type"] = "Request type";
+$lang["project_refer"] = "Project reference";
+$lang["material_request_no"] = "Request No.";
+$lang["request_quantity"] = "Request quantity";

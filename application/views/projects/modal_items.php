@@ -173,6 +173,7 @@
         <?php // echo ' ' . lang('request_purchasing_materials'); ?>
       </button>
     <?php // endif; ?> -->
+    <!-- btn-create-pr -->
 </div>
 <?php echo form_close(); ?>
 
@@ -436,7 +437,7 @@ tr.row-target .toggle-container {
 		});
 
     // $('#btn-create-pr').on('click', function(e) {
-    //   let url = '<?php // echo get_uri('purchaserequests/prbyproject/' . $model_info->id); ?>';
+    //   let url = '<?php // echo get_uri('purchaserequests/pr_project/' . $model_info->id); ?>';
     //   window.open(url, '_blank');
     // });
   });

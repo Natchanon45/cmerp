@@ -209,21 +209,21 @@ class Purchaserequest_m extends CI_Model {
         $data[] = array(
             "id" => "1", "text" => lang('direct_material')
         );
-        $data[] = array(
-            "id" => "2", "text" => lang('indirect_material')
-        );
+        // $data[] = array(
+        //     "id" => "2", "text" => lang('indirect_material')
+        // );
         $data[] = array(
             "id" => "3", "text" => lang('finised_goods')
         );
-        $data[] = array(
-            "id" => "4", "text" => lang('assets')
-        );
+        // $data[] = array(
+        //     "id" => "4", "text" => lang('assets')
+        // );
         $data[] = array(
             "id" => "5", "text" => lang('services')
         );
-        $data[] = array(
-            "id" => "6", "text" => lang('expenses')
-        );
+        // $data[] = array(
+        //     "id" => "6", "text" => lang('expenses')
+        // );
 
         return $data;
     }

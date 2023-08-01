@@ -416,4 +416,13 @@ class Clients_model extends Crud_model
 		return $query->row();
 	}
 
+	function dev2_getClientNameByProjectId($id)
+	{
+		$this->db->select('clients.company_name');
+		$this->db->from('projects');
+		$this->db->join('clients', 'projects.client_id = clients.id');
+		$this->db->where('projects.id', $id);
+		return $this->db->get()->row()->company_name;
+	}
+
 }

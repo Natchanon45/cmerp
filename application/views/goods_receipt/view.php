@@ -1,7 +1,7 @@
 <link rel="stylesheet" href="/assets/css/printd.css?t=<?php echo time();?>">
 <div id="dcontroller" class="clearfix">
     <div class="page-title clearfix mt15 clear">
-        <h1><?php echo lang('purchase_order'); ?> <?php echo $doc_number;?></h1>
+        <h1><?php echo lang('goods_receipt'); ?> <?php echo $doc_number;?></h1>
         <div class="title-button-group">
             <a style="margin-left: 15px;" class="btn btn-default mt0 mb0 back-to-index-btn" href="<?php echo get_uri("accounting/buy/purchase_order");?>" ><i class="fa fa-hand-o-left" aria-hidden="true"></i> ย้อนกลับไปตารางรายการ</a>
             <a id="add_item_button" class="btn btn-default" data-post-doc_id="<?php echo $doc_id; ?>" data-act="ajax-modal" data-title="แชร์เอกสาร <?php echo $doc_number; ?>" data-action-url="<?php echo get_uri("purchase_order/share"); ?>">แชร์</a>
@@ -57,7 +57,7 @@
             </div><!-- .company -->
         </div><!--.l-->
         <div class="r">
-            <h1 class="document_name custom-color"><?php echo lang('purchase_order'); ?></h1>
+            <h1 class="document_name custom-color"><?php echo lang('goods_receipt'); ?></h1>
             <div class="about_company">
                 <table>
                     <tr>
@@ -65,15 +65,15 @@
                         <td><?php echo $doc_number; ?></td>
                     </tr>
                     <tr>
-                        <td class="custom-color">วันที่</td>
-                        <td><?php echo convertDate($doc_date, true); ?></td>
+                        <td class="custom-color">วันที่รับ</td>
+                        <td><?php echo convertDate($receive_date, true); ?></td>
                     </tr>
-                    <tr>
+                    <!-- <tr>
                         <td class="custom-color">เครดิต</td>
-                        <td><?php echo $credit; ?> วัน</td>
-                    </tr>
+                        <td><?php // echo $credit; ?> วัน</td>
+                    </tr> -->
                     <tr>
-                        <td class="custom-color">ผู้สั่งซื้อ</td>
+                        <td class="custom-color">ผู้ขอซื้อ</td>
                         <td><?php if($created != null) echo $created["first_name"]." ".$created["last_name"]; ?></td>
                     </tr>
                     <?php if(trim($reference_number) != ""): ?>
@@ -88,15 +88,15 @@
                 <table>
                     <tr>
                         <td class="custom-color">ผู้ติดต่อ</td>
-                        <td><?php echo (isset($supplier_contact) && !empty($supplier_contact)) ? $supplier_contact["first_name"] . " " . $supplier_contact["last_name"] : '-'; ?></td>
+                        <td><?php if(isset($supplier_contact)) echo $supplier_contact["first_name"]." ".$supplier_contact["last_name"]; ?></td>
                     </tr>
                     <tr>
                         <td class="custom-color">เบอร์โทร</td>
-                        <td><?php echo (isset($supplier_contact) && !empty($supplier_contact)) ? $supplier_contact["phone"] : '-'; ?></td>
+                        <td><?php if(isset($supplier_contact)) echo $supplier_contact["phone"]; ?></td>
                     </tr>
                     <tr>
                         <td class="custom-color">อีเมล์</td>
-                        <td><?php echo (isset($supplier_contact) && !empty($supplier_contact)) ? $supplier_contact["email"] : '-'; ?></td>
+                        <td><?php if(isset($supplier_contact)) echo $supplier_contact["email"]; ?></td>
                     </tr>
                 </table>
             </div>
@@ -121,7 +121,7 @@
                 <tr>
                     <td colspan="3">
                         <?php if($doc_status == "W"): ?>
-                            <p><?php // echo modal_anchor(get_uri("purchase_order/item"), "<i class='fa fa-plus-circle'></i> " . lang('add_item_product'), array("id"=>"add_item_button", "class" => "btn btn-default", "title" => lang('add_item_product'), "data-post-doc_id" => $doc_id)); ?></p>
+                            <p><?php echo modal_anchor(get_uri("goods_receipt/item"), "<i class='fa fa-plus-circle'></i> " . lang('add_item_product'), array("id"=>"add_item_button", "class" => "btn btn-default", "title" => lang('add_item_product'), "data-post-doc_id" => $doc_id)); ?></p>
                         <?php endif; ?>
                         <p><input type="text" id="total_in_text" readonly></p>
                     </td>
@@ -161,9 +161,6 @@
                             <span class="c1 custom-color">
                                 <input type="checkbox" id="wht_inc" <?php if($wht_inc == "Y") echo "checked" ?> <?php if($doc_status != "W") echo "disabled"; ?>>หักภาษี ณ ที่จ่าย
                                 <select id="wht_percent" class="wht custom-color <?php echo $wht_inc == "Y"?"v":"h"; ?>" <?php if($doc_status != "W") echo "disabled"; ?>>
-                                <?php if ($wht_inc == 'Y' && isset($wht_percent) && !empty($wht_percent)): ?>
-                                    <option value="<?php echo $wht_percent; ?>" selected><?php echo $wht_percent . '%'; ?></option>
-                                <?php endif; ?>
                                     <option value="3">3%</option>
                                     <option value="5">5%</option>
                                     <option value="0.50">0.5%</option>
@@ -194,55 +191,6 @@
             </div>
         <?php endif; ?>
     </div><!--.docitem-->
-
-    <div class="docsignature clear">
-        <div class="customer">
-            <div class="on_behalf_of"><?php // echo "ในนาม" . $client["company_name"]; ?></div>
-            <div class="clear">
-                <div class="name">
-                    <span class="l1">
-                        <span class="signature">
-                            <?php if ($doc_status != 'R'): if ($created_by != null): if (null != $requester_sign = $this->Users_m->getSignature($created_by)): ?>
-                                <img src="<?php echo '/' . $requester_sign; ?>">
-                            <?php endif; endif; endif; ?>
-                        </span>
-                    </span>
-                    <span class="l2"><?php echo lang('purchase_by'); ?></span>
-                </div>
-                <div class="date">
-                    <span class="l1">
-                        <?php if ($doc_date != null && $doc_status != 'R'): ?>
-                            <span class="approved_date"><?php echo convertDate($doc_date, true); ?></span>
-                        <?php endif; ?>
-                    </span>
-                    <span class="l2"><?php echo lang('date'); ?></span>
-                </div>
-            </div>
-        </div><!--.customer -->
-        <div class="company">
-            <div class="on_behalf_of"><?php // echo "ในนาม" . get_setting("company_name"); ?></div>
-            <div class="clear">
-                <div class="name">
-                    <span class="l1">
-                        <span class="signature">
-                            <?php if ($approved_by != null && $doc_status == 'A'): if (null != $signature = $this->Users_m->getSignature($approved_by)): ?>
-                                <img src="<?php echo '/' . $signature; ?>">
-                            <?php endif; endif; ?>
-                        </span>
-                    </span>
-                    <span class="l2"><?php echo lang('approver'); ?></span>
-                </div>
-                <div class="date">
-                    <span class="l1">
-                        <?php if ($approved_datetime != null && $doc_status == 'A'): ?>
-                            <span class="approved_date"><?php echo convertDate($approved_datetime, true); ?></span>
-                        <?php endif; ?>
-                    </span>
-                    <span class="l2"><?php echo lang('date'); ?></span>
-                </div>
-            </div>
-        </div><!--.company-->
-    </div><!--.docsignature-->
 </div><!--#printd-->
 
 <script type="text/javascript">

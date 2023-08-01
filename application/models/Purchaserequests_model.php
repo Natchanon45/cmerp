@@ -510,11 +510,11 @@ class PurchaseRequests_model extends Crud_model
     {
         $param = array(
             'prefix' => 'PR',
-            'LPAD' => 5,
-            'column' => 'pr_no',
+            'LPAD' => 4,
+            'column' => 'doc_number',
             'table' => 'pr_header'
         );
-        $data['pr_no'] = $this->Db_model->genDocNo($param);
+        $data['doc_number'] = $this->Db_model->genDocNo($param);
         
         $this->db->insert('pr_header', $data);
         $insert_id = $this->db->insert_id();

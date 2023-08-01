@@ -1,8 +1,8 @@
 <?php
 
-class Purchase_order_m extends MY_Model
+class Goods_receipt_m extends MY_Model
 {
-    private $code = "PO";
+    private $code = "GR";
 
     private $shareHtmlAddress = "share/purchase_order/html/";
 
@@ -10,7 +10,7 @@ class Purchase_order_m extends MY_Model
     {
         parent::__construct();
 
-        $this->load->model('Purchase_request_m');
+        $this->load->model('Purchase_order_m');
     }
 
     function getCode()
@@ -18,11 +18,28 @@ class Purchase_order_m extends MY_Model
         return $this->code;
     }
 
+    function getPurchaseOrderBySupplierId()
+    {
+        $sql = "SELECT * FROM `po_header` WHERE 1 AND `status` = 'A' AND `supplier_id` = '" . $this->json->supplier_id . "'";
+        $query = $this->db->query($sql)->result();
+
+        $po_list = array();
+        if (sizeof($query)) {
+            $po_list = $query;
+        }
+
+        $this->data["supplier_id"] = $this->json->supplier_id;
+        $this->data["po_list"] = $po_list;
+        $this->data["status"] = "success";
+
+        return $this->data;
+    }
+
     function getNewDocNumber()
     {
         $this->db->where("DATE_FORMAT(created_datetime,'%Y-%m')", date("Y-m"));
         $this->db->where("deleted", 0);
-        $running_number = $this->db->get("po_header")->num_rows() + 1;
+        $running_number = $this->db->get("gr_header")->num_rows() + 1;
 
         $doc_number = $this->getCode() . date("Ym") . sprintf("%04d", $running_number);
         return $doc_number;
@@ -134,16 +151,13 @@ class Purchase_order_m extends MY_Model
         $db = $this->db;
 
         $this->data["doc_date"] = date("Y-m-d");
-        $this->data["doc_type"] = null;
-        $this->data["credit"] = "0";
-        $this->data["due_date"] = date("Y-m-d");
+        $this->data["receive_date"] = date("Y-m-d");
         $this->data["reference_number"] = "";
         $this->data["discount_type"] = "P";
         $this->data["discount_percent"] = 0;
         $this->data["discount_amount"] = 0;
         $this->data["vat_inc"] = "N";
         $this->data["wht_inc"] = "N";
-        $this->data["project_id"] = null;
         $this->data["supplier_id"] = null;
         $this->data["remark"] = null;
         $this->data["created_by"] = null;
@@ -154,7 +168,7 @@ class Purchase_order_m extends MY_Model
 
         if (!empty($docId)) {
             $qrow = $db->select("*")
-                ->from("po_header")
+                ->from("gr_header")
                 ->where("id", $docId)
                 ->where("deleted", 0)
                 ->get()->row();
@@ -165,9 +179,7 @@ class Purchase_order_m extends MY_Model
             $this->data["doc_number"] = $qrow->doc_number;
             $this->data["share_link"] = $qrow->sharekey != null ? get_uri($this->shareHtmlAddress . "th/" . $qrow->sharekey) : null;
             $this->data["doc_date"] = $qrow->doc_date;
-            $this->data["doc_type"] = $qrow->po_type;
-            $this->data["credit"] = $qrow->credit;
-            $this->data["due_date"] = $qrow->due_date;
+            $this->data["receive_date"] = $qrow->receive_date;
             $this->data["reference_number"] = $qrow->reference_number;
             $this->data["discount_type"] = $qrow->discount_type;
             $this->data["discount_percent"] = $qrow->discount_percent;
@@ -175,8 +187,6 @@ class Purchase_order_m extends MY_Model
             $this->data["vat_inc"] = $qrow->vat_inc;
             $this->data["vat_percent"] = number_format_drop_zero_decimals($qrow->vat_percent, 2) . "%";
             $this->data["wht_inc"] = $qrow->wht_inc;
-            $this->data["wht_percent"] = number_format_drop_zero_decimals($qrow->wht_percent, 0);
-            $this->data["project_id"] = $qrow->project_id;
             $this->data["supplier_id"] = $qrow->supplier_id;
             $this->data["remark"] = $qrow->remark;
             $this->data["created_by"] = $qrow->created_by;
@@ -213,7 +223,8 @@ class Purchase_order_m extends MY_Model
             ->from("po_header")
             ->get()->row();
 
-        if (empty($qrow)) return $this->data;
+        if (empty($qrow))
+            return $this->data;
 
         $docId = $qrow->id;
 
@@ -293,20 +304,25 @@ class Purchase_order_m extends MY_Model
                 ->where("deleted", 0)
                 ->get()->row();
 
-            if (empty($qrow)) return $this->data;
+            if (empty($qrow))
+                return $this->data;
 
             $discount_type = $this->json->discount_type;
 
             if ($discount_type == "P") {
                 $discount_percent = getNumber($this->json->discount_percent);
-                if ($discount_percent >= 100) $discount_percent = 99.99;
-                if ($discount_percent < 0) $discount_percent = 0;
+                if ($discount_percent >= 100)
+                    $discount_percent = 99.99;
+                if ($discount_percent < 0)
+                    $discount_percent = 0;
             } else {
                 $discount_amount = getNumber($this->json->discount_value);
             }
 
-            if ($vat_inc == "Y") $vat_percent = $this->Taxes_m->getVatPercent();
-            if ($wht_inc == "Y") $wht_percent = getNumber($this->json->wht_percent);
+            if ($vat_inc == "Y")
+                $vat_percent = $this->Taxes_m->getVatPercent();
+            if ($wht_inc == "Y")
+                $wht_percent = getNumber($this->json->wht_percent);
         } else {
             $qrow = $db->select("*")
                 ->from("po_header")
@@ -314,7 +330,8 @@ class Purchase_order_m extends MY_Model
                 ->where("deleted", 0)
                 ->get()->row();
 
-            if (empty($qrow)) return $this->data;
+            if (empty($qrow))
+                return $this->data;
 
             $discount_type = $qrow->discount_type;
             $discount_percent = $qrow->discount_percent;
@@ -323,8 +340,10 @@ class Purchase_order_m extends MY_Model
             $vat_inc = $qrow->vat_inc;
             $wht_inc = $qrow->wht_inc;
 
-            if ($vat_inc == "Y") $vat_percent = $qrow->vat_percent;
-            if ($wht_inc == "Y") $wht_percent = $qrow->wht_percent;
+            if ($vat_inc == "Y")
+                $vat_percent = $qrow->vat_percent;
+            if ($wht_inc == "Y")
+                $wht_percent = $qrow->wht_percent;
         }
 
         $sub_total_before_discount = $db->select("SUM(total_price) AS SUB_TOTAL")
@@ -332,22 +351,27 @@ class Purchase_order_m extends MY_Model
             ->where("po_id", $docId)
             ->get()->row()->SUB_TOTAL;
 
-        if ($sub_total_before_discount == null) $sub_total_before_discount = 0;
+        if ($sub_total_before_discount == null)
+            $sub_total_before_discount = 0;
         if ($discount_type == "P") {
             if ($discount_percent > 0) {
                 $discount_amount = ($sub_total_before_discount * $discount_percent) / 100;
             }
         } else {
-            if ($discount_amount > $sub_total_before_discount) $discount_amount = $sub_total_before_discount;
-            if ($discount_amount < 0) $discount_amount = 0;
+            if ($discount_amount > $sub_total_before_discount)
+                $discount_amount = $sub_total_before_discount;
+            if ($discount_amount < 0)
+                $discount_amount = 0;
         }
 
         $sub_total = $sub_total_before_discount - $discount_amount;
 
-        if ($vat_inc == "Y") $vat_value = ($sub_total * $vat_percent) / 100;
+        if ($vat_inc == "Y")
+            $vat_value = ($sub_total * $vat_percent) / 100;
         $total = $sub_total + $vat_value;
 
-        if ($wht_inc == "Y") $wht_value = ($sub_total * $wht_percent) / 100;
+        if ($wht_inc == "Y")
+            $wht_value = ($sub_total * $wht_percent) / 100;
         $payment_amount = $total - $wht_value;
 
         $db->where("id", $docId);
@@ -399,7 +423,7 @@ class Purchase_order_m extends MY_Model
                 'rules' => 'required'
             ],
             [
-                "field" => "due_date",
+                "field" => "receive_date",
                 'label' => '',
                 'rules' => 'required'
             ]
@@ -408,7 +432,7 @@ class Purchase_order_m extends MY_Model
         if ($this->form_validation->run() == FALSE) {
             $this->data["status"] = "validate";
             if (form_error('doc_date') != null) $this->data["messages"]["doc_date"] = form_error('doc_date');
-            if (form_error('due_date') != null) $this->data["messages"]["due_date"] = form_error('due_date');
+            if (form_error('receive_date') != null) $this->data["messages"]["receive_date"] = form_error('receive_date');
         }
     }
 
@@ -421,12 +445,10 @@ class Purchase_order_m extends MY_Model
 
         $docId = $this->json->doc_id;
         $doc_date = convertDate($this->json->doc_date);
-        $po_type = $this->json->doc_type;
-        $credit = intval($this->json->credit) < 0 ? 0 : intval($this->json->credit);
-        $due_date = date('Y-m-d', strtotime($doc_date . " + " . $credit . " days"));
+        $po_list = $this->json->po_list;
+        $receive_date = convertDate($this->json->receive_date);
         $reference_number = $this->json->reference_number;
         $supplier_id = $this->json->supplier_id;
-        $project_id = $this->json->project_id;
         $remark = $this->json->remark;
 
         if ($supplier_id == "") {
@@ -435,9 +457,15 @@ class Purchase_order_m extends MY_Model
             return $this->data;
         }
 
+        if ($receive_date == "") {
+            $this->data["status"] = "validate";
+            $this->data["messages"]["receive_date"] = "โปรดใส่ข้อมูล";
+            return $this->data;
+        }
+
         if ($docId != "") {
             $qrow = $db->select("status")
-                ->from("po_header")
+                ->from("gr_header")
                 ->where("id", $docId)
                 ->where("deleted", 0)
                 ->get()->row();
@@ -456,28 +484,25 @@ class Purchase_order_m extends MY_Model
 
             $db->where("id", $docId);
             $db->where("deleted", 0);
-            $db->update("po_header", [
+            $db->update("gr_header", [
                 "doc_date" => $doc_date,
-                "credit" => $credit,
-                "due_date" => $due_date,
+                "po_list" => $po_list,
+                "receive_date" => $receive_date,
                 "reference_number" => $reference_number,
                 "supplier_id" => $supplier_id,
-                "project_id" => $project_id,
                 "remark" => $remark
             ]);
         } else {
             $doc_number = $this->getNewDocNumber();
 
-            $db->insert("po_header", [
+            $db->insert("gr_header", [
                 "doc_number" => $doc_number,
                 "doc_date" => $doc_date,
-                "po_type" => $po_type,
-                "credit" => $credit,
-                "due_date" => $due_date,
+                "po_list" => $po_list,
+                "receive_date" => $receive_date,
                 "reference_number" => $reference_number,
-                "vat_inc" => "N",
                 "supplier_id" => $supplier_id,
-                "project_id" => $project_id,
+                "vat_inc" => "N",
                 "remark" => $remark,
                 "created_by" => $this->login_user->id,
                 "created_datetime" => date("Y-m-d H:i:s"),
@@ -487,7 +512,7 @@ class Purchase_order_m extends MY_Model
             $docId = $db->insert_id();
         }
 
-        $this->data["target"] = get_uri("purchase_order/view/" . $docId);
+        $this->data["target"] = get_uri("goods_receipt/view/" . $docId);
         $this->data["status"] = "success";
 
         return $this->data;
@@ -503,7 +528,8 @@ class Purchase_order_m extends MY_Model
             ->where("id", $docId)
             ->get()->row();
 
-        if (empty($qrow)) return $this->data;
+        if (empty($qrow))
+            return $this->data;
 
         $bnrow = $db->select("*")
             ->from("goods_receipt_header")
@@ -562,7 +588,8 @@ class Purchase_order_m extends MY_Model
             ->where("deleted", 0)
             ->get()->row();
 
-        if (empty($qrow)) return $this->data;
+        if (empty($qrow))
+            return $this->data;
 
         $qirows = $db->select("*")
             ->from("po_detail")
@@ -609,7 +636,8 @@ class Purchase_order_m extends MY_Model
             ->where("deleted", 0)
             ->get()->row();
 
-        if (empty($qrow)) return $this->data;
+        if (empty($qrow))
+            return $this->data;
 
         $this->data["doc_id"] = $docId;
         $this->data["doc_type"] = $qrow->po_type;
@@ -628,7 +656,8 @@ class Purchase_order_m extends MY_Model
                 ->where("po_id", $docId)
                 ->get()->row();
 
-            if (empty($qirow)) return $this->data;
+            if (empty($qirow))
+                return $this->data;
 
             $this->data["item_id"] = $qirow->id;
             $this->data["product_id"] = $qirow->product_id;
@@ -658,7 +687,8 @@ class Purchase_order_m extends MY_Model
 
         if ($this->form_validation->run() == FALSE) {
             $this->data["status"] = "validate";
-            if (form_error('quantity') != null) $this->data["messages"]["quantity"] = form_error('quantity');
+            if (form_error('quantity') != null)
+                $this->data["messages"]["quantity"] = form_error('quantity');
         }
     }
 
@@ -673,10 +703,12 @@ class Purchase_order_m extends MY_Model
             ->where("deleted", 0)
             ->get()->row();
 
-        if (empty($qrow)) return $this->data;
+        if (empty($qrow))
+            return $this->data;
 
         $this->validateItem();
-        if ($this->data["status"] == "validate") return $this->data;
+        if ($this->data["status"] == "validate")
+            return $this->data;
 
         $itemId = $this->json->item_id;
         $product_id = $this->json->product_id == "" ? null : $this->json->product_id;
@@ -735,7 +767,8 @@ class Purchase_order_m extends MY_Model
         $db->where("po_id", $docId);
         $db->delete("po_detail");
 
-        if ($db->affected_rows() != 1) return $this->data;
+        if ($db->affected_rows() != 1)
+            return $this->data;
 
         $this->updateDoc($docId);
         $this->data["status"] = "success";
@@ -755,7 +788,8 @@ class Purchase_order_m extends MY_Model
             ->where("deleted", 0)
             ->get()->row();
 
-        if (empty($qrow)) return $this->data;
+        if (empty($qrow))
+            return $this->data;
 
         $po_id = $this->data["doc_id"] = $docId;
         $po_header_number = $qrow->doc_number;
@@ -814,7 +848,8 @@ class Purchase_order_m extends MY_Model
 
         $db->trans_commit();
 
-        if (isset($this->data["task"])) return $this->data;
+        if (isset($this->data["task"]))
+            return $this->data;
 
         $qrow = $db->select("*")
             ->from("po_header")
@@ -856,5 +891,5 @@ class Purchase_order_m extends MY_Model
 
         return $this->data;
     }
-    
+
 }

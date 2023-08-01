@@ -2202,7 +2202,7 @@ $lang["delete_materialrequests"] = "ลบใบเบิก";
 $lang["process_request_materialrequest"] = "ดำเนินการขอเบิก";
 $lang["back_to_request_materialrequest"]="กลับหน้ารายการขอเบิก";
 $lang["place_order_materialrequest"] = "ทำการขอเบิก";
-$lang['edit_materialrequest']='แก้ไขขอเบิก';
+$lang["edit_materialrequest"] = "แก้ไขใบขอเบิก";
 
 /* Keng Musion */
 $lang["purchaserequests"] = "ใบขอซื้อ";
@@ -2439,12 +2439,14 @@ $lang["item_name_duplicate"] = "รหัสสินค้าสำเร็จ
 $lang["item_cate_duplicate"] = "ชื่อหมวดหมู่สินค้าสำเร็จต้องไม่ซ้ำกัน";
 $lang["used_by"] = "นำออกโดย";
 $lang["used_date"] = "วันที่นำออก";
+$lang["nodata_item_request"] = "ไม่พบรายการที่ขอเบิก";
 $lang["not_enough_stock"] = "เนื่องจากวัตถุดิบในคลังไม่เพียบพอจึงไม่สามารถอนุมัติได้";
 $lang["approved_success"] = "ใบเบิกเปลี่ยนสถานะเป็น อนุมัติ เรียบร้อยแล้ว";
 $lang["rejected_message"] = "ใบเบิกเปลี่ยนสถานะเป็น ไม่อนุมัติ เรียบร้อยแล้ว";
 $lang["rejecter"] = "ผู้ไม่อนุมัติ";
 $lang["date_of_rejected"] = "วันที่ไม่อนุมัติ";
 $lang["material_request_document"] = "ใบเบิกวัตถุดิบ";
+$lang["fg_request_document"] = "ใบเบิกสินค้าสำเร็จ";
 $lang["finished_goods_report"] = "รายงานสินค้าสำเร็จ";
 $lang["finished_goods"] = "สินค้าสำเร็จ";
 $lang["finished_goods_restock"] = "นำเข้าสินค้าสำเร็จ";
@@ -2488,6 +2490,7 @@ $lang["no_data_available"] = "ไม่พบข้อมูล";
 $lang["back_to_stock"] = "กลับหน้าคลังสินค้า";
 $lang["restart_calc"] = "เริ่มใหม่";
 $lang["reference_number"] = "เลขที่อ้างอิง";
+$lang["doc_date"] = "วันที่";
 
 $lang["purchase_request"] = "ใบขอซื้อ (PR)";
 $lang["purchase_request_add"] = "เพิ่มใบขอซื้อ";
@@ -2500,9 +2503,9 @@ $lang["pr_approved"] = "อนุมัติ";
 $lang["pr_rejected"] = "ไม่อนุมัติ";
 $lang["total_amount"] = "ยอดรวมสุทธิ";
 
-$lang["direct_material"] = "วัตถุดิบที่ใช้ในการผลิต";
+$lang["direct_material"] = "วัตถุดิบ";
 $lang["indirect_material"] = "วัตถุดิบทั่วไป";
-$lang["finised_goods"] = "สินค้าสำเร็จรูป";
+$lang["finised_goods"] = "สินค้าสำเร็จ";
 $lang["assets"] = "สินทรัพย์";
 $lang["services"] = "บริการ";
 $lang["expenses"] = "ค่าใช้จ่าย";
@@ -2515,6 +2518,12 @@ $lang["po_type"] = "ประเภทใบสั่งซื้อ";
 
 $lang["goods_receipt"] = "ใบรับสินค้า (GR)";
 $lang["goods_receipt_add"] = "เพิ่มใบรับสินค้า";
+$lang["receive_date"] = "วันที่รับสินค้า";
 
 $lang["payment_voucher"] = "ใบสำคัญจ่าย (PV)";
 $lang["payment_voucher_add"] = "เพิ่มใบสำคัญจ่าย";
+
+$lang["material_request_type"] = "ประเภทการเบิก";
+$lang["project_refer"] = "อ้างอิงโปรเจค";
+$lang["material_request_no"] = "เลขที่ใบเบิก";
+$lang["request_quantity"] = "จำนวนที่ขอเบิก";
