@@ -120,15 +120,15 @@
 					<table>
 	                    <tr>
 	                        <td class="custom-color">ผู้ติดต่อ</td>
-	                        <td><?php if(isset($doc["seller_contact"])) echo $doc["seller_contact"]["first_name"]." ".$doc["seller_contact"]["last_name"]; ?></td>
+	                        <td><?php echo (isset($doc["seller_contact"]) && !empty($doc["seller_contact"])) ? $doc["seller_contact"]["first_name"] . " " . $doc["seller_contact"]["last_name"] : ''; ?></td>
 	                    </tr>
 	                    <tr>
 	                        <td class="custom-color">เบอร์โทร</td>
-	                        <td><?php if(isset($doc["seller_contact"])) echo $doc["seller_contact"]["phone"]; ?></td>
+	                        <td><?php echo (isset($doc["seller_contact"]) && !empty($doc["seller_contact"])) ? $doc["seller_contact"]["phone"] : ''; ?></td>
 	                    </tr>
 	                    <tr>
 	                        <td class="custom-color">อีเมล์</td>
-	                        <td><?php if(isset($doc["seller_contact"])) echo $doc["seller_contact"]["email"]; ?></td>
+	                        <td><?php echo (isset($doc["seller_contact"]) && !empty($doc["seller_contact"])) ? $doc["seller_contact"]["email"] : ''; ?></td>
 	                    </tr>
 	                </table>
 				</div>
@@ -220,12 +220,21 @@
 				<div class="on_behalf_of"><?php // echo $doc["seller"]["company_name"]; ?></div>
 				<div class="signature clear">
 					<div class="name">
-	                    <span class="l1"></span>
+	                    <span class="l1">
+							<?php $requester_sign = $this->Users_m->getSignature($doc["buyer"]["id"]); ?>
+							<?php if ($doc["doc_status"] != "R" && $requester_sign != null): ?>
+								<img src='<?php echo str_replace("./", "/", $requester_sign); ?>'>
+							<?php endif; ?>
+						</span>
 	                    <span class="l2"><?php echo lang('purchase_by'); ?></span>
 	                </div>
 	                <div class="date">
-	                    <span class="l1"></span>
-	                    <span class="l2">วันที่</span>
+	                    <span class="l1">
+							<?php if ($doc["doc_date"] != null && $doc["doc_status"] != 'R'): ?>
+								<span class="approved_date"><?php echo convertDate($doc["doc_date"], true); ?></span>
+							<?php endif; ?>
+						</span>
+	                    <span class="l2"><?php echo lang('date'); ?></span>
 	                </div>
 				</div>
 			</div>
@@ -259,5 +268,3 @@
 <?php endif; ?>
 </body>
 </html>
-
-

@@ -295,23 +295,35 @@ class Bom_suppliers_model extends Crud_model {
         $data[] = array(
             "id" => "1", "text" => lang('direct_material')
         );
-        $data[] = array(
-            "id" => "2", "text" => lang('indirect_material')
-        );
+        // $data[] = array(
+        //     "id" => "2", "text" => lang('indirect_material')
+        // );
         $data[] = array(
             "id" => "3", "text" => lang('finised_goods')
         );
-        $data[] = array(
-            "id" => "4", "text" => lang('assets')
-        );
+        // $data[] = array(
+        //     "id" => "4", "text" => lang('assets')
+        // );
         $data[] = array(
             "id" => "5", "text" => lang('services')
         );
-        $data[] = array(
-            "id" => "6", "text" => lang('expenses')
-        );
+        // $data[] = array(
+        //     "id" => "6", "text" => lang('expenses')
+        // );
 
         return $data;
+    }
+
+    function getSupplierForGoodsReceipt()
+    {
+        $suppliers = $this->db->select('supplier_id, company_name')
+            ->from('po_header')
+            ->join('bom_suppliers', 'bom_suppliers.id = po_header.supplier_id')
+            ->where('po_header.status', 'A')
+            ->group_by('po_header.supplier_id')
+            ->get();
+
+        return $suppliers->result();
     }
 
 }

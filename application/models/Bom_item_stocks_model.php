@@ -140,4 +140,60 @@ class Bom_item_stocks_model extends Crud_model {
         return $query->num_rows();
     }
 
+    function dev2_getRestockingByStockId($id)
+    {
+        $sql = "SELECT `bs`.`id` AS 'stock_id', `bsg`.`id` AS 'group_id', `bsg`.`name` AS 'stock_name', `bs`.`serial_number` AS 'serial_number', `bm`.`id` AS 'material_id', `bm`.`item_code` AS 'material_code', `bm`.`title` AS 'material_name', `bm`.`unit_type` AS 'material_unit', `bs`.`stock` AS 'stock_qty', `bs`.`remaining` AS 'stock_remain', `bsg`.`created_by` AS 'create_by', `bsg`.`created_date` AS 'create_date' 
+        FROM `bom_item_stocks` AS `bs` 
+        LEFT JOIN `bom_item_groups` AS `bsg` ON `bs`.`group_id` = `bsg`.`id` 
+        LEFT JOIN `items` AS `bm` ON `bs`.`item_id` = `bm`.`id` 
+        WHERE `bs`.`stock` > 0 AND `bs`.`id` = " . $id . " ORDER BY `bs`.`id` ";
+
+        $query = $this->db->query($sql);
+        $stock_info = $query->row();
+        $stock_info->actual_remain = $this->dev2_getActualRemainingByStockId($stock_info->stock_id);
+
+        return $stock_info;
+    }
+
+    function dev2_getActualRemainingByStockId($stock_id)
+    {
+        $actual_remain = 0;
+        $sql = "
+        SELECT 
+            CASE 
+                WHEN bs.stock - IFNULL(bpim.used_qty, 0) < 0 THEN 0 
+                ELSE bs.stock - IFNULL(bpim.used_qty, 0) 
+            END AS actual_remain 
+        FROM bom_item_stocks bs
+        LEFT JOIN(
+            SELECT stock_id, SUM(ratio) AS used_qty 
+            FROM bom_project_item_items 
+            WHERE stock_id = " . $stock_id . " GROUP BY stock_id
+        ) AS bpim ON bs.id = bpim.stock_id 
+        WHERE bs.id = " . $stock_id . "
+        ";
+
+        $query = $this->db->query($sql)->row();
+        if ($query) {
+            $actual_remain = $query->actual_remain;
+        }
+
+        return $actual_remain;
+    }
+
+    function dev2_verifyStockUsabled($stock_id, $qty)
+    {
+        $sql = "SELECT remaining FROM bom_item_stocks WHERE id = '{$stock_id}'";
+        $query = $this->db->query($sql)->row();
+        $remaining = $query->remaining;
+        
+        return $remaining >= $qty;
+    }
+
+    function dev2_updateStockUsed($stock_id, $qty)
+    {
+        $sql = "UPDATE bom_item_stocks SET remaining = remaining - {$qty} WHERE id = '{$stock_id}'";
+        $this->db->query($sql);
+    }
+
 }

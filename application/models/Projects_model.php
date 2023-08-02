@@ -429,4 +429,42 @@ class Projects_model extends Crud_model {
         return $count;
     }
 
+    function getOpenProjectList()
+    {
+        $this->db->where('deleted', 0);
+        if (!$this->login_user->is_admin) {
+            $$this->db->where('created_by', $this->login_user->id);
+        }
+
+        $query = $this->db->get('projects');
+        return $query->result();
+    }
+
+    function getProjectNameById($id)
+    {
+        $project_name = "";
+
+        $this->db->select('title');
+        $this->db->where('id', $id);
+
+        $query = $this->db->get('projects')->row();
+        if ($query) {
+            $project_name = $query->title;
+        }
+
+        return $project_name;
+    }
+
+    function getItemIdByProjectId($project_id)
+    {
+        $query = $this->db->select('id')
+            ->from('bom_project_items')
+            ->where('project_id', $project_id)
+            ->get()
+            ->row();
+
+        if (empty($query->id)) return null;
+        return $query->id;
+    }
+
 }

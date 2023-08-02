@@ -129,6 +129,21 @@ class Bom_stocks_model extends Crud_model {
         return $query->result();
     }
 
+    public function dev2_getRestockingByStockId(&$id)
+    {
+        $sql = "SELECT `bs`.`id` AS 'stock_id', `bsg`.`id` AS 'group_id', `bsg`.`name` AS 'stock_name', `bs`.`serial_number` AS 'serial_number', `bm`.`id` AS 'material_id', `bm`.`name` AS 'material_code', `bm`.`production_name` AS 'material_name', `bm`.`unit` AS 'material_unit', `bs`.`stock` AS 'stock_qty', `bs`.`remaining` AS 'stock_remain', `bsg`.`created_by` AS 'create_by', `bsg`.`created_date` AS 'create_date' 
+        FROM `bom_stocks` AS `bs` 
+        LEFT JOIN `bom_stock_groups` AS `bsg` ON `bs`.`group_id` = `bsg`.`id` 
+        LEFT JOIN `bom_materials` AS `bm` ON `bs`.`material_id` = `bm`.`id` 
+        WHERE `bs`.`stock` > 0 AND `bs`.`id` = " . $id . " ORDER BY `bs`.`id` ";
+
+        $query = $this->db->query($sql);
+        $stock_info = $query->row();
+        $stock_info->actual_remain = $this->dev2_getActualRemainingByStockId($stock_info->stock_id);
+
+        return $stock_info;
+    }
+
     function dev2_getSerialNumByGroupId($group_id)
     {
         $query = $this->db->select('serial_number')->get_where('bom_stocks', array('group_id' => $group_id));

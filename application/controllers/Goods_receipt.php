@@ -2,7 +2,7 @@
 if (!defined('BASEPATH'))
     exit('No direct script access allowed');
 
-class Purchase_order extends MY_Controller
+class Goods_receipt extends MY_Controller
 {
     function __construct()
     {
@@ -14,16 +14,23 @@ class Purchase_order extends MY_Controller
         }
 
         $this->load->model('Purchase_order_m');
+        $this->load->model('Goods_receipt_m');
         $this->load->model('Bom_materials_model');
+    }
+
+    function example()
+    {
+        $suppliers = $this->Bom_suppliers_model->getSupplierForGoodsReceipt();
+        var_dump(arr($suppliers));
     }
 
     function index()
     {
         if ($this->input->post("datatable") == true) {
-            jout(["data" => $this->Purchase_order_m->indexDataSet()]);
+            jout(["data" => $this->Goods_receipt_m->indexDataSet()]);
             return;
         } elseif (isset($this->json->task)) {
-            if ($this->json->task == "update_doc_status") jout($this->Purchase_order_m->updateStatus());
+            if ($this->json->task == "update_doc_status") jout($this->Goods_receipt_m->updateStatus());
             return;
         }
 
@@ -33,21 +40,25 @@ class Purchase_order extends MY_Controller
     function addedit()
     {
         if (isset($this->json->task)) {
-            if ($this->json->task == "save_doc") jout($this->Purchase_order_m->saveDoc());
+            if ($this->json->task == "save_doc") jout($this->Goods_receipt_m->saveDoc());
+            if ($this->json->task == "get_po_list") jout($this->Goods_receipt_m->getPurchaseOrderBySupplierId());
             return;
         }
 
-        $data = $this->Purchase_order_m->getDoc($this->input->post("id"));
+        $data = $this->Goods_receipt_m->getDoc($this->input->post("id"));
 
-        $this->load->view('purchase_order/addedit', $data);
+        $this->load->view('goods_receipt/addedit', $data);
     }
 
     function view()
     {
         if (isset($this->json->task)) {
-            if ($this->json->task == "load_items") jout($this->Purchase_order_m->items());
-            if ($this->json->task == "update_doc") jout($this->Purchase_order_m->updateDoc());
-            if ($this->json->task == "delete_item") jout($this->Purchase_order_m->deleteItem());
+            if ($this->json->task == "load_items")
+                jout($this->Purchase_order_m->items());
+            if ($this->json->task == "update_doc")
+                jout($this->Purchase_order_m->updateDoc());
+            if ($this->json->task == "delete_item")
+                jout($this->Purchase_order_m->deleteItem());
             return;
         }
 
@@ -56,7 +67,7 @@ class Purchase_order extends MY_Controller
             return;
         }
 
-        $data = $this->Purchase_order_m->getDoc($this->uri->segment(3));
+        $data = $this->Goods_receipt_m->getDoc($this->uri->segment(3));
         if ($data["status"] != "success") {
             redirect(get_uri("/accounting/buy"));
             return;
@@ -65,16 +76,16 @@ class Purchase_order extends MY_Controller
         $data["created"] = $this->Users_m->getInfo($data["created_by"]);
         $data["supplier"] = $this->Bom_suppliers_model->getInfo($data["supplier_id"]);
         $data["supplier_contact"] = $this->Bom_suppliers_model->getContactInfo($data["supplier_id"]);
-        $data["print_url"] = get_uri("purchase_order/print/" . str_replace("=", "", base64_encode($data['doc_id'] . ':' . $data['doc_number'])));
-        
-        // var_dump(arr($data)); exit();
-        $this->template->rander("purchase_order/view", $data);
+        $data["print_url"] = get_uri("goods_receipt/print/" . str_replace("=", "", base64_encode($data['doc_id'] . ':' . $data['doc_number'])));
+
+        $this->template->rander("goods_receipt/view", $data);
     }
 
     function print()
     {
         $this->data["doc"] = $doc = $this->Purchase_order_m->getEdoc($this->uri->segment(3), null);
-        if ($doc["status"] != "success") redirect("forbidden");
+        if ($doc["status"] != "success")
+            redirect("forbidden");
 
         $this->data["docmode"] = "private_print";
         $this->load->view('edocs/purchase_order', $this->data);
@@ -111,7 +122,7 @@ class Purchase_order extends MY_Controller
                     $sprows = $this->Products_m->getRows();
                     if (!empty($sprows)) {
                         foreach ($sprows as $sprow) {
-                            $suggestion[] = ["id" => $sprow->id, "text" => $sprow->title, "description"=>$sprow->description, "unit"=>$sprow->unit_type, "price"=>$sprow->rate];
+                            $suggestion[] = ["id" => $sprow->id, "text" => $sprow->title, "description" => $sprow->description, "unit" => $sprow->unit_type, "price" => $sprow->rate];
                         }
                     }
                 } elseif ($this->input->get("type") == "1") {
@@ -137,12 +148,13 @@ class Purchase_order extends MY_Controller
     function share()
     {
         if (isset($this->json->task)) {
-            if ($this->json->task == "gen_sharekey") jout($this->Purchase_order_m->genShareKey());
+            if ($this->json->task == "gen_sharekey")
+                jout($this->Purchase_order_m->genShareKey());
             return;
         }
 
         $data = $this->Purchase_order_m->getDoc($this->input->post("doc_id"));
         $this->load->view('purchase_order/share', $data);
     }
-    
+
 }
