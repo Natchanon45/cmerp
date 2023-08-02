@@ -77,7 +77,7 @@
 }
 </style>
 
-<?php $modal_header = str_replace("http:", "", str_replace("/", "", base_url())); ?>
+<?php $modal_header = str_replace("https:", "", str_replace("http:", "", str_replace("/", "", base_url()))); ?>
 <a id="popup" data-act="ajax-modal" class="btn ajax-modal"></a>
 <div id="page-content" class="p20 clearfix">
     <ul class="nav nav-tabs bg-white title" role="tablist">
