@@ -87,22 +87,15 @@ class Invoices extends MY_Controller {
     }
 
     function payment_receive(){
-        /*if(isset($this->json->task)){
-            if($this->json->task == "get_doc") jout($this->Invoices_m->addPayment($this->json->doc_id));
+        if(isset($this->json->task)){
+            if($this->json->task == "add_payment") jout($this->Invoices_m->addPayment($this->json->doc_id));
             return;   
-        }*/       
+        }
 
         $this->data["doc"] = $doc = $this->Invoices_m->getDoc($this->input->post("doc_id"));
-        //Net Await Payment Receive Amount
+        $this->data["payment_methods"] = $this->Payments_m->getRows();
 
-
-
-        if($doc["status"] == "W") exit;
-
-        $this->data["payment"] = $this->Payments_m->getPaymentReceiveInfo();
-
-        //$this->data["payment_methods"] = $this->Payments_m->getRows();
-
+        if($doc["status"] == "W") return;
         if($doc["status"] != "success") return;
 
         $this->load->view( 'invoices/payment_receive', $this->data);

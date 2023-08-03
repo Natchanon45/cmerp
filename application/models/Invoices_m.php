@@ -126,6 +126,8 @@ class Invoices_m extends MY_Model {
         $this->data["vat_inc"] = "N";
         $this->data["unpaid_amount"] = 0;
         $this->data["wht_inc"] = "N";
+        $this->data["total"] = 0;//ยอด
+        $this->data["total_payment_amount"] = 0;//ชำระไปแล้ว
         $this->data["project_id"] = null;
         $this->data["client_id"] = null;
         $this->data["lead_id"] = null;
@@ -134,7 +136,10 @@ class Invoices_m extends MY_Model {
         $this->data["created_datetime"] = null;
         $this->data["approved_by"] = null;
         $this->data["approved_datetime"] = null;
+        
+
         $this->data["doc_status"] = NULL;
+        
 
         if(!empty($docId)){
             $ivrow = $db->select("*")
@@ -156,7 +161,6 @@ class Invoices_m extends MY_Model {
                             ->get()->row();
 
                 if(empty($qrow)){
-                    log_message("error", "SYSERR=>Invoices_m->getDoc:".$db->last_query());
                     return $this->data;
                 }
 
@@ -174,6 +178,13 @@ class Invoices_m extends MY_Model {
                 $this->data["customer_is_lead"] = 0;
             }
 
+            $total_payment_amount = $db->select("SUM(payment_amount) AS total_payment_amount")
+                                        ->from("invoice_payment")
+                                        ->where("invoice_id", $ivrow->id)
+                                        ->get()->row()->total_payment_amount;
+
+            if($total_payment_amount == null) $total_payment_amount = 0;
+
             $this->data["doc_id"] = $docId;
             $this->data["quotation_id"] = $quotation_id;
             $this->data["doc_number"] = $ivrow->doc_number;
@@ -189,6 +200,9 @@ class Invoices_m extends MY_Model {
             $this->data["vat_inc"] = $ivrow->vat_inc;
             $this->data["vat_percent"] = number_format_drop_zero_decimals($ivrow->vat_percent, 2)."%";
             $this->data["wht_inc"] = $ivrow->wht_inc;
+            $this->data["total"] = $ivrow->total;
+            $this->data["total_payment_amount"] = $total_payment_amount;
+            $this->data["net_receivable_await_payment_amount"] = $ivrow->total - $total_payment_amount;
             $this->data["project_id"] = $ivrow->project_id;
             $this->data["client_id"] = $client_id;
             $this->data["lead_id"] = $lead_id;
@@ -882,7 +896,8 @@ class Invoices_m extends MY_Model {
 
         $this->data["doc_id"] = $ivrow->id;
         $this->data["doc_number"] = $ivrow->doc_number;
-        $this->data["due_date"] = date("Y-m-d");
+
+        $this->data["due_date"] = $ivrow->due_date;
         $this->data["invoice_full_payment_amount"] = $ivrow->total;
         $this->data["total_net_amount_to_receive_payment"] = $ivrow->total;
         $this->data["total_paid"] = $total_payment_amount;
@@ -913,7 +928,10 @@ class Invoices_m extends MY_Model {
         $this->data["message"] = "success";
 
         return $this->data;
+    }
 
+    function addPayment($docId){
+        $db = $this->db;
 
     }
 }

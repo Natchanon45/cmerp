@@ -17,7 +17,7 @@ class Payments_m extends MY_Model {
         return $pmrows;
     }
 
-    function getDoc($docId){
+    /*function getDoc($docId){
         $db = $this->db;
 
         
@@ -100,7 +100,7 @@ class Payments_m extends MY_Model {
         $this->data["status"] = "success";
 
         return $this->data;
-    }
+    }*/
 
     function getPaymentReceiveInfo(){
         $db = $this->db;
