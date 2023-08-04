@@ -37,6 +37,7 @@ class Invoices_m extends MY_Model {
             $doc_status .= "<option value='V'>ยกเลิก</option>";
         }elseif($invrow->status == "R"){
             $doc_status .= "<option selected>เปิดใบเสร็จแล้ว</option>";
+            $doc_status .= "<option value='V'>ยกเลิก</option>";
         }elseif($invrow->status == "V"){
             $doc_status .= "<option selected>ยกเลิก</option>";
         }
@@ -54,8 +55,10 @@ class Invoices_m extends MY_Model {
                     $reference_number_column,
                     "<a href='".get_uri("clients/view/".$invrow->client_id)."'>".$this->Clients_m->getCompanyName($invrow->client_id)."</a>",
                     convertDate($invrow->due_date, true), number_format($invrow->total, 2), $doc_status,
-                    "<a data-post-id='".$invrow->id."' data-action-url='".get_uri("invoices/addedit")."' data-act='ajax-modal' class='edit'><i class='fa fa-pencil'></i></a><a data-id='".$invrow->id."' data-action-url='".get_uri("invoices/delete_doc")."' data-action='delete' class='delete'><i class='fa fa-times fa-fw'></i></a>"
+                    "<a data-post-id='".$invrow->id."' data-action-url='".get_uri("invoices/addedit")."' data-act='ajax-modal' class='edit'><i class='fa fa-pencil'></i></a>"
                 ];
+
+                //<a data-id='".$invrow->id."' data-action-url='".get_uri("invoices/delete_doc")."' data-action='delete' class='delete'><i class='fa fa-times fa-fw'></i></a>
 
         return $data;
     }
@@ -813,11 +816,29 @@ class Invoices_m extends MY_Model {
             $this->data["url"] = get_uri("receipts/view/".$receipt_id);
 
         }elseif($updateStatusTo == "V"){
-            $db->where("id", $docId);
-            $db->update("invoice", [
-                                        "status"=>"V"
-                                    ]);
+            $rerow = $db->select("doc_number")
+                        ->from("receipt")
+                        ->where("invoice_id", $invoice_id)
+                        ->where("status !=", "V")
+                        ->where("deleted", 0)
+                        ->get()->row();
 
+            if(!empty($rerow)){
+                $this->data["dataset"] = $this->getIndexDataSetHTML($invrow);
+                $this->data["message"] = "ไม่สามารถยกเลิกใบกำกับภาษีได้ เนื่องจากมีการผูกใบกำกับภาษีกับใบเสร็จรับเงินเลขที่ ".$rerow->doc_number." แล้ว";
+                $this->data["status"] = "error";
+                $db->trans_rollback();
+                return $this->data;
+            }
+
+            $db->where("id", $docId);
+            $db->update("invoice", ["status"=>"V"]);
+
+            $db->where("id", $invrow->billing_note_id);
+            if($db->count_all_results("billing_note") > 0){
+                $db->where("id", $invrow->billing_note_id);
+                $db->update("billing_note", ["approved_by"=>null, "approved_datetime"=>null, "status"=>"W"]);
+            }
         }
 
         if ($db->trans_status() === FALSE){

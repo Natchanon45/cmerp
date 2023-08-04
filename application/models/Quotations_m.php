@@ -34,21 +34,22 @@ class Quotations_m extends MY_Model {
             $doc_status .= "<option selected>รออนุมัติ</option>";
             $doc_status .= "<option value='A'>อนุมัติ</option>";
             $doc_status .= "<option value='B'>สร้างใบวางบิล</option>";
-            $doc_status .= "<option value='P'>แบ่งจ่ายใบวางบิล</option>";
             $doc_status .= "<option value='R'>ไม่อนุมัติ</option>";
         }elseif($qrow->status == "A"){
             $doc_status .= "<option selected>อนุมัติ</option>";
             $doc_status .= "<option value='I'>ดำเนินการแล้ว</option>";
             $doc_status .= "<option value='B'>สร้างใบวางบิล</option>";
-            $doc_status .= "<option value='P'>แบ่งจ่ายใบวางบิล</option>";
             $doc_status .= "<option value='R'>ไม่อนุมัติ</option>";
+            $doc_status .= "<option value='RESET'>รีเซ็ต</option>";
         }elseif($qrow->status == "R"){
             $doc_status .= "<option selected>ไม่อนุมัติ</option>";
+            $doc_status .= "<option value='RESET'>รีเซ็ต</option>";
         }elseif($qrow->status == "P"){
             $doc_status .= "<option selected>แบ่งจ่าย</option>";
             $doc_status .= "<option value='P'>แบ่งจ่ายใบวางบิล</option>";
         }elseif($qrow->status == "I"){
             $doc_status .= "<option selected>ดำเนินการแล้ว</option>";
+            $doc_status .= "<option value='RESET'>รีเซ็ต</option>";
         }
 
         $doc_status .= "</select>";
@@ -794,53 +795,10 @@ class Quotations_m extends MY_Model {
             $db->where("id", $quotation_id);
             $db->update("quotation", ["status"=>"I"]);
 
-        }elseif($updateStatusTo == "P" || $updateStatusTo == "B"){//Partial OR Create Billing Note
-            $partials_percent = null;
-            $partials_amount = 0;
-
-            if($updateStatusTo == "P"){
-                $billed_amount = $db->select("SUM(total) AS billed_amount")
-                                        ->from("billing_note")
-                                        ->where("quotation_id", $quotation_id)
-                                        ->where("deleted", 0)
-                                        ->get()->row()->billed_amount;
-
-                if($billed_amount == null) $billed_amount = 0;
-
-                if($billed_amount >= $quotation_total){
-                    $db->where("id", $quotation_id);
-                    $db->update("quotation", ["status"=>"I"]);
-                    $db->trans_commit();
-                    $this->data["message"] = "ไม่สามารถดำเนินการได้ เนื่องจากจำนวนเงินที่แบ่งจ่ายเกินมูลค่าของเอกสาร";
-                    $this->data["dataset"] = $this->getIndexDataSetHTML($qrow);
-                    return $this->data;
-                }
-
-                /*
-                * ตอนเริ่มสร้าง BL ใบแรกจาก, quotation จะมีสถานะเริ่มแรกที่ไม่ได้เป็นแบบแบ่งจ่าย $quotation_is_partials == "N"
-                * หลังจากสร้าง BL ไปแล้ว quotation จะเปลี่ยนสถานะเป็นแบบแบ่งจ่าย $quotation_is_partials == "Y"
-                *
-                * $this->json->patials_type มี 2 ประเภทคือ P OR A (Percent/Amount)
-                */
-                if($quotation_is_partials == "N" && $quotation_partials_type == null){
-                    $db->where("id", $quotation_id);
-                    $db->update("quotation", ["is_partials"=>"Y", "partials_type"=>$this->json->patials_type, "status"=>"P"]);
-
-                    if($this->json->patials_type == "P") $partials_percent = 0;
-                }else{
-                    if($quotation_partials_type == "P") $partials_percent = 0;
-                }
-
-                $quotation_vat_value = 0;
-                $quotation_total = 0;
-                $quotation_wht_value = 0;
-                $quotation_payment_amount = 0;
-
-            }elseif($updateStatusTo == "B"){
-                $db->where("id", $quotation_id);
-                $db->update("quotation", ["is_partials"=>"N", "status"=>"I"]);
-            }
-
+        }elseif($updateStatusTo == "B"){//Partial OR Create Billing Note
+            $db->where("id", $quotation_id);
+            $db->update("quotation", ["is_partials"=>"N", "status"=>"I"]);
+            
             $billing_note_number = $this->Billing_notes_m->getNewDocNumber();
             $billing_date = date("Y-m-d");
             $billing_credit = $qrow->credit;
@@ -860,8 +818,6 @@ class Quotations_m extends MY_Model {
                                             "discount_percent"=>$quotation_discount_percent,
                                             "discount_amount"=>$quotation_discount_amount,
                                             "sub_total"=>$quotation_sub_total,
-                                            "partials_percent"=>$partials_percent,
-                                            "partials_amount"=>$partials_amount,
                                             "vat_inc"=>$quotation_vat_inc,
                                             "vat_percent"=>$quotation_vat_percent,
                                             "vat_value"=>$quotation_vat_value,
@@ -875,9 +831,7 @@ class Quotations_m extends MY_Model {
                                             "created_datetime"=>date("Y-m-d H:i:s"),
                                             "status"=>"W",
                                             "deleted"=>0
-                                        ]);
-
-            
+                                        ]);            
 
             $billing_note_id = $db->insert_id();
 
@@ -908,7 +862,29 @@ class Quotations_m extends MY_Model {
             $this->data["message"] = lang('record_saved');
             $this->data["url"] = get_uri("billing-notes/view/".$billing_note_id);
 
-        }//end elseif $updateStatusTo == "P" || $updateStatusTo == "B"
+        }elseif($updateStatusTo == "RESET"){
+            $bnrow = $db->select("doc_number")
+                        ->from("billing_note")
+                        ->where("quotation_id", $quotation_id)
+                        ->where("status !=", "V")
+                        ->where("deleted", 0)
+                        ->get()->row();
+
+            if(!empty($bnrow)){
+                $this->data["dataset"] = $this->getIndexDataSetHTML($qrow);
+                $this->data["message"] = "ไม่สามารถรีเซ็ตใบเสนอราคาได้ เนื่องจากมีการผูกใบเสนอราคากับใบวางบิลเลขที่ ".$bnrow->doc_number." แล้ว";
+                $this->data["status"] = "error";
+                $db->trans_rollback();
+                return $this->data;
+            }
+
+            $db->where("id", $quotation_id);
+            $db->update("quotation", [
+                                        "approved_by"=>NULL,
+                                        "approved_datetime"=>NULL,
+                                        "status"=>"W"
+                                    ]);
+        }
 
         if ($db->trans_status() === FALSE){
             $db->trans_rollback();
@@ -947,7 +923,6 @@ class Quotations_m extends MY_Model {
         $this->data["message"] = "success";
 
         return $this->data;
-
     }
 
     function genShareKey(){
