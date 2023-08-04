@@ -930,8 +930,10 @@ class Invoices_m extends MY_Model {
         return $this->data;
     }
 
-    function addPayment($docId){
+    function addPayment(){
         $db = $this->db;
 
+        $docId = $this->json->doc_id;
+        $docDate = $this->json->doc_date;
     }
 }

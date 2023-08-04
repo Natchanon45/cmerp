@@ -67,6 +67,7 @@
 </style>
 <div class="popup">
     <div class="container">
+        <p>มูลค่าลูกหนี้ที่สามารถรับชำระได้ทั้งสิ้น <?php echo number_format($doc["net_receivable_await_payment_amount"], 2); ?> บาท</p>
         <table width="100%">
             <tr>
                 <td><label>รับเงินโดย</label></td>
@@ -84,7 +85,7 @@
                 <td><input type="text" id="pay_date" class="form-control" autocomplete="off" readonly></td>
             </tr>
             <tr>
-                <td><label>ชำระจำนวน</label></td>
+                <td><label>จำนวนเงิน</label></td>
                 <td><input type="text" id="payment_amount" class="form-control numb"></td>
             </tr>
             <tr>
@@ -94,7 +95,7 @@
             <tr>
                 <td>
                     <label>หัก ณ ที่จ่าย</label>
-                    <select id="wht">
+                    <select id="withholding_tax_percent">
                         <option value="0">ไม่มี</option>
                         <option value="3">3%</option>
                         <option value="5">5%</option>
@@ -109,8 +110,8 @@
                 </td>
                 <td colspan="4" style="text-align: right;" class="summary">
                     <span>รับชำระด้วยเงินรวม<input type="text" id="money_payment_receive" readonly>บาท</span>
-                    <span>ถูกหัก ณ ที่จ่าย<input type="text" id="withholding_tax" readonly>บาท</span>
-                    <span style="background:#9d9eb1; color:#fff; padding:6px 12px; border-radius: 4px; font-size: 1.1em;">รับชำระรวมทั้งสิ้น<input type="text" id="total_payment_receive" readonly>บาท</span>
+                    <span>ถูกหัก ณ ที่จ่าย<input type="text" id="withholding_tax_value" readonly>บาท</span>
+                    <span style="background:#4cc681; color:#fff; padding:6px 12px; border-radius: 4px; font-size: 1.1em;">รับชำระรวมทั้งสิ้น<input type="text" id="total_payment_receive" readonly>บาท</span>
                     <span>ต้องรับชำระเงินอีก<input type="text" id="remaining_amount" readonly>บาท</span>
                 </td>
             </tr>
@@ -127,15 +128,15 @@
 var net_receivable_await_payment_amount = tonum(<?php echo $doc["net_receivable_await_payment_amount"]; ?>);//มูลค่าลูกหนี้ที่สามารถรับชำระได้ทั้งสิ้น
 var payment_amount = net_receivable_await_payment_amount;//ชำระจำนวน
 var money_payment_receive = payment_amount;//รับชำระด้วยเงินรวม
-var withholding_tax = 0;//หัก ณ ที่จ่าย
-var total_payment_receive = payment_amount;//รับชำระรวมทั้งสิ้น
+var withholding_tax_value = 0;//หัก ณ ที่จ่าย
 var remaining_amount = net_receivable_await_payment_amount - payment_amount;//ต้องรับชำระเงินอีก
 
 $(document).ready(function() {
     $("#payment_amount").val($.number(payment_amount, 2));
     $("#money_payment_receive").val($.number(money_payment_receive, 2));
-    $("#withholding_tax").val($.number(withholding_tax, 2));
-    $("#total_payment_receive").val($.number(total_payment_receive, 2));
+    $("#withholding_tax_percent").val("0");
+    $("#withholding_tax_value").val($.number(withholding_tax_value, 2));
+    $("#total_payment_receive").val($.number(payment_amount, 2));
     $("#remaining_amount").val($.number(remaining_amount, 2));
 
     pay_date = $("#pay_date").datepicker({
@@ -150,7 +151,11 @@ $(document).ready(function() {
 
     pay_date.datepicker("setDate", "<?php echo date('d/m/Y', time()); ?>");
 
-    $("#payment_amount, #money_payment_receive, #withholding_tax, #total_payment_receive, #remaining_amount").blur(function(){
+    $("#withholding_tax_percent").on("change", function() { 
+        calculatePayment();
+    });
+
+    $("#payment_amount, #money_payment_receive, #total_payment_receive, #remaining_amount").blur(function(){
         calculatePayment();
     });
 
@@ -158,14 +163,7 @@ $(document).ready(function() {
         axios.post('<?php echo current_url(); ?>', {
             task: 'add_payment',
             doc_id : "<?php if(isset($doc_id)) echo $doc_id; ?>",
-            doc_date:$("#doc_date").val(),
-            credit: $("#credit").val(),
-            due_date: $("#due_date").val(),
-            reference_number: $("#reference_number").val(),
-            client_id: $("#client_id").val(),
-            lead_id: $("#lead_id").val(),
-            project_id: $("#project_id").val(),
-            remark: $("#remark").val()
+            doc_date:$("#doc_date").val()
         }).then(function (response) {
             data = response.data;
             $(".fnotvalid").remove();
@@ -185,30 +183,17 @@ $(document).ready(function() {
     });
 });
 
-
 function calculatePayment(){
     payment_amount = tonum($("#payment_amount").val());
-    money_payment_receive = payment_amount;
-
-    wht = $("#wht").val();
-    if(wht == "-1"){
-        wht = 0
-    }else{
-        wht = tonum(wht);
-    }
-
-
-    total_payment_receive = tonum($("#total_payment_receive").val());
-    remaining_amount = tonum($("#remaining_amount").val());
-
-    /*if(){
-
-    }*/
+    withholding_tax_percent = tonum($("#withholding_tax_percent").val());
+    withholding_tax_value = (withholding_tax_percent * payment_amount)/100;
+    money_payment_receive = payment_amount - withholding_tax_value;
+    remaining_amount = net_receivable_await_payment_amount - payment_amount;
     
     $("#payment_amount").val($.number(payment_amount, 2));
     $("#money_payment_receive").val($.number(money_payment_receive, 2));
-    $("#withholding_tax").val($.number(withholding_tax, 2));
-    $("#total_payment_receive").val($.number(total_payment_receive, 2));
+    $("#withholding_tax_value").val($.number(withholding_tax_value, 2));
+    $("#total_payment_receive").val($.number(payment_amount, 2));
     $("#remaining_amount").val($.number(remaining_amount, 2));
 }
 </script>

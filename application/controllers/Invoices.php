@@ -88,7 +88,7 @@ class Invoices extends MY_Controller {
 
     function payment_receive(){
         if(isset($this->json->task)){
-            if($this->json->task == "add_payment") jout($this->Invoices_m->addPayment($this->json->doc_id));
+            if($this->json->task == "add_payment") jout($this->Invoices_m->addPayment());
             return;   
         }
 
