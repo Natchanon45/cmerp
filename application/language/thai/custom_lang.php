@@ -2040,6 +2040,11 @@ $lang["stock_supplier_pricing_add"] = "เพิ่มวัตถุดิบ";
 $lang["stock_supplier_pricing_edit"] = "แก้ไขวัตถุดิบ";
 $lang["stock_supplier_pricing_delete"] = "ลบวัตถุดิบ";
 
+$lang["stock_supplier_fg_pricings"] = "สินค้าสำเร็จที่จำหน่าย";
+$lang["stock_supplier_fg_pricing_add"] = "เพิ่มสินค้าสำเร็จที่จำหน่าย";
+$lang["stock_supplier_fg_pricing_edit"] = "แก้ไขสินค้าสำเร็จที่จำหน่าย";
+$lang["stock_supplier_fg_pricing_delete"] = "ลบสินค้าสำเร็จที่จำหน่าย";
+
 $lang["stock_material"] = "วัตถุดิบ";
 $lang["stock_materials"] = "วัตถุดิบ";
 $lang["stock_material_add"] = "เพิ่มวัตถุดิบ";
@@ -2075,7 +2080,7 @@ $lang["stock_item_add"] = "เพิ่มสินค้าสำเร็จ";
 $lang["stock_item_name"] = "ชื่อสินค้าสำเร็จ";
 $lang["stock_item_code"] = "รหัสสินค้าสำเร็จ";
 $lang["stock_item_remaining"] = "คงคลัง";
-$lang["stock_material_status"] = "สถานะ";
+$lang["stock_item_status"] = "สถานะ";
 $lang["stock_item_category"] = "หมวดหมู่";
 $lang["stock_item_unit"] = "หน่วย";
 $lang["stock_material_category_title"] = "ชื่อหมวดหมู่";

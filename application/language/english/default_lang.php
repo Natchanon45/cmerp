@@ -1883,6 +1883,11 @@ $lang["stock_supplier_pricing_add"] = "Add pricing";
 $lang["stock_supplier_pricing_edit"] = "Edit pricing";
 $lang["stock_supplier_pricing_delete"] = "Delete pricing";
 
+$lang["stock_supplier_fg_pricings"] = "Supplier FG pricings";
+$lang["stock_supplier_fg_pricing_add"] = "Add FG pricing";
+$lang["stock_supplier_fg_pricing_edit"] = "Edit FG pricing";
+$lang["stock_supplier_fg_pricing_delete"] = "Delete FG pricing";
+
 $lang["stock_material"] = "Raw Material";
 $lang["stock_materials"] = "Raw Materials";
 $lang["stock_material_add"] = "Add Raw Material";

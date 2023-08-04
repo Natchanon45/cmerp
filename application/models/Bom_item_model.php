@@ -200,4 +200,44 @@ class Bom_item_model extends Crud_model {
 		}
 	}
 
+    function get_pricings($options)
+    {
+        $sql = "
+        SELECT bip.id, bip.item_id, ic.item_code, ic.item_title, ic.item_description, ic.category_id, ic.category_title, bip.supplier_id, bip.ratio, ic.item_unit, bip.price 
+        FROM bom_item_pricings bip 
+        LEFT JOIN(
+            SELECT items.id AS item_id, items.item_code AS item_code, 
+                items.title AS item_title, items.description AS item_description, 
+                items.category_id AS category_id, item_categories.title AS category_title, 
+                items.unit_type AS item_unit 
+            FROM items LEFT JOIN item_categories ON items.category_id = item_categories.id 
+            WHERE 1 AND items.deleted = 0 
+        ) AS ic ON bip.item_id = ic.item_id 
+        WHERE 1
+        ";
+
+        $where_supplier = "";
+        if (isset($options['supplier_id']) && !empty($options['supplier_id'])) {
+            $where_supplier = " AND bip.supplier_id = " . $options['supplier_id'];
+        }
+
+        $where_category = "";
+        if (isset($options['category_id']) && !empty($options['category_id'])) {
+            $where_category = " AND ic.category_id = " . $options['category_id'];
+        }
+
+        $where_pricing = "";
+        if (isset($options['pricing_id']) && !empty($options['pricing_id'])) {
+            $where_category = " AND bip.id = " . $options['pricing_id'];
+        }
+
+        $sql = $sql . $where_supplier . $where_category . $where_pricing;
+        $data = [];
+        $result = $this->db->query($sql)->result();
+        if (!empty($result) && sizeof($result)) {
+            $data = $result;
+        }
+        return $data;
+    }
+
 }

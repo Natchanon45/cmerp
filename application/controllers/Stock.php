@@ -7,15 +7,16 @@ if (!defined('BASEPATH'))
 
 class Stock extends MY_Controller
 {
-
     function __construct()
     {
         parent::__construct();
         require_once(APPPATH . "third_party/php-excel-writer/src/ExcelWriter.php");
 
         $this->load->model("Permission_m");
+        
         $this->load->model("Account_category_model");
         $this->load->model("Warehouse_category_model");
+        $this->load->model("Bom_item_pricings_model");
     }
 
     function index()
@@ -307,8 +308,9 @@ class Stock extends MY_Controller
 
         $view_data['can_create'] = $this->check_permission('bom_supplier_create');
         $view_data['can_update'] = $this->check_permission('bom_supplier_update');
+        $view_data['bom_material_read_production_name'] = $this->check_permission('bom_material_read_production_name');
 
-        if ($supplier_id) {
+        if ($supplier_id != 0) {
             $options = array("id" => $supplier_id);
             $supplier_info = $this->Bom_suppliers_model->get_details($options)->row();
             if ($supplier_info) {
@@ -325,6 +327,7 @@ class Stock extends MY_Controller
                     $view_data["hidden_menu"] = array("supplier-pricings");
                 }
 
+                // var_dump(arr($view_data)); exit();
                 $this->template->rander("stock/supplier/view", $view_data);
             } else {
                 show_404();
@@ -562,6 +565,26 @@ class Stock extends MY_Controller
         $this->load->view("stock/supplier/pricing", $view_data);
     }
 
+    function supplier_fg_pricings($supplier_id = 0)
+    {
+        $this->check_module_availability("module_stock");
+
+        if (!$this->check_permission('bom_can_access_supplier') || !$this->check_permission('bom_can_access_material')) {
+            redirect("forbidden");
+        }
+
+        $view_data['supplier_id'] = $supplier_id;
+        $view_data['can_update_supplier'] = $this->check_permission('bom_supplier_update');
+        $view_data['can_access_material'] = $this->check_permission('can_access_material');
+        $view_data['can_update_material'] = $this->check_permission('bom_material_update');
+        $view_data['category_dropdown'] = $this->Item_categories_model->dev2_getCategoryDropdown();
+        $view_data['items_dropdown'] = $this->Items_model->dev2_getItemDropDown();
+        $view_data['is_admin'] = $this->login_user->is_admin;
+
+        // var_dump(arr($view_data)); exit();
+        $this->load->view("stock/supplier/fg_pricing", $view_data);
+    }
+
     function supplier_pricing_list($supplier_id = 0)
     {
         $this->check_module_availability("module_stock");
@@ -577,6 +600,30 @@ class Stock extends MY_Controller
         foreach ($list_data as $data) {
             $result[] = $this->_supplier_pricing_make_row($data);
         }
+
+        // var_dump(arr($list_data)); exit();
+        echo json_encode(array("data" => $result));
+    }
+
+    function supplier_fg_pricing_list($supplier_id = 0)
+    {
+        $this->check_module_availability("module_stock");
+
+        $list_data = $this->Bom_item_model->get_pricings([
+            'supplier_id' => $supplier_id,
+            'category_id' => $this->input->post('category_id')
+        ]);
+
+        $result = [];
+        if (sizeof($list_data)) {
+            foreach ($list_data as $data) {
+                // var_dump(arr($data)); exit();
+
+                $result[] = $this->dev2_fgSupplierPricing($data);
+            }
+        }
+
+        // var_dump(arr($result)); exit();
         echo json_encode(array("data" => $result));
     }
 
@@ -651,8 +698,31 @@ class Stock extends MY_Controller
         $view_data['material'] = $this->Bom_materials_model->get_one($view_data['model_info']->material_id);
 
         // var_dump(arr($view_data)); exit;
-
         $this->load->view('stock/supplier/modal_pricing', $view_data);
+    }
+
+    function supplier_fg_pricing_modal()
+    {
+        $post = $this->input->post();
+        validate_submitted_data(
+            array(
+                "id" => "numeric",
+                "supplier_id" => "required"
+            )
+        );
+
+        if (isset($post['id']) && !empty($post['id'])) {
+            $view_data['model_info'] = $this->Bom_item_pricings_model->getItemPricingById($post['id']);
+        }
+
+        if (isset($post['supplier_id']) && !empty($post['supplier_id'])) {
+            $view_data['supplier_info'] = $this->Bom_suppliers_model->getSupplierInfoById($post['supplier_id']);
+        }
+
+        $view_data['items_dropdown'] = $this->Items_model->dev2_getItemDropDown();
+
+        // var_dump(arr($view_data)); exit();
+        $this->load->view('stock/supplier/modal_fg_pricing', $view_data);
     }
 
     function supplier_pricing_save()
@@ -701,6 +771,66 @@ class Stock extends MY_Controller
         }
     }
 
+    function supplier_fg_pricing_save()
+    {
+        validate_submitted_data([
+            'id' => 'numeric',
+            'supplier_id' => 'required|numeric',
+            'item_id' => 'required|numeric',
+            'ratio' => 'required|numeric',
+            'price' => 'required|numeric'
+        ]);
+
+        $post = $this->input->post();
+        $data_id = '';
+        $item = '';
+        $type = '';
+
+        if (isset($post['id']) && empty($post['id'])) {
+            $item = $this->Bom_item_pricings_model->getItemPricingByItemSupplierId($post['item_id'], $post['supplier_id']);
+
+            if (isset($item) && !empty($item)) {
+                $type = 'patch';
+
+                $this->Bom_item_pricings_model->patchItemPricingByPricingInfo($post['item_id'], $post['supplier_id'], [
+                    'ratio' => $post['ratio'],
+                    'price' => $post['price']
+                ]);
+
+                $data_id = $item->id;
+            } else {
+                $type = 'post';
+
+                $data_id = $this->Bom_item_pricings_model->postItemPricingByInfo([
+                    'item_id' => $post['item_id'],
+                    'supplier_id' => $post['supplier_id'],
+                    'ratio' => $post['ratio'],
+                    'price' => $post['price']
+                ]);
+            }
+        } else {
+            $type = 'put';
+
+            $this->Bom_item_pricings_model->putItemPricingByPricingInfo($post['id'], [
+                'item_id' => $post['item_id'],
+                'supplier_id' => $post['supplier_id'],
+                'ratio' => $post['ratio'],
+                'price' => $post['price']
+            ]);
+
+            $item = $this->Bom_item_pricings_model->getItemPricingById($post['id']);
+            $data_id = $item->id;
+        }
+
+        $data_result = '';
+        if ($data_id) {
+            $data = $this->Bom_item_model->get_pricings(['pricing_id' => $data_id]);
+            $data_result = $this->dev2_fgSupplierPricing($data[0]);
+        }
+
+        echo json_encode(['success' => true, 'data_post' => $post, 'data_result' => $data_result, 'data_result_id' => $data_id, 'type' => $type]);
+    }
+
     function supplier_pricing_delete()
     {
         $this->check_module_availability("module_stock");
@@ -723,6 +853,22 @@ class Stock extends MY_Controller
             echo json_encode(array("success" => true, 'message' => lang('record_deleted')));
         } else {
             echo json_encode(array("success" => false, 'message' => lang('record_cannot_be_deleted')));
+        }
+    }
+
+    function supplier_fg_pricing_delete()
+    {
+        validate_submitted_data([
+            'id' => 'required|numeric'
+        ]);
+
+        $id = $this->input->post('id');
+        
+        if (isset($id) && !empty($id)) {
+            $this->Bom_item_pricings_model->deleteItemPricingById($id);
+            echo json_encode(['success' => true, 'data_result' => [], 'data_result_id' => $id, 'message' => lang('record_deleted')]);
+        } else {
+            echo json_encode(['success' => false]);
         }
     }
     // END: Supplier Pricing
@@ -5714,6 +5860,53 @@ class Stock extends MY_Controller
         }
 
         echo "<pre>Stock adjust success.</pre>";
+    }
+
+    private function dev2_fgSupplierPricing($data)
+    {
+        if (isset($data->item_code) && !empty($data->item_code) && $data->item_code != null) {
+            $data->item_name = $data->item_code . ' - ' . $data->item_title;
+        } else {
+            $data->item_name = $data->item_title;
+        }
+
+        $buttons = "";
+        if ($this->check_permission('bom_supplier_update')) {
+            $buttons .= modal_anchor(
+                get_uri('stock/supplier_fg_pricing_modal'), '<i class="fa fa-pencil"></i>', 
+                array(
+                    'class' => 'edit',
+                    'title' => lang('stock_supplier_fg_pricing_edit'),
+                    'data-title' => lang('stock_supplier_fg_pricing_edit'),
+                    'data-post-id' => $data->id,
+                    'data-post-supplier_id' => $data->supplier_id
+                )
+            );
+        }
+
+        if ($this->check_permission('bom_supplier_delete')) {
+            $buttons .= js_anchor(
+                '<i class="fa fa-times fa-fw"></i>', 
+                array(
+                    'title' => lang('stock_supplier_fg_pricing_delete'),
+                    'class' => 'delete',
+                    'data-id' => $data->id,
+                    'data-action-url' => get_uri('stock/supplier_fg_pricing_delete'),
+                    'data-action' => 'delete-confirmation'
+                )
+            );
+        }
+
+        return [
+            $data->id,
+            anchor(get_uri('stock/item_view/' . $data->item_id), $data->item_name),
+            $data->category_title ? $data->category_title : '-',
+            $data->item_description,
+            $data->ratio,
+            $data->item_unit,
+            $data->price,
+            $buttons
+        ];
     }
 
 }
