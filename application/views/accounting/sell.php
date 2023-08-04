@@ -271,12 +271,12 @@ function updateStatus(docId, updateStatusTo){
                 location.href = data.url;
                 return;
             }
-            appAlert.success(data.message, {duration: 5000});
+            appAlert.success(data.message, {duration: 8000});
         }else{
-            appAlert.error(data.message, {duration: 5000});
+            appAlert.error(data.message, {duration: 8000});
         }
 
-        //$("#datagrid").appTable({newData: data.dataset, dataId: data.doc_id});
+        $("#datagrid").appTable({newData: data.dataset, dataId: data.doc_id});
     }).catch(function (error) {});
 }
 </script>

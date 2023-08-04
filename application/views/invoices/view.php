@@ -222,7 +222,7 @@
                             <?php endif; ?>
                         </span>
                     </span>
-                    <span class="l2">ผู้อนุมัต</span>
+                    <span class="l2">ผู้อนุมัติ</span>
                 </div>
                 <div class="date">
                     <span class="l1">
