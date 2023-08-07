@@ -37,7 +37,6 @@
 </head>
 <?php if($print_mode == "private"): ?>
 <body onload="window.print()" onfocus="window.close()">
-<body>
 <?php else: ?>
 <body>
 <header><?php $this->load->view("edocs/include/header"); ?></header>
