@@ -79,7 +79,7 @@
 				</div>
 			</div>
 			<div class="right">
-				<div class="docname custom-color"><?php echo $mat_req_info->mr_type == 1 ? lang('materialrequests') . lang('stock_material') : lang('materialrequests') . lang('stock_products'); ?></div>
+				<div class="docname custom-color"><?php echo $mat_req_info->mr_type == 1 ? lang('material_request_document') : lang('fg_request_document'); ?></div>
 				<div class="docinfo">
 					<table>
                         <tr>

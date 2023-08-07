@@ -55,10 +55,10 @@ if (isset($model_info->id) && !empty($model_info->id)) {
 			<select name="mr_type" id="mr_type" class="form-control select2 <?php if ($readonly == 'true') echo "pointer-none"; ?>" <?php echo $disabled; ?> required>
 				<?php if (isset($model_info->mr_type) && !empty($model_info->mr_type)): ?>
 					<option value="1" <?php if ($model_info->mr_type == 1) echo "selected"; ?>><?php echo lang('stock_materials'); ?></option>
-					<!-- <option value="2" <?php // if ($model_info->mr_type == 2) echo "selected"; ?>><?php // echo lang('stock_items'); ?></option> -->
+					<option value="2" <?php if ($model_info->mr_type == 2) echo "selected"; ?>><?php echo lang('stock_items'); ?></option>
 				<?php else: ?>
 					<option value="1"><?php echo lang('stock_materials'); ?></option>
-					<!-- <option value="2"><?php // echo lang('stock_items'); ?></option> -->
+					<option value="2"><?php echo lang('stock_items'); ?></option>
 				<?php endif; ?>
 			</select>
 		</div>
