@@ -79,7 +79,7 @@
 				</div>
 			</div>
 			<div class="right">
-				<div class="docname custom-color"><?php echo $mat_req_info->mr_type == 1 ? lang('materialrequests') . lang('stock_material') : lang('materialrequests') . lang('stock_products'); ?></div>
+				<div class="docname custom-color"><?php echo $mat_req_info->mr_type == 1 ? lang('material_request_document') : lang('fg_request_document'); ?></div>
 				<div class="docinfo">
 					<table>
                         <tr>
@@ -133,12 +133,12 @@
 				            	<tr>
 				                    <td><?php echo $i++; ?></td>
 				                    <td>
-				                    	<span class="product_name"><?php echo $item->code . ' - ' . $item->title; ?></span>
+				                    	<span class="product_name"><?php echo $item->names; ?></span>
 				                    	<?php if(trim($item->description) != ""): ?>
 				                    		<span class="product_description"><?php echo trim($item->description); ?></span>
 				                    	<?php endif;?>
 				                    </td>
-				                    <td class="text-left w220px" colspan="2"><?php echo $item->stock_group_name; ?></td>
+				                    <td class="text-left w220px" colspan="2"><?php echo $item->stocks->name; ?></td>
 				                    <td><?php echo number_format($item->quantity, 2); ?></td>
                                     <td><?php echo $item->unit_type; ?></td>
 				                </tr>

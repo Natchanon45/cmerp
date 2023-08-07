@@ -273,7 +273,7 @@ function loadItems() {
                 <tr>
                     <td>${index + 1}</td>
                     <td>
-                        <p class="desc1">${item.code} - ${item.title}</p>
+                        <p class="desc1">${item.names}</p>
                         <p class="desc2">${item.description}</p>
                     </td>
                     <td class="text-left" colspan="2">

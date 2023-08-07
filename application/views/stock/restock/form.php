@@ -45,8 +45,6 @@ if (empty($model_info->id)) {
                 "class" => "form-control",
                 "placeholder" => lang('po_ref'),
                 "autofocus" => true,
-                "data-rule-required" => true,
-                "data-msg-required" => lang("field_required"),
                 "readonly" => $readonly
             )
         );

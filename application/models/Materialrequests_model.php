@@ -407,6 +407,7 @@ class MaterialRequests_model extends Crud_model
 			$datas = $this->db->get_where('mr_items', array('mr_id' => $mr_id))->result();
 			if (sizeof($datas)) {
 				foreach ($datas as $data) {
+					$data->names = (isset($data->code) && !empty($data->code)) ? $data->code . ' - ' . $data->title : $data->title;
 					$data->description = (isset($data->description) && !empty($data->description)) ? mb_strimwidth($data->description, 1, 50, '...') : '';
 					$data->quantity = number_format($data->quantity, $this->Settings_m->getDecimalPlacesNumber());
 					$data->stocks = $this->getStockNameByStockId($data->stock_id, $data->bpim_id, $mr_type);

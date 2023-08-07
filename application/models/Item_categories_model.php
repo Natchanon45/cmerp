@@ -62,6 +62,23 @@ class Item_categories_model extends Crud_model
         return $rows;
     }
 
+    function dev2_getCategoryDropdown()
+    {
+        $result = $this->db->get_where('item_categories', ['deleted' => 0])->result();
+        $data[] = [
+            'id' => '',
+            'text' => '- ' . lang('stock_material_category') . ' -'
+        ];
+
+        foreach ($result as $item) {
+            $data[] = [
+                'id' => $item->id,
+                'text' => $item->title
+            ];
+        }
+        return $data;
+    }
+
 }
 
 ?>
