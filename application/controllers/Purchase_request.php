@@ -73,6 +73,7 @@ class Purchase_request extends MY_Controller
         $data["supplier_contact"] = $this->Bom_suppliers_model->getContactInfo($data["supplier_id"]);
         $data["print_url"] = get_uri("purchase_request/print/" . str_replace("=", "", base64_encode($data['doc_id'] . ':' . $data['doc_number'])));
 
+        // var_dump(arr($data)); exit();
         $this->template->rander("purchase_request/view", $data);
     }
 

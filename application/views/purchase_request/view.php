@@ -86,17 +86,17 @@
             </div>
             <div class="about_customer">
                 <table>
-                    <tr>
+                <tr>
                         <td class="custom-color">ผู้ติดต่อ</td>
-                        <td><?php if(isset($supplier_contact)) echo $supplier_contact["first_name"]." ".$supplier_contact["last_name"]; ?></td>
+                        <td><?php echo (isset($supplier_contact) && !empty($supplier_contact)) ? $supplier_contact["first_name"] . " " . $supplier_contact["last_name"] : '-'; ?></td>
                     </tr>
                     <tr>
                         <td class="custom-color">เบอร์โทร</td>
-                        <td><?php if(isset($supplier_contact)) echo $supplier_contact["phone"]; ?></td>
+                        <td><?php echo (isset($supplier_contact) && !empty($supplier_contact)) ? $supplier_contact["phone"] : '-'; ?></td>
                     </tr>
                     <tr>
                         <td class="custom-color">อีเมล์</td>
-                        <td><?php if(isset($supplier_contact)) echo $supplier_contact["email"]; ?></td>
+                        <td><?php echo (isset($supplier_contact) && !empty($supplier_contact)) ? $supplier_contact["email"] : '-'; ?></td>
                     </tr>
                 </table>
             </div>
@@ -161,6 +161,9 @@
                             <span class="c1 custom-color">
                                 <input type="checkbox" id="wht_inc" <?php if($wht_inc == "Y") echo "checked" ?> <?php if($doc_status != "W") echo "disabled"; ?>>หักภาษี ณ ที่จ่าย
                                 <select id="wht_percent" class="wht custom-color <?php echo $wht_inc == "Y"?"v":"h"; ?>" <?php if($doc_status != "W") echo "disabled"; ?>>
+                                <?php if ($wht_inc == 'Y' && isset($wht_percent) && !empty($wht_percent)): ?>
+                                    <option value="<?php echo $wht_percent; ?>" selected><?php echo $wht_percent . '%'; ?></option>
+                                <?php endif; ?>
                                     <option value="3">3%</option>
                                     <option value="5">5%</option>
                                     <option value="0.50">0.5%</option>
@@ -191,6 +194,55 @@
             </div>
         <?php endif; ?>
     </div><!--.docitem-->
+
+    <div class="docsignature clear">
+        <div class="customer">
+            <div class="on_behalf_of"><?php // echo "ในนาม" . $client["company_name"]; ?></div>
+            <div class="clear">
+                <div class="name">
+                    <span class="l1">
+                        <span class="signature">
+                            <?php if ($doc_status != 'R'): if ($created_by != null): if (null != $requester_sign = $this->Users_m->getSignature($created_by)): ?>
+                                <img src="<?php echo '/' . $requester_sign; ?>">
+                            <?php endif; endif; endif; ?>
+                        </span>
+                    </span>
+                    <span class="l2"><?php echo "ผู้ขอซื้อ"; ?></span>
+                </div>
+                <div class="date">
+                    <span class="l1">
+                        <?php if ($doc_date != null && $doc_status != 'R'): ?>
+                            <span class="approved_date"><?php echo convertDate($doc_date, true); ?></span>
+                        <?php endif; ?>
+                    </span>
+                    <span class="l2"><?php echo lang('date'); ?></span>
+                </div>
+            </div>
+        </div><!--.customer -->
+        <div class="company">
+            <div class="on_behalf_of"><?php // echo "ในนาม" . get_setting("company_name"); ?></div>
+            <div class="clear">
+                <div class="name">
+                    <span class="l1">
+                        <span class="signature">
+                            <?php if ($approved_by != null && $doc_status == 'A'): if (null != $signature = $this->Users_m->getSignature($approved_by)): ?>
+                                <img src="<?php echo '/' . $signature; ?>">
+                            <?php endif; endif; ?>
+                        </span>
+                    </span>
+                    <span class="l2"><?php echo lang('approver'); ?></span>
+                </div>
+                <div class="date">
+                    <span class="l1">
+                        <?php if ($approved_datetime != null && $doc_status == 'A'): ?>
+                            <span class="approved_date"><?php echo convertDate($approved_datetime, true); ?></span>
+                        <?php endif; ?>
+                    </span>
+                    <span class="l2"><?php echo lang('date'); ?></span>
+                </div>
+            </div>
+        </div><!--.company-->
+    </div><!--.docsignature-->
 </div><!--#printd-->
 
 <script type="text/javascript">

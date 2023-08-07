@@ -148,7 +148,7 @@
 
     <div class="form-group">
       <label for="note" class="<?php echo $label_column; ?>">
-        <?php echo lang('note_real') . "231"; ?>
+        <?php echo lang('note_real'); ?>
       </label>
       <div class="<?php echo $field_column; ?>">
         <?php

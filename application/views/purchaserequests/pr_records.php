@@ -29,6 +29,7 @@
                                     </select>
                                     <input type="hidden" name="bpim_id" id="bpim_id_<?php echo $index + 1; ?>" value="<?php echo $list->id; ?>">
                                     <input type="hidden" name="material_name" id="material_name_<?php echo $index + 1; ?>" value="<?php echo $list->material_name; ?>">
+                                    <input type="hidden" name="material_desc" id="material_desc_<?php echo $index + 1; ?>" value="<?php echo $list->description; ?>">
                                 </td>
                                 <td>
                                     <select name="supplier_id" id="supplier_id_<?php echo $index + 1; ?>" class="form-control supplier-length" required>
@@ -57,16 +58,16 @@
                                 }
                                 ?>
                                 <td>
-                                    <input type="number" name="pr_quantity" id="pr_quantity_<?php echo $index + 1; ?>" class="form-control text-right" value="<?php echo $start_quantity; ?>" min="<?php echo $list->pr_quantity; ?>" required>
+                                    <input type="text" name="pr_quantity" id="pr_quantity_<?php echo $index + 1; ?>" class="form-control text-right" value="<?php echo $start_quantity; ?>" required>
                                 </td>
                                 <td>
                                     <input type="text" name="pr_unit" id="pr_unit_<?php echo $index + 1; ?>" class="form-control" value="<?php echo $list->unit; ?>" readonly>
                                 </td>
                                 <td>
-                                    <input type="number" name="pr_price" id="pr_price_<?php echo $index + 1; ?>" class="form-control" value="<?php echo $start_price; ?>" required>
+                                    <input type="text" name="pr_price" id="pr_price_<?php echo $index + 1; ?>" class="form-control" value="<?php echo $start_price; ?>" required>
                                 </td>
                                 <td>
-                                    <input type="number" name="pr_price_total" id="pr_price_total_<?php echo $index + 1; ?>" class="form-control" value="<?php echo $start_total; ?>" required>
+                                    <input type="text" name="pr_price_total" id="pr_price_total_<?php echo $index + 1; ?>" class="form-control" value="<?php echo $start_total; ?>" required>
                                 </td>
                             </tr>
                         </tbody>
@@ -155,6 +156,7 @@
             bpim_ids: getFormData('[name="bpim_id"]'),
             material_ids: getFormData('[name="material_id"]'),
             material_names: getFormData('[name="material_name"]'),
+            material_descs: getFormData('[name="material_desc"]'),
             supplier_ids: getFormData('[name="supplier_id"]'),
             pr_quantitys: getFormData('[name="pr_quantity"]'),
             pr_units: getFormData('[name="pr_unit"]'),
@@ -169,15 +171,22 @@
                 // console.log(result);
 
                 if (result.success) {
-                    // appAlert.success(result.message, { duration: 2000 });
-                    setTimeout(function() {
-                        window.location = '<?php echo echo_uri('purchaserequests/pr_success'); ?>';
-                    }, 25)
+                    let delay = 100;
+                    for (let [key, value] of Object.entries(result.data.pr_list)) {
+                        setTimeout(() => {
+                            window.open(`<?php echo get_uri('purchase_request/view/'); ?>${value}`, '_blank');
+                        }, delay);
+
+                        delay += 300;
+                    }
+
+                    // Success - back to index
+                    setTimeout(() => {
+                        window.location = '<?php echo echo_uri('purchaserequests'); ?>';
+                    }, delay + 500);
                 } else {
-                    // appAlert.error(result.message, { duration: 2000 });
-                    setTimeout(function() {
-                        window.location = '<?php echo echo_uri('purchaserequests/pr_failure'); ?>';
-                    }, 25)
+                    // Failure - popup error then back to index
+                    window.location = '<?php echo echo_uri('purchaserequests/pr_failure'); ?>';
                 }
             });
         }

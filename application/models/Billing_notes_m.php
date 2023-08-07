@@ -1007,11 +1007,29 @@ class Billing_notes_m extends MY_Model {
             $this->data["url"] = get_uri("invoices/view/".$invoice_id);
 
         }elseif($updateStatusTo == "V"){
-            $db->where("id", $docId);
-            $db->update("billing_note", [
-                                        "status"=>"V"
-                                    ]);
+            $invrow = $db->select("doc_number")
+                        ->from("invoice")
+                        ->where("billing_note_id", $billing_note_id)
+                        ->where("status !=", "V")
+                        ->where("deleted", 0)
+                        ->get()->row();
 
+            if(!empty($invrow)){
+                $this->data["dataset"] = $this->getIndexDataSetHTML($bnrow);
+                $this->data["message"] = "ไม่สามารถยกเลิกใบวางบิลได้ เนื่องจากมีการผูกใบวางบิลกับใบกำกับภาษีเลขที่ ".$invrow->doc_number." แล้ว";
+                $this->data["status"] = "error";
+                $db->trans_rollback();
+                return $this->data;
+            }
+
+            $db->where("id", $docId);
+            $db->update("billing_note", ["status"=>"V"]);
+
+            $db->where("id", $bnrow->quotation_id);
+            if($db->count_all_results("quotation") > 0){
+                $db->where("id", $bnrow->quotation_id);
+                $db->update("quotation", ["approved_by"=>null, "approved_datetime"=>null, "status"=>"W"]);
+            }
         }
 
         if ($db->trans_status() === FALSE){

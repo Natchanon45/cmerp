@@ -57,7 +57,7 @@ class Items_model extends Crud_model
 			WHERE $items_table.deleted=0 $where
 			ORDER BY $items_table.title ASC
 			$limit_query";
-			
+
 		return $this->db->query($sql);
 	}
 
@@ -141,7 +141,7 @@ class Items_model extends Crud_model
 			GROUP BY bs.item_id
 			LIMIT 10 
 		";
-		
+
 		// arr($sql);
 		return $this->db->query($sql)->result();
 	}
@@ -167,5 +167,30 @@ class Items_model extends Crud_model
 			return $result->row();
 		}
 	}
-	
+
+	function dev2_getItemDropDown()
+	{
+		$result = $this->db->get_where('items', ['deleted' => 0])->result();
+		$data[] = [
+			'id' => '',
+			'text' => '- ' . lang('finished_goods') . ' -',
+			'unit' => ''
+		];
+
+		foreach ($result as $item) {
+			if (isset($item->item_code) && !empty($item->item_code)) {
+				$item->fg_name = $item->item_code . ' - ' . $item->title;
+			} else {
+				$item->fg_name = $item->title;
+			}
+
+			$data[] = [
+				'id' => $item->id,
+				'text' => $item->fg_name,
+				'unit' => $item->unit_type ? $item->unit_type : lang('stock_material_unit')
+			];
+		}
+		return $data;
+	}
+
 }

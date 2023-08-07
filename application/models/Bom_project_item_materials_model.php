@@ -75,8 +75,12 @@ class Bom_project_item_materials_model extends Crud_model {
 
     function dev2_rejectMaterialRequestById($id)
     {
-        $this->db->where('id', $id);
-        $this->db->update('bom_project_item_materials', array('used_status' => 0, 'mr_id' => null));
+        $this->db->where('id', $id)->where('entry_flag', 1)->delete('bom_project_item_materials');
+        
+        if ($this->db->affected_rows() == 0) {
+            $this->db->where('id', $id);
+            $this->db->update('bom_project_item_materials', array('mr_id' => null));
+        }
     }
 
     function dev2_updateUsedStatusByProjectItemId($item_id, $status_id)
@@ -105,6 +109,31 @@ class Bom_project_item_materials_model extends Crud_model {
             'stock_id' => $data['stock_id'],
             'ratio' => $data['ratio']
         ));
+    }
+
+    function postProjectItemMaterialFromMaterialRequest($data)
+    {
+        $verify = $this->db->get_where('bom_project_item_materials', array(
+            'mr_id' => $data['mr_id'],
+            'material_id' => $data['material_id'],
+            'stock_id' => $data['stock_id']
+        ));
+
+        if ($verify->num_rows() > 0) {
+            return $verify->row()->id;
+        } else {
+            $this->db->insert('bom_project_item_materials', $data);
+            return $this->db->insert_id();
+        }
+    }
+
+    function patchProjectItemMaterialFromMaterialRequest($data)
+    {
+        $this->db->set('stock_id', $data['stock_id']);
+        $this->db->set('ratio', $data['ratio']);
+        $this->db->where('id', $data['id']);
+        $this->db->update('bom_project_item_materials');
+        return $this->db->affected_rows();
     }
 
     function dev2_insertProjectItemMaterialWithOutStockId($data)
@@ -190,7 +219,7 @@ class Bom_project_item_materials_model extends Crud_model {
     function dev2_getBomMaterialToCreatePrInMaterialsId($material_ids)
     {
         $sql = "
-        SELECT bpim.material_id, bs.name, bs.production_name, bs.unit, SUM(bpim.ratio) AS ratio 
+        SELECT bpim.material_id, bs.name, bs.production_name, bs.description, bs.unit, SUM(bpim.ratio) AS ratio 
         FROM bom_project_item_materials bpim 
         LEFT JOIN bom_materials bs ON bpim.material_id = bs.id 
         WHERE bpim.pr_id IS NULL AND bpim.stock_id IS NULL AND bpim.ratio < 0 AND bpim.material_id IN (" . $material_ids . ") 
@@ -204,7 +233,7 @@ class Bom_project_item_materials_model extends Crud_model {
     function dev2_getBomMaterialToCreatePrInBpimId($bpim_ids)
     {
         $sql = "
-        SELECT bpim.id, bpim.material_id, bs.name, bs.production_name, bs.unit, bpim.ratio 
+        SELECT bpim.id, bpim.material_id, bs.name, bs.production_name, bs.description, bs.unit, bpim.ratio 
         FROM bom_project_item_materials bpim 
         LEFT JOIN bom_materials bs ON bpim.material_id = bs.id 
         WHERE bpim.pr_id IS NULL AND bpim.stock_id IS NULL AND bpim.ratio < 0 

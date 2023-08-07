@@ -730,9 +730,13 @@ class Receipts_m extends MY_Model {
 
         }elseif($updateStatusTo == "V"){
             $db->where("id", $docId);
-            $db->update("receipt", [
-                                        "status"=>"V"
-                                    ]);
+            $db->update("receipt", ["status"=>"V"]);
+
+            $db->where("id", $rerow->invoice_id);
+            if($db->count_all_results("invoice") > 0){
+                $db->where("id", $rerow->invoice_id);
+                $db->update("invoice", ["approved_by"=>null, "approved_datetime"=>null, "status"=>"P"]);
+            }
         }
 
         if ($db->trans_status() === FALSE){

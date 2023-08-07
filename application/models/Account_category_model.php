@@ -15,7 +15,7 @@ class Account_category_model extends Crud_model
         return $query->result();
     }
 
-    function created_by(&$id)
+    function created_by($id = 0)
     {
         $this->db->select("CONCAT(`first_name`, ' ', `last_name`) AS `full_name`");
         $this->db->from("users");
