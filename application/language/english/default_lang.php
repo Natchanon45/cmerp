@@ -2130,3 +2130,5 @@ $lang["material_request_type"] = "Request type";
 $lang["project_refer"] = "Project reference";
 $lang["material_request_no"] = "Request No.";
 $lang["request_quantity"] = "Request quantity";
+
+$lang["stock_item_pricing_add"] = "Add supplier item";
