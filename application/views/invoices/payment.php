@@ -1,124 +1,4 @@
 <link rel="stylesheet" href="/assets/css/printd.css?t=<?php echo time();?>">
-<style type="text/css">
-#payment_header{
-    background: #fff;
-    padding: 14px 18px;
-    padding-bottom: 0;
-    margin-top: 14px;
-    margin-bottom: 14px;
-    box-shadow: rgba(50, 50, 93, 0.25) 0px 2px 5px -1px, rgba(0, 0, 0, 0.3) 0px 1px 3px -1px;
-}
-
-#payment_header .docnumber{
-    float: left;
-    width: 50%;
-    font-size: 1.4em;
-}
-
-#payment_header .docnumber h2{
-    font-size: 0.98em;
-}
-
-#payment_header .docnumber .docstaus{
-    display: block;
-    font-size: 0.8em;
-}
-
-#payment_header .docnumber .docstaus i{
-    display: inline-block;
-    width: 12px;
-    height: 12px;
-    margin-right: 8px;
-    border-radius: 50%;
-    position: relative;
-    top: 1px;
-}
-
-#payment_header .docnumber .docstaus.outstanding i{
-    background: #3297ff;
-}
-
-#payment_header .docnumber .docstaus.paid i{
-    background: #44bf76;
-}
-
-#payment_header .docnumber .docstaus.outstanding{
-    color: #3297ff;
-}
-
-#payment_header .docnumber .docstaus.paid{
-    color: #44bf76;
-}
-
-#payment_header .buttons{
-    float: right;
-    width: 50%;
-    text-align: right;
-}
-
-#payment_header .title{
-    margin-bottom: 12px;
-}
-
-#payment_header table{
-    width: 100%;
-}
-
-#payment_header td{
-    vertical-align: top;
-    line-height: 38px;
-}
-
-#payment_header td:nth-child(1){
-    text-align: left;
-    width: 50%;
-}
-
-#payment_header td:nth-child(2){
-    text-align: right;
-    width: 50%;
-}
-
-#payment_header .info{
-    border-top: 1px solid #ccc;
-}
-
-#payment_header .info .l{
-    float: left;
-    width: 50%;
-    border-right: 1px solid #ccc;
-    padding: 12px;
-    padding-left: 0;
-}
-
-#payment_header .info .r{
-    float: right;
-    width: 50%;
-    padding: 12px;
-    padding-right: 0;
-}
-
-#payment_header .payment_receive_amount{
-    border-radius: 8px;
-    position: relative;
-    background: #ececff;
-    color: #6c6df2;
-    display: block;
-    width: 100%;
-    text-align: right;
-    font-size: 17px;
-    padding: 8px;
-    padding-bottom: 6px;
-}
-
-#payment_header .payment_receive_amount strong{
-    font-size: 1.2em;
-}
-
-#payment_header .info .r span{
-    display: block;
-}
-</style>
 <div id="dcontroller" class="clearfix">
     <div id="payment_header">
         <div class="title clear">
@@ -157,43 +37,69 @@
                         <td>
                             <span class="payment_receive_amount"><strong><?php echo number_format($payment["net_await_payment_receive_amount"], 2); ?></strong> บาท</span>
                             <span class="due_date"><strong>วันที่ครบกำหนด</strong> : <?php echo convertDate($payment["due_date"], true); ?></span>
-                            <span><a class="receive_button custom-color-button" data-post-doc_id="<?php echo $payment["doc_id"]; ?>" data-act="ajax-modal" data-title="รับชำระเงิน #<?php echo $payment["doc_number"]; ?>" data-action-url="<?php echo get_uri("/invoices/payment-receive"); ?>">รับชำระ</a></span>
+                            <span><a class="receive_button custom-color-button" data-post-invoice_id="<?php echo $payment["doc_id"]; ?>" data-act="ajax-modal" data-title="รับชำระเงิน #<?php echo $payment["doc_number"]; ?>" data-action-url="<?php echo get_uri("/invoices/payment-receive"); ?>">รับชำระ</a></span>
                         </td>
                     </tr>
                 </table>
             </div>
         </div><!--#info-->
     </div><!--#payment_header-->
-
     <?php if(count($payment["payment_records"]) > 0): ?>
-        <?php foreach($payment["payment_records"] as $pr): ?>
+        <?php foreach($payment["payment_records"] as $payment_record): ?>
             <div class="payment_record clear">
                 <div class="payment_receive_method">
                     <table>
+                        <tr><td colspan="2"></td></tr>
                         <tr>
-                            <td><strong>รับชำระเงินครั้งที่ 1</strong></td>
-                            <td><strong>รับชำระเมื่อวันที่</strong> : 19/07/2023</td>
+                            <td colspan="2" class="clear">
+                                <span style="float:left; width:50%;"><strong>รับชำระเงินครั้งที่ <?php echo $payment_record["record_number"]; ?></strong></span>
+                                <span style="float:right; width:50%; text-align:right;"><strong>รับชำระเมื่อวันที่</strong> : <?php echo convertDate($payment_record["payment_date"], true); ?></span>
+                            </td>
                         </tr>
-                        <tr><td colspan="2"><strong>ช่องทางการรับชำระเงิน :</strong></td></tr>
+                        <tr><td colspan="2"><strong style="color: #4bc17a">ช่องทางการรับชำระเงิน :</strong></td></tr>
                         <tr>
-                            <td colspan="2">อื่นๆ ออมทรัพย์ - 99999999999999 ธนาคาร ทดสอบบัญชี</td>
+                            <td style="width:72%;"><a><?php echo $this->Payments_m->getPaymentMethodName($payment_record["payment_method_id"]); ?></a></td>
+                            <td style="width:28%;"><?php echo number_format($payment_record["money_payment_receive"], 2); ?> บาท</td>
                         </tr>
+                        <?php if($payment_record["wht_inc"] == "Y"): ?>
+                            <tr>
+                                <td>ภาษีหัก ณ ที่จ่าย</td>
+                                <td><?php echo number_format($payment_record["wht_value"], 2); ?> บาท</td>
+                            </tr>
+                        <?php endif; ?>
                     </table>
                 </div>
                 <div class="total_payment_amount">
                     <table>
                         <tr>
-                            <td><strong>มูลค่าที่รับชำระรวม :</strong></td>
-                            <td><span class="total_pay"><i class="fa fa-check-circle" aria-hidden="true"></i><strong>40,332.00</strong> บาท</span></td>
+                            <td colspan="2">
+                                <a class="void_payment" title="ยกเลิกการชำระเงิน" data-payment_id="<?php echo $payment_record["payment_id"]; ?>"><i class="fa fa-minus-square-o" aria-hidden="true"></i></a>
+                            </td>
                         </tr>
                         <tr>
-                            <td class="issued_receipt">
-                                <span class="green">ออกใบเสร็จแล้ว</span>
-                                <!--<span class="orange">ยังไม่ออกใบเสร็จ</span>-->
+                            <td><strong>มูลค่าที่รับชำระรวม :</strong></td>
+                            <td style="line-height: 38px;">
+                                <span class="total_pay">
+                                    <i class="fa fa-check-circle" aria-hidden="true"></i>
+                                    <strong><?php echo number_format($payment_record["payment_amount"], 2); ?></strong> บาท
+                                </span>
                             </td>
-                            <td class="issued_receipt">
-                                <span class="receipt">เลขที่ใบเสร็จรับเงิน : RE-20230700002</span>
-                                <!--<a class="issue_receipt_button custom-color-button">ออกใบเสร็จ</a>-->
+                        </tr>
+                        <tr><td colspan="2" style="height:30px"></td></tr>
+                        <tr>
+                            <td class="clear">
+                                <?php if($payment_record["issued_receipt"] == "Y"): ?>
+                                    <span class="green">ออกใบเสร็จแล้ว</span>
+                                <?php else: ?>
+                                    <span class="orange">ยังไม่ออกใบเสร็จ</span>
+                                <?php endif;?>
+                            </td>
+                            <td>
+                                <?php if($payment_record["issued_receipt"] == "Y"): ?>
+                                    <span class="receipt">เลขที่ใบเสร็จรับเงิน : RE-20230700002</span>
+                                <?php else: ?>
+                                    <a class="issue_receipt_button custom-color-button" data-payment_id="<?php echo $payment_record["payment_id"]; ?>">ออกใบเสร็จ</a>
+                                <?php endif;?>
                             </td>
                         </tr>
                     </table>
@@ -202,4 +108,37 @@
         <?php endforeach; ?>
     <?php endif; ?>
 </div><!--#dcontroller-->
+<script type="text/javascript">
+$(document).ready(function() {
+    $(".issue_receipt_button").click(function() {
+        axios.post('<?php echo current_url(); ?>', {
+            task: 'receipt',
+            invoice_id: "<?php echo $payment["doc_id"]; ?>",
+            payment_id: $(this).data("payment_id")
+        }).then(function (response) {
+            data = response.data;
+            if(data.status == "success"){
+                location.reload();
+            }else{
+                alert(data.message);
+            }
+        }).catch(function (error) {});
+    });
+
+    $(".void_payment").click(function() {
+        if(!confirm("ยืนยันยกเลิกการชำระเงิน")) return false;
+        axios.post('<?php echo current_url(); ?>', {
+            task: 'void',
+            invoice_id: "<?php echo $payment["doc_id"]; ?>",
+            payment_id: $(this).data("payment_id")
+        }).then(function (response) {
+            data = response.data;
+            if(data.status == "success"){
+                location.reload();
+            }else{
+                alert(data.message);
+            }
+        }).catch(function (error) {});
+    });
+});
 </script>

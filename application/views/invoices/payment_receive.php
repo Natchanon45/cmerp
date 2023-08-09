@@ -28,7 +28,7 @@
     padding-left: 5px !important;
 }
 
-.popup #pay_date[readonly]{
+.popup #payment_date[readonly]{
     background: #fff;
 }
 
@@ -72,8 +72,8 @@
             <tr>
                 <td><label>รับเงินโดย</label></td>
                 <td>
-                    <select name="payment_methods" class="form-control">
-                        <option value="-1">ไม่ระบุช่องทาง</option>
+                    <select id="payment_methods" class="form-control">
+                        <option value="-1">ไม่ระบุช่องทางการจ่ายเงิน</option>
                         <?php foreach($payment_methods as $method): ?>
                             <option value="<?php echo $method->id?>"><?php echo $method->title; ?></option>
                         <?php endforeach; ?>
@@ -82,7 +82,7 @@
             </tr>
             <tr>
                 <td><label>วันที่</label></td>
-                <td><input type="text" id="pay_date" class="form-control" autocomplete="off" readonly></td>
+                <td><input type="text" id="payment_date" class="form-control" autocomplete="off" readonly></td>
             </tr>
             <tr>
                 <td><label>จำนวนเงิน</label></td>
@@ -139,7 +139,7 @@ $(document).ready(function() {
     $("#total_payment_receive").val($.number(payment_amount, 2));
     $("#remaining_amount").val($.number(remaining_amount, 2));
 
-    pay_date = $("#pay_date").datepicker({
+    payment_date = $("#payment_date").datepicker({
         yearRange: "<?php echo date('Y'); ?>",
         format: 'dd/mm/yyyy',
         changeMonth: true,
@@ -149,7 +149,7 @@ $(document).ready(function() {
         
     });
 
-    pay_date.datepicker("setDate", "<?php echo date('d/m/Y', time()); ?>");
+    payment_date.datepicker("setDate", "<?php echo date('d/m/Y', time()); ?>");
 
     $("#withholding_tax_percent").on("change", function() { 
         calculatePayment();
@@ -161,9 +161,13 @@ $(document).ready(function() {
 
     $("#btnSubmit").click(function() {
         axios.post('<?php echo current_url(); ?>', {
-            task: 'add_payment',
-            doc_id : "<?php if(isset($doc_id)) echo $doc_id; ?>",
-            doc_date:$("#doc_date").val()
+            task:'add_payment',
+            invoice_id :"<?php echo $doc["doc_id"]; ?>",
+            payment_method_id:$("#payment_methods").val(),
+            payment_date:$("#payment_date").val(),
+            payment_amount:tonum($("#payment_amount").val()),
+            remark:$("#remark").val(),
+            withholding_tax_percent:$("#withholding_tax_percent").val()
         }).then(function (response) {
             data = response.data;
             $(".fnotvalid").remove();
@@ -175,7 +179,7 @@ $(document).ready(function() {
                     }
                 }
             }else if(data.status == "success"){
-                window.location = data.target;
+                location.reload();
             }else{
                 alert(data.message);
             }

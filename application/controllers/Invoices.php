@@ -66,22 +66,17 @@ class Invoices extends MY_Controller {
     }
 
     function payment() {
-        /*if(isset($this->json->task)){
-            if($this->json->task == "load_items") jout($this->Invoices_m->items());
+        if(isset($this->json->task)){
+            if($this->json->task == "receipt") jout($this->Invoices_m->createReceipt());
+            if($this->json->task == "void") jout($this->Invoices_m->voidPayment());
             return;
-        }*/
+        }
 
         $this->data["payment"] = $payment = $this->Invoices_m->getPayment($this->uri->segment(3));
         if ($payment["status"] != "success"){
             redirect(get_uri("accounting/sell"));
             return;
         }
-
-        /*$data["company_setting"] = $this->Settings_m->getCompany();
-        $data["created"] = $this->Users_m->getInfo($data["created_by"]);
-        $data["client"] = $this->Customers_m->getInfo($data["customer_id"]);
-        $data["client_contact"] = $this->Customers_m->getContactInfo($data["client_id"]);
-        $data["print_url"] = get_uri("invoices/print/".str_replace("=", "", base64_encode($data['doc_id'].':'.$data['doc_number'])));*/
 
         $this->template->rander("invoices/payment", $this->data);
     }
@@ -92,7 +87,7 @@ class Invoices extends MY_Controller {
             return;   
         }
 
-        $this->data["doc"] = $doc = $this->Invoices_m->getDoc($this->input->post("doc_id"));
+        $this->data["doc"] = $doc = $this->Invoices_m->getDoc($this->input->post("invoice_id"));
         $this->data["payment_methods"] = $this->Payments_m->getRows();
 
         if($doc["status"] == "W") return;

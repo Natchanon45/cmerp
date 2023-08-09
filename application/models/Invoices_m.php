@@ -29,18 +29,16 @@ class Invoices_m extends MY_Model {
     }
 
 
-    function getIndexDataSetHTML($invrow){
-        $doc_status = "<select class='dropdown_status' data-doc_id='".$invrow->id."'>";
+    function getIndexDataSetHTML($ivrow){
+        $doc_status = "<select class='dropdown_status' data-doc_id='".$ivrow->id."' data-doc_number='".$ivrow->doc_number."'>";
 
-        if($invrow->status == "P"){
-            $doc_status .= "<option selected>รอเก็บเงิน</option>";
-            $doc_status .= "<option value='R'>สร้างใบเสร็จรับเงิน</option>";
-            $doc_status .= "<option value='V'>ยกเลิก</option>";
-        }elseif($invrow->status == "R"){
-            $doc_status .= "<option selected>เปิดใบเสร็จแล้ว</option>";
-            $doc_status .= "<option value='V'>ยกเลิก</option>";
-        }elseif($invrow->status == "V"){
-            $doc_status .= "<option selected>ยกเลิก</option>";
+        if($ivrow->status == "W"){
+            $doc_status .= "<option selected>รออนุมัติ</option>";
+            $doc_status .= "<option value='O'>อนุมัติ</option>";
+        }elseif($ivrow->status == "O"){
+            $doc_status .= "<option selected>รอรับชำระ</option>";
+        }elseif($ivrow->status == "P"){
+            $doc_status .= "<option selected>ชำระเงินแล้ว</option>";   
         }
 
         $doc_status .= "</select>";
@@ -73,11 +71,11 @@ class Invoices_m extends MY_Model {
                     convertDate($ivrow->due_date, true), number_format($ivrow->total, 2), $doc_status,
                     "<a data-post-id='".$ivrow->id."' data-action-url='".get_uri("invoices/addedit")."' data-act='ajax-modal' class='edit'><i class='fa fa-pencil'></i></a>"
                 ];
+
         /*
         *Delete button
         *<a data-id='".$ivrow->id."' data-action-url='".get_uri("invoices/delete_doc")."' data-action='delete' class='delete'><i class='fa fa-times fa-fw'></i></a>
         */
-
 
         return $data;
     }
@@ -745,7 +743,7 @@ class Invoices_m extends MY_Model {
                 ];
 
         $db->trans_begin();
-        log_message("error", 2);
+        
         if(empty($itemId)){
             $db->where("invoice_id", $docId);
             $total_items = $db->count_all_results("invoice_items");
@@ -822,91 +820,8 @@ class Invoices_m extends MY_Model {
             $db->update("invoice", [
                                         "approved_by"=>$this->login_user->id,
                                         "approved_datetime"=>date("Y-m-d H:i:s"),
-                                        "status"=>"R"
+                                        "status"=>"O"
                                     ]);
-
-            $receipt_number = $this->Receipts_m->getNewDocNumber();
-            $receipt_date = date("Y-m-d");
-
-            $db->insert("receipt", [
-                                        "invoice_id"=>$invoice_id,
-                                        "doc_number"=>$receipt_number,
-                                        "doc_date"=>$receipt_date,
-                                        "reference_number"=>$invoice_number,
-                                        "project_id"=>$invrow->project_id,
-                                        "client_id"=>$invrow->client_id,
-                                        "sub_total_before_discount"=>$invrow->sub_total_before_discount,
-                                        "discount_type"=>$invrow->discount_type,
-                                        "discount_percent"=>$invrow->discount_percent,
-                                        "discount_amount"=>$invrow->discount_amount,
-                                        "sub_total"=>$invrow->sub_total,
-                                        "vat_inc"=>$invrow->vat_inc,
-                                        "vat_percent"=>$invrow->vat_percent,
-                                        "vat_value"=>$invrow->vat_value,
-                                        "total"=>$invrow->total,
-                                        "wht_inc"=>$invrow->wht_inc,
-                                        "wht_percent"=>$invrow->wht_percent,
-                                        "wht_value"=>$invrow->wht_value,
-                                        "payment_amount"=>$invrow->payment_amount,
-                                        "remark"=>$invrow->remark,
-                                        "created_by"=>$this->login_user->id,
-                                        "created_datetime"=>date("Y-m-d H:i:s"),
-                                        "status"=>"W",
-                                        "deleted"=>0
-                                    ]);
-
-            $receipt_id = $db->insert_id();
-
-            $invrows = $db->select("*")
-                        ->from("invoice_items")
-                        ->where("invoice_id", $invoice_id)
-                        ->order_by("sort", "ASC")
-                        ->get()->result();
-
-            if(empty(!$invrows)){
-                foreach($invrows as $invrow){
-                    $db->insert("receipt_items", [
-                                                        "receipt_id"=>$receipt_id,
-                                                        "product_id"=>$invrow->product_id,
-                                                        "product_name"=>$invrow->product_name,
-                                                        "product_description"=>$invrow->product_description,
-                                                        "quantity"=>$invrow->quantity,
-                                                        "unit"=>$invrow->unit,
-                                                        "price"=>$invrow->price,
-                                                        "total_price"=>$invrow->total_price,
-                                                        "sort"=>$invrow->sort
-                                                    ]);
-                }
-            }
-
-            $this->data["task"] = "create_receipt";
-            $this->data["status"] = "success";
-            $this->data["url"] = get_uri("receipts/view/".$receipt_id);
-
-        }elseif($updateStatusTo == "V"){
-            $rerow = $db->select("doc_number")
-                        ->from("receipt")
-                        ->where("invoice_id", $invoice_id)
-                        ->where("status !=", "V")
-                        ->where("deleted", 0)
-                        ->get()->row();
-
-            if(!empty($rerow)){
-                $this->data["dataset"] = $this->getIndexDataSetHTML($invrow);
-                $this->data["message"] = "ไม่สามารถยกเลิกใบกำกับภาษีได้ เนื่องจากมีการผูกใบกำกับภาษีกับใบเสร็จรับเงินเลขที่ ".$rerow->doc_number." แล้ว";
-                $this->data["status"] = "error";
-                $db->trans_rollback();
-                return $this->data;
-            }
-
-            $db->where("id", $docId);
-            $db->update("invoice", ["status"=>"V"]);
-
-            $db->where("id", $invrow->billing_note_id);
-            if($db->count_all_results("billing_note") > 0){
-                $db->where("id", $invrow->billing_note_id);
-                $db->update("billing_note", ["approved_by"=>null, "approved_datetime"=>null, "status"=>"W"]);
-            }
         }
 
         if ($db->trans_status() === FALSE){
@@ -994,17 +909,20 @@ class Invoices_m extends MY_Model {
         $ivprows = $db->select("*")
                         ->from("invoice_payment")
                         ->where("invoice_id", $ivrow->id)
+                        ->order_by("record_number", "ASC")
                         ->get()->result();
 
-        if(empty($ivprows)){
+        if(!empty($ivprows)){
             foreach($ivprows as $ivprow){
+                $pr["payment_id"] = $ivprow->id;
                 $pr["record_number"] = $ivprow->record_number;
                 $pr["payment_method_id"] = $ivprow->payment_method_id;
-                $pr["title"] = $ivprow->title;
                 $pr["payment_amount"] = $ivprow->payment_amount;
                 $pr["wht_inc"] = $ivprow->wht_inc;
                 $pr["wht_value"] = $ivprow->wht_value;
+                $pr["money_payment_receive"] = $ivprow->money_payment_receive;
                 $pr["issued_receipt"] = $ivprow->issued_receipt;
+                $pr["payment_date"] = $ivprow->payment_date;
 
                 $this->data["payment_records"][] = $pr;
             }
@@ -1019,7 +937,175 @@ class Invoices_m extends MY_Model {
     function addPayment(){
         $db = $this->db;
 
-        $docId = $this->json->doc_id;
-        $docDate = $this->json->doc_date;
+        $invoice_id = $this->json->invoice_id;
+        $payment_method_id = ($this->json->payment_method_id == -1 ? null : $this->json->payment_method_id);
+        $payment_date = convertDate($this->json->payment_date);
+        $payment_amount = getNumber(str_replace(",", "", $this->json->payment_amount));
+        $payment_remark = $this->json->remark;
+        $payment_withholding_tax_percent = ($this->json->withholding_tax_percent == 0 ? 0:getNumber($this->json->withholding_tax_percent));
+        $payment_withholding_tax_include = $payment_withholding_tax_percent == null ? "N":"Y";
+        $payment_withholding_value = 0;
+
+        $ivrow = $db->select("total")
+                    ->from("invoice")
+                    ->where("id", $invoice_id)
+                    ->where("deleted", 0)
+                    ->get()->row();
+
+        if(empty($ivrow)){
+            return $this->data;
+        }
+
+        $invoices_total = $ivrow->total;
+
+        $total_payment_amount = $db->select("SUM(payment_amount) AS TOTAL_PAYMENT_AMOUNT")
+                                    ->from("invoice_payment")
+                                    ->get()->row()->TOTAL_PAYMENT_AMOUNT;
+
+        if($total_payment_amount == null) $total_payment_amount = 0;
+
+        if(($total_payment_amount + $payment_amount) > $invoices_total){
+            $this->data["message"] = "ไม่สามารถชำระเงินได้.";
+            return $this->data;
+        }
+
+        $db->where("invoice_id", $invoice_id);
+        $total_records = $db->count_all_results("invoice_payment");
+
+        if($payment_withholding_tax_include == "Y"){
+            $payment_withholding_value = roundUp(($payment_amount * $payment_withholding_tax_percent)/100);
+        }
+
+        $money_payment_receive = $payment_amount - $payment_withholding_value;
+
+        $db->insert("invoice_payment", [
+                                        "invoice_id"=>$invoice_id,
+                                        "record_number"=>++$total_records,
+                                        "payment_method_id"=>$payment_method_id,
+                                        "payment_amount"=>$payment_amount,
+                                        "remark"=>$payment_remark,
+                                        "wht_inc"=>$payment_withholding_tax_include,
+                                        "wht_percent"=>$payment_withholding_tax_percent,
+                                        "wht_value"=>$payment_withholding_value,
+                                        "money_payment_receive"=>$money_payment_receive,
+                                        "issued_receipt"=>"N",
+                                        "payment_date"=>$payment_date,
+                                        "created_by"=>$this->login_user->id,
+                                        "created_datetime"=>date("Y-m-d H:i:s")
+                                    ]);
+
+        if($db->affected_rows() != 1){
+            return $this->data;
+        }
+
+        $this->data["status"] = "success";
+        $this->data["message"] = "success";
+
+        return $this->data;
+    }
+
+    function voidPayment(){
+        $db = $this->db;
+        $invoice_id = $this->json->invoice_id;
+        $payment_id = $this->json->payment_id;
+
+        $ivrow = $db->select("total")
+                    ->from("invoice")
+                    ->where("id", $invoice_id)
+                    ->get()->row();
+
+        if(empty($ivrow)) return $this->data;
+
+        $invoice_total = $ivrow->total;
+
+        $iprow = $db->select("*")
+                    ->from("invoice_payment")
+                    ->where("id", $payment_id)
+                    ->where("invoice_id", $invoice_id)
+                    ->get()->row();
+
+        if(empty($iprow)) return $this->data;
+
+        $db->trans_begin();
+
+        $db->where("id", $payment_id);
+        $db->where("invoice_id", $invoice_id);
+        $db->delete("invoice_payment");
+
+        $total_payment_amount = $db->select("SUM(payment_amount) AS TOTAL_PAYMENT_AMOUNT")
+                                    ->from("invoice_payment")
+                                    ->where("invoice_id", $invoice_id)
+                                    ->get()->row()->TOTAL_PAYMENT_AMOUNT;
+
+        if($total_payment_amount == null) $total_payment_amount = 0;
+
+        if($invoice_total > $total_payment_amount){
+            $db->where("id", $invoice_id);
+            $db->update("invoice", ["status"=>"O"]);
+        }
+
+        if($db->trans_status() === FALSE){
+            $db->trans_rollback();
+            return $this->data;
+        }
+
+        $db->trans_commit();
+
+        $this->data["status"] = "success";
+        $this->data["message"] = "success";
+
+        return $this->data;
+    }
+
+    function createReceipt(){
+        $db = $this->db;
+        $invoice_id = $this->json->invoice_id;
+        $payment_id = $this->json->payment_id;
+
+        $ivrow = $db->select()
+                    ->from("invoice")
+                    ->where("id", $invoice_id)
+                    ->where("deleted", 0)
+                    ->get()->row();
+
+        if(empty($ivrow)) return $this->data;
+        
+        $iprow = $db->select("*")
+                    ->from("invoice_payment")
+                    ->where("id", $payment_id)
+                    ->where("invoice_id", $invoice_id)
+                    ->get()->row();
+
+        if(empty($iprow)) return $this->data;
+
+        if($iprow->receipt_id != null){
+            $this->data["message"] = "ไม่สามารถออกใบเสร็จได้ เนื่องจากรายการรับชำระนี้ ถูกออกใบเสร็จไปแล้ว.";
+            return $this->data;
+        }
+
+        $invoice_number = $ivrow->doc_number;
+        $receipt_number = $this->Receipts_m->getNewDocNumber();
+
+
+        /*$db->insert("receipt", [
+                                    "invoice_id"=>$invoice_id,
+                                    "invoice_payment_id"=>$invoice_id,
+                                    "doc_number"=>$receipt_number,
+                                    "doc_date"=>date("Y-m-d"),
+                                    "reference_number"=>$invoice_number,
+                                    "vat_inc"=>"N",
+                                    "client_id"=>$customer_id,
+                                    "project_id"=>$project_id,
+                                    "remark"=>$remark,
+                                    "created_by"=>$this->login_user->id,
+                                    "created_datetime"=>date("Y-m-d H:i:s"),
+                                    "status"=>"W"
+                                ]);*/
+
+        $receipt_id = $db->insert_id();
+
+        return ["message"=>$receipt_number];
+
+
     }
 }
