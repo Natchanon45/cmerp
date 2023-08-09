@@ -237,6 +237,9 @@ class Quotations_m extends MY_Model {
         $this->data["payment_amount"] = $qrow->payment_amount;
 
         $this->data["sharekey_by"] = $qrow->sharekey_by;
+
+        $this->data["created_by"] = $qrow->created_by;
+        $this->data["created_datetime"] = $qrow->created_datetime;
         $this->data["approved_by"] = $qrow->approved_by;
         $this->data["approved_datetime"] = $qrow->approved_datetime;
         $this->data["doc_status"] = $qrow->status;

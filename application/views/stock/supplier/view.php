@@ -25,11 +25,11 @@
                     <?php echo lang('stock_supplier_pricings'); ?>
                 </a>
             </li>
-            <li>
-                <a role="presentation" href="<?php echo_uri("stock/supplier_fg_pricings/" . $supplier_info->id); ?>" data-target="#supplier-fg-pricings">
-                    <?php echo lang('stock_supplier_fg_pricings'); ?>
+            <!-- <li>
+                <a role="presentation" href="<?php // echo_uri("stock/supplier_fg_pricings/" . $supplier_info->id); ?>" data-target="#supplier-fg-pricings">
+                    <?php // echo lang('stock_supplier_fg_pricings'); ?>
                 </a>
-            </li>
+            </li> -->
         <?php endif; ?>
         <li>
             <a role="presentation" href="<?php echo_uri("stock/supplier_files/" . $supplier_info->id); ?>" data-target="#supplier-files">
