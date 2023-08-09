@@ -98,8 +98,12 @@
 	                        <td><?php echo $doc["doc_number"]; ?></td>
 	                    </tr>
 	                    <tr>
-	                        <td class="custom-color">วันที่</td>
+	                        <td class="custom-color">ออก ณ วันที่</td>
 	                        <td><?php echo convertDate($doc["doc_date"], true); ?></td>
+	                    </tr>
+	                    <tr>
+	                        <td class="custom-color">ยืนราคาถึง</td>
+	                        <td><?php echo convertDate($doc["doc_valid_until_date"], true); ?></td>
 	                    </tr>
 	                    <tr>
 	                        <td class="custom-color">เครดิต</td>
@@ -235,20 +239,14 @@
 				<div class="signature clear">
 					<div class="name">
 	                    <span class="l1">
-	                    	<?php if($doc["approved_by"] != null): ?>
-	                    		<?php if(null != $signature = $this->Users_m->getSignature($doc["approved_by"])): ?>
-	                            	<img src='<?php echo "/".$signature; ?>'>
-	                        	<?php endif; ?>
-	                        <?php endif; ?>
+                    		<?php if(null != $signature = $this->Users_m->getSignature($doc["created_by"])): ?>
+                            	<img src='<?php echo "/".$signature; ?>'>
+                        	<?php endif; ?>
 	                    </span>
-	                    <span class="l2">ผู้อนุมัติ</span>
+	                    <span class="l2">ผู้ออก</span>
 	                </div>
 	                <div class="date">
-	                    <span class="l1">
-	                    	<?php if($doc["approved_by"] != null): ?>
-	                            <span class="approved_date"><?php echo convertDate($doc["approved_datetime"], true); ?></span>
-	                        <?php endif; ?>
-	                    </span>
+	                    <span class="l1"><span class="approved_date"><?php echo convertDate($doc["approved_datetime"], true); ?></span></span>
 	                    <span class="l2">วันที่</span>
 	                </div>
 				</div>
