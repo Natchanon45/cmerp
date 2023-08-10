@@ -36,6 +36,7 @@ class Receipts_m extends MY_Model {
             $doc_status .= "<option value='V'>ยกเลิก</option>";
         }elseif($rerow->status == "P"){
             $doc_status .= "<option selected>เก็บเงินแล้ว</option>";
+            $doc_status .= "<option value='V'>ยกเลิก</option>";
         }elseif($rerow->status == "V"){
             $doc_status .= "<option selected>ยกเลิก</option>";
         }
