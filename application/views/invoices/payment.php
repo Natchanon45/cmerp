@@ -33,12 +33,19 @@
             <div class="r">
                 <table>
                     <tr>
-                        <td><strong>มูลค่าที่รอรับชำระอีก</strong></td>
-                        <td>
-                            <span class="payment_receive_amount"><strong><?php echo number_format($payment["net_await_payment_receive_amount"], 2); ?></strong> บาท</span>
-                            <span class="due_date"><strong>วันที่ครบกำหนด</strong> : <?php echo convertDate($payment["due_date"], true); ?></span>
-                            <span><a class="receive_button custom-color-button" data-post-invoice_id="<?php echo $payment["doc_id"]; ?>" data-act="ajax-modal" data-title="รับชำระเงิน #<?php echo $payment["doc_number"]; ?>" data-action-url="<?php echo get_uri("/invoices/payment-receive"); ?>">รับชำระ</a></span>
-                        </td>
+                        <?php if($payment["doc_status"] == "P"): ?>
+                            <td colspan="2" class="invoice_is_fully_paid">
+                                <span><i class="fa fa-check-circle" aria-hidden="true"></i>รับชำระเต็มจำนวนแล้ว</span>
+                                <span><strong>รับชำระครบเมื่อวันที่</strong> : <?php echo convertDate($payment["fully_paid_datetime"], true); ?></span>
+                            </td>
+                        <?php else: ?>
+                            <td><strong>มูลค่าที่รอรับชำระอีก</strong></td>
+                            <td>
+                                <span class="payment_receive_amount"><strong><?php echo number_format($payment["net_await_payment_receive_amount"], 2); ?></strong> บาท</span>
+                                <span class="due_date"><strong>วันที่ครบกำหนด</strong> : <?php echo convertDate($payment["due_date"], true); ?></span>
+                                <span><a class="receive_button custom-color-button" data-post-invoice_id="<?php echo $payment["doc_id"]; ?>" data-act="ajax-modal" data-title="รับชำระเงิน #<?php echo $payment["doc_number"]; ?>" data-action-url="<?php echo get_uri("/invoices/payment-receive"); ?>">รับชำระ</a></span>
+                            </td>
+                        <?php endif; ?>
                     </tr>
                 </table>
             </div>
@@ -52,11 +59,11 @@
                         <tr><td colspan="2"></td></tr>
                         <tr>
                             <td colspan="2" class="clear">
-                                <span style="float:left; width:50%;"><strong>รับชำระเงินครั้งที่ <?php echo $payment_record["record_number"]; ?></strong></span>
+                                <span style="float:left; width:50%;"><strong style="color: #4bc17a">รับชำระเงินครั้งที่ <?php echo $payment_record["record_number"]; ?></strong></span>
                                 <span style="float:right; width:50%; text-align:right;"><strong>รับชำระเมื่อวันที่</strong> : <?php echo convertDate($payment_record["payment_date"], true); ?></span>
                             </td>
                         </tr>
-                        <tr><td colspan="2"><strong style="color: #4bc17a">ช่องทางการรับชำระเงิน :</strong></td></tr>
+                        <tr><td colspan="2"><strong>ช่องทางการรับชำระเงิน :</strong></td></tr>
                         <tr>
                             <td style="width:72%;"><a><?php echo $this->Payments_m->getPaymentMethodName($payment_record["payment_method_id"]); ?></a></td>
                             <td style="width:28%;"><?php echo number_format($payment_record["money_payment_receive"], 2); ?> บาท</td>

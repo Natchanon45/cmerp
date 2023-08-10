@@ -503,14 +503,15 @@
 
 #payment_header .docnumber .docstaus{
     display: block;
-    font-size: 0.8em;
+    font-size: 0.7em;
+    font-weight: bold;
 }
 
 #payment_header .docnumber .docstaus i{
     top: 1px;
     display: inline-block;
-    width: 12px;
-    height: 12px;
+    width: 10px;
+    height: 10px;
     margin-right: 8px;
     border-radius: 50%;
     position: relative;
@@ -599,6 +600,22 @@
 
 #payment_header .info .r span{
     display: block;
+}
+
+#payment_header .invoice_is_fully_paid > span:nth-child(1){
+    text-align: right;
+    font-size: 1.8em;
+    color: #43bf76;
+    margin-top: 40px;
+}
+
+#payment_header .invoice_is_fully_paid > span:nth-child(1) > i{
+    margin-right: 4px;
+    font-size: 0.7em;
+}
+
+#payment_header .invoice_is_fully_paid > span:nth-child(2){
+    text-align: right;
 }
 
 .payment_record{
