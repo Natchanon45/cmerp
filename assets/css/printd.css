@@ -462,8 +462,10 @@
 
 #printd .docsignature .l1 .signature img{
     display: inline-block;
-    width: auto;
-    height: 42px;
+    /*width: auto;
+    height: 42px;*/
+    max-width: 110px;
+    height: auto;
 }
 
 #printd .docsignature .l1 .approved_date{

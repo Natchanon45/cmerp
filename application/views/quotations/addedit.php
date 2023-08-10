@@ -1,33 +1,33 @@
 <div class="general-form modal-body clearfix">
     <div class="form-group">
-        <label for="doc_date" class=" col-md-3">วันที่</label>
+        <label for="doc_date" class=" col-md-3">ออก ณ วันที่</label>
         <div class="col-md-9">
             <input type="text" id="doc_date" class="form-control" autocomplete="off" readonly>
         </div>
     </div>
 
     <div class="form-group">
-        <label for="credit" class=" col-md-3">เครดิต (วัน)</label>
-        <div class="col-md-9" style="display: grid;grid-template-columns: auto auto;align-items: center; justify-items: center;justify-content: start;">
-            <input type="number" id="credit" value="<?php echo $credit; ?>" class="form-control" autocomplete="off" >
-        </div>
-    </div>
-
-    <div class="form-group">
-        <label for="doc_valid_until_date" class=" col-md-3"><?php echo lang('valid_until'); ?></label>
+        <label for="doc_valid_until_date" class=" col-md-3">ยืนราคาถึง</label>
         <div class="col-md-9"><input type="text" id="doc_valid_until_date" class="form-control" autocomplete="off" readonly></div>
     </div>
 
     <div class="form-group">
+        <label for="credit" class=" col-md-3">เครดิต (วัน)</label>
+        <div class="col-md-9" style="display: grid;grid-template-columns: auto auto;align-items: center; justify-items: center;justify-content: start;">
+            <input type="number" id="credit" value="<?php echo $credit; ?>" class="form-control" autocomplete="off" <?php if($doc_status != "W" && isset($doc_id)) echo "disabled";?> >
+        </div>
+    </div>
+
+    <div class="form-group">
         <label for="reference_number" class=" col-md-3">เลขที่อ้างอิง</label>
-        <div class="col-md-9"><input type="text" id="reference_number" value="<?php echo $reference_number; ?>" placeholder="#" class="form-control"></div>
+        <div class="col-md-9"><input type="text" id="reference_number" value="<?php echo $reference_number; ?>" placeholder="#" class="form-control" <?php if($doc_status != "W" && isset($doc_id)) echo "disabled";?>></div>
     </div>
 
     <div class="form-group">
         <label for="client_id" class=" col-md-3"><?php echo lang('client'); ?></label>
         <div class="col-md-9">
             <?php $crows = $this->Clients_m->getRows(); ?>
-            <select id="client_id" class="form-control">
+            <select id="client_id" class="form-control" <?php if($doc_status != "W" && isset($doc_id)) echo "disabled";?>>
                 <option value="">-</option>
                 <?php foreach($crows as $crow): ?>
                     <option value="<?php echo $crow->id; ?>" <?php if($client_id == $crow->id) echo "selected"?>><?php echo $crow->company_name; ?></option>
@@ -40,7 +40,7 @@
         <label for="lead_id" class=" col-md-3">ลูกค้าผู้มุ่งหวัง</label>
         <div class="col-md-9">
             <?php $lrows = $this->Leads_m->getRows(); ?>
-            <select id="lead_id" class="form-control">
+            <select id="lead_id" class="form-control" <?php if($doc_status != "W" && isset($doc_id)) echo "disabled";?>>
                 <option value="">-</option>
                 <?php foreach($lrows as $lrow): ?>
                     <option value="<?php echo $lrow->id; ?>" <?php if($lead_id == $lrow->id) echo "selected"?>><?php echo $lrow->company_name; ?></option>
@@ -53,7 +53,7 @@
         <label for="project_id" class=" col-md-3"><?php echo lang('project'); ?></label>
         <div class="col-md-9">
             <?php $prows = $this->Projects_m->getRows(); ?>
-            <select id="project_id" class="form-control">
+            <select id="project_id" class="form-control" <?php if($doc_status != "W" && isset($doc_id)) echo "disabled";?>>
                 <option value="">-</option>
                 <?php foreach($prows as $prow): ?>
                     <option value="<?php echo $prow->id; ?>" <?php if($project_id == $prow->id) echo "selected"?>><?php echo $prow->title; ?></option>
@@ -64,7 +64,7 @@
     <div class="form-group">
         <label for="remark" class=" col-md-3">หมายเหตุ</label>
         <div class=" col-md-9">
-            <textarea id="remark" name="remark" placeholder="หมายเหตุ" class="form-control"><?php echo $remark; ?></textarea>
+            <textarea id="remark" name="remark" placeholder="หมายเหตุ" class="form-control" <?php if($doc_status != "W" && isset($doc_id)) echo "disabled";?>><?php echo $remark; ?></textarea>
         </div>
     </div>
 </div>
@@ -125,7 +125,7 @@ $(document).ready(function() {
             changeYear: true,
             autoclose: true
         }).on("changeDate", function (e) {
-            cal_valid_date_from_credit();
+            //cal_valid_date_from_credit();
         });
 
         doc_valid_until_date = $("#doc_valid_until_date").datepicker({
@@ -135,15 +135,18 @@ $(document).ready(function() {
             changeYear: true,
             autoclose: true
         }).on("changeDate", function (e) {
-            cal_credit_from_valid_until_date();
+            //cal_credit_from_valid_until_date();
         });
 
         doc_date.datepicker("setDate", "<?php echo date('d/m/Y', strtotime($doc_date)); ?>");
         doc_valid_until_date.datepicker("setDate", "<?php echo date('d/m/Y', strtotime($doc_valid_until_date)); ?>");
 
         $("#credit").blur(function(){
-            cal_valid_date_from_credit();
-        });        
+            //cal_valid_date_from_credit();
+        });
+    <?php else: ?>
+        $("#doc_date").val("<?php echo date('d/m/Y', strtotime($doc_date)); ?>");
+        $("#doc_valid_until_date").val("<?php echo date('d/m/Y', strtotime($doc_valid_until_date)); ?>");
     <?php endif; ?>
 });
 
