@@ -42,9 +42,9 @@
 </head>
 <?php if ($print_mode == "private"): ?>
 
-	<!-- <body onload="window.print()" onfocus="window.close()"> -->
+	<body onload="window.print()" onfocus="window.close()">
 
-	<body>
+	<!-- <body> -->
 	<?php else: ?>
 
 		<body>
