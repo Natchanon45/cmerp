@@ -43,7 +43,8 @@ class Purchase_order_m extends MY_Model
             "3" => "finised_goods",
             "4" => "assets",
             "5" => "services",
-            "6" => "expenses"
+            "6" => "expenses",
+            "7" => "mixed_purchase"
         );
         return lang($type[$id]);
     }

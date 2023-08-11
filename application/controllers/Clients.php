@@ -17,15 +17,14 @@ class Clients extends MY_Controller {
 
     //for team members, check only read_only permission here, since other permission will be checked accordingly
     private function can_edit_clients() {
-        $authReadOnly = array("", "read_only");
-
-        if (!$this->login_user->is_admin) {
-            if (in_array(get_array_value($this->login_user->permissions, "client"), $authReadOnly)) {
-                return false;
-            }
-        }
-        
         return true;
+
+        // $authReadOnly = array("", "read_only");
+        // if (!$this->login_user->is_admin) {
+        //     if (in_array(get_array_value($this->login_user->permissions, "client"), $authReadOnly)) {
+        //         return false;
+        //     }
+        // }
     }
 
     private function can_view_files() {
@@ -55,7 +54,6 @@ class Clients extends MY_Controller {
             redirect("forbidden");
         }
     }
-
     /* load client add/edit modal */
 
     function modal_form() {
@@ -701,6 +699,8 @@ class Clients extends MY_Controller {
         $this->can_access_this_client($view_data['model_info']->client_id);
 
         $view_data["custom_fields"] = $this->Custom_fields_model->get_combined_details("client_contacts", $view_data['model_info']->id, $this->login_user->is_admin, $this->login_user->user_type)->result();
+        
+        // var_dump(arr($view_data)); exit();
         $this->load->view('clients/contacts/modal_form', $view_data);
     }
 

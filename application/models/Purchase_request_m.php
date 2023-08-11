@@ -2,14 +2,13 @@
 
 class Purchase_request_m extends MY_Model
 {
-    private $code = "PR";
+    private $code = 'PR';
 
-    private $shareHtmlAddress = "share/purchase_request/html/";
+    private $shareHtmlAddress = 'share/purchase_request/html/';
 
     function __construct()
     {
         parent::__construct();
-
         $this->load->model('Purchase_order_m');
     }
 
@@ -30,7 +29,7 @@ class Purchase_request_m extends MY_Model
 
     function getStatusName($status_code)
     {
-        if ($status_code == "W") {
+        if ($status_code == 'W') {
             return lang('pr_pending');
         }
     }
@@ -43,7 +42,8 @@ class Purchase_request_m extends MY_Model
             "3" => "finised_goods",
             "4" => "assets",
             "5" => "services",
-            "6" => "expenses"
+            "6" => "expenses",
+            "7" => "mixed_purchase"
         );
         return lang($type[$id]);
     }
@@ -216,7 +216,6 @@ class Purchase_request_m extends MY_Model
         }
 
         $db->where("deleted", 0);
-
         $qrow = $db->select("*")
             ->from("pr_header")
             ->get()->row();
@@ -224,7 +223,6 @@ class Purchase_request_m extends MY_Model
         if (empty($qrow)) return $this->data;
 
         $docId = $qrow->id;
-
         $qirows = $db->select("*")
             ->from("pr_detail")
             ->where("pr_id", $docId)
@@ -235,7 +233,6 @@ class Purchase_request_m extends MY_Model
         $created_by = $qrow->created_by;
 
         $this->data["buyer"] = $ci->Users_m->getInfo($created_by);
-
         $this->data["seller"] = $ci->Bom_suppliers_model->getInfo($supplier_id);
         $this->data["seller_contact"] = $ci->Bom_suppliers_model->getContactInfo($supplier_id);
 
@@ -247,13 +244,11 @@ class Purchase_request_m extends MY_Model
         $this->data["remark"] = $qrow->remark;
 
         $this->data["sub_total_before_discount"] = $qrow->sub_total_before_discount;
-
         $this->data["discount_type"] = $qrow->discount_type;
         $this->data["discount_percent"] = $qrow->discount_percent;
         $this->data["discount_amount"] = $qrow->discount_amount;
 
         $this->data["sub_total"] = $qrow->sub_total;
-
         $this->data["vat_inc"] = $qrow->vat_inc;
         $this->data["vat_percent"] = $qrow->vat_percent;
         $this->data["vat_value"] = $qrow->vat_value;
@@ -299,7 +294,6 @@ class Purchase_request_m extends MY_Model
 
             $vat_inc = $this->json->vat_inc == true ? "Y" : "N";
             $wht_inc = $this->json->wht_inc == true ? "Y" : "N";
-
             $qrow = $db->select("*")
                 ->from("pr_header")
                 ->where("id", $docId)
@@ -309,18 +303,18 @@ class Purchase_request_m extends MY_Model
             if (empty($qrow)) return $this->data;
 
             $discount_type = $this->json->discount_type;
-
             if ($discount_type == "P") {
                 $discount_percent = getNumber($this->json->discount_percent);
-                if ($discount_percent >= 100) $discount_percent = 99.99;
-                if ($discount_percent < 0) $discount_percent = 0;
+                if ($discount_percent >= 100)
+                    $discount_percent = 99.99;
+                if ($discount_percent < 0)
+                    $discount_percent = 0;
             } else {
                 $discount_amount = getNumber($this->json->discount_value);
             }
 
             if ($vat_inc == "Y") $vat_percent = $this->Taxes_m->getVatPercent();
             if ($wht_inc == "Y") $wht_percent = getNumber($this->json->wht_percent);
-
         } else {
             $qrow = $db->select("*")
                 ->from("pr_header")
@@ -346,27 +340,22 @@ class Purchase_request_m extends MY_Model
             ->where("pr_id", $docId)
             ->get()->row()->SUB_TOTAL;
 
-        if ($sub_total_before_discount == null)
-            $sub_total_before_discount = 0;
+        if ($sub_total_before_discount == null) $sub_total_before_discount = 0;
         if ($discount_type == "P") {
             if ($discount_percent > 0) {
                 $discount_amount = ($sub_total_before_discount * $discount_percent) / 100;
             }
         } else {
-            if ($discount_amount > $sub_total_before_discount)
-                $discount_amount = $sub_total_before_discount;
-            if ($discount_amount < 0)
-                $discount_amount = 0;
+            if ($discount_amount > $sub_total_before_discount) $discount_amount = $sub_total_before_discount;
+            if ($discount_amount < 0) $discount_amount = 0;
         }
 
         $sub_total = $sub_total_before_discount - $discount_amount;
 
-        if ($vat_inc == "Y")
-            $vat_value = ($sub_total * $vat_percent) / 100;
+        if ($vat_inc == "Y") $vat_value = ($sub_total * $vat_percent) / 100;
         $total = $sub_total + $vat_value;
 
-        if ($wht_inc == "Y")
-            $wht_value = ($sub_total * $wht_percent) / 100;
+        if ($wht_inc == "Y") $wht_value = ($sub_total * $wht_percent) / 100;
         $payment_amount = $total - $wht_value;
 
         $db->where("id", $docId);
@@ -494,7 +483,7 @@ class Purchase_request_m extends MY_Model
                 "credit" => $credit,
                 "doc_valid_until_date" => $doc_valid_until_date,
                 "reference_number" => $reference_number,
-                "vat_inc" => "N",
+                "vat_inc" => "Y",
                 "supplier_id" => $supplier_id,
                 "project_id" => $project_id,
                 "remark" => $remark,
@@ -506,7 +495,7 @@ class Purchase_request_m extends MY_Model
             $docId = $db->insert_id();
         }
 
-        $this->data["target"] = get_uri("purchase_request/view/" . $docId);
+        $this->data["target"] = get_uri('purchase_request/view/' . $docId);
         $this->data["status"] = "success";
 
         return $this->data;
@@ -692,12 +681,10 @@ class Purchase_request_m extends MY_Model
             ->where("deleted", 0)
             ->get()->row();
 
-        if (empty($qrow))
-            return $this->data;
+        if (empty($qrow)) return $this->data;
 
         $this->validateItem();
-        if ($this->data["status"] == "validate")
-            return $this->data;
+        if ($this->data["status"] == "validate") return $this->data;
 
         $itemId = $this->json->item_id;
         $product_id = $this->json->product_id == "" ? null : $this->json->product_id;
@@ -741,7 +728,7 @@ class Purchase_request_m extends MY_Model
 
         $this->updateDoc($docId);
 
-        $this->data["target"] = get_uri("purchase_request/view/" . $docId);
+        $this->data["target"] = get_uri('purchase_request/view/' . $docId);
         $this->data["status"] = "success";
 
         return $this->data;
@@ -777,8 +764,7 @@ class Purchase_request_m extends MY_Model
             ->where("deleted", 0)
             ->get()->row();
 
-        if (empty($qrow))
-            return $this->data;
+        if (empty($qrow)) return $this->data;
 
         $pr_id = $this->data["doc_id"] = $docId;
         $pr_number = $qrow->doc_number;
@@ -810,8 +796,19 @@ class Purchase_request_m extends MY_Model
             $db->where('id', $pr_id);
             $db->update('pr_header', ['status' => "R"]);
         } elseif ($updateStatusTo == "A") { // Approved
+            // If current status is rejected
             if ($currentStatus == "R") {
                 $this->data['dataset'] = $this->getIndexDataSetHTML($qrow);
+                return $this->data;
+            }
+
+            // Count pr items detail
+            $this->db->where('pr_id', $pr_id);
+            $count_pr_detail = $this->db->count_all_results('pr_detail');
+
+            if ($count_pr_detail == 0) {
+                $this->data['dataset'] = $this->getIndexDataSetHTML($qrow);
+                $this->data['message'] = lang('no_item_found');
                 return $this->data;
             }
 
@@ -876,10 +873,10 @@ class Purchase_request_m extends MY_Model
                 }
             }
 
-            $this->data["task"] = "create_purchase_order";
-            $this->data["status"] = "success";
+            $this->data["task"] = 'create_purchase_order';
+            $this->data["status"] = 'success';
             $this->data["message"] = lang('record_saved');
-            $this->data["url"] = get_uri("purchase_order/view/" . $po_id);
+            $this->data["url"] = get_uri('purchase_order/view/' . $po_id);
         }
 
         if ($db->trans_status() === FALSE) {
@@ -920,8 +917,7 @@ class Purchase_request_m extends MY_Model
             while (true) {
                 $sharekey = uniqid();
                 $db->where("sharekey", $sharekey);
-                if ($db->count_all_results("pr_header") < 1)
-                    break;
+                if ($db->count_all_results("pr_header") < 1) break;
             }
 
             $this->data["sharelink"] = get_uri($this->shareHtmlAddress . "th/" . $sharekey);

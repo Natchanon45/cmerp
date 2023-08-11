@@ -193,4 +193,31 @@ class Items_model extends Crud_model
 		return $data;
 	}
 
+	function dev2_getItemPricings($options)
+	{
+		$data = [];
+
+		if (isset($options['item_id']) && !empty($options['item_id'])) {
+			$this->db->where('item_id', $options['item_id']);
+		}
+
+		if (isset($options['id']) && !empty($options['id'])) {
+			$this->db->where('id', $options['id']);
+		}
+
+		$items = $this->db->get('bom_item_pricings')->result();
+
+		if (sizeof($items)) {
+			foreach ($items as $item) {
+				$item->item_data = $this->db->get_where('items', ['id' => $item->item_id])->row();
+				$item->supplier_data = $this->db->get_where('bom_suppliers', ['id' => $item->supplier_id])->row();
+				$item->supplier_contact = $this->db->get_where('bom_supplier_contacts', ['supplier_id' => $item->supplier_id, 'is_primary' => 0])->row();
+			}
+
+			$data = $items;
+		}
+
+		return $data;
+	}
+
 }

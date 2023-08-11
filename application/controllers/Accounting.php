@@ -72,6 +72,7 @@ class Accounting extends MY_Controller {
         }
 
         if($this->uri->segment(3) != null) $this->data["module"] = $this->uri->segment(3);
+        $this->data['permissions'] = $this->Permission_m->permissions;
 
         // Supplier Dropdown
         $this->data['supplier_dropdown'] = json_encode($this->Bom_suppliers_model->dev2_getSupplierDropdownWithCode());
@@ -80,6 +81,7 @@ class Accounting extends MY_Controller {
         // PR Type Dropdown
         $this->data['type_dropdown'] = json_encode($this->Purchaserequest_m->dev2_getPrTypeDropdown());
 
+        // var_dump(arr($this->data)); exit();
         $this->template->rander("accounting/buy", $this->data);
     }
 
