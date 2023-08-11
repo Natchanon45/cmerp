@@ -103,7 +103,7 @@
                             </td>
                             <td>
                                 <?php if($payment_record["issued_receipt"] == "Y"): ?>
-                                    <span class="receipt">เลขที่ใบเสร็จรับเงิน : RE-20230700002</span>
+                                    <span class="receipt">เลขที่ใบเสร็จรับเงิน : <a href="<?php echo get_uri("receipts/view/".$payment_record["receipt_id"]); ?>"><?php echo $payment_record["receipt_number"]; ?></a></span>
                                 <?php else: ?>
                                     <a class="issue_receipt_button custom-color-button" data-payment_id="<?php echo $payment_record["payment_id"]; ?>">ออกใบเสร็จ</a>
                                 <?php endif;?>

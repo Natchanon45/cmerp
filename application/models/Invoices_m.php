@@ -448,6 +448,34 @@ class Invoices_m extends MY_Model {
         return $this->data;
     }
 
+    function updateDocStatus($docId){
+        $db = $this->db;
+
+        $ivrow = $db->select("total")
+                    ->from("invoice")
+                    ->where("id", $docId)
+                    ->where("deleted", 0)
+                    ->where_in("status", ["O", "P"])
+                    ->get()->row();
+
+        if(empty($ivrow)) return;
+
+        $total_payment_amount = $db->select("SUM(payment_amount) AS TOTAL_PAYMENT_AMOUNT")
+                                    ->from("invoice_payment")
+                                    ->where("invoice_id", $docId)
+                                    ->get()->row()->TOTAL_PAYMENT_AMOUNT;
+
+        if($total_payment_amount == null) $total_payment_amount = 0;
+
+        $db->where("id", $docId);
+
+        if($total_payment_amount >= $ivrow->total){
+            $db->update("invoice", ["fully_paid_datetime"=>date("Y-m-d H:i:s"), "status"=>"P"]);
+        }else{
+            $db->update("invoice", ["fully_paid_datetime"=>null, "status"=>"O"]);
+        }
+    }
+
     function validateDoc(){
         $_POST = json_decode(file_get_contents('php://input'), true);
 
@@ -916,6 +944,8 @@ class Invoices_m extends MY_Model {
         if(!empty($ivprows)){
             foreach($ivprows as $ivprow){
                 $pr["payment_id"] = $ivprow->id;
+                $pr["receipt_id"] = $ivprow->receipt_id;
+                $pr["receipt_number"] = $ivprow->receipt_id == null ? null : $this->Receipts_m->getDocNumber($ivprow->receipt_id);
                 $pr["record_number"] = $ivprow->record_number;
                 $pr["payment_method_id"] = $ivprow->payment_method_id;
                 $pr["payment_amount"] = $ivprow->payment_amount;
@@ -960,6 +990,7 @@ class Invoices_m extends MY_Model {
 
         $total_invoice_payment_amount = $db->select("SUM(payment_amount) AS TOTAL_PAYMENT_AMOUNT")
                                     ->from("invoice_payment")
+                                    ->where("invoice_id", $invoice_id)
                                     ->get()->row()->TOTAL_PAYMENT_AMOUNT;
 
         if($total_invoice_payment_amount == null) $total_invoice_payment_amount = 0;
@@ -996,19 +1027,7 @@ class Invoices_m extends MY_Model {
 
         if($db->affected_rows() != 1) return $this->data;
 
-        $total_invoice_payment_amount = $db->select("SUM(payment_amount) AS TOTAL_PAYMENT_AMOUNT")
-                                            ->from("invoice_payment")
-                                            ->where("invoice_id", $invoice_id)
-                                            ->get()->row()->TOTAL_PAYMENT_AMOUNT;
-
-        if($total_invoice_payment_amount == null) $total_invoice_payment_amount = 0;
-
-        if($total_invoice_payment_amount == $invoices_total){
-            $db->update("invoice", [
-                                    "fully_paid_datetime"=>date("Y-m-d H:i:s"),
-                                    "status"=>"P"
-                                ]);
-        }
+        $this->updateDocStatus($invoice_id);
 
         $this->data["status"] = "success";
         $this->data["message"] = "success";
@@ -1102,12 +1121,23 @@ class Invoices_m extends MY_Model {
 
         $invoice_number = $ivrow->doc_number;
         $receipt_number = $this->Receipts_m->getNewDocNumber();
-
+        $invoice_total = $ivrow->total;
         $invoice_payment_amount = $iprow->payment_amount;
+        $invoice_payment_money_payment_receive = $iprow->money_payment_receive;
+
+        $receipt_vat_inc = $ivrow->vat_inc;
+        $receipt_vat_percent = $ivrow->vat_percent;
+        $receipt_vat_value = 0;
+        $receipt_wht_inc = $iprow->wht_inc;
+        $receipt_wht_percent = $iprow->wht_percent;
+        $receipt_wht_value = $iprow->wht_value;
+
+        $receipt_discount_type = $ivrow->discount_type;
+        $receipt_discount_percent = $ivrow->discount_percent;
+        $receipt_discount_amount = $ivrow->discount_amount;
+        $receipt_sub_total_before_discount = 0;
 
         $db->trans_begin();
-
-        //$sub_total_before_discount
 
         $db->insert("receipt", [
                                 "invoice_id"=>$invoice_id,
@@ -1117,20 +1147,6 @@ class Invoices_m extends MY_Model {
                                 "reference_number"=>$invoice_number,
                                 "project_id"=>$ivrow->project_id,
                                 "client_id"=>$ivrow->client_id,
-                                "sub_total_before_discount"=>11.11,
-                                "discount_type"=>$ivrow->discount_type,
-                                "discount_percent"=>$ivrow->discount_percent,
-                                "discount_amount"=>1.1,
-                                "sub_total"=>$iprow->payment_amount,
-                                "vat_inc"=>$ivrow->vat_inc,
-                                "vat_percent"=>$ivrow->vat_percent,
-                                "vat_value"=>$ivrow->vat_value,
-                                "total"=>$iprow->payment_amount,
-                                "wht_inc"=>$iprow->wht_inc,
-                                "wht_percent"=>$iprow->wht_percent,
-                                "wht_value"=>$iprow->wht_value,
-                                "payment_amount"=>$iprow->money_payment_receive,
-                                "remark"=>$iprow->remark,
                                 "created_by"=>$this->login_user->id,
                                 "created_datetime"=>date("Y-m-d H:i:s"),
                                 "status"=>"W",
@@ -1139,10 +1155,14 @@ class Invoices_m extends MY_Model {
 
         $receipt_id = $db->insert_id();
 
-        //log_message("error", $db->last_query());
-
         if(!empty($ivrows)){
             foreach($ivrows as $ivrow){
+                $invoice_item_total_price = $ivrow->total_price;
+                $percent_of_item = ($invoice_item_total_price / $invoice_total) * 100;
+                $price_of_item = round(($invoice_payment_amount * $percent_of_item)/100, 2);
+
+                $receipt_sub_total_before_discount = $price_of_item + $receipt_sub_total_before_discount;
+                
                 $db->insert("receipt_items", [
                                 "receipt_id"=>$receipt_id,
                                 "product_id"=>$ivrow->product_id,
@@ -1150,24 +1170,52 @@ class Invoices_m extends MY_Model {
                                 "product_description"=>$ivrow->product_description,
                                 "quantity"=>$ivrow->quantity,
                                 "unit"=>$ivrow->unit,
-                                "price"=>11.11,
-                                "total_price"=>11.11,
+                                "price"=>roundUp($price_of_item/$ivrow->quantity),
+                                "total_price"=>$price_of_item,
                                 "sort"=>$ivrow->sort
                             ]);
-
-                //log_message("error", $db->last_query());
             }
         }
 
+        if($receipt_discount_type == "P"){
+            if($receipt_discount_percent > 0){
+                $receipt_discount_amount = ($receipt_sub_total_before_discount * $receipt_discount_percent)/100;
+            }
+        }else{
+            if($receipt_discount_amount > $receipt_sub_total_before_discount) $receipt_discount_amount = $receipt_sub_total_before_discount;
+            if($receipt_discount_amount < 0) $receipt_discount_amount = 0;
+        }
+
+        $receipt_sub_total = $receipt_sub_total_before_discount - $receipt_discount_amount;
+
+        $db->where("id", $receipt_id);
+        $db->update("receipt", [
+                                "sub_total_before_discount"=>$receipt_sub_total_before_discount,
+                                "discount_type"=>$receipt_discount_type,
+                                "discount_percent"=>$receipt_discount_percent,
+                                "discount_amount"=>$receipt_discount_amount,
+                                "sub_total"=>$receipt_sub_total,
+                                "vat_inc"=>$receipt_vat_inc,
+                                "vat_percent"=>$receipt_vat_percent,
+                                "vat_value"=>$receipt_vat_value,
+                                "total"=>$invoice_payment_amount,
+                                "wht_inc"=>$receipt_wht_inc,
+                                "wht_percent"=>$receipt_wht_percent,
+                                "wht_value"=>$receipt_wht_value,
+                                "payment_amount"=>$invoice_payment_money_payment_receive,
+                                "remark"=>$iprow->remark,
+                            ]);
+
+
+        $db->where("id", $payment_id);
+        $db->update("invoice_payment", ["receipt_id"=>$receipt_id, "issued_receipt"=>"Y"]);
 
         if ($db->trans_status() === FALSE){
             $db->trans_rollback();    
-        }else{
-            $db->trans_commit();
         }
 
-        return ["message"=>"OK"];
+        $db->trans_commit();
 
-
+        return ["status"=>"success"];
     }
 }

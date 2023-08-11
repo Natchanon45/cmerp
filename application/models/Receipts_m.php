@@ -11,6 +11,17 @@ class Receipts_m extends MY_Model {
         return $this->code;
     }
 
+    function getDocNumber($docId){
+        $rerow = $this->db->select("doc_number")
+                            ->from("receipt")
+                            ->where("id", $docId)
+                            ->get()->row();
+
+        if(empty($rerow)) return null;
+
+        return $rerow->doc_number;
+    }
+
     function getNewDocNumber(){
         $this->db->where("DATE_FORMAT(created_datetime,'%Y-%m')", date("Y-m"));
         $this->db->where("deleted", 0);
@@ -32,10 +43,10 @@ class Receipts_m extends MY_Model {
 
         if($rerow->status == "W"){
             $doc_status .= "<option selected>รอดำเนินการ</option>";
-            $doc_status .= "<option value='P'>เก็บเงิน</option>";
+            $doc_status .= "<option value='P'>อนุมัติ</option>";
             $doc_status .= "<option value='V'>ยกเลิก</option>";
         }elseif($rerow->status == "P"){
-            $doc_status .= "<option selected>เก็บเงินแล้ว</option>";
+            $doc_status .= "<option selected>อนุมัติ</option>";
             $doc_status .= "<option value='V'>ยกเลิก</option>";
         }elseif($rerow->status == "V"){
             $doc_status .= "<option selected>ยกเลิก</option>";
@@ -714,7 +725,7 @@ class Receipts_m extends MY_Model {
         $this->data["doc_id"] = $docId;
         $currentStatus = $rerow->status;
 
-        $this->db->trans_begin();
+        $db->trans_begin();
 
         if($updateStatusTo == "P"){
             if($currentStatus == "V"){
@@ -723,11 +734,7 @@ class Receipts_m extends MY_Model {
             }
             
             $db->where("id", $docId);
-            $db->update("receipt", [
-                                        "approved_by"=>$this->login_user->id,
-                                        "approved_datetime"=>date("Y-m-d H:i:s"),
-                                        "status"=>"P"
-                                    ]);
+            $db->update("receipt", ["approved_by"=>$this->login_user->id, "approved_datetime"=>date("Y-m-d H:i:s"), "status"=>"P"]);
 
         }elseif($updateStatusTo == "V"){
             $db->where("id", $docId);
@@ -738,6 +745,10 @@ class Receipts_m extends MY_Model {
                 $db->where("id", $rerow->invoice_id);
                 $db->update("invoice", ["approved_by"=>null, "approved_datetime"=>null, "status"=>"P"]);
             }
+
+            $db->where("invoice_id", $rerow->invoice_id);
+            $db->where("receipt_id", $docId);
+            $db->update("invoice_payment", ["receipt_id"=>null, "issued_receipt"=>"N"]);
         }
 
         if ($db->trans_status() === FALSE){
@@ -745,6 +756,8 @@ class Receipts_m extends MY_Model {
             $this->data["dataset"] = $this->getIndexDataSetHTML($rerow);
             return $this->data;
         }
+
+        $this->Invoices_m->updateDocStatus($rerow->invoice_id);
 
         $db->trans_commit();
 
