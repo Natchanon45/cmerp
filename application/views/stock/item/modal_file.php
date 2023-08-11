@@ -27,9 +27,9 @@
 <?php echo form_close(); ?>
 
 <script type="text/javascript">
-    $(document).ready(function () {
+    $(document).ready(function() {
         $("#file-form").appForm({
-            onSuccess: function (result) {
+            onSuccess: function(result) {
                 $("#item-file-table").appTable({ reload: true });
             }
         });

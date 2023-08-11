@@ -754,6 +754,10 @@ class Stock extends MY_Controller
             $view_data['model_info'] = $this->Bom_item_pricings_model->getItemPricingById($post['id']);
         }
 
+        if (isset($view_data['model_info']->item_id) && !empty($view_data['model_info']->item_id)) {
+            $view_data['item_info'] = $this->Items_model->get_one($view_data['model_info']->item_id);
+        }
+
         if (isset($post['supplier_id']) && !empty($post['supplier_id'])) {
             $view_data['supplier_info'] = $this->Bom_suppliers_model->getSupplierInfoById($post['supplier_id']);
         }

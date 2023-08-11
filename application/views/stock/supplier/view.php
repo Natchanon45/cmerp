@@ -19,6 +19,11 @@
                 <?php echo lang('stock_supplier_info'); ?>
             </a>
         </li>
+        <li>
+            <a role="presentation" href="<?php echo_uri("stock/supplier_files/" . $supplier_info->id); ?>" data-target="#supplier-files">
+                <?php echo lang('files'); ?>
+            </a>
+        </li>
         <?php if (!isset($hidden_menu) || !in_array('supplier-pricings', $hidden_menu)): ?>
             <li>
                 <a role="presentation" href="<?php echo_uri("stock/supplier_pricings/" . $supplier_info->id); ?>" data-target="#supplier-pricings">
@@ -31,11 +36,6 @@
                 </a>
             </li>
         <?php endif; ?>
-        <li>
-            <a role="presentation" href="<?php echo_uri("stock/supplier_files/" . $supplier_info->id); ?>" data-target="#supplier-files">
-                <?php echo lang('files'); ?>
-            </a>
-        </li>
     </ul>
 
     <div class="tab-content">
