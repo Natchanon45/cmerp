@@ -48,8 +48,8 @@
     }
 
     .dropdown_status {
-        border: 1px solid #ccc;
-        padding: 4px 5px;
+        /* border: 1px solid #ccc; */
+        /* padding: 4px 5px; */
     }
 
     #accounting_navs .buttons {
@@ -107,11 +107,11 @@
                         </li>
                     <?php endif; ?>
 
-                    <!-- <?php // if ($permissions['access_purchase_request']): $number_of_enable_module++; ?>
-                        <li data-module="goods_receipt" class="<?php // if ($module == "goods_receipt") echo 'active custom-bg01'; ?>">
-                            <a class="<?php // if ($module == "goods_receipt") echo 'custom-color'; ?>"><?php // echo lang('goods_receipt'); ?></a>
+                    <?php if ($permissions['access_purchase_request']): $number_of_enable_module++; ?>
+                        <li data-module="goods_receipt" class="<?php if ($module == "goods_receipt") echo 'active custom-bg01'; ?>">
+                            <a class="<?php if ($module == "goods_receipt") echo 'custom-color'; ?>"><?php echo lang('goods_receipt'); ?></a>
                         </li>
-                    <?php // endif; ?> -->
+                    <?php endif; ?>
 
                     <!-- <?php // if ($permissions['access_purchase_request']): $number_of_enable_module++; ?>
                         <li data-module="payment_voucher" class="<?php // if($module == "payment_voucher") echo 'active custom-bg01'; ?>">
@@ -194,7 +194,7 @@
                 { title: '<?php echo lang('supplier_name'); ?>', class: 'w25p' },
                 { title: '<?php echo lang('request_by'); ?>', class: 'w15p' },
                 { title: '<?php echo lang('total_amount'); ?>', class: 'text-right w15p' },
-                { title: '<?php echo lang('status'); ?>', class: 'option w10p' },
+                { title: '<?php echo lang('status'); ?>', class: 'w10p' },
                 { title: '<i class="fa fa-bars"></i>', class: 'text-center option w10p' }
             ];
 
@@ -227,7 +227,7 @@
                 { title: '<?php echo lang('supplier_name'); ?>', class: 'w20p' },
                 { title: '<?php echo lang('request_by'); ?>', class: 'w10p' },
                 { title: '<?php echo lang('total_amount'); ?>', class: 'text-right w10p' },
-                { title: '<?php echo lang('status'); ?>', class: 'option w10p' },
+                { title: '<?php echo lang('status'); ?>', class: 'w10p' },
                 { title: '<i class="fa fa-bars"></i>', class: 'text-center option w5p' }
             ];
 
@@ -263,6 +263,7 @@
         });
 
         $("#datagrid").on("draw.dt", function () {
+            $(".dropdown_status").select2();
             $(".dropdown_status").on("change", function () {
                 let url = '<?php echo_uri(); ?>' + active_module;
                 let request = {
