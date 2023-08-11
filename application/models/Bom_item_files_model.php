@@ -1,26 +1,29 @@
 <?php
 
-class Bom_item_files_model extends Crud_model {
-
+class Bom_item_files_model extends Crud_model
+{
     private $table = null;
 
-    function __construct() {
+    function __construct()
+    {
         $this->table = 'bom_item_files';
         parent::__construct($this->table);
     }
 
-
-    function get_details($options = array()) {
+    function get_details($options = array())
+    {
         $where = "";
 
         $id = get_array_value($options, "id");
         if ($id) {
             $where = " AND bmf.id = $id";
         }
+
         $item_id = get_array_value($options, "item_id");
         if ($item_id) {
-            $where = " AND bmf.material_id = $item_id";
+            $where = " AND bmf.item_id = $item_id";
         }
+        
         $user_id = get_array_value($options, "user_id");
         if ($user_id) {
             $where = " AND bmf.user_id = $user_id";
@@ -36,7 +39,9 @@ class Bom_item_files_model extends Crud_model {
             WHERE 1 $where 
         ");
     }
-    function delete_one($id = 0) {
+    
+    function delete_one($id = 0)
+    {
         $this->db->query("DELETE FROM bom_item_files WHERE id = $id");
         return true;
     }
