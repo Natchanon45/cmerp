@@ -2150,3 +2150,7 @@ $lang["total_item"] = "Total";
 $lang["total_all_item"] = "Total items";
 $lang["grand_total_price"] = "Grand total";
 $lang["payment_amount"] = "Payment amount";
+
+$lang["buy_account"] = "Buy Account";
+$lang["sell_account"] = "Sell Account";
+$lang["coa"] = "Chart of Account";

@@ -47,11 +47,6 @@
         cursor: default;
     }
 
-    .dropdown_status {
-        /* border: 1px solid #ccc; */
-        /* padding: 4px 5px; */
-    }
-
     #accounting_navs .buttons {
         width: 20%;
         float: right;
@@ -68,15 +63,6 @@
     #datagrid {
         font-size: normal;
     }
-
-    .select-status {
-        padding: auto .5rem;
-        width: 100%;
-        outline: none;
-        border-radius: .2rem;
-        cursor: pointer;
-        background-color: transparent;
-    }
 </style>
 
 <?php $modal_header = str_replace("https:", "", str_replace("http:", "", str_replace("/", "", base_url()))); ?>
@@ -84,10 +70,11 @@
 <a id="popup" data-act="ajax-modal" class="btn ajax-modal"></a>
 <div id="page-content" class="p20 clearfix">
     <ul class="nav nav-tabs bg-white title" role="tablist">
-        <!-- <li><a href="#">ผังบัญชี</a></li> -->
-        <li><a href="<?php echo get_uri("accounting/sell"); ?>">บัญชีขาย</a></li>
-        <li class="active"><a>บัญชีซื้อ</a></li>
+        <!-- <li><a href="<?php // echo get_uri("accounting/coa"); ?>"><?php // echo lang('coa'); ?></a></li> -->
+        <li><a href="<?php echo get_uri("accounting/sell"); ?>"><?php echo lang('sell_account'); ?></a></li>
+        <li class="active"><a><?php echo lang('buy_account'); ?></a></li>
     </ul>
+
     <div class="panel panel-default">
         <div class="table-responsive pb50">
             <div id="accounting_navs">
@@ -263,7 +250,10 @@
         });
 
         $("#datagrid").on("draw.dt", function () {
-            $(".dropdown_status").select2();
+            $(".dropdown_status").select2({
+                width: '100%'
+            });
+
             $(".dropdown_status").on("change", function () {
                 let url = '<?php echo_uri(); ?>' + active_module;
                 let request = {

@@ -2549,3 +2549,7 @@ $lang["total_item"] = "ยอดรวม";
 $lang["total_all_item"] = "รวมเป็นเงิน";
 $lang["grand_total_price"] = "จำนวนเงินรวมทั้งสิ้น";
 $lang["payment_amount"] = "ยอดชำระ";
+
+$lang["buy_account"] = "บัญชีซื้อ";
+$lang["sell_account"] = "บัญชีขาย";
+$lang["coa"] = "ผังบัญชี";

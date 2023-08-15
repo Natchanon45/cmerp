@@ -13,7 +13,7 @@
 ?>
 
 <div class="form-group">
-    <label for="vat_number" class="<?php echo $label_column; ?>"><?php echo lang('vat_number'); ?></label>
+    <label for="vat_number" class="col-md-3"><?php echo lang('vat_number'); ?></label>
     <div class="col-md-6">
         <?php
             echo form_input(array(
@@ -27,13 +27,14 @@
         ?>
     </div>
     <div class="col-md-3">
-        <button type="button" id="btn-dbd" class="btn btn-info w100p" style="font-weight: bold;" data-toggle="popover" data-placement="bottom" 
-            data-content="ระบุเลขทะเบียนนิติบุคคลเพื่อขอชื่อและที่อยู่ตามที่ได้จดทะเบียนไว้กับกรมพัฒนาธุรกิจการค้า">
-            <i class="fa fa-info-circle" aria-hidden="true"></i>
-            DBD
+        <button type="button" id="btn-dbd" class="btn btn-info w100p" style="font-weight: bold;">
+            <i class="fa fa-info-circle" aria-hidden="true" 
+            data-toggle="tooltip" data-placement="bottom" 
+            title="ระบุเลขทะเบียนนิติบุคคลเพื่อขอชื่อและที่อยู่ตามที่ได้จดทะเบียนไว้กับกรมพัฒนาธุรกิจการค้า"></i> DBD
         </button>
     </div>
 </div>
+
 <div class="form-group">
     <label for="company_name" class="<?php echo $label_column; ?>"><?php echo lang('company_name'); ?></label>
     <div class="<?php echo $field_column; ?>">
@@ -52,6 +53,7 @@
         ?>
     </div>
 </div>
+
 <div class="form-group">
     <label for="code_supplier" class="<?php echo $label_column; ?>"><?php echo lang('stock_code_supplier'); ?></label>
     <div class="<?php echo $field_column; ?>">
@@ -70,6 +72,7 @@
         ?>
     </div>
 </div>
+
 <?php if($this->login_user->is_admin){?>
     <div class="form-group">
         <label for="owner_id" class="<?php echo $label_column; ?>">
@@ -91,6 +94,7 @@
         </div>
     </div>
 <?php }?>
+
 <div class="form-group">
     <label for="address" class="<?php echo $label_column; ?>"><?php echo lang('address'); ?></label>
     <div class="<?php echo $field_column; ?>">
@@ -106,6 +110,7 @@
         ?>
     </div>
 </div>
+
 <div class="form-group">
     <label for="city" class="<?php echo $label_column; ?>"><?php echo lang('city'); ?></label>
     <div class="<?php echo $field_column; ?>">
@@ -121,6 +126,7 @@
         ?>
     </div>
 </div>
+
 <div class="form-group">
     <label for="state" class="<?php echo $label_column; ?>"><?php echo lang('state'); ?></label>
     <div class="<?php echo $field_column; ?>">
@@ -136,6 +142,7 @@
         ?>
     </div>
 </div>
+
 <div class="form-group">
     <label for="zip" class="<?php echo $label_column; ?>"><?php echo lang('zip'); ?></label>
     <div class="<?php echo $field_column; ?>">
@@ -151,6 +158,7 @@
         ?>
     </div>
 </div>
+
 <div class="form-group">
     <label for="country" class="<?php echo $label_column; ?>"><?php echo lang('country'); ?></label>
     <div class="<?php echo $field_column; ?>">
@@ -166,6 +174,7 @@
         ?>
     </div>
 </div>
+
 <div class="form-group">
     <label for="phone" class="<?php echo $label_column; ?>"><?php echo lang('phone'); ?></label>
     <div class="<?php echo $field_column; ?>">
@@ -181,6 +190,7 @@
         ?>
     </div>
 </div>
+
 <div class="form-group">
     <label for="website" class="<?php echo $label_column; ?>"><?php echo lang('website'); ?></label>
     <div class="<?php echo $field_column; ?>">
@@ -212,7 +222,8 @@
                 ));
             ?>
         </div>
-    </div>    
+    </div>
+
     <div class="form-group">
         <label for="currency_symbol" class="<?php echo $label_column; ?>"><?php echo lang('currency_symbol'); ?></label>
         <div class="<?php echo $field_column; ?>">
@@ -230,17 +241,26 @@
     </div>
 <?php } ?>
 
+<style type="text/css">
+    .tooltip {
+        font-size: larger;
+    }
+</style>
+
 <script type="text/javascript">
 $(document).ready(function () {
-    $('[data-toggle="tooltip"]').tooltip();
     <?php if (isset($currency_dropdown)) { ?>
         if ($('#currency').length) {
-            $('#currency').select2({ data: <?php echo json_encode($currency_dropdown); ?> });
+            $('#currency').select2({
+                data: <?php echo json_encode($currency_dropdown); ?>
+            });
         }
     <?php } ?>
     
     <?php if ($this->login_user->is_admin) { ?>
-        $('#owner_id').select2({ data: <?php echo $team_members_dropdown; ?> });
+        $('#owner_id').select2({
+            data: <?php echo $team_members_dropdown; ?>
+        });
     <?php } ?>
 });
 
