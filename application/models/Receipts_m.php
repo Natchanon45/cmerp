@@ -442,12 +442,13 @@ class Receipts_m extends MY_Model {
                                     ]);
         }else{
             $doc_number = $this->getNewDocNumber();
+            $company_setting = $this->Settings_m->getCompany();
 
             $db->insert("receipt", [
                                         "doc_number"=>$doc_number,
                                         "doc_date"=>$doc_date,
                                         "reference_number"=>$reference_number,
-                                        "vat_inc"=>"N",
+                                        "vat_inc"=>$company_setting["company_vat_registered"],
                                         "client_id"=>$customer_id,
                                         "project_id"=>$project_id,
                                         "remark"=>$remark,

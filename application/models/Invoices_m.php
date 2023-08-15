@@ -28,7 +28,6 @@ class Invoices_m extends MY_Model {
         }
     }
 
-
     function getIndexDataSetHTML($ivrow){
         $doc_status = "<select class='dropdown_status' data-doc_id='".$ivrow->id."' data-doc_number='".$ivrow->doc_number."'>";
 
@@ -127,7 +126,8 @@ class Invoices_m extends MY_Model {
         $this->data["vat_inc"] = "N";
         $this->data["unpaid_amount"] = 0;
         $this->data["wht_inc"] = "N";
-        $this->data["total"] = 0;//ยอด
+        $this->data["sub_total"] = 0;//ยอด ไม่รวม VAT
+        $this->data["total"] = 0;//ยอดรวม VAT
         $this->data["total_payment_amount"] = 0;//ชำระไปแล้ว
         $this->data["project_id"] = null;
         $this->data["client_id"] = null;
@@ -138,9 +138,7 @@ class Invoices_m extends MY_Model {
         $this->data["approved_by"] = null;
         $this->data["approved_datetime"] = null;
         
-
         $this->data["doc_status"] = NULL;
-        
 
         if(!empty($docId)){
             $ivrow = $db->select("*")
@@ -201,6 +199,7 @@ class Invoices_m extends MY_Model {
             $this->data["vat_inc"] = $ivrow->vat_inc;
             $this->data["vat_percent"] = number_format_drop_zero_decimals($ivrow->vat_percent, 2)."%";
             $this->data["wht_inc"] = $ivrow->wht_inc;
+            $this->data["sub_total"] = $ivrow->sub_total;
             $this->data["total"] = $ivrow->total;
             $this->data["total_payment_amount"] = $total_payment_amount;
             $this->data["net_receivable_await_payment_amount"] = $ivrow->total - $total_payment_amount;
@@ -557,6 +556,7 @@ class Invoices_m extends MY_Model {
                                     ]);
         }else{
             $doc_number = $this->getNewDocNumber();
+            $company_setting = $this->Settings_m->getCompany();
             
             $db->insert("invoice", [
                                         "doc_number"=>$doc_number,
@@ -564,7 +564,7 @@ class Invoices_m extends MY_Model {
                                         "credit"=>$credit,
                                         "due_date"=>$due_date,
                                         "reference_number"=>$reference_number,
-                                        "vat_inc"=>"N",
+                                        "vat_inc"=>$company_setting["company_vat_registered"],
                                         "client_id"=>$customer_id,
                                         "project_id"=>($project_id != null ? $project:null),
                                         "remark"=>$remark,
@@ -1004,7 +1004,8 @@ class Invoices_m extends MY_Model {
         $total_records = $db->count_all_results("invoice_payment");
 
         if($payment_withholding_tax_include == "Y"){
-            $payment_withholding_value = roundUp(($payment_amount * $payment_withholding_tax_percent)/100);
+            $payment_withholding_value = ($invoices_total * $payment_withholding_tax_percent)/100;
+            $payment_withholding_value = floor($payment_withholding_value * 100) / 100;
         }
 
         $money_payment_receive = $payment_amount - $payment_withholding_value;
@@ -1177,6 +1178,7 @@ class Invoices_m extends MY_Model {
             }
         }
 
+
         if($receipt_discount_type == "P"){
             if($receipt_discount_percent > 0){
                 $receipt_discount_amount = ($receipt_sub_total_before_discount * $receipt_discount_percent)/100;
@@ -1187,6 +1189,8 @@ class Invoices_m extends MY_Model {
         }
 
         $receipt_sub_total = $receipt_sub_total_before_discount - $receipt_discount_amount;
+
+        if($receipt_vat_inc == "Y") $receipt_vat_value = round(($receipt_sub_total * $receipt_vat_percent)/100, 2);
 
         $db->where("id", $receipt_id);
         $db->update("receipt", [
