@@ -37,9 +37,7 @@
 				<input type="number" name="ratio" class="form-control" min="0" step="0.0001" required name="ratio" 
 					value="<?php echo (isset($model_info->ratio) && !empty($model_info->ratio)) ? $model_info->ratio : ''; ?>" placeholder="<?php echo lang('stock_material_quantity'); ?>"
 					data-rule-required="true" data-msg-required="<?php echo lang("field_required"); ?>" <?php if (@$readonly) echo 'readonly'; ?> />
-				<div class="input-tag">
-					<?= isset($material->unit) ? $material->unit : '' ?>
-				</div>
+				<div class="input-tag"><?php echo (isset($item_info->unit_type) && !empty($item_info->unit_type)) ? $item_info->unit_type : ''; ?></div>
 			</div>
 		</div>
 	</div>

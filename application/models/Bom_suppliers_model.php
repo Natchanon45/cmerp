@@ -2,15 +2,15 @@
 
 class Bom_suppliers_model extends Crud_model
 {
-
     private $table = null;
 
     function __construct()
     {
         $this->table = 'bom_suppliers';
         parent::__construct($this->table);
-    }
 
+        $this->load->model('Purchaserequest_m');
+    }
 
     function get_details($options = array())
     {
@@ -32,8 +32,7 @@ class Bom_suppliers_model extends Crud_model
             bsc.phone contact_phone, bsc.email contact_email, 
             IFNULL(bmp.material_id, 0) material_pricing_id 
             FROM bom_suppliers bs 
-            LEFT JOIN bom_supplier_contacts bsc ON bsc.supplier_id = bs.id 
-                AND bsc.is_primary = 1 
+            LEFT JOIN bom_supplier_contacts bsc ON bsc.supplier_id = bs.id AND bsc.is_primary = 1 
             LEFT JOIN bom_material_pricings bmp ON bmp.supplier_id = bs.id 
             WHERE 1 $where 
             GROUP BY bs.id 
@@ -50,7 +49,7 @@ class Bom_suppliers_model extends Crud_model
         }
 
         return $this->db->query("
-            SELECT bs.id, bs.company_name as `title`
+            SELECT bs.id, bs.company_name as `title` 
             FROM bom_suppliers bs 
             WHERE 1 $where 
         ");
@@ -90,17 +89,15 @@ class Bom_suppliers_model extends Crud_model
                 IFNULL(bmp.material_id, 0) material_pricing_id, 
                 IFNULL(bmp.supplier_id, 0) supplier_pricing_id 
                 FROM bom_suppliers bs 
-                LEFT JOIN bom_supplier_contacts bsc ON bsc.supplier_id = bs.id 
-                    AND bsc.is_primary = 1 
-                LEFT JOIN bom_material_pricings bmp ON bmp.supplier_id = bs.id 
-                    AND bmp.material_id = $material_id 
+                LEFT JOIN bom_supplier_contacts bsc ON bsc.supplier_id = bs.id AND bsc.is_primary = 1 
+                LEFT JOIN bom_material_pricings bmp ON bmp.supplier_id = bs.id AND bmp.material_id = $material_id 
                 WHERE 1 
                 GROUP BY bs.id 
             ) db 
             WHERE 1 $where 
         ");
-        $data = $query->result();
 
+        $data = $query->result();
         $result = [
             ['id' => '', 'text' => '- ' . lang('stock_supplier') . ' -']
         ];
@@ -113,12 +110,13 @@ class Bom_suppliers_model extends Crud_model
     function get_material_pricing_dropdown($supplier_id = 0)
     {
         $permissions = $this->Permission_m;
-        // var_dump(arr($permissions)); exit;
+        // var_dump(arr($permissions)); exit();
 
         $where = "";
         if ($supplier_id != 0) {
             $where = " AND db.supplier_pricing_id != $supplier_id";
         }
+
         $query = $this->db->query("
             SELECT db.* 
             FROM (
@@ -126,8 +124,7 @@ class Bom_suppliers_model extends Crud_model
                 IFNULL(bmp.material_id, 0) material_pricing_id, 
                 IFNULL(bmp.supplier_id, 0) supplier_pricing_id 
                 FROM bom_materials bm 
-                LEFT JOIN bom_material_pricings bmp ON bmp.material_id = bm.id 
-                    AND bmp.supplier_id = $supplier_id 
+                LEFT JOIN bom_material_pricings bmp ON bmp.material_id = bm.id AND bmp.supplier_id = $supplier_id 
                 WHERE 1 
                 GROUP BY bm.id 
             ) db 
@@ -168,8 +165,8 @@ class Bom_suppliers_model extends Crud_model
         $this->db->select('id, name, production_name, unit')->from('bom_materials');
         $result = $this->db->get()->result();
         $data[] = array(
-            'id' => '', 
-            'text' => '- ' . lang('stock_material') . ' -', 
+            'id' => '',
+            'text' => '- ' . lang('stock_material') . ' -',
             'unit' => ''
         );
 
@@ -242,8 +239,13 @@ class Bom_suppliers_model extends Crud_model
     function dev2_getBomSupplierByMaterialId($material_id)
     {
         $result = array();
-        $sql = "SELECT bs.id, bs.company_name, bmp.ratio, bmp.price FROM bom_suppliers bs RIGHT JOIN bom_material_pricings bmp ON 
-        bs.id = bmp.supplier_id WHERE bmp.material_id = '" . $material_id . "' ORDER BY bs.id ASC";
+        $sql = "
+        SELECT bs.id, bs.company_name, bmp.ratio, bmp.price 
+        FROM bom_suppliers bs 
+        RIGHT JOIN bom_material_pricings bmp ON bs.id = bmp.supplier_id 
+        WHERE bmp.material_id = '" . $material_id . "' 
+        ORDER BY bs.id ASC
+        ";
 
         if (isset($material_id) && $material_id) {
             $query = $this->db->query($sql);
@@ -314,7 +316,6 @@ class Bom_suppliers_model extends Crud_model
 
         $q = $db->select($s)->from("bom_suppliers");
         $cusrows = $q->get()->result();
-
         return $cusrows;
     }
 
@@ -332,35 +333,13 @@ class Bom_suppliers_model extends Crud_model
 
         $q = $db->select($s)->from("pr_type");
         $cusrows = $q->get()->result();
-
         return $cusrows;
     }
 
     function getPurchaseType()
     {
-        $data[] = array(
-            "id" => "1",
-            "text" => lang('direct_material')
-        );
-        // $data[] = array(
-        //     "id" => "2", "text" => lang('indirect_material')
-        // );
-        $data[] = array(
-            "id" => "3",
-            "text" => lang('finised_goods')
-        );
-        // $data[] = array(
-        //     "id" => "4", "text" => lang('assets')
-        // );
-        $data[] = array(
-            "id" => "5",
-            "text" => lang('services')
-        );
-        // $data[] = array(
-        //     "id" => "6", "text" => lang('expenses')
-        // );
-
-        return $data;
+        $data = $this->Purchaserequest_m->dev2_getPrTypeDropdown();
+        return array_splice($data, 1);
     }
 
     function getSupplierForGoodsReceipt()

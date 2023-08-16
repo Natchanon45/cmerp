@@ -27,6 +27,7 @@ class Clients_m extends MY_Model {
 
     function indexDataSet($id = null){
         $status_ids = $status_info = [];
+        $permissions = $this->login_user->permissions;//จัดการเรื่อง permission ชั่วคราวโดยดึงสิทธมาตรงๆ
 
         $lsrows = $this->db->select("id, title, color")
                             ->from("lead_status")
@@ -50,6 +51,13 @@ class Clients_m extends MY_Model {
         }else{
             if($this->input->post("created_by")) $this->db->where("created_by", $this->input->post("created_by"));
             if($this->input->post("group_id")) $this->db->where("FIND_IN_SET('".$this->input->post("group_id")."', group_ids)");    
+        }
+
+
+        if($this->login_user->is_admin != 1){
+            if($permissions["client"] == "own"){
+                $this->db->where("owner_id",  $this->login_user->id);
+            }
         }
 
         $crows = $this->db->get()->result();
@@ -133,7 +141,17 @@ class Clients_m extends MY_Model {
                 }
             }
 
-            $data[] = "<a class='edit' title='แก้ไขลูกค้า' data-post-id='".$crow->id."' data-act='ajax-modal' data-title='แก้ไขลูกค้า' data-action-url='".get_uri("clients/modal_form")."'><i class='fa fa-pencil'></i></a><a title='ลบลูกค้า' class='delete' data-id='".$crow->id."' data-action-url='".get_uri("clients/delete")."' data-action='delete-confirmation'><i class='fa fa-times fa-fw'></i></a>";
+            if($this->login_user->is_admin == 1){
+                $data[] = "<a class='edit' title='แก้ไขลูกค้า' data-post-id='".$crow->id."' data-act='ajax-modal' data-title='แก้ไขลูกค้า' data-action-url='".get_uri("clients/modal_form")."'><i class='fa fa-pencil'></i></a><a title='ลบลูกค้า' class='delete' data-id='".$crow->id."' data-action-url='".get_uri("clients/delete")."' data-action='delete-confirmation'><i class='fa fa-times fa-fw'></i></a>";
+            }else{
+                if($permissions["client"] == "read_only"){
+                    $data[] = "";
+                }else{
+                    $data[] = "<a class='edit' title='แก้ไขลูกค้า' data-post-id='".$crow->id."' data-act='ajax-modal' data-title='แก้ไขลูกค้า' data-action-url='".get_uri("clients/modal_form")."'><i class='fa fa-pencil'></i></a><a title='ลบลูกค้า' class='delete' data-id='".$crow->id."' data-action-url='".get_uri("clients/delete")."' data-action='delete-confirmation'><i class='fa fa-times fa-fw'></i></a>";
+                }
+            }
+
+            
 
             $dataset[] = $data;
         }

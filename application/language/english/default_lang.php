@@ -2115,6 +2115,7 @@ $lang["finised_goods"] = "Finished Goods";
 $lang["assets"] = "Assets";
 $lang["services"] = "Services";
 $lang["expenses"] = "Expenses";
+$lang["mixed_purchase"] = "Raw Material/Finished Goods";
 
 $lang["purchase_order"] = "Purchase Order";
 $lang["purchase_order_add"] = "Create new PO";
@@ -2133,3 +2134,22 @@ $lang["material_request_type"] = "Request type";
 $lang["project_refer"] = "Project reference";
 $lang["material_request_no"] = "Request No.";
 $lang["request_quantity"] = "Request quantity";
+
+$lang["stock_item_pricing_add"] = "Add supplier item";
+
+$lang["share_doc"] = "Share Doc.";
+$lang["share"] = "Share";
+$lang["copy_link"] = "Copy link";
+$lang["create_copy_link"] = "Create and Copy";
+$lang["doc_link"] = "Document link";
+$lang["back_to_table"] = "Back to table page";
+$lang["no_item_found"] = "No item to approve";
+$lang["total_price"] = "Total price";
+$lang["credit"] = "Credit (day)";
+$lang["document_date"] = "Doc. Date";
+$lang["value_add_tax"] = "Value add tax";
+$lang["with_holding_tax"] = "Withholding Tax";
+$lang["total_item"] = "Total";
+$lang["total_all_item"] = "Total items";
+$lang["grand_total_price"] = "Grand total";
+$lang["payment_amount"] = "Payment amount";

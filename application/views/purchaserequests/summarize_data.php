@@ -239,8 +239,8 @@
     }
 
     .panel {
-        animation-name: fade-in;
-        animation-duration: 1.2s;
+        /* animation-name: fade-in; */
+        /* animation-duration: 1.2s; */
     }
 
     .summarize-page-len {

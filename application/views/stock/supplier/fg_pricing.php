@@ -35,19 +35,18 @@
 				{ name: "category_id", class: "w200", options: <?php echo json_encode($category_dropdown); ?> }
 			],
 			columns: [
-				{ title: '<?php echo lang("id") ?>', "class": "text-center w50" },
-				{ title: '<?php echo lang("stock_item_name"); ?>', "class": "w250" },
-				{ title: '<?php echo lang("stock_material_category"); ?>', "class": "w150" },
-				{ title: '<?php echo lang("description"); ?>' },
-				{ title: '<?php echo lang("stock_material_quantity"); ?>', "class": "w125 text-right" },
-                { title: '<?php echo lang("stock_material_unit"); ?>' },
-				{ title: '<?php echo lang("price"); ?>', "class": "w125 text-right" },
-				{ title: '<i class="fa fa-bars"></i>', "class": "text-center option w100" }
+				{ title: '<?php echo lang("id") ?>', class: 'text-center w50' },
+				{ title: '<?php echo lang("stock_item_name"); ?>', class: '' },
+				{ title: '<?php echo lang("description"); ?>', class: '' },
+				{ title: '<?php echo lang("stock_material_category"); ?>', class: 'w200' },
+				{ title: '<?php echo lang("stock_material_quantity"); ?>', class: 'w125 text-right' },
+                { title: '<?php echo lang("stock_material_unit"); ?>', class: 'w70' },
+				{ title: '<?php echo lang("price"); ?>', class: 'w125 text-right' },
+				{ title: '<?php echo lang("currency"); ?>', class: 'w70' },
+				{ title: '<i class="fa fa-bars"></i>', class: 'text-center option w100' }
 			],
-			<?php if (isset($is_admin) && !empty($is_admin)): ?>
-				printColumns : combineCustomFieldsColumns([0, 1, 2, 3, 4, 5]),
-				xlsColumns: combineCustomFieldsColumns([0, 1, 2, 3, 4, 5])
-			<?php endif; ?>
+			printColumns : combineCustomFieldsColumns([0, 1, 2, 3, 4, 5, 6, 7]),
+			xlsColumns: combineCustomFieldsColumns([0, 1, 2, 3, 4, 5, 6, 7])
 		});
 	});
 </script>
