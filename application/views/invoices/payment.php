@@ -80,7 +80,9 @@
                     <table>
                         <tr>
                             <td colspan="2">
-                                <a class="void_payment" title="ยกเลิกการชำระเงิน" data-payment_id="<?php echo $payment_record["payment_id"]; ?>"><i class="fa fa-minus-square-o" aria-hidden="true"></i></a>
+                                <?php if($payment_record["issued_receipt"] != "Y"): ?>
+                                    <a class="void_payment" title="ยกเลิกการชำระเงิน" data-payment_id="<?php echo $payment_record["payment_id"]; ?>"><i class="fa fa-minus-square-o" aria-hidden="true"></i></a>
+                                <?php endif; ?>
                             </td>
                         </tr>
                         <tr>

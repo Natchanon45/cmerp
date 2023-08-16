@@ -468,6 +468,7 @@
     height: auto;
 }
 
+#printd .docsignature .l1 .created_date,
 #printd .docsignature .l1 .approved_date{
     position: absolute;
     width: 100%;

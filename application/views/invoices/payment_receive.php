@@ -125,6 +125,7 @@
 
 <script type="text/javascript">
 var invoice_sub_total = tonum(<?php echo $doc["sub_total"]; ?>);
+var invoice_total = tonum(<?php echo $doc["total"]; ?>);
 var net_receivable_await_payment_amount = tonum(<?php echo $doc["net_receivable_await_payment_amount"]; ?>);//มูลค่าลูกหนี้ที่สามารถรับชำระได้ทั้งสิ้น
 var payment_amount = net_receivable_await_payment_amount;//ชำระจำนวน
 var money_payment_receive = payment_amount;//รับชำระด้วยเงินรวม
@@ -191,24 +192,17 @@ function calculatePayment(){
     payment_amount = tonum($("#payment_amount").val());
     withholding_tax_percent = tonum($("#withholding_tax_percent").val());
     
-    percent_of_payment_amount = (payment_amount/net_receivable_await_payment_amount) * 100; // ได้ percent ว่ายอดที่ชำระ เป็นกี % ของยอดที่ต้องชำระ
+    // หา percent ยอดที่ชำระ เป็นกี่ % ของยอดที่ต้องชำระ
+    percent_of_payment_amount = (payment_amount/invoice_total) * 100; 
     percent_of_payment_amount = Math.round(percent_of_payment_amount * 100) / 100;
 
-    withholding_tax_value = (withholding_tax_percent * invoice_sub_total)/100; //ยอดเต็ม
+    // หา wht ของยอดเต็ม
+    withholding_tax_value = (withholding_tax_percent * invoice_sub_total)/100; 
+    withholding_tax_value = Math.round(withholding_tax_value * 100) / 100;
 
+    // หา wht ของยอดชำระ
+    withholding_tax_value = (withholding_tax_value * percent_of_payment_amount)/100;
 
-
-    x = (withholding_tax_value * percent_of_payment_amount)/100;
-    alert(tonum(x));
-
-
-
-    //withholding_tax_value = (withholding_tax_percent * invoice_sub_total)/100;
-    //alert(withholding_tax_value);
-
-
-
-    //withholding_tax_value = Math.floor(withholding_tax_value * 100) / 100;
     money_payment_receive = payment_amount - withholding_tax_value;
     remaining_amount = net_receivable_await_payment_amount - payment_amount;
     

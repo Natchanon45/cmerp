@@ -65,8 +65,10 @@ class Receipts_m extends MY_Model {
                     $reference_number_column,
                     "<a href='".get_uri("clients/view/".$rerow->client_id)."'>".$this->Clients_m->getCompanyName($rerow->client_id)."</a>",
                     number_format($rerow->total, 2), $doc_status,
-                    "<a data-post-id='".$rerow->id."' data-action-url='".get_uri("receipts/addedit")."' data-act='ajax-modal' class='edit'><i class='fa fa-pencil'></i></a><a data-id='".$rerow->id."' data-action-url='".get_uri("receipts/delete_doc")."' data-action='delete' class='delete'><i class='fa fa-times fa-fw'></i></a>"
+                    "<a data-post-id='".$rerow->id."' data-action-url='".get_uri("receipts/addedit")."' data-act='ajax-modal' class='edit'><i class='fa fa-pencil'></i></a>"
                 ];
+
+        //<a data-id='".$rerow->id."' data-action-url='".get_uri("receipts/delete_doc")."' data-action='delete' class='delete'><i class='fa fa-times fa-fw'></i></a>
 
         return $data;
     }
@@ -233,6 +235,9 @@ class Receipts_m extends MY_Model {
         $this->data["payment_amount"] = $rerow->payment_amount;
 
         $this->data["sharekey_by"] = $rerow->sharekey_by;
+
+        $this->data["created_by"] = $rerow->created_by;
+        $this->data["created_datetime"] = $rerow->created_datetime;
         $this->data["approved_by"] = $rerow->approved_by;
         $this->data["approved_datetime"] = $rerow->approved_datetime;
         $this->data["doc_status"] = $rerow->status;
@@ -758,7 +763,7 @@ class Receipts_m extends MY_Model {
             return $this->data;
         }
 
-        $this->Invoices_m->updateDocStatus($rerow->invoice_id);
+        $this->Invoices_m->adjustDocStatus($rerow->invoice_id);
 
         $db->trans_commit();
 

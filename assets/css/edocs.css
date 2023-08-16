@@ -370,6 +370,7 @@ header .button i{
     height: auto;
 }
 
+.paper .footer .l1 .created_date,
 .paper .footer .l1 .approved_date{
     position: relative;
     top: -8px;

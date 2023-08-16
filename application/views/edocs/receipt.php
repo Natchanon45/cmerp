@@ -214,20 +214,30 @@
 		</div><!--.body-->
 		<div class="footer clear">
 			<div class="c1">
-				<div class="on_behalf_of">ในนาม <?php echo $doc["buyer"]["company_name"] ?></div>
+				<div class="on_behalf_of"></div>
 				<div class="signature clear">
 					<div class="name">
-	                    <span class="l1"></span>
-	                    <span class="l2">ผู้จ่ายเงิน</span>
+	                    <span class="l1">
+	                    	<?php if($doc["created_by"] != null): ?>
+	                    		<?php if(null != $signature = $this->Users_m->getSignature($doc["created_by"])): ?>
+	                            	<img src='<?php echo "/".$signature; ?>'>
+	                        	<?php endif; ?>
+	                        <?php endif; ?>
+	                    </span>
+	                    <span class="l2">ผู้ออกเอกสาร</span>
 	                </div>
 	                <div class="date">
-	                    <span class="l1"></span>
+	                    <span class="l1">
+	                    	<?php if($doc["created_by"] != null): ?>
+	                            <span class="created_date"><?php echo convertDate($doc["created_datetime"], true); ?></span>
+	                        <?php endif; ?>
+	                    </span>
 	                    <span class="l2">วันที่</span>
 	                </div>
 				</div>
 			</div>
 			<div class="c2">
-				<div class="on_behalf_of">ในนาม <?php echo get_setting("company_name"); ?></div>
+				<div class="on_behalf_of"></div>
 				<div class="signature clear">
 					<div class="name">
 	                    <span class="l1">

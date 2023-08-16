@@ -34,28 +34,19 @@ class Invoices_m extends MY_Model {
         if($ivrow->status == "W"){
             $doc_status .= "<option selected>รออนุมัติ</option>";
             $doc_status .= "<option value='O'>อนุมัติ</option>";
+            $doc_status .= "<option value='V'>ยกเลิก</option>";
         }elseif($ivrow->status == "O"){
             $doc_status .= "<option selected>รอรับชำระ</option>";
+            $doc_status .= "<option value='V'>ยกเลิก</option>";
         }elseif($ivrow->status == "P"){
-            $doc_status .= "<option selected>ชำระเงินแล้ว</option>";   
+            $doc_status .= "<option selected>ชำระเงินแล้ว</option>";
+            $doc_status .= "<option value='V'>ยกเลิก</option>";
+        }elseif($ivrow->status == "V"){
+            $doc_status .= "<option selected>ยกเลิก</option>";
         }
 
         $doc_status .= "</select>";
 
-        
-
-        /*if($ivrow->status == "W"){
-            $doc_status = "<select class='dropdown_status' data-doc_id='".$ivrow->id."'>";
-            $doc_status .= "<option selected>รออนุมัติ</option>";
-            $doc_status .= "<option value='A'>อนุมัติ</option>";
-            $doc_status .= "</select>";
-            
-            
-        }elseif($ivrow->status == "A"){
-            $doc_status = "<a class='button_status' data-doc_id='".$ivrow->id."' data-doc_status='P'>รับชำระ</a>"; 
-        }elseif($ivrow->status == "P"){
-            $doc_status = "<a class='button_status' data-doc_id='".$ivrow->id."' data-doc_status='V'>แสดงการรับชำระ</a>"; 
-        }*/
 
         $reference_number_column = $ivrow->reference_number;
         if($ivrow->quotation_id != null){
@@ -70,11 +61,6 @@ class Invoices_m extends MY_Model {
                     convertDate($ivrow->due_date, true), number_format($ivrow->total, 2), $doc_status,
                     "<a data-post-id='".$ivrow->id."' data-action-url='".get_uri("invoices/addedit")."' data-act='ajax-modal' class='edit'><i class='fa fa-pencil'></i></a>"
                 ];
-
-        /*
-        *Delete button
-        *<a data-id='".$ivrow->id."' data-action-url='".get_uri("invoices/delete_doc")."' data-action='delete' class='delete'><i class='fa fa-times fa-fw'></i></a>
-        */
 
         return $data;
     }
@@ -445,34 +431,6 @@ class Invoices_m extends MY_Model {
         $this->data["message"] = lang("record_saved");
 
         return $this->data;
-    }
-
-    function updateDocStatus($docId){
-        $db = $this->db;
-
-        $ivrow = $db->select("total")
-                    ->from("invoice")
-                    ->where("id", $docId)
-                    ->where("deleted", 0)
-                    ->where_in("status", ["O", "P"])
-                    ->get()->row();
-
-        if(empty($ivrow)) return;
-
-        $total_payment_amount = $db->select("SUM(payment_amount) AS TOTAL_PAYMENT_AMOUNT")
-                                    ->from("invoice_payment")
-                                    ->where("invoice_id", $docId)
-                                    ->get()->row()->TOTAL_PAYMENT_AMOUNT;
-
-        if($total_payment_amount == null) $total_payment_amount = 0;
-
-        $db->where("id", $docId);
-
-        if($total_payment_amount >= $ivrow->total){
-            $db->update("invoice", ["fully_paid_datetime"=>date("Y-m-d H:i:s"), "status"=>"P"]);
-        }else{
-            $db->update("invoice", ["fully_paid_datetime"=>null, "status"=>"O"]);
-        }
     }
 
     function validateDoc(){
@@ -850,6 +808,23 @@ class Invoices_m extends MY_Model {
                                         "approved_datetime"=>date("Y-m-d H:i:s"),
                                         "status"=>"O"
                                     ]);
+
+        }elseif($updateStatusTo == "V"){
+            $rerow = $db->select("doc_number")
+                        ->from("receipt")
+                        ->where("invoice_id", $docId)
+                        ->where_in("status", ["W", "P"])
+                        ->get()->row();
+
+            if(!empty($rerow)){
+                $this->data["dataset"] = $this->getIndexDataSetHTML($ivrow);
+                $this->data["message"] = "ไม่สามารถยกเลิกใบแจ้งหนี้ได้ เนื่องจากมีการผูกใบแจ้งหนี้กับใบเสร็จเลขที่ ".$rerow->doc_number." แล้ว";
+                return $this->data;
+            }
+
+            $db->where("id", $docId);
+            $db->where("deleted", 0);
+            $db->update("invoice", ["status"=>"V"]);
         }
 
         if ($db->trans_status() === FALSE){
@@ -912,9 +887,7 @@ class Invoices_m extends MY_Model {
                     ->where("deleted", 0)
                     ->get()->row();
 
-        if(empty($ivrow)){
-            return $this->data;
-        }
+        if(empty($ivrow)) return $this->data;
 
         $total_payment_amount = $db->select("SUM(payment_amount) AS total_payment_amount")
                                     ->from("invoice_payment")
@@ -977,7 +950,7 @@ class Invoices_m extends MY_Model {
         $payment_withholding_tax_include = $payment_withholding_tax_percent == null ? "N":"Y";
         $payment_withholding_value = 0;
 
-        $ivrow = $db->select("total")
+        $ivrow = $db->select("sub_total, total")
                     ->from("invoice")
                     ->where("id", $invoice_id)
                     ->where("status !=", "V")
@@ -986,12 +959,13 @@ class Invoices_m extends MY_Model {
 
         if(empty($ivrow)) return $this->data;
 
+        $invoices_sub_total = $ivrow->sub_total;
         $invoices_total = $ivrow->total;
 
         $total_invoice_payment_amount = $db->select("SUM(payment_amount) AS TOTAL_PAYMENT_AMOUNT")
-                                    ->from("invoice_payment")
-                                    ->where("invoice_id", $invoice_id)
-                                    ->get()->row()->TOTAL_PAYMENT_AMOUNT;
+                                            ->from("invoice_payment")
+                                            ->where("invoice_id", $invoice_id)
+                                            ->get()->row()->TOTAL_PAYMENT_AMOUNT;
 
         if($total_invoice_payment_amount == null) $total_invoice_payment_amount = 0;
 
@@ -1004,8 +978,9 @@ class Invoices_m extends MY_Model {
         $total_records = $db->count_all_results("invoice_payment");
 
         if($payment_withholding_tax_include == "Y"){
-            $payment_withholding_value = ($invoices_total * $payment_withholding_tax_percent)/100;
-            $payment_withholding_value = floor($payment_withholding_value * 100) / 100;
+            $percent_of_payment_amount = round(($payment_amount / $invoices_total) * 100, 2);
+            $payment_withholding_value = round(($payment_withholding_tax_percent * $invoices_sub_total)/100, 2);
+            $payment_withholding_value = ($payment_withholding_value * $percent_of_payment_amount)/100;
         }
 
         $money_payment_receive = $payment_amount - $payment_withholding_value;
@@ -1028,7 +1003,7 @@ class Invoices_m extends MY_Model {
 
         if($db->affected_rows() != 1) return $this->data;
 
-        $this->updateDocStatus($invoice_id);
+        $this->adjustDocStatus($invoice_id);
 
         $this->data["status"] = "success";
         $this->data["message"] = "success";
@@ -1057,6 +1032,17 @@ class Invoices_m extends MY_Model {
                     ->get()->row();
 
         if(empty($iprow)) return $this->data;
+
+        $rerow = $db->select("doc_number")
+                    ->from("receipt")
+                    ->where("invoice_payment_id", $payment_id)
+                    ->where_in("status", ["W", "P"])
+                    ->get()->row();
+
+        if(!empty($rerow)){
+            $this->data["message"] = "ไม่สามารถลบ 'การรับชำระเงิน' ได้ เนื่องจากรายการรับชำระนี้ ถูกออกใบเสร็จ '".$rerow->doc_number."' ไปแล้ว.";
+            return $this->data;
+        }
 
         $db->trans_begin();
 
@@ -1221,5 +1207,33 @@ class Invoices_m extends MY_Model {
         $db->trans_commit();
 
         return ["status"=>"success"];
+    }
+
+    function adjustDocStatus($docId){
+        $db = $this->db;
+
+        $ivrow = $db->select("total")
+                    ->from("invoice")
+                    ->where("id", $docId)
+                    ->where("deleted", 0)
+                    ->where_in("status", ["O", "P"])
+                    ->get()->row();
+
+        if(empty($ivrow)) return;
+
+        $total_payment_amount = $db->select("SUM(payment_amount) AS TOTAL_PAYMENT_AMOUNT")
+                                    ->from("invoice_payment")
+                                    ->where("invoice_id", $docId)
+                                    ->get()->row()->TOTAL_PAYMENT_AMOUNT;
+
+        if($total_payment_amount == null) $total_payment_amount = 0;
+
+        $db->where("id", $docId);
+
+        if($total_payment_amount >= $ivrow->total){
+            $db->update("invoice", ["fully_paid_datetime"=>date("Y-m-d H:i:s"), "status"=>"P"]);
+        }else{
+            $db->update("invoice", ["fully_paid_datetime"=>null, "status"=>"O"]);
+        }
     }
 }

@@ -189,20 +189,32 @@
     </div><!--.docitem-->
     <div class="docsignature clear">
         <div class="customer">
-            <div class="on_behalf_of">ในนาม <?php echo $client["company_name"] ?></div>
+            <div class="on_behalf_of"></div>
             <div class="clear">
                 <div class="name">
-                    <span class="l1"></span>
-                    <span class="l2">ผู้จ่ายเงิน</span>
+                    <span class="l1">
+                        <span class="signature">
+                            <?php if($created_by != null): ?>
+                                <?php if(null != $signature = $this->Users_m->getSignature($created_by)): ?>
+                                    <img src='<?php echo "/".$signature; ?>'>
+                                <?php endif; ?>
+                            <?php endif; ?>
+                        </span>
+                    </span>
+                    <span class="l2">ผู้ออกเอกสาร</span>
                 </div>
                 <div class="date">
-                    <span class="l1"></span>
+                    <span class="l1">
+                        <?php if($created_by != null): ?>
+                            <span class="created_date"><?php echo convertDate($created_datetime, true); ?></span>
+                        <?php endif; ?>
+                    </span>
                     <span class="l2">วันที่</span>
                 </div>
             </div>
         </div><!--.customer -->
         <div class="company">
-            <div class="on_behalf_of">ในนาม <?php echo get_setting("company_name"); ?></div>
+            <div class="on_behalf_of"></div>
             <div class="clear">
                 <div class="name">
                     <span class="l1">
@@ -214,7 +226,7 @@
                             <?php endif; ?>
                         </span>
                     </span>
-                    <span class="l2">ผู้รับเงิน</span>
+                    <span class="l2">ผู้อนุมัติ</span>
                 </div>
                 <div class="date">
                     <span class="l1">
