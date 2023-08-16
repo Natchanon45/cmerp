@@ -252,23 +252,6 @@ function loadDataGrid(){
             var doc_id = $(this).data("doc_id");
             var doc_number = $(this).data("doc_number");
 
-            if(active_module == "quotations" && $(this).val() == "P"){
-                var total_billing_note = 0;
-                axios.post("<?php echo_uri(); ?>"+active_module, {
-                    task: 'get_partial_billing_note',
-                    doc_id: $(this).data("doc_id")
-                }).then(function (response) {
-                    total_billing_note = response.data.total_billing_note;
-                }).finally(() => {
-                    if(total_billing_note <= 0){
-                        $("#popup").attr("data-title", "แบ่งจ่ายใบวางบิล");
-                        $("#popup").attr("data-action-url", "<?php echo_uri("quotations/partial-payment-type/"); ?>"+$(this).data("doc_id")).trigger( "click" );
-                    }else{
-                        updateStatus($(this).data("doc_id"), $(this).val());
-                    }
-                });
-            }
-
             updateStatus($(this).data("doc_id"), $(this).val());
         });
     });

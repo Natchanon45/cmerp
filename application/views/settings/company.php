@@ -127,6 +127,16 @@
                             ?>
                         </div>
                     </div>
+                    <div class="form-group">
+                        <label for="company_receipt_type" class=" col-md-2">ประเภทใบเสร็จรับเงิน</label>
+                        <div class=" col-md-10">
+                            <select id="company_receipt_type" name="company_receipt_type" class="form-control">
+                                <option value="1" <?php if(get_setting("company_receipt_type") == "1") echo 'selected'; ?>>ใบเสร็จรับงิน</option>
+                                <option value="2" <?php if(get_setting("company_receipt_type") == "2") echo 'selected'; ?>>ใบเสร็จรับงิน / ใบกำกับภาษี</option>
+                                <option value="3" <?php if(get_setting("company_receipt_type") == "3") echo 'selected'; ?>>ใบส่งของ / ใบเสร็จรับงิน / ใบกำกับภาษี</option>
+                            </select>
+                        </div>
+                    </div>
                     <div class="form-group company-stamp">
                         <label for="company_stamp_file_upload" class=" col-md-2">ตราประทับองค์กร</label>
                         <div class=" col-md-10">

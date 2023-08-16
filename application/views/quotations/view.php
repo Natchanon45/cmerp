@@ -211,6 +211,11 @@
             </div>
         </div><!--.customer -->
         <div class="company">
+            <div class="company_stamp">
+                <?php if($company_stamp != null): ?>
+                    <img src="<?php echo base_url($company_stamp);?>">
+                <?php endif;?>
+            </div>
             <div class="on_behalf_of">ในนาม <?php echo get_setting("company_name"); ?></div>
             <div class="clear">
                 <div class="name">

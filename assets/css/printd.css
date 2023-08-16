@@ -429,6 +429,21 @@
     width: 45%;
 }
 
+#printd .docsignature .company_stamp{
+    text-align: center;
+    width: 100%;
+    height: 1px;
+}
+
+#printd .docsignature .company_stamp img{
+    position: relative;
+    top: -60px;
+    display: inline-block;
+    max-height: 50px;
+    height: 50px;
+    width: auto;
+}
+
 #printd .docsignature .on_behalf_of{
     text-align: center;
 }

@@ -14,7 +14,8 @@ class Settings_m extends MY_Model {
                                 "company_phone"=>"",
                                 "company_email"=>"",
                                 "company_website"=>"",
-                                "company_stamp"=>""
+                                "company_receipt_type"=>"1",
+                                "company_stamp"=>null
                             ];
 
 
@@ -27,7 +28,15 @@ class Settings_m extends MY_Model {
                                 ->get()->row();
 
             if(!empty($srow)){
-                $company_setting[$i] = $srow->setting_value;
+                if($i == "company_stamp"){
+                    if(@unserialize($srow->setting_value) != false){
+                        $company_setting[$i] = "files/system/".unserialize($srow->setting_value)["file_name"];
+                    }else{
+                        $company_setting[$i] = null;
+                    }
+                }else{
+                    $company_setting[$i] = $srow->setting_value;
+                }
             }
         }
 

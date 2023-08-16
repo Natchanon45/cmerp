@@ -360,7 +360,17 @@ class Settings extends MY_Controller {
     }
 
     function save_company_settings() {
-        $settings = array("company_name", "company_vat_registered", "company_address", "company_phone", "company_email", "company_website", "company_vat_number", "company_stamp");
+        $settings = [
+                        "company_name",
+                        "company_vat_registered",
+                        "company_address",
+                        "company_phone",
+                        "company_email",
+                        "company_website",
+                        "company_vat_number",
+                        "company_receipt_type",
+                        "company_stamp"
+                    ];
 
         foreach ($settings as $setting) {
             $value = $this->input->post($setting);

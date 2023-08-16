@@ -33,20 +33,14 @@ class Quotations_m extends MY_Model {
         if($qrow->status == "W"){
             $doc_status .= "<option selected>รออนุมัติ</option>";
             $doc_status .= "<option value='A'>อนุมัติ</option>";
-            $doc_status .= "<option value='B'>สร้างใบวางบิล</option>";
             $doc_status .= "<option value='R'>ไม่อนุมัติ</option>";
         }elseif($qrow->status == "A"){
             $doc_status .= "<option selected>อนุมัติ</option>";
-            $doc_status .= "<option value='I'>ดำเนินการแล้ว</option>";
-            $doc_status .= "<option value='B'>สร้างใบวางบิล</option>";
-            $doc_status .= "<option value='R'>ไม่อนุมัติ</option>";
+            $doc_status .= "<option value='I'>ออกใบแจ้งหนี้</option>";
             $doc_status .= "<option value='RESET'>รีเซ็ต</option>";
         }elseif($qrow->status == "R"){
             $doc_status .= "<option selected>ไม่อนุมัติ</option>";
             $doc_status .= "<option value='RESET'>รีเซ็ต</option>";
-        }elseif($qrow->status == "P"){
-            $doc_status .= "<option selected>แบ่งจ่าย</option>";
-            $doc_status .= "<option value='P'>แบ่งจ่ายใบวางบิล</option>";
         }elseif($qrow->status == "I"){
             $doc_status .= "<option selected>ดำเนินการแล้ว</option>";
             $doc_status .= "<option value='RESET'>รีเซ็ต</option>";
@@ -103,6 +97,7 @@ class Quotations_m extends MY_Model {
 
     function getDoc($docId){
         $db = $this->db;
+        $company_setting = $this->Settings_m->getCompany();
 
         $this->data["doc_date"] = date("Y-m-d");
         $this->data["credit"] = "0";
@@ -122,7 +117,8 @@ class Quotations_m extends MY_Model {
         $this->data["created_datetime"] = null;
         $this->data["approved_by"] = null;
         $this->data["approved_datetime"] = null;
-        $this->data["doc_status"] = NULL;
+        $this->data["company_stamp"] = null;
+        $this->data["doc_status"] = null;
 
         if(!empty($docId)){
             $qrow = $db->select("*")
@@ -164,7 +160,13 @@ class Quotations_m extends MY_Model {
             $this->data["created_datetime"] = $qrow->created_datetime;
             $this->data["approved_by"] = $qrow->approved_by;
             $this->data["approved_datetime"] = $qrow->approved_datetime;
+            if(file_exists($_SERVER['DOCUMENT_ROOT']."/".$company_setting["company_stamp"])) $this->data["company_stamp"] = $company_setting["company_stamp"];
             $this->data["doc_status"] = $qrow->status;
+            
+
+            //a:1:{s:9:"file_name";s:36:"_file64dc8ccb59be6-company-stamp.png";}
+
+            //if(file_exists($_SERVER['DOCUMENT_ROOT'].get_file_from_setting("estimate_logo", true)) != false)
         }
 
         $this->data["status"] = "success";
@@ -455,11 +457,12 @@ class Quotations_m extends MY_Model {
                                         "doc_valid_until_date"=>$doc_valid_until_date,
                                         "reference_number"=>$reference_number,
                                         "client_id"=>$customer_id,
-                                        "project_id"=>$project_id,
+                                        "project_id"=>($project_id != null ? $project:null),
                                         "remark"=>$remark
                                     ]);
         }else{
             $doc_number = $this->getNewDocNumber();
+            $company_setting = $this->Settings_m->getCompany();
 
             $db->insert("quotation", [
                                         "doc_number"=>$doc_number,
@@ -467,9 +470,9 @@ class Quotations_m extends MY_Model {
                                         "credit"=>$credit,
                                         "doc_valid_until_date"=>$doc_valid_until_date,
                                         "reference_number"=>$reference_number,
-                                        "vat_inc"=>"N",
+                                        "vat_inc"=>$company_setting["company_vat_registered"],
                                         "client_id"=>$customer_id,
-                                        "project_id"=>$project_id,
+                                        "project_id"=>($project_id != null ? $project:null),
                                         "remark"=>$remark,
                                         "created_by"=>$this->login_user->id,
                                         "created_datetime"=>date("Y-m-d H:i:s"),
@@ -747,8 +750,6 @@ class Quotations_m extends MY_Model {
 
         $quotation_id = $this->data["doc_id"] = $docId;
         $quotation_number = $qrow->doc_number;
-        $quotation_is_partials = $qrow->is_partials;
-        $quotation_partials_type = $qrow->partials_type;
         $currentStatus = $qrow->status;
 
         $quotation_sub_total_before_discount = $qrow->sub_total_before_discount;
@@ -794,25 +795,21 @@ class Quotations_m extends MY_Model {
             $db->where("id", $quotation_id);
             $db->update("quotation", ["status"=>"R"]);
 
-        }elseif($updateStatusTo == "I"){//Issued
+        }elseif($updateStatusTo == "I"){
             $db->where("id", $quotation_id);
             $db->update("quotation", ["status"=>"I"]);
-
-        }elseif($updateStatusTo == "B"){//Partial OR Create Billing Note
-            $db->where("id", $quotation_id);
-            $db->update("quotation", ["is_partials"=>"N", "status"=>"I"]);
             
-            $billing_note_number = $this->Billing_notes_m->getNewDocNumber();
-            $billing_date = date("Y-m-d");
-            $billing_credit = $qrow->credit;
-            $billing_due_date = date("Y-m-d", strtotime($billing_date. " + ".$billing_credit." days"));
+            $invoice_number = $this->Invoices_m->getNewDocNumber();
+            $invoice_date = date("Y-m-d");
+            $invoice_credit = $qrow->credit;
+            $invoice_due_date = date("Y-m-d", strtotime($invoice_date. " + ".$invoice_credit." days"));
 
-            $db->insert("billing_note", [
+            $db->insert("invoice", [
                                             "quotation_id"=>$quotation_id,
-                                            "doc_number"=>$billing_note_number,
-                                            "doc_date"=>$billing_date,
-                                            "credit"=>$billing_credit,
-                                            "due_date"=>$billing_due_date,
+                                            "doc_number"=>$invoice_number,
+                                            "doc_date"=>$invoice_date,
+                                            "credit"=>$invoice_credit,
+                                            "due_date"=>$invoice_due_date,
                                             "reference_number"=>$quotation_number,
                                             "project_id"=>$qrow->project_id,
                                             "client_id"=>$qrow->client_id,
@@ -836,7 +833,7 @@ class Quotations_m extends MY_Model {
                                             "deleted"=>0
                                         ]);            
 
-            $billing_note_id = $db->insert_id();
+            $invoice_id = $db->insert_id();
 
             $qirows = $db->select("*")
                             ->from("quotation_items")
@@ -846,8 +843,8 @@ class Quotations_m extends MY_Model {
 
             if(empty(!$qirows)){
                 foreach($qirows as $qirow){
-                    $db->insert("billing_note_items", [
-                                                        "billing_note_id"=>$billing_note_id,
+                    $db->insert("invoice_items", [
+                                                        "invoice_id"=>$invoice_id,
                                                         "product_id"=>$qirow->product_id,
                                                         "product_name"=>$qirow->product_name,
                                                         "product_description"=>$qirow->product_description,
@@ -908,23 +905,6 @@ class Quotations_m extends MY_Model {
         $this->data["dataset"] = $this->getIndexDataSetHTML($qrow);
         $this->data["status"] = "success";
         $this->data["message"] = lang('record_saved');
-        return $this->data;
-    }
-
-    function getTotalDocPartialBillingNote(){
-        $db = $this->db;
-        $docId = $this->json->doc_id;
-                    
-        $db->where("quotation_id",$docId);
-        $db->where("deleted", 0);
-        $totalPartialBillingNote = $db->count_all_results("billing_note");
-
-        if($totalPartialBillingNote == null) $totalPartialBillingNote = 0;
-
-        $this->data["total_billing_note"] = $totalPartialBillingNote;
-        $this->data["status"] = "success";
-        $this->data["message"] = "success";
-
         return $this->data;
     }
 
