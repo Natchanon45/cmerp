@@ -128,7 +128,16 @@
                         </div>
                     </div>
                     <div class="form-group">
-                        <label for="company_receipt_type" class=" col-md-2">ประเภทใบเสร็จรับเงิน</label>
+                        <label for="company_issue_tax_invoice" class=" col-md-2">ออกใบกำกับภาษี</label>
+                        <div class=" col-md-10">
+                            <select id="company_issue_tax_invoice" name="company_issue_tax_invoice" class="form-control">
+                                <option value="Y" <?php if(get_setting("company_issue_tax_invoice") == "Y") echo 'selected'; ?>>ใช่</option>
+                                <option value="N" <?php if(get_setting("company_issue_tax_invoice") == "N") echo 'selected'; ?>>ไม่ใช่</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="company_receipt_type" class=" col-md-2">รูปแบบใบเสร็จรับเงิน</label>
                         <div class=" col-md-10">
                             <select id="company_receipt_type" name="company_receipt_type" class="form-control">
                                 <option value="1" <?php if(get_setting("company_receipt_type") == "1") echo 'selected'; ?>>ใบเสร็จรับงิน</option>

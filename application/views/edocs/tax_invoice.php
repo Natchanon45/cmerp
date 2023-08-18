@@ -90,12 +90,7 @@
 				</div>
 			</div>
 			<div class="right">
-				<div class="docname custom-color">
-					<?php
-		                if($doc["doc_type"] == "IVT") echo "ใบส่งของ/ใบแจ้งหนี้/ใบกำกับภาษี";
-		                else echo "ใบส่งของ / ใบแจ้งหนี้";
-		            ?>
-				</div>
+				<div class="docname custom-color">ใบกำกับภาษี</div>
 				<div class="docinfo">
 					<table>
 	                    <tr>

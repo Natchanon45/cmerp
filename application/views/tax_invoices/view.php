@@ -1,18 +1,10 @@
 <link rel="stylesheet" href="/assets/css/printd.css?t=<?php echo time();?>">
 <div id="dcontroller" class="clearfix">
     <div class="page-title clearfix mt15">
-        <h1>
-            <?php
-                if($doc_type == "IVT") echo "ใบส่งของ/ใบแจ้งหนี้/ใบกำกับภาษี ".$doc_number;
-                else echo "ใบส่งของ/ใบแจ้งหนี้ ".$doc_number;
-            ?>
-        </h1>
+        <h1>ใบกำกับภาษี <?php echo $doc_number; ?></h1>
         <div class="title-button-group">
-            <a style="margin-left: 15px;" class="btn btn-default mt0 mb0 back-to-index-btn"  href="<?php echo get_uri("accounting/sell/invoices")?>" ><i class="fa fa-hand-o-left" aria-hidden="true"></i> ย้อนกลับไปตารางรายการ</a>
-            <a id="add_item_button" class="btn btn-default" data-post-doc_id="<?php echo $doc_id; ?>" data-act="ajax-modal" data-title="แชร์เอกสาร <?php echo $doc_number; ?>" data-action-url="<?php echo get_uri("/invoices/share"); ?>">แชร์</a>
-            <?php if($doc_status != "W"): ?>
-                <a class="btn btn-default mt0 mb0 back-to-index-btn" href="<?php echo get_uri("invoices/payment/".$doc_id)?>">ข้อมูลการชำระ</a>
-            <?php endif; ?>
+            <a style="margin-left: 15px;" class="btn btn-default mt0 mb0 back-to-index-btn"  href="<?php echo get_uri("accounting/sell/tax-invoices")?>" ><i class="fa fa-hand-o-left" aria-hidden="true"></i> ย้อนกลับไปตารางรายการ</a>
+            <a id="add_item_button" class="btn btn-default" data-post-doc_id="<?php echo $doc_id; ?>" data-act="ajax-modal" data-title="แชร์เอกสาร <?php echo $doc_number; ?>" data-action-url="<?php echo get_uri("/tax-invoices/share"); ?>">แชร์</a>
             <a onclick="window.open('<?php echo $print_url;?>', '' ,'width=980,height=720');" class="btn btn-default">พิมพ์</a>
         </div>
     </div>
@@ -65,12 +57,7 @@
             </div><!-- .company -->
         </div><!--.l-->
         <div class="r">
-            <h1 class="document_name custom-color">
-                <?php
-                    if($doc_type == "IVT") echo "ใบส่งของ/ใบแจ้งหนี้/ใบกำกับภาษี ";
-                    else echo "ใบส่งของ/ใบแจ้งหนี้ ";
-                ?>
-            </h1>
+            <h1 class="document_name custom-color">ใบกำกับภาษี</h1>
             <div class="about_company">
                 <table>
                     <tr>
@@ -136,12 +123,7 @@
             <tfoot>
                 <tr><td colspan="7">&nbsp;</td></tr>
                 <tr>
-                    <td colspan="3">
-                        <?php if($doc_status == "W"): ?>
-                            <p><?php echo modal_anchor(get_uri("invoices/item"), "<i class='fa fa-plus-circle'></i> " . lang('add_item_product'), array("id"=>"add_item_button", "class" => "btn btn-default", "title" => lang('add_item_product'), "data-post-doc_id" => $doc_id)); ?></p>
-                        <?php endif; ?>
-                        <p><input type="text" id="total_in_text" readonly></p>
-                    </td>
+                    <td colspan="3"><p><input type="text" id="total_in_text" readonly></p></td>
                     <td colspan="4" class="summary">
                         <p id="s-sub-total-before-discount">
                             <span class="c1 custom-color">รวมเป็นเงิน</span>
@@ -150,8 +132,8 @@
                         </p>
                         <p id="s-discount">
                             <span class="c1 custom-color">
-                                ส่วนลด&nbsp;<input type="number" id="discount_percent" value="<?php echo $discount_percent; ?>" <?php if($doc_status != "W") echo "disabled"; ?>>
-                                <select id="discount_type" <?php if($doc_status != "W") echo "disabled"; ?>>
+                                ส่วนลด&nbsp;<input type="number" id="discount_percent" value="<?php echo $discount_percent; ?>" disabled>
+                                <select id="discount_type" disabled>
                                     <option value="P" <?php if($discount_type == "P") echo "selected";?>>%</option>
                                     <option value="F" <?php if($discount_type == "F") echo "selected";?>>฿</option>
                                 </select>
@@ -165,7 +147,7 @@
                             <span class="c3"><span class="currency">บาท</span></span>
                         </p>
                         <p id="s-vat">
-                            <span class="c1 custom-color"><input type="checkbox" id="vat_inc" <?php if($vat_inc == "Y") echo "checked" ?> <?php if($doc_status != "W" || $doc_type == "IVT") echo "disabled"; ?>>ภาษีมูลค่าเพิ่ม <?php echo $this->Taxes_m->getVatPercent()."%"; ?></span>
+                            <span class="c1 custom-color"><input type="checkbox" id="vat_inc" <?php if($vat_inc == "Y") echo "checked" ?> disabled>ภาษีมูลค่าเพิ่ม <?php echo $this->Taxes_m->getVatPercent()."%"; ?></span>
                             <span class="c2"><input type="text" id="vat_value" readonly></span>
                             <span class="c3"><span class="currency">บาท</span></span>
                         </p>
@@ -173,29 +155,6 @@
                             <span class="c1 custom-color">จำนวนเงินรวมทั้งสิ้น</span>
                             <span class="c2"><input type="text" id="total" readonly ></span>
                             <span class="c3"><span class="currency">บาท</span></span>
-                        </p>
-                        <p id="s-wht">
-                            <span class="c1 custom-color">
-                                <input type="checkbox" id="wht_inc" <?php if($wht_inc == "Y") echo "checked" ?> <?php if($doc_status != "W") echo "disabled"; ?>>หักภาษี ณ ที่จ่าย
-                                <select id="wht_percent" class="wht custom-color <?php echo $wht_inc == "Y"?"v":"h"; ?>" <?php if($doc_status != "W") echo "disabled"; ?>>
-                                    <option value="3">3%</option>
-                                    <option value="5">5%</option>
-                                    <option value="0.50">0.5%</option>
-                                    <option value="0.75">0.75%</option>
-                                    <option value="1">1%</option>
-                                    <option value="1.50">1.5%</option>
-                                    <option value="2">2%</option>
-                                    <option value="10">10%</option>
-                                    <option value="15">15%</option>
-                                </select>
-                            </span>
-                            <span class="c2 wht <?php echo $wht_inc == "Y"?"v":"h"; ?>"><input type="text" id="wht_value" readonly ></span>
-                            <span class="c3 wht <?php echo $wht_inc == "Y"?"v":"h"; ?>"><span class="currency">บาท</span></span>
-                        </p>
-                        <p id="s-payment-amount">
-                            <span class="c1 custom-color wht <?php echo $wht_inc == "Y"?"v":"h"; ?>">ยอดชำระ</span>
-                            <span class="c2 wht <?php echo $wht_inc == "Y"?"v":"h"; ?>"><input type="text" id="payment_amount" readonly></span>
-                            <span class="c3 wht <?php echo $wht_inc == "Y"?"v":"h"; ?>"><span class="currency">บาท</span></span>
                         </p>
                     </td>
                 </tr>
@@ -298,15 +257,7 @@ function loadItems(){
                     tbody += "<td>"+items[i]["unit"]+"</td>"; 
                     tbody += "<td>"+items[i]["price"]+"</td>";
                     tbody += "<td>"+items[i]["total_price"]+"</td>";
-                    tbody += "<td class='edititem'>";
-                        if(data.doc_status == "W"){
-                            tbody += "<a class='edit' data-post-doc_id='<?php echo $doc_id; ?>' data-post-item_id='"+items[i]["id"]+"' data-act='ajax-modal' data-action-url='<?php echo_uri("invoices/item"); ?>' ><i class='fa fa-pencil'></i></a>";
-
-                            <?php if($quotation_id == null): ?>
-                                tbody += "<a class='delete' data-item_id='"+items[i]["id"]+"'><i class='fa fa-times fa-fw'></i></a>";
-                            <?php endif;?>
-                        }
-                    tbody += "</td>";
+                    tbody += "<td class='edititem'></td>";
                 tbody += "</tr>";
             }
 

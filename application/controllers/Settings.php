@@ -368,6 +368,7 @@ class Settings extends MY_Controller {
                         "company_email",
                         "company_website",
                         "company_vat_number",
+                        "company_issue_tax_invoice",
                         "company_receipt_type",
                         "company_stamp"
                     ];

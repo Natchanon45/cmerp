@@ -176,6 +176,7 @@ class Quotations_m extends MY_Model {
 
     function getEdoc($docId = null, $sharekey = null){
         $db = $this->db;
+        $company_setting = $this->Settings_m->getCompany();
         $ci = get_instance();
 
         if($docId != null && $sharekey == null){
@@ -244,6 +245,7 @@ class Quotations_m extends MY_Model {
         $this->data["created_datetime"] = $qrow->created_datetime;
         $this->data["approved_by"] = $qrow->approved_by;
         $this->data["approved_datetime"] = $qrow->approved_datetime;
+        if(file_exists($_SERVER['DOCUMENT_ROOT']."/".$company_setting["company_stamp"])) $this->data["company_stamp"] = $company_setting["company_stamp"];
         $this->data["doc_status"] = $qrow->status;
 
         $this->data["doc"] = $qrow;
@@ -737,6 +739,7 @@ class Quotations_m extends MY_Model {
 
     function updateStatus(){
         $db = $this->db;
+        $company_setting = $this->Settings_m->getCompany();
         $docId = $this->json->doc_id;
         $updateStatusTo = $this->json->update_status_to;
 
@@ -798,6 +801,9 @@ class Quotations_m extends MY_Model {
         }elseif($updateStatusTo == "I"){
             $db->where("id", $quotation_id);
             $db->update("quotation", ["status"=>"I"]);
+
+            $doc_type = "IV";
+            if($company_setting["company_vat_registered"] == "Y" && $company_setting["company_issue_tax_invoice"] == "Y") $doc_type = "IVT";
             
             $invoice_number = $this->Invoices_m->getNewDocNumber();
             $invoice_date = date("Y-m-d");
@@ -806,6 +812,7 @@ class Quotations_m extends MY_Model {
 
             $db->insert("invoice", [
                                             "quotation_id"=>$quotation_id,
+                                            "doc_type"=>$doc_type,
                                             "doc_number"=>$invoice_number,
                                             "doc_date"=>$invoice_date,
                                             "credit"=>$invoice_credit,
@@ -857,22 +864,22 @@ class Quotations_m extends MY_Model {
                 }
             }
 
-            $this->data["task"] = "create_billing_note";
+            $this->data["task"] = "create_invoice";
+            $this->data["url"] = get_uri("invoices/view/".$invoice_id);
             $this->data["status"] = "success";
             $this->data["message"] = lang('record_saved');
-            $this->data["url"] = get_uri("billing-notes/view/".$billing_note_id);
 
         }elseif($updateStatusTo == "RESET"){
-            $bnrow = $db->select("doc_number")
-                        ->from("billing_note")
+            $ivrow = $db->select("doc_number")
+                        ->from("invoice")
                         ->where("quotation_id", $quotation_id)
-                        ->where("status !=", "V")
+                        ->where_in("status", ["W", "O", "P"])
                         ->where("deleted", 0)
                         ->get()->row();
 
-            if(!empty($bnrow)){
+            if(!empty($ivrow)){
                 $this->data["dataset"] = $this->getIndexDataSetHTML($qrow);
-                $this->data["message"] = "ไม่สามารถรีเซ็ตใบเสนอราคาได้ เนื่องจากมีการผูกใบเสนอราคากับใบวางบิลเลขที่ ".$bnrow->doc_number." แล้ว";
+                $this->data["message"] = "ไม่สามารถรีเซ็ตใบเสนอราคาได้ เนื่องจากมีการผูกใบเสนอราคากับใบแจ้งหนี้เลขที่ ".$ivrow->doc_number." แล้ว";
                 $this->data["status"] = "error";
                 $db->trans_rollback();
                 return $this->data;

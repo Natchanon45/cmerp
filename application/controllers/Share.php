@@ -35,6 +35,15 @@ class Share extends PublicController
         $this->load->view('edocs/invoice', $this->data);
     }
 
+    function tax_invoice()
+    {
+        $this->data["doc"] = $doc = $this->Tax_invoices_m->getEdoc(null, $this->uri->segment(5));
+        $this->data["og_title"] = get_setting("company_name") . " - " . $doc["doc_number"];
+
+        if ($doc["status"] != "success") redirect("forbidden");
+        $this->load->view('edocs/tax_invoice', $this->data);
+    }
+
     function receipt()
     {
         $this->data["doc"] = $doc = $this->Receipts_m->getEdoc(null, $this->uri->segment(5));

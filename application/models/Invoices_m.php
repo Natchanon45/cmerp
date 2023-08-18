@@ -9,11 +9,23 @@ class Invoices_m extends MY_Model {
     }
 
     function getCode(){
+        $company_setting = $this->Settings_m->getCompany();
+
+        if($company_setting["company_vat_registered"] == "Y" && $company_setting["company_issue_tax_invoice"] == "Y") $this->code = "IVT";
+        else $this->code = "IV";
+
         return $this->code;
     }
 
     function getNewDocNumber(){
+        $doc_type = "IV";
+        $company_setting = $this->Settings_m->getCompany();
+
+        if($company_setting["company_vat_registered"] == "Y" && $company_setting["company_issue_tax_invoice"] == "Y") $doc_type = "IVT";
+
+        $this->db->where_in("status", ["W", "O", "P"]);
         $this->db->where("DATE_FORMAT(created_datetime,'%Y-%m')", date("Y-m"));
+        $this->db->where("doc_type", $doc_type);
         $this->db->where("deleted", 0);
         $running_number = $this->db->get("invoice")->num_rows() + 1;
 
@@ -25,6 +37,10 @@ class Invoices_m extends MY_Model {
     function getStatusName($status_code){
         if($status_code == "W"){
             return "รออนุมัติ";
+        }elseif($status_code == "O"){
+            return "รอรับชำระ";
+        }elseif($status_code == "P"){
+            return "รับชำระแล้ว";
         }
     }
 
@@ -68,7 +84,9 @@ class Invoices_m extends MY_Model {
     function indexDataSet() {
         $db = $this->db;
 
-        $db->select("*")->from("invoice");
+        $db->select("*")
+            ->from("invoice")
+            ->where_in("doc_type", ["IV", "IVT"]);
 
         if($this->input->post("status") != null){
             $db->where("status", $this->input->post("status"));
@@ -85,7 +103,7 @@ class Invoices_m extends MY_Model {
 
         $db->where("deleted", 0);
 
-        $ivrows = $db->order_by("doc_number", "desc")->get()->result();
+        $ivrows = $db->order_by("id", "DESC")->get()->result();
 
         $dataset = [];
 
@@ -98,9 +116,11 @@ class Invoices_m extends MY_Model {
 
     function getDoc($docId){
         $db = $this->db;
+        $company_setting = $this->Settings_m->getCompany();
 
         $this->data["doc_id"] = null;
         $this->data["quotation_id"] = null;
+        $this->data["doc_type"] = "IV";
         $this->data["doc_number"] = null;
         $this->data["doc_date"] = date("Y-m-d");
         $this->data["credit"] = "0";
@@ -123,8 +143,8 @@ class Invoices_m extends MY_Model {
         $this->data["created_datetime"] = null;
         $this->data["approved_by"] = null;
         $this->data["approved_datetime"] = null;
-        
-        $this->data["doc_status"] = NULL;
+        $this->data["company_stamp"] = null;
+        $this->data["doc_status"] = null;
 
         if(!empty($docId)){
             $ivrow = $db->select("*")
@@ -172,6 +192,7 @@ class Invoices_m extends MY_Model {
 
             $this->data["doc_id"] = $docId;
             $this->data["quotation_id"] = $quotation_id;
+            $this->data["doc_type"] = $ivrow->doc_type;
             $this->data["doc_number"] = $ivrow->doc_number;
             $this->data["share_link"] = $ivrow->sharekey != null ? get_uri($this->shareHtmlAddress."th/".$ivrow->sharekey) : null;
             $this->data["doc_date"] = $ivrow->doc_date;
@@ -197,6 +218,7 @@ class Invoices_m extends MY_Model {
             $this->data["created_datetime"] = $ivrow->created_datetime;
             $this->data["approved_by"] = $ivrow->approved_by;
             $this->data["approved_datetime"] = $ivrow->approved_datetime;
+            if($ivrow->approved_by != null) if(file_exists($_SERVER['DOCUMENT_ROOT']."/".$company_setting["company_stamp"])) $this->data["company_stamp"] = $company_setting["company_stamp"];
             $this->data["doc_status"] = $ivrow->status;
         }
 
@@ -207,6 +229,7 @@ class Invoices_m extends MY_Model {
 
     function getEdoc($docId = null, $sharekey = null){
         $db = $this->db;
+        $company_setting = $this->Settings_m->getCompany();
         $ci = get_instance();
 
         if($docId != null && $sharekey == null){
@@ -243,7 +266,7 @@ class Invoices_m extends MY_Model {
 
         $this->data["buyer"] = $ci->Customers_m->getInfo($client_id);
         $this->data["buyer_contact"] = $ci->Customers_m->getContactInfo($client_id);
-
+        $this->data["doc_type"] = $ivrow->doc_type;
         $this->data["doc_number"] = $ivrow->doc_number;
         $this->data["doc_date"] = $ivrow->doc_date;
         $this->data["credit"] = $ivrow->credit;
@@ -272,6 +295,11 @@ class Invoices_m extends MY_Model {
         $this->data["sharekey_by"] = $ivrow->sharekey_by;
         $this->data["approved_by"] = $ivrow->approved_by;
         $this->data["approved_datetime"] = $ivrow->approved_datetime;
+
+        if($ivrow->approved_by != null && file_exists($_SERVER['DOCUMENT_ROOT']."/".$company_setting["company_stamp"])){
+            $this->data["company_stamp"] = $company_setting["company_stamp"];
+        }
+
         $this->data["doc_status"] = $ivrow->status;
 
         $this->data["doc"] = $ivrow;
@@ -368,33 +396,11 @@ class Invoices_m extends MY_Model {
 
         $sub_total = $sub_total_before_discount - $discount_amount;
 
-        $quotation_id = $ivrow->quotation_id;
-        $quotation_sub_total = 0;
-        $quotation_total = 0;
-        $billed_amount = 0;
+        if($vat_inc == "Y") $vat_value = ($sub_total * $vat_percent)/100;
+        $total = $sub_total + $vat_value;
 
-        if($quotation_id != null){
-            $qrow = $db->select("sub_total, total")
-                        ->from("quotation")
-                        ->where("id", $quotation_id)
-                        ->where("deleted", 0)
-                        ->get()->row();
-
-            if(!empty($qrow)){
-                $quotation_sub_total = $qrow->sub_total;
-                $quotation_total = $qrow->total;
-            }else{
-                log_message("error", "SYSERR=>Invoices_m->updateDoc: ".$db->last_query());
-            }
-        }
-
-        if($quotation_id == null){
-            if($vat_inc == "Y") $vat_value = ($sub_total * $vat_percent) / 100;
-            $total = $sub_total + $vat_value;
-
-            if($wht_inc == "Y") $wht_value = ($sub_total * $wht_percent) / 100;
-            $payment_amount = $total - $wht_value;
-        }
+        if($wht_inc == "Y") $wht_value = ($sub_total * $wht_percent) / 100;
+        $payment_amount = $total - $wht_value;
 
         $db->where("id", $docId);
         $db->update("invoice", [
@@ -412,6 +418,7 @@ class Invoices_m extends MY_Model {
                                     "wht_value"=>$wht_value,
                                     "payment_amount"=>$payment_amount
                                 ]);
+
 
         $this->data["sub_total_before_discount"] = number_format($sub_total_before_discount, 2);
         $this->data["discount_type"] = $discount_type;
@@ -513,10 +520,13 @@ class Invoices_m extends MY_Model {
                                         "remark"=>$remark
                                     ]);
         }else{
+            $doc_type = "IV";
             $doc_number = $this->getNewDocNumber();
             $company_setting = $this->Settings_m->getCompany();
+            if($company_setting["company_vat_registered"] == "Y" && $company_setting["company_issue_tax_invoice"] == "Y") $doc_type = "IVT";
             
             $db->insert("invoice", [
+                                        "doc_type"=>$doc_type,
                                         "doc_number"=>$doc_number,
                                         "doc_date"=>$doc_date,
                                         "credit"=>$credit,
@@ -528,6 +538,7 @@ class Invoices_m extends MY_Model {
                                         "remark"=>$remark,
                                         "created_by"=>$this->login_user->id,
                                         "created_datetime"=>date("Y-m-d H:i:s"),
+                                        "tax_invoice_status"=>($doc_type == "IVT"?"W":null),
                                         "status"=>"W"
                                     ]);
 
@@ -779,7 +790,7 @@ class Invoices_m extends MY_Model {
         $db = $this->db;
         $docId = $this->json->doc_id;
         $updateStatusTo = $this->json->update_status_to;
-
+        
         $ivrow = $db->select("*")
                     ->from("invoice")
                     ->where("id",$docId)
@@ -793,8 +804,8 @@ class Invoices_m extends MY_Model {
             return $this->data;
         }
 
-
         $invoice_id = $this->data["doc_id"] = $docId;
+        $invoice_type = $ivrow->doc_type;
         $invoice_number = $ivrow->doc_number;
         $currentStatus = $ivrow->status;
 
@@ -806,10 +817,21 @@ class Invoices_m extends MY_Model {
             $db->update("invoice", [
                                         "approved_by"=>$this->login_user->id,
                                         "approved_datetime"=>date("Y-m-d H:i:s"),
+                                        "tax_invoice_status"=>($invoice_type == "IVT"?"A":null),
                                         "status"=>"O"
                                     ]);
 
         }elseif($updateStatusTo == "V"){
+            if($invoice_type == "IV"){
+                $db->where("invoice_id", $docId);
+                $db->where("doc_type", "TIV");
+                $db->where_in("tax_invoice_status", ["W", "A"]);
+                if($db->count_all_results("invoice") > 0){
+                    $this->data["dataset"] = $this->getIndexDataSetHTML($ivrow);
+                    $this->data["message"] = "ไม่สามารถยกเลิกใบแจ้งหนี้ได้ เนื่องจากมีการออกใบกำกับภาษีแล้ว";
+                    return $this->data;   
+                }
+            }
             $rerow = $db->select("doc_number")
                         ->from("receipt")
                         ->where("invoice_id", $docId)
@@ -824,7 +846,7 @@ class Invoices_m extends MY_Model {
 
             $db->where("id", $docId);
             $db->where("deleted", 0);
-            $db->update("invoice", ["status"=>"V"]);
+            $db->update("invoice", ["tax_invoice_status"=>"V", "status"=>"V"]);
         }
 
         if ($db->trans_status() === FALSE){

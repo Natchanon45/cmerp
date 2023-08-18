@@ -175,16 +175,20 @@ function loadDataGrid(){
     if(active_module == "quotations"){
         $(".buttons li.add a").attr("data-action-url", "<?php echo get_uri("quotations/addedit"); ?>");
         $(".buttons li.add span").append("เพิ่มใบเสนอราคา");
-        doc_status = [{id:"", text:"-- <?php echo lang("status"); ?> --"}, {id:"W", text:"รออนุมัติ"}, {id:"A", text:"อนุมัติ"}, {id:"P", text:"แบ่งจ่าย"}, {id:"I", text:"ดำเนินการแล้ว"}, {id:"R", text:"ไม่อนุมัติ"}];
+        doc_status = [{id:"", text:"-- <?php echo lang("status"); ?> --"}, {id:"W", text:"รออนุมัติ"}, {id:"A", text:"อนุมัติ"}, {id:"I", text:"ดำเนินการแล้ว"}, {id:"R", text:"ไม่อนุมัติ"}];
     }else if(active_module == "invoices"){
         $(".buttons li.add a").attr("data-action-url", "<?php echo get_uri("invoices/addedit"); ?>");
         $(".buttons li.add span").append("เพิ่มใบแจ้งหนี้");
-        doc_status = [{id:"", text:"-- <?php echo lang("status"); ?> --"}, {id:"P", text:"รอเก็บเงิน"}, {id:"R", text:"เปิดใบเสร็จแล้ว"}, {id:"V", text:"ยกเลิก"}];
-
+        doc_status = [{id:"", text:"-- <?php echo lang("status"); ?> --"}, {id:"W", text:"รออนุมัติ"}, {id:"O", text:"รอรับชำระ"}, {id:"V", text:"ยกเลิก"}];
 
     }else if(active_module == "tax-invoices"){
-        $(".buttons li.add").css("display", "none");
-        doc_status = [{id:"", text:"-- <?php echo lang("status"); ?> --"}, {id:"P", text:"รอเก็บเงิน"}, {id:"R", text:"เปิดใบเสร็จแล้ว"}, {id:"V", text:"ยกเลิก"}];
+        $(".buttons li.add").css("display", "block");
+        $(".buttons li.add a").attr("data-title", "สร้างใบกำกับภาษีขายจากรายการใบแจ้งหนี้");
+        $(".buttons li.add a").attr("data-action-url", "<?php echo get_uri("tax-invoices/addedit"); ?>");
+        $(".buttons li.add span").append("สร้างใบกำกับภาษีขาย");
+
+        doc_status = [{id:"", text:"-- <?php echo lang("status"); ?> --"}, {id:"W", text:"รออนุมัติ"}, {id:"V", text:"ยกเลิก"}];
+
     }else if(active_module == "billing-notes"){
         $(".buttons li.add a").attr("data-action-url", "<?php echo get_uri("billing-notes/addedit"); ?>");
         $(".buttons li.add span").append("เพิ่มใบวางบิล");
@@ -230,7 +234,6 @@ function loadDataGrid(){
 
     $("#datagrid").appTable({
         source: "<?php echo_uri(); ?>"+active_module,
-        order: [[1, "desc"]],
         rangeDatepicker: [
             {
                 startDate: { name: "start_date", value: "<?php echo date('Y-m-d', strtotime('-1 month')); ?>" }, 
@@ -269,12 +272,12 @@ function updateStatus(docId, updateStatusTo){
                 location.href = data.url;
                 return;
             }
-            appAlert.success(data.message, {duration: 5000});
+            appAlert.success(data.message, {duration: 6000});
             $("#datagrid").appTable({newData: data.dataset, dataId: data.doc_id});
         }else if(data.status == "notchange"){
             $("#datagrid").appTable({newData: data.dataset, dataId: data.doc_id});
         }else{
-            appAlert.error(data.message, {duration: 5000});
+            appAlert.error(data.message, {duration: 6000});
             $("#datagrid").appTable({newData: data.dataset, dataId: data.doc_id});
         }
 
