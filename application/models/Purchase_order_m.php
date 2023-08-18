@@ -2,15 +2,26 @@
 
 class Purchase_order_m extends MY_Model
 {
-    private $code = "PO";
+    private $code = 'PO';
 
-    private $shareHtmlAddress = "share/purchase_order/html/";
+    private $shareHtmlAddress = 'share/purchase_order/html/';
+
+    function user_language()
+    {
+        return get_setting("user_" . $this->login_user->id . "_personal_language");
+    }
+
+    function modal_header()
+    {
+        $modal_header = str_replace('https:', '', str_replace('http:', '', str_replace('/', '', base_url())));
+        return strtoupper($modal_header);
+    }
 
     function __construct()
     {
         parent::__construct();
-
         $this->load->model('Purchase_request_m');
+        $this->load->model('Goods_receipt_m');
     }
 
     function getCode()
@@ -22,15 +33,16 @@ class Purchase_order_m extends MY_Model
     {
         $this->db->where("DATE_FORMAT(created_datetime,'%Y-%m')", date("Y-m"));
         $this->db->where("deleted", 0);
-        $running_number = $this->db->get("po_header")->num_rows() + 1;
 
+        $running_number = $this->db->get("po_header")->num_rows() + 1;
         $doc_number = $this->getCode() . date("Ym") . sprintf("%04d", $running_number);
+
         return $doc_number;
     }
 
     function getStatusName($status_code)
     {
-        if ($status_code == "W") {
+        if ($status_code == 'W') {
             return lang('pr_pending');
         }
     }
@@ -38,32 +50,57 @@ class Purchase_order_m extends MY_Model
     function dev2_getPoTypeById($id)
     {
         $type = array(
-            "1" => "direct_material",
-            "2" => "indirect_material",
-            "3" => "finised_goods",
-            "4" => "assets",
-            "5" => "services",
-            "6" => "expenses",
-            "7" => "mixed_purchase"
+            '1' => 'direct_material',
+            '2' => 'indirect_material',
+            '3' => 'finised_goods',
+            '4' => 'assets',
+            '5' => 'services',
+            '6' => 'expenses',
+            '7' => 'mixed_purchase'
         );
         return lang($type[$id]);
     }
 
-    function getIndexDataSetHTML($qrow)
+    function getIndexDataSetHTML($qrow) // MARK
     {
-        $doc_status = "<select class='dropdown_status select-status' data-doc_id='" . $qrow->id . "'>";
+        $button = '';
+        $doc_status = '<select class="dropdown_status select-status" data-doc_id="' . $qrow->id . '">';
 
         if ($qrow->status == "W") {
-            $doc_status .= "<option selected>รออนุมัติ</option>";
-            $doc_status .= "<option value='A'>อนุมัติ</option>";
-            $doc_status .= "<option value='R'>ไม่อนุมัติ</option>";
+            $doc_status .= '
+                <option value="W" selected>' . lang('pr_pending') . '</option>
+                <option value="A">' . lang('pr_approved') . '</option>
+                <option value="X">' . lang('cancel') . '</option>
+            ';
+            $button = '<a data-post-id="' . $qrow->id . '" data-title="' . $this->modal_header() . '" data-action-url="' . get_uri('purchase_order/addedit') . '" data-act="ajax-modal" class="edit"><i class="fa fa-pencil"></i></a>';
         } elseif ($qrow->status == "A") {
-            $doc_status .= "<option selected>อนุมัติ</option>";
+            if ($qrow->po_type == 5) {
+                $doc_status .= '
+                    <option value="A" selected>' . lang('pr_approved') . '</option>
+                    <option value="GR">' . lang('record_expenses') . '</option>
+                    <option value="X">' . lang('cancel') . '</option>
+                ';
+            } else {
+                $doc_status .= '
+                    <option value="A" selected>' . lang('pr_approved') . '</option>
+                    <option value="GR">' . lang('record_products') . '</option>
+                    <option value="X">' . lang('cancel') . '</option>
+                ';
+            }
+            $button = '<a data-post-id="' . $qrow->id . '" data-title="' . $this->modal_header() . '" data-action-url="' . get_uri('purchase_order/addedit') . '" data-act="ajax-modal" class="edit"><i class="fa fa-eye"></i></a>';
         } elseif ($qrow->status == "R") {
-            $doc_status .= "<option selected>ไม่อนุมัติ</option>";
+            $doc_status .= '
+                <option value="R" selected>' . lang('pr_rejected') . '</option>
+            ';
+            $button = '';
+        } elseif ($qrow->status == "X") {
+            $doc_status .= '
+                <option value="X" selected>' . lang('cancel') . '</option>
+            ';
+            $button = '';
         }
 
-        $doc_status .= "</select>";
+        $doc_status .= '</select>';
 
         $request_by = '-';
         if ($qrow->created_by) {
@@ -76,7 +113,7 @@ class Purchase_order_m extends MY_Model
         $supplier_name = '-';
         if ($qrow->supplier_id) {
             $supplier = $this->Bom_suppliers_model->dev2_getSupplierNameById($qrow->supplier_id);
-            $supplier_name = "<a href='" . get_uri('stock/supplier_view/' . $qrow->supplier_id) . "'>" . mb_strimwidth($supplier, 0, 60, '...') . "</a>";
+            $supplier_name = "<a href='" . get_uri('stock/supplier_view/' . $qrow->supplier_id) . "'>" . mb_strimwidth($supplier, 0, 55, '...') . "</a>";
         }
 
         $data = array(
@@ -88,7 +125,7 @@ class Purchase_order_m extends MY_Model
             $request_by,
             number_format($qrow->total, 2),
             $doc_status,
-            "<a data-post-id='" . $qrow->id . "' data-action-url='" . get_uri('purchase_order/addedit') . "' data-act='ajax-modal' class='edit'><i class='fa fa-pencil'></i></a>"
+            $button
         );
 
         return $data;
@@ -98,28 +135,28 @@ class Purchase_order_m extends MY_Model
     {
         $db = $this->db;
 
-        $db->select("*")->from("po_header");
+        $db->select('*')->from('po_header');
 
-        if ($this->input->post("status") != null) {
-            $db->where("status", $this->input->post("status"));
+        if ($this->input->post('status') != null) {
+            $db->where('status', $this->input->post('status'));
         }
 
-        if ($this->input->post("po_type") != null) {
-            $db->where("po_type", $this->input->post("po_type"));
+        if ($this->input->post('po_type') != null) {
+            $db->where('po_type', $this->input->post('po_type'));
         }
 
-        if ($this->input->post("start_date") != null && $this->input->post("end_date")) {
-            $db->where("doc_date >=", $this->input->post("start_date"));
-            $db->where("doc_date <=", $this->input->post("end_date"));
+        if ($this->input->post('start_date') != null && $this->input->post('end_date')) {
+            $db->where('doc_date >=', $this->input->post('start_date'));
+            $db->where('doc_date <=', $this->input->post('end_date'));
         }
 
-        if ($this->input->post("supplier_id") != null) {
-            $db->where("supplier_id", $this->input->post("supplier_id"));
+        if ($this->input->post('supplier_id') != null) {
+            $db->where('supplier_id', $this->input->post('supplier_id'));
         }
 
-        $db->where("deleted", 0);
+        $db->where('deleted', 0);
 
-        $qrows = $db->order_by("doc_number", "desc")->get()->result();
+        $qrows = $db->order_by('doc_number', 'desc')->get()->result();
 
         $dataset = [];
 
@@ -192,8 +229,10 @@ class Purchase_order_m extends MY_Model
         return $this->data;
     }
 
-    function getEdoc($docId = null, $sharekey = null)
+    function getEdoc($docId = null, $sharekey = null, $lang = null)
     {
+        if ($lang == null) $lang = $this->user_language();
+
         $db = $this->db;
         $ci = get_instance();
 
@@ -227,10 +266,8 @@ class Purchase_order_m extends MY_Model
         $supplier_id = $qrow->supplier_id;
 
         $this->data["buyer"] = $ci->Users_m->getInfo($qrow->created_by);
-
         $this->data["seller"] = $ci->Bom_suppliers_model->getInfo($supplier_id);
         $this->data["seller_contact"] = $ci->Bom_suppliers_model->getContactInfo($supplier_id);
-
         $this->data["doc_number"] = $qrow->doc_number;
         $this->data["doc_date"] = $qrow->doc_date;
         $this->data["credit"] = $qrow->credit;
@@ -246,20 +283,17 @@ class Purchase_order_m extends MY_Model
         $this->data["vat_percent"] = $qrow->vat_percent;
         $this->data["vat_value"] = $qrow->vat_value;
         $this->data["total"] = $qrow->total;
-        $this->data["total_in_text"] = numberToText($qrow->total);
+        $this->data["total_in_text"] = ($lang == 'en' || $lang == 'english') ? numberToBahtEng($qrow->total) : numberToText($qrow->total);
         $this->data["wht_inc"] = $qrow->wht_inc;
         $this->data["wht_percent"] = $qrow->wht_percent;
         $this->data["wht_value"] = $qrow->wht_value;
         $this->data["payment_amount"] = $qrow->payment_amount;
-
         $this->data["sharekey_by"] = $qrow->sharekey_by;
         $this->data["approved_by"] = $qrow->approved_by;
         $this->data["approved_datetime"] = $qrow->approved_datetime;
         $this->data["doc_status"] = $qrow->status;
-
         $this->data["doc"] = $qrow;
         $this->data["items"] = $qirows;
-
         $this->data["status"] = "success";
         $this->data["message"] = "ok";
 
@@ -377,12 +411,11 @@ class Purchase_order_m extends MY_Model
         $this->data["vat_percent"] = number_format_drop_zero_decimals($vat_percent, 2);
         $this->data["vat_value"] = number_format($vat_value, 2);
         $this->data["total"] = number_format($total, 2);
-        $this->data["total_in_text"] = numberToText($total);
+        $this->data["total_in_text"] = ($this->user_language() == 'english') ? numberToBahtEng($qrow->total) : numberToText($qrow->total);
         $this->data["wht_inc"] = $wht_inc;
         $this->data["wht_percent"] = number_format_drop_zero_decimals($wht_percent, 2);
         $this->data["wht_value"] = number_format($wht_value, 2);
         $this->data["payment_amount"] = number_format($payment_amount, 2);
-
         $this->data["status"] = "success";
         $this->data["message"] = lang("record_saved");
 
@@ -488,8 +521,8 @@ class Purchase_order_m extends MY_Model
             $docId = $db->insert_id();
         }
 
-        $this->data["target"] = get_uri("purchase_order/view/" . $docId);
-        $this->data["status"] = "success";
+        $this->data["target"] = get_uri('purchase_order/view/' . $docId);
+        $this->data["status"] = 'success';
 
         return $this->data;
     }
@@ -583,7 +616,7 @@ class Purchase_order_m extends MY_Model
             $item["id"] = $qirow->id;
             $item["product_name"] = $qirow->product_name;
             $item["product_description"] = $qirow->product_description;
-            $item["quantity"] = $qirow->quantity;
+            $item["quantity"] = number_format($qirow->quantity, 2);
             $item["unit"] = $qirow->unit;
             $item["price"] = number_format($qirow->price, 2);
             $item["total_price"] = number_format($qirow->total_price, 2);
@@ -617,10 +650,10 @@ class Purchase_order_m extends MY_Model
         $this->data["product_id"] = "";
         $this->data["product_name"] = "";
         $this->data["product_description"] = "";
-        $this->data["quantity"] = number_format(1, $this->Settings_m->getDecimalPlacesNumber());
+        $this->data["quantity"] = 1.00;
         $this->data["unit"] = "";
-        $this->data["price"] = number_format(0, 2);
-        $this->data["total_price"] = number_format(0, 2);
+        $this->data["price"] = 0.00;
+        $this->data["total_price"] = 0.00;
 
         if (!empty($itemId)) {
             $qirow = $db->select("*")
@@ -635,10 +668,10 @@ class Purchase_order_m extends MY_Model
             $this->data["product_id"] = $qirow->product_id;
             $this->data["product_name"] = $qirow->product_name;
             $this->data["product_description"] = $qirow->product_description;
-            $this->data["quantity"] = number_format($qirow->quantity, $this->Settings_m->getDecimalPlacesNumber());
+            $this->data["quantity"] = $qirow->quantity;
             $this->data["unit"] = $qirow->unit;
-            $this->data["price"] = number_format($qirow->price, 2);
-            $this->data["total_price"] = number_format($qirow->total_price, 2);
+            $this->data["price"] = $qirow->price;
+            $this->data["total_price"] = $qirow->total_price;
         }
 
         $this->data["status"] = "success";
@@ -721,8 +754,8 @@ class Purchase_order_m extends MY_Model
 
         $this->updateDoc($docId);
 
-        $this->data["target"] = get_uri("purchase_order/view/" . $docId);
-        $this->data["status"] = "success";
+        $this->data["target"] = get_uri('purchase_order/view/' . $docId);
+        $this->data["status"] = 'success';
 
         return $this->data;
     }
@@ -744,7 +777,7 @@ class Purchase_order_m extends MY_Model
         return $this->data;
     }
 
-    function updateStatus()
+    function updateStatus() // MARK
     {
         $db = $this->db;
         $docId = $this->json->doc_id;
@@ -758,30 +791,8 @@ class Purchase_order_m extends MY_Model
 
         if (empty($qrow)) return $this->data;
 
-        $po_id = $this->data["doc_id"] = $docId;
-        $po_header_number = $qrow->doc_number;
-        $po_header_is_partials = $qrow->is_partials;
-        $po_header_partials_type = $qrow->partials_type;
         $currentStatus = $qrow->status;
-
-        $po_header_sub_total_before_discount = $qrow->sub_total_before_discount;
-
-        $po_header_discount_type = $qrow->discount_type;
-        $po_header_discount_percent = $qrow->discount_percent;
-        $po_header_discount_amount = $qrow->discount_amount;
-
-        $po_header_sub_total = $qrow->sub_total;
-
-        $po_header_vat_inc = $qrow->vat_inc;
-        $po_header_vat_percent = $qrow->vat_percent;
-        $po_header_vat_value = $qrow->vat_value;
-
-        $po_header_wht_inc = $qrow->wht_inc;
-        $po_header_wht_percent = $qrow->wht_percent;
-        $po_header_wht_value = $qrow->wht_value;
-
-        $po_header_total = $qrow->total;
-        $po_header_payment_amount = $qrow->payment_amount;
+        $po_id = $this->data["doc_id"] = $docId;
 
         if ($qrow->status == $updateStatusTo && $updateStatusTo != "P") {
             $this->data["dataset"] = $this->getIndexDataSetHTML($qrow);
@@ -790,21 +801,121 @@ class Purchase_order_m extends MY_Model
 
         $this->db->trans_begin();
 
-        if ($updateStatusTo == "A") { // Approved
+        if ($updateStatusTo == "R") { // Rejected
+            $db->where("id", $po_id);
+            $db->update("po_header", ["status" => "R"]);
+        } elseif ($updateStatusTo == "X") { // Cancelled
+            $cancel = $db->select('*')->from('po_header')->where('id', $po_id)->where('deleted', 0)->get()->row();
+
+            $db->where('id', $cancel->pr_id);
+            $db->update('pr_header', ['status' => 'W']);
+
+            $db->where('id', $cancel->id);
+            $db->update('po_header', ['status' => 'X']);
+
+            $this->data['task'] = 'cancelled_purchase_order';
+            $this->data['status'] = 'success';
+            $this->data['message'] = lang('record_canceled');
+        } elseif ($updateStatusTo == "A") { // Approved
+            // If current status is rejected
             if ($currentStatus == "R") {
                 $this->data["dataset"] = $this->getIndexDataSetHTML($qrow);
                 return $this->data;
             }
 
+            // Count po items detail
+            $this->db->where('po_id', $po_id);
+            $count_po_detail = $this->db->count_all_results('po_detail');
+
+            if ($count_po_detail == 0) {
+                $this->data['dataset'] = $this->getIndexDataSetHTML($qrow);
+                $this->data['message'] = lang('no_item_found');
+                return $this->data;
+            }
+
+            // Update po status
             $db->where("id", $po_id);
             $db->update("po_header", [
                 "approved_by" => $this->login_user->id,
                 "approved_datetime" => date("Y-m-d H:i:s"),
                 "status" => "A"
             ]);
-        } elseif ($updateStatusTo == "R") { // Rejected
-            $db->where("id", $po_id);
-            $db->update("po_header", ["status" => "R"]);
+
+            $this->data["task"] = 'approved_purchase_order';
+            $this->data["status"] = 'success';
+            $this->data["message"] = lang('record_saved');
+            $this->data["url"] = get_uri('purchase_order/view/' . $po_id);
+        } elseif ($updateStatusTo == "GR") {
+            // If current status not equal to approved
+            if ($currentStatus != "A") {
+                $this->data["dataset"] = $this->getIndexDataSetHTML($qrow);
+                return $this->data;
+            }
+
+            // Prepare goods receipt info
+            $ex_doc_number = $this->Goods_receipt_m->getNewDocNumber(); // MARK
+            $ex_doc_date = date("Y-m-d");
+            $ex_credit_day = $qrow->credit;
+            $ex_due_date = date("Y-m-d", strtotime($ex_doc_date . " + " . $ex_credit_day . " days"));
+
+            $db->insert('goods_receipt', array(
+                'po_id' => $qrow->id,
+                'doc_number' => $ex_doc_number,
+                'po_type' => $qrow->po_type,
+                'doc_date' => $ex_doc_date,
+                'credit' => $ex_credit_day,
+                'due_date' => $ex_due_date,
+                'reference_number' => $qrow->doc_number,
+                'project_id' => $qrow->project_id,
+                'supplier_id' => $qrow->supplier_id,
+                'sub_total_before_discount' => $qrow->sub_total_before_discount,
+                'discount_type' => $qrow->discount_type,
+                'discount_percent' => $qrow->discount_percent,
+                'discount_amount' => $qrow->discount_amount,
+                'sub_total' => $qrow->sub_total,
+                'vat_inc' => $qrow->vat_inc,
+                'vat_percent' => $qrow->vat_percent,
+                'vat_value' => $qrow->vat_value,
+                'total' => $qrow->total,
+                'wht_inc' => $qrow->wht_inc,
+                'wht_percent' => $qrow->wht_percent,
+                'wht_value' => $qrow->wht_value,
+                'payment_amount' => $qrow->payment_amount,
+                'remark' => $qrow->remark,
+                'created_by' => $this->login_user->id,
+                'created_datetime' => date("Y-m-d H:i:s"),
+                'status' => 'W',
+                'deleted' => 0
+            ));
+
+            $pv_id = $db->insert_id();
+            $qirows = $db->select("*")->from("po_detail")->where("po_id", $po_id)->order_by("sort", "ASC")->get()->result();
+
+            $sort = 1;
+            if (!empty($qirows)) {
+                foreach ($qirows as $qirow) {
+                    $db->insert('goods_receipt_items', array(
+                        'pv_id' => $pv_id,
+                        'po_id' => $po_id,
+                        'po_item_id' => $qirow->id,
+                        'product_id' => $qirow->product_id,
+                        'product_name' => $qirow->product_name,
+                        'product_description' => $qirow->product_description,
+                        'quantity' => $qirow->quantity,
+                        'unit' => $qirow->unit,
+                        'price' => $qirow->price,
+                        'total_price' => $qirow->total_price,
+                        'sort' => $sort
+                    ));
+                    $sort++;
+                }
+            }
+
+            $this->data['pv_id'] = $pv_id;
+            $this->data['task'] = 'create_goods_receipt';
+            $this->data['status'] = 'success';
+            $this->data['message'] = lang('record_saved');
+            $this->data['url'] = get_uri('goods_receipt/view/' . $po_id);
         }
 
         if ($db->trans_status() === FALSE) {
@@ -857,5 +968,5 @@ class Purchase_order_m extends MY_Model
 
         return $this->data;
     }
-    
+
 }

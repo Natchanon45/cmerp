@@ -2,9 +2,9 @@
 
 class Goods_receipt_m extends MY_Model
 {
-    private $code = "GR";
+    private $code = 'PV';
 
-    private $shareHtmlAddress = "share/purchase_order/html/";
+    private $shareHtmlAddress = 'share/goods_receipt/html/';
 
     function __construct()
     {
@@ -28,9 +28,9 @@ class Goods_receipt_m extends MY_Model
             $po_list = $query;
         }
 
-        $this->data["supplier_id"] = $this->json->supplier_id;
-        $this->data["po_list"] = $po_list;
-        $this->data["status"] = "success";
+        $this->data['supplier_id'] = $this->json->supplier_id;
+        $this->data['po_list'] = $po_list;
+        $this->data['status'] = "success";
 
         return $this->data;
     }
@@ -38,8 +38,7 @@ class Goods_receipt_m extends MY_Model
     function getNewDocNumber()
     {
         $this->db->where("DATE_FORMAT(created_datetime,'%Y-%m')", date("Y-m"));
-        $this->db->where("deleted", 0);
-        $running_number = $this->db->get("gr_header")->num_rows() + 1;
+        $running_number = $this->db->get("goods_receipt")->num_rows() + 1;
 
         $doc_number = $this->getCode() . date("Ym") . sprintf("%04d", $running_number);
         return $doc_number;
@@ -47,7 +46,7 @@ class Goods_receipt_m extends MY_Model
 
     function getStatusName($status_code)
     {
-        if ($status_code == "W") {
+        if ($status_code == 'W') {
             return lang('pr_pending');
         }
     }
@@ -55,31 +54,29 @@ class Goods_receipt_m extends MY_Model
     function dev2_getPoTypeById($id)
     {
         $type = array(
-            "1" => "direct_material",
-            "2" => "indirect_material",
-            "3" => "finised_goods",
-            "4" => "assets",
-            "5" => "services",
-            "6" => "expenses"
+            '1' => 'direct_material',
+            '2' => 'indirect_material',
+            '3' => 'finised_goods',
+            '4' => 'assets',
+            '5' => 'services',
+            '6' => 'expenses',
+            '7' => 'mixed_purchase'
         );
         return lang($type[$id]);
     }
 
     function getIndexDataSetHTML($qrow)
     {
-        $doc_status = "<select class='dropdown_status select-status' data-doc_id='" . $qrow->id . "'>";
-
-        if ($qrow->status == "W") {
-            $doc_status .= "<option selected>รออนุมัติ</option>";
-            $doc_status .= "<option value='A'>อนุมัติ</option>";
-            $doc_status .= "<option value='R'>ไม่อนุมัติ</option>";
-        } elseif ($qrow->status == "A") {
-            $doc_status .= "<option selected>อนุมัติ</option>";
-        } elseif ($qrow->status == "R") {
-            $doc_status .= "<option selected>ไม่อนุมัติ</option>";
+        $doc_status = '<select class="dropdown_status select-status" data-doc_id="' . $qrow->id . '">';
+        if ($qrow->status == 'W') {
+            $doc_status .= '
+                <option value="W" selected>' . lang('pr_pending') . '</option>
+                <option value="A">' . lang('pr_approved') . '</option>
+                <option value="X">' . lang('cancel') . '</option>
+            ';
         }
-
-        $doc_status .= "</select>";
+        
+        $doc_status .= '</select>';
 
         $request_by = '-';
         if ($qrow->created_by) {
@@ -92,19 +89,19 @@ class Goods_receipt_m extends MY_Model
         $supplier_name = '-';
         if ($qrow->supplier_id) {
             $supplier = $this->Bom_suppliers_model->dev2_getSupplierNameById($qrow->supplier_id);
-            $supplier_name = "<a href='" . get_uri('stock/supplier_view/' . $qrow->supplier_id) . "'>" . mb_strimwidth($supplier, 0, 60, '...') . "</a>";
+            $supplier_name = '<a href="' .  get_uri('stock/supplier_view/' . $qrow->supplier_id) . '">' . mb_strimwidth($supplier, 0, 55, '...') . '</a>';
         }
 
         $data = array(
-            "<a href='" . get_uri('purchase_order/view/' . $qrow->id) . "'>" . convertDate($qrow->doc_date, true) . "</a>",
-            "<a href='" . get_uri('purchase_order/view/' . $qrow->id) . "'>" . $qrow->doc_number . "</a>",
+            '<a href="' . get_uri('goods_receipt/view/' . $qrow->id) . '">' . convertDate($qrow->doc_date, true) . '</a>',
+            '<a href="' . get_uri('goods_receipt/view/' . $qrow->id) . '">' . $qrow->doc_number . '</a>',
             $qrow->reference_number,
             $qrow->po_type ? $this->dev2_getPoTypeById($qrow->po_type) : '-',
             $supplier_name,
             $request_by,
             number_format($qrow->total, 2),
             $doc_status,
-            "<a data-post-id='" . $qrow->id . "' data-action-url='" . get_uri('purchase_order/addedit') . "' data-act='ajax-modal' class='edit'><i class='fa fa-pencil'></i></a>"
+            "<a data-post-id='" . $qrow->id . "' data-action-url='" . get_uri('goods_receipt/addedit') . "' data-act='ajax-modal' class='edit'><i class='fa fa-pencil'></i></a>"
         );
 
         return $data;
@@ -114,28 +111,28 @@ class Goods_receipt_m extends MY_Model
     {
         $db = $this->db;
 
-        $db->select("*")->from("po_header");
+        $db->select('*')->from('goods_receipt');
 
-        if ($this->input->post("status") != null) {
-            $db->where("status", $this->input->post("status"));
+        if ($this->input->post('status') != null) {
+            $db->where('status', $this->input->post('status'));
         }
 
-        if ($this->input->post("po_type") != null) {
-            $db->where("po_type", $this->input->post("po_type"));
+        if ($this->input->post('po_type') != null) {
+            $db->where('po_type', $this->input->post('po_type'));
         }
 
-        if ($this->input->post("start_date") != null && $this->input->post("end_date")) {
-            $db->where("doc_date >=", $this->input->post("start_date"));
-            $db->where("doc_date <=", $this->input->post("end_date"));
+        if ($this->input->post('start_date') != null && $this->input->post('end_date')) {
+            $db->where('doc_date >=', $this->input->post('start_date'));
+            $db->where('doc_date <=', $this->input->post('end_date'));
         }
 
-        if ($this->input->post("supplier_id") != null) {
-            $db->where("supplier_id", $this->input->post("supplier_id"));
+        if ($this->input->post('supplier_id') != null) {
+            $db->where('supplier_id', $this->input->post('supplier_id'));
         }
 
-        $db->where("deleted", 0);
+        $db->where('deleted', 0);
 
-        $qrows = $db->order_by("doc_number", "desc")->get()->result();
+        $qrows = $db->order_by('doc_number', 'desc')->get()->result();
 
         $dataset = [];
 
@@ -150,50 +147,66 @@ class Goods_receipt_m extends MY_Model
     {
         $db = $this->db;
 
-        $this->data["doc_date"] = date("Y-m-d");
-        $this->data["receive_date"] = date("Y-m-d");
-        $this->data["reference_number"] = "";
-        $this->data["discount_type"] = "P";
-        $this->data["discount_percent"] = 0;
-        $this->data["discount_amount"] = 0;
-        $this->data["vat_inc"] = "N";
-        $this->data["wht_inc"] = "N";
-        $this->data["supplier_id"] = null;
-        $this->data["remark"] = null;
-        $this->data["created_by"] = null;
-        $this->data["created_datetime"] = null;
-        $this->data["approved_by"] = null;
-        $this->data["approved_datetime"] = null;
-        $this->data["doc_status"] = null;
+        $this->data['po_id'] = 0;
+        $this->data['doc_number'] = '';
+        $this->data['share_link'] = null;
+        $this->data['po_type'] = 0;
+        $this->data['doc_date'] = date('Y-m-d');
+        $this->data['credit'] = 0;
+        $this->data['due_date'] = date('Y-m-d');
+        $this->data['reference_number'] = '';
+        $this->data['project_id'] = 0;
+        $this->data['supplier_id'] = 0;
+        $this->data['sub_total_before_discount'] = 0.00;
+        $this->data['sub_total'] = 0.00;
+        $this->data['vat_inc'] = 'N';
+        $this->data['vat_percent'] = 7.00;
+        $this->data['vat_value'] = 'N';
+        $this->data['total'] = 0.00;
+        $this->data['wht_inc'] = 'N';
+        $this->data['wht_percent'] = 0.00;
+        $this->data['wht_value'] = 0.00;
+        $this->data['payment_amount'] = 0.00;
+        $this->data['remark'] = null;
+        $this->data['created_by'] = 0;
+        $this->data['created_datetime'] = date('Y-m-d');
+        $this->data['approved_by'] = 0;
+        $this->data['approved_datetime'] = date('Y-m-d');
+        $this->data['status'] = 'W';
+        $this->data['deleted'] = 0;
 
         if (!empty($docId)) {
-            $qrow = $db->select("*")
-                ->from("gr_header")
-                ->where("id", $docId)
-                ->where("deleted", 0)
-                ->get()->row();
-
+            $qrow = $db->select('*')->from('goods_receipt')->where('deleted', 0)->where('id', $docId)->get()->row();
             if (empty($qrow)) return $this->data;
 
-            $this->data["doc_id"] = $docId;
-            $this->data["doc_number"] = $qrow->doc_number;
-            $this->data["share_link"] = $qrow->sharekey != null ? get_uri($this->shareHtmlAddress . "th/" . $qrow->sharekey) : null;
-            $this->data["doc_date"] = $qrow->doc_date;
-            $this->data["receive_date"] = $qrow->receive_date;
-            $this->data["reference_number"] = $qrow->reference_number;
-            $this->data["discount_type"] = $qrow->discount_type;
-            $this->data["discount_percent"] = $qrow->discount_percent;
-            $this->data["discount_amount"] = $qrow->discount_amount;
-            $this->data["vat_inc"] = $qrow->vat_inc;
-            $this->data["vat_percent"] = number_format_drop_zero_decimals($qrow->vat_percent, 2) . "%";
-            $this->data["wht_inc"] = $qrow->wht_inc;
-            $this->data["supplier_id"] = $qrow->supplier_id;
-            $this->data["remark"] = $qrow->remark;
-            $this->data["created_by"] = $qrow->created_by;
-            $this->data["created_datetime"] = $qrow->created_datetime;
-            $this->data["approved_by"] = $qrow->approved_by;
-            $this->data["approved_datetime"] = $qrow->approved_datetime;
-            $this->data["doc_status"] = $qrow->status;
+            $this->data['doc_id'] = $qrow->id;
+            $this->data['po_id'] = $qrow->po_id;
+            $this->data['doc_number'] = $qrow->doc_number;
+            $this->data['share_link'] = $qrow->sharekey != null ? get_uri($this->shareHtmlAddress . "th/" . $qrow->sharekey) : null;
+            $this->data['po_type'] = $qrow->po_type;
+            $this->data['doc_date'] = $qrow->doc_date;
+            $this->data['credit'] = $qrow->credit;
+            $this->data['due_date'] = $qrow->due_date;
+            $this->data['reference_number'] = $qrow->reference_number;
+            $this->data['project_id'] = $qrow->project_id;
+            $this->data['supplier_id'] = $qrow->supplier_id;
+            $this->data['sub_total_before_discount'] = $qrow->sub_total_before_discount;
+            $this->data['sub_total'] = $qrow->sub_total;
+            $this->data['vat_inc'] = $qrow->vat_inc;
+            $this->data['vat_percent'] = number_format_drop_zero_decimals($qrow->vat_percent, 2) . "%";
+            $this->data['vat_value'] = $qrow->vat_value;
+            $this->data['total'] = $qrow->total;
+            $this->data['wht_inc'] = $qrow->wht_inc;
+            $this->data['wht_percent'] = $qrow->wht_percent;
+            $this->data['wht_value'] = $qrow->wht_value;
+            $this->data['payment_amount'] = $qrow->payment_amount;
+            $this->data['remark'] = $qrow->remark;
+            $this->data['created_by'] = $qrow->created_by;
+            $this->data['created_datetime'] = $qrow->created_datetime;
+            $this->data['approved_by'] = $qrow->approved_by;
+            $this->data['approved_datetime'] = $qrow->approved_datetime;
+            $this->data['status'] = $qrow->status;
+            $this->data['deleted'] = $qrow->deleted;
         }
 
         $this->data["status"] = "success";
@@ -223,8 +236,7 @@ class Goods_receipt_m extends MY_Model
             ->from("po_header")
             ->get()->row();
 
-        if (empty($qrow))
-            return $this->data;
+        if (empty($qrow)) return $this->data;
 
         $docId = $qrow->id;
 
@@ -431,8 +443,10 @@ class Goods_receipt_m extends MY_Model
 
         if ($this->form_validation->run() == FALSE) {
             $this->data["status"] = "validate";
-            if (form_error('doc_date') != null) $this->data["messages"]["doc_date"] = form_error('doc_date');
-            if (form_error('receive_date') != null) $this->data["messages"]["receive_date"] = form_error('receive_date');
+            if (form_error('doc_date') != null)
+                $this->data["messages"]["doc_date"] = form_error('doc_date');
+            if (form_error('receive_date') != null)
+                $this->data["messages"]["receive_date"] = form_error('receive_date');
         }
     }
 
@@ -441,7 +455,8 @@ class Goods_receipt_m extends MY_Model
         $db = $this->db;
 
         $this->validateDoc();
-        if ($this->data["status"] == "validate") return $this->data;
+        if ($this->data["status"] == "validate")
+            return $this->data;
 
         $docId = $this->json->doc_id;
         $doc_date = convertDate($this->json->doc_date);

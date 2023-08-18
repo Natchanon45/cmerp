@@ -63,9 +63,20 @@
     #datagrid {
         font-size: normal;
     }
-</style>
 
-<?php $modal_header = str_replace("https:", "", str_replace("http:", "", str_replace("/", "", base_url()))); ?>
+    .p20 {
+        padding-top: 0 !important;
+    }
+
+    .select-status {
+        width: calc(100% - 15px);
+        padding: .3rem .9rem;
+        border-radius: .3rem;
+        outline: none;
+        border-color: #e2e7f1;
+        appearance: none;
+    }
+</style>
 
 <a id="popup" data-act="ajax-modal" class="btn ajax-modal"></a>
 <div id="page-content" class="p20 clearfix">
@@ -76,7 +87,7 @@
     </ul>
 
     <div class="panel panel-default">
-        <div class="table-responsive pb50">
+        <div class="table-responsive">
             <div id="accounting_navs">
                 <ul class="tabs">
                     <?php $number_of_enable_module = 0; ?>
@@ -176,7 +187,7 @@
 
             grid_columns = [
                 { title: '<?php echo lang('request_date'); ?>', class: 'w10p' },
-                { title: '<?php echo lang('pr_no'); ?>', class: 'w10p' },
+                { title: '<?php echo lang('pr_number'); ?>', class: 'w10p' },
                 { title: '<?php echo lang('pr_type'); ?>', class: 'w10p' },
                 { title: '<?php echo lang('supplier_name'); ?>', class: 'w25p' },
                 { title: '<?php echo lang('request_by'); ?>', class: 'w15p' },
@@ -208,9 +219,9 @@
 
             grid_columns = [
                 { title: '<?php echo lang('request_date'); ?>', class: 'w10p' },
-                { title: '<?php echo lang('po_no'); ?>', class: 'w10p' },
+                { title: '<?php echo lang('pr_number'); ?>', class: 'w10p' },
                 { title: '<?php echo lang('reference_number'); ?>', class: 'w10p' },
-                { title: '<?php echo lang('po_type'); ?>', class: 'w10p' },
+                { title: '<?php echo lang('pr_type'); ?>', class: 'w10p' },
                 { title: '<?php echo lang('supplier_name'); ?>', class: 'w20p' },
                 { title: '<?php echo lang('request_by'); ?>', class: 'w10p' },
                 { title: '<?php echo lang('total_amount'); ?>', class: 'text-right w10p' },
@@ -224,14 +235,39 @@
             grid_summation = [
                 { column: 6, dataType: 'currency' }
             ];
-        } else if (active_module == 'goods_receipt') {
+        } else if (active_module == 'goods_receipt') { // MARK
             $(".buttons").addClass('hide');
             $(".buttons li.add a").attr('data-action-url', '<?php echo get_uri('goods_receipt/addedit'); ?>');
             $(".buttons li.add span").append('<?php echo lang('goods_receipt_add'); ?>');
-        } else if (active_module == 'payment_voucher') {
-            $(".buttons").addClass('hide');
-            $(".buttons li.add a").attr('data-action-url', '<?php echo get_uri('payment_voucher/addedit'); ?>');
-            $(".buttons li.add span").append('<?php echo lang('payment_voucher_add'); ?>');
+
+            status_dropdown = '<?php echo $status_dropdown; ?>';
+            supplier_dropdown = '<?php echo $supplier_dropdown; ?>';
+            type_dropdown = '<?php echo $type_dropdown; ?>';
+
+            grid_filters = [
+                { name: 'status', class: 'w150', options: JSON.parse(status_dropdown) },
+                { name: 'po_type', class: 'w200', options: JSON.parse(type_dropdown) },
+                { name: 'supplier_id', class: 'w250', options: JSON.parse(supplier_dropdown) }
+            ];
+
+            grid_columns = [
+                { title: '<?php echo lang('request_date'); ?>', class: 'w10p' },
+                { title: '<?php echo lang('pr_number'); ?>', class: 'w10p' },
+                { title: '<?php echo lang('reference_number'); ?>', class: 'w10p' },
+                { title: '<?php echo lang('pr_type'); ?>', class: 'w10p' },
+                { title: '<?php echo lang('supplier_name'); ?>', class: 'w20p' },
+                { title: '<?php echo lang('request_by'); ?>', class: 'w10p' },
+                { title: '<?php echo lang('total_amount'); ?>', class: 'text-right w10p' },
+                { title: '<?php echo lang('status'); ?>', class: 'w10p' },
+                { title: '<i class="fa fa-bars"></i>', class: 'text-center option w5p' }
+            ];
+
+            grid_print = combineCustomFieldsColumns([0, 1, 2, 3, 4, 5, 6]);
+            grid_excel = combineCustomFieldsColumns([0, 1, 2, 3, 4, 5, 6]);
+
+            grid_summation = [
+                { column: 6, dataType: 'currency' }
+            ];
         }
 
         $("#datagrid").appTable({
@@ -250,10 +286,6 @@
         });
 
         $("#datagrid").on("draw.dt", function () {
-            $(".dropdown_status").select2({
-                width: '100%'
-            });
-
             $(".dropdown_status").on("change", function () {
                 let url = '<?php echo_uri(); ?>' + active_module;
                 let request = {
@@ -261,15 +293,32 @@
                     doc_id: $(this).data("doc_id"),
                     update_status_to: $(this).val()
                 };
+                // console.log(url, request);
 
                 axios.post(url, request).then((response) => {
-                    // console.log(response);
+                    console.log(response);
                     
                     let data = response.data;
                     if (data.status == "success") {
                         if (typeof data.task !== "undefined") {
-                            window.location.href = data.url;
-                            return;
+                            if (data.task === 'cancelled_purchase_order') {
+                                window.location.reload();
+                                return;
+                            }
+
+                            if (data.task === 'create_purchase_order') {
+                                window.location.href = data.url;
+                                return
+                            }
+
+                            if (data.task === 'approved_purchase_order') {
+                                window.location.href = data.url;
+                                return;
+                            }
+
+                            if ($data.task === 'create_goods_receipt') {
+                                return;
+                            }
                         }
 
                         appAlert.success(data.message, { duration: 3001 });

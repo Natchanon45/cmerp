@@ -8,6 +8,7 @@
 <div id="dcontroller" class="clearfix">
     <div class="page-title clearfix mt15 clear">
         <h1><?php echo (isset($doc_number) && !empty($doc_number)) ? lang('purchase_request') . ' ' . $doc_number : ''; ?></h1>
+
         <div class="title-button-group">
             <a style="margin-left: 15px;" class="btn btn-default mt0 mb0 back-to-index-btn" href="<?php echo get_uri("accounting/buy/purchase_request"); ?>">
                 <i class="fa fa-hand-o-left" aria-hidden="true"></i>
@@ -84,9 +85,9 @@
         <div class="r">
             <h1 class="document_name custom-color"><?php echo lang('purchase_request'); ?></h1>
             <div class="about_company">
-                <table>
+                <table width="100%">
                     <tr>
-                        <td class="custom-color top-vertical"><?php echo lang('document_number'); ?></td>
+                        <td class="custom-color top-vertical" style="width: 30%;"><?php echo lang('document_number'); ?></td>
                         <td><?php echo $doc_number; ?></td>
                     </tr>
                     <tr>
@@ -120,9 +121,9 @@
                 </table>
             </div>
             <div class="about_customer">
-                <table>
+                <table width="100%">
                     <tr>
-                        <td class="custom-color"><?php echo lang('contact_name'); ?></td>
+                        <td class="custom-color" style="width: 30%;"><?php echo lang('contact_name'); ?></td>
                         <td>
                             <?php echo (isset($supplier_contact) && !empty($supplier_contact)) ? $supplier_contact["first_name"] . " " . $supplier_contact["last_name"] : '-'; ?>
                         </td>
@@ -171,7 +172,8 @@
                                         array(
                                             "id" => "add_item_button",
                                             "class" => "btn btn-default",
-                                            "title" => lang('add_item_product'),
+                                            "title" => $modal_header,
+                                            "data-title" => $modal_header,
                                             "data-post-doc_id" => $doc_id
                                         )
                                     );
@@ -223,7 +225,7 @@
 
                         <p id="s-wht">
                             <span class="c1 custom-color">
-                                <input type="checkbox" id="wht_inc" <?php if ($wht_inc == "Y") echo "checked" ?> <?php if ($doc_status != "W") echo "disabled"; ?>>
+                                <input type="checkbox" id="wht_inc" <?php if ($wht_inc == "Y") echo "checked" ?> <?php if ($doc_status != "W") echo "disabled"; ?> <?php if ($pr_type != "5") echo "disabled"; ?>>
                                 <span><?php echo lang('with_holding_tax'); ?></span>
                                 <select id="wht_percent" class="wht custom-color <?php echo $wht_inc == "Y" ? "v" : "h"; ?>" <?php if ($doc_status != "W") echo "disabled"; ?>>
                                     <?php if ($wht_inc == 'Y' && isset($wht_percent) && !empty($wht_percent)): ?>
@@ -358,7 +360,7 @@
                 `;
                 $(".docitem tbody").empty().append(notfound);
             } else if (data.status == "success") {
-                // console.log(items);
+                // console.log(data.items);
 
                 let tbody = '';
                 let items = data.items;
@@ -485,7 +487,7 @@
         };
         // console.log(url, request);
 
-        axios.post(url, req).then((response) => {
+        axios.post(url, request).then((response) => {
             // console.log(response);
             loadItems();
         });

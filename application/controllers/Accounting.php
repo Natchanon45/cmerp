@@ -74,6 +74,9 @@ class Accounting extends MY_Controller {
         if($this->uri->segment(3) != null) $this->data["module"] = $this->uri->segment(3);
         $this->data['permissions'] = $this->Permission_m->permissions;
 
+        $modal_header = str_replace("https:", "", str_replace("http:", "", str_replace("/", "", base_url())));
+        $this->data['modal_header'] = strtoupper($modal_header);
+
         // Supplier Dropdown
         $this->data['supplier_dropdown'] = json_encode($this->Bom_suppliers_model->dev2_getSupplierDropdownWithCode());
         // PR Status Dropdown

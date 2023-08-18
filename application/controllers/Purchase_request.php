@@ -22,8 +22,7 @@ class Purchase_request extends MY_Controller
             jout(["data" => $this->Purchase_request_m->indexDataSet()]);
             return;
         } elseif (isset($this->json->task)) {
-            if ($this->json->task == "update_doc_status")
-                jout($this->Purchase_request_m->updateStatus());
+            if ($this->json->task == "update_doc_status") jout($this->Purchase_request_m->updateStatus());
             return;
         }
 
@@ -73,6 +72,7 @@ class Purchase_request extends MY_Controller
         }
 
         $data['active_module'] = 'purchase_request';
+        $data['modal_header'] = $this->Purchase_request_m->modal_header();
         $data['created'] = $this->Users_m->getInfo($data['created_by']);
         $data['supplier'] = $this->Bom_suppliers_model->getInfo($data['supplier_id']);
         $data['supplier_contact'] = $this->Bom_suppliers_model->getContactInfo($data['supplier_id']);
@@ -88,6 +88,8 @@ class Purchase_request extends MY_Controller
         if ($doc['status'] != 'success') redirect('forbidden');
 
         $this->data['docmode'] = 'private_print';
+        
+        // var_dump(arr($this->data)); exit();
         $this->load->view('edocs/purchase_request', $this->data);
     }
 
@@ -152,6 +154,7 @@ class Purchase_request extends MY_Controller
         }
 
         $data = $this->Purchase_request_m->getDoc($this->input->post('doc_id'));
+
         $this->load->view('purchase_request/share', $data);
     }
 
