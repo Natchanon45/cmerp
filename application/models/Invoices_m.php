@@ -788,6 +788,7 @@ class Invoices_m extends MY_Model {
 
     function updateStatus(){
         $db = $this->db;
+        $company_setting = $this->Settings_m->getCompany();
         $docId = $this->json->doc_id;
         $updateStatusTo = $this->json->update_status_to;
         
@@ -812,6 +813,46 @@ class Invoices_m extends MY_Model {
         $this->db->trans_begin();
 
         if($updateStatusTo == "O"){
+            if($currentStatus == "V"){
+                $this->data["dataset"] = $this->getIndexDataSetHTML($ivrow);
+                return $this->data;
+            }
+            
+            $company_stock_type = $company_setting["company_stock_type"];
+
+            if($company_stock_type == "invoice"){
+                $item = [
+                        "sale_id"=>$ivrow->id,
+                        "sale_type"=>"IV",
+                        "sale_document"=>$ivrow->doc_number,
+                        "project_id"=>$ivrow->project_id,
+                        "created_by"=>$ivrow->created_by
+                    ];
+
+                $ivirows = $db->select("*")
+                                ->from("invoice_items")
+                                ->where("invoice_id", $ivrow->id)
+                                ->get()->result();
+
+                $items = [];
+
+                if(!empty($ivirows)){
+                    foreach($ivirows as $ivirow){
+                        if($ivirow->product_id != null){
+                            $items[] = [
+                                        "id"=>$ivirow->id,
+                                        "item_id"=>$ivirow->product_id,
+                                        "ratio"=>$ivirow->quantity
+                                    ];
+                        }
+                    }
+                }
+
+                $item["items"] = $items;
+
+                $bism = $this->Bom_item_stocks_model->processFinishedGoodsSale($item);
+            }
+
             $db->where("id", $docId);
             $db->where("deleted", 0);
             $db->update("invoice", [

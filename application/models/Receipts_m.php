@@ -179,7 +179,7 @@ class Receipts_m extends MY_Model {
             $this->data["approved_by"] = $rerow->approved_by;
             $this->data["approved_datetime"] = $rerow->approved_datetime;
             $this->data["doc_status"] = $rerow->status;
-            $this->data["receipt_title"] = $this->getReceiptTitle($company_setting["company_receipt_type"]);
+            $this->data["receipt_title"] = "";//$this->getReceiptTitle($company_setting["company_receipt_type"]);
         }
 
         $this->data["status"] = "success";
@@ -727,6 +727,7 @@ class Receipts_m extends MY_Model {
 
     function updateStatus(){
         $db = $this->db;
+        $company_setting = $this->Settings_m->getCompany();
         $docId = $this->json->doc_id;
         $updateStatusTo = $this->json->update_status_to;
 
@@ -754,6 +755,39 @@ class Receipts_m extends MY_Model {
                 return $this->data;
             }
             
+            if($company_stock_type == "receipt"){
+                $item = [
+                        "sale_id"=>$rerow->id,
+                        "sale_type"=>"RE",
+                        "sale_document"=>$rerow->doc_number,
+                        "project_id"=>$rerow->project_id,
+                        "created_by"=>$rerow->created_by
+                    ];
+
+                $rerows = $db->select("*")
+                                ->from("receipt_items")
+                                ->where("receipt_id", $rerow->id)
+                                ->get()->result();
+
+                $items = [];
+
+                if(!empty($rerows)){
+                    foreach($rerows as $rerow){
+                        if($rerow->product_id != null){
+                            $items[] = [
+                                        "id"=>$rerow->id,
+                                        "item_id"=>$rerow->product_id,
+                                        "ratio"=>$rerow->quantity
+                                    ];
+                        }
+                    }
+                }
+
+                $item["items"] = $items;
+                
+                $bism = $this->Bom_item_stocks_model->processFinishedGoodsSale($item);
+            }
+
             $db->where("id", $docId);
             $db->update("receipt", ["approved_by"=>$this->login_user->id, "approved_datetime"=>date("Y-m-d H:i:s"), "status"=>"P"]);
 
