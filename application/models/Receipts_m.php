@@ -38,6 +38,18 @@ class Receipts_m extends MY_Model {
         }
     }
 
+    function getReceiptTitle($receipt_type){
+        if($receipt_type == "1"){
+            return "ใบเสร็จรับเงิน";
+        }elseif($receipt_type == "2"){
+            return "ใบเสร็จรับเงิน/ใบกำกับภาษี";
+        }elseif($receipt_type == "3"){
+            return "ใบส่งของ/ใบเสร็จรับเงิน/ใบกำกับภาษี";
+        }
+
+        return "";
+    }
+
     function getIndexDataSetHTML($rerow){
         $doc_status = "<select class='dropdown_status' data-doc_id='".$rerow->id."'>";
 
@@ -106,6 +118,7 @@ class Receipts_m extends MY_Model {
 
     function getDoc($docId){
         $db = $this->db;
+        $company_setting = $this->Settings_m->getCompany();
 
         $this->data["invoice_id"] = null;
         $this->data["doc_date"] = date("Y-m-d");
@@ -124,6 +137,7 @@ class Receipts_m extends MY_Model {
         $this->data["approved_by"] = null;
         $this->data["approved_datetime"] = null;
         $this->data["doc_status"] = NULL;
+        $this->data["receipt_title"] = NULL;
 
         if(!empty($docId)){
             $rerow = $db->select("*")
@@ -165,6 +179,7 @@ class Receipts_m extends MY_Model {
             $this->data["approved_by"] = $rerow->approved_by;
             $this->data["approved_datetime"] = $rerow->approved_datetime;
             $this->data["doc_status"] = $rerow->status;
+            $this->data["receipt_title"] = $this->getReceiptTitle($company_setting["company_receipt_type"]);
         }
 
         $this->data["status"] = "success";

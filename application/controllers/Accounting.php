@@ -54,6 +54,7 @@ class Accounting extends MY_Controller {
         }
 
         $this->data["client_ids"] = json_encode($client_ids);
+        $this->data["billing_type"] = $this->data["company_setting"]["company_billing_type"];
 
         $this->template->rander("accounting/sell", $this->data);
     }

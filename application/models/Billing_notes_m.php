@@ -1081,4 +1081,168 @@ class Billing_notes_m extends MY_Model {
 
         return $this->data;
     }
+
+    function createDocByInvoiceId($invoice_id){
+        $db = $this->db;
+
+        $ivrow = $db->select("doc_number")
+                    ->from("invoice")
+                    ->where("invoice_id", $invoice_id)
+                    ->where("doc_type", "TIV")
+                    ->where_in("status", ["W", "A"])
+                    ->where("deleted", 0)
+                    ->get()->row();
+
+        if(!empty($ivrow)){
+            $this->data["message"] = "ไม่สามารถอกใบวางบิลได้ เนื่องจากเอกสาร ".$ivrow->doc_number." ถูกออกใบกำกับภาษีเรียบร้อยแล้ว";
+            return $this->data;
+        }
+
+        $ivrow = $db->select("*")
+                    ->from("invoice")
+                    ->where("id", $invoice_id)
+                    ->where_in("status", ["O", "P"])
+                    ->where("doc_type", "IV")
+                    ->where("deleted", 0)
+                    ->get()->row();
+
+        if(empty($ivrow)) return $this->data;
+
+        $ivirows = $db->select("*")
+                        ->from("invoice_items")
+                        ->where("invoice_id", $invoice_id)
+                        ->order_by("sort", "asc")
+                        ->get()->result();
+
+        $invoice_id = $ivrow->id;
+        $doc_type = "TIV";
+        $doc_number = $this->getNewDocNumber();
+        $doc_date = date("Y-m-d");
+        $credit = $ivrow->credit;
+        $due_date = $ivrow->due_date;
+        $reference_number = $ivrow->doc_number;
+        $project_id = $ivrow->project_id;
+        $client_id = $ivrow->client_id;
+        $sub_total_before_discount = $ivrow->sub_total_before_discount;
+        $discount_type = $ivrow->discount_type;
+        $discount_percent = $ivrow->discount_percent;
+        $discount_amount = $ivrow->discount_amount;
+        $sub_total = $ivrow->sub_total;
+        $vat_inc = $ivrow->vat_inc;
+        $vat_percent = $ivrow->vat_percent;
+        $vat_value = $ivrow->vat_value;
+        $total = $ivrow->total;
+        $wht_inc = $ivrow->wht_inc;
+        $wht_percent = $ivrow->wht_percent;
+        $wht_value = $ivrow->wht_value;
+        $payment_amount = $ivrow->payment_amount;
+        $remark = $ivrow->remark;
+        $created_by = $this->login_user->id;
+        $created_datetime = date("Y-m-d H:i:s");
+
+        $db->trans_begin();
+        
+        $db->insert("invoice", [
+                                    "invoice_id"=>$invoice_id,
+                                    "doc_type"=>$doc_type,
+                                    "doc_number"=>$doc_number,
+                                    "doc_date"=>$doc_date,
+                                    "credit"=>$credit,
+                                    "due_date"=>$due_date,
+                                    "reference_number"=>$reference_number,
+                                    "project_id"=>$project_id,
+                                    "client_id"=>$client_id,
+                                    "sub_total_before_discount"=>$sub_total_before_discount,
+                                    "discount_type"=>$discount_type,
+                                    "discount_percent"=>$discount_percent,
+                                    "discount_amount"=>$discount_amount,
+                                    "sub_total"=>$sub_total,
+                                    "vat_inc"=>$vat_inc,
+                                    "vat_percent"=>$vat_percent,
+                                    "vat_value"=>$vat_value,
+                                    "total"=>$total,
+                                    "wht_inc"=>$wht_inc,
+                                    "wht_percent"=>$wht_percent,
+                                    "wht_value"=>$wht_value,
+                                    "payment_amount"=>$payment_amount,
+                                    "remark"=>$remark,
+                                    "created_by"=>$created_by,
+                                    "created_datetime"=>$created_datetime,
+                                    "tax_invoice_status"=>"W",
+                                    "deleted"=>0
+                                ]);
+
+        $invoice_id = $db->insert_id();
+
+        if(!empty($ivirows)){
+            foreach($ivirows as $ivirow){
+                $db->insert("invoice_items", [
+                                                "invoice_id"=>$invoice_id,
+                                                "product_id"=>$ivirow->product_id,
+                                                "product_name"=>$ivirow->product_name,
+                                                "product_description"=>$ivirow->product_description,
+                                                "quantity"=>$ivirow->quantity,
+                                                "unit"=>$ivirow->unit,
+                                                "price"=>$ivirow->price,
+                                                "total_price"=>$ivirow->total_price,
+                                                "sort"=>$ivirow->sort
+                                            ]);
+            }
+        }
+
+        $this->data["doc_id"] = $invoice_id;
+
+        if ($db->trans_status() === FALSE){
+            $db->trans_rollback();
+            return $this->data;
+        }
+
+        $db->trans_commit();
+
+        $this->data["url"] = get_uri("tax-invoices/view/".$invoice_id);
+        $this->data["status"] = "success";
+        $this->data["message"] = "success";
+
+        return $this->data;
+    }
+
+    function getHTMLInvoices() {
+        $db = $this->db;
+        $customer_id = $this->json->customer_id;
+
+        if(!isset($customer_id)) return ["html"=>"<tr class='norecord'><td colspan='8'>กรุณาเลือกชื่อลูกค้า เพื่อค้นหาเอกสาร</td></tr>"];
+        if($customer_id == "") return ["html"=>"<tr class='norecord'><td colspan='8'>กรุณาเลือกชื่อลูกค้า เพื่อค้นหาเอกสาร</td></tr>"];
+
+        $ivrows = $db->select("*")
+                        ->from("invoice")
+                        ->where_in("status", ["O", "P"])
+                        ->where_in("doc_type", ["IV", "IVT"])
+                        ->where("client_id", $customer_id)
+                        ->where("deleted", 0)
+                        ->order_by("doc_number", "desc")
+                        ->get()->result();
+
+        $html = "<tr class='norecord'><td colspan='8'>ไม่พบข้อมูลใบแจ้งหนี้</td></tr>";
+
+        if(!empty($ivrows)){
+            $html = "";
+            foreach($ivrows as $ivrow){
+                $html .= "<tr>";
+                    $html .= "<td>".$ivrow->doc_number."</td>";
+                    $html .= "<td>".convertDate($ivrow->doc_date, true)."</td>";
+                    $html .= "<td>".convertDate($ivrow->due_date, true)."</td>";
+                    $html .= "<td>".number_format($ivrow->total, 2)."</td>";
+                    $html .= "<td>".number_format($ivrow->payment_amount, 2)."</td>";
+                    $html .= "<td>".($ivrow->wht_inc == 'Y'?$ivrow->wht_value:'ไม่ระบุ')."</td>";
+                    $html .= "<td>".number_format($ivrow->payment_amount, 2)."</td>";
+                    //$html .= "<td><a data-invoice_id='".$ivrow->id."' class='choose-inv-button custom-color-button'>เลือก</a></td>";
+                    $html .= "<td><input type='checkbox' name='invoice_numbers[]' value='".$ivrow->id."'></td>";
+                $html .= "</tr>";
+            }
+        }
+
+        $data["html"] = $html;
+
+        return $data;
+    }
 }

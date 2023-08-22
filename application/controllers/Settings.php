@@ -363,13 +363,13 @@ class Settings extends MY_Controller {
         $settings = [
                         "company_name",
                         "company_vat_registered",
+                        "company_billing_type",
+                        "company_stock_type",
                         "company_address",
                         "company_phone",
                         "company_email",
                         "company_website",
                         "company_vat_number",
-                        "company_issue_tax_invoice",
-                        "company_receipt_type",
                         "company_stamp"
                     ];
 

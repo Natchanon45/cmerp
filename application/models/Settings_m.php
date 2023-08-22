@@ -10,12 +10,12 @@ class Settings_m extends MY_Model {
                                 "company_name"=>"",
                                 "company_vat_number"=>"",
                                 "company_vat_registered"=>"Y",
+                                "company_billing_type"=>"",
+                                "company_stock_type"=>"",
                                 "company_address"=>"",
                                 "company_phone"=>"",
                                 "company_email"=>"",
                                 "company_website"=>"",
-                                "company_issue_tax_invoice"=>"Y",
-                                "company_receipt_type"=>"1",
                                 "company_stamp"=>null
                             ];
 

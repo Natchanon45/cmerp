@@ -85,30 +85,48 @@
                         </li>
                     <?php endif; ?>
                     <?php if($this->Permission_m->accounting["invoice"]["access"] == true): ?>
-                        <?php $number_of_enable_module++; ?>
-                        <li data-module="invoices" class="<?php if($module == "invoices") echo 'active custom-bg01'; ?>">
-                            <a class="<?php if($module == "invoices") echo 'custom-color'; ?>">ใบแจ้งหนี้</a>
-                        </li>
-                    <?php endif; ?>
-                    <?php if($this->Permission_m->accounting["tax_invoice"]["access"] == true && $company_setting["company_vat_registered"] == "Y"): ?>
-                        <?php $number_of_enable_module++; ?>
-                        <li data-module="tax-invoices" class="<?php if($module == "tax-invoices") echo 'active custom-bg01'; ?>">
-                            <a class="<?php if($module == "tax-invoices") echo 'custom-color'; ?>">ใบกำกับภาษี</a>
-                        </li>
+                        <?php if($billing_type == 1 || $billing_type == 2 || $billing_type == 4 || $billing_type == 5): ?>
+                            <?php $number_of_enable_module++; ?>
+                            <li data-module="invoices" class="<?php if($module == "invoices") echo 'active custom-bg01'; ?>">
+                                <a class="<?php if($module == "invoices") echo 'custom-color'; ?>">
+                                    <?php
+                                        if($billing_type== "2") echo "ใบแจ้งหนี้/ใบวางบิล";
+                                        elseif($billing_type == "5") echo "ใบแจ้งหนี้/ใบวางบิล";
+                                        else echo "ใบแจ้งหนี้";
+                                    ?>
+                                </a>
+                            </li>
+                        <?php endif; ?>
                     <?php endif; ?>
                     <?php if($this->Permission_m->accounting["billing_note"]["access"] == true): ?>
-                        <?php $number_of_enable_module++; ?>
-                        <li data-module="billing-notes" class="<?php if($module == "billing-notes") echo 'active custom-bg01'; ?>">
-                            <a class="<?php if($module == "billing-notes") echo 'custom-color'; ?>">ใบวางบิล</a>
-                        </li>
+                        <?php if($billing_type == 1 || $billing_type == 4): ?>
+                            <?php $number_of_enable_module++; ?>
+                            <li data-module="billing-notes" class="<?php if($module == "billing-notes") echo 'active custom-bg01'; ?>">
+                                <a class="<?php if($module == "billing-notes") echo 'custom-color'; ?>">ใบวางบิล</a>
+                            </li>
+                        <?php endif; ?>
+                    <?php endif; ?>
+                    <?php if($this->Permission_m->accounting["tax_invoice"]["access"] == true && $company_setting["company_vat_registered"] == "Y"): ?>
+                        <?php if($billing_type == 1): ?>
+                            <?php $number_of_enable_module++; ?>
+                            <li data-module="tax-invoices" class="<?php if($module == "tax-invoices") echo 'active custom-bg01'; ?>">
+                                <a class="<?php if($module == "tax-invoices") echo 'custom-color'; ?>">ใบกำกับภาษี</a>
+                            </li>
+                        <?php endif; ?>
                     <?php endif; ?>
                     <?php if($this->Permission_m->accounting["receipt"]["access"] == true): ?>
                         <?php $number_of_enable_module++; ?>
                         <li data-module="receipts" class="<?php if($module == "receipts") echo 'active custom-bg01'; ?>">
-                            <a class="<?php if($module == "receipts") echo 'custom-color'; ?>">ใบเสร็จรับเงิน</a>
+                            <a class="<?php if($module == "receipts") echo 'custom-color'; ?>">
+                                <?php
+                                    if($billing_type == "2") echo "ใบกำกับภาษี/ใบเสร็จรับเงิน";
+                                    elseif($billing_type == "3") echo "ใบแจ้งหนี้/ใบวางบิล/ใบกำกับภาษี/ใบเสร็จรับเงิน/ใบส่งของ";
+                                    elseif($billing_type == "6") echo "ใบแจ้งหนี้/ใบวางบิล/ใบเสร็จรับเงิน/ใบส่งของ";
+                                    else echo "ใบเสร็จรับเงิน";
+                                ?>
+                            </a>
                         </li>
                     <?php endif; ?>
-
                     <?php if($this->Permission_m->accounting["credit_note"]["access"] == true): ?>
                         <?php $number_of_enable_module++; ?>
                         <li data-module="credit-notes" class="<?php if($module == "credit-notes") echo 'active custom-bg01'; ?>">
@@ -174,28 +192,28 @@ function loadDataGrid(){
 
     if(active_module == "quotations"){
         $(".buttons li.add a").attr("data-action-url", "<?php echo get_uri("quotations/addedit"); ?>");
-        $(".buttons li.add span").append("เพิ่มใบเสนอราคา");
+        $(".buttons li.add span").append("สร้างใบเสนอราคา");
         doc_status = [{id:"", text:"-- <?php echo lang("status"); ?> --"}, {id:"W", text:"รออนุมัติ"}, {id:"A", text:"อนุมัติ"}, {id:"I", text:"ดำเนินการแล้ว"}, {id:"R", text:"ไม่อนุมัติ"}];
     }else if(active_module == "invoices"){
         $(".buttons li.add a").attr("data-action-url", "<?php echo get_uri("invoices/addedit"); ?>");
-        $(".buttons li.add span").append("เพิ่มใบแจ้งหนี้");
+        $(".buttons li.add span").append("สร้างใบแจ้งหนี้");
         doc_status = [{id:"", text:"-- <?php echo lang("status"); ?> --"}, {id:"W", text:"รออนุมัติ"}, {id:"O", text:"รอรับชำระ"}, {id:"V", text:"ยกเลิก"}];
 
+    }else if(active_module == "billing-notes"){
+        $(".buttons li.add a").attr("data-title", "เลือกเอกสารสร้างใบวางบิล");
+        $(".buttons li.add a").attr("data-action-url", "<?php echo get_uri("billing-notes/addedit"); ?>");
+        $(".buttons li.add span").append("สร้างใบวางบิล");
+        doc_status = [{id:"", text:"-- <?php echo lang("status"); ?> --"}, {id:"W", text:"รอวางบิล"}, {id:"A", text:"วางบิลแล้ว"}, {id:"I", text:"เปิดบิลแล้ว"}, {id:"V", text:"ยกเลิก"}];
     }else if(active_module == "tax-invoices"){
-        $(".buttons li.add").css("display", "block");
         $(".buttons li.add a").attr("data-title", "สร้างใบกำกับภาษีขายจากรายการใบแจ้งหนี้");
         $(".buttons li.add a").attr("data-action-url", "<?php echo get_uri("tax-invoices/addedit"); ?>");
         $(".buttons li.add span").append("สร้างใบกำกับภาษีขาย");
 
         doc_status = [{id:"", text:"-- <?php echo lang("status"); ?> --"}, {id:"W", text:"รออนุมัติ"}, {id:"V", text:"ยกเลิก"}];
 
-    }else if(active_module == "billing-notes"){
-        $(".buttons li.add a").attr("data-action-url", "<?php echo get_uri("billing-notes/addedit"); ?>");
-        $(".buttons li.add span").append("เพิ่มใบวางบิล");
-        doc_status = [{id:"", text:"-- <?php echo lang("status"); ?> --"}, {id:"W", text:"รอวางบิล"}, {id:"A", text:"วางบิลแล้ว"}, {id:"I", text:"เปิดบิลแล้ว"}, {id:"V", text:"ยกเลิก"}];
     }else if(active_module == "receipts"){
         $(".buttons li.add a").attr("data-action-url", "<?php echo get_uri("receipts/addedit"); ?>");
-        $(".buttons li.add span").append("เพิ่มใบเสร็จรับเงิน");
+        $(".buttons li.add span").append("สร้างใบเสร็จรับเงิน");
         doc_status = [{id:"", text:"-- <?php echo lang("status"); ?> --"}, {id:"W", text:"รอดำเนินการ"}, {id:"P", text:"เก็บเงินแล้ว"}, {id:"V", text:"ยกเลิก"}];
         grid_columns = [
                             {title: "วันที่", "class":"w10p"},

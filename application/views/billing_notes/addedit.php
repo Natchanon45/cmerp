@@ -1,174 +1,223 @@
-<div class="general-form modal-body clearfix">
-    <div class="form-group">
-        <label for="doc_date" class=" col-md-3">วันที่</label>
-        <div class="col-md-9">
-            <input type="text" id="doc_date" class="form-control" autocomplete="off" readonly>
-        </div>
-    </div>
+<style type="text/css">
+.modal-dialog {
+    width: 100%;
+    max-width: 980px;
+}
 
-    <div class="form-group">
-        <label for="credit" class=" col-md-3">เครดิต (วัน)</label>
-        <div class="col-md-9" style="display: grid;grid-template-columns: auto auto;align-items: center; justify-items: center;justify-content: start;">
-            <input type="number" id="credit" value="<?php echo $credit; ?>" class="form-control" autocomplete="off" >
-        </div>
-    </div>
+.popup .customer{
+    margin-bottom: 14px;
+}
+   
+.popup .customer label{
+    display: block;
+    float: left;
+    width: 100px;
+    padding-top: 6px;
+}
 
-    <div class="form-group">
-        <label for="due_date" class=" col-md-3">ครบกำหนด</label>
-        <div class="col-md-9"><input type="text" id="due_date" class="form-control" autocomplete="off" readonly>
-        </div>
-    </div>
+.popup .customer select{
+    display: block;
+    float: right;
+    width: calc(100% - 100px);
+}
 
-    <div class="form-group">
-        <label for="reference_number" class=" col-md-3">เลขที่อ้างอิง</label>
-        <div class="col-md-9"><input type="text" id="reference_number" value="<?php echo $reference_number; ?>" placeholder="#" class="form-control"></div>
-    </div>
+.popup .invoice {
+    height: 280px;
+    border: 1px solid #ccc;
+    overflow: auto;
+}
 
-    <div class="form-group">
-        <label for="client_id" class=" col-md-3"><?php echo lang('client'); ?></label>
-        <div class="col-md-9">
-            <?php $crows = $this->Clients_m->getRows(); ?>
-            <select id="client_id" class="form-control">
+.popup .invoice table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+}
+
+.popup .invoice table tr.norecord td{
+    text-align: center;
+    vertical-align: middle;
+    padding-top: 100px;
+}
+
+.popup .invoice table tr.norecord:hover{
+    background: #fff;
+}
+
+.popup .invoice td{
+    line-break: anywhere;
+    vertical-align: top;
+    padding: 6px 3px;
+    text-align: left;
+}
+
+.popup .invoice td:nth-child(1){
+    padding-left: 8px;
+    width: 14%;
+}
+
+.popup .invoice td:nth-child(2){
+    width: 12%;
+}
+
+.popup .invoice td:nth-child(3){
+    width: 12%;
+    text-align: left;
+}
+
+.popup .invoice td:nth-child(4){
+    width: 13%;
+    text-align: right;
+}
+
+.popup .invoice td:nth-child(5){
+    width: 13%;
+    text-align: right;
+}
+
+.popup .invoice td:nth-child(6){
+    width: 13%;
+    text-align: right;
+}
+
+.popup .invoice td:nth-child(7){
+    width: 13%;
+    text-align: right;
+}
+
+.popup .invoice td:nth-child(8){
+    width: 10%;
+    text-align: center;
+}
+
+.popup .invoice thead tr td {
+    position: sticky;
+    top: 0;
+    font-weight: 500;
+    border-bottom: 1px solid #e8e8e8;
+    text-align: left;
+    color: #fff;
+}
+
+.popup .invoice tbody tr {
+    border-bottom: 1px solid #e8e8e8;
+}
+
+.popup .invoice tbody tr:hover {
+    background: #e6f7ff;
+}
+
+.popup .invoice tbody tr:last-child{
+    border-bottom: 0;
+}
+
+.popup .invoice .choose-inv-button{
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 4px;
+}
+
+.popup .invoice .choose-inv-button:hover{
+    background: #fff !important;
+}
+
+.popup .invoice .choose-inv-button:active{
+    position: relative;
+    top: 1px;
+}
+</style>
+<div class="popup">
+    <div class="container">
+        <div class="customer clear">
+            <label>ชื่อลูกค้า / คู่ค้า :</label>
+            <select id="customer_id" class="form-control">
                 <option value="">-</option>
-                <?php foreach($crows as $crow): ?>
-                    <option value="<?php echo $crow->id; ?>" <?php if($client_id == $crow->id) echo "selected"?>><?php echo $crow->company_name; ?></option>
+                <?php foreach($cusrows as $cusrow): ?>
+                    <option value="<?php echo $cusrow->id; ?>"><?php echo $cusrow->company_name; ?></option>
                 <?php endforeach; ?>
             </select>
         </div>
-    </div>
-
-    <div class="form-group">
-        <label for="lead_id" class=" col-md-3">ลูกค้าผู้มุ่งหวัง</label>
-        <div class="col-md-9">
-            <?php $lrows = $this->Leads_m->getRows(); ?>
-            <select id="lead_id" class="form-control">
-                <option value="">-</option>
-                <?php foreach($lrows as $lrow): ?>
-                    <option value="<?php echo $lrow->id; ?>" <?php if($lead_id == $lrow->id) echo "selected"?>><?php echo $lrow->company_name; ?></option>
-                <?php endforeach; ?>
-            </select>
+        <div class="invoice">
+            <table>
+                <thead>
+                    <tr>
+                        <td class="custom-bg">เลขที่เอกสาร</td>
+                        <td class="custom-bg">วันที่ออก</td>
+                        <td class="custom-bg">วันที่ครบกำหนด</td>
+                        <td class="custom-bg">มูลค่าสุทธิ</td>
+                        <td class="custom-bg">มูลค่าที่ต้องชำระ</td>
+                        <td class="custom-bg">ภาษีหัก ณ ที่จ่าย</td>
+                        <td class="custom-bg">จำนวนเงินวางบิล</td>
+                        <td class="custom-bg"></td>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
         </div>
     </div>
-
-    <div class="form-group">
-        <label for="project_id" class=" col-md-3"><?php echo lang('project'); ?></label>
-        <div class="col-md-9">
-            <?php $prows = $this->Projects_m->getRows(); ?>
-            <select id="project_id" class="form-control">
-                <option value="">-</option>
-                <?php foreach($prows as $prow): ?>
-                    <option value="<?php echo $prow->id; ?>" <?php if($project_id == $prow->id) echo "selected"?>><?php echo $prow->title; ?></option>
-                <?php endforeach; ?>
-            </select>
-        </div>
-    </div>
-    <div class="form-group">
-        <label for="remark" class=" col-md-3">หมายเหตุ</label>
-        <div class=" col-md-9">
-            <textarea id="remark" name="remark" placeholder="หมายเหตุ" class="form-control"><?php echo $remark; ?></textarea>
-        </div>
+    <div class="footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal"><span class="fa fa-close"></span>ปิดหน้าต่าง</button>
+        <button type="button" id="btnSubmit" class="btn btn-primary"><span class="fa fa-check-circle"></span>สร้างใบวางบิล</button>
     </div>
 </div>
-<div class="modal-footer">
-    <button type="button" class="btn btn-default" data-dismiss="modal"><span class="fa fa-close"></span> <?php echo lang('close'); ?></button>
-    <?php if($doc_status == "W" || !isset($doc_id)): ?>
-        <button type="button" id="btnSubmit" class="btn btn-primary"><span class="fa fa-check-circle"></span> <?php echo lang('save'); ?></button>
-    <?php endif; ?>
-</div>
-
 <script type="text/javascript">
 $(document).ready(function() {
-    <?php if($doc_status == "W" || !isset($doc_id)): ?>
-        $('#project_id').select2();
-
-        $("#client_id").select2().on("change", function (e) {
-            $("#lead_id").select2("val", "");
-        });
-
-        $("#lead_id").select2().on("change", function (e) {
-            $("#client_id").select2("val", "");
-        });
-
-        $("#btnSubmit").click(function() {
-            axios.post('<?php echo current_url(); ?>', {
-                task: 'save_doc',
-                doc_id : "<?php if(isset($doc_id)) echo $doc_id; ?>",
-                doc_date:$("#doc_date").val(),
-                credit: $("#credit").val(),
-                due_date: $("#due_date").val(),
-                reference_number: $("#reference_number").val(),
-                client_id: $("#client_id").val(),
-                lead_id: $("#lead_id").val(),
-                project_id: $("#project_id").val(),
-                remark: $("#remark").val()
-            }).then(function (response) {
-                data = response.data;
-                $(".fnotvalid").remove();
-
-                if(data.status == "validate"){
-                    for(var key in data.messages){
-                        if(data.messages[key] != ""){
-                            $("<span class='fnotvalid'>"+data.messages[key]+"</span>").insertAfter("#"+key);
-                        }
-                    }
-                }else if(data.status == "success"){
-                    window.location = data.target;
-                }else{
-                    alert(data.message);
-                }
-            }).catch(function (error) {});
-        });
-    <?php endif; ?>
-
-    doc_date = $("#doc_date").datepicker({
-        yearRange: "<?php echo date('Y'); ?>",
-        format: 'dd/mm/yyyy',
-        changeMonth: true,
-        changeYear: true,
-        autoclose: true
-    }).on("changeDate", function (e) {
-        cal_due_date_from_credit();
-    });
-
-    due_date = $("#due_date").datepicker({
-        yearRange: "<?php echo date('Y'); ?>",
-        format: 'dd/mm/yyyy',
-        changeMonth: true,
-        changeYear: true,
-        autoclose: true
-    }).on("changeDate", function (e) {
-        cal_credit_from_due_date();
-    });
-
-    doc_date.datepicker("setDate", "<?php echo date('d/m/Y', strtotime($doc_date)); ?>");
-    due_date.datepicker("setDate", "<?php echo date('d/m/Y', strtotime($due_date)); ?>");
-
-    $("#credit").blur(function(){
-        cal_due_date_from_credit();
+    getInvs(null);
+    $("#customer_id").select2().on("change", function (e) {
+        getInvs($(this).select2("val"));
     });
 });
 
-function cal_due_date_from_credit(){
-    qdate = $("#doc_date").datepicker('getDate');
-    credit = Number($("#credit").val());
-    if(credit < 0) credit = 0;
-    $("#credit").val(credit);
-    qdate.setDate(qdate.getDate() + credit);
-    $("#due_date").val(todate(qdate));
-}
+function getInvs(customer_id){
+    $("#btnSubmit").unbind('click');
 
-function cal_credit_from_due_date(){
-    doc_date = $("#doc_date").datepicker('getDate');
-    due_date = $("#due_date").datepicker('getDate');
+    axios.post('<?php echo current_url(); ?>', {
+        task: 'get_invs',
+        customer_id: customer_id
+    }).then(function (response) {
+        let data = response.data;
+        $(".invoice table tbody").empty().append(data.html);
 
-    if (doc_date > due_date) {
-        doc_date = new Date(due_date.getFullYear(),due_date.getMonth(),due_date.getDate());
-        $("#doc_date").datepicker("setDate", doc_date);
-    }
+        $("#btnSubmit").click(function() {
+            /*$(".messageCheckbox:checked").val();
+            $("input[type='invoice_numbers']")
 
-    doc_date = $("#doc_date").datepicker('getDate').getTime();
-    due_date = $("#due_date").datepicker('getDate').getTime();
-    credit = Math.round(Math.abs((due_date - doc_date)/(24*60*60*1000)));
-    $("#credit").val(credit);
+            for(var i=0; inputElements[i]; ++i){
+                if(inputElements[i].checked){
+                    checkedValue = inputElements[i].value;
+                    break;
+                }
+            }*/
+
+            
+            //$("[name='invoice_numbers[]']:checked").length
+            //alert($("[name='invoice_numbers[]']:checked").length);
+
+            ids = $("[name='invoice_numbers[]']");
+            invoice_ids = [];
+            for(i = 0; i < ids.length; i++){
+                if(ids[i].checked == true){
+                    invoice_ids.push(ids[i].value);
+                }
+            }
+
+            alert(JSON.stringify(invoice_ids));
+
+            axios.post('<?php echo current_url(); ?>', {
+                task: 'create_doc',
+                invoice_ids: JSON.stringify(invoice_ids)
+            }).then(function (response) {
+                let data = response.data;
+                //alert(data.test);
+                /*let data = response.data;
+                if(data.status == "success"){
+                    location.href = data.url;
+                }else{
+                    alert(data.message);
+                }*/
+            }).catch(function (error) {});
+
+
+        });
+    }).catch(function (error) {});
 }
 </script>
