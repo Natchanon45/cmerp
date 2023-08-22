@@ -1,22 +1,53 @@
 <link rel="stylesheet" href="/assets/css/printd.css?t=<?php echo time(); ?>">
+<style type="text/css">
+    .top-vertical {
+        vertical-align: text-top;
+    }
+
+    #total_in_text {
+        outline: none;
+        border: none;
+        resize: none;
+    }
+</style>
+
 <div id="dcontroller" class="clearfix">
     <div class="page-title clearfix mt15 clear">
         <h1>
-            <?php echo lang('goods_receipt'); ?>
-            <?php echo $doc_number; ?>
+            <?php echo ($po_type == '5') ? lang('record_of_expenses') : lang('record_of_receipt'); ?>
         </h1>
         <div class="title-button-group">
-            <a style="margin-left: 15px;" class="btn btn-default mt0 mb0 back-to-index-btn"
-                href="<?php echo get_uri("accounting/buy/purchase_order"); ?>"><i class="fa fa-hand-o-left"
-                    aria-hidden="true"></i> ย้อนกลับไปตารางรายการ</a>
-            <a id="add_item_button" class="btn btn-default" data-post-doc_id="<?php echo $doc_id; ?>"
-                data-act="ajax-modal" data-title="แชร์เอกสาร <?php echo $doc_number; ?>"
-                data-action-url="<?php echo get_uri("purchase_order/share"); ?>">แชร์</a>
-            <a onclick="window.open('<?php echo $print_url; ?>', '' ,'width=980,height=720');"
-                class="btn btn-default">พิมพ์</a>
+            <a style="margin-left: 15px;" class="btn btn-default mt0 mb0 back-to-index-btn" href="<?php echo get_uri("accounting/buy/goods_receipt"); ?>">
+                <i class="fa fa-hand-o-left" aria-hidden="true"></i> 
+                <?php echo lang('back_to_table'); ?>
+            </a>
+            <a id="add_item_button" class="btn btn-default" data-post-doc_id="<?php echo $doc_id; ?>" data-act="ajax-modal" data-title="<?php echo lang('share_doc') . ' ' . $doc_number; ?>" data-action-url="<?php echo get_uri("purchase_order/share"); ?>">
+                <?php echo lang('share'); ?>
+            </a>
+
+            <?php if ($doc_status == 'W'): ?>
+                <a href="#" class="btn btn-info"><?php echo lang('approve'); ?></a>
+            <?php endif; ?>
+
+            <?php if ($doc_status == 'A'): ?>
+                <span class="dropdown inline-block">
+                    <button class="btn btn-info dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <i class="fa fa-print"></i> <?php echo lang('print'); ?>
+                    </button>
+                    <ul class="dropdown-menu dropdown-left rounded" role="menu" aria-labelledby="dropdownMenuButton">
+                        <li role="presentation">
+                            <a class="dropdown-item" href="#"><?php echo "พิมพ์ใบรับสินค้า"; ?></a>
+                        </li>
+                        <li role="presentation">
+                            <a class="dropdown-item" href="#"><?php echo "พิมพ์ใบสำคัญจ่าย"; ?></a>
+                        </li>
+                    </ul>
+                </span>
+            <?php endif; ?>
         </div>
     </div>
 </div><!--#dcontroller-->
+
 <div id="printd" class="clear">
     <div class="docheader clear">
         <div class="l">
@@ -65,14 +96,10 @@
                     <p>
                         <?php
                         $supplier_address = $supplier["city"];
-                        if ($supplier_address != "" && $supplier["state"] != "")
-                            $supplier_address .= ", " . $supplier["state"];
-                        elseif ($supplier_address == "" && $supplier["state"] != "")
-                            $supplier_address .= $supplier["state"];
-                        if ($supplier_address != "" && $supplier["zip"] != "")
-                            $supplier_address .= " " . $supplier["zip"];
-                        elseif ($supplier_address == "" && $supplier["zip"] != "")
-                            $supplier_address .= $supplier["zip"];
+                        if ($supplier_address != "" && $supplier["state"] != "") $supplier_address .= ", " . $supplier["state"];
+                        elseif ($supplier_address == "" && $supplier["state"] != "") $supplier_address .= $supplier["state"];
+                        if ($supplier_address != "" && $supplier["zip"] != "") $supplier_address .= " " . $supplier["zip"];
+                        elseif ($supplier_address == "" && $supplier["zip"] != "") $supplier_address .= $supplier["zip"];
                         echo $supplier_address;
                         ?>
                     </p>
@@ -89,30 +116,31 @@
                 <?php endif; ?>
             </div><!-- .company -->
         </div><!--.l-->
+
         <div class="r">
             <h1 class="document_name custom-color">
-                <?php echo lang('goods_receipt'); ?>
+                <?php echo ($po_type == '5') ? lang('record_of_expenses') : lang('record_of_receipt'); ?>
             </h1>
             <div class="about_company">
                 <table>
                     <tr>
-                        <td class="custom-color">เลขที่</td>
+                        <td class="custom-color"><?php echo lang('document_number'); ?></td>
                         <td>
                             <?php echo $doc_number; ?>
                         </td>
                     </tr>
                     <tr>
-                        <td class="custom-color">วันที่รับ</td>
+                        <td class="custom-color"><?php echo lang('document_date'); ?></td>
                         <td>
-                            <?php echo convertDate($receive_date, true); ?>
+                            <?php echo convertDate($doc_date, true); ?>
                         </td>
                     </tr>
-                    <!-- <tr>
-                        <td class="custom-color">เครดิต</td>
-                        <td><?php // echo $credit; ?> วัน</td>
-                    </tr> -->
                     <tr>
-                        <td class="custom-color">ผู้ขอซื้อ</td>
+                        <td class="custom-color"><?php echo lang('credit'); ?></td>
+                        <td><?php echo $credit . ' ' . lang('day'); ?></td>
+                    </tr>
+                    <tr>
+                        <td class="custom-color"><?php echo lang('purchase_by'); ?></td>
                         <td>
                             <?php if ($created != null)
                                 echo $created["first_name"] . " " . $created["last_name"]; ?>
@@ -120,7 +148,7 @@
                     </tr>
                     <?php if (trim($reference_number) != ""): ?>
                         <tr>
-                            <td class="custom-color">เลขที่อ้างอิง</td>
+                            <td class="custom-color"><?php echo lang('reference_number'); ?></td>
                             <td>
                                 <?php echo $reference_number; ?>
                             </td>
@@ -131,24 +159,21 @@
             <div class="about_customer">
                 <table>
                     <tr>
-                        <td class="custom-color">ผู้ติดต่อ</td>
+                        <td class="custom-color"><?php echo lang('contact_name'); ?></td>
                         <td>
-                            <?php if (isset($supplier_contact))
-                                echo $supplier_contact["first_name"] . " " . $supplier_contact["last_name"]; ?>
+                            <?php echo (isset($supplier_contact) && !empty($supplier_contact)) ? $supplier_contact["first_name"] . " " . $supplier_contact["last_name"] : '-'; ?>
                         </td>
                     </tr>
                     <tr>
-                        <td class="custom-color">เบอร์โทร</td>
+                        <td class="custom-color"><?php echo lang('phone'); ?></td>
                         <td>
-                            <?php if (isset($supplier_contact))
-                                echo $supplier_contact["phone"]; ?>
+                            <?php echo (isset($supplier_contact) && !empty($supplier_contact)) ? $supplier_contact["phone"] : '-'; ?>
                         </td>
                     </tr>
                     <tr>
-                        <td class="custom-color">อีเมล์</td>
+                        <td class="custom-color"><?php echo lang('email'); ?></td>
                         <td>
-                            <?php if (isset($supplier_contact))
-                                echo $supplier_contact["email"]; ?>
+                            <?php echo (isset($supplier_contact) && !empty($supplier_contact)) ? $supplier_contact["email"] : '-'; ?>
                         </td>
                     </tr>
                 </table>
@@ -160,11 +185,11 @@
             <thead>
                 <tr>
                     <td>#</td>
-                    <td>รายละเอียด</td>
-                    <td>จำนวน</td>
-                    <td>หน่วย</td>
-                    <td>ราคาต่อหน่วย</td>
-                    <td>ยอดรวม</td>
+                    <td><?php echo lang('details'); ?></td>
+                    <td><?php echo lang('quantity'); ?></td>
+                    <td><?php echo lang('stock_material_unit'); ?></td>
+                    <td><?php echo lang('rate'); ?></td>
+                    <td><?php echo lang('total_item'); ?></td>
                     <td></td>
                 </tr>
             </thead>
@@ -177,61 +202,59 @@
                     <td colspan="3">
                         <?php if ($doc_status == "W"): ?>
                             <p>
-                                <?php echo modal_anchor(get_uri("goods_receipt/item"), "<i class='fa fa-plus-circle'></i> " . lang('add_item_product'), array("id" => "add_item_button", "class" => "btn btn-default", "title" => lang('add_item_product'), "data-post-doc_id" => $doc_id)); ?>
+                                <?php // echo modal_anchor(get_uri("goods_receipt/item"), "<i class='fa fa-plus-circle'></i> " . lang('add_item_product'), array("id" => "add_item_button", "class" => "btn btn-default", "title" => lang('add_item_product'), "data-post-doc_id" => $doc_id)); ?>
                             </p>
                         <?php endif; ?>
                         <p><input type="text" id="total_in_text" readonly></p>
                     </td>
                     <td colspan="4" class="summary">
                         <p id="s-sub-total-before-discount">
-                            <span class="c1 custom-color">รวมเป็นเงิน</span>
+                            <span class="c1 custom-color"><?php echo lang('total_all_item'); ?></span>
                             <span class="c2"><input type="text" id="sub_total_before_discount" readonly></span>
-                            <span class="c3"><span class="currency">บาท</span></span>
+                            <span class="c3"><span class="currency"><?php echo lang('THB'); ?></span></span>
                         </p>
-                        <p id="s-discount">
+
+                        <!-- <p id="s-discount">
                             <span class="c1 custom-color">
                                 ส่วนลด&nbsp;<input type="number" id="discount_percent"
-                                    value="<?php echo $discount_percent; ?>" <?php if ($doc_status != "W")
-                                           echo "disabled"; ?>>
-                                <select id="discount_type" <?php if ($doc_status != "W")
-                                    echo "disabled"; ?>>
-                                    <option value="P" <?php if ($discount_type == "P")
-                                        echo "selected"; ?>>%</option>
-                                    <option value="F" <?php if ($discount_type == "F")
-                                        echo "selected"; ?>>฿</option>
+                                    value="<?php // echo $discount_percent; ?>" <?php // if ($doc_status != "W") echo "disabled"; ?>>
+                                <select id="discount_type" <?php // if ($doc_status != "W") echo "disabled"; ?>>
+                                    <option value="P" <?php // if ($discount_type == "P") echo "selected"; ?>>%</option>
+                                    <option value="F" <?php // if ($discount_type == "F") echo "selected"; ?>>฿</option>
                                 </select>
                             </span>
                             <span class="c2"><input type="text" id="discount_amount"
-                                    value="<?php echo $discount_amount; ?>" readonly></span>
-                            <span class="c3"><span class="currency">บาท</span></span>
-                        </p>
-                        <p id="s-sub-total">
-                            <span class="c1"><i class="custom-color t1">ราคาหลังหักส่วนลด</i><i
-                                    class="custom-color t2">รวมเป็นเงิน</i></span>
+                                    value="<?php // echo $discount_amount; ?>" readonly></span>
+                            <span class="c3"><span class="currency"><?php // echo lang('THB'); ?></span></span>
+                        </p> -->
+
+                        <!-- <p id="s-sub-total">
+                            <span class="c1"><i class="custom-color t1">ราคาหลังหักส่วนลด</i><i class="custom-color t2">รวมเป็นเงิน</i></span>
                             <span class="c2"><input type="text" id="sub_total" readonly></span>
-                            <span class="c3"><span class="currency">บาท</span></span>
-                        </p>
+                            <span class="c3"><span class="currency"><?php // echo lang('THB'); ?></span></span>
+                        </p> -->
+
                         <p id="s-vat">
-                            <span class="c1 custom-color"><input type="checkbox" id="vat_inc" <?php if ($vat_inc == "Y")
-                                echo "checked" ?> <?php if ($doc_status != "W")
-                                echo "disabled"; ?>>ภาษีมูลค่าเพิ่ม
-                                <?php echo $this->Taxes_m->getVatPercent() . "%"; ?></span>
+                            <span class="c1 custom-color"><input type="checkbox" id="vat_inc" <?php if ($vat_inc == "Y") echo "checked" ?> <?php if ($doc_status != "W") echo "disabled"; ?>>
+                                <?php echo lang('value_add_tax'); ?>
+                                <?php echo $this->Taxes_m->getVatPercent() . "%"; ?>
+                            </span>
                             <span class="c2"><input type="text" id="vat_value" readonly></span>
-                            <span class="c3"><span class="currency">บาท</span></span>
+                            <span class="c3">
+                                <span class="currency"><?php echo lang('THB'); ?></span>
+                            </span>
                         </p>
+
                         <p id="s-total">
-                            <span class="c1 custom-color">จำนวนเงินรวมทั้งสิ้น</span>
+                            <span class="c1 custom-color"><?php echo lang('grand_total_price'); ?></span>
                             <span class="c2"><input type="text" id="total" readonly></span>
-                            <span class="c3"><span class="currency">บาท</span></span>
+                            <span class="c3"><span class="currency"><?php echo lang('THB'); ?></span></span>
                         </p>
+
                         <p id="s-wht">
                             <span class="c1 custom-color">
-                                <input type="checkbox" id="wht_inc" <?php if ($wht_inc == "Y")
-                                    echo "checked" ?> <?php if ($doc_status != "W")
-                                    echo "disabled"; ?>>หักภาษี ณ ที่จ่าย
-                                <select id="wht_percent" class="wht custom-color <?php echo $wht_inc == "Y" ? "v" : "h"; ?>"
-                                    <?php if ($doc_status != "W")
-                                        echo "disabled"; ?>>
+                                <input type="checkbox" id="wht_inc" <?php if ($wht_inc == "Y") echo "checked" ?> <?php if ($doc_status != "W") echo "disabled"; ?>><?php echo lang('with_holding_tax'); ?>
+                                <select id="wht_percent" class="wht custom-color <?php echo $wht_inc == "Y" ? "v" : "h"; ?>" <?php if ($doc_status != "W") echo "disabled"; ?>>
                                     <option value="3">3%</option>
                                     <option value="5">5%</option>
                                     <option value="0.50">0.5%</option>
@@ -243,17 +266,21 @@
                                     <option value="15">15%</option>
                                 </select>
                             </span>
-                            <span class="c2 wht <?php echo $wht_inc == "Y" ? "v" : "h"; ?>"><input type="text"
-                                    id="wht_value" readonly></span>
-                            <span class="c3 wht <?php echo $wht_inc == "Y" ? "v" : "h"; ?>"><span
-                                    class="currency">บาท</span></span>
+                            <span class="c2 wht <?php echo $wht_inc == "Y" ? "v" : "h"; ?>"><input type="text" id="wht_value" readonly></span>
+                            <span class="c3 wht <?php echo $wht_inc == "Y" ? "v" : "h"; ?>">
+                                <span class="currency"><?php echo lang('THB'); ?></span>
+                            </span>
                         </p>
                         <p id="s-payment-amount">
-                            <span class="c1 custom-color wht <?php echo $wht_inc == "Y" ? "v" : "h"; ?>">ยอดชำระ</span>
-                            <span class="c2 wht <?php echo $wht_inc == "Y" ? "v" : "h"; ?>"><input type="text"
-                                    id="payment_amount" readonly></span>
-                            <span class="c3 wht <?php echo $wht_inc == "Y" ? "v" : "h"; ?>"><span
-                                    class="currency">บาท</span></span>
+                            <span class="c1 custom-color wht <?php echo $wht_inc == "Y" ? "v" : "h"; ?>">
+                                <?php echo lang('payment_amount'); ?>
+                            </span>
+                            <span class="c2 wht <?php echo $wht_inc == "Y" ? "v" : "h"; ?>">
+                                <input type="text" id="payment_amount" readonly>
+                            </span>
+                            <span class="c3 wht <?php echo $wht_inc == "Y" ? "v" : "h"; ?>">
+                                <span class="currency"><?php echo lang('THB'); ?></span>
+                            </span>
                         </p>
                     </td>
                 </tr>
@@ -261,10 +288,8 @@
         </table>
         <?php if (trim($remark) != ""): ?>
             <div class="remark clear">
-                <p class="custom-color">หมายเหตุ</p>
-                <p>
-                    <?php echo nl2br($remark); ?>
-                </p>
+                <p class="custom-color"><?php echo lang('remark'); ?></p>
+                <p><?php echo nl2br($remark); ?></p>
             </div>
         <?php endif; ?>
     </div><!--.docitem-->

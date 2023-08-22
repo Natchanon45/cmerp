@@ -2126,6 +2126,8 @@ $lang["record_products"] = "Record product";
 $lang["goods_receipt"] = "Goods Receipt";
 $lang["goods_receipt_add"] = "Create new GR";
 $lang["receive_date"] = "Receive date";
+$lang["record_of_receipt"] = "Record of Goods receipt";
+$lang["record_of_expenses"] = "Record of Expenses";
 
 $lang["payment_voucher"] = "Payment Voucher";
 $lang["payment_voucher_add"] = "Create new PV";

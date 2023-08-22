@@ -172,7 +172,7 @@ class Goods_receipt_m extends MY_Model
         $this->data['created_datetime'] = date('Y-m-d');
         $this->data['approved_by'] = 0;
         $this->data['approved_datetime'] = date('Y-m-d');
-        $this->data['status'] = 'W';
+        $this->data['doc_status'] = 'W';
         $this->data['deleted'] = 0;
 
         if (!empty($docId)) {
@@ -205,7 +205,7 @@ class Goods_receipt_m extends MY_Model
             $this->data['created_datetime'] = $qrow->created_datetime;
             $this->data['approved_by'] = $qrow->approved_by;
             $this->data['approved_datetime'] = $qrow->approved_datetime;
-            $this->data['status'] = $qrow->status;
+            $this->data['doc_status'] = $qrow->status;
             $this->data['deleted'] = $qrow->deleted;
         }
 

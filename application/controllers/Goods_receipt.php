@@ -159,4 +159,21 @@ class Goods_receipt extends MY_Controller
         $this->load->view('goods_receipt/share', $data);
     }
 
+    function TestCaseSaleFg()
+    {
+        $sale_info = new SaleInformation();
+        
+        $sale_info->sale_id = 1;
+        $sale_info->sale_type = 'IV';
+        $sale_info->sale_document = 'IV2023080001';
+        $sale_info->project_id = 1;
+        $sale_info->created_by = 1;
+        $sale_info->items = [
+            ['id' => 1, 'item_id' => 26, 'ratio' => 5000]
+        ];
+
+        $testModel = $this->Bom_item_stocks_model->FinishedGoodsSales($sale_info);
+        var_dump(arr($testModel));
+    }
+
 }

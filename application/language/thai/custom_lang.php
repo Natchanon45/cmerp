@@ -2527,6 +2527,8 @@ $lang["record_products"] = "บันทึกซื้อสินค้า";
 $lang["goods_receipt"] = "ใบรับสินค้า (GR)";
 $lang["goods_receipt_add"] = "เพิ่มใบรับสินค้า";
 $lang["receive_date"] = "วันที่รับสินค้า";
+$lang["record_of_receipt"] = "บันทึกรับสินค้า";
+$lang["record_of_expenses"] = "บันทึกค่าใช้จ่าย";
 
 $lang["payment_voucher"] = "ใบสำคัญจ่าย (PV)";
 $lang["payment_voucher_add"] = "เพิ่มใบสำคัญจ่าย";
