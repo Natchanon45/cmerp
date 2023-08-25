@@ -121,6 +121,7 @@ class Receipts_m extends MY_Model {
         $company_setting = $this->Settings_m->getCompany();
 
         $this->data["invoice_id"] = null;
+        $this->data["billing_type"] = "";
         $this->data["doc_date"] = date("Y-m-d");
         $this->data["reference_number"] = "";
         $this->data["discount_type"] = "P";
@@ -137,7 +138,6 @@ class Receipts_m extends MY_Model {
         $this->data["approved_by"] = null;
         $this->data["approved_datetime"] = null;
         $this->data["doc_status"] = NULL;
-        $this->data["receipt_title"] = NULL;
 
         if(!empty($docId)){
             $rerow = $db->select("*")
@@ -159,6 +159,7 @@ class Receipts_m extends MY_Model {
             }
 
             $this->data["invoice_id"] = $rerow->invoice_id;
+            $this->data["billing_type"] = $rerow->billing_type;
             $this->data["doc_id"] = $docId;
             $this->data["doc_number"] = $rerow->doc_number;
             $this->data["share_link"] = $rerow->sharekey != null ? get_uri($this->shareHtmlAddress."th/".$rerow->sharekey) : null;
@@ -179,7 +180,6 @@ class Receipts_m extends MY_Model {
             $this->data["approved_by"] = $rerow->approved_by;
             $this->data["approved_datetime"] = $rerow->approved_datetime;
             $this->data["doc_status"] = $rerow->status;
-            $this->data["receipt_title"] = "";//$this->getReceiptTitle($company_setting["company_receipt_type"]);
         }
 
         $this->data["status"] = "success";
@@ -225,7 +225,7 @@ class Receipts_m extends MY_Model {
 
         $this->data["buyer"] = $ci->Customers_m->getInfo($client_id);
         $this->data["buyer_contact"] = $ci->Customers_m->getContactInfo($client_id);
-
+        $this->data["billing_type"] = $rerow->billing_type;
         $this->data["doc_number"] = $rerow->doc_number;
         $this->data["doc_date"] = $rerow->doc_date;
         $this->data["reference_number"] = $rerow->reference_number;
@@ -465,6 +465,7 @@ class Receipts_m extends MY_Model {
             $company_setting = $this->Settings_m->getCompany();
 
             $db->insert("receipt", [
+                                        "billing_type"=>$company_setting["company_billing_type"],
                                         "doc_number"=>$doc_number,
                                         "doc_date"=>$doc_date,
                                         "reference_number"=>$reference_number,
@@ -754,6 +755,8 @@ class Receipts_m extends MY_Model {
                 $this->data["dataset"] = $this->getIndexDataSetHTML($rerow);
                 return $this->data;
             }
+
+            $company_stock_type = $company_setting["company_stock_type"];
             
             if($company_stock_type == "receipt"){
                 $item = [
@@ -800,6 +803,8 @@ class Receipts_m extends MY_Model {
                 $db->where("id", $rerow->invoice_id);
                 $db->update("invoice", ["approved_by"=>null, "approved_datetime"=>null, "status"=>"P"]);
             }
+
+            $bism = $this->Bom_item_stocks_model->cancelFinishedGoodsSale(["sale_id"=>$docId, "sale_type"=>"RE"]);
 
             $db->where("invoice_id", $rerow->invoice_id);
             $db->where("receipt_id", $docId);

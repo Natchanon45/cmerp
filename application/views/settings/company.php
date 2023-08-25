@@ -62,14 +62,14 @@
                         <div class="col-md-10">
                             <select id="company_billing_type" name="company_billing_type" class="form-control">
                                 <?php if(get_setting("company_vat_registered") == "Y"): ?>
-                                    <option value="1" <?php if(get_setting("company_billing_type") == "1") echo 'selected'; ?>>ใบเสนอราคา > ใบแจ้งหนี้ > ใบวางบิล > ใบกำกับภาษี > ใบเสร็จรับเงิน</option>
-                                    <option value="2" <?php if(get_setting("company_billing_type") == "2") echo 'selected'; ?>>ใบเสนอราคา > ใบแจ้งหนี้/ใบวางบิล > ใบกำกับภาษี/ใบเสร็จรับเงิน</option>
-                                    <option value="3" <?php if(get_setting("company_billing_type") == "3") echo 'selected'; ?>>ใบเสนอราคา > ใบแจ้งหนี้/ใบวางบิล/ใบกำกับภาษี/ใบเสร็จรับเงิน/ใบส่งของ</option>
+                                    <option value="1" <?php if(get_setting("company_billing_type") == "1") echo 'selected'; ?>>แบบที่ 1: ใบเสนอราคา > ใบแจ้งหนี้ > ใบวางบิล > ใบกำกับภาษี > ใบเสร็จรับเงิน</option>
+                                    <option value="2" <?php if(get_setting("company_billing_type") == "2") echo 'selected'; ?>>แบบที่ 2: ใบเสนอราคา > ใบแจ้งหนี้/ใบวางบิล > ใบกำกับภาษี/ใบเสร็จรับเงิน</option>
+                                    <option value="3" <?php if(get_setting("company_billing_type") == "3") echo 'selected'; ?>>แบบที่ 3: ใบเสนอราคา > ใบแจ้งหนี้/ใบวางบิล/ใบกำกับภาษี/ใบเสร็จรับเงิน/ใบส่งของ</option>
                                 <?php endif; ?>
                                 <?php if(get_setting("company_vat_registered") == "N"): ?>
-                                    <option value="4" <?php if(get_setting("company_billing_type") == "4") echo 'selected'; ?>>ใบเสนอราคา > ใบแจ้งหนี้ > ใบวางบิล > ใบเสร็จรับเงิน</option>
-                                    <option value="5" <?php if(get_setting("company_billing_type") == "5") echo 'selected'; ?>>ใบเสนอราคา > ใบแจ้งหนี้/ใบวางบิล > ใบเสร็จรับเงิน</option>
-                                    <option value="6" <?php if(get_setting("company_billing_type") == "6") echo 'selected'; ?>>ใบเสนอราคา > ใบแจ้งหนี้/ใบวางบิล/ใบเสร็จรับเงิน/ใบส่งของ</option>
+                                    <option value="4" <?php if(get_setting("company_billing_type") == "4") echo 'selected'; ?>>แบบที่ 1: ใบเสนอราคา > ใบแจ้งหนี้ > ใบวางบิล > ใบเสร็จรับเงิน</option>
+                                    <option value="5" <?php if(get_setting("company_billing_type") == "5") echo 'selected'; ?>>แบบที่ 2: ใบเสนอราคา > ใบแจ้งหนี้/ใบวางบิล > ใบเสร็จรับเงิน</option>
+                                    <option value="6" <?php if(get_setting("company_billing_type") == "6") echo 'selected'; ?>>แบบที่ 3: ใบเสนอราคา > ใบแจ้งหนี้/ใบวางบิล/ใบเสร็จรับเงิน/ใบส่งของ</option>
                                 <?php endif; ?>
                             </select>
                         </div>
@@ -248,17 +248,17 @@ $(document).ready(function () {
         var company_stock_type;
 
         if($(this).val() == "Y"){
-            company_billing_type_options = "<option value='1'>ใบเสนอราคา > ใบแจ้งหนี้ > ใบวางบิล > ใบกำกับภาษี > ใบเสร็จรับเงิน</option>";
-            company_billing_type_options += "<option value='2'>ใบเสนอราคา > ใบแจ้งหนี้/ใบวางบิล > ใบกำกับภาษี/ใบเสร็จรับเงิน</option>";
-            company_billing_type_options += "<option value='3'>ใบเสนอราคา > ใบแจ้งหนี้/ใบวางบิล/ใบกำกับภาษี/ใบเสร็จรับเงิน/ใบส่งของ</option>";
+            company_billing_type_options = "<option value='1'>แบบที่ 1: ใบเสนอราคา > ใบแจ้งหนี้ > ใบวางบิล > ใบกำกับภาษี > ใบเสร็จรับเงิน</option>";
+            company_billing_type_options += "<option value='2'>แบบที่ 2: ใบเสนอราคา > ใบแจ้งหนี้/ใบวางบิล > ใบกำกับภาษี/ใบเสร็จรับเงิน</option>";
+            company_billing_type_options += "<option value='3'>แบบที่ 3: ใบเสนอราคา > ใบแจ้งหนี้/ใบวางบิล/ใบกำกับภาษี/ใบเสร็จรับเงิน/ใบส่งของ</option>";
 
             company_stock_type = "<option value='invoice'>ใบแจ้งหนี้</option>";
             company_stock_type += "<option value='tax_invoice'>ใบกำกับภาษี</option>";
             company_stock_type += "<option value='receipt'>ใบเสร็จรับเงิน</option>";
         }else{
-            company_billing_type_options = "<option value='4'>ใบเสนอราคา > ใบแจ้งหนี้ > ใบวางบิล > ใบเสร็จรับเงิน</option>";
-            company_billing_type_options += "<option value='5'>ใบเสนอราคา > ใบแจ้งหนี้/ใบวางบิล > ใบเสร็จรับเงิน</option>";
-            company_billing_type_options += "<option value='6'>ใบเสนอราคา > ใบแจ้งหนี้/ใบวางบิล/ใบเสร็จรับเงิน/ใบส่งของ</option>";
+            company_billing_type_options = "<option value='4'>แบบที่ 1: ใบเสนอราคา > ใบแจ้งหนี้ > ใบวางบิล > ใบเสร็จรับเงิน</option>";
+            company_billing_type_options += "<option value='5'>แบบที่ 2: ใบเสนอราคา > ใบแจ้งหนี้/ใบวางบิล > ใบเสร็จรับเงิน</option>";
+            company_billing_type_options += "<option value='6'>แบบที่ 3: ใบเสนอราคา > ใบแจ้งหนี้/ใบวางบิล/ใบเสร็จรับเงิน/ใบส่งของ</option>";
 
             company_stock_type = "<option value='invoice'>ใบแจ้งหนี้</option>";
             company_stock_type += "<option value='receipt'>ใบเสร็จรับเงิน</option>";

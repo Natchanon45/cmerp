@@ -3,8 +3,11 @@
     <div class="page-title clearfix mt15">
         <h1>
             <?php
-                if($doc_type == "IVT") echo "ใบส่งของ/ใบแจ้งหนี้/ใบกำกับภาษี ".$doc_number;
-                else echo "ใบส่งของ/ใบแจ้งหนี้ ".$doc_number;
+                if($billing_type == "2" || $billing_type == "5"){
+                    echo "ใบแจ้งหนี้/ใบวางบิล ".$doc_number;
+                }else{
+                    echo "ใบแจ้งหนี้ ".$doc_number;
+                }
             ?>
         </h1>
         <div class="title-button-group">
@@ -67,8 +70,11 @@
         <div class="r">
             <h1 class="document_name custom-color">
                 <?php
-                    if($doc_type == "IVT") echo "ใบส่งของ/ใบแจ้งหนี้/ใบกำกับภาษี ";
-                    else echo "ใบส่งของ/ใบแจ้งหนี้ ";
+                    if($billing_type == "2" || $billing_type == "5"){
+                        echo "ใบแจ้งหนี้/ใบวางบิล";
+                    }else{
+                        echo "ใบแจ้งหนี้";
+                    }
                 ?>
             </h1>
             <div class="about_company">

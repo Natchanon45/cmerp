@@ -56,7 +56,6 @@ class Invoices extends MY_Controller {
             return;
         }
 
-        $data["company_setting"] = $this->Settings_m->getCompany();
         $data["created"] = $this->Users_m->getInfo($data["created_by"]);
         $data["client"] = $this->Customers_m->getInfo($data["customer_id"]);
         $data["client_contact"] = $this->Customers_m->getContactInfo($data["client_id"]);

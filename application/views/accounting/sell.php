@@ -191,10 +191,12 @@ function loadDataGrid(){
     $(".buttons li.add").css("display", "block");
 
     if(active_module == "quotations"){
+        $(".buttons li.add a").attr("data-title", "สร้างใบเสนอราคา");
         $(".buttons li.add a").attr("data-action-url", "<?php echo get_uri("quotations/addedit"); ?>");
         $(".buttons li.add span").append("สร้างใบเสนอราคา");
         doc_status = [{id:"", text:"-- <?php echo lang("status"); ?> --"}, {id:"W", text:"รออนุมัติ"}, {id:"A", text:"อนุมัติ"}, {id:"I", text:"ดำเนินการแล้ว"}, {id:"R", text:"ไม่อนุมัติ"}];
     }else if(active_module == "invoices"){
+        $(".buttons li.add a").attr("data-title", "สร้างใบแจ้งหนี้");
         $(".buttons li.add a").attr("data-action-url", "<?php echo get_uri("invoices/addedit"); ?>");
         $(".buttons li.add span").append("สร้างใบแจ้งหนี้");
         doc_status = [{id:"", text:"-- <?php echo lang("status"); ?> --"}, {id:"W", text:"รออนุมัติ"}, {id:"O", text:"รอรับชำระ"}, {id:"V", text:"ยกเลิก"}];
@@ -204,6 +206,16 @@ function loadDataGrid(){
         $(".buttons li.add a").attr("data-action-url", "<?php echo get_uri("billing-notes/addedit"); ?>");
         $(".buttons li.add span").append("สร้างใบวางบิล");
         doc_status = [{id:"", text:"-- <?php echo lang("status"); ?> --"}, {id:"W", text:"รอวางบิล"}, {id:"A", text:"วางบิลแล้ว"}, {id:"I", text:"เปิดบิลแล้ว"}, {id:"V", text:"ยกเลิก"}];
+
+        grid_columns = [
+                            {title: "วันที่", "class":"w10p"},
+                            {title: "เลขที่เอกสาร", "class":"w15p"},
+                            {title: "ลูกค้า", "class":"w20p"},
+                            {title: "กำหนดรับชำระ", "class":"w15p"},
+                            {title: "มูลค่าสุทธิ", "class":"text-right w15p"},
+                            {title: "สถานะ", "class":"text-left w15p"},
+                            {title: "<i class='fa fa-bars'></i>", "class":"text-center option w10p"}
+                        ];
     }else if(active_module == "tax-invoices"){
         $(".buttons li.add a").attr("data-title", "สร้างใบกำกับภาษีขายจากรายการใบแจ้งหนี้");
         $(".buttons li.add a").attr("data-action-url", "<?php echo get_uri("tax-invoices/addedit"); ?>");

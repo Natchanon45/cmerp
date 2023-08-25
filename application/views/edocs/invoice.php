@@ -91,10 +91,13 @@
 			</div>
 			<div class="right">
 				<div class="docname custom-color">
-					<?php
-		                if($doc["doc_type"] == "IVT") echo "ใบส่งของ/ใบแจ้งหนี้/ใบกำกับภาษี";
-		                else echo "ใบส่งของ / ใบแจ้งหนี้";
-		            ?>
+		            <?php
+	                    if($doc["billing_type"] == "2" || $doc["billing_type"] == "5"){
+	                        echo "ใบแจ้งหนี้/ใบวางบิล";
+	                    }else{
+	                        echo "ใบแจ้งหนี้";
+	                    }
+	                ?>
 				</div>
 				<div class="docinfo">
 					<table>

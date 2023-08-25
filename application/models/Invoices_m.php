@@ -9,19 +9,17 @@ class Invoices_m extends MY_Model {
     }
 
     function getCode(){
-        $company_setting = $this->Settings_m->getCompany();
-
-        if($company_setting["company_vat_registered"] == "Y" && $company_setting["company_issue_tax_invoice"] == "Y") $this->code = "IVT";
-        else $this->code = "IV";
+        //$company_setting = $this->Settings_m->getCompany();
+        //if($company_setting["company_vat_registered"] == "Y" && $company_setting["company_issue_tax_invoice"] == "Y") $this->code = "IVT";
+        //else $this->code = "IV";
 
         return $this->code;
     }
 
     function getNewDocNumber(){
         $doc_type = "IV";
-        $company_setting = $this->Settings_m->getCompany();
-
-        if($company_setting["company_vat_registered"] == "Y" && $company_setting["company_issue_tax_invoice"] == "Y") $doc_type = "IVT";
+        //$company_setting = $this->Settings_m->getCompany();
+        //if($company_setting["company_vat_registered"] == "Y" && $company_setting["company_issue_tax_invoice"] == "Y") $doc_type = "IVT";
 
         $this->db->where_in("status", ["W", "O", "P"]);
         $this->db->where("DATE_FORMAT(created_datetime,'%Y-%m')", date("Y-m"));
@@ -119,6 +117,7 @@ class Invoices_m extends MY_Model {
         $company_setting = $this->Settings_m->getCompany();
 
         $this->data["doc_id"] = null;
+        $this->data["billing_type"] = "";
         $this->data["quotation_id"] = null;
         $this->data["doc_type"] = "IV";
         $this->data["doc_number"] = null;
@@ -191,6 +190,7 @@ class Invoices_m extends MY_Model {
             if($total_payment_amount == null) $total_payment_amount = 0;
 
             $this->data["doc_id"] = $docId;
+            $this->data["billing_type"] = $ivrow->billing_type;
             $this->data["quotation_id"] = $quotation_id;
             $this->data["doc_type"] = $ivrow->doc_type;
             $this->data["doc_number"] = $ivrow->doc_number;
@@ -266,6 +266,7 @@ class Invoices_m extends MY_Model {
 
         $this->data["buyer"] = $ci->Customers_m->getInfo($client_id);
         $this->data["buyer_contact"] = $ci->Customers_m->getContactInfo($client_id);
+        $this->data["billing_type"] = $ivrow->billing_type;
         $this->data["doc_type"] = $ivrow->doc_type;
         $this->data["doc_number"] = $ivrow->doc_number;
         $this->data["doc_date"] = $ivrow->doc_date;
@@ -523,9 +524,10 @@ class Invoices_m extends MY_Model {
             $doc_type = "IV";
             $doc_number = $this->getNewDocNumber();
             $company_setting = $this->Settings_m->getCompany();
-            if($company_setting["company_vat_registered"] == "Y" && $company_setting["company_issue_tax_invoice"] == "Y") $doc_type = "IVT";
+            //if($company_setting["company_vat_registered"] == "Y" && $company_setting["company_issue_tax_invoice"] == "Y") $doc_type = "IVT";
             
             $db->insert("invoice", [
+                                        "billing_type"=>$company_setting["company_billing_type"],
                                         "doc_type"=>$doc_type,
                                         "doc_number"=>$doc_number,
                                         "doc_date"=>$doc_date,
@@ -873,6 +875,7 @@ class Invoices_m extends MY_Model {
                     return $this->data;   
                 }
             }
+
             $rerow = $db->select("doc_number")
                         ->from("receipt")
                         ->where("invoice_id", $docId)
@@ -884,6 +887,8 @@ class Invoices_m extends MY_Model {
                 $this->data["message"] = "ไม่สามารถยกเลิกใบแจ้งหนี้ได้ เนื่องจากมีการผูกใบแจ้งหนี้กับใบเสร็จเลขที่ ".$rerow->doc_number." แล้ว";
                 return $this->data;
             }
+
+            $bism = $this->Bom_item_stocks_model->cancelFinishedGoodsSale(["sale_id"=>$docId, "sale_type"=>"IV"]);
 
             $db->where("id", $docId);
             $db->where("deleted", 0);

@@ -1,7 +1,7 @@
 <?php
 
 class Billing_notes_m extends MY_Model {
-    private $code = "BL";
+    private $code = "BN";
     private $shareHtmlAddress = "share/billing-note/html/";
 
     function __construct() {
@@ -32,18 +32,14 @@ class Billing_notes_m extends MY_Model {
         $doc_status = "<select class='dropdown_status' data-doc_id='".$bnrow->id."'>";
 
         if($bnrow->status == "W"){
-            $doc_status .= "<option selected>รอวางบิล</option>";
-            $doc_status .= "<option value='A'>วางบิลแล้ว</option>";
-            $doc_status .= "<option value='I'>เปิดบิลแล้ว</option>";
-            $doc_status .= "<option value='CREATE_INVOICE'>สร้างใบกำกับภาษี</option>";
+            $doc_status .= "<option selected>รออนุมัติ</option>";
+            $doc_status .= "<option value='O'>อนุมัติ</option>";
             $doc_status .= "<option value='V'>ยกเลิก</option>";
-        }elseif($bnrow->status == "A"){
-            $doc_status .= "<option selected>วางบิลแล้ว</option>";
-            $doc_status .= "<option value='I'>เปิดบิลแล้ว</option>";
-            $doc_status .= "<option value='CREATE_INVOICE'>สร้างใบกำกับภาษี</option>";
+        }elseif($bnrow->status == "O"){
+            $doc_status .= "<option selected>รอรับชำระ</option>";
             $doc_status .= "<option value='V'>ยกเลิก</option>";
-        }elseif($bnrow->status == "I"){
-            $doc_status .= "<option selected>เปิดบิลแล้ว</option>";
+        }elseif($bnrow->status == "P"){
+            $doc_status .= "<option selected>ชำระเงินแล้ว</option>";
             $doc_status .= "<option value='V'>ยกเลิก</option>";
         }else{
             $doc_status .= "<option selected>ยกเลิก</option>";
@@ -51,24 +47,13 @@ class Billing_notes_m extends MY_Model {
 
         $doc_status .= "</select>";
 
-        $reference_number_column = $bnrow->reference_number;
-        if($bnrow->quotation_id != null){
-            $reference_number_column = "<a href='".get_uri("quotations/view/".$bnrow->quotation_id)."'>".$bnrow->reference_number."</a>";
-        }
-
         $data = [
                     "<a href='".get_uri("billing-notes/view/".$bnrow->id)."'>".convertDate($bnrow->doc_date, 2)."</a>",
                     "<a href='".get_uri("billing-notes/view/".$bnrow->id)."'>".$bnrow->doc_number."</a>",
-                    $reference_number_column,
                     "<a href='".get_uri("clients/view/".$bnrow->client_id)."'>".$this->Clients_m->getCompanyName($bnrow->client_id)."</a>",
                     convertDate($bnrow->due_date, true), number_format($bnrow->total, 2), $doc_status,
                     "<a data-post-id='".$bnrow->id."' data-action-url='".get_uri("billing-notes/addedit")."' data-act='ajax-modal' class='edit'><i class='fa fa-pencil'></i></a>"
                 ];
-
-        /*
-        *Delete button
-        *<a data-id='".$bnrow->id."' data-action-url='".get_uri("billing-notes/delete_doc")."' data-action='delete' class='delete'><i class='fa fa-times fa-fw'></i></a>
-        */
 
         return $data;
     }
@@ -144,42 +129,7 @@ class Billing_notes_m extends MY_Model {
 
             if(empty($bnrow)) return $this->data;
 
-            $quotation_id = $bnrow->quotation_id;
-            $quotation_is_partial = "N";
-            $quotation_partial_type = null;
             $unpaid_amount = 0;
-
-            if($quotation_id != null){
-                $qrow = $db->select("total, is_partials, partials_type")
-                            ->from("quotation")
-                            ->where("id", $quotation_id)
-                            ->where("deleted", 0)
-                            ->get()->row();
-
-                if(empty($qrow)){
-                    log_message("error", "SYSERR=>Billing_notes_m->getDoc:".$db->last_query());
-                    return $this->data;
-                }
-
-                $billed_amount = 0;
-                $quotation_total = $qrow->total;
-                $quotation_is_partial = $qrow->is_partials;
-                $quotation_partial_type = $qrow->partials_type;
-
-                if($quotation_is_partial == "Y"){
-                    $billed_amount = $db->select("SUM(partials_amount) AS billed_amount")
-                                                ->from("billing_note")
-                                                ->where("quotation_id", $quotation_id)
-                                                ->where("deleted", 0)
-                                                ->get()->row()->billed_amount;
-
-                    if($quotation_partial_type == "A"){
-                        $unpaid_amount = $quotation_total - $billed_amount;
-                    }else{
-                        $unpaid_amount = (($quotation_total - $billed_amount)/$quotation_total) * 100;
-                    }
-                }
-            }
 
             $lead_id = $client_id = null;
             
@@ -192,34 +142,19 @@ class Billing_notes_m extends MY_Model {
             }
 
             $this->data["doc_id"] = $docId;
-            $this->data["quotation_id"] = $quotation_id;
             $this->data["doc_number"] = $bnrow->doc_number;
             $this->data["share_link"] = $bnrow->sharekey != null ? get_uri($this->shareHtmlAddress."th/".$bnrow->sharekey) : null;
             $this->data["doc_date"] = $bnrow->doc_date;
-            $this->data["credit"] = $bnrow->credit;
+            
             $this->data["due_date"] = $bnrow->due_date;
-            $this->data["reference_number"] = $bnrow->reference_number;
-            $this->data["discount_type"] = $bnrow->discount_type;
-            $this->data["discount_percent"] = $bnrow->discount_percent;
-            $this->data["discount_amount"] = $bnrow->discount_amount;
-            $this->data["unpaid_amount"] = number_format($unpaid_amount, 2);
-            $this->data["partials_percent"] = $bnrow->partials_percent;
-            $this->data["partials_amount"] = $bnrow->partials_amount;
-            $this->data["vat_inc"] = $bnrow->vat_inc;
             $this->data["vat_percent"] = number_format_drop_zero_decimals($bnrow->vat_percent, 2)."%";
-            $this->data["wht_inc"] = $bnrow->wht_inc;
-            $this->data["project_id"] = $bnrow->project_id;
             $this->data["client_id"] = $client_id;
-            $this->data["lead_id"] = $lead_id;
             $this->data["remark"] = $bnrow->remark;
             $this->data["created_by"] = $bnrow->created_by;
             $this->data["created_datetime"] = $bnrow->created_datetime;
             $this->data["approved_by"] = $bnrow->approved_by;
             $this->data["approved_datetime"] = $bnrow->approved_datetime;
             $this->data["doc_status"] = $bnrow->status;
-
-            $this->data["is_partial_billing"] = $quotation_is_partial;
-            $this->data["partials_type"] = $quotation_partial_type;
         }
 
         $this->data["status"] = "success";
@@ -339,16 +274,6 @@ class Billing_notes_m extends MY_Model {
 
             if(empty($bnrow)) return $this->data;
 
-            $discount_type = $this->json->discount_type;
-
-            if($discount_type == "P"){
-                $discount_percent = getNumber($this->json->discount_percent);
-                if($discount_percent >= 100) $discount_percent = 99.99;
-                if($discount_percent < 0) $discount_percent = 0;
-            }else{
-                $discount_amount = getNumber($this->json->discount_value);
-            }
-
             if($vat_inc == "Y") $vat_percent = $this->Taxes_m->getVatPercent();
             if($wht_inc == "Y") $wht_percent = getNumber($this->json->wht_percent);
 
@@ -361,9 +286,7 @@ class Billing_notes_m extends MY_Model {
 
             if(empty($bnrow)) return $this->data;            
 
-            $discount_type = $bnrow->discount_type;
-            $discount_percent = $bnrow->discount_percent;
-            $discount_amount = $bnrow->discount_amount;
+            
 
 
             $vat_inc = $bnrow->vat_inc;
@@ -373,141 +296,20 @@ class Billing_notes_m extends MY_Model {
             if($wht_inc == "Y") $wht_percent = $bnrow->wht_percent;
         }
         
-        $sub_total_before_discount = $db->select("SUM(total_price) AS SUB_TOTAL")
-                                        ->from("billing_note_items")
-                                        ->where("billing_note_id", $docId)
-                                        ->get()->row()->SUB_TOTAL;
-
-        if($sub_total_before_discount == null) $sub_total_before_discount = 0;
-        if($discount_type == "P"){
-            if($discount_percent > 0){
-                $discount_amount = ($sub_total_before_discount * $discount_percent)/100;
-            }
-        }else{
-            if($discount_amount > $sub_total_before_discount) $discount_amount = $sub_total_before_discount;
-            if($discount_amount < 0) $discount_amount = 0;
-        }
-
-        $sub_total = $sub_total_before_discount - $discount_amount;
-
-        $quotation_id = $bnrow->quotation_id;
-        $quotation_sub_total = 0;
-        $quotation_total = 0;
         $billed_amount = 0;
-        $is_partial_billing = "N";
-        $can_update_partial_billing = "N";
-        $partials_type = null;
-        $partials_percent = null;
-        $partials_amount = null;
 
-        if($quotation_id != null){
-            $qrow = $db->select("sub_total, total, is_partials, partials_type")
-                        ->from("quotation")
-                        ->where("id", $quotation_id)
-                        ->where("deleted", 0)
-                        ->get()->row();
-
-            if(!empty($qrow)){
-                $partials_type = $qrow->partials_type;
-                $quotation_sub_total = $qrow->sub_total;
-                $quotation_total = $qrow->total;
-
-                if($qrow->is_partials == "Y"){
-                    $is_partial_billing = "Y";
-
-                    $billed_amount = $db->select("SUM(partials_amount) AS billed_amount")
-                                        ->from("billing_note")
-                                        ->where("quotation_id", $quotation_id)
-                                        ->where("deleted", 0)
-                                        ->get()->row()->billed_amount;
-
-                    if($billed_amount == null) $billed_amount = 0;
-
-                    if($partials_type == "P"){
-                        $partials_percent = getNumber($this->json->partials_percent);
-                        $partials_amount = ($partials_percent * $quotation_sub_total)/100;
-                        $billed_amount = $billed_amount + $partials_amount;
-                    }
-
-                    if($partials_type == "A"){
-                        $partials_amount = getNumber($this->json->partials_amount);
-                        $billed_amount = $billed_amount + $partials_amount;
-                    }
-
-                    if($vat_inc == "Y") $vat_value = ($partials_amount * $vat_percent) / 100;
-                    $total = $partials_amount + $vat_value;
-
-                    if($wht_inc == "Y") $wht_value = ($partials_amount * $wht_percent) / 100;
-                    $payment_amount = $total - $wht_value;
-                }
-            }else{
-                log_message("error", "SYSERR=>Billing_notes_m->updateDoc: ".$db->last_query());
-            }
-        }
-
-        if($quotation_id == null || $is_partial_billing == "N"){
-            if($vat_inc == "Y") $vat_value = ($sub_total * $vat_percent) / 100;
-            $total = $sub_total + $vat_value;
-
-            if($wht_inc == "Y") $wht_value = ($sub_total * $wht_percent) / 100;
-            $payment_amount = $total - $wht_value;
-        }
 
         $db->where("id", $docId);
         $db->update("billing_note", [
-                                    "sub_total_before_discount"=>$sub_total_before_discount,
-                                    "discount_type"=>$discount_type,
-                                    "discount_percent"=>$discount_percent,
-                                    "discount_amount"=>$discount_amount,
-                                    "sub_total"=>$sub_total,
-                                    "partials_percent"=>$partials_percent,
-                                    "partials_amount"=>$partials_amount,
-                                    "vat_inc"=>$vat_inc,
+                                    "sub_total"=>0,
                                     "vat_percent"=>$vat_percent,
                                     "vat_value"=>$vat_value,
                                     "total"=>$total,
-                                    "wht_inc"=>$wht_inc,
-                                    "wht_percent"=>$wht_percent,
                                     "wht_value"=>$wht_value,
                                     "payment_amount"=>$payment_amount
                                 ]);
 
-
-        if($is_partial_billing == "Y"){
-            $bnsum = $db->select("SUM(partials_amount) AS sub_total_vat_excluded, SUM(total) AS collected_amount")
-                                    ->from("billing_note")
-                                    ->where("quotation_id", $quotation_id)
-                                    ->where("deleted", 0)
-                                    ->get()->row();
-
-            $sub_total_vat_excluded = $bnsum->sub_total_vat_excluded === null ? 0 : $bnsum->sub_total_vat_excluded;
-            $collected_amount = $bnsum->collected_amount === null ? 0 : $bnsum->collected_amount;
-
-            if($partials_type == "A"){
-                $this->data["unpaid_amount"] = number_format($quotation_sub_total - $sub_total_vat_excluded, 2);
-            }else{
-                $this->data["unpaid_amount"] = number_format((($quotation_sub_total - $sub_total_vat_excluded) / $quotation_sub_total) * 100, 2);
-            }
-
-            $db->where("id", $quotation_id);
-            $db->where("deleted", 0);
-            if($collected_amount >= $quotation_total){
-                $db->update("quotation", ["status"=>"I"]);
-            }else{
-                $db->update("quotation", ["status"=>"P"]);
-            }
-        }
-
-        $this->data["sub_total_before_discount"] = number_format($sub_total_before_discount, 2);
-        $this->data["discount_type"] = $discount_type;
-        $this->data["discount_percent"] = number_format($discount_percent, 2);
-        $this->data["discount_amount"] = number_format($discount_amount, 2);
-        $this->data["sub_total"] = number_format($sub_total, 2);
-        $this->data["is_partial_billing"] = $is_partial_billing;
-        $this->data["partials_type"] = $partials_type;
-        $this->data["partials_percent"] = ($partials_percent !== null) ? number_format($partials_percent, 2) : null;
-        $this->data["partials_amount"] = ($partials_amount !== null) ? number_format($partials_amount, 2) : null;
-        $this->data["vat_inc"] = $vat_inc;
+        $this->data["sub_total"] = number_format(0, 2);
         $this->data["vat_percent"] = number_format_drop_zero_decimals($vat_percent, 2);
         $this->data["vat_value"] = number_format($vat_value, 2);
         $this->data["total"] = number_format($total, 2);
@@ -677,7 +479,7 @@ class Billing_notes_m extends MY_Model {
     function items(){
         $db = $this->db;
         
-        $bnrow = $db->select("id, quotation_id, status")
+        $bnrow = $db->select("*")
                         ->from("billing_note")
                         ->where("id", $this->json->doc_id)
                         ->where("deleted", 0)
@@ -685,13 +487,13 @@ class Billing_notes_m extends MY_Model {
 
         if(empty($bnrow)) return $this->data;
 
-        $invirows = $db->select("*")
+        $bnirows = $db->select("*")
                         ->from("billing_note_items")
                         ->where("billing_note_id", $this->json->doc_id)
                         ->order_by("id", "asc")
                         ->get()->result();
 
-        if(empty($invirows)){
+        if(empty($bnirows)){
             $this->data["status"] = "notfound";
             $this->data["message"] = "ไม่พบข้อมูล";
             return $this->data;
@@ -699,14 +501,15 @@ class Billing_notes_m extends MY_Model {
 
         $items = [];
 
-        foreach($invirows as $invirow){
-            $item["id"] = $invirow->id;
-            $item["product_name"] = $invirow->product_name;
-            $item["product_description"] = $invirow->product_description;
-            $item["quantity"] = $invirow->quantity;
-            $item["unit"] = $invirow->unit;
-            $item["price"] = number_format($invirow->price, 2);
-            $item["total_price"] = number_format($invirow->total_price, 2);
+        foreach($bnirows as $bnirow){
+            $item["id"] = $bnirow->id;
+            $item["item_id"] = $bnirow->id;
+            $item["invoice_number"] = $bnirow->invoice_number;
+            $item["invoice_date"] = $bnirow->invoice_date;
+            $item["invoice_due_date"] = $bnirow->invoice_due_date;
+            $item["net_total"] = $bnirow->net_total;
+            $item["billing_amount"] = $bnirow->billing_amount;
+            $item["wht_value"] = ($bnirow->wht_inc == "Y"?$bnirow->wht_value:"ยังไม่ระบุ");
             $items[] = $item;
         }
 
@@ -741,22 +544,22 @@ class Billing_notes_m extends MY_Model {
         $this->data["total_price"] = number_format(0, 2);
 
         if(!empty($itemId)){
-            $qirow = $db->select("*")
+            $bnirow = $db->select("*")
                         ->from("billing_note_items")
                         ->where("id", $itemId)
                         ->where("billing_note_id", $docId)
                         ->get()->row();
 
-            if(empty($qirow)) return $this->data;
+            if(empty($bnirow)) return $this->data;
 
-            $this->data["item_id"] = $qirow->id;
-            $this->data["product_id"] = $qirow->product_id;
-            $this->data["product_name"] = $qirow->product_name;
-            $this->data["product_description"] = $qirow->product_description;
-            $this->data["quantity"] = number_format($qirow->quantity, $this->Settings_m->getDecimalPlacesNumber());
-            $this->data["unit"] = $qirow->unit;
-            $this->data["price"] = number_format($qirow->price, 2);
-            $this->data["total_price"] = number_format($qirow->total_price, 2);
+            $this->data["item_id"] = $bnirow->id;
+            $this->data["invoice_number"] = $bnirow->invoice_number;
+            $this->data["invoice_date"] = $bnirow->invoice_date;
+            $this->data["invoice_due_date"] = $bnirow->invoice_due_date;
+            $this->data["net_total"] = $bnirow->net_total;
+            $this->data["billing_amount"] = $bnirow->billing_amount;
+            $this->data["wht_value"] = $bnirow->wht_value;
+            
         }
 
         $this->data["status"] = "success";
@@ -1082,115 +885,102 @@ class Billing_notes_m extends MY_Model {
         return $this->data;
     }
 
-    function createDocByInvoiceId($invoice_id){
+    function createDocByInvoiceIds($invoice_ids){
         $db = $this->db;
+        $company_setting = $this->Settings_m->getCompany();
+        $billing_type = $company_setting["company_billing_type"];
 
-        $ivrow = $db->select("doc_number")
-                    ->from("invoice")
-                    ->where("invoice_id", $invoice_id)
-                    ->where("doc_type", "TIV")
-                    ->where_in("status", ["W", "A"])
-                    ->where("deleted", 0)
-                    ->get()->row();
-
-        if(!empty($ivrow)){
-            $this->data["message"] = "ไม่สามารถอกใบวางบิลได้ เนื่องจากเอกสาร ".$ivrow->doc_number." ถูกออกใบกำกับภาษีเรียบร้อยแล้ว";
+        if(count($invoice_ids) < 1){
+            $this->data["message"] = "กรุณาเลือกใบแจ้งหนี้ที่ต้องการนำมาออกใบวางบิล.";
             return $this->data;
         }
 
-        $ivrow = $db->select("*")
-                    ->from("invoice")
-                    ->where("id", $invoice_id)
-                    ->where_in("status", ["O", "P"])
-                    ->where("doc_type", "IV")
-                    ->where("deleted", 0)
-                    ->get()->row();
-
-        if(empty($ivrow)) return $this->data;
-
-        $ivirows = $db->select("*")
-                        ->from("invoice_items")
-                        ->where("invoice_id", $invoice_id)
-                        ->order_by("sort", "asc")
-                        ->get()->result();
-
-        $invoice_id = $ivrow->id;
-        $doc_type = "TIV";
-        $doc_number = $this->getNewDocNumber();
-        $doc_date = date("Y-m-d");
-        $credit = $ivrow->credit;
-        $due_date = $ivrow->due_date;
-        $reference_number = $ivrow->doc_number;
-        $project_id = $ivrow->project_id;
-        $client_id = $ivrow->client_id;
-        $sub_total_before_discount = $ivrow->sub_total_before_discount;
-        $discount_type = $ivrow->discount_type;
-        $discount_percent = $ivrow->discount_percent;
-        $discount_amount = $ivrow->discount_amount;
-        $sub_total = $ivrow->sub_total;
-        $vat_inc = $ivrow->vat_inc;
-        $vat_percent = $ivrow->vat_percent;
-        $vat_value = $ivrow->vat_value;
-        $total = $ivrow->total;
-        $wht_inc = $ivrow->wht_inc;
-        $wht_percent = $ivrow->wht_percent;
-        $wht_value = $ivrow->wht_value;
-        $payment_amount = $ivrow->payment_amount;
-        $remark = $ivrow->remark;
-        $created_by = $this->login_user->id;
-        $created_datetime = date("Y-m-d H:i:s");
-
         $db->trans_begin();
-        
-        $db->insert("invoice", [
-                                    "invoice_id"=>$invoice_id,
-                                    "doc_type"=>$doc_type,
-                                    "doc_number"=>$doc_number,
-                                    "doc_date"=>$doc_date,
-                                    "credit"=>$credit,
-                                    "due_date"=>$due_date,
-                                    "reference_number"=>$reference_number,
-                                    "project_id"=>$project_id,
-                                    "client_id"=>$client_id,
-                                    "sub_total_before_discount"=>$sub_total_before_discount,
-                                    "discount_type"=>$discount_type,
-                                    "discount_percent"=>$discount_percent,
-                                    "discount_amount"=>$discount_amount,
-                                    "sub_total"=>$sub_total,
-                                    "vat_inc"=>$vat_inc,
-                                    "vat_percent"=>$vat_percent,
-                                    "vat_value"=>$vat_value,
-                                    "total"=>$total,
-                                    "wht_inc"=>$wht_inc,
-                                    "wht_percent"=>$wht_percent,
-                                    "wht_value"=>$wht_value,
-                                    "payment_amount"=>$payment_amount,
-                                    "remark"=>$remark,
-                                    "created_by"=>$created_by,
-                                    "created_datetime"=>$created_datetime,
-                                    "tax_invoice_status"=>"W",
-                                    "deleted"=>0
-                                ]);
 
-        $invoice_id = $db->insert_id();
+        $doc_number = $this->getNewDocNumber();
 
-        if(!empty($ivirows)){
-            foreach($ivirows as $ivirow){
-                $db->insert("invoice_items", [
-                                                "invoice_id"=>$invoice_id,
-                                                "product_id"=>$ivirow->product_id,
-                                                "product_name"=>$ivirow->product_name,
-                                                "product_description"=>$ivirow->product_description,
-                                                "quantity"=>$ivirow->quantity,
-                                                "unit"=>$ivirow->unit,
-                                                "price"=>$ivirow->price,
-                                                "total_price"=>$ivirow->total_price,
-                                                "sort"=>$ivirow->sort
-                                            ]);
+        $db->insert("billing_note", [
+                                        "billing_type"=>$billing_type,
+                                        "doc_number"=>$doc_number,
+                                        "doc_date"=>date("Y-m-d"),
+                                        "due_date"=>date("Y-m-d", strtotime(date("Y-m-d") . "+7 days")),
+                                        "created_by"=>$this->login_user->id,
+                                        "created_datetime"=>date("Y-m-d H:i:s"),
+                                        "status"=>"W",
+                                        "deleted"=>0
+                                    ]);
+
+        $billing_id = $db->insert_id();
+
+        $billing_client_id = 0;
+        $billing_sub_total = 0;
+        $billing_vat_value = 0;
+        $billing_total = 0;
+        $billing_wht_value = 0;
+        $billing_payment_amount = 0;
+
+        $bisort = 0;
+
+        foreach($invoice_ids as $invoice_id){
+            $ivrow = $db->select("*")
+                        ->from("invoice")
+                        ->where("id", $invoice_id)
+                        ->where("billing_type", $billing_type)
+                        ->where("doc_type", "IV")
+                        ->where("status", "O")
+                        ->get()->row();
+
+            if(empty($ivrow)){
+                $db->trans_rollback();
+                return $this->data;
             }
+
+            $ivprow = $db->select("*")
+                            ->from("invoice_payment")
+                            ->where("invoice_id", $invoice_id)
+                            ->get()->row();
+
+            if(!empty($ivprow)){
+                $db->trans_rollback();
+                $this->data["message"] = "ไม่สามารถออกเอกสารใบวางบิลจากใบแจ้งหนี้เลขที่ ".$ivrow->doc_number."เนื่องจาก เอกสารถูกชำระเงินไปแล้ว";
+                return $this->data;
+            }
+
+            $billing_client_id = $ivrow->client_id;
+            $invoice_number = $ivrow->doc_number;
+            $invoice_date = $ivrow->doc_date;
+            $invoice_due_date = $ivrow->due_date;
+
+            $db->insert("billing_note_items", [
+                                                "billing_note_id"=>$billing_id,
+                                                "invoice_id"=>$invoice_id,
+                                                "invoice_number"=>$invoice_number,
+                                                "invoice_date"=>$invoice_date,
+                                                "invoice_due_date"=>$invoice_due_date,
+                                                "net_total"=>$ivrow->total,
+                                                "billing_amount"=>$ivrow->total,
+                                                "wht_inc"=>$ivrow->wht_inc,
+                                                "wht_percent"=>$ivrow->wht_percent,
+                                                "wht_value"=>$ivrow->wht_value,
+                                                "sort"=>++$bisort
+                                            ]);
+
+            $billing_sub_total = $billing_sub_total + $ivrow->sub_total;
+            $billing_vat_value = $billing_vat_value + $ivrow->vat_value;
+            $billing_total = $billing_total + $ivrow->total;
+            $billing_wht_value = $billing_wht_value + $ivrow->wht_value;
+            $billing_payment_amount = $billing_payment_amount + $ivrow->payment_amount;
         }
 
-        $this->data["doc_id"] = $invoice_id;
+        $db->update("billing_note", [
+                                        "client_id"=>$billing_client_id,
+                                        "sub_total"=>$billing_sub_total,
+                                        "vat_percent"=>($billing_vat_value > 0?$this->Taxes_m->getVatPercent():0),
+                                        "vat_value"=>$billing_vat_value,
+                                        "total"=>$billing_total,
+                                        "wht_value"=>$billing_wht_value,
+                                        "payment_amount"=>$billing_payment_amount
+                                    ]);
 
         if ($db->trans_status() === FALSE){
             $db->trans_rollback();
@@ -1198,17 +988,16 @@ class Billing_notes_m extends MY_Model {
         }
 
         $db->trans_commit();
-
-        $this->data["url"] = get_uri("tax-invoices/view/".$invoice_id);
-        $this->data["status"] = "success";
-        $this->data["message"] = "success";
-
+        $this->data["message"] = "OK";
         return $this->data;
+        
     }
 
     function getHTMLInvoices() {
         $db = $this->db;
         $customer_id = $this->json->customer_id;
+        $company_setting = $this->Settings_m->getCompany();
+        $billing_type = $company_setting["company_billing_type"];
 
         if(!isset($customer_id)) return ["html"=>"<tr class='norecord'><td colspan='8'>กรุณาเลือกชื่อลูกค้า เพื่อค้นหาเอกสาร</td></tr>"];
         if($customer_id == "") return ["html"=>"<tr class='norecord'><td colspan='8'>กรุณาเลือกชื่อลูกค้า เพื่อค้นหาเอกสาร</td></tr>"];
@@ -1217,6 +1006,7 @@ class Billing_notes_m extends MY_Model {
                         ->from("invoice")
                         ->where_in("status", ["O", "P"])
                         ->where_in("doc_type", ["IV", "IVT"])
+                        ->where("billing_type", $billing_type)
                         ->where("client_id", $customer_id)
                         ->where("deleted", 0)
                         ->order_by("doc_number", "desc")

@@ -107,7 +107,8 @@ $(document).ready(function() {
 
     doc_date = $("#doc_date").datepicker({
         yearRange: "<?php echo date('Y'); ?>",
-        format: 'dd/mm/yyyy',
+        format: "dd/mm/yyyy",
+        endDate: "now",
         changeMonth: true,
         changeYear: true,
         autoclose: true

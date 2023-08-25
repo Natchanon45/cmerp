@@ -30,9 +30,9 @@ class Billing_notes extends MY_Controller {
             if($this->json->task == "get_invs"){
                 jout($this->Billing_notes_m->getHTMLInvoices($this->input->post("customer_id")));
             }elseif($this->json->task == "create_doc"){
-                log_message("error", $this->input->post("invoice_ids"));
-                jout(["test"=>$this->input->post("invoice_ids")]);
-                //jout($this->Billing_notes_m->createDocByInvoiceId($this->json->invoice_id));
+                //log_message("error", $this->input->post("invoice_ids"));
+                //jout(["test"=>$this->input->post("invoice_ids")]);
+                jout($this->Billing_notes_m->createDocByInvoiceIds(json_decode($this->json->invoice_ids, true)));
             }
 
             return;

@@ -56,36 +56,36 @@
 }
 
 .popup .invoice td:nth-child(2){
-    width: 12%;
+    width: 11%;
 }
 
 .popup .invoice td:nth-child(3){
-    width: 12%;
+    width: 11%;
     text-align: left;
 }
 
 .popup .invoice td:nth-child(4){
-    width: 13%;
+    width: 14%;
     text-align: right;
 }
 
 .popup .invoice td:nth-child(5){
-    width: 13%;
+    width: 14%;
     text-align: right;
 }
 
 .popup .invoice td:nth-child(6){
-    width: 13%;
+    width: 14%;
     text-align: right;
 }
 
 .popup .invoice td:nth-child(7){
-    width: 13%;
+    width: 14%;
     text-align: right;
 }
 
 .popup .invoice td:nth-child(8){
-    width: 10%;
+    width: 8%;
     text-align: center;
 }
 
@@ -178,20 +178,6 @@ function getInvs(customer_id){
         $(".invoice table tbody").empty().append(data.html);
 
         $("#btnSubmit").click(function() {
-            /*$(".messageCheckbox:checked").val();
-            $("input[type='invoice_numbers']")
-
-            for(var i=0; inputElements[i]; ++i){
-                if(inputElements[i].checked){
-                    checkedValue = inputElements[i].value;
-                    break;
-                }
-            }*/
-
-            
-            //$("[name='invoice_numbers[]']:checked").length
-            //alert($("[name='invoice_numbers[]']:checked").length);
-
             ids = $("[name='invoice_numbers[]']");
             invoice_ids = [];
             for(i = 0; i < ids.length; i++){
@@ -200,13 +186,13 @@ function getInvs(customer_id){
                 }
             }
 
-            alert(JSON.stringify(invoice_ids));
-
             axios.post('<?php echo current_url(); ?>', {
                 task: 'create_doc',
                 invoice_ids: JSON.stringify(invoice_ids)
             }).then(function (response) {
-                let data = response.data;
+                data = response.data;
+
+                alert(data.message);
                 //alert(data.test);
                 /*let data = response.data;
                 if(data.status == "success"){

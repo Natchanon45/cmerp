@@ -115,6 +115,7 @@ class Tax_invoices_m extends MY_Model {
         $company_setting = $this->Settings_m->getCompany();
 
         $this->data["doc_id"] = null;
+        $this->data["billing_type"] = "";
         $this->data["invoice_id"] = null;
         $this->data["doc_number"] = null;
         $this->data["doc_date"] = date("Y-m-d");
@@ -161,6 +162,7 @@ class Tax_invoices_m extends MY_Model {
             }
 
             $this->data["doc_id"] = $docId;
+            $this->data["billing_type"] = $tivrow->billing_type;
             $this->data["invoice_id"] = $tivrow->invoice_id;
             $this->data["doc_number"] = $tivrow->doc_number;
             $this->data["share_link"] = $tivrow->sharekey != null ? get_uri($this->shareHtmlAddress."th/".$tivrow->sharekey) : null;
@@ -232,7 +234,7 @@ class Tax_invoices_m extends MY_Model {
 
         $this->data["buyer"] = $ci->Customers_m->getInfo($client_id);
         $this->data["buyer_contact"] = $ci->Customers_m->getContactInfo($client_id);
-
+        $this->data["billing_type"] = $ivrow->doc_type;
         $this->data["doc_number"] = $ivrow->doc_number;
         $this->data["doc_date"] = $ivrow->doc_date;
         $this->data["credit"] = $ivrow->credit;
@@ -429,7 +431,7 @@ class Tax_invoices_m extends MY_Model {
         }
     }
 
-    function saveDoc(){
+    /*function saveDoc(){
         $db = $this->db;
 
         $this->validateDoc();
@@ -490,6 +492,7 @@ class Tax_invoices_m extends MY_Model {
             $company_setting = $this->Settings_m->getCompany();
             
             $db->insert("invoice", [
+                                        "billing_type"=>$company_setting["company_billing_type"],
                                         "doc_number"=>$doc_number,
                                         "doc_date"=>$doc_date,
                                         "credit"=>$credit,
@@ -511,7 +514,7 @@ class Tax_invoices_m extends MY_Model {
         $this->data["status"] = "success";
 
         return $this->data;
-    }
+    }*/
 
     function deleteDoc(){
         $db = $this->db;
@@ -837,6 +840,8 @@ class Tax_invoices_m extends MY_Model {
                 $this->data["message"] = "ไม่สามารถยกเลิกใบแจ้งหนี้ได้ เนื่องจากมีการผูกใบแจ้งหนี้กับใบเสร็จเลขที่ ".$rerow->doc_number." แล้ว";
                 return $this->data;
             }
+
+            $bism = $this->Bom_item_stocks_model->cancelFinishedGoodsSale(["sale_id"=>$docId, "sale_type"=>"TIV"]);
 
             $db->where("id", $docId);
             $db->where("deleted", 0);

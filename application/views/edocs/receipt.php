@@ -90,7 +90,19 @@
 				</div>
 			</div>
 			<div class="right">
-				<div class="docname custom-color">ใบเสร็จรับเงิน</div>
+				<div class="docname custom-color">
+					<?php
+	                    if($doc["billing_type"] == "2"){
+	                        echo "ใบกำกับภาษี/ใบเสร็จรับเงิน";
+	                    }elseif($doc["billing_type"] == "3"){
+	                        echo "ใบแจ้งหนี้/ใบวางบิล/ใบกำกับภาษี/ใบเสร็จรับเงิน/ใบส่งของ";
+	                    }elseif($doc["billing_type"] == "6"){
+	                        echo "ใบแจ้งหนี้/ใบวางบิล/ใบเสร็จรับเงิน/ใบส่งของ";
+	                    }else{
+	                        echo "ใบเสร็จรับเงิน";
+	                    }
+	                ?>
+				</div>
 				<div class="docinfo">
 					<table>
 	                    <tr>

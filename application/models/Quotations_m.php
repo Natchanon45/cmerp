@@ -467,6 +467,7 @@ class Quotations_m extends MY_Model {
             $company_setting = $this->Settings_m->getCompany();
 
             $db->insert("quotation", [
+                                        "billing_type"=>$company_setting["company_billing_type"],
                                         "doc_number"=>$doc_number,
                                         "doc_date"=>$doc_date,
                                         "credit"=>$credit,
@@ -751,6 +752,7 @@ class Quotations_m extends MY_Model {
 
         if(empty($qrow)) return $this->data;
 
+        $quotation_billing_type = $qrow->billing_type;
         $quotation_id = $this->data["doc_id"] = $docId;
         $quotation_number = $qrow->doc_number;
         $currentStatus = $qrow->status;
@@ -803,7 +805,7 @@ class Quotations_m extends MY_Model {
             $db->update("quotation", ["status"=>"I"]);
 
             $doc_type = "IV";
-            if($company_setting["company_vat_registered"] == "Y" && $company_setting["company_issue_tax_invoice"] == "Y") $doc_type = "IVT";
+            //if($company_setting["company_vat_registered"] == "Y" && $company_setting["company_issue_tax_invoice"] == "Y") $doc_type = "IVT";
             
             $invoice_number = $this->Invoices_m->getNewDocNumber();
             $invoice_date = date("Y-m-d");
@@ -811,34 +813,35 @@ class Quotations_m extends MY_Model {
             $invoice_due_date = date("Y-m-d", strtotime($invoice_date. " + ".$invoice_credit." days"));
 
             $db->insert("invoice", [
-                                            "quotation_id"=>$quotation_id,
-                                            "doc_type"=>$doc_type,
-                                            "doc_number"=>$invoice_number,
-                                            "doc_date"=>$invoice_date,
-                                            "credit"=>$invoice_credit,
-                                            "due_date"=>$invoice_due_date,
-                                            "reference_number"=>$quotation_number,
-                                            "project_id"=>$qrow->project_id,
-                                            "client_id"=>$qrow->client_id,
-                                            "sub_total_before_discount"=>$quotation_sub_total_before_discount,
-                                            "discount_type"=>$quotation_discount_type,
-                                            "discount_percent"=>$quotation_discount_percent,
-                                            "discount_amount"=>$quotation_discount_amount,
-                                            "sub_total"=>$quotation_sub_total,
-                                            "vat_inc"=>$quotation_vat_inc,
-                                            "vat_percent"=>$quotation_vat_percent,
-                                            "vat_value"=>$quotation_vat_value,
-                                            "total"=>$quotation_total,
-                                            "wht_inc"=>$quotation_wht_inc,
-                                            "wht_percent"=>$quotation_wht_percent,
-                                            "wht_value"=>$quotation_wht_value,
-                                            "payment_amount"=>$quotation_payment_amount,
-                                            "remark"=>$qrow->remark,
-                                            "created_by"=>$this->login_user->id,
-                                            "created_datetime"=>date("Y-m-d H:i:s"),
-                                            "status"=>"W",
-                                            "deleted"=>0
-                                        ]);            
+                                    "billing_type"=>$quotation_billing_type,
+                                    "quotation_id"=>$quotation_id,
+                                    "doc_type"=>$doc_type,
+                                    "doc_number"=>$invoice_number,
+                                    "doc_date"=>$invoice_date,
+                                    "credit"=>$invoice_credit,
+                                    "due_date"=>$invoice_due_date,
+                                    "reference_number"=>$quotation_number,
+                                    "project_id"=>$qrow->project_id,
+                                    "client_id"=>$qrow->client_id,
+                                    "sub_total_before_discount"=>$quotation_sub_total_before_discount,
+                                    "discount_type"=>$quotation_discount_type,
+                                    "discount_percent"=>$quotation_discount_percent,
+                                    "discount_amount"=>$quotation_discount_amount,
+                                    "sub_total"=>$quotation_sub_total,
+                                    "vat_inc"=>$quotation_vat_inc,
+                                    "vat_percent"=>$quotation_vat_percent,
+                                    "vat_value"=>$quotation_vat_value,
+                                    "total"=>$quotation_total,
+                                    "wht_inc"=>$quotation_wht_inc,
+                                    "wht_percent"=>$quotation_wht_percent,
+                                    "wht_value"=>$quotation_wht_value,
+                                    "payment_amount"=>$quotation_payment_amount,
+                                    "remark"=>$qrow->remark,
+                                    "created_by"=>$this->login_user->id,
+                                    "created_datetime"=>date("Y-m-d H:i:s"),
+                                    "status"=>"W",
+                                    "deleted"=>0
+                                ]);       
 
             $invoice_id = $db->insert_id();
 
@@ -851,16 +854,16 @@ class Quotations_m extends MY_Model {
             if(empty(!$qirows)){
                 foreach($qirows as $qirow){
                     $db->insert("invoice_items", [
-                                                        "invoice_id"=>$invoice_id,
-                                                        "product_id"=>$qirow->product_id,
-                                                        "product_name"=>$qirow->product_name,
-                                                        "product_description"=>$qirow->product_description,
-                                                        "quantity"=>$qirow->quantity,
-                                                        "unit"=>$qirow->unit,
-                                                        "price"=>$qirow->price,
-                                                        "total_price"=>$qirow->total_price,
-                                                        "sort"=>$qirow->sort
-                                                    ]);
+                                                    "invoice_id"=>$invoice_id,
+                                                    "product_id"=>$qirow->product_id,
+                                                    "product_name"=>$qirow->product_name,
+                                                    "product_description"=>$qirow->product_description,
+                                                    "quantity"=>$qirow->quantity,
+                                                    "unit"=>$qirow->unit,
+                                                    "price"=>$qirow->price,
+                                                    "total_price"=>$qirow->total_price,
+                                                    "sort"=>$qirow->sort
+                                                ]);
                 }
             }
 
