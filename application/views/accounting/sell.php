@@ -216,6 +216,8 @@ function loadDataGrid(){
                             {title: "สถานะ", "class":"text-left w15p"},
                             {title: "<i class='fa fa-bars'></i>", "class":"text-center option w10p"}
                         ];
+
+        summation_column = 4;
     }else if(active_module == "tax-invoices"){
         $(".buttons li.add a").attr("data-title", "สร้างใบกำกับภาษีขายจากรายการใบแจ้งหนี้");
         $(".buttons li.add a").attr("data-action-url", "<?php echo get_uri("tax-invoices/addedit"); ?>");
@@ -266,8 +268,8 @@ function loadDataGrid(){
         source: "<?php echo_uri(); ?>"+active_module,
         rangeDatepicker: [
             {
-                startDate: { name: "start_date", value: "<?php echo date('Y-m-d', strtotime('-1 month')); ?>" }, 
-                endDate: { name: "end_date", value: "<?php echo date("Y-m-d"); ?>" }
+                startDate: { name: "start_date", value: "<?php echo date('Y-m-1'); ?>" }, 
+                endDate: { name: "end_date", value: "<?php echo date("Y-m-d", strtotime('last day of this month', time())); ?>" }
             }
         ],
         destroy: true,

@@ -192,17 +192,12 @@ function getInvs(customer_id){
             }).then(function (response) {
                 data = response.data;
 
-                alert(data.message);
-                //alert(data.test);
-                /*let data = response.data;
                 if(data.status == "success"){
                     location.href = data.url;
                 }else{
                     alert(data.message);
-                }*/
+                }
             }).catch(function (error) {});
-
-
         });
     }).catch(function (error) {});
 }

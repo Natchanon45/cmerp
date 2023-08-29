@@ -15,9 +15,8 @@ class Tax_invoices_m extends MY_Model {
     function getNewDocNumber(){
         $this->db->where_in("status", ["W", "A"]);
         $this->db->where("DATE_FORMAT(created_datetime,'%Y-%m')", date("Y-m"));
-        $this->db->where("doc_type", "TIV");
         $this->db->where("deleted", 0);
-        $running_number = $this->db->get("invoice")->num_rows() + 1;
+        $running_number = $this->db->get("tax_invoice")->num_rows() + 1;
 
         $doc_number = $this->getCode().date("Ym").sprintf("%04d", $running_number);
 
@@ -36,35 +35,26 @@ class Tax_invoices_m extends MY_Model {
 
     function getIndexDataSetHTML($tivrow){
         $doc_buttons = $doc_status = "";
+
         $module = "tax-invoices";
+        $doc_status = "<select class='dropdown_status' data-doc_id='".$tivrow->id."' data-doc_number='".$tivrow->doc_number."'>";
+        $doc_buttons = "";
 
-        if($tivrow->doc_type == "IVT"){
-            $module = "invoices";
-        }else{//TIV
-            $module = "tax-invoices";
-            $doc_status = "<select class='dropdown_status' data-doc_id='".$tivrow->id."' data-doc_number='".$tivrow->doc_number."'>";
-            $doc_buttons = "<a data-post-id='".$tivrow->id."' data-action-url='".get_uri($module."/addedit")."' data-act='ajax-modal' class='edit'><i class='fa fa-pencil'></i></a>";
-
-            if($tivrow->tax_invoice_status == "W"){
-                $doc_status .= "<option selected>รออนุมัติ</option>";
-                $doc_status .= "<option value='A'>อนุมัติ</option>";
-                $doc_status .= "<option value='V'>ยกเลิก</option>";
-            }elseif($tivrow->tax_invoice_status == "A"){
-                $doc_status .= "<option selected>อนุมัติ</option>";
-                $doc_status .= "<option value='V'>ยกเลิก</option>";
-            }elseif($tivrow->tax_invoice_status == "V"){
-                $doc_status .= "<option selected>ยกเลิก</option>";
-            }
-
-            $doc_status .= "</select>";
+        if($tivrow->status == "W"){
+            $doc_status .= "<option selected>รออนุมัติ</option>";
+            $doc_status .= "<option value='A'>อนุมัติ</option>";
+            $doc_status .= "<option value='V'>ยกเลิก</option>";
+        }elseif($tivrow->status == "A"){
+            $doc_status .= "<option selected>อนุมัติ</option>";
+            $doc_status .= "<option value='V'>ยกเลิก</option>";
+        }elseif($tivrow->status == "V"){
+            $doc_status .= "<option selected>ยกเลิก</option>";
         }
 
+        $doc_status .= "</select>";
+        
         $reference_number_column = $tivrow->reference_number;
-        if($tivrow->quotation_id != null){
-            $reference_number_column = "<a href='".get_uri("quotations/view/".$tivrow->quotation_id)."'>".$tivrow->reference_number."</a>";
-        }elseif($tivrow->invoice_id != null){
-            $reference_number_column = "<a href='".get_uri("invoices/view/".$tivrow->invoice_id)."'>".$tivrow->reference_number."</a>";
-        }
+        if($tivrow->invoice_id != null) $reference_number_column = "<a href='".get_uri("invoices/view/".$tivrow->invoice_id)."'>".$tivrow->reference_number."</a>";
 
         $data = [
                     "<a href='".get_uri($module."/view/".$tivrow->id)."'>".convertDate($tivrow->doc_date, 2)."</a>",
@@ -81,8 +71,7 @@ class Tax_invoices_m extends MY_Model {
     function indexDataSet() {
         $db = $this->db;
 
-        $db->select("*")->from("invoice");
-        $db->where_in("doc_type", ["IVT", "TIV"]);
+        $db->select("*")->from("tax_invoice");
 
         if($this->input->post("status") != null){
             $db->where("status", $this->input->post("status"));
@@ -142,9 +131,7 @@ class Tax_invoices_m extends MY_Model {
 
         if(!empty($docId)){
             $tivrow = $db->select("*")
-                            ->from("invoice")
-                            ->where("doc_type", "TIV")
-                            ->where_in("tax_invoice_status", ["W", "A"])
+                            ->from("tax_invoice")
                             ->where("id", $docId)
                             ->where("deleted", 0)
                             ->get()->row();
@@ -211,67 +198,66 @@ class Tax_invoices_m extends MY_Model {
             return $this->data;
         }
 
-        $db->where("deleted", 0);
-
-        $ivrow = $db->select("*")
-                    ->from("invoice")
+        $tivrow = $db->select("*")
+                    ->from("tax_invoice")
+                    ->where("deleted", 0)
                     ->get()->row();
 
-        if(empty($ivrow)) return $this->data;
+        if(empty($tivrow)) return $this->data;
 
-        $docId = $ivrow->id;
+        $docId = $tivrow->id;
 
-        $ivrows = $db->select("*")
-                        ->from("invoice_items")
-                        ->where("invoice_id", $docId)
+        $tivrows = $db->select("*")
+                        ->from("tax_invoice_items")
+                        ->where("tax_invoice_id", $docId)
                         ->order_by("sort", "asc")
                         ->get()->result();
 
-        $client_id = $ivrow->client_id;
-        $created_by = $ivrow->created_by;
+        $client_id = $tivrow->client_id;
+        $created_by = $tivrow->created_by;
 
         $this->data["seller"] = $ci->Users_m->getInfo($created_by);
 
         $this->data["buyer"] = $ci->Customers_m->getInfo($client_id);
         $this->data["buyer_contact"] = $ci->Customers_m->getContactInfo($client_id);
-        $this->data["billing_type"] = $ivrow->doc_type;
-        $this->data["doc_number"] = $ivrow->doc_number;
-        $this->data["doc_date"] = $ivrow->doc_date;
-        $this->data["credit"] = $ivrow->credit;
-        $this->data["due_date"] = $ivrow->due_date;
-        $this->data["reference_number"] = $ivrow->reference_number;
-        $this->data["remark"] = $ivrow->remark;
+        $this->data["billing_type"] = $tivrow->billing_type;
+        $this->data["doc_number"] = $tivrow->doc_number;
+        $this->data["doc_date"] = $tivrow->doc_date;
+        $this->data["credit"] = $tivrow->credit;
+        $this->data["due_date"] = $tivrow->due_date;
+        $this->data["reference_number"] = $tivrow->reference_number;
+        $this->data["remark"] = $tivrow->remark;
 
-        $this->data["sub_total_before_discount"] = $ivrow->sub_total_before_discount;
+        $this->data["sub_total_before_discount"] = $tivrow->sub_total_before_discount;
 
-        $this->data["discount_type"] = $ivrow->discount_type;
-        $this->data["discount_percent"] = $ivrow->discount_percent;
-        $this->data["discount_amount"] = $ivrow->discount_amount;
+        $this->data["discount_type"] = $tivrow->discount_type;
+        $this->data["discount_percent"] = $tivrow->discount_percent;
+        $this->data["discount_amount"] = $tivrow->discount_amount;
         
-        $this->data["sub_total"] = $ivrow->sub_total;
+        $this->data["sub_total"] = $tivrow->sub_total;
 
-        $this->data["vat_inc"] = $ivrow->vat_inc;
-        $this->data["vat_percent"] = $ivrow->vat_percent;
-        $this->data["vat_value"] = $ivrow->vat_value;
-        $this->data["total"] = $ivrow->total;
-        $this->data["total_in_text"] = numberToText($ivrow->total);
-        $this->data["wht_inc"] = $ivrow->wht_inc;
-        $this->data["wht_percent"] = $ivrow->wht_percent;
-        $this->data["wht_value"] = $ivrow->wht_value;
-        $this->data["payment_amount"] = $ivrow->payment_amount;
+        $this->data["vat_inc"] = $tivrow->vat_inc;
+        $this->data["vat_percent"] = $tivrow->vat_percent;
+        $this->data["vat_value"] = $tivrow->vat_value;
+        $this->data["total"] = $tivrow->total;
+        $this->data["total_in_text"] = numberToText($tivrow->total);
+        $this->data["wht_inc"] = $tivrow->wht_inc;
+        $this->data["wht_percent"] = $tivrow->wht_percent;
+        $this->data["wht_value"] = $tivrow->wht_value;
+        $this->data["payment_amount"] = $tivrow->payment_amount;
 
-        $this->data["sharekey_by"] = $ivrow->sharekey_by;
-        $this->data["approved_by"] = $ivrow->approved_by;
-        $this->data["approved_datetime"] = $ivrow->approved_datetime;
+        $this->data["sharekey_by"] = $tivrow->sharekey_by;
+        $this->data["approved_by"] = $tivrow->approved_by;
+        $this->data["approved_datetime"] = $tivrow->approved_datetime;
 
-        if($ivrow->approved_by != null && file_exists($_SERVER['DOCUMENT_ROOT']."/".$company_setting["company_stamp"])){
+        if($tivrow->approved_by != null && file_exists($_SERVER['DOCUMENT_ROOT']."/".$company_setting["company_stamp"])){
             $this->data["company_stamp"] = $company_setting["company_stamp"];
         }
 
-        $this->data["doc_status"] = $ivrow->status;
+        $this->data["doc_status"] = $tivrow->status;
 
-        $this->data["doc"] = $ivrow;
-        $this->data["items"] = $ivrows;
+        $this->data["doc"] = $tivrow;
+        $this->data["items"] = $tivrows;
 
         $this->data["status"] = "success";
         $this->data["message"] = "ok";
@@ -282,7 +268,7 @@ class Tax_invoices_m extends MY_Model {
     function updateDoc($docId = null){
         $db = $this->db;
 
-        $ivrow = null;
+        $tivrow = null;
 
         $discount_type = "P";
         $discount_percent = 0;
@@ -305,13 +291,13 @@ class Tax_invoices_m extends MY_Model {
             $vat_inc = $this->json->vat_inc == true ? "Y":"N";
             $wht_inc = $this->json->wht_inc == true ? "Y":"N";
             
-            $ivrow = $db->select("*")
-                        ->from("invoice")
+            $tivrow = $db->select("*")
+                        ->from("tax_invoice")
                         ->where("id", $docId)
                         ->where("deleted", 0)
                         ->get()->row();
 
-            if(empty($ivrow)) return $this->data;
+            if(empty($tivrow)) return $this->data;
 
             $discount_type = $this->json->discount_type;
 
@@ -327,29 +313,29 @@ class Tax_invoices_m extends MY_Model {
             if($wht_inc == "Y") $wht_percent = getNumber($this->json->wht_percent);
 
         }else{
-            $ivrow = $db->select("*")
-                        ->from("invoice")
+            $tivrow = $db->select("*")
+                        ->from("tax_invoice")
                         ->where("id", $docId)
                         ->where("deleted", 0)
                         ->get()->row();
 
-            if(empty($ivrow)) return $this->data;            
+            if(empty($tivrow)) return $this->data;            
 
-            $discount_type = $ivrow->discount_type;
-            $discount_percent = $ivrow->discount_percent;
-            $discount_amount = $ivrow->discount_amount;
+            $discount_type = $tivrow->discount_type;
+            $discount_percent = $tivrow->discount_percent;
+            $discount_amount = $tivrow->discount_amount;
 
 
-            $vat_inc = $ivrow->vat_inc;
-            $wht_inc = $ivrow->wht_inc;
+            $vat_inc = $tivrow->vat_inc;
+            $wht_inc = $tivrow->wht_inc;
 
-            if($vat_inc == "Y") $vat_percent = $ivrow->vat_percent;
-            if($wht_inc == "Y") $wht_percent = $ivrow->wht_percent;
+            if($vat_inc == "Y") $vat_percent = $tivrow->vat_percent;
+            if($wht_inc == "Y") $wht_percent = $tivrow->wht_percent;
         }
         
         $sub_total_before_discount = $db->select("SUM(total_price) AS SUB_TOTAL")
-                                        ->from("invoice_items")
-                                        ->where("invoice_id", $docId)
+                                        ->from("tax_invoice_items")
+                                        ->where("tax_invoice_id", $docId)
                                         ->get()->row()->SUB_TOTAL;
 
         if($sub_total_before_discount == null) $sub_total_before_discount = 0;
@@ -371,7 +357,7 @@ class Tax_invoices_m extends MY_Model {
         $payment_amount = $total - $wht_value;
 
         $db->where("id", $docId);
-        $db->update("invoice", [
+        $db->update("tax_invoice", [
                                     "sub_total_before_discount"=>$sub_total_before_discount,
                                     "discount_type"=>$discount_type,
                                     "discount_percent"=>$discount_percent,
@@ -431,111 +417,26 @@ class Tax_invoices_m extends MY_Model {
         }
     }
 
-    /*function saveDoc(){
-        $db = $this->db;
-
-        $this->validateDoc();
-        if($this->data["status"] == "validate") return $this->data;
-
-        $docId = $this->json->doc_id;
-        $doc_date = convertDate($this->json->doc_date);
-        $credit = $this->json->credit;
-        $due_date = date('Y-m-d', strtotime($doc_date." + ".$credit." days"));
-        $reference_number = $this->json->reference_number;
-        $client_id = $this->json->client_id;
-        $lead_id = $this->json->lead_id;
-        $project_id = $this->json->project_id;
-        $remark = $this->json->remark;
-
-        if($client_id == "" && $lead_id == ""){
-            $this->data["status"] = "validate";
-            $this->data["messages"]["client_id"] = "โปรดใส่ข้อมูล";
-            return $this->data;
-        }
-
-        $customer_id = null;
-        if($client_id != "") $customer_id = $client_id;
-        if($lead_id != "") $customer_id = $lead_id;
-
-        if($docId != ""){
-            $ivrow = $db->select("status")
-                        ->from("invoice")
-                        ->where("id", $docId)
-                        ->where("deleted", 0)
-                        ->get()->row();
-
-            if(empty($ivrow)){
-                $this->data["success"] = false;
-                $this->data["message"] = "ขออภัย เกิดข้อผิดพลาดระหว่างดำเนินการ! โปรดลองใหม่อีกครั้งในภายหลัง";
-                return $this->data;
-            }
-
-            if($ivrow->status != "W"){
-                $this->data["success"] = false;
-                $this->data["message"] = "ไม่สามารถบันทึกเอกสารได้เนื่องจากเอกสารมีการเปลี่ยนแปลงสถานะแล้ว";
-                return $this->data;
-            }
-
-            $db->where("id", $docId);
-            $db->where("deleted", 0);
-            $db->update("invoice", [
-                                        "doc_date"=>$doc_date,
-                                        "credit"=>$credit,
-                                        "due_date"=>$due_date,
-                                        "reference_number"=>$reference_number,
-                                        "client_id"=>$customer_id,
-                                        "project_id"=>($project_id != null ? $project:null),
-                                        "remark"=>$remark
-                                    ]);
-        }else{
-            $doc_number = $this->getNewDocNumber();
-            $company_setting = $this->Settings_m->getCompany();
-            
-            $db->insert("invoice", [
-                                        "billing_type"=>$company_setting["company_billing_type"],
-                                        "doc_number"=>$doc_number,
-                                        "doc_date"=>$doc_date,
-                                        "credit"=>$credit,
-                                        "due_date"=>$due_date,
-                                        "reference_number"=>$reference_number,
-                                        "vat_inc"=>$company_setting["company_vat_registered"],
-                                        "client_id"=>$customer_id,
-                                        "project_id"=>($project_id != null ? $project:null),
-                                        "remark"=>$remark,
-                                        "created_by"=>$this->login_user->id,
-                                        "created_datetime"=>date("Y-m-d H:i:s"),
-                                        "status"=>"W"
-                                    ]);
-
-            $docId = $db->insert_id();
-        }
-        
-        $this->data["target"] = get_uri("invoices/view/". $docId);
-        $this->data["status"] = "success";
-
-        return $this->data;
-    }*/
-
     function deleteDoc(){
         $db = $this->db;
         $docId = $this->input->post("id");
 
-        $ivrow = $db->select("status")
-                        ->from("invoice")
+        $tivrow = $db->select("status")
+                        ->from("tax_invoice")
                         ->where("id", $docId)
                         ->where("deleted", 0)
                         ->get()->row();
 
-        if(empty($ivrow)) return $this->data;
+        if(empty($tivrow)) return $this->data;
 
-        if($ivrow->status != "W"){
+        if($tivrow->status != "W"){
             $this->data["success"] = false;
             $this->data["message"] = "คุณไม่สามารถลบเอกสารได้ เนื่องจากเอกสารมีการเปลี่ยนแปลงสถานะแล้ว";
             return $this->data;
         }
 
         $db->where("id", $docId);
-        $db->update("invoice", ["deleted"=>1]);
+        $db->update("tax_invoice", ["deleted"=>1]);
 
         $this->data["success"] = true;
         $this->data["message"] = lang('record_deleted');
@@ -548,15 +449,15 @@ class Tax_invoices_m extends MY_Model {
         $docId = $this->input->post("id");
 
         $db->where("id", $docId);
-        $db->update("invoice", ["deleted"=>0]);
+        $db->update("tax_invoice", ["deleted"=>0]);
 
-        $ivrow = $db->select("*")
-                    ->from("invoice")
+        $tivrow = $db->select("*")
+                    ->from("tax_invoice")
                     ->where("id", $docId)
                     ->get()->row();
 
         $data["success"] = true;
-        $data["data"] = $this->getIndexDataSetHTML($ivrow);
+        $data["data"] = $this->getIndexDataSetHTML($tivrow);
         $data["message"] = lang('record_undone');
 
         return $data;
@@ -566,19 +467,18 @@ class Tax_invoices_m extends MY_Model {
         $db = $this->db;
         $doc_id = $this->json->doc_id;
         
-        $tivrow = $db->select("id, quotation_id, status")
-                    ->from("invoice")
-                    ->where_in("tax_invoice_status", ["W", "A", "V"])
-                    ->where("id", $doc_id)
-                    ->where("doc_type", "TIV")
-                    ->where("deleted", 0)
-                    ->get()->row();
+        $tivrow = $db->select("id, status")
+                        ->from("tax_invoice")
+                        ->where_in("status", ["W", "A", "V"])
+                        ->where("id", $doc_id)
+                        ->where("deleted", 0)
+                        ->get()->row();
 
         if(empty($tivrow)) return $this->data;
 
         $tivirows = $db->select("*")
-                        ->from("invoice_items")
-                        ->where("invoice_id", $doc_id)
+                        ->from("tax_invoice_items")
+                        ->where("tax_invoice_id", $doc_id)
                         ->order_by("id", "asc")
                         ->get()->result();
 
@@ -613,16 +513,15 @@ class Tax_invoices_m extends MY_Model {
         $docId = $this->input->post("doc_id");
         $itemId = $this->input->post("item_id");
 
-        $ivrow = $db->select("id, quotation_id")
-                        ->from("invoice")
+        $tivrow = $db->select("id")
+                        ->from("tax_invoice")
                         ->where("id", $docId)
                         ->where("deleted", 0)
                         ->get()->row();
 
-        if(empty($ivrow)) return $this->data;
+        if(empty($tivrow)) return $this->data;
 
         $this->data["doc_id"] = $docId;
-        $this->data["quotation_id"] = $ivrow->quotation_id;
         $this->data["product_id"] = "";
         $this->data["product_name"] = "";
         $this->data["product_description"] = "";
@@ -676,13 +575,13 @@ class Tax_invoices_m extends MY_Model {
         $db = $this->db;
         $docId = isset($this->json->doc_id)?$this->json->doc_id:null;
 
-        $ivrow = $db->select("id")
-                    ->from("invoice")
+        $tivrow = $db->select("id")
+                    ->from("tax_invoice")
                     ->where("id", $docId)
                     ->where("deleted", 0)
                     ->get()->row();
 
-        if(empty($ivrow)) return $this->data;
+        if(empty($tivrow)) return $this->data;
       
         $this->validateItem();
         if($this->data["status"] == "validate") return $this->data;
@@ -760,28 +659,28 @@ class Tax_invoices_m extends MY_Model {
         $docId = $this->json->doc_id;
         $updateStatusTo = $this->json->update_status_to;
 
-        $ivrow = $db->select("*")
-                    ->from("invoice")
+        $tivrow = $db->select("*")
+                    ->from("tax_invoice")
                     ->where("id",$docId)
                     ->where("deleted", 0)
                     ->get()->row();
 
-        if(empty($ivrow)) return $this->data;
-        if($ivrow->status == $updateStatusTo){
+        if(empty($tivrow)) return $this->data;
+        if($tivrow->status == $updateStatusTo){
             $this->data["status"] = "notchange";
-            $this->data["dataset"] = $this->getIndexDataSetHTML($ivrow);
+            $this->data["dataset"] = $this->getIndexDataSetHTML($tivrow);
             return $this->data;
         }
 
         $invoice_id = $this->data["doc_id"] = $docId;
-        $invoice_number = $ivrow->doc_number;
-        $currentStatus = $ivrow->status;
+        $invoice_number = $tivrow->doc_number;
+        $currentStatus = $tivrow->status;
 
-        $this->db->trans_begin();
+        $db->trans_begin();
 
         if($updateStatusTo == "A"){
             if($currentStatus == "V"){
-                $this->data["dataset"] = $this->getIndexDataSetHTML($ivrow);
+                $this->data["dataset"] = $this->getIndexDataSetHTML($tivrow);
                 return $this->data;
             }
             
@@ -789,16 +688,16 @@ class Tax_invoices_m extends MY_Model {
 
             if($company_stock_type == "tax_invoice"){
                 $item = [
-                        "sale_id"=>$ivrow->id,
-                        "sale_type"=>"TIV",
-                        "sale_document"=>$ivrow->doc_number,
-                        "project_id"=>$ivrow->project_id,
-                        "created_by"=>$ivrow->created_by
+                        "sale_id"=>$tivrow->id,
+                        "sale_type"=>$this->code,
+                        "sale_document"=>$tivrow->doc_number,
+                        "project_id"=>$tivrow->project_id,
+                        "created_by"=>$tivrow->created_by
                     ];
 
                 $ivirows = $db->select("*")
-                                ->from("invoice_items")
-                                ->where("invoice_id", $ivrow->id)
+                                ->from("tax_invoice_items")
+                                ->where("invoice_id", $tivrow->id)
                                 ->get()->result();
 
                 $items = [];
@@ -822,10 +721,10 @@ class Tax_invoices_m extends MY_Model {
 
             $db->where("id", $docId);
             $db->where("deleted", 0);
-            $db->update("invoice", [
+            $db->update("tax_invoice", [
                                         "approved_by"=>$this->login_user->id,
                                         "approved_datetime"=>date("Y-m-d H:i:s"),
-                                        "status"=>"O"
+                                        "status"=>"A"
                                     ]);
 
         }elseif($updateStatusTo == "V"){
@@ -836,21 +735,21 @@ class Tax_invoices_m extends MY_Model {
                         ->get()->row();
 
             if(!empty($rerow)){
-                $this->data["dataset"] = $this->getIndexDataSetHTML($ivrow);
+                $this->data["dataset"] = $this->getIndexDataSetHTML($tivrow);
                 $this->data["message"] = "ไม่สามารถยกเลิกใบแจ้งหนี้ได้ เนื่องจากมีการผูกใบแจ้งหนี้กับใบเสร็จเลขที่ ".$rerow->doc_number." แล้ว";
                 return $this->data;
             }
 
-            $bism = $this->Bom_item_stocks_model->cancelFinishedGoodsSale(["sale_id"=>$docId, "sale_type"=>"TIV"]);
+            $bism = $this->Bom_item_stocks_model->cancelFinishedGoodsSale(["sale_id"=>$docId, "sale_type"=>$this->code]);
 
             $db->where("id", $docId);
             $db->where("deleted", 0);
-            $db->update("invoice", ["status"=>"V"]);
+            $db->update("tax_invoice", ["status"=>"V"]);
         }
 
         if ($db->trans_status() === FALSE){
             $db->trans_rollback();
-            $this->data["dataset"] = $this->getIndexDataSetHTML($ivrow);
+            $this->data["dataset"] = $this->getIndexDataSetHTML($tivrow);
             return $this->data;
         }
 
@@ -861,13 +760,13 @@ class Tax_invoices_m extends MY_Model {
 
         if(isset($this->data["task"])) return $this->data;
 
-        $ivrow = $db->select("*")
-                    ->from("invoice")
+        $tivrow = $db->select("*")
+                    ->from("tax_invoice")
                     ->where("id",$docId)
                     ->where("deleted", 0)
                     ->get()->row();
 
-        $this->data["dataset"] = $this->getIndexDataSetHTML($ivrow);
+        $this->data["dataset"] = $this->getIndexDataSetHTML($tivrow);
         return $this->data;
     }
 
@@ -886,14 +785,14 @@ class Tax_invoices_m extends MY_Model {
             while(true){
                 $sharekey = uniqid();
                 $db->where("sharekey", $sharekey);
-                if($db->count_all_results("invoice") < 1) break;
+                if($db->count_all_results("tax_invoice") < 1) break;
             }
 
             $this->data["sharelink"] = get_uri($this->shareHtmlAddress."th/".$sharekey);
         }
 
         $db->where("id", $docId);
-        $db->update("invoice", ["sharekey"=>$sharekey, "sharekey_by"=>$sharekey_by]);
+        $db->update("tax_invoice", ["sharekey"=>$sharekey, "sharekey_by"=>$sharekey_by]);
 
         return $this->data;
     }
@@ -901,17 +800,15 @@ class Tax_invoices_m extends MY_Model {
     function createDocByInvoiceId($invoice_id){
         $db = $this->db;
 
-        $ivrow = $db->select("doc_number")
-                    ->from("invoice")
-                    ->where("invoice_id", $invoice_id)
-                    ->where("doc_type", "TIV")
-                    ->where_in("status", ["W", "A"])
-                    ->where("deleted", 0)
-                    ->get()->row();
+        $tivrow = $db->select("doc_number")
+                        ->from("tax_invoice")
+                        ->where("invoice_id", $invoice_id)
+                        ->where_in("status", ["W", "A"])
+                        ->where("deleted", 0)
+                        ->get()->row();
 
-
-        if(!empty($ivrow)){
-            $this->data["message"] = "ไม่สามารถอกใบกำกับภาษีได้ เนื่องจากเอกสาร ".$ivrow->doc_number." ถูกออกใบกำกับภาษีเรียบร้อยแล้ว";
+        if(!empty($tivrow)){
+            $this->data["message"] = "ไม่สามารถอกใบกำกับภาษีได้ เนื่องจากเอกสาร ".$tivrow->doc_number." ถูกออกใบกำกับภาษีเรียบร้อยแล้ว";
             return $this->data;
         }
 
@@ -919,7 +816,6 @@ class Tax_invoices_m extends MY_Model {
                     ->from("invoice")
                     ->where("id", $invoice_id)
                     ->where_in("status", ["O", "P"])
-                    ->where("doc_type", "IV")
                     ->where("deleted", 0)
                     ->get()->row();
 
@@ -931,8 +827,8 @@ class Tax_invoices_m extends MY_Model {
                         ->order_by("sort", "asc")
                         ->get()->result();
 
+        $billing_type = $ivrow->billing_type;
         $invoice_id = $ivrow->id;
-        $doc_type = "TIV";
         $doc_number = $this->getNewDocNumber();
         $doc_date = date("Y-m-d");
         $credit = $ivrow->credit;
@@ -959,9 +855,9 @@ class Tax_invoices_m extends MY_Model {
 
         $db->trans_begin();
         
-        $db->insert("invoice", [
+        $db->insert("tax_invoice", [
+                                    "billing_type"=>$billing_type,
                                     "invoice_id"=>$invoice_id,
-                                    "doc_type"=>$doc_type,
                                     "doc_number"=>$doc_number,
                                     "doc_date"=>$doc_date,
                                     "credit"=>$credit,
@@ -985,16 +881,16 @@ class Tax_invoices_m extends MY_Model {
                                     "remark"=>$remark,
                                     "created_by"=>$created_by,
                                     "created_datetime"=>$created_datetime,
-                                    "tax_invoice_status"=>"W",
+                                    "status"=>"W",
                                     "deleted"=>0
                                 ]);
 
-        $invoice_id = $db->insert_id();
+        $tax_invoice_id = $db->insert_id();
 
         if(!empty($ivirows)){
             foreach($ivirows as $ivirow){
-                $db->insert("invoice_items", [
-                                                "invoice_id"=>$invoice_id,
+                $db->insert("tax_invoice_items", [
+                                                "tax_invoice_id"=>$invoice_id,
                                                 "product_id"=>$ivirow->product_id,
                                                 "product_name"=>$ivirow->product_name,
                                                 "product_description"=>$ivirow->product_description,
@@ -1033,7 +929,6 @@ class Tax_invoices_m extends MY_Model {
         $ivrows = $db->select("*")
                         ->from("invoice")
                         ->where_in("status", ["O", "P"])
-                        ->where("doc_type", "IV")
                         ->where("client_id", $customer_id)
                         ->where("deleted", 0)
                         ->order_by("doc_number", "desc")
@@ -1044,11 +939,10 @@ class Tax_invoices_m extends MY_Model {
         if(!empty($ivrows)){
             $html = "";
             foreach($ivrows as $ivrow){
+                $db->where_in("status", ["W", "A"]);
                 $db->where("invoice_id", $ivrow->id);
-                $db->where("doc_type", "TIV");
-                $db->where_in("tax_invoice_status", ["W", "A"]);
                 $db->where("deleted", 0);
-                if($db->count_all_results("invoice") > 0) continue;
+                if($db->count_all_results("tax_invoice") > 0) continue;
 
                 $html .= "<tr>";
                     $html .= "<td>".convertDate($ivrow->doc_date, true)."</td>";

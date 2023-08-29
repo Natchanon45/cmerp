@@ -803,9 +803,6 @@ class Quotations_m extends MY_Model {
         }elseif($updateStatusTo == "I"){
             $db->where("id", $quotation_id);
             $db->update("quotation", ["status"=>"I"]);
-
-            $doc_type = "IV";
-            //if($company_setting["company_vat_registered"] == "Y" && $company_setting["company_issue_tax_invoice"] == "Y") $doc_type = "IVT";
             
             $invoice_number = $this->Invoices_m->getNewDocNumber();
             $invoice_date = date("Y-m-d");
@@ -815,7 +812,6 @@ class Quotations_m extends MY_Model {
             $db->insert("invoice", [
                                     "billing_type"=>$quotation_billing_type,
                                     "quotation_id"=>$quotation_id,
-                                    "doc_type"=>$doc_type,
                                     "doc_number"=>$invoice_number,
                                     "doc_date"=>$invoice_date,
                                     "credit"=>$invoice_credit,
