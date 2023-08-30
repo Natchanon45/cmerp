@@ -29,7 +29,7 @@ class Billing_notes_m extends MY_Model {
     }
 
     function getIndexDataSetHTML($bnrow){
-        $doc_status = "<select class='dropdown_status' data-doc_id='".$bnrow->id."'>";
+        $doc_status = "<select class='dropdown_status' data-doc_id='".$bnrow->id."' data-post-id='".$bnrow->id."'>";
 
         if($bnrow->status == "W"){
             $doc_status .= "<option selected>รออนุมัติ</option>";
@@ -48,7 +48,7 @@ class Billing_notes_m extends MY_Model {
                     "<a href='".get_uri("billing-notes/view/".$bnrow->id)."'>".convertDate($bnrow->doc_date, 2)."</a>",
                     "<a href='".get_uri("billing-notes/view/".$bnrow->id)."'>".$bnrow->doc_number."</a>",
                     "<a href='".get_uri("clients/view/".$bnrow->client_id)."'>".$this->Clients_m->getCompanyName($bnrow->client_id)."</a>",
-                    convertDate($bnrow->due_date, true), number_format($bnrow->total, 2), $doc_status,""
+                    convertDate($bnrow->due_date, true), number_format($bnrow->total, 2), $doc_status
                 ];
 
         return $data;
@@ -191,26 +191,16 @@ class Billing_notes_m extends MY_Model {
 
         $this->data["doc_number"] = $bnrow->doc_number;
         $this->data["doc_date"] = $bnrow->doc_date;
-        $this->data["credit"] = $bnrow->credit;
         $this->data["due_date"] = $bnrow->due_date;
         $this->data["reference_number"] = $bnrow->reference_number;
         $this->data["remark"] = $bnrow->remark;
-
-        $this->data["sub_total_before_discount"] = $bnrow->sub_total_before_discount;
-
-        $this->data["discount_type"] = $bnrow->discount_type;
-        $this->data["discount_percent"] = $bnrow->discount_percent;
-        $this->data["discount_amount"] = $bnrow->discount_amount;
         
         $this->data["sub_total"] = $bnrow->sub_total;
 
-        $this->data["vat_inc"] = $bnrow->vat_inc;
         $this->data["vat_percent"] = $bnrow->vat_percent;
         $this->data["vat_value"] = $bnrow->vat_value;
         $this->data["total"] = $bnrow->total;
         $this->data["total_in_text"] = numberToText($bnrow->total);
-        $this->data["wht_inc"] = $bnrow->wht_inc;
-        $this->data["wht_percent"] = $bnrow->wht_percent;
         $this->data["wht_value"] = $bnrow->wht_value;
         $this->data["payment_amount"] = $bnrow->payment_amount;
 

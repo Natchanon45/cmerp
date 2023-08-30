@@ -4,6 +4,9 @@
 <?php $this->load->view("edocs/include/head"); ?>
 <title><?php echo get_setting("company_name")." - ".$doc["doc_number"]; ?></title>	
 <style type="text/css">
+td{
+	
+}
 .body .items table td:nth-child(1){
 	width: 30px;
 	text-align: center;
@@ -102,10 +105,6 @@
 	                        <td><?php echo convertDate($doc["doc_date"], true); ?></td>
 	                    </tr>
 	                    <tr>
-	                        <td class="custom-color">เครดิต</td>
-	                        <td><?php echo $doc["credit"]; ?> วัน</td>
-	                    </tr>
-	                    <tr>
 	                        <td class="custom-color">ครบกำหนด</td>
 	                        <td><?php echo convertDate($doc["due_date"], true); ?></td>
 	                    </tr>
@@ -145,11 +144,12 @@
 					<thead>
 		                <tr>
 		                    <td>#</td>
-		                    <td>รายละเอียด</td>
-		                    <td>จำนวน</td>
-		                    <td>หน่วย</td>
-		                    <td>ราคาต่อหน่วย</td>
-		                    <td>ยอดรวม</td>
+		                    <td>เลขที่เอกสาร</td>
+		                    <td>วันที่ออก</td>
+		                    <td>วันที่ครบกำหนด</td>
+		                    <td>มูลค่าสุทธิรวม</td>
+		                    <td>จำนวนเงินวางบิล</td>
+		                    <td>หัก ณ ที่จ่าย</td>
 		                </tr>
 		            </thead>
 		            <tbody>
@@ -158,16 +158,12 @@
 		            		<?php foreach($doc["items"] as $item): ?>
 				            	<tr>
 				                    <td><?php echo $i++; ?></td>
-				                    <td>
-				                    	<span class="product_name"><?php echo $item->product_name; ?></span>
-				                    	<?php if(trim($item->product_description) != ""): ?>
-				                    		<span class="product_description"><?php echo trim($item->product_description); ?></span>
-				                    	<?php endif;?>
-				                    </td>
-				                    <td><?php echo $item->quantity; ?></td>
-				                    <td><?php echo $item->unit; ?></td>
-				                    <td><?php echo number_format($item->price, 2); ?></td>
-				                    <td><?php echo number_format($item->total_price, 2); ?></td>
+				                    <td><span class="product_name"><?php echo $item->invoice_number; ?></span></td>
+				                    <td><?php echo $item->invoice_date; ?></td>
+				                    <td><?php echo $item->invoice_due_date; ?></td>
+				                    <td><?php echo number_format($item->net_total, 2); ?></td>
+				                    <td><?php echo number_format($item->billing_amount, 2); ?></td>
+				                    <td><?php echo number_format($item->wht_value, 2); ?></td>
 				                </tr>
 			            	<?php endforeach; ?>
 		            	<?php endif; ?>
@@ -179,35 +175,25 @@
 				<div class="total_all">
 					<div class="row">
 						<div class="c1 custom-color">รวมเป็นเงิน</div>
-						<div class="c2"><span><?php echo number_format($doc["sub_total_before_discount"], 2); ?></span><span><?php echo lang("THB");?></span></div>
+						<div class="c2"><span><?php echo number_format($doc["sub_total"], 2); ?></span><span><?php echo lang("THB");?></span></div>
 					</div>
-					<?php if($doc["discount_amount"] > 0): ?>
-						<div class="row">
-							<div class="c1 custom-color">ส่วนลด <?php if($doc["discount_type"] == "P") echo number_format_drop_zero_decimals($doc["discount_percent"], 2)."%"; ?></div>
-							<div class="c2"><span><?php echo number_format($doc["discount_amount"], 2); ?></span><span><?php echo lang("THB");?></span></div>
-						</div>
-						<div class="row">
-							<div class="c1 custom-color">จำนวนหลังหักส่วนลด</div>
-							<div class="c2"><span><?php echo number_format($doc["sub_total"], 2); ?></span><span><?php echo lang("THB");?></span></div>
-						</div>
-					<?php endif; ?>
-					<?php if($doc["vat_inc"] == "Y"): ?>
+					<?php if($doc["vat_value"] > 0): ?>
 						<div class="row">
 							<div class="c1 custom-color">ภาษีมูลค่าเพิ่ม <?php echo number_format_drop_zero_decimals($doc["vat_percent"], 2)."%";?></div>
 							<div class="c2"><span><?php echo number_format($doc["vat_value"], 2); ?></span><span><?php echo lang("THB");?></span></div>
 						</div>
 					<?php endif; ?>
 					<div class="row">
-						<div class="c1 custom-color">จำนวนเงินรวมทั้งสิน</div>
+						<div class="c1 custom-color">มูลค่าสุทธิรวม</div>
 						<div class="c2"><span><?php echo number_format($doc["total"], 2); ?></span><span><?php echo lang("THB");?></span></div>
 					</div>
-					<?php if($doc["wht_inc"] == "Y"): ?>
+					<?php if($doc["wht_value"] > 0): ?>
 						<div class="row wht">
-							<div class="c1 custom-color">หักภาษี ณ ที่จ่าย <?php echo number_format_drop_zero_decimals($doc["wht_percent"], 2)."%";?></div>
+							<div class="c1 custom-color">จำนวนเงินที่ถูกหัก ณ ที่จ่าย</div>
 							<div class="c2"><span><?php echo number_format($doc["wht_value"], 2); ?></span><span><?php echo lang("THB");?></span></div>
 						</div>
 						<div class="row">
-							<div class="c1 custom-color">ยอดชำระ</div>
+							<div class="c1 custom-color">จำนวนเงินที่จะต้องชำระ</div>
 							<div class="c2"><span><?php echo number_format($doc["payment_amount"], 2); ?></span><span><?php echo lang("THB");?></span></div>
 						</div>
 					<?php endif;?>

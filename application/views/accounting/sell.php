@@ -210,11 +210,10 @@ function loadDataGrid(){
         grid_columns = [
                             {title: "วันที่", "class":"w10p"},
                             {title: "เลขที่เอกสาร", "class":"w15p"},
-                            {title: "ลูกค้า", "class":"w20p"},
+                            {title: "ลูกค้า", "class":"w30p"},
                             {title: "กำหนดรับชำระ", "class":"w15p"},
                             {title: "มูลค่าสุทธิ", "class":"text-right w15p"},
-                            {title: "สถานะ", "class":"text-left w15p"},
-                            {title: "<i class='fa fa-bars'></i>", "class":"text-center option w10p"}
+                            {title: "สถานะ", "class":"text-left w15p"}
                         ];
 
         summation_column = 4;
@@ -304,6 +303,7 @@ function updateStatus(docId, updateStatusTo){
                 location.href = data.url;
                 return;
             }
+
             appAlert.success(data.message, {duration: 6000});
             $("#datagrid").appTable({newData: data.dataset, dataId: data.doc_id});
         }else if(data.status == "notchange"){
