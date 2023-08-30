@@ -33,13 +33,10 @@ class Billing_notes_m extends MY_Model {
 
         if($bnrow->status == "W"){
             $doc_status .= "<option selected>รออนุมัติ</option>";
-            $doc_status .= "<option value='O'>อนุมัติ</option>";
+            $doc_status .= "<option value='A'>อนุมัติ</option>";
             $doc_status .= "<option value='V'>ยกเลิก</option>";
-        }elseif($bnrow->status == "O"){
-            $doc_status .= "<option selected>รอรับชำระ</option>";
-            $doc_status .= "<option value='V'>ยกเลิก</option>";
-        }elseif($bnrow->status == "P"){
-            $doc_status .= "<option selected>ชำระเงินแล้ว</option>";
+        }elseif($bnrow->status == "A"){
+            $doc_status .= "<option selected>อนุมัติแล้ว</option>";
             $doc_status .= "<option value='V'>ยกเลิก</option>";
         }else{
             $doc_status .= "<option selected>ยกเลิก</option>";
@@ -51,8 +48,7 @@ class Billing_notes_m extends MY_Model {
                     "<a href='".get_uri("billing-notes/view/".$bnrow->id)."'>".convertDate($bnrow->doc_date, 2)."</a>",
                     "<a href='".get_uri("billing-notes/view/".$bnrow->id)."'>".$bnrow->doc_number."</a>",
                     "<a href='".get_uri("clients/view/".$bnrow->client_id)."'>".$this->Clients_m->getCompanyName($bnrow->client_id)."</a>",
-                    convertDate($bnrow->due_date, true), number_format($bnrow->total, 2), $doc_status,
-                    "<a data-post-id='".$bnrow->id."' data-action-url='".get_uri("billing-notes/addedit")."' data-act='ajax-modal' class='edit'><i class='fa fa-pencil'></i></a>"
+                    convertDate($bnrow->due_date, true), number_format($bnrow->total, 2), $doc_status,""
                 ];
 
         return $data;
@@ -682,9 +678,9 @@ class Billing_notes_m extends MY_Model {
         $billing_note_number = $bnrow->doc_number;
         $currentStatus = $bnrow->status;
 
-        $this->db->trans_begin();
+        $db->trans_begin();
 
-        if($updateStatusTo == "O"){
+        if($updateStatusTo == "A"){
             if($currentStatus == "V"){
                 $this->data["dataset"] = $this->getIndexDataSetHTML($bnrow);
                 return $this->data;
@@ -695,7 +691,7 @@ class Billing_notes_m extends MY_Model {
             $db->update("billing_note", [
                                         "approved_by"=>$this->login_user->id,
                                         "approved_datetime"=>date("Y-m-d H:i:s"),
-                                        "status"=>"O"
+                                        "status"=>"A"
                                     ]);
 
         }elseif($updateStatusTo == "V"){
@@ -722,7 +718,7 @@ class Billing_notes_m extends MY_Model {
         $this->data["message"] = lang("record_saved");
 
         if(isset($this->data["task"])) return $this->data;
-
+ 
         $bnrow = $db->select("*")
                     ->from("billing_note")
                     ->where("id",$docId)
