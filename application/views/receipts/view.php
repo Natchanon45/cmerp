@@ -6,7 +6,7 @@
             if($billing_type == "2"){
                 echo "ใบกำกับภาษี/ใบเสร็จรับเงิน ".$doc_number;
             }elseif($billing_type == "3"){
-                echo "ใบแจ้งหนี้/ใบวางบิล/ใบกำกับภาษี/ใบเสร็จรับเงิน/ใบส่งของ ".$doc_number;
+                echo "ใบแจ้งหนี้/ใบวางบิล/ใบกำกับ... ".$doc_number;
             }elseif($billing_type == "6"){
                 echo "ใบแจ้งหนี้/ใบวางบิล/ใบเสร็จรับเงิน/ใบส่งของ ".$doc_number;
             }else{

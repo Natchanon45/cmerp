@@ -4,14 +4,13 @@
 <?php $this->load->view("edocs/include/head"); ?>
 <title><?php echo get_setting("company_name")." - ".$doc["doc_number"]; ?></title>	
 <style type="text/css">
-
 .body .items table td:nth-child(1){
 	width: 30px;
 	text-align: center;
 }
 
 .body .items table td:nth-child(2){
-	max-width: calc(100% - 510px);
+	max-width: calc(100% - 630px);
     text-align: left;
 }
 
@@ -31,6 +30,11 @@
 }
 
 .body .items table td:nth-child(6){
+	width: 120px;
+    text-align: right;
+}
+
+.body .items table td:nth-child(7){
 	width: 120px;
     text-align: right;
 }

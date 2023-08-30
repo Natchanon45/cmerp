@@ -37,7 +37,7 @@ class Tax_invoices_m extends MY_Model {
         $doc_buttons = $doc_status = "";
 
         $module = "tax-invoices";
-        $doc_status = "<select class='dropdown_status' data-doc_id='".$tivrow->id."' data-doc_number='".$tivrow->doc_number."'>";
+        $doc_status = "<select class='dropdown_status' data-doc_id='".$tivrow->id."' data-post-id='".$tivrow->id."' data-doc_number='".$tivrow->doc_number."'>";
         $doc_buttons = "";
 
         if($tivrow->status == "W"){
@@ -70,8 +70,10 @@ class Tax_invoices_m extends MY_Model {
 
     function indexDataSet() {
         $db = $this->db;
+        $company_setting = $this->Settings_m->getCompany();
 
         $db->select("*")->from("tax_invoice");
+        $db->where("billing_type", $company_setting["company_billing_type"]);
 
         if($this->input->post("status") != null){
             $db->where("status", $this->input->post("status"));
@@ -133,6 +135,7 @@ class Tax_invoices_m extends MY_Model {
             $tivrow = $db->select("*")
                             ->from("tax_invoice")
                             ->where("id", $docId)
+                            ->where("billing_type", $company_setting["company_billing_type"])
                             ->where("deleted", 0)
                             ->get()->row();
 
@@ -200,6 +203,7 @@ class Tax_invoices_m extends MY_Model {
 
         $tivrow = $db->select("*")
                     ->from("tax_invoice")
+                    ->where("billing_type", $company_setting["company_billing_type"])
                     ->where("deleted", 0)
                     ->get()->row();
 
@@ -662,6 +666,7 @@ class Tax_invoices_m extends MY_Model {
         $tivrow = $db->select("*")
                     ->from("tax_invoice")
                     ->where("id",$docId)
+                    ->where("billing_type", $company_setting["company_billing_type"])
                     ->where("deleted", 0)
                     ->get()->row();
 

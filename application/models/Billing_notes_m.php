@@ -36,7 +36,7 @@ class Billing_notes_m extends MY_Model {
             $doc_status .= "<option value='A'>อนุมัติ</option>";
             $doc_status .= "<option value='V'>ยกเลิก</option>";
         }elseif($bnrow->status == "A"){
-            $doc_status .= "<option selected>อนุมัติแล้ว</option>";
+            $doc_status .= "<option selected>อนุมัติ</option>";
             $doc_status .= "<option value='V'>ยกเลิก</option>";
         }else{
             $doc_status .= "<option selected>ยกเลิก</option>";
@@ -56,8 +56,10 @@ class Billing_notes_m extends MY_Model {
 
     function indexDataSet() {
         $db = $this->db;
+        $company_setting = $this->Settings_m->getCompany();
 
         $db->select("*")->from("billing_note");
+        $db->where("billing_type", $company_setting["company_billing_type"]);
 
         if($this->input->post("status") != null){
             $db->where("status", $this->input->post("status"));
@@ -87,6 +89,7 @@ class Billing_notes_m extends MY_Model {
 
     function getDoc($docId){
         $db = $this->db;
+        $company_setting = $this->Settings_m->getCompany();
 
         $this->data["doc_id"] = null;
         $this->data["doc_number"] = null;
@@ -105,12 +108,14 @@ class Billing_notes_m extends MY_Model {
         $this->data["created_datetime"] = null;
         $this->data["approved_by"] = null;
         $this->data["approved_datetime"] = null;
+        $this->data["company_stamp"] = null;
         $this->data["doc_status"] = NULL;
 
         if(!empty($docId)){
             $bnrow = $db->select("*")
                         ->from("billing_note")
                         ->where("id", $docId)
+                        ->where("billing_type", $company_setting["company_billing_type"])
                         ->where("deleted", 0)
                         ->get()->row();
 
@@ -142,6 +147,7 @@ class Billing_notes_m extends MY_Model {
             $this->data["created_datetime"] = $bnrow->created_datetime;
             $this->data["approved_by"] = $bnrow->approved_by;
             $this->data["approved_datetime"] = $bnrow->approved_datetime;
+            if($bnrow->approved_by != null) if(file_exists($_SERVER['DOCUMENT_ROOT']."/".$company_setting["company_stamp"])) $this->data["company_stamp"] = $company_setting["company_stamp"];
             $this->data["doc_status"] = $bnrow->status;
         }
 
@@ -152,6 +158,7 @@ class Billing_notes_m extends MY_Model {
 
     function getEdoc($docId = null, $sharekey = null){
         $db = $this->db;
+        $company_setting = $this->Settings_m->getCompany();
         $ci = get_instance();
 
         if($docId != null && $sharekey == null){
@@ -165,10 +172,10 @@ class Billing_notes_m extends MY_Model {
             return $this->data;
         }
 
-        $db->where("deleted", 0);
-
         $bnrow = $db->select("*")
                     ->from("billing_note")
+                    ->where("billing_type", $company_setting["company_billing_type"])
+                    ->where("deleted", 0)
                     ->get()->row();
 
         if(empty($bnrow)) return $this->data;
@@ -328,6 +335,7 @@ class Billing_notes_m extends MY_Model {
 
     function saveDoc(){
         $db = $this->db;
+        $company_setting = $this->Settings_m->getCompany();
 
         $this->validateDoc();
         if($this->data["status"] == "validate") return $this->data;
@@ -356,6 +364,7 @@ class Billing_notes_m extends MY_Model {
             $bnrow = $db->select("status")
                         ->from("billing_note")
                         ->where("id", $docId)
+                        ->where("billing_type", $company_setting["company_billing_type"])
                         ->where("deleted", 0)
                         ->get()->row();
 
@@ -386,6 +395,7 @@ class Billing_notes_m extends MY_Model {
             $doc_number = $this->getNewDocNumber();
             
             $db->insert("billing_note", [
+                                        "billing_type"=>$company_setting["company_billing_type"],
                                         "doc_number"=>$doc_number,
                                         "doc_date"=>$doc_date,
                                         "credit"=>$credit,
@@ -653,6 +663,7 @@ class Billing_notes_m extends MY_Model {
         $bnrow = $db->select("*")
                     ->from("billing_note")
                     ->where("id",$docId)
+                    ->where("billing_type", $company_setting["company_billing_type"])
                     ->where("deleted", 0)
                     ->get()->row();
 

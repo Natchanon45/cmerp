@@ -53,6 +53,14 @@ class Accounting extends MY_Controller {
             }
         }
 
+        /*$pmrows = $this->Payments_m->getRows();
+        $payment_method_ids[] = ["id"=>"", "text"=>"-- การชำระเงิน --"];
+        if(!empty($pmrows)){
+            foreach($pmrows as $pmrow){
+                $payment_method_ids[] = ["id"=>$pmrow->id, "text"=>$pmrow->title];
+            }
+        }*/
+
         $this->data["client_ids"] = json_encode($client_ids);
         $this->data["billing_type"] = $this->data["company_setting"]["company_billing_type"];
 

@@ -28,6 +28,8 @@ class Quotations_m extends MY_Model {
     }
 
     function getIndexDataSetHTML($qrow){
+        $company_setting = $this->Settings_m->getCompany();
+
         $doc_status = "<select class='dropdown_status' data-doc_id='".$qrow->id."'>";
 
         if($qrow->status == "W"){
@@ -36,7 +38,13 @@ class Quotations_m extends MY_Model {
             $doc_status .= "<option value='R'>ไม่อนุมัติ</option>";
         }elseif($qrow->status == "A"){
             $doc_status .= "<option selected>อนุมัติ</option>";
-            $doc_status .= "<option value='I'>ออกใบแจ้งหนี้</option>";
+
+            if($company_setting["company_billing_type"] == 3 || $company_setting["company_billing_type"] == 6){
+                $doc_status .= "<option value='I'>ออกใบเสร็จรับเงิน</option>";
+            }else{
+                $doc_status .= "<option value='I'>ออกใบแจ้งหนี้</option>";
+            }
+
             $doc_status .= "<option value='RESET'>รีเซ็ต</option>";
         }elseif($qrow->status == "R"){
             $doc_status .= "<option selected>ไม่อนุมัติ</option>";
@@ -66,8 +74,10 @@ class Quotations_m extends MY_Model {
 
     function indexDataSet() {
         $db = $this->db;
+        $company_setting = $this->Settings_m->getCompany();
 
         $db->select("*")->from("quotation");
+        $db->where("billing_type", $company_setting["company_billing_type"]);
 
         if($this->input->post("status") != null){
             $db->where("status", $this->input->post("status"));
@@ -124,6 +134,7 @@ class Quotations_m extends MY_Model {
             $qrow = $db->select("*")
                         ->from("quotation")
                         ->where("id", $docId)
+                        ->where("billing_type", $company_setting["company_billing_type"])
                         ->where("deleted", 0)
                         ->get()->row();
 
@@ -163,10 +174,6 @@ class Quotations_m extends MY_Model {
             if(file_exists($_SERVER['DOCUMENT_ROOT']."/".$company_setting["company_stamp"])) $this->data["company_stamp"] = $company_setting["company_stamp"];
             $this->data["doc_status"] = $qrow->status;
             
-
-            //a:1:{s:9:"file_name";s:36:"_file64dc8ccb59be6-company-stamp.png";}
-
-            //if(file_exists($_SERVER['DOCUMENT_ROOT'].get_file_from_setting("estimate_logo", true)) != false)
         }
 
         $this->data["status"] = "success";
@@ -190,10 +197,10 @@ class Quotations_m extends MY_Model {
             return $this->data;
         }
 
-        $db->where("deleted", 0);
-
         $qrow = $db->select("*")
                     ->from("quotation")
+                    ->where("billing_type", $company_setting["company_billing_type"])
+                    ->where("deleted", 0)
                     ->get()->row();
 
         if(empty($qrow)) return $this->data;
@@ -408,6 +415,7 @@ class Quotations_m extends MY_Model {
 
     function saveDoc(){
         $db = $this->db;
+        $company_setting = $this->Settings_m->getCompany();
 
         $this->validateDoc();
         if($this->data["status"] == "validate") return $this->data;
@@ -436,6 +444,7 @@ class Quotations_m extends MY_Model {
             $qrow = $db->select("status")
                         ->from("quotation")
                         ->where("id", $docId)
+                        ->where("billing_type", $company_setting["company_billing_type"])
                         ->where("deleted", 0)
                         ->get()->row();
 
@@ -464,8 +473,7 @@ class Quotations_m extends MY_Model {
                                     ]);
         }else{
             $doc_number = $this->getNewDocNumber();
-            $company_setting = $this->Settings_m->getCompany();
-
+        
             $db->insert("quotation", [
                                         "billing_type"=>$company_setting["company_billing_type"],
                                         "doc_number"=>$doc_number,
@@ -747,6 +755,7 @@ class Quotations_m extends MY_Model {
         $qrow = $db->select("*")
                     ->from("quotation")
                     ->where("id",$docId)
+                    ->where("billing_type", $company_setting["company_billing_type"])
                     ->where("deleted", 0)
                     ->get()->row();
 
@@ -803,43 +812,61 @@ class Quotations_m extends MY_Model {
         }elseif($updateStatusTo == "I"){
             $db->where("id", $quotation_id);
             $db->update("quotation", ["status"=>"I"]);
-            
-            $invoice_number = $this->Invoices_m->getNewDocNumber();
-            $invoice_date = date("Y-m-d");
-            $invoice_credit = $qrow->credit;
-            $invoice_due_date = date("Y-m-d", strtotime($invoice_date. " + ".$invoice_credit." days"));
 
-            $db->insert("invoice", [
-                                    "billing_type"=>$quotation_billing_type,
-                                    "quotation_id"=>$quotation_id,
-                                    "doc_number"=>$invoice_number,
-                                    "doc_date"=>$invoice_date,
-                                    "credit"=>$invoice_credit,
-                                    "due_date"=>$invoice_due_date,
-                                    "reference_number"=>$quotation_number,
-                                    "project_id"=>$qrow->project_id,
-                                    "client_id"=>$qrow->client_id,
-                                    "sub_total_before_discount"=>$quotation_sub_total_before_discount,
-                                    "discount_type"=>$quotation_discount_type,
-                                    "discount_percent"=>$quotation_discount_percent,
-                                    "discount_amount"=>$quotation_discount_amount,
-                                    "sub_total"=>$quotation_sub_total,
-                                    "vat_inc"=>$quotation_vat_inc,
-                                    "vat_percent"=>$quotation_vat_percent,
-                                    "vat_value"=>$quotation_vat_value,
-                                    "total"=>$quotation_total,
-                                    "wht_inc"=>$quotation_wht_inc,
-                                    "wht_percent"=>$quotation_wht_percent,
-                                    "wht_value"=>$quotation_wht_value,
-                                    "payment_amount"=>$quotation_payment_amount,
-                                    "remark"=>$qrow->remark,
-                                    "created_by"=>$this->login_user->id,
-                                    "created_datetime"=>date("Y-m-d H:i:s"),
-                                    "status"=>"W",
-                                    "deleted"=>0
-                                ]);       
+            $item_table2 = "";
 
-            $invoice_id = $db->insert_id();
+            $fields1 = [
+                        "doc_date"=>date("Y-m-d"),
+                        "billing_type"=>$quotation_billing_type,
+                        "quotation_id"=>$quotation_id,
+                        "reference_number"=>$quotation_number,
+                        "project_id"=>$qrow->project_id,
+                        "client_id"=>$qrow->client_id,
+                        "sub_total_before_discount"=>$quotation_sub_total_before_discount,
+                        "discount_type"=>$quotation_discount_type,
+                        "discount_percent"=>$quotation_discount_percent,
+                        "discount_amount"=>$quotation_discount_amount,
+                        "sub_total"=>$quotation_sub_total,
+                        "vat_inc"=>$quotation_vat_inc,
+                        "vat_percent"=>$quotation_vat_percent,
+                        "vat_value"=>$quotation_vat_value,
+                        "total"=>$quotation_total,
+                        "wht_inc"=>$quotation_wht_inc,
+                        "wht_percent"=>$quotation_wht_percent,
+                        "wht_value"=>$quotation_wht_value,
+                        "payment_amount"=>$quotation_payment_amount,
+                        "remark"=>$qrow->remark,
+                        "created_by"=>$this->login_user->id,
+                        "created_datetime"=>date("Y-m-d H:i:s"),
+                        "status"=>"W",
+                        "deleted"=>0
+                    ];
+
+            if($company_setting["company_billing_type"] == 3 || $company_setting["company_billing_type"] == 6){
+                $item_table2 = "receipt_items";
+                $fields2 = [
+                                "doc_number"=>$this->Receipts_m->getNewDocNumber(),
+                            ];
+
+                $db->insert("receipt", array_merge($fields1, $fields2));
+                $doc_id2 = $db->insert_id();
+                $this->data["url"] = get_uri("receipts/view/".$doc_id2);
+            }else{
+                $item_table2 = "invoice_items";
+                $invoice_date = date("Y-m-d");
+                $invoice_credit = $qrow->credit;
+                $invoice_due_date = date("Y-m-d", strtotime($invoice_date. " + ".$invoice_credit." days"));
+
+                $fields2 = [
+                                "doc_number"=>$this->Invoices_m->getNewDocNumber(),
+                                "credit"=>$qrow->credit,
+                                "due_date"=>$invoice_due_date
+                            ];
+
+                $db->insert("invoice", array_merge($fields1, $fields2));
+                $doc_id2 = $db->insert_id();
+                $this->data["url"] = get_uri("invoices/view/".$doc_id2);
+            }
 
             $qirows = $db->select("*")
                             ->from("quotation_items")
@@ -848,23 +875,26 @@ class Quotations_m extends MY_Model {
                             ->get()->result();
 
             if(empty(!$qirows)){
+                if($item_table2 == "receipt_items") $fields2 = ["receipt_id"=>$doc_id2];
+                else $fields2 = ["invoice_id"=>$doc_id2];
+
                 foreach($qirows as $qirow){
-                    $db->insert("invoice_items", [
-                                                    "invoice_id"=>$invoice_id,
-                                                    "product_id"=>$qirow->product_id,
-                                                    "product_name"=>$qirow->product_name,
-                                                    "product_description"=>$qirow->product_description,
-                                                    "quantity"=>$qirow->quantity,
-                                                    "unit"=>$qirow->unit,
-                                                    "price"=>$qirow->price,
-                                                    "total_price"=>$qirow->total_price,
-                                                    "sort"=>$qirow->sort
-                                                ]);
+                    $fields1 = [
+                            "product_id"=>$qirow->product_id,
+                            "product_name"=>$qirow->product_name,
+                            "product_description"=>$qirow->product_description,
+                            "quantity"=>$qirow->quantity,
+                            "unit"=>$qirow->unit,
+                            "price"=>$qirow->price,
+                            "total_price"=>$qirow->total_price,
+                            "sort"=>$qirow->sort
+                        ];
+
+                    $db->insert($item_table2, array_merge($fields1, $fields2));
                 }
             }
 
             $this->data["task"] = "create_invoice";
-            $this->data["url"] = get_uri("invoices/view/".$invoice_id);
             $this->data["status"] = "success";
             $this->data["message"] = lang('record_saved');
 

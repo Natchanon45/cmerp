@@ -176,6 +176,7 @@ function loadDataGrid(){
     $("#accounting_navs .buttons li.add span").empty();
     $("<table id='datagrid' class='display' cellspacing='0' width='100%''></table>").insertAfter("#accounting_navs");
     var doc_status = null;
+    var extension_filters = null;
     var grid_columns = [
                             {title: "วันที่", "class":"w10p"},
                             {title: "เลขที่เอกสาร", "class":"w10p"},
@@ -199,13 +200,14 @@ function loadDataGrid(){
         $(".buttons li.add a").attr("data-title", "สร้างใบแจ้งหนี้");
         $(".buttons li.add a").attr("data-action-url", "<?php echo get_uri("invoices/addedit"); ?>");
         $(".buttons li.add span").append("สร้างใบแจ้งหนี้");
-        doc_status = [{id:"", text:"-- <?php echo lang("status"); ?> --"}, {id:"W", text:"รออนุมัติ"}, {id:"O", text:"รอรับชำระ"}, {id:"V", text:"ยกเลิก"}];
+        
+        doc_status = [{id:"", text:"-- <?php echo lang("status"); ?> --"}, {id:"W", text:"รออนุมัติ"}, {id:"O", text:"รอรับชำระ"}, {id:"P", text:"ชำระเงินแล้ว"}, {id:"V", text:"ยกเลิก"}];
 
     }else if(active_module == "billing-notes"){
         $(".buttons li.add a").attr("data-title", "เลือกเอกสารสร้างใบวางบิล");
         $(".buttons li.add a").attr("data-action-url", "<?php echo get_uri("billing-notes/addedit"); ?>");
         $(".buttons li.add span").append("สร้างใบวางบิล");
-        doc_status = [{id:"", text:"-- <?php echo lang("status"); ?> --"}, {id:"W", text:"รอวางบิล"}, {id:"A", text:"วางบิลแล้ว"}, {id:"I", text:"เปิดบิลแล้ว"}, {id:"V", text:"ยกเลิก"}];
+        doc_status = [{id:"", text:"-- <?php echo lang("status"); ?> --"}, {id:"W", text:"รออนุมัติ"}, {id:"A", text:"อนุมัติ"}, {id:"V", text:"ยกเลิก"}];
 
         grid_columns = [
                             {title: "วันที่", "class":"w10p"},
@@ -222,23 +224,24 @@ function loadDataGrid(){
         $(".buttons li.add a").attr("data-action-url", "<?php echo get_uri("tax-invoices/addedit"); ?>");
         $(".buttons li.add span").append("สร้างใบกำกับภาษีขาย");
 
-        doc_status = [{id:"", text:"-- <?php echo lang("status"); ?> --"}, {id:"W", text:"รออนุมัติ"}, {id:"V", text:"ยกเลิก"}];
+        doc_status = [{id:"", text:"-- <?php echo lang("status"); ?> --"}, {id:"W", text:"รออนุมัติ"}, {id:"A", text:"อนุมัติ"}, {id:"V", text:"ยกเลิก"}];
 
     }else if(active_module == "receipts"){
         $(".buttons li.add a").attr("data-action-url", "<?php echo get_uri("receipts/addedit"); ?>");
         $(".buttons li.add span").append("สร้างใบเสร็จรับเงิน");
         doc_status = [{id:"", text:"-- <?php echo lang("status"); ?> --"}, {id:"W", text:"รอดำเนินการ"}, {id:"P", text:"เก็บเงินแล้ว"}, {id:"V", text:"ยกเลิก"}];
+
         grid_columns = [
                             {title: "วันที่", "class":"w10p"},
                             {title: "เลขที่เอกสาร", "class":"w10p"},
                             {title: "เลขที่อ้างอิง", "class":"w10p"},
-                            {title: "ลูกค้า", "class":"w30p"},
+                            {title: "ช่องทางชำระ", "class":"w15p"},
+                            {title: "ลูกค้า", "class":"w20p"},
                             {title: "ยอดรวมสุทธิ", "class":"text-right w15p"},
-                            {title: "สถานะ", "class":"text-left w15p"},
+                            {title: "สถานะ", "class":"text-left w10p"},
                             {title: "<i class='fa fa-bars'></i>", "class":"text-center option w10p"}
                         ];
 
-        summation_column = 4;
     }else if(active_module == "credit-notes"){
         $(".buttons li.add").css("display", "block");
         $(".buttons li.add a").attr("data-title", "เลือกเอกสารที่เกี่ยวข้อง");
@@ -263,6 +266,8 @@ function loadDataGrid(){
                     ];
     }
 
+    filterDropdown = [{name: "client_id", class: "w120", options: <?php echo $client_ids; ?>}, {name: "status", class: "w120", options: doc_status}];
+
     $("#datagrid").appTable({
         source: "<?php echo_uri(); ?>"+active_module,
         rangeDatepicker: [
@@ -272,7 +277,7 @@ function loadDataGrid(){
             }
         ],
         destroy: true,
-        filterDropdown: [{name: "client_id", class: "w150", options: <?php echo $client_ids; ?>}, {name: "status", class: "w150", options: doc_status}],
+        filterDropdown: filterDropdown,
         columns: grid_columns,
         printColumns: combineCustomFieldsColumns([0, 1, 2, 3, 4, 5]),
         xlsColumns: combineCustomFieldsColumns([0, 1, 2, 3, 4, 5]),

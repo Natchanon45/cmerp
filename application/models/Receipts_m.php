@@ -54,7 +54,7 @@ class Receipts_m extends MY_Model {
         $doc_status = "<select class='dropdown_status' data-doc_id='".$rerow->id."'>";
 
         if($rerow->status == "W"){
-            $doc_status .= "<option selected>รอดำเนินการ</option>";
+            $doc_status .= "<option selected>รออนุมัติ</option>";
             $doc_status .= "<option value='P'>อนุมัติ</option>";
             $doc_status .= "<option value='V'>ยกเลิก</option>";
         }elseif($rerow->status == "P"){
@@ -71,10 +71,12 @@ class Receipts_m extends MY_Model {
             $reference_number_column = "<a href='".get_uri("invoices/view/".$rerow->invoice_id)."'>".$rerow->reference_number."</a>";
         }
 
+        $payment_method_name = $this->Invoices_m->getPaymentMethodName($rerow->invoice_payment_id);
+
         $data = [
                     "<a href='".get_uri("receipts/view/".$rerow->id)."'>".convertDate($rerow->doc_date, 2)."</a>",
                     "<a href='".get_uri("receipts/view/".$rerow->id)."'>".$rerow->doc_number."</a>",
-                    $reference_number_column,
+                    $reference_number_column, $payment_method_name,
                     "<a href='".get_uri("clients/view/".$rerow->client_id)."'>".$this->Clients_m->getCompanyName($rerow->client_id)."</a>",
                     number_format($rerow->total, 2), $doc_status,
                     "<a data-post-id='".$rerow->id."' data-action-url='".get_uri("receipts/addedit")."' data-act='ajax-modal' class='edit'><i class='fa fa-pencil'></i></a>"
@@ -87,8 +89,10 @@ class Receipts_m extends MY_Model {
 
     function indexDataSet() {
         $db = $this->db;
+        $company_setting = $this->Settings_m->getCompany();
 
         $db->select("*")->from("receipt");
+        $db->where("billing_type", $company_setting["company_billing_type"]);
 
         if($this->input->post("status") != null){
             $db->where("status", $this->input->post("status"));
@@ -143,6 +147,7 @@ class Receipts_m extends MY_Model {
             $rerow = $db->select("*")
                         ->from("receipt")
                         ->where("id", $docId)
+                        ->where("billing_type", $company_setting["company_billing_type"])
                         ->where("deleted", 0)
                         ->get()->row();
 
@@ -189,6 +194,7 @@ class Receipts_m extends MY_Model {
 
     function getEdoc($docId = null, $sharekey = null){
         $db = $this->db;
+        $company_setting = $this->Settings_m->getCompany();
         $ci = get_instance();
 
         if($docId != null && $sharekey == null){
@@ -202,10 +208,10 @@ class Receipts_m extends MY_Model {
             return $this->data;
         }
 
-        $db->where("deleted", 0);
-
         $rerow = $db->select("*")
                     ->from("receipt")
+                    ->where("billing_type", $company_setting["company_billing_type"])
+                    ->where("deleted", 0)
                     ->get()->row();
 
         if(empty($rerow)) return $this->data;
@@ -410,6 +416,7 @@ class Receipts_m extends MY_Model {
 
     function saveDoc(){
         $db = $this->db;
+        $company_setting = $this->Settings_m->getCompany();
 
         $this->validateDoc();
         if($this->data["status"] == "validate") return $this->data;
@@ -436,6 +443,7 @@ class Receipts_m extends MY_Model {
             $rerow = $db->select("status")
                         ->from("receipt")
                         ->where("id", $docId)
+                        ->where("billing_type", $company_setting["company_billing_type"])
                         ->where("deleted", 0)
                         ->get()->row();
 
@@ -462,7 +470,6 @@ class Receipts_m extends MY_Model {
                                     ]);
         }else{
             $doc_number = $this->getNewDocNumber();
-            $company_setting = $this->Settings_m->getCompany();
 
             $db->insert("receipt", [
                                         "billing_type"=>$company_setting["company_billing_type"],
@@ -735,6 +742,7 @@ class Receipts_m extends MY_Model {
         $rerow = $db->select("*")
                     ->from("receipt")
                     ->where("id",$docId)
+                    ->where("billing_type", $company_setting["company_billing_type"])
                     ->where("deleted", 0)
                     ->get()->row();
 

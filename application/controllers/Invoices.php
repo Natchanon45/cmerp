@@ -71,7 +71,7 @@ class Invoices extends MY_Controller {
             return;
         }
 
-        $this->data["payment"] = $payment = $this->Invoices_m->getPayment($this->uri->segment(3));
+        $this->data["payment"] = $payment = $this->Invoices_m->payment($this->uri->segment(3));
         if ($payment["status"] != "success"){
             redirect(get_uri("accounting/sell"));
             return;

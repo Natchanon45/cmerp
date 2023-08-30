@@ -74,9 +74,10 @@ class Invoices_m extends MY_Model {
 
     function indexDataSet() {
         $db = $this->db;
+        $company_setting = $this->Settings_m->getCompany();
 
-        $db->select("*")
-            ->from("invoice");
+        $db->select("*")->from("invoice");
+        $db->where("billing_type", $company_setting["company_billing_type"]);
 
         if($this->input->post("status") != null){
             $db->where("status", $this->input->post("status"));
@@ -140,6 +141,7 @@ class Invoices_m extends MY_Model {
             $ivrow = $db->select("*")
                         ->from("invoice")
                         ->where("id", $docId)
+                        ->where("billing_type", $company_setting["company_billing_type"])
                         ->where("deleted", 0)
                         ->get()->row();
 
@@ -233,10 +235,10 @@ class Invoices_m extends MY_Model {
             return $this->data;
         }
 
-        $db->where("deleted", 0);
-
         $ivrow = $db->select("*")
                     ->from("invoice")
+                    ->where("billing_type", $company_setting["company_billing_type"])
+                    ->where("deleted", 0)
                     ->get()->row();
 
         if(empty($ivrow)) return $this->data;
@@ -455,6 +457,7 @@ class Invoices_m extends MY_Model {
 
     function saveDoc(){
         $db = $this->db;
+        $company_setting = $this->Settings_m->getCompany();
 
         $this->validateDoc();
         if($this->data["status"] == "validate") return $this->data;
@@ -483,6 +486,7 @@ class Invoices_m extends MY_Model {
             $ivrow = $db->select("status")
                         ->from("invoice")
                         ->where("id", $docId)
+                        ->where("billing_type", $company_setting["company_billing_type"])
                         ->where("deleted", 0)
                         ->get()->row();
 
@@ -511,7 +515,6 @@ class Invoices_m extends MY_Model {
                                     ]);
         }else{
             $doc_number = $this->getNewDocNumber();
-            $company_setting = $this->Settings_m->getCompany();
             
             $db->insert("invoice", [
                                         "billing_type"=>$company_setting["company_billing_type"],
@@ -782,6 +785,7 @@ class Invoices_m extends MY_Model {
         $ivrow = $db->select("*")
                     ->from("invoice")
                     ->where("id",$docId)
+                    ->where("billing_type", $company_setting["company_billing_type"])
                     ->where("deleted", 0)
                     ->get()->row();
 
@@ -925,13 +929,36 @@ class Invoices_m extends MY_Model {
         return $this->data;
     }
 
-    function getPayment($docId){
+    function getPaymentMethodName($invoice_payment_id){
         $db = $this->db;
+
+        $iprow = $db->select("payment_method_id")
+                    ->from("invoice_payment")
+                    ->where("id", $invoice_payment_id)
+                    ->get()->row();
+
+        if(empty($iprow)) return "ไม่ระบุ";
+        if($iprow->payment_method_id == null OR $iprow->payment_method_id == "") return "ไม่ระบุ";
+
+        $pmrow = $db->select("title")
+                    ->from("payment_methods")
+                    ->where("id", $iprow->payment_method_id)
+                    ->get()->row();
+
+        if(empty($pmrow)) return "";
+
+        return $pmrow->title;
+    }
+
+    function payment($docId){
+        $db = $this->db;
+        $company_setting = $this->Settings_m->getCompany();
 
         $ivrow = $db->select("*")
                     ->from("invoice")
                     ->where("id", $docId)
                     ->where("status !=", "W")
+                    ->where("billing_type", $company_setting["company_billing_type"])
                     ->where("deleted", 0)
                     ->get()->row();
 
@@ -1177,6 +1204,7 @@ class Invoices_m extends MY_Model {
         $db->trans_begin();
 
         $db->insert("receipt", [
+                                "billing_type"=>$billing_type,
                                 "invoice_id"=>$invoice_id,
                                 "invoice_payment_id"=>$payment_id,
                                 "doc_number"=>$receipt_number,
