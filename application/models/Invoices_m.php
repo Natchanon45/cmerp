@@ -853,12 +853,29 @@ class Invoices_m extends MY_Model {
 
         }elseif($updateStatusTo == "V"){
             $db->where("invoice_id", $docId);
-            if($db->count_all_results("invoice") > 0){
+            if($db->count_all_results("tax_invoice") > 0){
                 $this->data["dataset"] = $this->getIndexDataSetHTML($ivrow);
                 $this->data["message"] = "ไม่สามารถยกเลิกใบแจ้งหนี้ได้ เนื่องจากมีการออกใบกำกับภาษีแล้ว";
                 return $this->data;   
             }
-            
+
+            $bnirow = $db->select("billing_note_id")
+                            ->from("billing_note_items")
+                            ->where("invoice_id", $docId)
+                            ->get()->row();
+
+            if(!empty($bnirow)){
+                $bnrow = $db->select("status")
+                            ->from("billing_note")
+                            ->where("id", $bnirow->billing_note_id)
+                            ->get()->row();
+
+                if($bnrow->status != "V"){
+                    $this->data["dataset"] = $this->getIndexDataSetHTML($ivrow);
+                    $this->data["message"] = "ไม่สามารถยกเลิกใบแจ้งหนี้ได้ เนื่องจากมีการออกใบวางบิลแล้ว";
+                    return $this->data;   
+                }
+            }
 
             $rerow = $db->select("doc_number")
                         ->from("receipt")

@@ -165,7 +165,7 @@
                             <span class="c2"><input type="text" id="sub_total" value="<?php echo $sub_total; ?>" readonly></span>
                             <!--<span class="c3"><span class="currency">บาท</span></span>-->
                         </p>
-                        <?php if($vat_value > 0): ?>
+                        <?php if($billing_type == "1" || $billing_type == "2" || $billing_type == "3"): ?>
                             <p id="s-vat">
                                 <span class="c1 custom-color">ภาษีมูลค่าเพิ่ม <?php echo $vat_percent."%"; ?></span>
                                 <span class="c2"><input type="text" id="vat_value" value="<?php echo number_format($vat_value, 2); ?>" readonly></span>

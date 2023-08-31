@@ -92,6 +92,7 @@ class Billing_notes_m extends MY_Model {
         $company_setting = $this->Settings_m->getCompany();
 
         $this->data["doc_id"] = null;
+        $this->data["billing_type"] = "";
         $this->data["doc_number"] = null;
         $this->data["doc_date"] = date("Y-m-d");
         $this->data["due_date"] = date("Y-m-d");
@@ -130,6 +131,7 @@ class Billing_notes_m extends MY_Model {
             }
 
             $this->data["doc_id"] = $docId;
+            $this->data["billing_type"] = $bnrow->billing_type;
             $this->data["doc_number"] = $bnrow->doc_number;
             $this->data["share_link"] = $bnrow->sharekey != null ? get_uri($this->shareHtmlAddress."th/".$bnrow->sharekey) : null;
             $this->data["doc_date"] = $bnrow->doc_date;
@@ -657,6 +659,7 @@ class Billing_notes_m extends MY_Model {
 
     function updateStatus(){
         $db = $this->db;
+        $company_setting = $this->Settings_m->getCompany();
         $docId = $this->json->doc_id;
         $updateStatusTo = $this->json->update_status_to;
 
@@ -878,6 +881,7 @@ class Billing_notes_m extends MY_Model {
 
     function getHTMLInvoices() {
         $db = $this->db;
+        $data = [];
         $customer_id = $this->json->customer_id;
         $company_setting = $this->Settings_m->getCompany();
         $billing_type = $company_setting["company_billing_type"];
@@ -896,22 +900,28 @@ class Billing_notes_m extends MY_Model {
 
         $html = "<tr class='norecord'><td colspan='8'>ไม่พบข้อมูลใบแจ้งหนี้</td></tr>";
 
+        $total_records = 0;
+
         if(!empty($ivrows)){
             $html = "";
             foreach($ivrows as $ivrow){
+                $bnrow = $db->select("status")
+                                ->from("billing_note")
+                                ->join("billing_note_items", "billing_note.id = billing_note_items.billing_note_id")
+                                ->where("invoice_id", $ivrow->id)
+                                ->get()->row();
+
+                if(!empty($bnrow)){
+                    if($bnrow->status != "V") continue;
+                }
+
+
                 $payment_amount = $db->select("SUM(payment_amount) AS PAYMENT_AMOUNT")
                                         ->from("invoice_payment")
                                         ->where("invoice_id", $ivrow->id)
                                         ->get()->row()->PAYMENT_AMOUNT;
 
                 if($payment_amount == null) $payment_amount = 0;
-
-                /*$money_payment_receive = $db->select("SUM(money_payment_receive) AS MONEY_PAYMENT_RECEIPT")
-                                            ->from("invoice_payment")
-                                            ->where("invoice_id", $ivrow->id)
-                                            ->get()->row()->MONEY_PAYMENT_RECEIPT;
-
-                if($money_payment_receive == null) $money_payment_receive = 0;*/
 
                 $html .= "<tr>";
                     $html .= "<td>".$ivrow->doc_number."</td>";
@@ -923,10 +933,16 @@ class Billing_notes_m extends MY_Model {
                     $html .= "<td>".number_format($ivrow->total - $payment_amount, 2)."</td>";
                     $html .= "<td><input type='checkbox' name='invoice_numbers[]' value='".$ivrow->id."'></td>";
                 $html .= "</tr>";
+
+                $total_records++;
             }
         }
 
-        $data["html"] = $html;
+        if($total_records >= 1){
+            $data["html"] = $html;
+        }else{
+            $data["html"] = "<tr class='norecord'><td colspan='8'>ไม่พบข้อมูลใบแจ้งหนี้</td></tr>";
+        }
 
         return $data;
     }

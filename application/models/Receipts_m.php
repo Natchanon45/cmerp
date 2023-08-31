@@ -69,6 +69,8 @@ class Receipts_m extends MY_Model {
         $reference_number_column = $rerow->reference_number;
         if($rerow->invoice_id != null){
             $reference_number_column = "<a href='".get_uri("invoices/view/".$rerow->invoice_id)."'>".$rerow->reference_number."</a>";
+        }elseif($rerow->quotation_id != null){
+            $reference_number_column = "<a href='".get_uri("quotations/view/".$rerow->quotation_id)."'>".$rerow->reference_number."</a>";
         }
 
         $payment_method_name = $this->Invoices_m->getPaymentMethodName($rerow->invoice_payment_id);
@@ -124,8 +126,8 @@ class Receipts_m extends MY_Model {
         $db = $this->db;
         $company_setting = $this->Settings_m->getCompany();
 
-        $this->data["invoice_id"] = null;
         $this->data["billing_type"] = "";
+        $this->data["invoice_id"] = null;
         $this->data["doc_date"] = date("Y-m-d");
         $this->data["reference_number"] = "";
         $this->data["discount_type"] = "P";
@@ -163,9 +165,9 @@ class Receipts_m extends MY_Model {
                 $this->data["customer_is_lead"] = 0;
             }
 
-            $this->data["invoice_id"] = $rerow->invoice_id;
-            $this->data["billing_type"] = $rerow->billing_type;
             $this->data["doc_id"] = $docId;
+            $this->data["billing_type"] = $rerow->billing_type;
+            $this->data["invoice_id"] = $rerow->invoice_id;
             $this->data["doc_number"] = $rerow->doc_number;
             $this->data["share_link"] = $rerow->sharekey != null ? get_uri($this->shareHtmlAddress."th/".$rerow->sharekey) : null;
             $this->data["doc_date"] = $rerow->doc_date;
@@ -775,20 +777,20 @@ class Receipts_m extends MY_Model {
                         "created_by"=>$rerow->created_by
                     ];
 
-                $rerows = $db->select("*")
+                $reirows = $db->select("*")
                                 ->from("receipt_items")
                                 ->where("receipt_id", $rerow->id)
                                 ->get()->result();
 
                 $items = [];
 
-                if(!empty($rerows)){
-                    foreach($rerows as $rerow){
-                        if($rerow->product_id != null){
+                if(!empty($reirows)){
+                    foreach($reirows as $reirow){
+                        if($reirow->product_id != null){
                             $items[] = [
-                                        "id"=>$rerow->id,
-                                        "item_id"=>$rerow->product_id,
-                                        "ratio"=>$rerow->quantity
+                                        "id"=>$reirow->id,
+                                        "item_id"=>$reirow->product_id,
+                                        "ratio"=>$reirow->quantity
                                     ];
                         }
                     }
@@ -824,8 +826,8 @@ class Receipts_m extends MY_Model {
             $this->data["dataset"] = $this->getIndexDataSetHTML($rerow);
             return $this->data;
         }
-
-        $this->Invoices_m->adjustDocStatus($rerow->invoice_id);
+//log_message("error", json_encode($rerow));
+        if($rerow->invoice_id != null) $this->Invoices_m->adjustDocStatus($rerow->invoice_id);
 
         $db->trans_commit();
 

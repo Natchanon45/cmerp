@@ -109,6 +109,8 @@ class Quotations_m extends MY_Model {
         $db = $this->db;
         $company_setting = $this->Settings_m->getCompany();
 
+        $this->data["doc_id"] = null;
+        $this->data["billing_type"] = "";
         $this->data["doc_date"] = date("Y-m-d");
         $this->data["credit"] = "0";
         $this->data["doc_valid_until_date"] = date("Y-m-d");
@@ -151,6 +153,7 @@ class Quotations_m extends MY_Model {
             }
 
             $this->data["doc_id"] = $docId;
+            $this->data["billing_type"] = $qrow->billing_type;
             $this->data["doc_number"] = $qrow->doc_number;
             $this->data["share_link"] = $qrow->sharekey != null ? get_uri($this->shareHtmlAddress."th/".$qrow->sharekey) : null;
             $this->data["doc_date"] = $qrow->doc_date;
@@ -844,9 +847,7 @@ class Quotations_m extends MY_Model {
 
             if($company_setting["company_billing_type"] == 3 || $company_setting["company_billing_type"] == 6){
                 $item_table2 = "receipt_items";
-                $fields2 = [
-                                "doc_number"=>$this->Receipts_m->getNewDocNumber(),
-                            ];
+                $fields2 = ["doc_number"=>$this->Receipts_m->getNewDocNumber()];
 
                 $db->insert("receipt", array_merge($fields1, $fields2));
                 $doc_id2 = $db->insert_id();
@@ -899,19 +900,36 @@ class Quotations_m extends MY_Model {
             $this->data["message"] = lang('record_saved');
 
         }elseif($updateStatusTo == "RESET"){
-            $ivrow = $db->select("doc_number")
+            if($company_setting["company_billing_type"] == 3 || $company_setting["company_billing_type"] == 6){
+                $rerow = $db->select("doc_number")
+                            ->from("receipt")
+                            ->where("quotation_id", $quotation_id)
+                            ->where("status !=", "V")
+                            ->where("deleted", 0)
+                            ->get()->row();
+
+                if(!empty($rerow)){
+                    $this->data["dataset"] = $this->getIndexDataSetHTML($qrow);
+                    $this->data["message"] = "ไม่สามารถรีเซ็ตใบเสนอราคาได้ เนื่องจากมีการผูกใบเสนอราคากับใบเสร็จเลขที่ ".$rerow->doc_number." แล้ว";
+                    $this->data["status"] = "error";
+                    $db->trans_rollback();
+                    return $this->data;
+                }
+            }else{
+                $ivrow = $db->select("doc_number")
                         ->from("invoice")
                         ->where("quotation_id", $quotation_id)
                         ->where_in("status", ["W", "O", "P"])
                         ->where("deleted", 0)
                         ->get()->row();
 
-            if(!empty($ivrow)){
-                $this->data["dataset"] = $this->getIndexDataSetHTML($qrow);
-                $this->data["message"] = "ไม่สามารถรีเซ็ตใบเสนอราคาได้ เนื่องจากมีการผูกใบเสนอราคากับใบแจ้งหนี้เลขที่ ".$ivrow->doc_number." แล้ว";
-                $this->data["status"] = "error";
-                $db->trans_rollback();
-                return $this->data;
+                if(!empty($ivrow)){
+                    $this->data["dataset"] = $this->getIndexDataSetHTML($qrow);
+                    $this->data["message"] = "ไม่สามารถรีเซ็ตใบเสนอราคาได้ เนื่องจากมีการผูกใบเสนอราคากับใบแจ้งหนี้เลขที่ ".$ivrow->doc_number." แล้ว";
+                    $this->data["status"] = "error";
+                    $db->trans_rollback();
+                    return $this->data;
+                }
             }
 
             $db->where("id", $quotation_id);
