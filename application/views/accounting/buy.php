@@ -70,11 +70,10 @@
 
     .select-status {
         width: calc(100% - 15px);
-        padding: .3rem .9rem;
-        border-radius: .3rem;
+        padding: .3rem .8rem;
         outline: none;
+        background: none;
         border-color: #e2e7f1;
-        appearance: none;
     }
 </style>
 
@@ -274,8 +273,8 @@
             source: '<?php echo_uri(); ?>' + active_module,
             order: [[0, 'desc']],
             rangeDatepicker: [{
-                startDate: { name: 'start_date', value: '<?php echo date('Y-m-d', strtotime('-1 month')); ?>' },
-                endDate: { name: 'end_date', value: '<?php echo date("Y-m-d"); ?>' }
+                startDate: { name: 'start_date', value: '<?php echo date('Y-m-1'); ?>' },
+                endDate: { name: 'end_date', value: '<?php echo date("Y-m-d", strtotime('last day of this month', time())); ?>' }
             }],
             destroy: true,
             filterDropdown: grid_filters,

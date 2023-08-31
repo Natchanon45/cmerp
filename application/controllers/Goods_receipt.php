@@ -25,11 +25,11 @@ class Goods_receipt extends MY_Controller
 
     function index()
     {
-        if ($this->input->post("datatable") == true) {
+        if ($this->input->post('datatable') == true) {
             jout(["data" => $this->Goods_receipt_m->indexDataSet()]);
             return;
-        } elseif (isset($this->json->task)) {
-            if ($this->json->task == "update_doc_status") jout($this->Goods_receipt_m->updateStatus());
+        } elseif (isset($this->json->taskName)) {
+            if ($this->json->taskName == "update_doc_status") jout($this->Goods_receipt_m->updateStatus());
             return;
         }
 
@@ -57,6 +57,12 @@ class Goods_receipt extends MY_Controller
         //     return;
         // }
 
+        if (isset($this->json->task) && !empty($this->json->task)) {
+            if ($this->json->task == 'load_items') jout($this->Goods_receipt_m->items());
+            if ($this->json->task == 'update_doc') jout($this->Goods_receipt_m->updateDoc());
+            return;
+        }
+
         if (empty($this->uri->segment(3))) {
             redirect(get_uri('accounting/buy'));
             return;
@@ -68,11 +74,12 @@ class Goods_receipt extends MY_Controller
             return;
         }
 
+        $data['active_module'] = 'goods_receipt';
         $data['created'] = $this->Users_m->getInfo($data['created_by']);
         $data['supplier'] = $this->Bom_suppliers_model->getInfo($data['supplier_id']);
         $data['supplier_contact'] = $this->Bom_suppliers_model->getContactInfo($data['supplier_id']);
-        $data['print_gr_url'] = get_uri('goods_receipt/print_gr/' . str_replace("=", "", base64_encode($data['doc_id'] . ':' . $data['doc_number'])));
-        $data['print_pv_url'] = get_uri('goods_receipt/print_pv/' . str_replace("=", "", base64_encode($data['doc_id'] . ':' . $data['doc_number'])));
+        $data['print_gr_url'] = get_uri('goods_receipt/print_goods_receipt/' . str_replace("=", "", base64_encode($data['doc_id'] . ':' . $data['doc_number'])));
+        $data['print_pv_url'] = get_uri('goods_receipt/print_payment_voucher/' . str_replace("=", "", base64_encode($data['doc_id'] . ':' . $data['doc_number'])));
 
         // var_dump(arr($data)); exit();
         $this->template->rander('goods_receipt/view', $data);
@@ -113,6 +120,9 @@ class Goods_receipt extends MY_Controller
 
     function item()
     {
+        $post = $this->input->post();
+        $json = $this->json;
+
         if (isset($this->json->task)) {
             if ($this->json->task == 'save') jout($this->Purchase_order_m->saveItem());
             return;
@@ -144,7 +154,9 @@ class Goods_receipt extends MY_Controller
             return;
         }
 
-        $data = $this->Purchase_order_m->item();
+        $data = $this->Goods_receipt_m->item();
+
+        // var_dump(arr($data)); exit();
         $this->load->view('goods_receipt/item', $data);
     }
 
@@ -155,11 +167,71 @@ class Goods_receipt extends MY_Controller
             return;
         }
 
-        $data = $this->Purchase_order_m->getDoc($this->input->post('doc_id'));
+        $data = $this->Goods_receipt_m->getDoc($this->input->post('doc_id'));
         $this->load->view('goods_receipt/share', $data);
     }
 
-    function TestCaseSaleFg()
+    function record_payment()
+    {
+        $post = $this->input->post();
+        $data = $this->Goods_receipt_m->getDoc($post['doc_id']);
+        $data['payments_dropdown'] = $this->Goods_receipt_m->payments_method();
+
+        // var_dump(arr($post)); exit();
+        $this->load->view('goods_receipt/addedit_payment', $data);
+    }
+
+    function payments_save()
+    {
+        $json = $this->json;
+
+        $data = array(
+            'pv_id' => $json->documentId,
+            'date' => $this->DateCaseConvert($json->paymentDate),
+            'amount' => $json->paymentAmount,
+            'payment_id' => $json->paymentMethodId,
+            'type_name' => $json->paymentMethodName,
+            'type_description' => $json->paymentMethodDescription,
+            'created_by' => $this->login_user->id
+        );
+
+        $insert_id = $this->Goods_receipt_m->postPaymentForGoodsReceipt($data);
+        if (isset($insert_id) && !empty($insert_id)) {
+            $this->Goods_receipt_m->postPayAmountForGoodsReceiptHeader($json->documentId, $json->paymentAmount);
+        }
+
+        echo json_encode(array('status' => 'success', 'id' => $insert_id, 'data' => $data, 'post' => $json));
+    }
+
+    function payments_items($id)
+    {
+        $data = array();
+
+        if (isset($id) && !empty($id)) {
+            $data = $this->Goods_receipt_m->getPaymentListForGoodsReceiptView($id);
+        }
+        echo json_encode(array('items' => $data));
+    }
+
+    function payments_dropdown()
+    {
+        $payments_method = $this->Goods_receipt_m->payments_method();
+        var_dump(arr($payments_method));
+    }
+
+    private function DateCaseConvert(string $dateInput): string
+    {
+        // Convert "DD/MM/YYYY" to "YYYY-MM-DD" 
+        $dateOutput = '';
+
+        $dateOutput = explode('/', $dateInput);
+        $dateOutput = array_reverse($dateOutput);
+        $dateOutput = implode('-', $dateOutput);
+
+        return $dateOutput;
+    }
+
+    private function TestCaseSaleFg()
     {   
         $sale_info['sale_id'] = 1;
         $sale_info['sale_type'] = 'IV';
@@ -170,11 +242,11 @@ class Goods_receipt extends MY_Controller
             ['id' => 1, 'item_id' => 26, 'ratio' => 5000]
         ];
 
-        $testModel = $this->Bom_item_stocks_model->processFinishedGoodsSale($sale_info);
+        $testModel = $this->Bom_item_stocks_model->processFinishedGoodsSaleTestCase($sale_info);
         var_dump(arr($testModel));
     }
 
-    function TestCaseSaleFgVoid()
+    private function TestCaseSaleFgVoid()
     {
         $sale_info['sale_id'] = 1;
         $sale_info['sale_type'] = 'IV';

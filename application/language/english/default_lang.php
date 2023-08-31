@@ -2095,6 +2095,14 @@ $lang["restart_calc"] = "Restart";
 $lang["reference_number"] = "Reference No.";
 $lang["doc_date"] = "Document Date";
 
+$lang["bank_name"] = "Bank name";
+$lang["bank_account_number"] = "Bank account No.";
+$lang["bank_account_holders_name"] = "Account holder's name";
+$lang["payments_date"] = "Payment Date";
+$lang["payments_amount"] = "Payment Amount";
+$lang["payments_method"] = "Payment Method";
+$lang["payments_description"] = "Payment Description";
+
 $lang["purchase_request"] = "Purchase Requisition";
 $lang["purchase_request_add"] = "Create new PR";
 $lang["request_date"] = "Request Date";

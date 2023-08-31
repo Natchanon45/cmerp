@@ -167,6 +167,8 @@ class Goods_receipt_m extends MY_Model
         $this->data['wht_percent'] = 0.00;
         $this->data['wht_value'] = 0.00;
         $this->data['payment_amount'] = 0.00;
+        $this->data['pay_amount'] = 0.00;
+        $this->data['pay_status'] = 'N';
         $this->data['remark'] = null;
         $this->data['created_by'] = 0;
         $this->data['created_datetime'] = date('Y-m-d');
@@ -200,6 +202,20 @@ class Goods_receipt_m extends MY_Model
             $this->data['wht_percent'] = $qrow->wht_percent;
             $this->data['wht_value'] = $qrow->wht_value;
             $this->data['payment_amount'] = $qrow->payment_amount;
+            $this->data['pay_amount'] = $qrow->pay_amount;
+            $this->data['remain_amount'] = $qrow->payment_amount - $qrow->pay_amount;
+            
+            // Pay Status
+            if ($qrow->pay_amount == 0) {
+                $this->data['pay_status'] = 'N';
+            } elseif ($qrow->pay_amount < $qrow->payment_amount) {
+                $this->data['pay_status'] = 'P';
+            } elseif ($qrow->pay_amount == $qrow->payment_amount) {
+                $this->data['pay_status'] = 'C';
+            } else {
+                $this->data['pay_status'] = 'O';
+            }
+
             $this->data['remark'] = $qrow->remark;
             $this->data['created_by'] = $qrow->created_by;
             $this->data['created_datetime'] = $qrow->created_datetime;
@@ -210,7 +226,6 @@ class Goods_receipt_m extends MY_Model
         }
 
         $this->data["status"] = "success";
-
         return $this->data;
     }
 
@@ -292,58 +307,52 @@ class Goods_receipt_m extends MY_Model
     {
         $db = $this->db;
 
-        $discount_type = "P";
+        $discount_type = 'P';
         $discount_percent = 0;
         $discount_amount = 0;
 
-        $vat_inc = "N";
+        $vat_inc = 'N';
         $vat_percent = $this->Taxes_m->getVatPercent();
         $vat_value = 0;
 
-        $wht_inc = "N";
+        $wht_inc = 'N';
         $wht_percent = $this->Taxes_m->getWhtPercent();
         $wht_value = 0;
 
         if ($docId == null && isset($this->json->doc_id)) {
             $docId = $this->json->doc_id;
 
-            $vat_inc = $this->json->vat_inc == true ? "Y" : "N";
-            $wht_inc = $this->json->wht_inc == true ? "Y" : "N";
+            $vat_inc = $this->json->vat_inc == true ? 'Y' : 'N';
+            $wht_inc = $this->json->wht_inc == true ? 'Y' : 'N';
 
-            $qrow = $db->select("*")
-                ->from("po_header")
-                ->where("id", $docId)
-                ->where("deleted", 0)
-                ->get()->row();
+            $qrow = $db->select('*')
+            ->from('goods_receipt')
+            ->where('id', $docId)
+            ->where('deleted', 0)
+            ->get()->row();
 
-            if (empty($qrow))
-                return $this->data;
+            if (empty($qrow)) return $this->data;
 
             $discount_type = $this->json->discount_type;
 
-            if ($discount_type == "P") {
+            if ($discount_type == 'P') {
                 $discount_percent = getNumber($this->json->discount_percent);
-                if ($discount_percent >= 100)
-                    $discount_percent = 99.99;
-                if ($discount_percent < 0)
-                    $discount_percent = 0;
+                if ($discount_percent >= 100) $discount_percent = 99.99;
+                if ($discount_percent < 0) $discount_percent = 0;
             } else {
                 $discount_amount = getNumber($this->json->discount_value);
             }
 
-            if ($vat_inc == "Y")
-                $vat_percent = $this->Taxes_m->getVatPercent();
-            if ($wht_inc == "Y")
-                $wht_percent = getNumber($this->json->wht_percent);
+            if ($vat_inc == 'Y') $vat_percent = $this->Taxes_m->getVatPercent();
+            if ($wht_inc == 'Y') $wht_percent = getNumber($this->json->wht_percent);
         } else {
-            $qrow = $db->select("*")
-                ->from("po_header")
-                ->where("id", $docId)
-                ->where("deleted", 0)
-                ->get()->row();
+            $qrow = $db->select('*')
+            ->from('po_header')
+            ->where('id', $docId)
+            ->where('deleted', 0)
+            ->get()->row();
 
-            if (empty($qrow))
-                return $this->data;
+            if (empty($qrow)) return $this->data;
 
             $discount_type = $qrow->discount_type;
             $discount_percent = $qrow->discount_percent;
@@ -352,55 +361,48 @@ class Goods_receipt_m extends MY_Model
             $vat_inc = $qrow->vat_inc;
             $wht_inc = $qrow->wht_inc;
 
-            if ($vat_inc == "Y")
-                $vat_percent = $qrow->vat_percent;
-            if ($wht_inc == "Y")
-                $wht_percent = $qrow->wht_percent;
+            if ($vat_inc == 'Y') $vat_percent = $qrow->vat_percent;
+            if ($wht_inc == 'Y') $wht_percent = $qrow->wht_percent;
         }
 
-        $sub_total_before_discount = $db->select("SUM(total_price) AS SUB_TOTAL")
-            ->from("po_detail")
-            ->where("po_id", $docId)
-            ->get()->row()->SUB_TOTAL;
+        $sub_total_before_discount = $db->select('SUM(total_price) AS SUB_TOTAL')
+        ->from('goods_receipt_items')
+        ->where('pv_id', $docId)
+        ->get()->row()->SUB_TOTAL;
 
-        if ($sub_total_before_discount == null)
-            $sub_total_before_discount = 0;
-        if ($discount_type == "P") {
+        if ($sub_total_before_discount == null) $sub_total_before_discount = 0;
+        if ($discount_type == 'P') {
             if ($discount_percent > 0) {
                 $discount_amount = ($sub_total_before_discount * $discount_percent) / 100;
             }
         } else {
-            if ($discount_amount > $sub_total_before_discount)
-                $discount_amount = $sub_total_before_discount;
-            if ($discount_amount < 0)
-                $discount_amount = 0;
+            if ($discount_amount > $sub_total_before_discount) $discount_amount = $sub_total_before_discount;
+            if ($discount_amount < 0) $discount_amount = 0;
         }
 
         $sub_total = $sub_total_before_discount - $discount_amount;
 
-        if ($vat_inc == "Y")
-            $vat_value = ($sub_total * $vat_percent) / 100;
+        if ($vat_inc == 'Y') $vat_value = ($sub_total * $vat_percent) / 100;
         $total = $sub_total + $vat_value;
 
-        if ($wht_inc == "Y")
-            $wht_value = ($sub_total * $wht_percent) / 100;
+        if ($wht_inc == 'Y') $wht_value = ($sub_total * $wht_percent) / 100;
         $payment_amount = $total - $wht_value;
 
-        $db->where("id", $docId);
-        $db->update("po_header", [
-            "sub_total_before_discount" => $sub_total_before_discount,
-            "discount_type" => $discount_type,
-            "discount_percent" => $discount_percent,
-            "discount_amount" => $discount_amount,
-            "sub_total" => $sub_total,
-            "vat_inc" => $vat_inc,
-            "vat_percent" => $vat_percent,
-            "vat_value" => $vat_value,
-            "total" => $total,
-            "wht_inc" => $wht_inc,
-            "wht_percent" => $wht_percent,
-            "wht_value" => $wht_value,
-            "payment_amount" => $payment_amount
+        $db->where('id', $docId);
+        $db->update('goods_receipt', [
+            'sub_total_before_discount' => $sub_total_before_discount,
+            'discount_type' => $discount_type,
+            'discount_percent' => $discount_percent,
+            'discount_amount' => $discount_amount,
+            'sub_total' => $sub_total,
+            'vat_inc' => $vat_inc,
+            'vat_percent' => $vat_percent,
+            'vat_value' => $vat_value,
+            'total' => $total,
+            'wht_inc' => $wht_inc,
+            'wht_percent' => $wht_percent,
+            'wht_value' => $wht_value,
+            'payment_amount' => $payment_amount
         ]);
 
         $this->data["sub_total_before_discount"] = number_format($sub_total_before_discount, 2);
@@ -417,7 +419,6 @@ class Goods_receipt_m extends MY_Model
         $this->data["wht_percent"] = number_format_drop_zero_decimals($wht_percent, 2);
         $this->data["wht_value"] = number_format($wht_value, 2);
         $this->data["payment_amount"] = number_format($payment_amount, 2);
-
         $this->data["status"] = "success";
         $this->data["message"] = lang("record_saved");
 
@@ -597,20 +598,19 @@ class Goods_receipt_m extends MY_Model
     {
         $db = $this->db;
 
-        $qrow = $db->select("id, status")
-            ->from("po_header")
-            ->where("id", $this->json->doc_id)
-            ->where("deleted", 0)
-            ->get()->row();
+        $qrow = $db->select('*')
+        ->from('goods_receipt')
+        ->where('id', $this->json->doc_id)
+        ->where('deleted', 0)
+        ->get()->row();
 
-        if (empty($qrow))
-            return $this->data;
+        if (empty($qrow)) return $this->data;
 
-        $qirows = $db->select("*")
-            ->from("po_detail")
-            ->where("po_id", $this->json->doc_id)
-            ->order_by("id", "asc")
-            ->get()->result();
+        $qirows = $db->select('*')
+        ->from('goods_receipt_items')
+        ->where('pv_id', $this->json->doc_id)
+        ->order_by('id', 'asc')
+        ->get()->result();
 
         if (empty($qirows)) {
             $this->data["status"] = "notfound";
@@ -621,15 +621,15 @@ class Goods_receipt_m extends MY_Model
         $items = [];
 
         foreach ($qirows as $qirow) {
-            $item["id"] = $qirow->id;
-            $item["product_name"] = $qirow->product_name;
-            $item["product_description"] = $qirow->product_description;
-            $item["quantity"] = $qirow->quantity;
-            $item["unit"] = $qirow->unit;
-            $item["price"] = number_format($qirow->price, 2);
-            $item["total_price"] = number_format($qirow->total_price, 2);
-
-            $items[] = $item;
+            $items[] = [
+                'id' => $qirow->id,
+                'product_name' => $qirow->product_name,
+                'product_description' => $qirow->product_description,
+                'quantity' => $qirow->quantity,
+                'unit' => $qirow->unit,
+                'price' => number_format($qirow->price, 2),
+                'total_price' => number_format($qirow->total_price, 2)
+            ];
         }
 
         $this->data["doc_status"] = $qrow->status;
@@ -642,46 +642,36 @@ class Goods_receipt_m extends MY_Model
     function item()
     {
         $db = $this->db;
-        $docId = $this->input->post("doc_id");
-        $itemId = $this->input->post("item_id");
+        $docId = $this->input->post('doc_id');
+        $itemId = $this->input->post('item_id');
 
-        $qrow = $db->select("id, po_type")
-            ->from("po_header")
-            ->where("id", $docId)
-            ->where("deleted", 0)
-            ->get()->row();
+        $qrow = $db->select('*')->from('goods_receipt')->where('id', $docId)->where('deleted', 0)->get()->row();
+        if (empty($qrow)) return $this->data;
 
-        if (empty($qrow))
-            return $this->data;
+        $this->data['doc_id'] = $docId;
+        $this->data['po_id'] = $qrow->po_id;
+        $this->data['doc_type'] = $qrow->po_type;
+        $this->data['doc_status'] = $qrow->status;
+        $this->data['product_id'] = '';
+        $this->data['product_name'] = '';
+        $this->data['product_description'] = '';
+        $this->data['quantity'] = number_format(1, $this->Settings_m->getDecimalPlacesNumber());
+        $this->data['unit'] = '';
+        $this->data['price'] = number_format(0, 2);
+        $this->data['total_price'] = number_format(0, 2);
 
-        $this->data["doc_id"] = $docId;
-        $this->data["doc_type"] = $qrow->po_type;
-        $this->data["product_id"] = "";
-        $this->data["product_name"] = "";
-        $this->data["product_description"] = "";
-        $this->data["quantity"] = number_format(1, $this->Settings_m->getDecimalPlacesNumber());
-        $this->data["unit"] = "";
-        $this->data["price"] = number_format(0, 2);
-        $this->data["total_price"] = number_format(0, 2);
+        if (isset($itemId) && !empty($itemId)) {
+            $qirow = $db->select('*')->from('goods_receipt_items')->where('id', $itemId)->where('pv_id', $docId)->get()->row();
+            if (empty($qirow)) return $this->data;
 
-        if (!empty($itemId)) {
-            $qirow = $db->select("*")
-                ->from("po_detail")
-                ->where("id", $itemId)
-                ->where("po_id", $docId)
-                ->get()->row();
-
-            if (empty($qirow))
-                return $this->data;
-
-            $this->data["item_id"] = $qirow->id;
-            $this->data["product_id"] = $qirow->product_id;
-            $this->data["product_name"] = $qirow->product_name;
-            $this->data["product_description"] = $qirow->product_description;
-            $this->data["quantity"] = number_format($qirow->quantity, $this->Settings_m->getDecimalPlacesNumber());
-            $this->data["unit"] = $qirow->unit;
-            $this->data["price"] = number_format($qirow->price, 2);
-            $this->data["total_price"] = number_format($qirow->total_price, 2);
+            $this->data['item_id'] = $qirow->id;
+            $this->data['product_id'] = $qirow->product_id;
+            $this->data['product_name'] = $qirow->product_name;
+            $this->data['product_description'] = $qirow->product_description;
+            $this->data['quantity'] = number_format($qirow->quantity, $this->Settings_m->getDecimalPlacesNumber());
+            $this->data['unit'] = $qirow->unit;
+            $this->data['price'] = number_format($qirow->price, 2);
+            $this->data['total_price'] = number_format($qirow->total_price, 2);
         }
 
         $this->data["status"] = "success";
@@ -794,87 +784,81 @@ class Goods_receipt_m extends MY_Model
     function updateStatus()
     {
         $db = $this->db;
-        $docId = $this->json->doc_id;
-        $updateStatusTo = $this->json->update_status_to;
+        $this->data['doc_id'] = $this->json->documentId;
+        $this->data['updateStatusTo'] = $this->json->updateStatus;
 
-        $qrow = $db->select("*")
-            ->from("po_header")
-            ->where("id", $docId)
-            ->where("deleted", 0)
-            ->get()->row();
+        $qrow = $db->select('*')->from('goods_receipt')->where('id', $this->data['doc_id'])->where('deleted', 0)->get()->row();
+        if (empty($qrow)) return $this->data;
 
-        if (empty($qrow))
-            return $this->data;
+        $pv_id = $this->data['doc_id'] = $qrow->id;
+        $this->data['currentStatus'] = $qrow->status;
 
-        $po_id = $this->data["doc_id"] = $docId;
-        $po_header_number = $qrow->doc_number;
-        $po_header_is_partials = $qrow->is_partials;
-        $po_header_partials_type = $qrow->partials_type;
-        $currentStatus = $qrow->status;
-
-        $po_header_sub_total_before_discount = $qrow->sub_total_before_discount;
-
-        $po_header_discount_type = $qrow->discount_type;
-        $po_header_discount_percent = $qrow->discount_percent;
-        $po_header_discount_amount = $qrow->discount_amount;
-
-        $po_header_sub_total = $qrow->sub_total;
-
-        $po_header_vat_inc = $qrow->vat_inc;
-        $po_header_vat_percent = $qrow->vat_percent;
-        $po_header_vat_value = $qrow->vat_value;
-
-        $po_header_wht_inc = $qrow->wht_inc;
-        $po_header_wht_percent = $qrow->wht_percent;
-        $po_header_wht_value = $qrow->wht_value;
-
-        $po_header_total = $qrow->total;
-        $po_header_payment_amount = $qrow->payment_amount;
-
-        if ($qrow->status == $updateStatusTo && $updateStatusTo != "P") {
-            $this->data["dataset"] = $this->getIndexDataSetHTML($qrow);
+        if ($this->data['updateStatusTo'] == $this->data['currentStatus']) {
+            $this->data['dataset'] = $this->getIndexDataSetHTML($qrow);
             return $this->data;
         }
 
-        $this->db->trans_begin();
+        // $this->db->trans_begin();
 
-        if ($updateStatusTo == "A") { // Approved
-            if ($currentStatus == "R") {
-                $this->data["dataset"] = $this->getIndexDataSetHTML($qrow);
+        if ($this->data['updateStatusTo'] == 'W') // Save
+        {
+            if ($this->data['currentStatus'] != 'N') {
+                $this->data['dataset'] = $this->getIndexDataSetHTML($qrow);
                 return $this->data;
             }
 
-            $db->where("id", $po_id);
-            $db->update("po_header", [
-                "approved_by" => $this->login_user->id,
-                "approved_datetime" => date("Y-m-d H:i:s"),
-                "status" => "A"
+            $db->where('id', $pv_id);
+            $db->update('goods_receipt', [
+                'status' => 'W'
             ]);
-        } elseif ($updateStatusTo == "R") { // Rejected
-            $db->where("id", $po_id);
-            $db->update("po_header", ["status" => "R"]);
+
+            $this->data['status'] = 'success';
         }
 
-        if ($db->trans_status() === FALSE) {
-            $db->trans_rollback();
-            $this->data["dataset"] = $this->getIndexDataSetHTML($qrow);
-            return $this->data;
-        }
+        // if ($updateStatusTo == 'A') // Approved
+        // {
+        //     if ($currentStatus == 'R') {
+        //         $this->data['dataset'] = $this->getIndexDataSetHTML($qrow);
+        //         return $this->data;
+        //     }
 
-        $db->trans_commit();
+        //     $db->where('id', $pv_id);
+        //     $db->update('goods_receipt', [
+        //         'approved_by' => $this->login_user->id,
+        //         'approved_datetime' => date('Y-m-d H:i:s'),
+        //         'status' => 'A'
+        //     ]);
+        // }
+        
+        // if ($updateStatusTo == 'R') // Rejected
+        // {
+        //     if ($currentStatus != 'W') {
+        //         $this->data['dataset'] = $this->getIndexDataSetHTML($qrow);
+        //         return $this->data;
+        //     }
 
-        if (isset($this->data["task"]))
-            return $this->data;
+        //     $db->where('id', $pv_id);
+        //     $db->update('goods_receipt', ['status' => 'R']);
+        // }
 
-        $qrow = $db->select("*")
-            ->from("po_header")
-            ->where("id", $docId)
-            ->where("deleted", 0)
-            ->get()->row();
+        // if ($db->trans_status() === FALSE) {
+        //     $db->trans_rollback();
 
-        $this->data["dataset"] = $this->getIndexDataSetHTML($qrow);
-        $this->data["status"] = "success";
-        $this->data["message"] = lang('record_saved');
+        //     $this->data['post'] = $this->json;
+        //     $this->data['dataset'] = $this->getIndexDataSetHTML($qrow);
+        //     return $this->data;
+        // }
+
+        // $db->trans_commit();
+
+        // if (isset($this->data['task'])) return $this->data;
+
+        // $qrow = $db->select('*')->from('goods_receipt')->where('id', $docId)->where('deleted', 0)->get()->row();
+
+        // $this->data['dataset'] = $this->getIndexDataSetHTML($qrow);
+        // $this->data['status'] = 'success';
+        // $this->data['message'] = lang('record_saved');
+
         return $this->data;
     }
 
@@ -905,6 +889,59 @@ class Goods_receipt_m extends MY_Model
         $db->update("po_header", ["sharekey" => $sharekey, "sharekey_by" => $sharekey_by]);
 
         return $this->data;
+    }
+
+    function payments_method()
+    {
+        $result = $this->db->get('payment_methods')->result();
+
+        $data = [];
+        if (sizeof($result)) {
+            foreach ($result as $item) {
+                $data[] = [
+                    'id' => $item->id,
+                    'text' => $item->title,
+                    'description' => $item->description
+                ];
+            }
+        }
+        return $data;
+    }
+
+    function postPaymentForGoodsReceipt(array $data): int
+    {
+        $this->db->insert('goods_receipt_payment', $data);
+        return $this->db->insert_id();
+    }
+
+    function postPayAmountForGoodsReceiptHeader(int $id, float $amount): void
+    {
+        $sql = "UPDATE goods_receipt SET pay_amount = pay_amount + ? WHERE id = ?";
+        $this->db->query($sql, array($amount, $id));
+    }
+
+    function getPaymentListForGoodsReceiptView(int $id): array
+    {
+        $result = array();
+
+        $data = $this->db->select('*')
+        ->from('goods_receipt_payment')
+        ->where('pv_id', $id)
+        ->order_by('id', 'asc')
+        ->get()
+        ->result();
+        
+        if (sizeof($data)) {
+            foreach ($data as $item) {
+                $item->date_output = convertDate($item->date, true);
+                $item->number_format = number_format($item->amount, 2);
+                $item->currency_format = to_currency($item->amount);
+            }
+
+            $result = $data;
+        }
+
+        return $result;
     }
 
 }

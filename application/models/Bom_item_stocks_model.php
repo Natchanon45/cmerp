@@ -4,14 +4,15 @@ class Bom_item_stocks_model extends Crud_model
 {
 
     private $table = null;
+    private $main_id = null;
 
     function __construct()
     {
         $this->table = 'bom_item_stocks';
         $this->main_id = 'item_id';
+
         parent::__construct($this->table);
     }
-
 
     function get_details($options = array())
     {
@@ -78,8 +79,8 @@ class Bom_item_stocks_model extends Crud_model
     function check_posibility($id, $used)
     {
         $temp = $this->db->query("SELECT {$this->main_id} , SUM(`remaining`) AS rem FROM {$this->table} WHERE {$this->main_id} = $id GROUP BY `{$this->main_id}`")->row();
-        var_dump($temp, !empty($temp->item_id), $temp->item_id == $id, $temp->rem >= $used);
-        exit;
+        // var_dump($temp, !empty($temp->item_id), $temp->item_id == $id, $temp->rem >= $used);
+        // exit;
         if (!empty($temp->item_id) && $temp->item_id == $id && $temp->rem >= $used) {
             return true;
         }
@@ -214,13 +215,13 @@ class Bom_item_stocks_model extends Crud_model
                 'sale_type' => $sale_info['sale_type']
             );
 
-            $sale_items = $this->fgSaleListBySaleTypeAndId($result['sale_type'], $result['sale_id']);
+            $sale_items = $this->fgSaleListBySaleTypeAndIdTestCase($result['sale_type'], $result['sale_id']);
             if (sizeof($sale_items)) {
                 foreach ($sale_items as $item) {
                     // var_dump(arr($item));
 
-                    $this->fgSaleReturnStockByStockId($item->stock_id, $item->ratio);
-                    $this->fgSaleDeleteSaleListById($item->id);
+                    $this->fgSaleReturnStockByStockIdTestCase($item->stock_id, $item->ratio);
+                    $this->fgSaleDeleteSaleListByIdTestCase($item->id);
                 }
             } else {
                 $result['status'] = 'failure';
@@ -249,11 +250,11 @@ class Bom_item_stocks_model extends Crud_model
                     'id' => $item['id'], 'item_id' => $item['item_id'], 'ratio' => $item['ratio']
                 );
 
-                $item_stock = $this->fgSumRemainingByItemId($item['item_id']);
+                $item_stock = $this->fgSumRemainingByItemIdTestCase($item['item_id']);
                 // var_dump(arr($item_stock));
 
                 if (isset($item_stock->remaining) && !empty($item_stock->remaining)) {
-                    $item_stock_list = $this->fgRemainingListByItemId($item['item_id']);
+                    $item_stock_list = $this->fgRemainingListByItemIdTestCase($item['item_id']);
                     // var_dump(arr($item_stock_list));
 
                     if (sizeof($item_stock_list)) {
@@ -342,7 +343,7 @@ class Bom_item_stocks_model extends Crud_model
         return $result;
     }
 
-    public function FinishedGoodsSalesVoid(array $sale_info): array
+    public function FinishedGoodsSalesVoidTestCase(array $sale_info): array
     {
         $this->db->trans_start();
 
@@ -352,13 +353,13 @@ class Bom_item_stocks_model extends Crud_model
                 'sale_type' => $sale_info['sale_type']
             );
 
-            $sale_items = $this->fgSaleListBySaleTypeAndId($result['sale_type'], $result['sale_id']);
+            $sale_items = $this->fgSaleListBySaleTypeAndIdTestCase($result['sale_type'], $result['sale_id']);
             if (sizeof($sale_items)) {
                 foreach ($sale_items as $item) {
                     // var_dump(arr($item));
 
-                    $this->fgSaleReturnStockByStockId($item->stock_id, $item->ratio);
-                    $this->fgSaleDeleteSaleListById($item->id);
+                    $this->fgSaleReturnStockByStockIdTestCase($item->stock_id, $item->ratio);
+                    $this->fgSaleDeleteSaleListByIdTestCase($item->id);
                 }
             }
         }
@@ -376,7 +377,7 @@ class Bom_item_stocks_model extends Crud_model
         return $result;
     }
 
-    public function FinishedGoodsSales(SaleInformation $sale_info): array
+    public function FinishedGoodsSalesTestCase(SaleInformation $sale_info): array
     {
         $this->db->trans_start();
 
@@ -395,11 +396,11 @@ class Bom_item_stocks_model extends Crud_model
                     'id' => $item['id'], 'item_id' => $item['item_id'], 'ratio' => $item['ratio']
                 );
 
-                $item_stock = $this->fgSumRemainingByItemId($item['item_id']);
+                $item_stock = $this->fgSumRemainingByItemIdTestCase($item['item_id']);
                 // var_dump(arr($item_stock));
 
                 if (isset($item_stock->remaining) && !empty($item_stock->remaining)) {
-                    $item_stock_list = $this->fgRemainingListByItemId($item['item_id']);
+                    $item_stock_list = $this->fgRemainingListByItemIdTestCase($item['item_id']);
                     // var_dump(arr($item_stock_list));
 
                     if (sizeof($item_stock_list)) {
@@ -494,7 +495,7 @@ class Bom_item_stocks_model extends Crud_model
         return $result;
     }
 
-    private function fgSaleListBySaleTypeAndId(string $sale_type, int $sale_id): ?array
+    private function fgSaleListBySaleTypeAndIdTestCase(string $sale_type, int $sale_id): ?array
     {
         return $this->db->select('*')
         ->from('bom_project_item_items')
@@ -505,19 +506,19 @@ class Bom_item_stocks_model extends Crud_model
         ->result();
     }
 
-    private function fgSaleReturnStockByStockId(int $stock_id, float $ratio): void
+    private function fgSaleReturnStockByStockIdTestCase(int $stock_id, float $ratio): void
     {
         $sql = "UPDATE bom_item_stocks SET remaining = remaining + ? WHERE id = ?";
         $this->db->query($sql, array($ratio, $stock_id));
     }
 
-    private function fgSaleDeleteSaleListById(int $id): void
+    private function fgSaleDeleteSaleListByIdTestCase(int $id): void
     {
         $this->db->where('id', $id);
         $this->db->delete('bom_project_item_items');
     }
 
-    private function fgSumRemainingByItemId(int $item_id): ?stdClass
+    private function fgSumRemainingByItemIdTestCase(int $item_id): ?stdClass
     {
         return $this->db->select('item_id, SUM(remaining) AS remaining')
         ->from('bom_item_stocks')
@@ -527,7 +528,7 @@ class Bom_item_stocks_model extends Crud_model
         ->row();
     }
 
-    private function fgRemainingListByItemId(int $item_id): ?array
+    private function fgRemainingListByItemIdTestCase(int $item_id): ?array
     {
         return $this->db->select('*')->from('bom_item_stocks')
         ->where('item_id', $item_id)

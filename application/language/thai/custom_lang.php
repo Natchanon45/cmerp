@@ -2496,6 +2496,14 @@ $lang["restart_calc"] = "เริ่มใหม่";
 $lang["reference_number"] = "เลขที่อ้างอิง";
 $lang["doc_date"] = "วันที่";
 
+$lang["bank_name"] = "ชื่อธนาคาร";
+$lang["bank_account_number"] = "เลขที่บัญชี";
+$lang["bank_account_holders_name"] = "ชื่อเจ้าของบัญชี";
+$lang["payments_date"] = "วันที่ชำระเงิน";
+$lang["payments_amount"] = "จำนวนเงินรวม";
+$lang["payments_method"] = "วิธีการชำระเงิน";
+$lang["payments_description"] = "รายละเอียดการชำระเงิน";
+
 $lang["purchase_request"] = "ใบขอซื้อ (PR)";
 $lang["purchase_request_add"] = "เพิ่มใบขอซื้อ";
 $lang["request_date"] = "วันที่ขอซื้อ";
@@ -2527,7 +2535,7 @@ $lang["record_products"] = "บันทึกซื้อสินค้า";
 $lang["goods_receipt"] = "ใบรับสินค้า (GR)";
 $lang["goods_receipt_add"] = "เพิ่มใบรับสินค้า";
 $lang["receive_date"] = "วันที่รับสินค้า";
-$lang["record_of_receipt"] = "บันทึกรับสินค้า";
+$lang["record_of_receipt"] = "บันทึกซื้อสินค้า";
 $lang["record_of_expenses"] = "บันทึกค่าใช้จ่าย";
 
 $lang["payment_voucher"] = "ใบสำคัญจ่าย (PV)";
