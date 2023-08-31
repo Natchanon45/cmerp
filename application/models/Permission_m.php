@@ -12,8 +12,9 @@ class Permission_m extends MY_Model {
 
 	public $accounting = [
 							"quotation"=>["access"=>false],
-							"billing_note"=>["access"=>false],
 							"invoice"=>["access"=>false],
+							"tax_invoice"=>["access"=>false],
+							"billing_note"=>["access"=>false],
 							"receipt"=>["access"=>false],
 							"credit_note"=>["access"=>false],
 							"debit_note"=>["access"=>false]
@@ -63,8 +64,9 @@ class Permission_m extends MY_Model {
 
 		$permissions["accounting"] = $this->accounting = [
 													"quotation"=>["access"=>true],
-													"billing_note"=>["access"=>true],
 													"invoice"=>["access"=>true],
+													"tax_invoice"=>["access"=>true],
+													"billing_note"=>["access"=>true],
 													"receipt"=>["access"=>true],
 													"credit_note"=>["access"=>true],
 													"debit_note"=>["access"=>true]
@@ -98,8 +100,9 @@ class Permission_m extends MY_Model {
 
 		//Accounting
 		if(isset($permissions->accounting->quotation->access)) $this->accounting["quotation"]["access"] = $permissions->accounting->quotation->access;
-		if(isset($permissions->accounting->billing_note->access)) $this->accounting["billing_note"]["access"] = $permissions->accounting->billing_note->access;
 		if(isset($permissions->accounting->invoice->access)) $this->accounting["invoice"]["access"] = $permissions->accounting->invoice->access;
+		if(isset($permissions->accounting->tax_invoice->access)) $this->accounting["tax_invoice"]["access"] = $permissions->accounting->tax_invoice->access;
+		if(isset($permissions->accounting->billing_note->access)) $this->accounting["billing_note"]["access"] = $permissions->accounting->billing_note->access;
 		if(isset($permissions->accounting->receipt->access)) $this->accounting["receipt"]["access"] = $permissions->accounting->receipt->access;
 		if(isset($permissions->accounting->credit_note->access)) $this->accounting["credit_note"]["access"] = $permissions->accounting->credit_note->access;
 		if(isset($permissions->accounting->debit_note->access)) $this->accounting["debit_note"]["access"] = $permissions->accounting->debit_note->access;
@@ -156,8 +159,9 @@ class Permission_m extends MY_Model {
 
 	function canAccessAccounting(){
 		if($this->accounting["quotation"]["access"] == true) return true;
-		if($this->accounting["billing_note"]["access"] == true) return true;
 		if($this->accounting["invoice"]["access"] == true) return true;
+		if($this->accounting["tax_invoice"]["access"] == true) return true;
+		if($this->accounting["billing_note"]["access"] == true) return true;
 		if($this->accounting["receipt"]["access"] == true) return true;
 		if($this->accounting["credit_note"]["access"] == true) return true;
 		if($this->accounting["debit_note"]["access"] == true) return true;

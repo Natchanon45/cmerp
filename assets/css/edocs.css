@@ -192,6 +192,7 @@ header .button i{
     font-size: 1.9em;
     text-align: center;
     margin-bottom: 12px;
+    line-height: 30px;
 }
 
 .paper .header .right .docinfo{
@@ -251,7 +252,7 @@ header .button i{
 
 .paper .summary .total_in_text{
     float: left;
-    max-width: calc(100% - 280px);
+    max-width: calc(100% - 290px);
 }
 
 .paper .summary .total_in_text span{
@@ -261,7 +262,7 @@ header .button i{
 
 .paper .summary .total_all{
     float: right;
-    width: 280px;
+    width: 290px;
     line-height: 22px;
 }
 
@@ -273,7 +274,7 @@ header .button i{
 
 .paper .summary .total_all .c1{
     float: left;
-    width: 140px;
+    width: 150px;
     text-align: right;
 }
 
@@ -318,6 +319,21 @@ header .button i{
     width: 45%;
     float: right;
     text-align: center;
+}
+
+.company_stamp{
+    text-align: center;
+    width: 100%;
+    height: 1px;
+}
+
+.company_stamp img{
+    position: relative;
+    top: -60px;
+    display: inline-block;
+    max-height: 50px;
+    height: 50px;
+    width: auto;
 }
 
 .on_behalf_of{
@@ -370,6 +386,7 @@ header .button i{
     height: auto;
 }
 
+.paper .footer .l1 .created_date,
 .paper .footer .l1 .approved_date{
     position: relative;
     top: -8px;

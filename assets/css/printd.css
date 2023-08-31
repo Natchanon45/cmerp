@@ -104,7 +104,7 @@
 }
 
 #printd .docheader .r .document_name{
-    font-size: 2em;
+    font-size: 1.95em;
     line-height: 30px;
 }
 
@@ -429,6 +429,21 @@
     width: 45%;
 }
 
+#printd .docsignature .company_stamp{
+    text-align: center;
+    width: 100%;
+    height: 1px;
+}
+
+#printd .docsignature .company_stamp img{
+    position: relative;
+    top: -60px;
+    display: inline-block;
+    max-height: 50px;
+    height: 50px;
+    width: auto;
+}
+
 #printd .docsignature .on_behalf_of{
     text-align: center;
 }
@@ -468,6 +483,7 @@
     height: auto;
 }
 
+#printd .docsignature .l1 .created_date,
 #printd .docsignature .l1 .approved_date{
     position: absolute;
     width: 100%;
@@ -480,6 +496,254 @@
     height: 22px;
     display: block;
     text-align: center;
+}
+
+#payment_header{
+    background: #fff;
+    padding: 14px 12px;
+    padding-bottom: 0;
+    margin-top: 14px;
+    margin-bottom: 22px;
+    box-shadow: rgba(50, 50, 93, 0.25) 0px 2px 5px -1px, rgba(0, 0, 0, 0.3) 0px 1px 3px -1px;
+}
+
+#payment_header .docnumber{
+    float: left;
+    width: 50%;
+    font-size: 1.4em;
+}
+
+#payment_header .docnumber h2{
+    font-size: 0.98em;
+}
+
+#payment_header .docnumber .docstaus{
+    display: block;
+    font-size: 0.7em;
+    font-weight: bold;
+}
+
+#payment_header .docnumber .docstaus i{
+    top: 1px;
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    margin-right: 8px;
+    border-radius: 50%;
+    position: relative;
+}
+
+#payment_header .docnumber .docstaus.outstanding i{
+    background: #3297ff;
+}
+
+#payment_header .docnumber .docstaus.paid i{
+    background: #44bf76;
+}
+
+#payment_header .docnumber .docstaus.outstanding{
+    color: #3297ff;
+}
+
+#payment_header .docnumber .docstaus.paid{
+    color: #44bf76;
+}
+
+#payment_header .buttons{
+    float: right;
+    width: 50%;
+    text-align: right;
+}
+
+#payment_header .title{
+    margin-bottom: 12px;
+}
+
+#payment_header table{
+    width: 100%;
+}
+
+#payment_header td{
+    vertical-align: top;
+    line-height: 38px;
+}
+
+#payment_header td:nth-child(1){
+    text-align: left;
+    width: 50%;
+}
+
+#payment_header td:nth-child(2){
+    text-align: right;
+    width: 50%;
+}
+
+#payment_header .info{
+    border-top: 1px solid #ccc;
+}
+
+#payment_header .info .l{
+    float: left;
+    width: 50%;
+    padding: 12px;
+    padding-left: 0;
+}
+
+#payment_header .info .r{
+    float: right;
+    width: 50%;
+    border-left: 1px solid #ccc;
+    padding: 12px;
+    padding-right: 0;
+}
+
+#payment_header .payment_receive_amount{
+    border-radius: 8px;
+    position: relative;
+    background: #ececff;
+    color: #6c6df2;
+    display: block;
+    width: 100%;
+    text-align: right;
+    font-size: 17px;
+    padding: 8px;
+    padding-bottom: 6px;
+}
+
+#payment_header .payment_receive_amount strong{
+    font-size: 1.2em;
+}
+
+#payment_header .info .r span{
+    display: block;
+}
+
+#payment_header .invoice_is_fully_paid > span:nth-child(1){
+    text-align: right;
+    font-size: 1.8em;
+    color: #43bf76;
+    margin-top: 40px;
+}
+
+#payment_header .invoice_is_fully_paid > span:nth-child(1) > i{
+    margin-right: 4px;
+    font-size: 0.7em;
+}
+
+#payment_header .invoice_is_fully_paid > span:nth-child(2){
+    text-align: right;
+}
+
+.payment_record{
+    line-height: 40px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background: #fff;
+    box-shadow: rgba(50, 50, 93, 0.25) 0px 2px 5px -1px, rgba(0, 0, 0, 0.3) 0px 1px 3px -1px;
+    margin-bottom: 22px;
+}
+
+.payment_record table tbody > tr:first-child td{
+    height: 14px;
+    line-height: 2px;
+    text-align: right;
+    position: relative;
+}
+
+.payment_record table tbody > tr:first-child td a{
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    font-size: 16px;
+    color: #999;
+    cursor: pointer;
+}
+
+.payment_record td{
+    line-height: 22px;
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
+
+.payment_record .payment_receive_method{
+    float: left;
+    width: 50%;
+    padding: 12px;
+}
+
+.payment_record .total_pay{
+    border-radius: 8px;
+    position: relative;
+    background: #f5fcf8;
+    color: #4bc17a;
+    display: block;
+    width: 100%;
+    text-align: right;
+    font-size: 17px;
+    padding: 8px;
+    padding-bottom: 6px;
+}
+
+.payment_record .total_pay strong{
+    font-size: 1.2em;
+}
+
+.payment_record .total_pay i{
+    position: absolute;
+    top: 20px;
+    left: 10px;   
+}
+
+.payment_record .total_payment_amount{
+    float: right;
+    width: 50%;
+    padding: 12px;
+    border-left: 1px solid #ccc;
+}
+
+.payment_record .green{
+    color: #4bc17a;
+    font-size: 1.6em;
+}
+
+.payment_record .orange{
+    color: #f47459;
+    font-size: 1.6em;
+}
+
+.payment_record strong{
+    font-weight: bold;
+}
+
+.payment_record table{
+    width: 100%;
+}
+
+.payment_record table td{
+    vertical-align: top;
+}
+
+.payment_record table td:nth-child(1){
+    width: 50%;
+}
+
+.payment_record table td:nth-child(2){
+    width: 50%;
+    text-align: right;
+}
+
+#payment_header .receive_button,
+.payment_record .issue_receipt_button{
+    display: inline-block;
+    width: 112px;
+    line-height: 36px;
+    border-radius: 12px;
+}
+
+#payment_header .receive_button:active,
+.payment_record .issue_receipt_button:active{
+    position: relative;
+    top: 1px;
 }
 
 @media print {

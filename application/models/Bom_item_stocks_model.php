@@ -196,4 +196,188 @@ class Bom_item_stocks_model extends Crud_model {
         $this->db->query($sql);
     }
 
+    public function processFinishedGoodsSale(array $sale_info): array {
+        /*$this->db->trans_start();*/
+
+        if (sizeof($sale_info['items'])) {
+            $result = array(
+                'sale_id' => $sale_info['sale_id'],
+                'sale_type' => $sale_info['sale_type'],
+                'sale_document' => $sale_info['sale_document'],
+                'project_id' => $sale_info['project_id'],
+                'created_by' => $sale_info['created_by']
+            );
+
+            foreach ($sale_info['items'] as $item) {
+                $item_result = array();
+                $result['items'][] = array(
+                    'id' => $item['id'], 'item_id' => $item['item_id'], 'ratio' => $item['ratio']
+                );
+
+                $item_stock = $this->fgSumRemainingByItemId($item['item_id']);
+                // var_dump(arr($item_stock));
+
+                if (isset($item_stock->remaining) && !empty($item_stock->remaining)) {
+                    $item_stock_list = $this->fgRemainingListByItemId($item['item_id']);
+                    // var_dump(arr($item_stock_list));
+
+                    if (sizeof($item_stock_list)) {
+                        $pop = count($item_stock_list) - 1;
+                        $ratio = $item['ratio'];
+                        
+                        for ($i = 0; $i < count($item_stock_list); $i++) {
+                            // var_dump(arr($item_stock_list[$i]));
+
+                            $usage = min($ratio, $item_stock_list[$i]->remaining);
+                            if (isset($usage) && $usage > 0) {
+                                $this->db->where('id', $item_stock_list[$i]->id);
+                                $this->db->update('bom_item_stocks', ['remaining' => $item_stock_list[$i]->remaining - $usage]);
+                                $this->db->insert('bom_project_item_items', [
+                                    'project_id' => $sale_info['project_id'],
+                                    'item_id' => $item['item_id'],
+                                    'stock_id' => $item_stock_list[$i]->id,
+                                    'ratio' => $usage,
+                                    'sale_id' => $sale_info['sale_id'],
+                                    'sale_type' => $sale_info['sale_type'],
+                                    'sale_document' => $sale_info['sale_document'],
+                                    'sale_item_id' => $item['id'],
+                                    'used_status' => 1,
+                                    'created_by' => $sale_info['created_by']
+                                ]);
+
+                                array_push($item_result, $this->db->insert_id());
+                                $ratio = $ratio - $usage;
+                            }
+                        }
+
+                        if ($ratio > 0) {
+                            $this->db->where('id', $item_stock_list[$pop]->id);
+                            $this->db->update('bom_item_stocks', ['remaining' => $item_stock_list[$pop]->remaining - $ratio]);
+                            $this->db->insert('bom_project_item_items', [
+                                'project_id' => $sale_info['project_id'],
+                                'item_id' => $item['item_id'],
+                                'stock_id' => $item_stock_list[$pop]->id,
+                                'ratio' => $ratio,
+                                'sale_id' => $sale_info['sale_id'],
+                                'sale_type' => $sale_info['sale_type'],
+                                'sale_document' => $sale_info['sale_document'],
+                                'sale_item_id' => $item['id'],
+                                'used_status' => 1,
+                                'created_by' => $sale_info['created_by']
+                            ]);
+
+                            array_push($item_result, $this->db->insert_id());
+                        }
+                    }
+                } else {
+                    $this->db->insert('bom_item_stocks', [
+                        'item_id' => $item['item_id'],
+                        'stock' => 0,
+                        'remaining' => $item['ratio'] * -1,
+                        'note' => 'backordered'
+                    ]);
+                    $backordered_id = $this->db->insert_id();
+
+                    $this->db->insert('bom_project_item_items', [
+                        'project_id' => $sale_info['project_id'],
+                        'item_id' => $item['item_id'],
+                        'stock_id' => $backordered_id,
+                        'ratio' => $item['ratio'],
+                        'sale_id' => $sale_info['sale_id'],
+                        'sale_type' => $sale_info['sale_type'],
+                        'sale_document' => $sale_info['sale_document'],
+                        'sale_item_id' => $item['id'],
+                        'used_status' => 1,
+                        'created_by' => $sale_info['created_by']
+                    ]);
+
+                    array_push($item_result, $this->db->insert_id());
+                }
+
+                $result['result'][] = array(
+                    'id' => $item['id'], 'bpii_id' => $item_result
+                );
+            }
+        }
+
+        /*$this->db->trans_complete();
+
+        if ($this->db->trans_status() === FALSE) {
+            $result['status'] = 'failure';
+            $this->db->trans_rollback();
+        } else {
+            $result['status'] = 'success';
+            $this->db->trans_commit();
+        }*/
+        $result['status'] = 'success';
+        
+        return $result;
+    }
+
+    private function fgSumRemainingByItemId(int $item_id): ?stdClass {
+        return $this->db->select('item_id, SUM(remaining) AS remaining')
+        ->from('bom_item_stocks')
+        ->where('item_id', $item_id)
+        ->group_by('item_id')
+        ->get()
+        ->row();
+    }
+
+    private function fgRemainingListByItemId(int $item_id): ?array {
+        return $this->db->select('*')->from('bom_item_stocks')
+        ->where('item_id', $item_id)
+        ->order_by('id', 'asc')
+        ->get()
+        ->result();
+    }
+
+    public function cancelFinishedGoodsSale(array $sale_info): array
+    {
+        if (sizeof($sale_info)) {
+            $result = array(
+                'sale_id' => $sale_info['sale_id'],
+                'sale_type' => $sale_info['sale_type']
+            );
+
+            $sale_items = $this->fgSaleListBySaleTypeAndId($result['sale_type'], $result['sale_id']);
+            if (sizeof($sale_items)) {
+                foreach ($sale_items as $item) {
+                    // var_dump(arr($item));
+
+                    $this->fgSaleReturnStockByStockId($item->stock_id, $item->ratio);
+                    $this->fgSaleDeleteSaleListById($item->id);
+                }
+            } else {
+                $result['status'] = 'failure';
+            }
+
+            $result['status'] = 'success';
+        }
+
+        return $result;
+    }
+
+    private function fgSaleListBySaleTypeAndId(string $sale_type, int $sale_id): ?array
+    {
+        return $this->db->select('*')
+        ->from('bom_project_item_items')
+        ->where('sale_type', $sale_type)
+        ->where('sale_id', $sale_id)
+        ->order_by('id', 'asc')
+        ->get()
+        ->result();
+    }
+
+    private function fgSaleReturnStockByStockId(int $stock_id, float $ratio): void
+    {
+        $sql = "UPDATE bom_item_stocks SET remaining = remaining + ? WHERE id = ?";
+        $this->db->query($sql, array($ratio, $stock_id));
+    }
+
+    private function fgSaleDeleteSaleListById(int $id): void
+    {
+        $this->db->where('id', $id);
+        $this->db->delete('bom_project_item_items');
+    }
+
 }

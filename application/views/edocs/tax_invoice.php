@@ -90,19 +90,7 @@
 				</div>
 			</div>
 			<div class="right">
-				<div class="docname custom-color">
-					<?php
-	                    if($doc["billing_type"] == "2"){
-	                        echo "ใบกำกับภาษี/ใบเสร็จรับเงิน";
-	                    }elseif($doc["billing_type"] == "3"){
-	                        echo "ใบแจ้งหนี้/ใบวางบิล/ใบกำกับภาษี/ใบเสร็จรับเงิน/ใบส่งของ";
-	                    }elseif($doc["billing_type"] == "6"){
-	                        echo "ใบแจ้งหนี้/ใบวางบิล/ใบเสร็จรับเงิน/ใบส่งของ";
-	                    }else{
-	                        echo "ใบเสร็จรับเงิน";
-	                    }
-	                ?>
-				</div>
+				<div class="docname custom-color">ใบกำกับภาษี</div>
 				<div class="docinfo">
 					<table>
 	                    <tr>
@@ -112,6 +100,14 @@
 	                    <tr>
 	                        <td class="custom-color">วันที่</td>
 	                        <td><?php echo convertDate($doc["doc_date"], true); ?></td>
+	                    </tr>
+	                    <tr>
+	                        <td class="custom-color">เครดิต</td>
+	                        <td><?php echo $doc["credit"]; ?> วัน</td>
+	                    </tr>
+	                    <tr>
+	                        <td class="custom-color">ครบกำหนด</td>
+	                        <td><?php echo convertDate($doc["due_date"], true); ?></td>
 	                    </tr>
 	                    <tr>
 	                        <td class="custom-color">ผู้ขาย</td>
@@ -226,30 +222,25 @@
 		</div><!--.body-->
 		<div class="footer clear">
 			<div class="c1">
-				<div class="on_behalf_of"></div>
+				<div class="on_behalf_of">ในนาม <?php echo $doc["buyer"]["company_name"] ?></div>
 				<div class="signature clear">
 					<div class="name">
-	                    <span class="l1">
-	                    	<?php if($doc["created_by"] != null): ?>
-	                    		<?php if(null != $signature = $this->Users_m->getSignature($doc["created_by"])): ?>
-	                            	<img src='<?php echo "/".$signature; ?>'>
-	                        	<?php endif; ?>
-	                        <?php endif; ?>
-	                    </span>
-	                    <span class="l2">ผู้ออกเอกสาร</span>
+	                    <span class="l1"></span>
+	                    <span class="l2">ผู้รับสินค้า / บริการ</span>
 	                </div>
 	                <div class="date">
-	                    <span class="l1">
-	                    	<?php if($doc["created_by"] != null): ?>
-	                            <span class="created_date"><?php echo convertDate($doc["created_datetime"], true); ?></span>
-	                        <?php endif; ?>
-	                    </span>
+	                    <span class="l1"></span>
 	                    <span class="l2">วันที่</span>
 	                </div>
 				</div>
 			</div>
 			<div class="c2">
-				<div class="on_behalf_of"></div>
+				<div class="company_stamp">
+	                <?php if(isset($doc["company_stamp"])): ?>
+	                    <img src="<?php echo base_url($doc["company_stamp"]);?>">
+	                <?php endif;?>
+	            </div>
+				<div class="on_behalf_of">ในนาม <?php echo get_setting("company_name"); ?></div>
 				<div class="signature clear">
 					<div class="name">
 	                    <span class="l1">
@@ -259,7 +250,7 @@
 	                        	<?php endif; ?>
 	                        <?php endif; ?>
 	                    </span>
-	                    <span class="l2">ผู้รับเงิน</span>
+	                    <span class="l2">ผู้อนุมัติ</span>
 	                </div>
 	                <div class="date">
 	                    <span class="l1">
@@ -279,5 +270,3 @@
 <?php endif; ?>
 </body>
 </html>
-
-

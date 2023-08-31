@@ -9,6 +9,8 @@ class Billing_notes extends MY_Controller {
             $this->session->set_flashdata('notice_error', lang('no_permissions'));
             redirect(get_uri("accounting/sell"));
         }
+
+        $this->data["company_setting"] = $this->Settings_m->getCompany();
     }
 
     function index() {
@@ -25,11 +27,19 @@ class Billing_notes extends MY_Controller {
 
     function addedit(){
         if(isset($this->json->task)){
-            if($this->json->task == "save_doc") jout($this->Billing_notes_m->saveDoc());
-            return;   
+            if($this->json->task == "get_invs"){
+                jout($this->Billing_notes_m->getHTMLInvoices($this->input->post("customer_id")));
+            }elseif($this->json->task == "create_doc"){
+                //log_message("error", $this->input->post("invoice_ids"));
+                //jout(["test"=>$this->input->post("invoice_ids")]);
+                jout($this->Billing_notes_m->createDocByInvoiceIds(json_decode($this->json->invoice_ids, true)));
+            }
+
+            return;
         }
 
         $data = $this->Billing_notes_m->getDoc($this->input->post("id"));
+        $data["cusrows"] = $this->Customers_m->getRows();
 
         $this->load->view( 'billing_notes/addedit', $data);
     }
@@ -53,6 +63,7 @@ class Billing_notes extends MY_Controller {
             return;
         }
 
+        $data["company_setting"] = $this->Settings_m->getCompany();
         $data["created"] = $this->Users_m->getInfo($data["created_by"]);
         $data["client"] = $this->Customers_m->getInfo($data["customer_id"]);
         $data["client_contact"] = $this->Customers_m->getContactInfo($data["client_id"]);
@@ -116,4 +127,6 @@ class Billing_notes extends MY_Controller {
         $data = $this->Billing_notes_m->getDoc($this->input->post("doc_id"));
         $this->load->view('billing_notes/share', $data);
     }
+
+
 }

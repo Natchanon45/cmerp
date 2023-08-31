@@ -18,6 +18,16 @@
 /*
 *.popup
 */
+.popup textarea{
+	resize: none;
+	padding: 6px;
+	line-height: 16px;
+}
+
+.popup select{
+	height: 28px;
+}
+
 .popup input[type=text]{
 	height: 28px;
 	padding: 4px;

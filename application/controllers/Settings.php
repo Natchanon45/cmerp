@@ -355,15 +355,67 @@ class Settings extends MY_Controller {
     }
 
     function company() {
-        $this->template->rander("settings/company");
+        $this->data["company_setting"] = $this->Settings_m->getCompany();
+        $this->template->rander("settings/company", $this->data);
     }
 
     function save_company_settings() {
-        $settings = array("company_name", "company_address", "company_phone", "company_email", "company_website", "company_vat_number");
+        $settings = [
+                        "company_name",
+                        "company_vat_registered",
+                        "company_billing_type",
+                        "company_stock_type",
+                        "company_address",
+                        "company_phone",
+                        "company_email",
+                        "company_website",
+                        "company_vat_number",
+                        "company_stamp"
+                    ];
 
         foreach ($settings as $setting) {
-            $this->Settings_model->save_setting($setting, $this->input->post($setting));
+            $value = $this->input->post($setting);
+            $saveable = true;
+
+            if ($setting === "company_stamp") {
+                if(get_array_value($_FILES, "company_stamp_file") == null) continue;
+
+                $value = str_replace("~", ":", $value);
+                $value = serialize(move_temp_file("company-stamp.png", get_setting("system_file_path"), "", $value));
+            }
+
+            if (is_null($value)) {
+                $value = "";
+            }
+
+            //process the file which has uploaded using manual file submit
+            if ($setting === "company_stamp" && $_FILES) {
+                $company_stamp_file = get_array_value($_FILES, "company_stamp_file");
+                $company_stamp_file_name = get_array_value($company_stamp_file, "tmp_name");
+
+                if ($company_stamp_file_name) {
+                    $value = serialize(move_temp_file("company-stamp.png", get_setting("system_file_path"), "", $company_stamp_file_name));
+                    $reload_page = true;
+                }
+            }
+
+            //don't save blank image
+            if ($setting === "company_stamp" && !$value) {
+                $saveable = false;
+            }
+
+            if ($saveable) {
+                if ($setting == "company_stamp") {
+                    //delete old file
+
+                    delete_app_files(get_setting("system_file_path"), get_system_files_setting_value("company_stamp"));
+                }
+                //log_message("error", $value);
+
+                $this->Settings_model->save_setting($setting, $value);
+            }   
         }
+
         echo json_encode(array("success" => true, 'message' => lang('settings_updated')));
     }
 
@@ -1091,8 +1143,6 @@ class Settings extends MY_Controller {
 
         $this->template->rander("settings/estimates", $view_data);
     }
-
-    
 
     function save_estimate_settings() {
         $settings = array("estimate_logo", "estimate_prefix", "estimate_color", "estimate_footer", "send_estimate_bcc_to", "initial_number_of_the_estimate", "create_new_projects_automatically_when_estimates_gets_accepted");

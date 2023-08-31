@@ -89,6 +89,7 @@
                 </table>
             </div>
             <div class="about_customer">
+                
                 <table>
                     <tr>
                         <td class="custom-color">ผู้ติดต่อ</td>
@@ -151,11 +152,13 @@
                             <span class="c2"><input type="text" id="sub_total" readonly></span>
                             <span class="c3"><span class="currency">บาท</span></span>
                         </p>
-                        <p id="s-vat">
-                            <span class="c1 custom-color"><input type="checkbox" id="vat_inc" <?php if($vat_inc == "Y") echo "checked" ?> <?php if($doc_status != "W") echo "disabled"; ?>>ภาษีมูลค่าเพิ่ม <?php echo $this->Taxes_m->getVatPercent()."%"; ?></span>
-                            <span class="c2"><input type="text" id="vat_value" readonly></span>
-                            <span class="c3"><span class="currency">บาท</span></span>
-                        </p>
+                        <?php if($billing_type == "1" || $billing_type == "2" || $billing_type == "3"): ?>
+                            <p id="s-vat">
+                                <span class="c1 custom-color"><input type="checkbox" id="vat_inc" <?php if($vat_inc == "Y") echo "checked" ?> <?php if($doc_status != "W") echo "disabled"; ?>>ภาษีมูลค่าเพิ่ม <?php echo $this->Taxes_m->getVatPercent()."%"; ?></span>
+                                <span class="c2"><input type="text" id="vat_value" readonly></span>
+                                <span class="c3"><span class="currency">บาท</span></span>
+                            </p>
+                        <?php endif; ?>
                         <p id="s-total">
                             <span class="c1 custom-color">จำนวนเงินรวมทั้งสิ้น</span>
                             <span class="c2"><input type="text" id="total" readonly ></span>
@@ -210,6 +213,11 @@
             </div>
         </div><!--.customer -->
         <div class="company">
+            <div class="company_stamp">
+                <?php if($company_stamp != null): ?>
+                    <img src="<?php echo base_url($company_stamp);?>">
+                <?php endif;?>
+            </div>
             <div class="on_behalf_of">ในนาม <?php echo get_setting("company_name"); ?></div>
             <div class="clear">
                 <div class="name">

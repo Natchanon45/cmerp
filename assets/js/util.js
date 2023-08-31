@@ -9,7 +9,7 @@ function tonum(mynum, digit = 2){
 	else if(digit == 4) div = 10000;
 	else div = 100;
 
-	mynum = parseFloat(mynum.replace(/\,/g,''));
+	if(typeof mynum != "number") mynum = parseFloat(mynum.replace(/\,/g,''));
 
 	mynum = Math.round(mynum * div) / div;
 

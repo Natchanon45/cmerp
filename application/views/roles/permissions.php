@@ -751,17 +751,24 @@
                         </div>
                     </fieldset>
                     <fieldset>
-                        <legend>ใบวางบิล</legend>
+                        <legend>ใบแจ้งหนี้</legend>
                         <div>
-                            <input type="checkbox" name="accounting_billing_note_access" value="Y" <?php if($accounting['billing_note']['access'] == true) echo "checked"; ?> >
-                            <label for="accounting_billing_note_access">สามารถเห็นใบวางบิล</label>
+                            <input type="checkbox" name="accounting_invoice_access" value="Y" <?php if($accounting['invoice']['access'] == true) echo "checked"; ?> >
+                            <label for="accounting_invoice_access">สามารถเห็นใบแจ้งหนี้</label>
                         </div>
                     </fieldset>
                     <fieldset>
                         <legend>ใบกำกับภาษี</legend>
                         <div>
-                            <input type="checkbox" name="accounting_invoice_access" value="Y" <?php if($accounting['invoice']['access'] == true) echo "checked"; ?> >
-                            <label for="accounting_invoice_access">สามารถเห็นใบกำกับภาษี</label>
+                            <input type="checkbox" name="accounting_tax_invoice_access" value="Y" <?php if($accounting['tax_invoice']['access'] == true) echo "checked"; ?> >
+                            <label for="accounting_tax_invoice_access">สามารถเห็นใบกำกับภาษี</label>
+                        </div>
+                    </fieldset>
+                    <fieldset>
+                        <legend>ใบวางบิล</legend>
+                        <div>
+                            <input type="checkbox" name="accounting_billing_note_access" value="Y" <?php if($accounting['billing_note']['access'] == true) echo "checked"; ?> >
+                            <label for="accounting_billing_note_access">สามารถเห็นใบวางบิล</label>
                         </div>
                     </fieldset>
                     <fieldset>
@@ -771,7 +778,6 @@
                             <label for="accounting_receipt_access">สามารถเห็นใบเสร็จรับเงิน</label>
                         </div>
                     </fieldset>
-
                     <fieldset>
                         <legend>ใบลดหนี้</legend>
                         <div>

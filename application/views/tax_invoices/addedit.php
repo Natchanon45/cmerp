@@ -52,40 +52,29 @@
 
 .popup .invoice td:nth-child(1){
     padding-left: 8px;
-    width: 14%;
+    width: 15%;
 }
 
 .popup .invoice td:nth-child(2){
-    width: 11%;
+    width: 18%;
 }
 
 .popup .invoice td:nth-child(3){
-    width: 11%;
-    text-align: left;
+    width: 25%;
 }
 
 .popup .invoice td:nth-child(4){
-    width: 14%;
+    width: 15%;
     text-align: right;
 }
 
 .popup .invoice td:nth-child(5){
-    width: 14%;
-    text-align: right;
+    width: 15%;
+    text-align: center;
 }
 
 .popup .invoice td:nth-child(6){
-    width: 14%;
-    text-align: right;
-}
-
-.popup .invoice td:nth-child(7){
-    width: 14%;
-    text-align: right;
-}
-
-.popup .invoice td:nth-child(8){
-    width: 8%;
+    width: 12%;
     text-align: center;
 }
 
@@ -140,13 +129,11 @@
             <table>
                 <thead>
                     <tr>
+                        <td class="custom-bg">วันที่</td>
                         <td class="custom-bg">เลขที่เอกสาร</td>
-                        <td class="custom-bg">วันที่ออก</td>
-                        <td class="custom-bg">วันที่ครบกำหนด</td>
-                        <td class="custom-bg">มูลค่าสุทธิ</td>
-                        <td class="custom-bg">มูลค่าที่ต้องชำระ</td>
-                        <td class="custom-bg">ภาษีหัก ณ ที่จ่าย</td>
-                        <td class="custom-bg">จำนวนเงินวางบิล</td>
+                        <td class="custom-bg">ชื่อลูกค้า</td>
+                        <td class="custom-bg">จำนวนเงิน</td>
+                        <td class="custom-bg">สถานะ</td>
                         <td class="custom-bg"></td>
                     </tr>
                 </thead>
@@ -156,7 +143,6 @@
     </div>
     <div class="footer">
         <button type="button" class="btn btn-default" data-dismiss="modal"><span class="fa fa-close"></span>ปิดหน้าต่าง</button>
-        <button type="button" id="btnSubmit" class="btn btn-primary"><span class="fa fa-check-circle"></span>สร้างใบวางบิล</button>
     </div>
 </div>
 <script type="text/javascript">
@@ -168,8 +154,6 @@ $(document).ready(function() {
 });
 
 function getInvs(customer_id){
-    $("#btnSubmit").unbind('click');
-
     axios.post('<?php echo current_url(); ?>', {
         task: 'get_invs',
         customer_id: customer_id
@@ -177,20 +161,12 @@ function getInvs(customer_id){
         let data = response.data;
         $(".invoice table tbody").empty().append(data.html);
 
-        $("#btnSubmit").click(function() {
-            ids = $("[name='invoice_numbers[]']");
-            invoice_ids = [];
-            for(i = 0; i < ids.length; i++){
-                if(ids[i].checked == true){
-                    invoice_ids.push(ids[i].value);
-                }
-            }
-
+        $("a.choose-inv-button").click(function() {
             axios.post('<?php echo current_url(); ?>', {
                 task: 'create_doc',
-                invoice_ids: JSON.stringify(invoice_ids)
+                invoice_id: $(this).data("invoice_id")
             }).then(function (response) {
-                data = response.data;
+                let data = response.data;
 
                 if(data.status == "success"){
                     location.href = data.url;

@@ -112,14 +112,19 @@ class Clients extends MY_Controller {
 
     function delete() {
 		
-		if( empty( $this->getRolePermission['delete_row'] ) ) {
+		/*if( empty( $this->getRolePermission['delete_row'] ) ) {
 			echo json_encode(array("success" => false, 'message' => 'คุณไม่มีสิทธิ์ในการลบข้อมูล' ));
-			exit;
-		}
-       /// $this->access_only_allowed_members();
+		}*/
+        if($this->login_user->is_admin != 1){
+            echo json_encode(array("success" => false, 'message' => 'คุณไม่มีสิทธิ์ในการลบข้อมูล' ));
+            return;
+        }
+
+
+       /*/// $this->access_only_allowed_members();
         if (!$this->can_edit_clients()) {
             ///redirect("forbidden");
-        }
+        }*/
 
         validate_submitted_data(array(
             "id" => "required|numeric"

@@ -1,7 +1,19 @@
 <link rel="stylesheet" href="/assets/css/printd.css?t=<?php echo time();?>">
 <div id="dcontroller" class="clearfix">
     <div class="page-title clearfix mt15">
-        <h1>ใบเสร็จรับเงิน <?php echo $doc_number;?></h1>
+        <h1>
+        <?php
+            if($billing_type == "2"){
+                echo "ใบกำกับภาษี/ใบเสร็จรับเงิน ".$doc_number;
+            }elseif($billing_type == "3"){
+                echo "ใบแจ้งหนี้/ใบวางบิล/ใบกำกับ... ".$doc_number;
+            }elseif($billing_type == "6"){
+                echo "ใบแจ้งหนี้/ใบวางบิล/ใบเสร็จรับเงิน/ใบส่งของ ".$doc_number;
+            }else{
+                echo "ใบเสร็จรับเงิน ".$doc_number;
+            }
+        ?>
+        </h1>
         <div class="title-button-group">
             <a style="margin-left: 15px;" class="btn btn-default mt0 mb0 back-to-index-btn"  href="<?php echo get_uri("accounting/sell/receipts")?>" ><i class="fa fa-hand-o-left" aria-hidden="true"></i> ย้อนกลับไปตารางรายการ</a>
             <a id="add_item_button" class="btn btn-default" data-post-doc_id="<?php echo $doc_id; ?>" data-act="ajax-modal" data-title="แชร์เอกสาร <?php echo $doc_number; ?>" data-action-url="<?php echo get_uri("/receipts/share"); ?>">แชร์</a>
@@ -57,7 +69,19 @@
             </div><!-- .company -->
         </div><!--.l-->
         <div class="r">
-            <h1 class="document_name custom-color">ใบเสร็จรับเงิน<!--<span class="note custom-color">ต้นฉบับ (เอกสารออกเป็นชุด)</span>--></h1>
+            <h1 class="document_name custom-color">
+                <?php
+                    if($billing_type == "2"){
+                        echo "ใบกำกับภาษี/ใบเสร็จรับเงิน";
+                    }elseif($billing_type == "3"){
+                        echo "ใบแจ้งหนี้/ใบวางบิล/ใบกำกับภาษี/ใบเสร็จรับเงิน/ใบส่งของ";
+                    }elseif($billing_type == "6"){
+                        echo "ใบแจ้งหนี้/ใบวางบิล/ใบเสร็จรับเงิน/ใบส่งของ";
+                    }else{
+                        echo "ใบเสร็จรับเงิน";
+                    }
+                ?>
+            </h1>
             <div class="about_company">
                 <table>
                     <tr>
@@ -143,11 +167,13 @@
                             <span class="c2"><input type="text" id="sub_total" readonly></span>
                             <span class="c3"><span class="currency">บาท</span></span>
                         </p>
-                        <p id="s-vat">
-                            <span class="c1 custom-color"><input type="checkbox" id="vat_inc" <?php if($vat_inc == "Y") echo "checked" ?> <?php echo $invoice_id == null && $doc_status == "W"?"":"disabled"; ?>>ภาษีมูลค่าเพิ่ม <?php echo $this->Taxes_m->getVatPercent()."%"; ?></span>
-                            <span class="c2"><input type="text" id="vat_value" readonly></span>
-                            <span class="c3"><span class="currency">บาท</span></span>
-                        </p>
+                        <?php if($billing_type == "1" || $billing_type == "2" || $billing_type == "3"): ?>
+                            <p id="s-vat">
+                                <span class="c1 custom-color"><input type="checkbox" id="vat_inc" <?php if($vat_inc == "Y") echo "checked" ?> <?php echo $invoice_id == null && $doc_status == "W"?"":"disabled"; ?>>ภาษีมูลค่าเพิ่ม <?php echo $this->Taxes_m->getVatPercent()."%"; ?></span>
+                                <span class="c2"><input type="text" id="vat_value" readonly></span>
+                                <span class="c3"><span class="currency">บาท</span></span>
+                            </p>
+                        <?php endif; ?>
                         <p id="s-total">
                             <span class="c1 custom-color">จำนวนเงินรวมทั้งสิ้น</span>
                             <span class="c2"><input type="text" id="total" readonly ></span>
@@ -189,20 +215,32 @@
     </div><!--.docitem-->
     <div class="docsignature clear">
         <div class="customer">
-            <div class="on_behalf_of">ในนาม <?php echo $client["company_name"] ?></div>
+            <div class="on_behalf_of"></div>
             <div class="clear">
                 <div class="name">
-                    <span class="l1"></span>
-                    <span class="l2">ผู้จ่ายเงิน</span>
+                    <span class="l1">
+                        <span class="signature">
+                            <?php if($created_by != null): ?>
+                                <?php if(null != $signature = $this->Users_m->getSignature($created_by)): ?>
+                                    <img src='<?php echo "/".$signature; ?>'>
+                                <?php endif; ?>
+                            <?php endif; ?>
+                        </span>
+                    </span>
+                    <span class="l2">ผู้ออกเอกสาร</span>
                 </div>
                 <div class="date">
-                    <span class="l1"></span>
+                    <span class="l1">
+                        <?php if($created_by != null): ?>
+                            <span class="created_date"><?php echo convertDate($created_datetime, true); ?></span>
+                        <?php endif; ?>
+                    </span>
                     <span class="l2">วันที่</span>
                 </div>
             </div>
         </div><!--.customer -->
         <div class="company">
-            <div class="on_behalf_of">ในนาม <?php echo get_setting("company_name"); ?></div>
+            <div class="on_behalf_of"></div>
             <div class="clear">
                 <div class="name">
                     <span class="l1">
@@ -214,7 +252,7 @@
                             <?php endif; ?>
                         </span>
                     </span>
-                    <span class="l2">ผู้รับเงิน</span>
+                    <span class="l2">ผู้อนุมัติ</span>
                 </div>
                 <div class="date">
                     <span class="l1">
