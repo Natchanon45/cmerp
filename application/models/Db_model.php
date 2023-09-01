@@ -683,8 +683,6 @@ class Db_model extends CI_Model {
 				}
 			
 				else {
-					
-
 					$sql = "
 						SELECT
 							r.*,
@@ -695,7 +693,6 @@ class Db_model extends CI_Model {
 						AND r.table_name = '". $param['table_name'] ."'
 						LIMIT 0, 1
 					";
-
 
 
 					foreach( $this->fetchAll( $sql ) as $kr => $vr ) {

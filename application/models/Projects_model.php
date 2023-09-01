@@ -433,7 +433,7 @@ class Projects_model extends Crud_model {
     {
         $this->db->where('deleted', 0);
         if (!$this->login_user->is_admin) {
-            $$this->db->where('created_by', $this->login_user->id);
+            $this->db->where('created_by', $this->login_user->id);
         }
 
         $query = $this->db->get('projects');
