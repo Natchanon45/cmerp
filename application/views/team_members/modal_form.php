@@ -202,9 +202,7 @@
             <div class="form-group">
                 <label for="role" class="col-md-3"><?php echo lang('role'); ?></label>
                 <div class="col-md-9">
-                    <?php
-                    echo form_dropdown("role", $role_dropdown, array(), "class='select2' id='user-role'");
-                    ?>
+                    <?php echo form_dropdown("role", $role_dropdown, array(), "class='select2 validate-hidden'"); ?>
                     <div id="user-role-help-block" class="help-block ml10 hide"><i class="fa fa-warning text-warning"></i> <?php echo lang("admin_user_has_all_power"); ?></div>
                 </div>
             </div>

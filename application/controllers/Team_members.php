@@ -115,6 +115,11 @@ class Team_members extends MY_Controller {
     function add_team_member() {
         $this->access_only_admin();
 
+        if($this->input->post('role') === "0"){
+            echo json_encode(array("success" => false, 'message' => 'กรุณาเลือกตำแหน่งที่ต้องการ'));
+            return;    
+        }
+
         //check duplicate email address, if found then show an error message
         if ($this->Users_model->is_email_exists($this->input->post('email'))) {
             echo json_encode(array("success" => false, 'message' => lang('duplicate_email')));
@@ -474,6 +479,7 @@ class Team_members extends MY_Controller {
             "0" => lang('team_member'),
             "admin" => lang('admin') //static role
         );
+
         $roles = $this->Roles_model->get_all()->result();
         foreach ($roles as $role) {
             $role_dropdown[$role->id] = $role->title;

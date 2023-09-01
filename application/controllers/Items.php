@@ -1352,7 +1352,20 @@ class Items extends MY_Controller
 		$options = array("category_id" => $category_id);
 
 		$result = array();
-		$list_data = $this->Items_model->get_details($options, $this->getRolePermission)->result();
+
+		$fs = $this->getRolePermission["filters"]["WHERE"];
+
+		$this->db->select("*, title AS category_title")->from("items");
+
+		if(!empty($fs)){
+			foreach($fs as $f){
+				$this->db->where($f);
+			}
+		}
+
+		$list_data = $this->db->get()->result();
+
+		//$list_data = $this->Items_model->get_details($options, $this->getRolePermission)->result();//log_message("error", $this->db->last_query());
 		
 		foreach ($list_data as $data) 
 		{
