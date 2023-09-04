@@ -47,11 +47,6 @@
         cursor: default;
     }
 
-    .dropdown_status {
-        border: 1px solid #ccc;
-        padding: 4px 5px;
-    }
-
     #accounting_navs .buttons {
         width: 20%;
         float: right;
@@ -69,27 +64,34 @@
         font-size: normal;
     }
 
+    .p20 {
+        padding-top: 0 !important;
+    }
+
     .select-status {
-        padding: auto .5rem;
-        width: 100%;
+        width: calc(100% - 15px);
+        padding: .3rem .8rem;
         outline: none;
-        border-radius: .2rem;
-        cursor: pointer;
-        background-color: transparent;
+        background: none;
+        border-color: #e2e7f1;
+    }
+
+    .pointer-none {
+        pointer-events: none;
+        appearance: none;
     }
 </style>
-
-<?php $modal_header = str_replace("https:", "", str_replace("http:", "", str_replace("/", "", base_url()))); ?>
 
 <a id="popup" data-act="ajax-modal" class="btn ajax-modal"></a>
 <div id="page-content" class="p20 clearfix">
     <ul class="nav nav-tabs bg-white title" role="tablist">
-        <!-- <li><a href="#">ผังบัญชี</a></li> -->
-        <li><a href="<?php echo get_uri("accounting/sell"); ?>">บัญชีขาย</a></li>
-        <li class="active"><a>บัญชีซื้อ</a></li>
+        <!-- <li><a href="<?php // echo get_uri("accounting/coa"); ?>"><?php // echo lang('coa'); ?></a></li> -->
+        <li><a href="<?php echo get_uri("accounting/sell"); ?>"><?php echo lang('sell_account'); ?></a></li>
+        <li class="active"><a><?php echo lang('buy_account'); ?></a></li>
     </ul>
+
     <div class="panel panel-default">
-        <div class="table-responsive pb50">
+        <div class="table-responsive">
             <div id="accounting_navs">
                 <ul class="tabs">
                     <?php $number_of_enable_module = 0; ?>
@@ -107,11 +109,11 @@
                         </li>
                     <?php endif; ?>
 
-                    <!-- <?php // if ($permissions['access_purchase_request']): $number_of_enable_module++; ?>
-                        <li data-module="goods_receipt" class="<?php // if ($module == "goods_receipt") echo 'active custom-bg01'; ?>">
-                            <a class="<?php // if ($module == "goods_receipt") echo 'custom-color'; ?>"><?php // echo lang('goods_receipt'); ?></a>
+                    <?php if ($permissions['access_purchase_request']): $number_of_enable_module++; ?>
+                        <li data-module="goods_receipt" class="<?php if ($module == "goods_receipt") echo 'active custom-bg01'; ?>">
+                            <a class="<?php if ($module == "goods_receipt") echo 'custom-color'; ?>"><?php echo lang('goods_receipt'); ?></a>
                         </li>
-                    <?php // endif; ?> -->
+                    <?php endif; ?>
 
                     <!-- <?php // if ($permissions['access_purchase_request']): $number_of_enable_module++; ?>
                         <li data-module="payment_voucher" class="<?php // if($module == "payment_voucher") echo 'active custom-bg01'; ?>">
@@ -177,7 +179,7 @@
             $(".buttons li.add a").attr('data-action-url', '<?php echo get_uri('purchase_request/addedit'); ?>');
             $(".buttons li.add span").append('<?php echo lang('purchase_request_add'); ?>');
 
-            status_dropdown = '<?php echo $status_dropdown; ?>';
+            status_dropdown = '<?php echo $pr_status_dropdown; ?>';
             supplier_dropdown = '<?php echo $supplier_dropdown; ?>';
             type_dropdown = '<?php echo $type_dropdown; ?>';
 
@@ -189,12 +191,12 @@
 
             grid_columns = [
                 { title: '<?php echo lang('request_date'); ?>', class: 'w10p' },
-                { title: '<?php echo lang('pr_no'); ?>', class: 'w10p' },
+                { title: '<?php echo lang('pr_number'); ?>', class: 'w10p' },
                 { title: '<?php echo lang('pr_type'); ?>', class: 'w10p' },
                 { title: '<?php echo lang('supplier_name'); ?>', class: 'w25p' },
                 { title: '<?php echo lang('request_by'); ?>', class: 'w15p' },
                 { title: '<?php echo lang('total_amount'); ?>', class: 'text-right w15p' },
-                { title: '<?php echo lang('status'); ?>', class: 'option w10p' },
+                { title: '<?php echo lang('status'); ?>', class: 'w10p' },
                 { title: '<i class="fa fa-bars"></i>', class: 'text-center option w10p' }
             ];
 
@@ -209,7 +211,7 @@
             $(".buttons li.add a").attr('data-action-url', '<?php echo get_uri('purchase_order/addedit'); ?>');
             $(".buttons li.add span").append('<?php echo lang('purchase_order_add'); ?>');
 
-            status_dropdown = '<?php echo $status_dropdown; ?>';
+            status_dropdown = '<?php echo $po_status_dropdown; ?>';
             supplier_dropdown = '<?php echo $supplier_dropdown; ?>';
             type_dropdown = '<?php echo $type_dropdown; ?>';
 
@@ -221,13 +223,13 @@
 
             grid_columns = [
                 { title: '<?php echo lang('request_date'); ?>', class: 'w10p' },
-                { title: '<?php echo lang('po_no'); ?>', class: 'w10p' },
+                { title: '<?php echo lang('pr_number'); ?>', class: 'w10p' },
                 { title: '<?php echo lang('reference_number'); ?>', class: 'w10p' },
-                { title: '<?php echo lang('po_type'); ?>', class: 'w10p' },
+                { title: '<?php echo lang('pr_type'); ?>', class: 'w10p' },
                 { title: '<?php echo lang('supplier_name'); ?>', class: 'w20p' },
                 { title: '<?php echo lang('request_by'); ?>', class: 'w10p' },
                 { title: '<?php echo lang('total_amount'); ?>', class: 'text-right w10p' },
-                { title: '<?php echo lang('status'); ?>', class: 'option w10p' },
+                { title: '<?php echo lang('status'); ?>', class: 'w10p' },
                 { title: '<i class="fa fa-bars"></i>', class: 'text-center option w5p' }
             ];
 
@@ -241,18 +243,43 @@
             $(".buttons").addClass('hide');
             $(".buttons li.add a").attr('data-action-url', '<?php echo get_uri('goods_receipt/addedit'); ?>');
             $(".buttons li.add span").append('<?php echo lang('goods_receipt_add'); ?>');
-        } else if (active_module == 'payment_voucher') {
-            $(".buttons").addClass('hide');
-            $(".buttons li.add a").attr('data-action-url', '<?php echo get_uri('payment_voucher/addedit'); ?>');
-            $(".buttons li.add span").append('<?php echo lang('payment_voucher_add'); ?>');
+
+            status_dropdown = '<?php echo $gr_status_dropdown; ?>';
+            supplier_dropdown = '<?php echo $supplier_dropdown; ?>';
+            type_dropdown = '<?php echo $type_dropdown; ?>';
+
+            grid_filters = [
+                { name: 'status', class: 'w150', options: JSON.parse(status_dropdown) },
+                { name: 'po_type', class: 'w200', options: JSON.parse(type_dropdown) },
+                { name: 'supplier_id', class: 'w250', options: JSON.parse(supplier_dropdown) }
+            ];
+
+            grid_columns = [
+                { title: '<?php echo lang('request_date'); ?>', class: 'w10p' },
+                { title: '<?php echo lang('pr_number'); ?>', class: 'w10p' },
+                { title: '<?php echo lang('reference_number'); ?>', class: 'w10p' },
+                { title: '<?php echo lang('pr_type'); ?>', class: 'w10p' },
+                { title: '<?php echo lang('supplier_name'); ?>', class: 'w20p' },
+                { title: '<?php echo lang('request_by'); ?>', class: 'w10p' },
+                { title: '<?php echo lang('total_amount'); ?>', class: 'text-right w10p' },
+                { title: '<?php echo lang('status'); ?>', class: 'w10p' },
+                { title: '<i class="fa fa-bars"></i>', class: 'text-center option w5p' }
+            ];
+
+            grid_print = combineCustomFieldsColumns([0, 1, 2, 3, 4, 5, 6]);
+            grid_excel = combineCustomFieldsColumns([0, 1, 2, 3, 4, 5, 6]);
+
+            grid_summation = [
+                { column: 6, dataType: 'currency' }
+            ];
         }
 
         $("#datagrid").appTable({
             source: '<?php echo_uri(); ?>' + active_module,
             order: [[0, 'desc']],
             rangeDatepicker: [{
-                startDate: { name: 'start_date', value: '<?php echo date('Y-m-d', strtotime('-1 month')); ?>' },
-                endDate: { name: 'end_date', value: '<?php echo date("Y-m-d"); ?>' }
+                startDate: { name: 'start_date', value: '<?php echo date('Y-m-01'); ?>' },
+                endDate: { name: 'end_date', value: '<?php echo date("Y-m-d", strtotime('last day of this month', time())); ?>' }
             }],
             destroy: true,
             filterDropdown: grid_filters,
@@ -277,8 +304,25 @@
                     let data = response.data;
                     if (data.status == "success") {
                         if (typeof data.task !== "undefined") {
-                            window.location.href = data.url;
-                            return;
+                            if (data.task === 'cancelled_purchase_order') {
+                                window.location.reload();
+                                return;
+                            }
+
+                            if (data.task === 'create_purchase_order') {
+                                window.location.href = data.url;
+                                return
+                            }
+
+                            if (data.task === 'approved_purchase_order') {
+                                window.location.href = data.url;
+                                return;
+                            }
+
+                            if (data.task === 'create_goods_receipt') {
+                                window.location.href = data.url;
+                                return;
+                            }
                         }
 
                         appAlert.success(data.message, { duration: 3001 });
@@ -291,8 +335,6 @@
                         dataId: data.doc_id
                     });
                 }).catch((error) => {
-                    // console.log(error);
-
                     appAlert.error("500 Internal Server Error.", { duration: 3001 });
                 });
             });

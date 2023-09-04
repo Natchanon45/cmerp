@@ -65,6 +65,8 @@
 						</div>
 						<div class="seller">
 							<p class="name"><?php echo get_setting("company_name"); ?></p>
+							<p><?php echo nl2br(get_setting("company_address")); ?></p>
+							
 							<?php if (trim(get_setting("company_phone")) != ""): ?>
 								<p>
 									<?php echo lang("phone") . ": " . get_setting("company_phone"); ?>

@@ -82,8 +82,14 @@ class Share extends PublicController
 
     function purchase_order()
     {
-        $this->data["doc"] = $doc = $this->Purchase_order_m->getEdoc(null, $this->uri->segment(5));
+        $this->data["doc"] = $doc = $this->Purchase_order_m->getEdoc(null, $this->uri->segment(5), $this->uri->segment(4));
         $this->data["og_title"] = get_setting("company_name") . " - " . $doc["doc_number"];
+        
+        $this->data['additional_style'] = 'style="width: 30%;"';
+        if ($this->uri->segment(4) == 'en') {
+            $this->lang->load('default_lang', 'english');
+            $this->data['additional_style'] = 'style="width: 35%;"';
+        }
         
         if ($doc["status"] != "success") redirect("forbidden");
         $this->load->view('edocs/purchase_order', $this->data);

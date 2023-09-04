@@ -2029,7 +2029,7 @@ $lang["product_material_record"] = "Products/Raw Material";
 $lang["remark"] = "Remark";
 $lang["on_behalf_of"] = "Behalf Of";
 $lang["day_of_approved"] = "Approved Date";
-$lang["approver"] = "Approver";
+$lang["approver"] = "Approved by";
 $lang["print"] = "Print";
 $lang["status_of_client"] = "Client status";
 $lang["serial_number"] = "Serial number";
@@ -2098,15 +2098,29 @@ $lang["restart_calc"] = "Restart";
 $lang["reference_number"] = "Reference No.";
 $lang["doc_date"] = "Document Date";
 
+$lang["bank_name"] = "Bank name";
+$lang["bank_account_number"] = "Bank account No.";
+$lang["bank_account_holders_name"] = "Account holder's name";
+$lang["payments_date"] = "Payment Date";
+$lang["payments_amount"] = "Payment Amount";
+$lang["payments_method"] = "Payment Method";
+$lang["payments_description"] = "Payment Description";
+
+$lang["payments_draft"] = "Draft";
+$lang["payments_waiting"] = "Awaiting payment";
+$lang["payments_partial"] = "Partial payment";
+$lang["payments_completed"] = "Completed payment";
+
 $lang["purchase_request"] = "Purchase Requisition";
 $lang["purchase_request_add"] = "Create new PR";
 $lang["request_date"] = "Request Date";
 $lang["request_by"] = "Request By";
-$lang["pr_no"] = "PR Number";
+$lang["pr_number"] = "Document number";
 $lang["pr_type"] = "Purchase Type";
 $lang["pr_pending"] = "Awaiting approval";
 $lang["pr_approved"] = "Approved";
 $lang["pr_rejected"] = "Rejected";
+$lang["pr_cancelled"] = "Cancelled";
 $lang["total_amount"] = "Total amount";
 
 $lang["direct_material"] = "Raw Material";
@@ -2119,13 +2133,17 @@ $lang["mixed_purchase"] = "Raw Material/Finished Goods";
 
 $lang["purchase_order"] = "Purchase Order";
 $lang["purchase_order_add"] = "Create new PO";
-$lang["purchase_by"] = "Purchase by";
+$lang["purchase_by"] = "Purchased by";
 $lang["po_no"] = "PO Number";
 $lang["po_type"] = "PO Type";
+$lang["record_expenses"] = "Record expense";
+$lang["record_products"] = "Record product";
 
 $lang["goods_receipt"] = "Goods Receipt";
 $lang["goods_receipt_add"] = "Create new GR";
 $lang["receive_date"] = "Receive date";
+$lang["record_of_receipt"] = "Record of Goods receipt";
+$lang["record_of_expenses"] = "Record of Expenses";
 
 $lang["payment_voucher"] = "Payment Voucher";
 $lang["payment_voucher_add"] = "Create new PV";
@@ -2146,10 +2164,17 @@ $lang["back_to_table"] = "Back to table page";
 $lang["no_item_found"] = "No item to approve";
 $lang["total_price"] = "Total price";
 $lang["credit"] = "Credit (day)";
+$lang["delivery_schedule"] = "Delivery schedule";
 $lang["document_date"] = "Doc. Date";
 $lang["value_add_tax"] = "Value add tax";
 $lang["with_holding_tax"] = "Withholding Tax";
 $lang["total_item"] = "Total";
-$lang["total_all_item"] = "Total items";
+$lang["total_all_item"] = "Total";
 $lang["grand_total_price"] = "Grand total";
 $lang["payment_amount"] = "Payment amount";
+$lang["payment_condition"] = "Payment condition";
+$lang["record_canceled"] = "The record has been canceled.";
+
+$lang["buy_account"] = "Buy Account";
+$lang["sell_account"] = "Sell Account";
+$lang["coa"] = "Chart of Account";
