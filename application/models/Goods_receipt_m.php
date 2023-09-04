@@ -35,12 +35,12 @@ class Goods_receipt_m extends MY_Model
         return $this->data;
     }
 
-    function getNewDocNumber()
+    function getNewDocNumber($prefix)
     {
         $this->db->where("DATE_FORMAT(created_datetime,'%Y-%m')", date("Y-m"));
         $running_number = $this->db->get("goods_receipt")->num_rows() + 1;
 
-        $doc_number = $this->getCode() . date("Ym") . sprintf("%04d", $running_number);
+        $doc_number = $prefix . date("Ym") . sprintf("%04d", $running_number);
         return $doc_number;
     }
 
@@ -67,14 +67,19 @@ class Goods_receipt_m extends MY_Model
 
     function getIndexDataSetHTML($qrow)
     {
-        $doc_status = '<select class="dropdown_status select-status" data-doc_id="' . $qrow->id . '">';
-        if ($qrow->status == 'W') {
-            $doc_status .= '
-                <option value="W" selected>' . lang('pr_pending') . '</option>
-                <option value="A">' . lang('pr_approved') . '</option>
-                <option value="X">' . lang('cancel') . '</option>
-            ';
-        }
+        $doc_status = '<select class="dropdown_status select-status pointer-none" data-doc_id="' . $qrow->id . '">';
+        
+        if ($qrow->status == 'N') {
+            $doc_status .= '<option>' . lang('payments_draft') . '</option>';
+        } else {
+            if ($qrow->pay_status == 'N') {
+                $doc_status .= '<option>' . lang('payments_waiting') . '</option>';
+            } elseif ($qrow->pay_status == 'P') {
+                $doc_status .= '<option>' . lang('payments_partial') . '</option>';
+            } elseif ($qrow->pay_status == 'C') {
+                $doc_status .= '<option>' . lang('payments_completed') . '</option>';
+            }
+        } 
         
         $doc_status .= '</select>';
 
@@ -114,7 +119,13 @@ class Goods_receipt_m extends MY_Model
         $db->select('*')->from('goods_receipt');
 
         if ($this->input->post('status') != null) {
-            $db->where('status', $this->input->post('status'));
+            if ($this->input->post('status') == 'N' || $this->input->post('status') == 'W') {
+                $db->where('status', $this->input->post('status'));
+                $db->where('pay_status', 'N');
+            }
+            if ($this->input->post('status') == 'P' || $this->input->post('status') == 'C') {
+                $db->where('pay_status', $this->input->post('status'));
+            }
         }
 
         if ($this->input->post('po_type') != null) {
@@ -247,19 +258,22 @@ class Goods_receipt_m extends MY_Model
 
         $db->where("deleted", 0);
 
-        $qrow = $db->select("*")
-            ->from("po_header")
-            ->get()->row();
+        $qrow = $db->select("*")->from("goods_receipt")->get()->row();
 
         if (empty($qrow)) return $this->data;
 
         $docId = $qrow->id;
 
-        $qirows = $db->select("*")
-            ->from("po_detail")
-            ->where("po_id", $docId)
-            ->order_by("sort", "asc")
-            ->get()->result();
+        $qirows = $db->select("*")->from("goods_receipt_items")->where("pv_id", $docId)->order_by("sort", "asc")->get()->result();
+        $pay_qirows = $db->select("*")->from("goods_receipt_payment")->where("pv_id", $docId)->where('receipt_flag', 1)->order_by("id", "asc")->get()->result();
+
+        if (sizeof($pay_qirows)) {
+            foreach ($pay_qirows as $item) {
+                $item->date_output = convertDate($item->date, true);
+                $item->number_format = number_format($item->amount, 2);
+                $item->currency_format = to_currency($item->amount);
+            }
+        }
 
         $supplier_id = $qrow->supplier_id;
 
@@ -269,6 +283,7 @@ class Goods_receipt_m extends MY_Model
         $this->data["seller_contact"] = $ci->Bom_suppliers_model->getContactInfo($supplier_id);
 
         $this->data["doc_number"] = $qrow->doc_number;
+        $this->data['pv_number'] = $qrow->pv_number;
         $this->data["doc_date"] = $qrow->doc_date;
         $this->data["credit"] = $qrow->credit;
         $this->data["due_date"] = $qrow->due_date;
@@ -296,6 +311,7 @@ class Goods_receipt_m extends MY_Model
 
         $this->data["doc"] = $qrow;
         $this->data["items"] = $qirows;
+        $this->data["payments"] = $pay_qirows;
 
         $this->data["status"] = "success";
         $this->data["message"] = "ok";
@@ -456,8 +472,7 @@ class Goods_receipt_m extends MY_Model
         $db = $this->db;
 
         $this->validateDoc();
-        if ($this->data["status"] == "validate")
-            return $this->data;
+        if ($this->data["status"] == "validate") return $this->data;
 
         $docId = $this->json->doc_id;
         $doc_date = convertDate($this->json->doc_date);
@@ -480,11 +495,7 @@ class Goods_receipt_m extends MY_Model
         }
 
         if ($docId != "") {
-            $qrow = $db->select("status")
-                ->from("gr_header")
-                ->where("id", $docId)
-                ->where("deleted", 0)
-                ->get()->row();
+            $qrow = $db->select("status")->from("goods_receipt")->where("id", $docId)->where("deleted", 0)->get()->row();
 
             if (empty($qrow)) {
                 $this->data["success"] = false;
@@ -500,32 +511,31 @@ class Goods_receipt_m extends MY_Model
 
             $db->where("id", $docId);
             $db->where("deleted", 0);
-            $db->update("gr_header", [
+            $db->update("goods_receipt", [
                 "doc_date" => $doc_date,
-                "po_list" => $po_list,
-                "receive_date" => $receive_date,
+                "due_date" => $receive_date,
                 "reference_number" => $reference_number,
                 "supplier_id" => $supplier_id,
                 "remark" => $remark
             ]);
         } else {
-            $doc_number = $this->getNewDocNumber();
+            // $doc_number = $this->getNewDocNumber();
 
-            $db->insert("gr_header", [
-                "doc_number" => $doc_number,
-                "doc_date" => $doc_date,
-                "po_list" => $po_list,
-                "receive_date" => $receive_date,
-                "reference_number" => $reference_number,
-                "supplier_id" => $supplier_id,
-                "vat_inc" => "N",
-                "remark" => $remark,
-                "created_by" => $this->login_user->id,
-                "created_datetime" => date("Y-m-d H:i:s"),
-                "status" => "W"
-            ]);
+            // $db->insert("gr_header", [
+            //     "doc_number" => $doc_number,
+            //     "doc_date" => $doc_date,
+            //     "po_list" => $po_list,
+            //     "receive_date" => $receive_date,
+            //     "reference_number" => $reference_number,
+            //     "supplier_id" => $supplier_id,
+            //     "vat_inc" => "N",
+            //     "remark" => $remark,
+            //     "created_by" => $this->login_user->id,
+            //     "created_datetime" => date("Y-m-d H:i:s"),
+            //     "status" => "W"
+            // ]);
 
-            $docId = $db->insert_id();
+            // $docId = $db->insert_id();
         }
 
         $this->data["target"] = get_uri("goods_receipt/view/" . $docId);
@@ -798,9 +808,9 @@ class Goods_receipt_m extends MY_Model
             return $this->data;
         }
 
-        // $this->db->trans_begin();
+        $this->db->trans_begin();
 
-        if ($this->data['updateStatusTo'] == 'W') // Save
+        if ($this->data['updateStatusTo'] == 'W')
         {
             if ($this->data['currentStatus'] != 'N') {
                 $this->data['dataset'] = $this->getIndexDataSetHTML($qrow);
@@ -815,49 +825,58 @@ class Goods_receipt_m extends MY_Model
             $this->data['status'] = 'success';
         }
 
-        // if ($updateStatusTo == 'A') // Approved
-        // {
-        //     if ($currentStatus == 'R') {
-        //         $this->data['dataset'] = $this->getIndexDataSetHTML($qrow);
-        //         return $this->data;
-        //     }
+        if ($this->data['updateStatusTo'] == 'A')
+        {
+            if ($this->data['currentStatus'] != 'W') {
+                $this->data['dataset'] = $this->getIndexDataSetHTML($qrow);
+                return $this->data;
+            }
 
-        //     $db->where('id', $pv_id);
-        //     $db->update('goods_receipt', [
-        //         'approved_by' => $this->login_user->id,
-        //         'approved_datetime' => date('Y-m-d H:i:s'),
-        //         'status' => 'A'
-        //     ]);
-        // }
-        
-        // if ($updateStatusTo == 'R') // Rejected
-        // {
-        //     if ($currentStatus != 'W') {
-        //         $this->data['dataset'] = $this->getIndexDataSetHTML($qrow);
-        //         return $this->data;
-        //     }
+            $db->where('id', $pv_id);
+            $db->update('goods_receipt', [
+                'status' => 'A',
+                'approved_by' => $this->login_user->id,
+                'approved_datetime' => date('Y-m-d H:i:s')
+            ]);
 
-        //     $db->where('id', $pv_id);
-        //     $db->update('goods_receipt', ['status' => 'R']);
-        // }
+            // Create add stock
+            if ($qrow->po_type != 5) {
+                // prepare gr info
+                $gr_info = array(
+                    'doc_id' => $this->data['doc_id'],
+                    'doc_number' => $qrow->doc_number,
+                    'reference_number' => $qrow->reference_number
+                );
 
-        // if ($db->trans_status() === FALSE) {
-        //     $db->trans_rollback();
+                if ($qrow->po_type == 1) {
+                    // RM
+                    $this->postGoodsReceiptStockRM($gr_info);
+                } elseif ($qrow->po_type == 3) {
+                    // FG
+                    $this->postGoodsReceiptStockFG($gr_info);
+                }
+            }
 
-        //     $this->data['post'] = $this->json;
-        //     $this->data['dataset'] = $this->getIndexDataSetHTML($qrow);
-        //     return $this->data;
-        // }
+            $this->data['status'] = 'success';
+        }
 
-        // $db->trans_commit();
+        if ($db->trans_status() === FALSE) {
+            $db->trans_rollback();
 
-        // if (isset($this->data['task'])) return $this->data;
+            $this->data['post'] = $this->json;
+            $this->data['dataset'] = $this->getIndexDataSetHTML($qrow);
+            return $this->data;
+        }
 
-        // $qrow = $db->select('*')->from('goods_receipt')->where('id', $docId)->where('deleted', 0)->get()->row();
+        $db->trans_commit();
 
-        // $this->data['dataset'] = $this->getIndexDataSetHTML($qrow);
-        // $this->data['status'] = 'success';
-        // $this->data['message'] = lang('record_saved');
+        if (isset($this->data['task'])) return $this->data;
+
+        $qrow = $db->select('*')->from('goods_receipt')->where('id', $pv_id)->where('deleted', 0)->get()->row();
+
+        $this->data['dataset'] = $this->getIndexDataSetHTML($qrow);
+        $this->data['status'] = 'success';
+        $this->data['message'] = lang('record_saved');
 
         return $this->data;
     }
@@ -916,8 +935,33 @@ class Goods_receipt_m extends MY_Model
 
     function postPayAmountForGoodsReceiptHeader(int $id, float $amount): void
     {
-        $sql = "UPDATE goods_receipt SET pay_amount = pay_amount + ? WHERE id = ?";
-        $this->db->query($sql, array($amount, $id));
+        $pay_status = 'N';
+
+        $pay = $this->db->select('SUM(amount) AS amount')
+        ->from('goods_receipt_payment')
+        ->where('pv_id', $id)
+        ->get()->row();
+
+        $info = $this->db->select('*')
+        ->from('goods_receipt')
+        ->where('id', $id)
+        ->get()->row();
+
+        if ($pay->amount == 0) {
+            $pay_status = 'N';
+        } elseif ($pay->amount < $info->payment_amount) {
+            $pay_status = 'P';
+        } elseif ($pay->amount == $info->payment_amount) {
+            $pay_status = 'C';
+        } else {
+            $pay_status = 'O';
+        }
+
+        $this->db->where('id', $id);
+        $this->db->update('goods_receipt', array(
+            'pay_amount' => $pay->amount, 
+            'pay_status' => $pay_status
+        ));
     }
 
     function getPaymentListForGoodsReceiptView(int $id): array
@@ -937,11 +981,108 @@ class Goods_receipt_m extends MY_Model
                 $item->number_format = number_format($item->amount, 2);
                 $item->currency_format = to_currency($item->amount);
             }
-
             $result = $data;
+        }
+        return $result;
+    }
+
+    function gotConfirmedPaymentReceipt(int $id): array
+    {
+        $result = array();
+
+        $data = $this->db->select('*')
+        ->from('goods_receipt_payment')
+        ->where('id', $id)
+        ->get()->row();
+
+        if (!empty($data)) {
+            $this->db->where('id', $id);
+            $this->db->update('goods_receipt_payment', array('receipt_flag' => 1));
+
+            $result['status'] = 'success';
+            $result['info'] = $data;
+        }
+        return $result;
+    }
+
+    function deleteRecordPaymentReceipt(int $id): array
+    {
+        $result = array();
+
+        $data = $this->db->select('*')
+        ->from('goods_receipt_payment')
+        ->where('id', $id)
+        ->get()->row();
+
+        if (!empty($data)) {
+            $this->db->where('id', $id);
+            $this->db->delete('goods_receipt_payment');
+
+            $result['status'] = 'success';
+            $result['info'] = $data;
+
+            $this->postPayAmountForGoodsReceiptHeader($data->pv_id, $data->amount);
         }
 
         return $result;
+    }
+
+    function postGoodsReceiptStockFG($data = array())
+    {
+        // get gr item
+        $gr_items = $this->db->select('*')->from('goods_receipt_items')->where('pv_id', $data['doc_id'])->get()->result();
+
+        // insert to bom_item_groups
+        $this->db->insert('bom_item_groups', [
+            'name' => $data['doc_number'],
+            'po_no' => $data['reference_number'],
+            'created_by' => $this->login_user->id,
+            'created_date' => date('Y-m-d')
+        ]);
+        $stock_group = $this->db->insert_id();
+
+        // insert to bom_item_stocks
+        if (sizeof($gr_items)) {
+            foreach ($gr_items as $item) {
+                $this->db->insert('bom_item_stocks', [
+                    'group_id' => $stock_group,
+                    'item_id' => $item->product_id,
+                    'stock' => $item->quantity,
+                    'remaining' => $item->quantity,
+                    'price' => $item->total_price,
+                    'serial_number' => $data['reference_number'] . '-' . sprintf("%04d", $item->po_item_id)
+                ]);
+            }
+        }
+    }
+
+    function postGoodsReceiptStockRM($data = array())
+    {
+        // get gr item
+        $gr_items = $this->db->select('*')->from('goods_receipt_items')->where('pv_id', $data['doc_id'])->get()->result();
+
+        // insert to bom_stock_groups
+        $this->db->insert('bom_stock_groups', [
+            'name' => $data['doc_number'],
+            'po_no' => $data['reference_number'],
+            'created_by' => $this->login_user->id,
+            'created_date' => date('Y-m-d')
+        ]);
+        $stock_group = $this->db->insert_id();
+
+        // insert to bom_stocks
+        if (sizeof($gr_items)) {
+            foreach ($gr_items as $item) {
+                $this->db->insert('bom_stocks', [
+                    'group_id' => $stock_group,
+                    'material_id' => $item->product_id,
+                    'stock' => $item->quantity,
+                    'remaining' => $item->quantity,
+                    'price' => $item->total_price,
+                    'serial_number' => $data['reference_number'] . '-' . sprintf("%04d", $item->po_item_id)
+                ]);
+            }
+        }
     }
 
 }

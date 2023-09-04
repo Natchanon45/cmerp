@@ -30,6 +30,8 @@ class Goods_receipt extends MY_Controller
             return;
         } elseif (isset($this->json->taskName)) {
             if ($this->json->taskName == "update_doc_status") jout($this->Goods_receipt_m->updateStatus());
+            if ($this->json->taskName == "item_deleted") jout($this->Goods_receipt_m->deleteRecordPaymentReceipt($this->json->id));
+            if ($this->json->taskName == "got_a_receipt") jout($this->Goods_receipt_m->gotConfirmedPaymentReceipt($this->json->id));
             return;
         }
 
@@ -45,6 +47,8 @@ class Goods_receipt extends MY_Controller
         }
 
         $data = $this->Goods_receipt_m->getDoc($this->input->post("id"));
+
+        // var_dump(arr($data)); exit();
         $this->load->view('goods_receipt/addedit', $data);
     }
 
@@ -85,21 +89,27 @@ class Goods_receipt extends MY_Controller
         $this->template->rander('goods_receipt/view', $data);
     }
 
-    function print_gr()
+    function print_goods_receipt()
     {
-        $this->data['doc'] = $doc = $this->Purchase_order_m->getEdoc($this->uri->segment(3), null);
+        $this->data['doc'] = $doc = $this->Goods_receipt_m->getEdoc($this->uri->segment(3), null);
         if ($doc['status'] != 'success') redirect('forbidden');
 
+        $this->data['additional_style'] = 'style="width: 30%;"';
         $this->data['docmode'] = 'private_print';
+        
+        // var_dump(arr($this->data)); exit();
         $this->load->view('edocs/goods_receipt', $this->data);
     }
 
-    function print_pv()
+    function print_payment_voucher()
     {
-        $this->data['doc'] = $doc = $this->Purchase_order_m->getEdoc($this->uri->segment(3), null);
+        $this->data['doc'] = $doc = $this->Goods_receipt_m->getEdoc($this->uri->segment(3), null);
         if ($doc['status'] != 'success') redirect('forbidden');
 
+        $this->data['additional_style'] = 'style="width: 30%;"';
         $this->data['docmode'] = 'private_print';
+
+        // var_dump(arr($this->data)); exit();
         $this->load->view('edocs/payment_voucher', $this->data);
     }
 

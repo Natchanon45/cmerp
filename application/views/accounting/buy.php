@@ -75,6 +75,11 @@
         background: none;
         border-color: #e2e7f1;
     }
+
+    .pointer-none {
+        pointer-events: none;
+        appearance: none;
+    }
 </style>
 
 <a id="popup" data-act="ajax-modal" class="btn ajax-modal"></a>
@@ -174,7 +179,7 @@
             $(".buttons li.add a").attr('data-action-url', '<?php echo get_uri('purchase_request/addedit'); ?>');
             $(".buttons li.add span").append('<?php echo lang('purchase_request_add'); ?>');
 
-            status_dropdown = '<?php echo $status_dropdown; ?>';
+            status_dropdown = '<?php echo $pr_status_dropdown; ?>';
             supplier_dropdown = '<?php echo $supplier_dropdown; ?>';
             type_dropdown = '<?php echo $type_dropdown; ?>';
 
@@ -206,7 +211,7 @@
             $(".buttons li.add a").attr('data-action-url', '<?php echo get_uri('purchase_order/addedit'); ?>');
             $(".buttons li.add span").append('<?php echo lang('purchase_order_add'); ?>');
 
-            status_dropdown = '<?php echo $status_dropdown; ?>';
+            status_dropdown = '<?php echo $po_status_dropdown; ?>';
             supplier_dropdown = '<?php echo $supplier_dropdown; ?>';
             type_dropdown = '<?php echo $type_dropdown; ?>';
 
@@ -234,12 +239,12 @@
             grid_summation = [
                 { column: 6, dataType: 'currency' }
             ];
-        } else if (active_module == 'goods_receipt') { // MARK
+        } else if (active_module == 'goods_receipt') {
             $(".buttons").addClass('hide');
             $(".buttons li.add a").attr('data-action-url', '<?php echo get_uri('goods_receipt/addedit'); ?>');
             $(".buttons li.add span").append('<?php echo lang('goods_receipt_add'); ?>');
 
-            status_dropdown = '<?php echo $status_dropdown; ?>';
+            status_dropdown = '<?php echo $gr_status_dropdown; ?>';
             supplier_dropdown = '<?php echo $supplier_dropdown; ?>';
             type_dropdown = '<?php echo $type_dropdown; ?>';
 
@@ -273,7 +278,7 @@
             source: '<?php echo_uri(); ?>' + active_module,
             order: [[0, 'desc']],
             rangeDatepicker: [{
-                startDate: { name: 'start_date', value: '<?php echo date('Y-m-1'); ?>' },
+                startDate: { name: 'start_date', value: '<?php echo date('Y-m-01'); ?>' },
                 endDate: { name: 'end_date', value: '<?php echo date("Y-m-d", strtotime('last day of this month', time())); ?>' }
             }],
             destroy: true,
@@ -292,10 +297,9 @@
                     doc_id: $(this).data("doc_id"),
                     update_status_to: $(this).val()
                 };
-                // console.log(url, request);
 
                 axios.post(url, request).then((response) => {
-                    console.log(response);
+                    // console.log(response);
                     
                     let data = response.data;
                     if (data.status == "success") {
@@ -315,7 +319,8 @@
                                 return;
                             }
 
-                            if ($data.task === 'create_goods_receipt') {
+                            if (data.task === 'create_goods_receipt') {
+                                window.location.href = data.url;
                                 return;
                             }
                         }
@@ -330,8 +335,6 @@
                         dataId: data.doc_id
                     });
                 }).catch((error) => {
-                    // console.log(error);
-
                     appAlert.error("500 Internal Server Error.", { duration: 3001 });
                 });
             });

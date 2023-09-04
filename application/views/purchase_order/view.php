@@ -33,6 +33,15 @@
                     <?php echo lang('approve'); ?>
                 </a>
             <?php endif; ?>
+
+            <?php if ($doc_status == "A"): ?>
+                <?php if ($doc_receipt_status != 'C'): ?>
+                    <a href="javascript:void(0);" id="btn-receipt" class="btn btn-info">
+                        <i class="fa fa-file-text-o"></i> 
+                        <?php echo ($doc_type == 5) ? lang('record_expenses') : lang('record_products'); ?>
+                    </a>
+                <?php endif; ?>
+            <?php endif; ?>
         </div>
     </div>
 </div><!--#dcontroller-->
@@ -368,6 +377,11 @@
             e.preventDefault();
             approval();
         });
+
+        $("#btn-receipt").on('click', function (e) {
+            e.preventDefault();
+            receipt();
+        });
     });
 
     function loadItems() {
@@ -444,7 +458,7 @@
         }
 
         axios.post(url, request).then(function (response) {
-            console.log(response);
+            // console.log(response);
 
             let data = response.data;
             $("#sub_total_before_discount").val(data.sub_total_before_discount);
@@ -537,6 +551,37 @@
             update_status_to: 'A'
         }
         // console.log(url, request);
+
+        await axios.post(url, request).then(response => {
+            // console.log(response);
+
+            let data = response.data;
+            if (data.status == "success") {
+                if (typeof data.task !== "undefined") {
+                    window.location.href = data.url;
+                }
+            } else {
+                appAlert.error(data.message, {
+                    duration: 3001
+                });
+            }
+        }).catch(error => {
+            // console.log(error);
+
+            appAlert.error('500 Internal Server Error.', {
+                duration: 3001
+            });
+        });
+    };
+    
+    const receipt = async () => {
+        let url = '<?php echo_uri($active_module); ?>';
+        let request = {
+            task: 'update_doc_status',
+            doc_id: '<?php echo $doc_id; ?>',
+            update_status_to: 'GR'
+        }
+        console.log(url, request);
 
         await axios.post(url, request).then(response => {
             // console.log(response);

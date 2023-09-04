@@ -2103,6 +2103,11 @@ $lang["payments_amount"] = "Payment Amount";
 $lang["payments_method"] = "Payment Method";
 $lang["payments_description"] = "Payment Description";
 
+$lang["payments_draft"] = "Draft";
+$lang["payments_waiting"] = "Awaiting payment";
+$lang["payments_partial"] = "Partial payment";
+$lang["payments_completed"] = "Completed payment";
+
 $lang["purchase_request"] = "Purchase Requisition";
 $lang["purchase_request_add"] = "Create new PR";
 $lang["request_date"] = "Request Date";

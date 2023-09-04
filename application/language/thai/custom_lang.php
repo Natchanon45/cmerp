@@ -2504,6 +2504,11 @@ $lang["payments_amount"] = "จำนวนเงินรวม";
 $lang["payments_method"] = "วิธีการชำระเงิน";
 $lang["payments_description"] = "รายละเอียดการชำระเงิน";
 
+$lang["payments_draft"] = "รอบันทึก";
+$lang["payments_waiting"] = "รอชำระ";
+$lang["payments_partial"] = "ชำระบางส่วน";
+$lang["payments_completed"] = "ชำระครบถ้วน";
+
 $lang["purchase_request"] = "ใบขอซื้อ (PR)";
 $lang["purchase_request_add"] = "เพิ่มใบขอซื้อ";
 $lang["request_date"] = "วันที่ขอซื้อ";

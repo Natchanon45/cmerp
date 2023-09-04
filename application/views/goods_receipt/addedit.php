@@ -1,8 +1,15 @@
+<style type="text/css">
+.pointer-none {
+    pointer-events: none;
+}
+</style>
+
 <div class="general-form modal-body clearfix">
     <div class="form-group">
         <label for="doc_date" class=" col-md-3"><?php echo lang('doc_date'); ?></label>
         <div class="col-md-9">
-            <input type="text" id="doc_date" class="form-control" autocomplete="off" readonly>
+            <input type="hidden" name="doc_id" id="doc_id" value="<?php if (isset($doc_id) && !empty($doc_id)) echo $doc_id; ?>">
+            <input type="text" id="doc_date" class="form-control <?php if ($pay_status == 'C') { echo "pointer-none"; } ?>" autocomplete="off" readonly>
         </div>
     </div>
 
@@ -34,7 +41,7 @@
         <label for="supplier_id" class=" col-md-3"><?php echo lang('suppliers'); ?></label>
         <div class="col-md-9">
             <?php $crows = $this->Bom_suppliers_model->getSupplierForGoodsReceipt(); ?>
-            <select id="supplier_id" class="form-control">
+            <select id="supplier_id" class="form-control <?php if (isset($doc_id) && !empty($doc_id)) { echo "pointer-none"; } ?>">
                 <option value="">-</option>
                 <?php foreach($crows as $crow): ?>
                     <option value="<?php echo $crow->supplier_id; ?>" <?php if($supplier_id == $crow->supplier_id) echo "selected"?>><?php echo $crow->company_name; ?></option>
@@ -44,24 +51,24 @@
     </div>
 
     <?php $po_list_placeholder = "เลือกใบสั่งซื้อที่ต้องการทำรับ"; ?>
-    <div class="form-group">
-        <label for="po_list" class="col-md-3"><?php echo lang('po_no'); ?></label>
+    <!-- <div class="form-group">
+        <label for="po_list" class="col-md-3"><?php // echo lang('po_no'); ?></label>
         <div class="col-md-9">
-            <input type="text" class="form-control validate-hidden" placeholder="<?php echo $po_list_placeholder; ?>" id="po_list" data-custom-multi-select-input="1">
+            <input type="text" class="form-control validate-hidden" placeholder="<?php // echo $po_list_placeholder; ?>" id="po_list" data-custom-multi-select-input="1">
         </div>
-    </div>
+    </div> -->
 
     <div class="form-group">
         <label for="receive_date" class=" col-md-3"><?php echo lang('receive_date'); ?></label>
         <div class="col-md-9">
-            <input type="text" id="receive_date" class="form-control" autocomplete="off" readonly>
+            <input type="text" id="receive_date" class="form-control <?php if ($pay_status == 'C') { echo "pointer-none"; } ?>" autocomplete="off" readonly>
         </div>
     </div>
 
     <?php $reference_number_placeholder = "เลขที่ใบส่งของหรือเลขที่ใบแจ้งหนี้ที่ได้รับจากผู้จัดจำหน่าย"; ?>
     <div class="form-group">
         <label for="reference_number" class=" col-md-3">เลขที่อ้างอิง</label>
-        <div class="col-md-9"><input type="text" id="reference_number" value="<?php echo $reference_number; ?>" placeholder="<?php echo $reference_number_placeholder; ?>" class="form-control"></div>
+        <div class="col-md-9"><input type="text" id="reference_number" value="<?php echo $reference_number; ?>" placeholder="<?php echo $reference_number_placeholder; ?>" class="form-control <?php if (isset($doc_id) && !empty($doc_id)) { echo "pointer-none"; } ?>"></div>
     </div>
 
     <!-- <div class="form-group">
@@ -81,14 +88,15 @@
     <div class="form-group">
         <label for="remark" class=" col-md-3">หมายเหตุ</label>
         <div class=" col-md-9">
-            <textarea id="remark" name="remark" placeholder="<?php echo $remark_placeholder; ?>" class="form-control" style="height: 120px;"><?php echo $remark; ?></textarea>
+            <textarea id="remark" name="remark" placeholder="<?php echo $remark_placeholder; ?>" class="form-control <?php if ($pay_status == 'C') { echo "pointer-none"; } ?>" style="height: 120px;"><?php echo $remark; ?></textarea>
         </div>
     </div>
 </div>
 
 <div class="modal-footer">
     <button type="button" class="btn btn-default" data-dismiss="modal"><span class="fa fa-close"></span> <?php echo lang('close'); ?></button>
-    <?php if($doc_status == "W" || !isset($doc_id)): ?>
+
+    <?php if ($pay_status != 'C'): ?>
         <button type="button" id="btnSubmit" class="btn btn-primary"><span class="fa fa-check-circle"></span> <?php echo lang('save'); ?></button>
     <?php endif; ?>
 </div>
@@ -121,7 +129,6 @@ $(document).ready(function() {
                         tags: true,
                         data: po_list
                     });
-                    
 
                     response.data.po_list.length === 0 ? $('#po_list').attr('readonly', true) : $('#po_list').removeAttr('readonly');
                 }
@@ -131,8 +138,10 @@ $(document).ready(function() {
         });
 
         $("#btnSubmit").click(function() {
+            let url = '<?php echo current_url(); ?>';
             let task_list = {
                 task: 'save_doc',
+                doc_id: $('#doc_id').val(),
                 doc_date: $('#doc_date').val(),
                 supplier_id: $('#supplier_id').val(),
                 po_list: `[${$('#po_list').val()}]`,
@@ -140,22 +149,17 @@ $(document).ready(function() {
                 reference_number: $("#reference_number").val(),
                 remark: $("#remark").val()
             };
+            // console.log(url, task_list);
 
-            console.log(task_list);
-
-            axios.post('<?php echo current_url(); ?>', {
-                task: 'save_doc',
-                doc_id: "<?php if(isset($doc_id)) echo $doc_id; ?>",
-                doc_date: $("#doc_date").val(),
-                supplier_id: $('#supplier_id').val(),
-                po_list: `[${$('#po_list').val()}]`,
-                receive_date: $('#receive_date').val(),
-                reference_number: $("#reference_number").val(),
-                remark: $("#remark").val()
-            }).then(function (response) {
+            axios.post(url, task_list).then(function (response) {
                 data = response.data;
-                console.log(data);
-            }).catch(function (error) {});
+
+                if (data.status == "success") {
+                    window.location = data.target;
+                }
+            }).catch(function (error) {
+                console.log(error);
+            });
         });
 
         doc_date = $("#doc_date").datepicker({
@@ -179,14 +183,14 @@ $(document).ready(function() {
         });
 
         doc_date.datepicker("setDate", "<?php echo date('d/m/Y', strtotime($doc_date)); ?>");
-        receive_date.datepicker("setDate", "<?php echo date('d/m/Y', strtotime($doc_date)); ?>");
+        receive_date.datepicker("setDate", "<?php echo date('d/m/Y', strtotime($due_date)); ?>");
 
         // $("#credit").blur(function(){
         //     cal_valid_date_from_credit();
         // });
     <?php elseif ($doc_status == "A" || $doc_status == "R"): ?>
         $("#doc_date").val("<?php echo date('d/m/Y', strtotime($doc_date)); ?>");
-        $("#receive_date").val("<?php echo date('d/m/Y', strtotime($doc_date)); ?>");
+        $("#receive_date").val("<?php echo date('d/m/Y', strtotime($due_date)); ?>");
 
         $("#doc_date").prop("disabled", true);
         $("#credit").prop("disabled", true);

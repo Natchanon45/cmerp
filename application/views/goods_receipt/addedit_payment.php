@@ -186,8 +186,8 @@ $(document).ready(function () {
             const { data } = response;
 
             if (data.status == 'success') {
-                window.parent.loadPayItems();
                 $("#ajaxModal").modal("hide");
+                window.location.reload();
             } else {
                 appAlert.error('500 Internal server error.', {
                     duration: 3001

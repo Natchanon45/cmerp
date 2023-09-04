@@ -91,7 +91,7 @@
 	<!-- <body onload="window.print()" onfocus="window.close()"> -->
 
 	<body>
-		<header>
+        <header>
 			<?php $this->load->view("edocs/include/header"); ?>
 		</header>
 	<?php else: ?>
@@ -180,14 +180,14 @@
 					</div>
 					<div class="right">
 						<div class="docname custom-color">
-							<?php echo lang('payment_voucher'); ?>
+							<?php echo lang('goods_receipt'); ?>
 						</div>
 						<div class="docinfo">
 							<table>
 								<tr>
 									<td class="custom-color" <?php echo $additional_style; ?>><?php echo lang('document_number'); ?></td>
 									<td>
-										<?php echo $doc["pv_number"]; ?>
+										<?php echo $doc["doc_number"]; ?>
 									</td>
 								</tr>
 								<tr>
@@ -198,12 +198,21 @@
 										<?php echo convertDate($doc["doc_date"], true); ?>
 									</td>
 								</tr>
-								<!-- <tr>
-									<td class="custom-color"><?php // echo lang('credit'); ?></td>
+								<tr>
+									<td class="custom-color"><?php echo lang('credit'); ?></td>
 									<td>
-										<?php // echo $doc["credit"] . ' ' . lang('day'); ?>
+										<?php echo $doc["credit"] . ' ' . lang('day'); ?>
 									</td>
-								</tr> -->
+								</tr>
+                                <tr>
+									<td class="custom-color">
+										<?php echo "วันที่ครบกำหนด"; ?>
+									</td>
+									<td>
+										<?php echo convertDate($doc["due_date"], true); ?>
+									</td>
+								</tr>
+                                
 								<!-- <tr>
 									<td class="custom-color">
 										<?php // echo lang('purchase_by'); ?>

@@ -44,6 +44,7 @@
     }
 
     .payment_type {
+        width: 40%;
         padding-left: 1.8rem;
     }
 
@@ -82,12 +83,17 @@
             <?php endif; ?>
 
             <?php if ($doc_status == 'W'): ?>
-                <?php if ($pay_status != 'C' && $pay_status != 'O'): ?>
-                    <a class="btn btn-info" id="btn-add-payment" data-post-doc_id="<?php echo $doc_id; ?>" data-act="ajax-modal" data-title="<?php echo "บันทึกข้อมูลการชำระเงิน"; ?>" data-action-url="<?php echo get_uri('goods_receipt/record_payment'); ?>">
-                        <i class="fa fa-money" aria-hidden="true"></i> 
-                        <?php echo "บันทึกข้อมูลการชำระเงิน"; ?>
-                    </a>
-                <?php endif; ?>
+                <a href="#" class="btn btn-primary" id="btn-approval-info">
+                    <i class="fa fa-check" aria-hidden="true"></i> 
+                    <?php echo "อนุมัติออกเอกสาร"; ?>
+                </a>
+            <?php endif; ?>
+            
+            <?php if ($pay_status != 'C' && $pay_status != 'O'): ?>
+                <a class="btn btn-info" id="btn-add-payment" data-post-doc_id="<?php echo $doc_id; ?>" data-act="ajax-modal" data-title="<?php echo "บันทึกข้อมูลการชำระเงิน"; ?>" data-action-url="<?php echo get_uri('goods_receipt/record_payment'); ?>">
+                    <i class="fa fa-money" aria-hidden="true"></i> 
+                    <?php echo "บันทึกข้อมูลการชำระเงิน"; ?>
+                </a>
             <?php endif; ?>
 
             <?php if ($doc_status != 'X'): ?>
@@ -97,12 +103,12 @@
                     </button>
                     <ul class="dropdown-menu dropdown-left rounded" role="menu" aria-labelledby="dropdownMenuButton">
                         <li role="presentation">
-                            <a class="dropdown-item" href="#" onclick="window.open('<?php echo $print_gr_url; ?>', '' ,'width=980,height=720');">
+                            <a class="dropdown-item" href="#" onclick="window.open('<?php echo $print_gr_url; ?>', '_blank');">
                                 <i class="fa fa-book" aria-hidden="true"></i> <?php echo "พิมพ์ใบรับสินค้า"; ?>
                             </a>
                         </li>
                         <li role="presentation">
-                            <a class="dropdown-item" href="#" onclick="window.open('<?php echo $print_pv_url; ?>', '' ,'width=980,height=720');">
+                            <a class="dropdown-item" href="#" onclick="window.open('<?php echo $print_pv_url; ?>', '_blank');">
                                 <i class="fa fa-file-text-o" aria-hidden="true"></i> <?php echo "พิมพ์ใบสำคัญจ่าย"; ?>
                             </a>
                         </li>
@@ -381,7 +387,7 @@
                             <?php endif; endif; endif; ?>
                         </span>
                     </span>
-                    <span class="l2"><?php echo lang('purchase_by'); ?></span>
+                    <span class="l2"><?php echo "ผู้ออกเอกสาร"; ?></span>
                 </div>
                 <div class="date">
                     <span class="l1">
@@ -462,9 +468,12 @@
                     table += `</div>`;
                     table += `</td>`
                     table += `<td rowspan="2" width="15%" class="text-center font-size-bigger font-weight-bold">${item.currency_format}</td>`;
-                    table += `<td rowspan="2" class="text-center option">`;
-                    table += `<a class="edit" data-post-item_id="${item.id}" data-post-doc_id="<?php echo $doc_id; ?>" data-act="ajax-modal" data-title="<?php echo "บันทึกข้อมูลการชำระเงิน"; ?>" data-action-url="<?php echo get_uri('goods_receipt/record_payment'); ?>">`;
-                    table += `<i class="fa fa-pencil"></i></a></td>`;
+                    table += `<td rowspan="2" class="text-center option opx">`;
+                    if (item.receipt_flag == 0) {
+                        table += `<a class="edit" data-item_id="${item.id}"><i class="fa fa-check"></i></a>`;
+                        table += `<a class="delete" data-item_id="${item.id}"><i class="fa fa-times"></i></a>`;
+                    }
+                    table += `</td>`;
                     table += `</tr>`;
                     table += `<tr>`;
                     table += `<td class="payment_key">จำนวนเงินรวม: </td>`;
@@ -476,6 +485,14 @@
 
                 paymentItems.empty().append(table);
                 paymentInfo.removeClass('hide');
+
+                $(".opx .edit").on('click', function () {
+                    saveItemGotReceipt($(this).data("item_id"));
+                });
+
+                $(".opx .delete").on('click', function () {
+                    saveItemDeleted($(this).data("item_id"));
+                });
             }
         }).catch(error => {
             console.log(error);
@@ -493,6 +510,11 @@
         $('#btn-save-info').on('click', function (e) {
             e.preventDefault();
             saveDocumentInfo();
+        });
+
+        $("#btn-approval-info").on('click', function (e) {
+            e.preventDefault();
+            approveDocumentInfo();
         });
     });
 
@@ -597,6 +619,50 @@
         });
     }
 
+    async function saveItemGotReceipt (id) {
+        let url = '<?php echo_uri($active_module); ?>';
+        let request = {
+            taskName: 'got_a_receipt',
+            id: id
+        };
+        // console.log(url, request);
+
+        await axios.post(url, request).then(response => {
+            const { data } = response;
+
+            if (data.status == 'success') {
+                window.location.reload();
+            } else {
+                appAlert.error('500 Internal server error.', { duration: 3001 });
+            }
+        }).catch(error => {
+            console.log(error);
+            appAlert.error('500 Internal server error.', { duration: 3001 });
+        });
+    }
+
+    async function saveItemDeleted (id) {
+        let url = '<?php echo_uri($active_module); ?>';
+        let request = {
+            taskName: 'item_deleted',
+            id: id
+        };
+        // console.log(url, request);
+
+        await axios.post(url, request).then(response => {
+            const { data } = response;
+
+            if (data.status == 'success') {
+                window.location.reload();
+            } else {
+                appAlert.error('500 Internal server error.', { duration: 3001 });
+            }
+        }).catch(error => {
+            console.log(error);
+            appAlert.error('500 Internal server error.', { duration: 3001 });
+        });
+    }
+
     const saveDocumentInfo = async () => {
         let url = '<?php echo_uri($active_module); ?>';
         let request = {
@@ -607,6 +673,30 @@
 
         await axios.post(url, request).then(response => {
             const { data } = response;
+
+            if (data.status == 'success') {
+                window.location.reload();
+            } else {
+                appAlert.error(data.message, {
+                    duration: 3001
+                });
+            }
+        }).catch(error => {
+            console.log(error);
+        });
+    }
+
+    const approveDocumentInfo = async () => {
+        let url = '<?php echo_uri($active_module); ?>';
+        let request = {
+            taskName: 'update_doc_status',
+            documentId: '<?php echo $doc_id; ?>',
+            updateStatus: 'A'
+        };
+
+        await axios.post(url, request).then(response => {
+            const { data } = response;
+            console.log(response);
 
             if (data.status == 'success') {
                 window.location.reload();

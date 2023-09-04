@@ -74,19 +74,38 @@ class Purchase_order_m extends MY_Model
             ';
             $button = '<a data-post-id="' . $qrow->id . '" data-title="' . $this->modal_header() . '" data-action-url="' . get_uri('purchase_order/addedit') . '" data-act="ajax-modal" class="edit"><i class="fa fa-pencil"></i></a>';
         } elseif ($qrow->status == "A") {
-            if ($qrow->po_type == 5) {
+            if ($qrow->receipt_status == "C") {
                 $doc_status .= '
                     <option value="A" selected>' . lang('pr_approved') . '</option>
-                    <option value="GR">' . lang('record_expenses') . '</option>
-                    <option value="X">' . lang('cancel') . '</option>
                 ';
-            } else {
-                $doc_status .= '
-                    <option value="A" selected>' . lang('pr_approved') . '</option>
-                    <option value="GR">' . lang('record_products') . '</option>
-                    <option value="X">' . lang('cancel') . '</option>
-                ';
+            } elseif ($qrow->receipt_status == "P") {
+                if ($qrow->po_type == 5) {
+                    $doc_status .= '
+                        <option value="A" selected>' . lang('pr_approved') . '</option>
+                        <option value="GR">' . lang('record_expenses') . '</option>
+                    ';
+                } else {
+                    $doc_status .= '
+                        <option value="A" selected>' . lang('pr_approved') . '</option>
+                        <option value="GR">' . lang('record_products') . '</option>
+                    ';
+                }
+            } elseif ($qrow->receipt_status == "W") {
+                if ($qrow->po_type == 5) {
+                    $doc_status .= '
+                        <option value="A" selected>' . lang('pr_approved') . '</option>
+                        <option value="GR">' . lang('record_expenses') . '</option>
+                        <option value="X">' . lang('cancel') . '</option>
+                    ';
+                } else {
+                    $doc_status .= '
+                        <option value="A" selected>' . lang('pr_approved') . '</option>
+                        <option value="GR">' . lang('record_products') . '</option>
+                        <option value="X">' . lang('cancel') . '</option>
+                    ';
+                }
             }
+            
             $button = '<a data-post-id="' . $qrow->id . '" data-title="' . $this->modal_header() . '" data-action-url="' . get_uri('purchase_order/addedit') . '" data-act="ajax-modal" class="edit"><i class="fa fa-eye"></i></a>';
         } elseif ($qrow->status == "R") {
             $doc_status .= '
@@ -189,6 +208,7 @@ class Purchase_order_m extends MY_Model
         $this->data["approved_by"] = null;
         $this->data["approved_datetime"] = null;
         $this->data["doc_status"] = null;
+        $this->data["doc_receipt_status"] = null;
 
         if (!empty($docId)) {
             $qrow = $db->select("*")
@@ -222,6 +242,7 @@ class Purchase_order_m extends MY_Model
             $this->data["approved_by"] = $qrow->approved_by;
             $this->data["approved_datetime"] = $qrow->approved_datetime;
             $this->data["doc_status"] = $qrow->status;
+            $this->data["doc_receipt_status"] = $qrow->receipt_status;
         }
 
         $this->data["status"] = "success";
@@ -783,11 +804,7 @@ class Purchase_order_m extends MY_Model
         $docId = $this->json->doc_id;
         $updateStatusTo = $this->json->update_status_to;
 
-        $qrow = $db->select("*")
-            ->from("po_header")
-            ->where("id", $docId)
-            ->where("deleted", 0)
-            ->get()->row();
+        $qrow = $db->select('*')->from('po_header')->where('id', $docId)->where('deleted', 0)->get()->row();
 
         if (empty($qrow)) return $this->data;
 
@@ -801,10 +818,10 @@ class Purchase_order_m extends MY_Model
 
         $this->db->trans_begin();
 
-        if ($updateStatusTo == "R") { // Rejected
-            $db->where("id", $po_id);
-            $db->update("po_header", ["status" => "R"]);
-        } elseif ($updateStatusTo == "X") { // Cancelled
+        if ($updateStatusTo == 'R') { // Rejected
+            $db->where('id', $po_id);
+            $db->update('po_header', ['status' => 'R']);
+        } elseif ($updateStatusTo == 'X') { // Cancelled
             $cancel = $db->select('*')->from('po_header')->where('id', $po_id)->where('deleted', 0)->get()->row();
 
             $db->where('id', $cancel->pr_id);
@@ -816,10 +833,10 @@ class Purchase_order_m extends MY_Model
             $this->data['task'] = 'cancelled_purchase_order';
             $this->data['status'] = 'success';
             $this->data['message'] = lang('record_canceled');
-        } elseif ($updateStatusTo == "A") { // Approved
+        } elseif ($updateStatusTo == 'A') { // Approved
             // If current status is rejected
-            if ($currentStatus == "R") {
-                $this->data["dataset"] = $this->getIndexDataSetHTML($qrow);
+            if ($currentStatus == 'R') {
+                $this->data['dataset'] = $this->getIndexDataSetHTML($qrow);
                 return $this->data;
             }
 
@@ -834,26 +851,34 @@ class Purchase_order_m extends MY_Model
             }
 
             // Update po status
-            $db->where("id", $po_id);
-            $db->update("po_header", [
-                "approved_by" => $this->login_user->id,
-                "approved_datetime" => date("Y-m-d H:i:s"),
-                "status" => "A"
+            $db->where('id', $po_id);
+            $db->update('po_header', [
+                'approved_by' => $this->login_user->id,
+                'approved_datetime' => date("Y-m-d H:i:s"),
+                'status' => "A"
             ]);
 
-            $this->data["task"] = 'approved_purchase_order';
-            $this->data["status"] = 'success';
-            $this->data["message"] = lang('record_saved');
-            $this->data["url"] = get_uri('purchase_order/view/' . $po_id);
-        } elseif ($updateStatusTo == "GR") {
+            $this->data['task'] = 'approved_purchase_order';
+            $this->data['status'] = 'success';
+            $this->data['message'] = lang('record_saved');
+            $this->data['url'] = get_uri('purchase_order/view/' . $po_id);
+        } elseif ($updateStatusTo == 'GR') {
             // If current status not equal to approved
-            if ($currentStatus != "A") {
-                $this->data["dataset"] = $this->getIndexDataSetHTML($qrow);
+            if ($currentStatus != 'A') {
+                $this->data['dataset'] = $this->getIndexDataSetHTML($qrow);
                 return $this->data;
             }
 
+            // Prepare document number
+            $ex_doc_number = '';
+            if ($qrow->po_type == 5) {
+                $ex_doc_number = $this->Goods_receipt_m->getNewDocNumber('EX');
+            } else {
+                $ex_doc_number = $this->Goods_receipt_m->getNewDocNumber('GR');
+            }
+
             // Prepare goods receipt info
-            $ex_doc_number = $this->Goods_receipt_m->getNewDocNumber(); // MARK
+            $pv_doc_number = $this->Goods_receipt_m->getNewDocNumber('PV');
             $ex_doc_date = date("Y-m-d");
             $ex_credit_day = $qrow->credit;
             $ex_due_date = date("Y-m-d", strtotime($ex_doc_date . " + " . $ex_credit_day . " days"));
@@ -861,6 +886,7 @@ class Purchase_order_m extends MY_Model
             $db->insert('goods_receipt', array(
                 'po_id' => $qrow->id,
                 'doc_number' => $ex_doc_number,
+                'pv_number' => $pv_doc_number,
                 'po_type' => $qrow->po_type,
                 'doc_date' => $ex_doc_date,
                 'credit' => $ex_credit_day,
@@ -882,14 +908,14 @@ class Purchase_order_m extends MY_Model
                 'wht_value' => $qrow->wht_value,
                 'payment_amount' => $qrow->payment_amount,
                 'remark' => $qrow->remark,
-                'created_by' => $this->login_user->id,
+                'created_by' => $qrow->created_by,
                 'created_datetime' => date("Y-m-d H:i:s"),
                 'status' => 'W',
                 'deleted' => 0
             ));
 
             $pv_id = $db->insert_id();
-            $qirows = $db->select("*")->from("po_detail")->where("po_id", $po_id)->order_by("sort", "ASC")->get()->result();
+            $qirows = $db->select('*')->from('po_detail')->where('po_id', $po_id)->order_by('sort', 'ASC')->get()->result();
 
             $sort = 1;
             if (!empty($qirows)) {
@@ -908,35 +934,37 @@ class Purchase_order_m extends MY_Model
                         'sort' => $sort
                     ));
                     $sort++;
+
+                    $db->where('id', $qirow->id);
+                    $db->update('po_detail', array('receipt' => $qirow->quantity));
                 }
             }
+
+            $db->where('id', $qrow->id);
+            $db->update('po_header', array('receipt_status' => 'C'));
 
             $this->data['pv_id'] = $pv_id;
             $this->data['task'] = 'create_goods_receipt';
             $this->data['status'] = 'success';
             $this->data['message'] = lang('record_saved');
-            $this->data['url'] = get_uri('goods_receipt/view/' . $po_id);
+            $this->data['url'] = get_uri('goods_receipt/view/' . $pv_id);
         }
 
         if ($db->trans_status() === FALSE) {
             $db->trans_rollback();
-            $this->data["dataset"] = $this->getIndexDataSetHTML($qrow);
+            $this->data['dataset'] = $this->getIndexDataSetHTML($qrow);
             return $this->data;
         }
 
         $db->trans_commit();
 
-        if (isset($this->data["task"])) return $this->data;
+        if (isset($this->data['task'])) return $this->data;
 
-        $qrow = $db->select("*")
-            ->from("po_header")
-            ->where("id", $docId)
-            ->where("deleted", 0)
-            ->get()->row();
+        $qrow = $db->select('*')->from('po_header')->where('id', $docId)->where('deleted', 0)->get()->row();
 
-        $this->data["dataset"] = $this->getIndexDataSetHTML($qrow);
-        $this->data["status"] = "success";
-        $this->data["message"] = lang('record_saved');
+        $this->data['dataset'] = $this->getIndexDataSetHTML($qrow);
+        $this->data['status'] = 'success';
+        $this->data['message'] = lang('record_saved');
         return $this->data;
     }
 
