@@ -1,5 +1,4 @@
 <style>
-
 #accounting_navs:after, .tabs:after, .buttons:after{
     display: block;
     clear: both;
@@ -76,6 +75,12 @@
             <div id="accounting_navs">
                 <ul class="tabs">
                     <?php $number_of_enable_module = 0; ?>
+                    <?php if($this->Permission_m->accounting["sales_order"]["access"] == true): ?>
+                        <?php $number_of_enable_module++; ?>
+                        <li data-module="sales-orders" class="<?php if($module == "sales-orders") echo 'active custom-bg01'; ?>">
+                            <a class="<?php if($module == "sales-orders") echo 'custom-color'; ?>">ใบสั่งขาย</a>
+                        </li>
+                    <?php endif; ?>
                     <?php if($this->Permission_m->accounting["quotation"]["access"] == true): ?>
                         <?php $number_of_enable_module++; ?>
                         <li data-module="quotations" class="<?php if($module == "quotations") echo 'active custom-bg01'; ?>">
@@ -154,6 +159,7 @@
 </style>
 <script type="text/javascript">
 var active_module = "<?php echo $module; ?>";
+
 $(document).ready(function () {
     loadDataGrid();
     $(".tabs li").click(function(){
@@ -189,7 +195,22 @@ function loadDataGrid(){
     var summation_column = 5;
     $(".buttons li.add").css("display", "block");
 
-    if(active_module == "quotations"){
+    if(active_module == "sales-orders"){
+        $(".buttons li.add a").attr("data-title", "สร้างใบสั่งขาย");
+        $(".buttons li.add a").attr("data-action-url", "<?php echo get_uri("sales-orders/addedit"); ?>");
+        $(".buttons li.add span").append("สร้างใบสั่งขาย");
+        doc_status = [{id:"", text:"-- <?php echo lang("status"); ?> --"}, {id:"W", text:"รออนุมัติ"}, {id:"A", text:"อนุมัติ"}, {id:"I", text:"ดำเนินการแล้ว"}, {id:"R", text:"ไม่อนุมัติ"}];
+
+        grid_columns = [
+                            {title: "วันที่", "class":"w10p"},
+                            {title: "เลขที่เอกสาร", "class":"w10p"},
+                            {title: "เลขที่อ้างอิง", "class":"w10p"},
+                            {title: "หัวเรื่อง", "class":"w25p"},
+                            {title: "ลูกค้า", "class":"w25p"},
+                            {title: "สถานะ", "class":"text-left w15p"},
+                            {title: "<i class='fa fa-bars'></i>", "class":"text-center option w10p"}
+                        ];
+    }else if(active_module == "quotations"){
         $(".buttons li.add a").attr("data-title", "สร้างใบเสนอราคา");
         $(".buttons li.add a").attr("data-action-url", "<?php echo get_uri("quotations/addedit"); ?>");
         $(".buttons li.add span").append("สร้างใบเสนอราคา");
@@ -198,9 +219,7 @@ function loadDataGrid(){
         $(".buttons li.add a").attr("data-title", "สร้างใบแจ้งหนี้");
         $(".buttons li.add a").attr("data-action-url", "<?php echo get_uri("invoices/addedit"); ?>");
         $(".buttons li.add span").append("สร้างใบแจ้งหนี้");
-        
         doc_status = [{id:"", text:"-- <?php echo lang("status"); ?> --"}, {id:"W", text:"รออนุมัติ"}, {id:"O", text:"รอรับชำระ"}, {id:"P", text:"ชำระเงินแล้ว"}, {id:"V", text:"ยกเลิก"}];
-
     }else if(active_module == "billing-notes"){
         $(".buttons li.add a").attr("data-title", "เลือกเอกสารสร้างใบวางบิล");
         $(".buttons li.add a").attr("data-action-url", "<?php echo get_uri("billing-notes/addedit"); ?>");

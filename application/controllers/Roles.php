@@ -339,6 +339,7 @@ class roles extends MY_Controller {
         if($this->input->post('access_product_item_formula') == "Y") $access_product_item_formula = true;
         if($this->input->post('create_product_item') == "Y") $create_product_item = true;
 
+        $accounting_sales_order_access = $this->input->post('accounting_sales_order_access') == "Y" ? true : false;
         $accounting_quotation_access = $this->input->post('accounting_quotation_access') == "Y" ? true : false;
         $accounting_invoice_access = $this->input->post('accounting_invoice_access') == "Y" ? true : false;
         $accounting_tax_invoice_access = $this->input->post('accounting_tax_invoice_access') == "Y" ? true : false;
@@ -445,6 +446,7 @@ class roles extends MY_Controller {
         	"access_product_item_formula"=>$access_product_item_formula,
         	"create_product_item"=>$create_product_item,
             "accounting"=>[
+                "sales_order"=>["access"=>$accounting_sales_order_access],
                 "quotation"=>["access"=>$accounting_quotation_access],
                 "invoice"=>["access"=>$accounting_invoice_access],
                 "tax_invoice"=>["access"=>$accounting_tax_invoice_access],
@@ -677,6 +679,7 @@ class roles extends MY_Controller {
             $view_data['access_product_item_formula'] = get_array_value($permissions, "access_product_item_formula");
             $view_data['create_product_item'] = get_array_value($permissions, "create_product_item");
 
+            $view_data['accounting']['sales_order']['access'] = !isset($permissions["accounting"]["sales_order"]) ? false : $permissions["accounting"]["sales_order"]["access"];
             $view_data['accounting']['quotation']['access'] = !isset($permissions["accounting"]["quotation"]) ? false : $permissions["accounting"]["quotation"]["access"];
             $view_data['accounting']['invoice']['access'] = !isset($permissions["accounting"]["invoice"]) ? false : $permissions["accounting"]["invoice"]["access"];
             $view_data['accounting']['tax_invoice']['access'] = !isset($permissions["accounting"]["tax_invoice"]) ? false : $permissions["accounting"]["tax_invoice"]["access"];

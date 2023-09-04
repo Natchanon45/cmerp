@@ -224,6 +224,7 @@ $autoload['model'] = array(
     'Permission_m',
     'Projects_m',
     'Products_m',
+    'Sales_orders_m',
     'Quotations_m',
     'Billing_notes_m',
     'Invoices_m',
