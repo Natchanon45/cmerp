@@ -2499,15 +2499,29 @@ $lang["restart_calc"] = "เริ่มใหม่";
 $lang["reference_number"] = "เลขที่อ้างอิง";
 $lang["doc_date"] = "วันที่";
 
+$lang["bank_name"] = "ชื่อธนาคาร";
+$lang["bank_account_number"] = "เลขที่บัญชี";
+$lang["bank_account_holders_name"] = "ชื่อเจ้าของบัญชี";
+$lang["payments_date"] = "วันที่ชำระเงิน";
+$lang["payments_amount"] = "จำนวนเงินรวม";
+$lang["payments_method"] = "วิธีการชำระเงิน";
+$lang["payments_description"] = "รายละเอียดการชำระเงิน";
+
+$lang["payments_draft"] = "รอบันทึก";
+$lang["payments_waiting"] = "รอชำระ";
+$lang["payments_partial"] = "ชำระบางส่วน";
+$lang["payments_completed"] = "ชำระครบถ้วน";
+
 $lang["purchase_request"] = "ใบขอซื้อ (PR)";
 $lang["purchase_request_add"] = "เพิ่มใบขอซื้อ";
 $lang["request_date"] = "วันที่ขอซื้อ";
 $lang["request_by"] = "ผู้ขอซื้อ";
-$lang["pr_no"] = "เลขที่ใบขอซื้อ";
-$lang["pr_type"] = "ประเภทใบขอซื้อ";
+$lang["pr_number"] = "เลขที่เอกสาร";
+$lang["pr_type"] = "ประเภทการสั่งซื้อ";
 $lang["pr_pending"] = "รออนุมัติ";
 $lang["pr_approved"] = "อนุมัติ";
 $lang["pr_rejected"] = "ไม่อนุมัติ";
+$lang["pr_cancelled"] = "ยกเลิก";
 $lang["total_amount"] = "ยอดรวมสุทธิ";
 
 $lang["direct_material"] = "วัตถุดิบ";
@@ -2523,10 +2537,14 @@ $lang["purchase_order_add"] = "เพิ่มใบสั่งซื้อ";
 $lang["purchase_by"] = "ผู้สั่งซื้อ";
 $lang["po_no"] = "เลขที่ใบสั่งซื้อ";
 $lang["po_type"] = "ประเภทใบสั่งซื้อ";
+$lang["record_expenses"] = "บันทึกค่าใช้จ่าย";
+$lang["record_products"] = "บันทึกซื้อสินค้า";
 
 $lang["goods_receipt"] = "ใบรับสินค้า (GR)";
 $lang["goods_receipt_add"] = "เพิ่มใบรับสินค้า";
 $lang["receive_date"] = "วันที่รับสินค้า";
+$lang["record_of_receipt"] = "บันทึกซื้อสินค้า";
+$lang["record_of_expenses"] = "บันทึกค่าใช้จ่าย";
 
 $lang["payment_voucher"] = "ใบสำคัญจ่าย (PV)";
 $lang["payment_voucher_add"] = "เพิ่มใบสำคัญจ่าย";
@@ -2545,6 +2563,7 @@ $lang["back_to_table"] = "กลับไปหน้าตาราง";
 $lang["no_item_found"] = "ไม่พบรายการสำหรับอนุมัติ";
 $lang["total_price"] = "ราคารวม";
 $lang["credit"] = "เครดิต (วัน)";
+$lang["delivery_schedule"] = "กําหนดส่ง";
 $lang["document_date"] = "วันที่เอกสาร";
 $lang["value_add_tax"] = "ภาษีมูลค่าเพิ่ม";
 $lang["with_holding_tax"] = "ภาษีหัก ณ ที่จ่าย";
@@ -2552,3 +2571,9 @@ $lang["total_item"] = "ยอดรวม";
 $lang["total_all_item"] = "รวมเป็นเงิน";
 $lang["grand_total_price"] = "จำนวนเงินรวมทั้งสิ้น";
 $lang["payment_amount"] = "ยอดชำระ";
+$lang["payment_condition"] = "เงื่อนไขการชำระ";
+$lang["record_canceled"] = "ยกเลิกรายการเรียบร้อยแล้ว";
+
+$lang["buy_account"] = "บัญชีซื้อ";
+$lang["sell_account"] = "บัญชีขาย";
+$lang["coa"] = "ผังบัญชี";

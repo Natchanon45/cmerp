@@ -6,10 +6,17 @@ class Purchase_request_m extends MY_Model
 
     private $shareHtmlAddress = 'share/purchase_request/html/';
 
+    function modal_header()
+    {
+        $modal_header = str_replace("https:", "", str_replace("http:", "", str_replace("/", "", base_url())));
+        return strtoupper($modal_header);
+    }
+
     function __construct()
     {
         parent::__construct();
         $this->load->model('Purchase_order_m');
+        $this->load->model('Goods_receipt_m');
     }
 
     function getCode()
@@ -50,9 +57,11 @@ class Purchase_request_m extends MY_Model
 
     function getIndexDataSetHTML($item)
     {
+        $button = '';
         $status = '<select class="dropdown_status select-status" data-doc_id="' . $item->id . '">';
 
         if ($item->status == "W") {
+            $button = "<a data-post-id='" . $item->id . "' data-title='" . $this->modal_header() . "' data-action-url='" . get_uri('purchase_request/addedit') . "' data-act='ajax-modal' class='edit'><i class='fa fa-pencil'></i></a>";
             $status .= '
                 <option selected>' . lang('pr_pending') . '</option>
                 <option value="A">' . lang('pr_approved') . '</option>
@@ -61,12 +70,14 @@ class Purchase_request_m extends MY_Model
         }
 
         if ($item->status == "A") {
+            $button = "<a data-post-id='" . $item->id . "' data-title='" . $this->modal_header() . "' data-action-url='" . get_uri('purchase_request/addedit') . "' data-act='ajax-modal' class='edit'><i class='fa fa-eye'></i></a>";
             $status .= '
                 <option selected>' . lang('pr_approved') . '</option>
             ';
         }
 
         if ($item->status == "R") {
+            $button = "<a data-post-id='" . $item->id . "' data-title='" . $this->modal_header() . "' data-action-url='" . get_uri('purchase_request/addedit') . "' data-act='ajax-modal' class='edit'><i class='fa fa-eye'></i></a>";
             $status .= '
                 <option selected>' . lang('pr_rejected') . '</option>
             ';
@@ -96,7 +107,7 @@ class Purchase_request_m extends MY_Model
             $request_by,
             number_format($item->total, 2),
             $status,
-            "<a data-post-id='" . $item->id . "' data-action-url='" . get_uri('purchase_request/addedit') . "' data-act='ajax-modal' class='edit'><i class='fa fa-pencil'></i></a>"
+            $button
         );
 
         return $data;
@@ -819,7 +830,7 @@ class Purchase_request_m extends MY_Model
                 'status' => 'A'
             ));
 
-            $po_number = $this->Purchase_order_m->getNewDocNumber();
+            $po_number = $this->Purchase_order_m->getNewDocNumber(); // MARK
             $po_date = date("Y-m-d");
             $po_credit = $qrow->credit;
             $po_due_date = date("Y-m-d", strtotime($po_date . " + " . $po_credit . " days"));

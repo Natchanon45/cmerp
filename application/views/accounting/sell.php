@@ -63,6 +63,10 @@
 #accounting_navs .buttons .add a i{
     margin-right: 5px;
 }
+
+.p20 {
+    padding-top: 0 !important;
+}
 </style>
 <a id="popup" data-act="ajax-modal" class="btn ajax-modal"></a>
 <div id="page-content" class="p20 clearfix">

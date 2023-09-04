@@ -52,9 +52,6 @@
 
 <script type="text/javascript">
     $(document).ready(function () {
-        let current_product = '<?php echo $product_id; ?>';
-        console.log(current_product);
-
         $("#quantity, #unit, #price").on('click', function () {
             $(this).select();
         });
