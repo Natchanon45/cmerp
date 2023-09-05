@@ -132,6 +132,54 @@ class Purchaserequest_m extends CI_Model
         return $data;
     }
 
+    function dev2_getPoStatusDropdown()
+    {
+        $data[] = array(
+            "id" => "",
+            "text" => "-- " . lang("status") . " --"
+        );
+        $data[] = array(
+            "id" => "W",
+            "text" => lang('pr_pending')
+        );
+        $data[] = array(
+            "id" => "A",
+            "text" => lang('pr_approved')
+        );
+        $data[] = array(
+            "id" => "X",
+            "text" => lang('pr_cancelled')
+        );
+
+        return $data;
+    }
+
+    function dev2_getGrStatusDropdown()
+    {
+        $data[] = array(
+            "id" => "",
+            "text" => "-- " . lang("status") . " --"
+        );
+        $data[] = array(
+            "id" => "N",
+            "text" => lang('payments_draft')
+        );
+        $data[] = array(
+            "id" => "W",
+            "text" => lang('payments_waiting')
+        );
+        $data[] = array(
+            "id" => "P",
+            "text" => lang('payments_partial')
+        );
+        $data[] = array(
+            "id" => "C",
+            "text" => lang('payments_completed')
+        );
+
+        return $data;
+    }
+
     function dev2_getPrTypeDropdown()
     {
         $data[] = array(

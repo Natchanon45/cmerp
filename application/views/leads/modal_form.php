@@ -22,10 +22,10 @@
             ?>
         </div>
         <div class="col-md-3">
-            <button type="button" id="btn-dbd" class="btn btn-info w100p" style="font-weight: bold;" data-toggle="popover" data-placement="bottom" 
-                data-content="ระบุเลขทะเบียนนิติบุคคลเพื่อขอชื่อและที่อยู่ตามที่ได้จดทะเบียนไว้กับกรมพัฒนาธุรกิจการค้า">
-                <i class="fa fa-info-circle" aria-hidden="true"></i>
-                DBD
+            <button type="button" id="btn-dbd" class="btn btn-info w100p" style="font-weight: bold;">
+                <i class="fa fa-info-circle" aria-hidden="true" 
+                data-toggle="tooltip" data-placement="bottom" 
+                title="ระบุเลขทะเบียนนิติบุคคลเพื่อขอชื่อและที่อยู่ตามที่ได้จดทะเบียนไว้กับกรมพัฒนาธุรกิจการค้า"></i> DBD
             </button>
         </div>
     </div>
@@ -254,6 +254,12 @@
 	</button>
 </div>
 <?php echo form_close(); ?>
+
+<style type="text/css">
+    .tooltip {
+        font-size: larger;
+    }
+</style>
 
 <script type="text/javascript">
 $(document).ready(function () {

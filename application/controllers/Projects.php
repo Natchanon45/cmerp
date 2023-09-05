@@ -5354,7 +5354,7 @@ class Projects extends MY_Controller
         $view_data["show_invoice_info"] = (get_setting("module_invoice") && $this->can_view_invoices()) ? true : false;
 
         $expense_access_info = $this->get_access_info("expense");
-        $view_data["show_expense_info"] = (get_setting("module_expense") && $expense_access_info->access_type == "all") ? true : false;
+        $view_data["show_expense_info"] = (get_setting("module_expense")) ? true : false;
 
         $view_data["show_actions_dropdown"] = $this->can_create_projects();
         $view_data["show_note_info"] = (get_setting("module_note")) ? true : false;

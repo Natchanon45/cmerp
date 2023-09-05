@@ -431,13 +431,18 @@ class Projects_model extends Crud_model {
 
     function getOpenProjectList()
     {
+        $result = array();
         $this->db->where('deleted', 0);
         if (!$this->login_user->is_admin) {
             $this->db->where('created_by', $this->login_user->id);
         }
 
-        $query = $this->db->get('projects');
-        return $query->result();
+        $query = $this->db->get('projects')->result();
+        if (sizeof($query)) {
+            $result = $query;
+        }
+
+        return $result;
     }
 
     function getProjectNameById($id)
