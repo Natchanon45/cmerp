@@ -446,8 +446,6 @@ class Projects extends MY_Controller
 
     function save()
     {
-        log_message("error", "Hello");
-        return;
 
         $id = $this->input->post('id');
 
