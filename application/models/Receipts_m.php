@@ -143,6 +143,7 @@ class Receipts_m extends MY_Model {
         $this->data["created_datetime"] = null;
         $this->data["approved_by"] = null;
         $this->data["approved_datetime"] = null;
+        $this->data["company_stamp"] = null;
         $this->data["doc_status"] = NULL;
 
         if(!empty($docId)){
@@ -186,6 +187,7 @@ class Receipts_m extends MY_Model {
             $this->data["created_datetime"] = $rerow->created_datetime;
             $this->data["approved_by"] = $rerow->approved_by;
             $this->data["approved_datetime"] = $rerow->approved_datetime;
+            if($rerow->approved_by != null) if(file_exists($_SERVER['DOCUMENT_ROOT']."/".$company_setting["company_stamp"])) $this->data["company_stamp"] = $company_setting["company_stamp"];
             $this->data["doc_status"] = $rerow->status;
         }
 
@@ -263,6 +265,11 @@ class Receipts_m extends MY_Model {
         $this->data["created_datetime"] = $rerow->created_datetime;
         $this->data["approved_by"] = $rerow->approved_by;
         $this->data["approved_datetime"] = $rerow->approved_datetime;
+
+        if($rerow->approved_by != null && file_exists($_SERVER['DOCUMENT_ROOT']."/".$company_setting["company_stamp"])){
+            $this->data["company_stamp"] = $company_setting["company_stamp"];
+        }
+        
         $this->data["doc_status"] = $rerow->status;
 
         $this->data["doc"] = $rerow;
