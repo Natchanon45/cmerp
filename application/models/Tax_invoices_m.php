@@ -689,6 +689,7 @@ class Tax_invoices_m extends MY_Model {
                 return $this->data;
             }
             
+            $stock_updated = "N";
             $company_stock_type = $company_setting["company_stock_type"];
 
             if($company_stock_type == "tax_invoice"){
@@ -702,7 +703,7 @@ class Tax_invoices_m extends MY_Model {
 
                 $ivirows = $db->select("*")
                                 ->from("tax_invoice_items")
-                                ->where("invoice_id", $tivrow->id)
+                                ->where("tax_invoice_id", $tivrow->id)
                                 ->get()->result();
 
                 $items = [];
@@ -722,6 +723,17 @@ class Tax_invoices_m extends MY_Model {
                 $item["items"] = $items;
 
                 $bism = $this->Bom_item_stocks_model->processFinishedGoodsSale($item);
+
+                if($bism["status"] == "success"){
+                    $stock_updated = "Y";
+
+                    if(!empty($bism["result"])){
+                        foreach($bism["result"] as $bism_item){
+                            $db->where("id", $bism_item["id"]);
+                            $db->update("tax_invoice_items", ["bpii_id"=>json_encode($bism_item["bpii_id"])]);
+                        }
+                    }
+                }
             }
 
             $db->where("id", $docId);
@@ -729,6 +741,7 @@ class Tax_invoices_m extends MY_Model {
             $db->update("tax_invoice", [
                                         "approved_by"=>$this->login_user->id,
                                         "approved_datetime"=>date("Y-m-d H:i:s"),
+                                        "stock_updated"=>$stock_updated,
                                         "status"=>"A"
                                     ]);
 
@@ -895,7 +908,7 @@ class Tax_invoices_m extends MY_Model {
         if(!empty($ivirows)){
             foreach($ivirows as $ivirow){
                 $db->insert("tax_invoice_items", [
-                                                "tax_invoice_id"=>$invoice_id,
+                                                "tax_invoice_id"=>$tax_invoice_id,
                                                 "product_id"=>$ivirow->product_id,
                                                 "product_name"=>$ivirow->product_name,
                                                 "product_description"=>$ivirow->product_description,
@@ -908,7 +921,7 @@ class Tax_invoices_m extends MY_Model {
             }
         }
 
-        $this->data["doc_id"] = $invoice_id;
+        $this->data["doc_id"] = $tax_invoice_id;
 
         if ($db->trans_status() === FALSE){
             $db->trans_rollback();
@@ -917,7 +930,7 @@ class Tax_invoices_m extends MY_Model {
 
         $db->trans_commit();
 
-        $this->data["url"] = get_uri("tax-invoices/view/".$invoice_id);
+        $this->data["url"] = get_uri("tax-invoices/view/".$tax_invoice_id);
         $this->data["status"] = "success";
         $this->data["message"] = "success";
 

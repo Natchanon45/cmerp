@@ -79,15 +79,17 @@
                         <label for="company_stock_type" class=" col-md-2">เอกสารตัดสต๊อก</label>
                         <div class=" col-md-10">
                             <select id="company_stock_type" name="company_stock_type" class="form-control">
-                                <?php if(get_setting("company_vat_registered") == "Y"): ?>
+                                <?php if(get_setting("company_billing_type") == "1"): ?>
                                     <option value="invoice" <?php if(get_setting("company_stock_type") == "invoice") echo 'selected'; ?>>ใบแจ้งหนี้</option>
                                     <option value="tax_invoice" <?php if(get_setting("company_stock_type") == "tax_invoice") echo 'selected'; ?>>ใบกำกับภาษี</option>
                                     <option value="receipt" <?php if(get_setting("company_stock_type") == "receipt") echo 'selected'; ?>>ใบเสร็จรับเงิน</option>
-                                <?php endif; ?>
-                                <?php if(get_setting("company_vat_registered") == "N"): ?>
+                                <?php elseif(get_setting("company_billing_type") == "2" || get_setting("company_billing_type") == "4"  || get_setting("company_billing_type") == "5"): ?>
                                     <option value="invoice" <?php if(get_setting("company_stock_type") == "invoice") echo 'selected'; ?>>ใบแจ้งหนี้</option>
                                     <option value="receipt" <?php if(get_setting("company_stock_type") == "receipt") echo 'selected'; ?>>ใบเสร็จรับเงิน</option>
+                                <?php else: ?>
+                                    <option value="receipt" <?php if(get_setting("company_stock_type") == "receipt") echo 'selected'; ?>>ใบเสร็จรับเงิน</option>
                                 <?php endif; ?>
+                                <option value="none" <?php if(get_setting("company_stock_type") == "none") echo 'selected'; ?>>ไม่ต้องตัดสต๊อก</option>
                             </select>
                         </div>
                     </div>
@@ -264,6 +266,8 @@ $(document).ready(function () {
             company_stock_type += "<option value='receipt'>ใบเสร็จรับเงิน</option>";
         }
 
+        company_stock_type += "<option value='none'>ไม่ต้องตัดสต๊อก</option>";
+
         $("#company_billing_type").empty().append(company_billing_type_options);
         $("#company_stock_type").empty().append(company_stock_type);
     });
@@ -289,6 +293,9 @@ $(document).ready(function () {
         }else if($(this).val() == "6"){
             company_stock_type = "<option value='receipt'>ใบเสร็จรับเงิน</option>";
         }
+
+        company_stock_type += "<option value='none'>ไม่ต้องตัดสต๊อก</option>";
+
         $("#company_stock_type").empty().append(company_stock_type);
     });
 

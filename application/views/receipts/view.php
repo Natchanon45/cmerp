@@ -240,6 +240,11 @@
             </div>
         </div><!--.customer -->
         <div class="company">
+            <div class="company_stamp">
+                <?php if($company_stamp != null): ?>
+                    <img src="<?php echo base_url($company_stamp);?>">
+                <?php endif;?>
+            </div>
             <div class="on_behalf_of"></div>
             <div class="clear">
                 <div class="name">
