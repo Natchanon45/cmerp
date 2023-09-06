@@ -2178,3 +2178,9 @@ $lang["record_canceled"] = "The record has been canceled.";
 $lang["buy_account"] = "Buy Account";
 $lang["sell_account"] = "Sell Account";
 $lang["coa"] = "Chart of Account";
+
+$lang["production_order"] = "Production Order";
+$lang["production_order_add"] = "Add Order";
+$lang["production_order_rm_cost"] = "RM Cost";
+$lang["production_order_produce_status"] = "Production";
+$lang["production_order_mr_status"] = "Material Request";

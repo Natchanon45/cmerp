@@ -5352,7 +5352,7 @@ class Projects extends MY_Controller
         $view_data["show_invoice_info"] = (get_setting("module_invoice") && $this->can_view_invoices()) ? true : false;
 
         $expense_access_info = $this->get_access_info("expense");
-        $view_data["show_expense_info"] = (get_setting("module_expense") && $expense_access_info->access_type == "all") ? true : false;
+        $view_data["show_expense_info"] = (get_setting("module_expense")) ? true : false;
 
         $view_data["show_actions_dropdown"] = $this->can_create_projects();
         $view_data["show_note_info"] = (get_setting("module_note")) ? true : false;
@@ -5379,7 +5379,7 @@ class Projects extends MY_Controller
         $view_data['can_edit_timesheet_settings'] = $this->can_edit_timesheet_settings($project_id);
         $view_data['can_edit_slack_settings'] = $this->can_edit_slack_settings();
 
-        // var_dump($view_data); exit;
+        // var_dump(arr($view_data)); exit();
         $this->template->rander("projects/details_view", $view_data);
     }
 
@@ -5874,8 +5874,6 @@ class Projects extends MY_Controller
         return $can_recalc;
     }
 
-
-
     function dev2_mrprove($project_id)
     {
         $result = $this->Materialrequests_model->dev2_getMrStatusByProjectId($project_id);
@@ -5891,6 +5889,91 @@ class Projects extends MY_Controller
         } else {
             return false;
         }
+    }
+
+    public function production_order($project_id)
+    {
+        $data = array();
+
+        // get a project info by project id
+        $data["project_info"] = $this->Projects_model->dev2_getProjectInfoByProjectId($project_id);
+        $data["project_bom_info"] = $this->Projects_model->dev2_getProductionOrderListByProjectId($project_id);
+        
+        // var_dump(arr($data)); exit();
+        $this->load->view("projects/production_orders/index", $data);
+    }
+
+    public function production_order_list($project_id)
+    {
+        $data = array();
+
+        // get all project bag by project id
+        $items = $this->Projects_model->dev2_getProductionOrderListByProjectId($project_id);
+
+        if (sizeof($items)) {
+            foreach ($items as $item) {
+                $buttons = "";
+
+                // get cost of each production order
+                $item->costs = $this->Projects_model->dev2_getRawMatCostOfProductionOrderByProductionOrderId($item->id, $item->quantity);
+                
+                // prepare btn-bag-project
+                if ($this->Permission_m->access_material_request || $this->Permission_m->access_purchase_request) {
+                    $buttons .= modal_anchor(
+                        get_uri("projects/modal_items"),
+                        "<i class='fa fa-shopping-bag'></i>",
+                        array(
+                            "class" => "edit bom-item-modal",
+                            "data-modal-lg" => true,
+                            "title" => lang('item'),
+                            "data-post-id" => $item->id
+                        )
+                    );
+                }
+
+                // prepare btn-delete-project
+                if ($this->check_permission('can_delete_projects')) {
+                    $buttons .= js_anchor(
+                        '<i class="fa fa-times fa-fw"></i>', 
+                        array(
+                            "title" => lang("delete_project"), 
+                            "class" => "delete", 
+                            "data-id" => $item->id, 
+                            "data-action-url" => get_uri("projects/delete"), 
+                            "data-action" => "delete-confirmation"
+                        )
+                    );
+                }
+
+                // prepare produce state
+                $produce = '<select class="pill pill-primary">
+                    <option>ยังไม่ผลิต</option>
+                    <option>กำลังผลิต</option>
+                    <option>ผลิตเสร็จแล้ว</option>
+                </select>';
+
+                // prepare material request status
+                $mr = '<select class="pill pill-primary pointer-none">
+                    <option>ยังไม่เบิก</option>
+                </select>';
+
+                $data[] = [
+                    $item->id,
+                    $item->item_info->title,
+                    $item->mixing_group_info->name,
+                    $item->quantity,
+                    strtoupper($item->item_info->unit_type),
+                    to_decimal_format3($item->costs),
+                    lang("THB"),
+                    $produce,
+                    $mr,
+                    $buttons
+                ];
+            }
+        }
+
+        // var_dump(arr($items)); exit();
+        echo json_encode(array("data" => $data));
     }
 
 }

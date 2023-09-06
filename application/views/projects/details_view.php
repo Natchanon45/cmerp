@@ -1,16 +1,18 @@
 <?php
+
 if (!function_exists("make_project_tabs_data")) {
 
-    function make_project_tabs_data($default_project_tabs = array(), $is_client = false) {
+    function make_project_tabs_data($default_project_tabs = array(), $is_client = false)
+    {
         $project_tab_order = get_setting("project_tab_order");
         $project_tab_order_of_clients = get_setting("project_tab_order_of_clients");
         $custom_project_tabs = array();
 
         if ($is_client && $project_tab_order_of_clients) {
-            //user is client
+            // user is client
             $custom_project_tabs = explode(',', $project_tab_order_of_clients);
         } else if (!$is_client && $project_tab_order) {
-            //user is team member
+            // user is team member
             $custom_project_tabs = explode(',', $project_tab_order);
         }
 
@@ -29,8 +31,8 @@ if (!function_exists("make_project_tabs_data")) {
             echo "<li><a role='presentation' href='" . get_uri($value) . "' data-target='#project-$key-section'>" . lang($key) . "</a></li>";
         }
     }
-
 }
+
 ?>
 
 <div id="page-content" class="p20 pb0 clearfix">
@@ -41,11 +43,11 @@ if (!function_exists("make_project_tabs_data")) {
                     <?php if ($project_info->status == "open") { ?>
                         <i class="fa fa-th-large" title="<?php echo lang("open"); ?>"></i>
                     <?php } else if ($project_info->status == "completed") { ?>
-                        <i class="fa fa-check-circle" title="<?php echo lang("completed"); ?>"></i>
+                            <i class="fa fa-check-circle" title="<?php echo lang("completed"); ?>"></i>
                     <?php } else if ($project_info->status == "hold") { ?>
-                        <i class="fa fa-pause" title="<?php echo lang("hold"); ?>"></i> 
+                                <i class="fa fa-pause" title="<?php echo lang("hold"); ?>"></i>
                     <?php } else if ($project_info->status == "canceled") { ?>
-                        <i class="fa fa-times" title="<?php echo lang("canceled"); ?>"></i> 
+                                    <i class="fa fa-times" title="<?php echo lang("canceled"); ?>"></i>
                     <?php } ?>
 
                     <?php echo $project_info->title; ?>
@@ -64,30 +66,40 @@ if (!function_exists("make_project_tabs_data")) {
                 </h1>
 
                 <div class="title-button-group" id="project-timer-box">
-                    <a href="<?php echo get_uri("projects/all_projects");?>" class="btn btn-default">
-                        <?php echo lang('back_to_projects');?>
+                    <a href="<?php echo get_uri("projects/all_projects"); ?>" class="btn btn-default">
+                        <?php echo lang('back_to_projects'); ?>
                     </a>
                     <?php
-                    if ($can_edit_timesheet_settings || $can_edit_slack_settings) {
-                        echo modal_anchor(get_uri("projects/settings_modal_form"), "<i class='fa fa fa-cog'></i> " . lang('settings'), array("class" => "btn btn-default", "title" => lang('settings'), "data-post-project_id" => $project_info->id));
-                    }
+                        if ($can_edit_timesheet_settings || $can_edit_slack_settings) {
+                            echo modal_anchor(get_uri("projects/settings_modal_form"), "<i class='fa fa fa-cog'></i> " . lang('settings'), array("class" => "btn btn-default", "title" => lang('settings'), "data-post-project_id" => $project_info->id));
+                        }
                     ?>
                     <?php if ($show_actions_dropdown) { ?>
                         <span class="dropdown inline-block">
-                            <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown" aria-expanded="true">
-                                <i class='fa fa-cogs'></i> <?php echo lang('actions'); ?>
+                            <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown"
+                                aria-expanded="true">
+                                <i class='fa fa-cogs'></i>
+                                <?php echo lang('actions'); ?>
                                 <span class="caret"></span>
                             </button>
                             <ul class="dropdown-menu dropdown-left" role="menu">
                                 <?php if ($project_info->status == "open") { ?>
                                     <?php if ($mr_proved) { ?>
-                                        <li role="presentation"><?php echo ajax_anchor(get_uri("projects/change_status/$project_info->id/completed"), "<i class='fa fa-check-circle'></i> " . lang('mark_project_as_completed'), array("class" => "", "title" => lang('mark_project_as_completed'), "data-reload-on-success" => "1")); ?> </li>
-                                        <li role="presentation"><?php echo ajax_anchor(get_uri("projects/change_status/$project_info->id/hold"), "<i class='fa fa-pause'></i> " . lang('mark_project_as_hold'), array("class" => "", "title" => lang('mark_project_as_hold'), "data-reload-on-success" => "1")); ?> </li>
+                                        <li role="presentation">
+                                            <?php echo ajax_anchor(get_uri("projects/change_status/$project_info->id/completed"), "<i class='fa fa-check-circle'></i> " . lang('mark_project_as_completed'), array("class" => "", "title" => lang('mark_project_as_completed'), "data-reload-on-success" => "1")); ?>
+                                        </li>
+                                        <li role="presentation">
+                                            <?php echo ajax_anchor(get_uri("projects/change_status/$project_info->id/hold"), "<i class='fa fa-pause'></i> " . lang('mark_project_as_hold'), array("class" => "", "title" => lang('mark_project_as_hold'), "data-reload-on-success" => "1")); ?>
+                                        </li>
                                     <?php } ?>
-                                    <li role="presentation"><?php echo ajax_anchor(get_uri("projects/change_status/$project_info->id/canceled"), "<i class='fa fa-times'></i> " . lang('mark_project_as_canceled'), array("class" => "", "title" => lang('mark_project_as_canceled'), "data-reload-on-success" => "1")); ?> </li>
+                                    <li role="presentation">
+                                        <?php echo ajax_anchor(get_uri("projects/change_status/$project_info->id/canceled"), "<i class='fa fa-times'></i> " . lang('mark_project_as_canceled'), array("class" => "", "title" => lang('mark_project_as_canceled'), "data-reload-on-success" => "1")); ?>
+                                    </li>
                                 <?php } ?>
                                 <?php if ($project_info->status != "open") { ?>
-                                    <li role="presentation"><?php echo ajax_anchor(get_uri("projects/change_status/$project_info->id/open"), "<i class='fa fa-th-large'></i> " . lang('mark_project_as_open'), array("class" => "", "title" => lang('mark_project_as_open'), "data-reload-on-success" => "1")); ?> </li>
+                                    <li role="presentation">
+                                        <?php echo ajax_anchor(get_uri("projects/change_status/$project_info->id/open"), "<i class='fa fa-th-large'></i> " . lang('mark_project_as_open'), array("class" => "", "title" => lang('mark_project_as_open'), "data-reload-on-success" => "1")); ?>
+                                    </li>
                                     <?php
                                 }
                                 if ($this->login_user->user_type == "staff") {
@@ -107,9 +119,9 @@ if (!function_exists("make_project_tabs_data")) {
                 </div>
             </div>
             <ul id="project-tabs" data-toggle="ajax-tab" class="nav nav-tabs classic" role="tablist">
-                <?php if(!$mr_proved){
-                    /*echo '<div class="alert alert-danger" role="alert">'.lang('wait_for_material').'</div>';*/
-                }?>
+                <?php if (!$mr_proved) {
+                /*echo '<div class="alert alert-danger" role="alert">'.lang('wait_for_material').'</div>';*/
+            } ?>
                 <?php
                 if ($this->login_user->user_type === "staff") {
                     //default tab order
@@ -118,6 +130,8 @@ if (!function_exists("make_project_tabs_data")) {
                         "tasks_list" => "projects/tasks/" . $project_info->id,
                         "tasks_kanban" => "projects/tasks_kanban/" . $project_info->id,
                     );
+
+                    $project_tabs["production_order"] = "projects/production_order/" . $project_info->id;
 
                     if ($show_milestone_info) {
                         $project_tabs["milestones"] = "projects/milestones/" . $project_info->id;
@@ -184,7 +198,9 @@ if (!function_exists("make_project_tabs_data")) {
 
             </ul>
             <div class="tab-content">
-                <div role="tabpanel" class="tab-pane fade active" id="project-overview-section" style="min-height: 200px;"></div>
+                <div role="tabpanel" class="tab-pane fade active" id="project-overview-section"
+                    style="min-height: 200px;"></div>
+                <div role="tabpanel" class="tab-pane fade" id="project-production_order-section"></div>
                 <div role="tabpanel" class="tab-pane fade" id="project-tasks_list-section"></div>
                 <div role="tabpanel" class="tab-pane fade" id="project-tasks_kanban-section"></div>
                 <div role="tabpanel" class="tab-pane fade" id="project-milestones-section"></div>
@@ -213,12 +229,16 @@ if ($preview_task_id) {
 ?>
 
 <?php
-load_css(array(
-    "assets/js/gantt-chart/frappe-gantt.css",
-));
-load_js(array(
-    "assets/js/gantt-chart/frappe-gantt.js",
-));
+load_css(
+    array(
+        "assets/js/gantt-chart/frappe-gantt.css",
+    )
+);
+load_js(
+    array(
+        "assets/js/gantt-chart/frappe-gantt.js",
+    )
+);
 ?>
 
 <script type="text/javascript">

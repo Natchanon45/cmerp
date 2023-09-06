@@ -472,4 +472,85 @@ class Projects_model extends Crud_model {
         return $query->id;
     }
 
+    // dev2:start multiple production orders
+    public function dev2_getProjectInfoByProjectId(int $id): array
+    {
+        $info = array();
+        $get = $this->db->get_where("projects", ["id" => $id])->result();
+
+        if (sizeof($get) && !empty($get)) {
+            $info = (array) $get[0];
+        }
+        return $info;
+    }
+
+    public function dev2_getProductionOrderListByProjectId(int $id): array
+    {
+        $info = array();
+        $get = $this->db->get_where("bom_project_items", ["project_id" => $id])->result();
+
+        if (sizeof($get) && !empty($get)) {
+            foreach ($get as $item) {
+                $item->item_info = $this->dev2_getProductInfoByProductId($item->item_id);
+                $item->mixing_group_info = $this->dev2_getMixingGroupInfoByMixingGroupId($item->mixing_group_id);
+            }
+
+            $info = $get;
+        }
+        return $info;
+    }
+
+    public function dev2_getProductInfoByProductId(int $id): stdClass
+    {
+        $info = new stdClass();
+        $get = $this->db->get_where("items", ["id" => $id])->row();
+
+        if (!empty($get)) {
+            $info = $get;
+        }
+        return $info;
+    }
+
+    public function dev2_getMixingGroupInfoByMixingGroupId(int $id): stdClass
+    {
+        $info = new stdClass();
+        $get = $this->db->get_where("bom_item_mixing_groups", ["id" => $id])->row();
+
+        if (!empty($get)) {
+            $info = $get;
+        }
+        return $info;
+    }
+
+    public function dev2_getRawMatCostOfProductionOrderByProductionOrderId(int $id, float $quantity): float
+    {
+        $cost = array();
+        $getRmUsageList = $this->db->get_where("bom_project_item_materials", ["project_item_id" => $id])->result();
+
+        if (sizeof($getRmUsageList) && !empty($getRmUsageList)) {
+            foreach ($getRmUsageList as $item) {
+                $item->stock_info = $this->dev2_getRowInfoByRowId($item->stock_id, "bom_stocks");
+                $item->cost = 0;
+
+                if ($item->stock_info->price != 0) {
+                    $item->cost = ($item->stock_info->price / $item->stock_info->stock) * $item->ratio;
+                }
+                array_push($cost, $item->cost);
+            }
+        }
+
+        return array_sum($cost);
+    }
+
+    private function dev2_getRowInfoByRowId(int $id, string $table): stdClass
+    {
+        $info = new stdClass();
+        $get = $this->db->get_where($table, ["id" => $id])->row();
+
+        if (!empty($get)) {
+            $info = $get;
+        }
+        return $info;
+    }
+
 }
