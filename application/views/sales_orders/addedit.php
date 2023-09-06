@@ -1,26 +1,19 @@
 <div class="general-form modal-body clearfix">
     <div class="form-group">
-        <label for="doc_date" class=" col-md-3">ออก ณ วันที่</label>
+        <label for="doc_date" class=" col-md-3">วันที่</label>
         <div class="col-md-9">
             <input type="text" id="doc_date" class="form-control" autocomplete="off" readonly>
         </div>
     </div>
 
     <div class="form-group">
-        <label for="doc_valid_until_date" class=" col-md-3">ยืนราคาถึง</label>
-        <div class="col-md-9"><input type="text" id="doc_valid_until_date" class="form-control" autocomplete="off" readonly></div>
-    </div>
-
-    <div class="form-group">
-        <label for="credit" class=" col-md-3">เครดิต (วัน)</label>
-        <div class="col-md-9" style="display: grid;grid-template-columns: auto auto;align-items: center; justify-items: center;justify-content: start;">
-            <input type="number" id="credit" value="<?php echo $credit; ?>" class="form-control" autocomplete="off" <?php if($doc_status != "W" && isset($doc_id)) echo "disabled";?> >
-        </div>
-    </div>
-
-    <div class="form-group">
         <label for="reference_number" class=" col-md-3">เลขที่อ้างอิง</label>
         <div class="col-md-9"><input type="text" id="reference_number" value="<?php echo $reference_number; ?>" placeholder="#" class="form-control" <?php if($doc_status != "W" && isset($doc_id)) echo "disabled";?>></div>
+    </div>
+
+    <div class="form-group">
+        <label for="project_title" class=" col-md-3">หัวเรื่อง</label>
+        <div class="col-md-9"><input type="text" id="project_title" value="<?php echo $project_title; ?>" placeholder="หัวเรื่อง" class="form-control"></div>
     </div>
 
     <div class="form-group">
@@ -50,21 +43,37 @@
     </div>
 
     <div class="form-group">
-        <label for="project_id" class=" col-md-3"><?php echo lang('project'); ?></label>
-        <div class="col-md-9">
-            <?php $prows = $this->Projects_m->getRows(); ?>
-            <select id="project_id" class="form-control" <?php if($doc_status != "W" && isset($doc_id)) echo "disabled";?>>
-                <option value="">-</option>
-                <?php foreach($prows as $prow): ?>
-                    <option value="<?php echo $prow->id; ?>" <?php if($project_id == $prow->id) echo "selected"?>><?php echo $prow->title; ?></option>
-                <?php endforeach; ?>
-            </select>
+        <label for="project_description" class=" col-md-3">คำบรรยาย</label>
+        <div class=" col-md-9">
+            <textarea id="project_description" placeholder="คำบรรยาย" class="form-control"><?php echo $project_description; ?></textarea>
         </div>
     </div>
+
+    <div class="form-group">
+        <label for="project_start_date" class=" col-md-3">วันที่เริ่ม</label>
+        <div class="col-md-9">
+            <input type="text" id="project_start_date" class="form-control" placeholder="วันที่เริ่ม" autocomplete="off" readonly>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label for="project_deadline" class=" col-md-3">วันกำหนดส่ง</label>
+        <div class="col-md-9">
+            <input type="text" id="project_deadline" class="form-control" placeholder="วันกำหนดส่ง" autocomplete="off" readonly>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label for="project_price" class=" col-md-3">ราคา</label>
+        <div class="col-md-9">
+            <input type="number" id="project_price" value="<?php echo number_format($project_price, 2); ?>" class="form-control numb" autocomplete="off">
+        </div>
+    </div>
+
     <div class="form-group">
         <label for="remark" class=" col-md-3">หมายเหตุ</label>
         <div class=" col-md-9">
-            <textarea id="remark" name="remark" placeholder="หมายเหตุ" class="form-control" <?php if($doc_status != "W" && isset($doc_id)) echo "disabled";?>><?php echo $remark; ?></textarea>
+            <textarea id="remark" placeholder="หมายเหตุ" class="form-control" <?php if($doc_status != "W" && isset($doc_id)) echo "disabled";?>><?php echo $remark; ?></textarea>
         </div>
     </div>
 </div>
@@ -93,12 +102,14 @@ $(document).ready(function() {
                 task: 'save_doc',
                 doc_id : "<?php if(isset($doc_id)) echo $doc_id; ?>",
                 doc_date:$("#doc_date").val(),
-                credit: $("#credit").val(),
-                doc_valid_until_date: $("#doc_valid_until_date").val(),
                 reference_number: $("#reference_number").val(),
+                project_title: $("#project_title").val(),
                 client_id: $("#client_id").val(),
-                lead_id: $("#lead_id").val(),
-                project_id: $("#project_id").val(),
+                lead_id: $("#lead_id").val(),project_description,
+                project_description: $("#project_description").val(),
+                project_start_date: $("#project_start_date").val(),
+                project_deadline: $("#project_deadline").val(),
+                project_price: $("#project_price").val(),
                 remark: $("#remark").val()
             }).then(function (response) {
                 data = response.data;
@@ -128,49 +139,43 @@ $(document).ready(function() {
             //cal_valid_date_from_credit();
         });
 
-        doc_valid_until_date = $("#doc_valid_until_date").datepicker({
+        project_start_date = $("#project_start_date").datepicker({
             yearRange: "<?php echo date('Y'); ?>",
             format: 'dd/mm/yyyy',
             changeMonth: true,
             changeYear: true,
             autoclose: true
         }).on("changeDate", function (e) {
-            //cal_credit_from_valid_until_date();
+            //cal_valid_date_from_credit();
+        });
+
+        project_deadline = $("#project_deadline").datepicker({
+            yearRange: "<?php echo date('Y'); ?>",
+            format: 'dd/mm/yyyy',
+            changeMonth: true,
+            changeYear: true,
+            autoclose: true
+        }).on("changeDate", function (e) {
+            //cal_valid_date_from_credit();
         });
 
         doc_date.datepicker("setDate", "<?php echo date('d/m/Y', strtotime($doc_date)); ?>");
-        doc_valid_until_date.datepicker("setDate", "<?php echo date('d/m/Y', strtotime($doc_valid_until_date)); ?>");
+        <?php if($project_start_date != null): ?>
+            project_start_date.datepicker("setDate", "<?php echo date('d/m/Y', strtotime($project_start_date)); ?>");
+        <?php endif;?>
 
-        $("#credit").blur(function(){
-            //cal_valid_date_from_credit();
-        });
-    <?php else: ?>
-        $("#doc_date").val("<?php echo date('d/m/Y', strtotime($doc_date)); ?>");
-        $("#doc_valid_until_date").val("<?php echo date('d/m/Y', strtotime($doc_valid_until_date)); ?>");
+        <?php if($project_deadline != null): ?>
+            project_deadline.datepicker("setDate", "<?php echo date('d/m/Y', strtotime($project_deadline)); ?>");
+        <?php endif;?>
+        
+        
     <?php endif; ?>
+
+    $("#doc_date").val("<?php echo date('d/m/Y', strtotime($doc_date)); ?>");
+
+    $(".numb").blur(function(){
+        let price = tonum($("#project_price").val(), <?php echo $this->Settings_m->getDecimalPlacesNumber(); ?>);
+        $("#project_price").val($.number(price, 2));
+    });
 });
-
-function cal_valid_date_from_credit(){
-    doc_date = $("#doc_date").datepicker('getDate');
-    credit = Number($("#credit").val());
-    if(credit < 0) credit = 0;
-    $("#credit").val(credit);
-    doc_date.setDate(doc_date.getDate() + credit);
-    $("#doc_valid_until_date").val(todate(doc_date));
-}
-
-function cal_credit_from_valid_until_date(){
-    doc_date = $("#doc_date").datepicker('getDate');
-    doc_valid_until_date = $("#doc_valid_until_date").datepicker('getDate');
-
-    if (doc_date > doc_valid_until_date) {
-        doc_date = new Date(doc_valid_until_date.getFullYear(),doc_valid_until_date.getMonth(),doc_valid_until_date.getDate());
-        $("#doc_date").datepicker("setDate", doc_date);
-    }
-
-    doc_date = $("#doc_date").datepicker('getDate').getTime();
-    doc_valid_until_date = $("#doc_valid_until_date").datepicker('getDate').getTime();
-    credit = Math.round(Math.abs((doc_valid_until_date - doc_date)/(24*60*60*1000)));
-    $("#credit").val(credit);
-}
 </script>

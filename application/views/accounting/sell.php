@@ -207,11 +207,11 @@ function loadDataGrid(){
 
         grid_columns = [
                             {title: "วันที่", "class":"w10p"},
-                            {title: "เลขที่เอกสาร", "class":"w10p"},
-                            {title: "เลขที่อ้างอิง", "class":"w10p"},
-                            {title: "หัวเรื่อง", "class":"w25p"},
-                            {title: "ลูกค้า", "class":"w25p"},
-                            {title: "สถานะ", "class":"text-left w15p"},
+                            {title: "เลขที่เอกสาร", "class":"w15p"},
+                            {title: "เลขที่อ้างอิง", "class":"w15p"},
+                            {title: "หัวเรื่อง", "class":"w20p"},
+                            {title: "ลูกค้า", "class":"w20p"},
+                            {title: "สถานะ", "class":"text-left w10p"},
                             {title: "<i class='fa fa-bars'></i>", "class":"text-center option w10p"}
                         ];
     }else if(active_module == "quotations"){

@@ -33,7 +33,7 @@ class Sales_orders extends MY_Controller {
 
         $data = $this->Sales_orders_m->getDoc($this->input->post("id"));
 
-        //$this->load->view('sales-orders/addedit', $data);
+        $this->load->view('sales_orders/addedit', $data);
     }
 
     function view() {

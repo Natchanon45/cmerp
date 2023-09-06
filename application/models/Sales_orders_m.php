@@ -27,16 +27,16 @@ class Sales_orders_m extends MY_Model {
         }
     }
 
-    function getIndexDataSetHTML($qrow){
+    function getIndexDataSetHTML($sorow){
         $company_setting = $this->Settings_m->getCompany();
 
-        $doc_status = "<select class='dropdown_status' data-doc_id='".$qrow->id."'>";
+        $doc_status = "<select class='dropdown_status' data-doc_id='".$sorow->id."'>";
 
-        if($qrow->status == "W"){
+        if($sorow->status == "W"){
             $doc_status .= "<option selected>รออนุมัติ</option>";
             $doc_status .= "<option value='A'>อนุมัติ</option>";
             $doc_status .= "<option value='R'>ไม่อนุมัติ</option>";
-        }elseif($qrow->status == "A"){
+        }elseif($sorow->status == "A"){
             $doc_status .= "<option selected>อนุมัติ</option>";
 
             if($company_setting["company_billing_type"] == 3 || $company_setting["company_billing_type"] == 6){
@@ -46,10 +46,10 @@ class Sales_orders_m extends MY_Model {
             }
 
             $doc_status .= "<option value='RESET'>รีเซ็ต</option>";
-        }elseif($qrow->status == "R"){
+        }elseif($sorow->status == "R"){
             $doc_status .= "<option selected>ไม่อนุมัติ</option>";
             $doc_status .= "<option value='RESET'>รีเซ็ต</option>";
-        }elseif($qrow->status == "I"){
+        }elseif($sorow->status == "I"){
             $doc_status .= "<option selected>ดำเนินการแล้ว</option>";
             $doc_status .= "<option value='RESET'>รีเซ็ต</option>";
         }
@@ -57,17 +57,12 @@ class Sales_orders_m extends MY_Model {
         $doc_status .= "</select>";
 
         $data = [
-                    "<a href='".get_uri("quotations/view/".$qrow->id)."'>".convertDate($qrow->doc_date, true)."</a>",
-                    "<a href='".get_uri("quotations/view/".$qrow->id)."'>".$qrow->doc_number."</a>",
-                    $qrow->reference_number, "<a href='".get_uri("clients/view/".$qrow->client_id)."'>".$this->Clients_m->getCompanyName($qrow->client_id)."</a>",
-                    convertDate($qrow->doc_date, true), number_format($qrow->total, 2), $doc_status,
-                    "<a data-post-id='".$qrow->id."' data-action-url='".get_uri("quotations/addedit")."' data-act='ajax-modal' class='edit'><i class='fa fa-pencil'></i></a>"
+                    "<a href='".get_uri("quotations/view/".$sorow->id)."'>".convertDate($sorow->doc_date, true)."</a>",
+                    "<a href='".get_uri("quotations/view/".$sorow->id)."'>".$sorow->doc_number."</a>",
+                    $sorow->reference_number, "<a href='".get_uri("clients/view/".$sorow->client_id)."'>".$sorow->project_title."</a>",
+                    $this->Clients_m->getCompanyName($sorow->client_id), $doc_status,
+                    "<a data-post-id='".$sorow->id."' data-action-url='".get_uri("quotations/addedit")."' data-act='ajax-modal' class='edit'><i class='fa fa-pencil'></i></a>"
                 ];
-
-        /*
-        *Delete Button
-        *<a data-id='".$qrow->id."' data-action-url='".get_uri("quotations/delete_doc")."' data-action='delete' class='delete'><i class='fa fa-times fa-fw'></i></a>
-        */
 
         return $data;
     }
@@ -76,7 +71,7 @@ class Sales_orders_m extends MY_Model {
         $db = $this->db;
         $company_setting = $this->Settings_m->getCompany();
 
-        $db->select("*")->from("quotation");
+        $db->select("*")->from("sales_order");
         $db->where("billing_type", $company_setting["company_billing_type"]);
 
         if($this->input->post("status") != null){
@@ -94,12 +89,12 @@ class Sales_orders_m extends MY_Model {
 
         $db->where("deleted", 0);
 
-        $qrows = $db->order_by("doc_number", "desc")->get()->result();
+        $sorows = $db->order_by("doc_number", "desc")->get()->result();
 
         $dataset = [];
 
-        foreach($qrows as $qrow){
-            $dataset[] = $this->getIndexDataSetHTML($qrow);
+        foreach($sorows as $sorow){
+            $dataset[] = $this->getIndexDataSetHTML($sorow);
         }
 
         return $dataset;
@@ -110,20 +105,18 @@ class Sales_orders_m extends MY_Model {
         $company_setting = $this->Settings_m->getCompany();
 
         $this->data["doc_id"] = null;
-        $this->data["billing_type"] = "";
+        $this->data["billing_type"] = null;
         $this->data["doc_date"] = date("Y-m-d");
-        $this->data["credit"] = "0";
-        $this->data["doc_valid_until_date"] = date("Y-m-d");
-        $this->data["reference_number"] = "";
-        $this->data["discount_type"] = "P";
-        $this->data["discount_percent"] = 0;
-        $this->data["discount_amount"] = 0;
-        $this->data["vat_inc"] = "N";
-        $this->data["wht_inc"] = "N";
+        $this->data["reference_number"] = null;
         $this->data["project_id"] = null;
         $this->data["customer_id"] = null;
         $this->data["client_id"] = null;
         $this->data["lead_id"] = null;
+        $this->data["project_title"] = null;
+        $this->data["project_description"] = null;
+        $this->data["project_start_date"] = null;
+        $this->data["project_deadline"] = null;
+        $this->data["project_price"] = 0;
         $this->data["remark"] = null;
         $this->data["created_by"] = null;
         $this->data["created_datetime"] = null;
@@ -133,49 +126,49 @@ class Sales_orders_m extends MY_Model {
         $this->data["doc_status"] = null;
 
         if(!empty($docId)){
-            $qrow = $db->select("*")
-                        ->from("quotation")
+            $sorow = $db->select("*")
+                        ->from("sales_order")
                         ->where("id", $docId)
                         ->where("billing_type", $company_setting["company_billing_type"])
                         ->where("deleted", 0)
                         ->get()->row();
 
-            if(empty($qrow)) return $this->data;
+            if(empty($sorow)) return $this->data;
 
             $lead_id = $client_id = null;
             
-            if($this->Customers_m->isLead($qrow->client_id) == true){
-                $this->data["customer_id"] = $lead_id = $qrow->client_id;
+            if($this->Customers_m->isLead($sorow->client_id) == true){
+                $this->data["customer_id"] = $lead_id = $sorow->client_id;
                 $this->data["customer_is_lead"] = 1;
             }else{
-                $this->data["customer_id"] = $client_id = $qrow->client_id;
+                $this->data["customer_id"] = $client_id = $sorow->client_id;
                 $this->data["customer_is_lead"] = 0;
             }
 
             $this->data["doc_id"] = $docId;
-            $this->data["billing_type"] = $qrow->billing_type;
-            $this->data["doc_number"] = $qrow->doc_number;
-            $this->data["share_link"] = $qrow->sharekey != null ? get_uri($this->shareHtmlAddress."th/".$qrow->sharekey) : null;
-            $this->data["doc_date"] = $qrow->doc_date;
-            $this->data["credit"] = $qrow->credit;
-            $this->data["doc_valid_until_date"] = $qrow->doc_valid_until_date;
-            $this->data["reference_number"] = $qrow->reference_number;
-            $this->data["discount_type"] = $qrow->discount_type;
-            $this->data["discount_percent"] = $qrow->discount_percent;
-            $this->data["discount_amount"] = $qrow->discount_amount;
-            $this->data["vat_inc"] = $qrow->vat_inc;
-            $this->data["vat_percent"] = number_format_drop_zero_decimals($qrow->vat_percent, 2)."%";
-            $this->data["wht_inc"] = $qrow->wht_inc;
-            $this->data["project_id"] = $qrow->project_id;
-            $this->data["client_id"] = $client_id;
-            $this->data["lead_id"] = $lead_id;
-            $this->data["remark"] = $qrow->remark;
-            $this->data["created_by"] = $qrow->created_by;
-            $this->data["created_datetime"] = $qrow->created_datetime;
-            $this->data["approved_by"] = $qrow->approved_by;
-            $this->data["approved_datetime"] = $qrow->approved_datetime;
+            $this->data["billing_type"] = $sorow->billing_type;
+            $this->data["doc_date"] = date("Y-m-d");
+            $this->data["doc_number"] = $sorow->doc_number;
+            $this->data["share_link"] = $sorow->sharekey != null ? get_uri($this->shareHtmlAddress."th/".$sorow->sharekey) : null;
+
+            $this->data["reference_number"] = "";
+            $this->data["project_id"] = null;
+            $this->data["customer_id"] = null;
+            $this->data["client_id"] = null;
+            $this->data["lead_id"] = null;
+            $this->data["project_title"] = $sorow->project_title;
+            $this->data["project_description"] = $sorow->project_description;
+            $this->data["project_start_date"] = $sorow->project_start_date;
+            $this->data["project_deadline"] = $sorow->project_deadline;
+            $this->data["project_price"] = $sorow->project_price;
+            
+            $this->data["remark"] = $sorow->remark;
+            $this->data["created_by"] = $sorow->created_by;
+            $this->data["created_datetime"] = $sorow->created_datetime;
+            $this->data["approved_by"] = $sorow->approved_by;
+            $this->data["approved_datetime"] = $sorow->approved_datetime;
             if(file_exists($_SERVER['DOCUMENT_ROOT']."/".$company_setting["company_stamp"])) $this->data["company_stamp"] = $company_setting["company_stamp"];
-            $this->data["doc_status"] = $qrow->status;
+            $this->data["doc_status"] = $sorow->status;
             
         }
 
@@ -200,15 +193,15 @@ class Sales_orders_m extends MY_Model {
             return $this->data;
         }
 
-        $qrow = $db->select("*")
+        $sorow = $db->select("*")
                     ->from("quotation")
                     ->where("billing_type", $company_setting["company_billing_type"])
                     ->where("deleted", 0)
                     ->get()->row();
 
-        if(empty($qrow)) return $this->data;
+        if(empty($sorow)) return $this->data;
 
-        $docId = $qrow->id;
+        $docId = $sorow->id;
 
         $qirows = $db->select("*")
                         ->from("quotation_items")
@@ -216,49 +209,49 @@ class Sales_orders_m extends MY_Model {
                         ->order_by("sort", "asc")
                         ->get()->result();
 
-        $client_id = $qrow->client_id;
-        $created_by = $qrow->created_by;
+        $client_id = $sorow->client_id;
+        $created_by = $sorow->created_by;
 
         $this->data["seller"] = $ci->Users_m->getInfo($created_by);
 
         $this->data["buyer"] = $ci->Customers_m->getInfo($client_id);
         $this->data["buyer_contact"] = $ci->Customers_m->getContactInfo($client_id);
 
-        $this->data["doc_number"] = $qrow->doc_number;
-        $this->data["doc_date"] = $qrow->doc_date;
-        $this->data["credit"] = $qrow->credit;
-        $this->data["doc_valid_until_date"] = $qrow->doc_valid_until_date;
-        $this->data["reference_number"] = $qrow->reference_number;
-        $this->data["remark"] = $qrow->remark;
+        $this->data["doc_number"] = $sorow->doc_number;
+        $this->data["doc_date"] = $sorow->doc_date;
+        $this->data["credit"] = $sorow->credit;
+        $this->data["doc_valid_until_date"] = $sorow->doc_valid_until_date;
+        $this->data["reference_number"] = $sorow->reference_number;
+        $this->data["remark"] = $sorow->remark;
 
-        $this->data["sub_total_before_discount"] = $qrow->sub_total_before_discount;
+        $this->data["sub_total_before_discount"] = $sorow->sub_total_before_discount;
 
-        $this->data["discount_type"] = $qrow->discount_type;
-        $this->data["discount_percent"] = $qrow->discount_percent;
-        $this->data["discount_amount"] = $qrow->discount_amount;
+        $this->data["discount_type"] = $sorow->discount_type;
+        $this->data["discount_percent"] = $sorow->discount_percent;
+        $this->data["discount_amount"] = $sorow->discount_amount;
         
-        $this->data["sub_total"] = $qrow->sub_total;
+        $this->data["sub_total"] = $sorow->sub_total;
 
-        $this->data["vat_inc"] = $qrow->vat_inc;
-        $this->data["vat_percent"] = $qrow->vat_percent;
-        $this->data["vat_value"] = $qrow->vat_value;
-        $this->data["total"] = $qrow->total;
-        $this->data["total_in_text"] = numberToText($qrow->total);
-        $this->data["wht_inc"] = $qrow->wht_inc;
-        $this->data["wht_percent"] = $qrow->wht_percent;
-        $this->data["wht_value"] = $qrow->wht_value;
-        $this->data["payment_amount"] = $qrow->payment_amount;
+        $this->data["vat_inc"] = $sorow->vat_inc;
+        $this->data["vat_percent"] = $sorow->vat_percent;
+        $this->data["vat_value"] = $sorow->vat_value;
+        $this->data["total"] = $sorow->total;
+        $this->data["total_in_text"] = numberToText($sorow->total);
+        $this->data["wht_inc"] = $sorow->wht_inc;
+        $this->data["wht_percent"] = $sorow->wht_percent;
+        $this->data["wht_value"] = $sorow->wht_value;
+        $this->data["payment_amount"] = $sorow->payment_amount;
 
-        $this->data["sharekey_by"] = $qrow->sharekey_by;
+        $this->data["sharekey_by"] = $sorow->sharekey_by;
 
-        $this->data["created_by"] = $qrow->created_by;
-        $this->data["created_datetime"] = $qrow->created_datetime;
-        $this->data["approved_by"] = $qrow->approved_by;
-        $this->data["approved_datetime"] = $qrow->approved_datetime;
+        $this->data["created_by"] = $sorow->created_by;
+        $this->data["created_datetime"] = $sorow->created_datetime;
+        $this->data["approved_by"] = $sorow->approved_by;
+        $this->data["approved_datetime"] = $sorow->approved_datetime;
         if(file_exists($_SERVER['DOCUMENT_ROOT']."/".$company_setting["company_stamp"])) $this->data["company_stamp"] = $company_setting["company_stamp"];
-        $this->data["doc_status"] = $qrow->status;
+        $this->data["doc_status"] = $sorow->status;
 
-        $this->data["doc"] = $qrow;
+        $this->data["doc"] = $sorow;
         $this->data["items"] = $qirows;
 
         $this->data["status"] = "success";
@@ -288,13 +281,13 @@ class Sales_orders_m extends MY_Model {
             $vat_inc = $this->json->vat_inc == true ? "Y":"N";
             $wht_inc = $this->json->wht_inc == true ? "Y":"N";
             
-            $qrow = $db->select("*")
+            $sorow = $db->select("*")
                         ->from("quotation")
                         ->where("id", $docId)
                         ->where("deleted", 0)
                         ->get()->row();
 
-            if(empty($qrow)) return $this->data;
+            if(empty($sorow)) return $this->data;
 
             $discount_type = $this->json->discount_type;
 
@@ -311,24 +304,24 @@ class Sales_orders_m extends MY_Model {
             if($wht_inc == "Y") $wht_percent = getNumber($this->json->wht_percent);
 
         }else{
-            $qrow = $db->select("*")
+            $sorow = $db->select("*")
                         ->from("quotation")
                         ->where("id", $docId)
                         ->where("deleted", 0)
                         ->get()->row();
 
-            if(empty($qrow)) return $this->data;            
+            if(empty($sorow)) return $this->data;            
 
-            $discount_type = $qrow->discount_type;
-            $discount_percent = $qrow->discount_percent;
-            $discount_amount = $qrow->discount_amount;
+            $discount_type = $sorow->discount_type;
+            $discount_percent = $sorow->discount_percent;
+            $discount_amount = $sorow->discount_amount;
 
 
-            $vat_inc = $qrow->vat_inc;
-            $wht_inc = $qrow->wht_inc;
+            $vat_inc = $sorow->vat_inc;
+            $wht_inc = $sorow->wht_inc;
 
-            if($vat_inc == "Y") $vat_percent = $qrow->vat_percent;
-            if($wht_inc == "Y") $wht_percent = $qrow->wht_percent;
+            if($vat_inc == "Y") $vat_percent = $sorow->vat_percent;
+            if($wht_inc == "Y") $wht_percent = $sorow->wht_percent;
         }
         
         $sub_total_before_discount = $db->select("SUM(total_price) AS SUB_TOTAL")
@@ -400,18 +393,12 @@ class Sales_orders_m extends MY_Model {
                                                 "field"=>"doc_date",
                                                 'label' => '',
                                                 'rules' => 'required'
-                                            ],
-                                            [
-                                                "field"=>"doc_valid_until_date",
-                                                'label' => '',
-                                                'rules' => 'required'
                                             ]
                                         ]);
 
         if ($this->form_validation->run() == FALSE){
             $this->data["status"] = "validate";
             if(form_error('doc_date') != null) $this->data["messages"]["doc_date"] = form_error('doc_date');
-            if(form_error('doc_valid_until_date') != null) $this->data["messages"]["doc_valid_until_date"] = form_error('doc_valid_until_date');
         }
 
     }
@@ -425,12 +412,14 @@ class Sales_orders_m extends MY_Model {
 
         $docId = $this->json->doc_id;
         $doc_date = convertDate($this->json->doc_date);
-        $credit = intval($this->json->credit) < 0 ? 0:intval($this->json->credit);
-        $doc_valid_until_date = date('Y-m-d', strtotime($doc_date." + ".$credit." days"));
         $reference_number = $this->json->reference_number;
+        $project_title = $this->json->project_title;
         $client_id = $this->json->client_id;
         $lead_id = $this->json->lead_id;
-        $project_id = $this->json->project_id;
+        $project_description = $this->json->project_description;
+        $project_start_date = convertDate($this->json->project_start_date);
+        $project_deadline = convertDate($this->json->project_deadline);
+        $project_price = getNumber($this->json->project_price);
         $remark = $this->json->remark;
 
         if($client_id == "" && $lead_id == ""){
@@ -444,20 +433,20 @@ class Sales_orders_m extends MY_Model {
         if($lead_id != "") $customer_id = $lead_id;
 
         if($docId != ""){
-            $qrow = $db->select("status")
-                        ->from("quotation")
+            $sorow = $db->select("status")
+                        ->from("sales_order")
                         ->where("id", $docId)
                         ->where("billing_type", $company_setting["company_billing_type"])
                         ->where("deleted", 0)
                         ->get()->row();
 
-            if(empty($qrow)){
+            if(empty($sorow)){
                 $this->data["success"] = false;
                 $this->data["message"] = "ขออภัย เกิดข้อผิดพลาดระหว่างดำเนินการ! โปรดลองใหม่อีกครั้งในภายหลัง";
                 return $this->data;
             }
 
-            if($qrow->status != "W"){
+            if($sorow->status != "W"){
                 $this->data["success"] = false;
                 $this->data["message"] = "ไม่สามารถบันทึกเอกสารได้เนื่องจากเอกสารมีการเปลี่ยนแปลงสถานะแล้ว";
                 return $this->data;
@@ -465,13 +454,11 @@ class Sales_orders_m extends MY_Model {
 
             $db->where("id", $docId);
             $db->where("deleted", 0);
-            $db->update("quotation", [
+            $db->update("sales_order", [
                                         "doc_date"=>$doc_date,
-                                        "credit"=>$credit,
-                                        "doc_valid_until_date"=>$doc_valid_until_date,
                                         "reference_number"=>$reference_number,
                                         "client_id"=>$customer_id,
-                                        "project_id"=>($project_id != null ? $project:null),
+                                        "project_title"=>($project_id != null ? $project:null),
                                         "remark"=>$remark
                                     ]);
         }else{
@@ -506,12 +493,12 @@ class Sales_orders_m extends MY_Model {
         $db = $this->db;
         $docId = $this->input->post("id");
 
-        $qrow = $db->select("status")
+        $sorow = $db->select("status")
                         ->from("quotation")
                         ->where("id", $docId)
                         ->get()->row();
 
-        if(empty($qrow)) return $this->data;
+        if(empty($sorow)) return $this->data;
 
         $bnrow = $db->select("*")
                     ->from("billing_note")
@@ -525,7 +512,7 @@ class Sales_orders_m extends MY_Model {
             return $this->data;
         }
 
-        if($qrow->status != "W"){
+        if($sorow->status != "W"){
             $this->data["success"] = false;
             $this->data["message"] = "คุณไม่สามารถลบเอกสารได้ เนื่องจากเอกสารมีการเปลี่ยนแปลงสถานะแล้ว";
             return $this->data;
@@ -547,13 +534,13 @@ class Sales_orders_m extends MY_Model {
         $db->where("id", $docId);
         $db->update("quotation", ["deleted"=>0]);
 
-        $qrow = $db->select("*")
+        $sorow = $db->select("*")
                     ->from("quotation")
                     ->where("id", $docId)
                     ->get()->row();
 
         $data["success"] = true;
-        $data["data"] = $this->getIndexDataSetHTML($qrow);
+        $data["data"] = $this->getIndexDataSetHTML($sorow);
         $data["message"] = lang('record_undone');
 
         return $data;
@@ -562,13 +549,13 @@ class Sales_orders_m extends MY_Model {
     function items(){
         $db = $this->db;
         
-        $qrow = $db->select("id, status")
+        $sorow = $db->select("id, status")
                         ->from("quotation")
                         ->where("id", $this->json->doc_id)
                         ->where("deleted", 0)
                         ->get()->row();
 
-        if(empty($qrow)) return $this->data;
+        if(empty($sorow)) return $this->data;
 
         $qirows = $db->select("*")
                         ->from("quotation_items")
@@ -596,7 +583,7 @@ class Sales_orders_m extends MY_Model {
             $items[] = $item;
         }
 
-        $this->data["doc_status"] = $qrow->status;
+        $this->data["doc_status"] = $sorow->status;
         $this->data["items"] = $items;
         $this->data["status"] = "success";
 
@@ -608,13 +595,13 @@ class Sales_orders_m extends MY_Model {
         $docId = $this->input->post("doc_id");
         $itemId = $this->input->post("item_id");
 
-        $qrow = $db->select("id")
+        $sorow = $db->select("id")
                         ->from("quotation")
                         ->where("id", $docId)
                         ->where("deleted", 0)
                         ->get()->row();
 
-        if(empty($qrow)) return $this->data;
+        if(empty($sorow)) return $this->data;
 
         $this->data["doc_id"] = $docId;
         $this->data["product_id"] = "";
@@ -671,13 +658,13 @@ class Sales_orders_m extends MY_Model {
         $db = $this->db;
         $docId = isset($this->json->doc_id)?$this->json->doc_id:null;
 
-        $qrow = $db->select("id")
+        $sorow = $db->select("id")
                     ->from("quotation")
                     ->where("id", $docId)
                     ->where("deleted", 0)
                     ->get()->row();
 
-        if(empty($qrow)) return $this->data;
+        if(empty($sorow)) return $this->data;
         
         $this->validateItem();
         if($this->data["status"] == "validate") return $this->data;
@@ -755,41 +742,41 @@ class Sales_orders_m extends MY_Model {
         $docId = $this->json->doc_id;
         $updateStatusTo = $this->json->update_status_to;
 
-        $qrow = $db->select("*")
+        $sorow = $db->select("*")
                     ->from("quotation")
                     ->where("id",$docId)
                     ->where("billing_type", $company_setting["company_billing_type"])
                     ->where("deleted", 0)
                     ->get()->row();
 
-        if(empty($qrow)) return $this->data;
+        if(empty($sorow)) return $this->data;
 
-        $quotation_billing_type = $qrow->billing_type;
+        $quotation_billing_type = $sorow->billing_type;
         $quotation_id = $this->data["doc_id"] = $docId;
-        $quotation_number = $qrow->doc_number;
-        $currentStatus = $qrow->status;
+        $quotation_number = $sorow->doc_number;
+        $currentStatus = $sorow->status;
 
-        $quotation_sub_total_before_discount = $qrow->sub_total_before_discount;
+        $quotation_sub_total_before_discount = $sorow->sub_total_before_discount;
 
-        $quotation_discount_type = $qrow->discount_type;
-        $quotation_discount_percent = $qrow->discount_percent;
-        $quotation_discount_amount = $qrow->discount_amount;
+        $quotation_discount_type = $sorow->discount_type;
+        $quotation_discount_percent = $sorow->discount_percent;
+        $quotation_discount_amount = $sorow->discount_amount;
 
-        $quotation_sub_total = $qrow->sub_total;
+        $quotation_sub_total = $sorow->sub_total;
 
-        $quotation_vat_inc = $qrow->vat_inc;
-        $quotation_vat_percent = $qrow->vat_percent;
-        $quotation_vat_value = $qrow->vat_value;
+        $quotation_vat_inc = $sorow->vat_inc;
+        $quotation_vat_percent = $sorow->vat_percent;
+        $quotation_vat_value = $sorow->vat_value;
 
-        $quotation_wht_inc = $qrow->wht_inc;
-        $quotation_wht_percent = $qrow->wht_percent;
-        $quotation_wht_value = $qrow->wht_value;
+        $quotation_wht_inc = $sorow->wht_inc;
+        $quotation_wht_percent = $sorow->wht_percent;
+        $quotation_wht_value = $sorow->wht_value;
 
-        $quotation_total = $qrow->total;
-        $quotation_payment_amount = $qrow->payment_amount;
+        $quotation_total = $sorow->total;
+        $quotation_payment_amount = $sorow->payment_amount;
 
-        if($qrow->status == $updateStatusTo && $updateStatusTo != "P"){
-            $this->data["dataset"] = $this->getIndexDataSetHTML($qrow);
+        if($sorow->status == $updateStatusTo && $updateStatusTo != "P"){
+            $this->data["dataset"] = $this->getIndexDataSetHTML($sorow);
             return $this->data;
         }
 
@@ -797,7 +784,7 @@ class Sales_orders_m extends MY_Model {
 
         if($updateStatusTo == "A"){//Approved
             if($currentStatus == "R"){
-                $this->data["dataset"] = $this->getIndexDataSetHTML($qrow);
+                $this->data["dataset"] = $this->getIndexDataSetHTML($sorow);
                 return $this->data;
             }
 
@@ -823,8 +810,8 @@ class Sales_orders_m extends MY_Model {
                         "billing_type"=>$quotation_billing_type,
                         "quotation_id"=>$quotation_id,
                         "reference_number"=>$quotation_number,
-                        "project_id"=>$qrow->project_id,
-                        "client_id"=>$qrow->client_id,
+                        "project_id"=>$sorow->project_id,
+                        "client_id"=>$sorow->client_id,
                         "sub_total_before_discount"=>$quotation_sub_total_before_discount,
                         "discount_type"=>$quotation_discount_type,
                         "discount_percent"=>$quotation_discount_percent,
@@ -838,7 +825,7 @@ class Sales_orders_m extends MY_Model {
                         "wht_percent"=>$quotation_wht_percent,
                         "wht_value"=>$quotation_wht_value,
                         "payment_amount"=>$quotation_payment_amount,
-                        "remark"=>$qrow->remark,
+                        "remark"=>$sorow->remark,
                         "created_by"=>$this->login_user->id,
                         "created_datetime"=>date("Y-m-d H:i:s"),
                         "status"=>"W",
@@ -855,12 +842,12 @@ class Sales_orders_m extends MY_Model {
             }else{
                 $item_table2 = "invoice_items";
                 $invoice_date = date("Y-m-d");
-                $invoice_credit = $qrow->credit;
+                $invoice_credit = $sorow->credit;
                 $invoice_due_date = date("Y-m-d", strtotime($invoice_date. " + ".$invoice_credit." days"));
 
                 $fields2 = [
                                 "doc_number"=>$this->Invoices_m->getNewDocNumber(),
-                                "credit"=>$qrow->credit,
+                                "credit"=>$sorow->credit,
                                 "due_date"=>$invoice_due_date
                             ];
 
@@ -909,7 +896,7 @@ class Sales_orders_m extends MY_Model {
                             ->get()->row();
 
                 if(!empty($rerow)){
-                    $this->data["dataset"] = $this->getIndexDataSetHTML($qrow);
+                    $this->data["dataset"] = $this->getIndexDataSetHTML($sorow);
                     $this->data["message"] = "ไม่สามารถรีเซ็ตใบเสนอราคาได้ เนื่องจากมีการผูกใบเสนอราคากับใบเสร็จเลขที่ ".$rerow->doc_number." แล้ว";
                     $this->data["status"] = "error";
                     $db->trans_rollback();
@@ -924,7 +911,7 @@ class Sales_orders_m extends MY_Model {
                         ->get()->row();
 
                 if(!empty($ivrow)){
-                    $this->data["dataset"] = $this->getIndexDataSetHTML($qrow);
+                    $this->data["dataset"] = $this->getIndexDataSetHTML($sorow);
                     $this->data["message"] = "ไม่สามารถรีเซ็ตใบเสนอราคาได้ เนื่องจากมีการผูกใบเสนอราคากับใบแจ้งหนี้เลขที่ ".$ivrow->doc_number." แล้ว";
                     $this->data["status"] = "error";
                     $db->trans_rollback();
@@ -942,7 +929,7 @@ class Sales_orders_m extends MY_Model {
 
         if ($db->trans_status() === FALSE){
             $db->trans_rollback();
-            $this->data["dataset"] = $this->getIndexDataSetHTML($qrow);
+            $this->data["dataset"] = $this->getIndexDataSetHTML($sorow);
             return $this->data;
         }
 
@@ -950,13 +937,13 @@ class Sales_orders_m extends MY_Model {
 
         if(isset($this->data["task"])) return $this->data;
 
-        $qrow = $db->select("*")
+        $sorow = $db->select("*")
                     ->from("quotation")
                     ->where("id",$docId)
                     ->where("deleted", 0)
                     ->get()->row();
 
-        $this->data["dataset"] = $this->getIndexDataSetHTML($qrow);
+        $this->data["dataset"] = $this->getIndexDataSetHTML($sorow);
         $this->data["status"] = "success";
         $this->data["message"] = lang('record_saved');
         return $this->data;
