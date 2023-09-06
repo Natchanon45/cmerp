@@ -167,7 +167,7 @@ function getInvs(customer_id){
                 invoice_id: $(this).data("invoice_id")
             }).then(function (response) {
                 let data = response.data;
-
+                
                 if(data.status == "success"){
                     location.href = data.url;
                 }else{

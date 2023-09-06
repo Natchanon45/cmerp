@@ -766,12 +766,13 @@ class Receipts_m extends MY_Model {
                 return $this->data;
             }
 
+            $stock_updated = "N";
             $company_stock_type = $company_setting["company_stock_type"];
             
             if($company_stock_type == "receipt"){
                 $item = [
                         "sale_id"=>$rerow->id,
-                        "sale_type"=>"RE",
+                        "sale_type"=>$this->code,
                         "sale_document"=>$rerow->doc_number,
                         "project_id"=>$rerow->project_id,
                         "created_by"=>$rerow->created_by
@@ -799,10 +800,27 @@ class Receipts_m extends MY_Model {
                 $item["items"] = $items;
                 
                 $bism = $this->Bom_item_stocks_model->processFinishedGoodsSale($item);
+
+                if($bism["status"] == "success"){
+                    $stock_updated = "Y";
+
+                    if(!empty($bism["result"])){
+                        foreach($bism["result"] as $bism_item){
+                            $db->where("id", $bism_item["id"]);
+                            $db->update("receipt_items", ["bpii_id"=>json_encode($bism_item["bpii_id"])]);
+                        }
+                    }
+                }
             }
 
             $db->where("id", $docId);
-            $db->update("receipt", ["approved_by"=>$this->login_user->id, "approved_datetime"=>date("Y-m-d H:i:s"), "status"=>"P"]);
+            $db->where("deleted", 0);
+            $db->update("receipt", [
+                                        "approved_by"=>$this->login_user->id,
+                                        "approved_datetime"=>date("Y-m-d H:i:s"),
+                                        "stock_updated"=>$stock_updated,
+                                        "status"=>"P"
+                                    ]);
 
         }elseif($updateStatusTo == "V"){
             $db->where("id", $docId);

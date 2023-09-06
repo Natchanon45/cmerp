@@ -807,7 +807,8 @@ class Invoices_m extends MY_Model {
                 $this->data["dataset"] = $this->getIndexDataSetHTML($ivrow);
                 return $this->data;
             }
-            
+
+            $stock_updated = "N";
             $company_stock_type = $company_setting["company_stock_type"];
 
             if($company_stock_type == "invoice"){
@@ -841,6 +842,17 @@ class Invoices_m extends MY_Model {
                 $item["items"] = $items;
 
                 $bism = $this->Bom_item_stocks_model->processFinishedGoodsSale($item);
+
+                if($bism["status"] == "success"){
+                    $stock_updated = "Y";
+
+                    if(!empty($bism["result"])){
+                        foreach($bism["result"] as $bism_item){
+                            $db->where("id", $bism_item["id"]);
+                            $db->update("invoice_items", ["bpii_id"=>json_encode($bism_item["bpii_id"])]);
+                        }
+                    }
+                }
             }
 
             $db->where("id", $docId);
@@ -848,6 +860,7 @@ class Invoices_m extends MY_Model {
             $db->update("invoice", [
                                         "approved_by"=>$this->login_user->id,
                                         "approved_datetime"=>date("Y-m-d H:i:s"),
+                                        "stock_updated"=>$stock_updated,
                                         "status"=>"O"
                                     ]);
 
@@ -894,6 +907,9 @@ class Invoices_m extends MY_Model {
             $db->where("id", $docId);
             $db->where("deleted", 0);
             $db->update("invoice", ["status"=>"V"]);
+
+            $db->trans_rollback();
+            return $this->data;
         }
 
         if ($db->trans_status() === FALSE){
