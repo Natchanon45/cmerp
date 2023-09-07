@@ -29,6 +29,7 @@ class Labels_m extends MY_Model {
         $lrows = $this->db->select("id, title as text")
                                     ->from("labels")
                                     ->where("context", $module["context"])
+                                    ->where("user_id", $this->login_user->id)
                                     ->where("deleted", 0)
                                     ->get()->result();
 
