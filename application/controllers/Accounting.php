@@ -84,7 +84,7 @@ class Accounting extends MY_Controller {
         }
 
         if($this->uri->segment(3) != null) $this->data["module"] = $this->uri->segment(3);
-        $this->data['permissions'] = $this->Permission_m->permissions;
+        $this->data['permissions'] = (array) $this->Permission_m->permissions;
 
         $modal_header = str_replace("https:", "", str_replace("http:", "", str_replace("/", "", base_url())));
         $this->data['modal_header'] = strtoupper($modal_header);
