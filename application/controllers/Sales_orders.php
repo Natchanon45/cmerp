@@ -88,23 +88,29 @@ class Sales_orders extends MY_Controller {
 
     function item() {
         if(isset($this->json->task)){
+            if($this->json->task == "get_formulas") jout($this->Products_m->getFomulasByItemId($this->json->item_id));
             if($this->json->task == "save") jout($this->Sales_orders_m->saveItem());
             return;   
         }
 
         $suggestion = [];
+        $fomulas = [];
 
-        if($this->input->get("task") != null){
-            if($this->input->get("task") == "suggest_products"){
+        $task = $this->input->get("task");
+
+        if($task != null){
+            if($task == "suggest_products"){
                 $sprows = $this->Products_m->getRows();
                 if(!empty($sprows)){
                     foreach($sprows as $sprow){
                         $suggestion[] = ["id" => $sprow->id, "text" => $sprow->title, "description"=>$sprow->description, "unit"=>$sprow->unit_type, "price"=>$sprow->rate];
                     }
                 }
-                $suggestion[] = array("id" => "+", "text" => "+ " . lang("create_new_item"));
+                //$suggestion[] = array("id" => "+", "text" => "+ " . lang("create_new_item"));
                 jout($suggestion);
+
             }
+            
             return;
         }
 

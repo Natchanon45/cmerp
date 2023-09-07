@@ -13,6 +13,10 @@
         </div>
     </div>
     <div class="form-group">
+        <label for="product_formula" class="col-md-3">ส่วนประกอบ</label>
+        <div class=" col-md-9"><select id="product_formula" class="form-control"></select></div>
+    </div>
+    <div class="form-group">
         <label for="quantity" class=" col-md-3"><?php echo lang('quantity'); ?></label>
         <div class="col-md-9">
             <input type="text" id="quantity" value="<?php echo $quantity; ?>" placeholder="<?php echo lang('quantity'); ?>" class="form-control numb" >
@@ -93,7 +97,7 @@ $(document).ready(function () {
             }
         }
     }).change(function (e) {
-        if (e.val === "+") {
+        /*if (e.val === "+") {
             $("#product_name").select2("destroy").val("").focus();
             $("#product_id").val(""); //set the flag to add new item in library
         } else if (e.val) {
@@ -105,7 +109,23 @@ $(document).ready(function () {
             $("#price").val(e.added.price);
 
             calculatePrice();
-        }
+        }*/
+        
+        axios.post('<?php echo current_url(); ?>', {
+            task: 'get_formulas',
+            item_id: e.added.id,
+        }).then(function (response) {
+            data = response.data;
+
+            $("#product_formula").append("<option></option>");
+
+            for(i = 0; i < data.length; i++){
+                var obj = data[i];
+                $("#product_formula").append("<option value='"+obj['id']+"'>"+obj['name']+"</option>");
+            }
+
+            console.log(response.data);
+        });
     });
 
     <?php if(isset($item_id)): ?>

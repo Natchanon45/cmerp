@@ -14,7 +14,7 @@ class Sales_orders_m extends MY_Model {
     function getNewDocNumber(){
         $this->db->where("DATE_FORMAT(created_datetime,'%Y-%m')", date("Y-m"));
         $this->db->where("deleted", 0);
-        $running_number = $this->db->get("quotation")->num_rows() + 1;
+        $running_number = $this->db->get("sales_order")->num_rows() + 1;
 
         $doc_number = $this->getCode().date("Ym").sprintf("%04d", $running_number);
 
@@ -39,11 +39,11 @@ class Sales_orders_m extends MY_Model {
         }elseif($sorow->status == "A"){
             $doc_status .= "<option selected>อนุมัติ</option>";
 
-            if($company_setting["company_billing_type"] == 3 || $company_setting["company_billing_type"] == 6){
+            /*if($company_setting["company_billing_type"] == 3 || $company_setting["company_billing_type"] == 6){
                 $doc_status .= "<option value='I'>ออกใบเสร็จรับเงิน</option>";
             }else{
                 $doc_status .= "<option value='I'>ออกใบแจ้งหนี้</option>";
-            }
+            }*/
 
             $doc_status .= "<option value='RESET'>รีเซ็ต</option>";
         }elseif($sorow->status == "R"){
@@ -57,11 +57,11 @@ class Sales_orders_m extends MY_Model {
         $doc_status .= "</select>";
 
         $data = [
-                    "<a href='".get_uri("quotations/view/".$sorow->id)."'>".convertDate($sorow->doc_date, true)."</a>",
-                    "<a href='".get_uri("quotations/view/".$sorow->id)."'>".$sorow->doc_number."</a>",
+                    "<a href='".get_uri("sales-orders/view/".$sorow->id)."'>".convertDate($sorow->doc_date, true)."</a>",
+                    "<a href='".get_uri("sales-orders/view/".$sorow->id)."'>".$sorow->doc_number."</a>",
                     $sorow->reference_number, "<a href='".get_uri("clients/view/".$sorow->client_id)."'>".$sorow->project_title."</a>",
                     $this->Clients_m->getCompanyName($sorow->client_id), $doc_status,
-                    "<a data-post-id='".$sorow->id."' data-action-url='".get_uri("quotations/addedit")."' data-act='ajax-modal' class='edit'><i class='fa fa-pencil'></i></a>"
+                    "<a data-post-id='".$sorow->id."' data-action-url='".get_uri("sales-orders/addedit")."' data-act='ajax-modal' class='edit'><i class='fa fa-pencil'></i></a>"
                 ];
 
         return $data;
@@ -72,7 +72,6 @@ class Sales_orders_m extends MY_Model {
         $company_setting = $this->Settings_m->getCompany();
 
         $db->select("*")->from("sales_order");
-        $db->where("billing_type", $company_setting["company_billing_type"]);
 
         if($this->input->post("status") != null){
             $db->where("status", $this->input->post("status"));
@@ -105,7 +104,6 @@ class Sales_orders_m extends MY_Model {
         $company_setting = $this->Settings_m->getCompany();
 
         $this->data["doc_id"] = null;
-        $this->data["billing_type"] = null;
         $this->data["doc_date"] = date("Y-m-d");
         $this->data["reference_number"] = null;
         $this->data["project_id"] = null;
@@ -129,7 +127,6 @@ class Sales_orders_m extends MY_Model {
             $sorow = $db->select("*")
                         ->from("sales_order")
                         ->where("id", $docId)
-                        ->where("billing_type", $company_setting["company_billing_type"])
                         ->where("deleted", 0)
                         ->get()->row();
 
@@ -146,17 +143,15 @@ class Sales_orders_m extends MY_Model {
             }
 
             $this->data["doc_id"] = $docId;
-            $this->data["billing_type"] = $sorow->billing_type;
             $this->data["doc_date"] = date("Y-m-d");
             $this->data["doc_number"] = $sorow->doc_number;
             $this->data["share_link"] = $sorow->sharekey != null ? get_uri($this->shareHtmlAddress."th/".$sorow->sharekey) : null;
 
             $this->data["reference_number"] = "";
             $this->data["project_id"] = null;
-            $this->data["customer_id"] = null;
-            $this->data["client_id"] = null;
-            $this->data["lead_id"] = null;
             $this->data["project_title"] = $sorow->project_title;
+            $this->data["client_id"] = $client_id;
+            $this->data["lead_id"] = $lead_id;
             $this->data["project_description"] = $sorow->project_description;
             $this->data["project_start_date"] = $sorow->project_start_date;
             $this->data["project_deadline"] = $sorow->project_deadline;
@@ -195,7 +190,6 @@ class Sales_orders_m extends MY_Model {
 
         $sorow = $db->select("*")
                     ->from("quotation")
-                    ->where("billing_type", $company_setting["company_billing_type"])
                     ->where("deleted", 0)
                     ->get()->row();
 
@@ -224,23 +218,9 @@ class Sales_orders_m extends MY_Model {
         $this->data["reference_number"] = $sorow->reference_number;
         $this->data["remark"] = $sorow->remark;
 
-        $this->data["sub_total_before_discount"] = $sorow->sub_total_before_discount;
-
-        $this->data["discount_type"] = $sorow->discount_type;
-        $this->data["discount_percent"] = $sorow->discount_percent;
-        $this->data["discount_amount"] = $sorow->discount_amount;
         
-        $this->data["sub_total"] = $sorow->sub_total;
 
-        $this->data["vat_inc"] = $sorow->vat_inc;
-        $this->data["vat_percent"] = $sorow->vat_percent;
-        $this->data["vat_value"] = $sorow->vat_value;
-        $this->data["total"] = $sorow->total;
-        $this->data["total_in_text"] = numberToText($sorow->total);
-        $this->data["wht_inc"] = $sorow->wht_inc;
-        $this->data["wht_percent"] = $sorow->wht_percent;
-        $this->data["wht_value"] = $sorow->wht_value;
-        $this->data["payment_amount"] = $sorow->payment_amount;
+        
 
         $this->data["sharekey_by"] = $sorow->sharekey_by;
 
@@ -436,7 +416,6 @@ class Sales_orders_m extends MY_Model {
             $sorow = $db->select("status")
                         ->from("sales_order")
                         ->where("id", $docId)
-                        ->where("billing_type", $company_setting["company_billing_type"])
                         ->where("deleted", 0)
                         ->get()->row();
 
@@ -458,22 +437,26 @@ class Sales_orders_m extends MY_Model {
                                         "doc_date"=>$doc_date,
                                         "reference_number"=>$reference_number,
                                         "client_id"=>$customer_id,
-                                        "project_title"=>($project_id != null ? $project:null),
+                                        "project_title"=>$project_title,
+                                        "project_description"=>$project_description,
+                                        "project_start_date"=>$project_start_date,
+                                        "project_deadline"=>$project_deadline,
+                                        "project_price"=>getNumber($project_price),
                                         "remark"=>$remark
                                     ]);
         }else{
             $doc_number = $this->getNewDocNumber();
         
-            $db->insert("quotation", [
-                                        "billing_type"=>$company_setting["company_billing_type"],
+            $db->insert("sales_order", [
                                         "doc_number"=>$doc_number,
                                         "doc_date"=>$doc_date,
-                                        "credit"=>$credit,
-                                        "doc_valid_until_date"=>$doc_valid_until_date,
                                         "reference_number"=>$reference_number,
-                                        "vat_inc"=>$company_setting["company_vat_registered"],
                                         "client_id"=>$customer_id,
-                                        "project_id"=>($project_id != null ? $project:null),
+                                        "project_title"=>$project_title,
+                                        "project_description"=>$project_description,
+                                        "project_start_date"=>$project_start_date,
+                                        "project_deadline"=>$project_deadline,
+                                        "project_price"=>getNumber($project_price),
                                         "remark"=>$remark,
                                         "created_by"=>$this->login_user->id,
                                         "created_datetime"=>date("Y-m-d H:i:s"),
@@ -483,7 +466,7 @@ class Sales_orders_m extends MY_Model {
             $docId = $db->insert_id();
         }
         
-        $this->data["target"] = get_uri("quotations/view/". $docId);
+        $this->data["target"] = get_uri("sales-orders/view/". $docId);
         $this->data["status"] = "success";
 
         return $this->data;
@@ -550,20 +533,20 @@ class Sales_orders_m extends MY_Model {
         $db = $this->db;
         
         $sorow = $db->select("id, status")
-                        ->from("quotation")
+                        ->from("sales_order")
                         ->where("id", $this->json->doc_id)
                         ->where("deleted", 0)
                         ->get()->row();
 
         if(empty($sorow)) return $this->data;
 
-        $qirows = $db->select("*")
-                        ->from("quotation_items")
-                        ->where("quotation_id", $this->json->doc_id)
+        $soirows = $db->select("*")
+                        ->from("sales_order_items")
+                        ->where("sales_order_id", $this->json->doc_id)
                         ->order_by("id", "asc")
                         ->get()->result();
 
-        if(empty($qirows)){
+        if(empty($soirows)){
             $this->data["status"] = "notfound";
             $this->data["message"] = "ไม่พบข้อมูล";
             return $this->data;
@@ -571,14 +554,14 @@ class Sales_orders_m extends MY_Model {
 
         $items = [];
 
-        foreach($qirows as $qirow){
-            $item["id"] = $qirow->id;
-            $item["product_name"] = $qirow->product_name;
-            $item["product_description"] = $qirow->product_description;
-            $item["quantity"] = $qirow->quantity;
-            $item["unit"] = $qirow->unit;
-            $item["price"] = number_format($qirow->price, 2);
-            $item["total_price"] = number_format($qirow->total_price, 2);
+        foreach($soirows as $soirow){
+            $item["product_id"] = $soirow->id;
+            $item["product_name"] = $soirow->product_name;
+            $item["product_description"] = $soirow->product_description;
+            $item["quantity"] = $soirow->quantity;
+            $item["unit"] = $soirow->unit;
+            $item["price"] = number_format($soirow->price, 2);
+            $item["total_price"] = number_format($soirow->total_price, 2);
 
             $items[] = $item;
         }
@@ -596,7 +579,7 @@ class Sales_orders_m extends MY_Model {
         $itemId = $this->input->post("item_id");
 
         $sorow = $db->select("id")
-                        ->from("quotation")
+                        ->from("sales_order")
                         ->where("id", $docId)
                         ->where("deleted", 0)
                         ->get()->row();
@@ -614,7 +597,7 @@ class Sales_orders_m extends MY_Model {
 
         if(!empty($itemId)){
             $qirow = $db->select("*")
-                        ->from("quotation_items")
+                        ->from("sales_order_items")
                         ->where("id", $itemId)
                         ->where("quotation_id", $docId)
                         ->get()->row();
@@ -745,13 +728,11 @@ class Sales_orders_m extends MY_Model {
         $sorow = $db->select("*")
                     ->from("quotation")
                     ->where("id",$docId)
-                    ->where("billing_type", $company_setting["company_billing_type"])
                     ->where("deleted", 0)
                     ->get()->row();
 
         if(empty($sorow)) return $this->data;
 
-        $quotation_billing_type = $sorow->billing_type;
         $quotation_id = $this->data["doc_id"] = $docId;
         $quotation_number = $sorow->doc_number;
         $currentStatus = $sorow->status;
@@ -807,7 +788,6 @@ class Sales_orders_m extends MY_Model {
 
             $fields1 = [
                         "doc_date"=>date("Y-m-d"),
-                        "billing_type"=>$quotation_billing_type,
                         "quotation_id"=>$quotation_id,
                         "reference_number"=>$quotation_number,
                         "project_id"=>$sorow->project_id,
@@ -832,7 +812,7 @@ class Sales_orders_m extends MY_Model {
                         "deleted"=>0
                     ];
 
-            if($company_setting["company_billing_type"] == 3 || $company_setting["company_billing_type"] == 6){
+            /*if($company_setting["company_billing_type"] == 3 || $company_setting["company_billing_type"] == 6){
                 $item_table2 = "receipt_items";
                 $fields2 = ["doc_number"=>$this->Receipts_m->getNewDocNumber()];
 
@@ -854,7 +834,7 @@ class Sales_orders_m extends MY_Model {
                 $db->insert("invoice", array_merge($fields1, $fields2));
                 $doc_id2 = $db->insert_id();
                 $this->data["url"] = get_uri("invoices/view/".$doc_id2);
-            }
+            }*/
 
             $qirows = $db->select("*")
                             ->from("quotation_items")
@@ -887,7 +867,7 @@ class Sales_orders_m extends MY_Model {
             $this->data["message"] = lang('record_saved');
 
         }elseif($updateStatusTo == "RESET"){
-            if($company_setting["company_billing_type"] == 3 || $company_setting["company_billing_type"] == 6){
+            /*if($company_setting["company_billing_type"] == 3 || $company_setting["company_billing_type"] == 6){
                 $rerow = $db->select("doc_number")
                             ->from("receipt")
                             ->where("quotation_id", $quotation_id)
@@ -917,7 +897,7 @@ class Sales_orders_m extends MY_Model {
                     $db->trans_rollback();
                     return $this->data;
                 }
-            }
+            }*/
 
             $db->where("id", $quotation_id);
             $db->update("quotation", [
