@@ -1,4 +1,5 @@
 <?php
+use Monolog\Handler\PushoverHandler;
 
 class Projects_model extends Crud_model {
 
@@ -529,10 +530,12 @@ class Projects_model extends Crud_model {
 
         if (sizeof($getRmUsageList) && !empty($getRmUsageList)) {
             foreach ($getRmUsageList as $item) {
-                $item->stock_info = $this->dev2_getRowInfoByRowId($item->stock_id, "bom_stocks");
+                if (isset($item->stock_id) && !empty($item->stock_id)) {
+                    $item->stock_info = $this->dev2_getRowInfoByRowId($item->stock_id, "bom_stocks");
+                }
                 $item->cost = 0;
 
-                if ($item->stock_info->price != 0) {
+                if (isset($item->stock_info->price) && $item->stock_info->price != 0) {
                     $item->cost = ($item->stock_info->price / $item->stock_info->stock) * $item->ratio;
                 }
                 array_push($cost, $item->cost);
@@ -540,6 +543,176 @@ class Projects_model extends Crud_model {
         }
 
         return array_sum($cost);
+    }
+
+    public function dev2_postProduceStateById(int $id, $status): array
+    {
+        $info = $this->dev2_getRowInfoByRowId($id, "bom_project_items");
+        $result = array();
+
+        if (!empty($info)) {
+            // update to producing
+            if ($status == "1") {
+                if ($info->produce_status != 0) {
+                    $result["status"] = "failure";
+                }
+
+                $this->db->where("id", $id);
+                $this->db->update("bom_project_items", ["produce_status" => $status]);
+
+                $result["info"] = $this->dev2_getRowInfoByRowId($id, "bom_project_items");
+                $result["info"]->item_info = $this->dev2_getProductInfoByProductId($result["info"]->item_id);
+                $result["info"]->mixing_group_info = $this->dev2_getMixingGroupInfoByMixingGroupId($result["info"]->mixing_group_id);
+                $result["status"] = "success";
+            }
+
+            // update to produced completed
+            if ($status == "2") {
+                if ($info->produce_status != 1) {
+                    $result["status"] = "failure";
+                }
+
+                $this->db->where("id", $id);
+                $this->db->update("bom_project_items", ["produce_status" => $status]);
+
+                $result["info"] = $this->dev2_getRowInfoByRowId($id, "bom_project_items");
+                $result["info"]->item_info = $this->dev2_getProductInfoByProductId($result["info"]->item_id);
+                $result["info"]->mixing_group_info = $this->dev2_getMixingGroupInfoByMixingGroupId($result["info"]->mixing_group_id);
+                $result["status"] = "success";
+            }
+        }
+
+        return $result;
+    }
+
+    public function dev2_getFinishedGoodsDropdown(): array
+    {
+        $dropdown = [];
+        $get = $this->db->get_where("items", ["deleted" => 0])->result();
+
+        if (sizeof($get) && !empty($get)) {
+            foreach ($get as $item) {
+                $text = "";
+                if (empty($item->item_code) || $item->item_code == null) {
+                    $text = $item->title;
+                } else {
+                    $text = $item->item_code . ' - ' . $item->title;
+                }
+
+                $dropdown[] = [
+                    "id" => $item->id,
+                    "text" => $text,
+                    "description" => $item->description,
+                    "unit" => $item->unit_type
+                ];
+            }
+        }
+        return $dropdown;
+    }
+
+    public function dev2_getMixingGroupDropdown(): array
+    {
+        $dropdown = [];
+        $get = $this->db->get("bom_item_mixing_groups")->result();
+
+        if (sizeof($get) && !empty($get)) {
+            foreach ($get as $item) {
+                $dropdown[] = [
+                    "id" => $item->id,
+                    "item_id" => $item->item_id,
+                    "name" => $item->name
+                ];
+            }
+        }
+        return $dropdown;
+    }
+
+    public function dev2_postProductionBomDataProcessing(array $data): array
+    {
+        $result = array();
+
+        if (sizeof($data)) {
+            foreach ($data as $item) {
+                // insert header data to bom_project_items
+                $this->db->insert("bom_project_items", [
+                    "project_id" => $item["project_id"],
+                    "item_id" => $item["item_id"],
+                    "mixing_group_id" => $item["item_mixing"],
+                    "quantity" => $item["quantity"],
+                    "created_by" => $this->login_user->id
+                ]);
+                $bpi_id = $this->db->insert_id();
+                $item["bpi_id"] = $bpi_id;
+
+                // get bom data detail from bom_item_mixings
+                $bim_list = array();
+                if (!empty($item["item_mixing"]) && $item["item_mixing"] != 0) {
+                    $bim_sql = "SELECT `material_id`, SUM(`ratio`) AS `ratio` FROM `bom_item_mixings` WHERE `group_id` = ? GROUP BY `material_id` ORDER BY `material_id`";
+                    $bim_list = $this->db->query($bim_sql, $item["item_mixing"])->result();
+
+                    if (sizeof($bim_list)) {
+                        foreach ($bim_list as $mixing) {
+                            $mixing->total_ratio = $mixing->ratio * floatval($item["quantity"]);
+                            $total_ratio = $mixing->total_ratio;
+
+                            // get stock remaining each bom data detail from bom_stocks
+                            $stock_sql = "
+                                SELECT bs.id, bs.group_id, bs.material_id, bs.stock, bs.remaining, 
+                                IFNULL(bpim.used, 0) AS used, bs.stock - IFNULL(bpim.used, 0) AS actual_remain 
+                                FROM bom_stocks bs 
+                                INNER JOIN bom_stock_groups bsg ON bsg.id = bs.group_id 
+                                LEFT JOIN(
+                                    SELECT stock_id, SUM(ratio) AS used 
+                                    FROM bom_project_item_materials 
+                                    WHERE material_id = ? 
+                                    GROUP BY stock_id
+                                ) AS bpim ON bs.id = bpim.stock_id 
+                                WHERE bs.material_id = ? AND bs.remaining > 0 AND bs.stock - IFNULL(bpim.used, 0) > 0 
+                                ORDER BY bsg.created_date ASC
+                            ";
+                            $stock_list = $this->db->query($stock_sql, [$mixing->material_id, $mixing->material_id])->result();
+
+                            if (sizeof($stock_list)) {
+                                foreach ($stock_list as $stocking) {
+                                    if ($total_ratio > 0) {
+                                        $remaining = floatval(min($stocking->remaining, $stocking->actual_remain));
+                                        $used = min($total_ratio, $remaining);
+                                        $total_ratio -= $used;
+
+                                        $this->db->insert("bom_project_item_materials", [
+                                            "project_id" => $item["project_id"],
+                                            "project_item_id" => $bpi_id,
+                                            "material_id" => $stocking->material_id,
+                                            "stock_id" => $stocking->id,
+                                            "ratio" => $used,
+                                            "created_by" => $this->login_user->id
+                                        ]);
+                                        $bpim_id = $this->db->insert_id();
+                                        $mixing->bpim[] = $this->dev2_getRowInfoByRowId($bpim_id, "bom_project_item_materials");
+                                    }
+                                }
+                            }
+
+                            if ($total_ratio > 0) {
+                                $this->db->insert("bom_project_item_materials", [
+                                    "project_id" => $item["project_id"],
+                                    "project_item_id" => $bpi_id,
+                                    "material_id" => $stocking->material_id,
+                                    "ratio" => $total_ratio * -1,
+                                    "created_by" => $this->login_user->id
+                                ]);
+                                $bpim_id = $this->db->insert_id();
+                                $mixing->bpim[] = $this->dev2_getRowInfoByRowId($bpim_id, "bom_project_item_materials");
+                            }
+                        }
+                    }
+                }
+                $item["bim_list"] = $bim_list;
+            }
+            $result = $data;
+        }
+
+        return $result;
     }
 
     private function dev2_getRowInfoByRowId(int $id, string $table): stdClass
@@ -551,6 +724,28 @@ class Projects_model extends Crud_model {
             $info = $get;
         }
         return $info;
+    }
+
+    private function dev2_getItemListByRowHeaderId(int $id, string $table, string $column): array
+    {
+        $list = array();
+        $get = $this->db->get_where($table, [$column => $id])->result();
+
+        if (sizeof($get) && !empty($get)) {
+            $list = $get;
+        }
+        return $list;
+    }
+
+    private function dev2_getListByTableName(string $table): array
+    {
+        $list = array();
+        $get = $this->db->get($table)->result();
+
+        if (sizeof($get) || !empty($get)) {
+            $list = $get;
+        }
+        return $list;
     }
 
 }

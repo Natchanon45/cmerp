@@ -15,7 +15,7 @@
           <th class="w150 text-right" style="background: #f5f5f5 !important;"><?php echo lang('quantity'); ?></th>
           <th class="w70 text-center" style="background: #f5f5f5 !important;">
           <?php if (!$create_material_request): ?>
-            <a href="javascript:void();" id="btn-add-material" class="btn btn-primary w80p">
+            <a href="javascript:void(0);" id="btn-add-material" class="btn btn-primary w80p">
               <span class="fa fa-plus-circle"></span>
               <?php echo lang('add'); ?>
             </a>

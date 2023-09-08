@@ -70,9 +70,9 @@ if (!function_exists("make_project_tabs_data")) {
                         <?php echo lang('back_to_projects'); ?>
                     </a>
                     <?php
-                        if ($can_edit_timesheet_settings || $can_edit_slack_settings) {
-                            echo modal_anchor(get_uri("projects/settings_modal_form"), "<i class='fa fa fa-cog'></i> " . lang('settings'), array("class" => "btn btn-default", "title" => lang('settings'), "data-post-project_id" => $project_info->id));
-                        }
+                    if ($can_edit_timesheet_settings || $can_edit_slack_settings) {
+                        echo modal_anchor(get_uri("projects/settings_modal_form"), "<i class='fa fa fa-cog'></i> " . lang('settings'), array("class" => "btn btn-default", "title" => lang('settings'), "data-post-project_id" => $project_info->id));
+                    }
                     ?>
                     <?php if ($show_actions_dropdown) { ?>
                         <span class="dropdown inline-block">

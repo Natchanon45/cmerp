@@ -5912,68 +5912,170 @@ class Projects extends MY_Controller
 
         if (sizeof($items)) {
             foreach ($items as $item) {
-                $buttons = "";
-
-                // get cost of each production order
-                $item->costs = $this->Projects_model->dev2_getRawMatCostOfProductionOrderByProductionOrderId($item->id, $item->quantity);
-                
-                // prepare btn-bag-project
-                if ($this->Permission_m->access_material_request || $this->Permission_m->access_purchase_request) {
-                    $buttons .= modal_anchor(
-                        get_uri("projects/modal_items"),
-                        "<i class='fa fa-shopping-bag'></i>",
-                        array(
-                            "class" => "edit bom-item-modal",
-                            "data-modal-lg" => true,
-                            "title" => lang('item'),
-                            "data-post-id" => $item->id
-                        )
-                    );
-                }
-
-                // prepare btn-delete-project
-                if ($this->check_permission('can_delete_projects')) {
-                    $buttons .= js_anchor(
-                        '<i class="fa fa-times fa-fw"></i>', 
-                        array(
-                            "title" => lang("delete_project"), 
-                            "class" => "delete", 
-                            "data-id" => $item->id, 
-                            "data-action-url" => get_uri("projects/delete"), 
-                            "data-action" => "delete-confirmation"
-                        )
-                    );
-                }
-
-                // prepare produce state
-                $produce = '<select class="pill pill-primary">
-                    <option>ยังไม่ผลิต</option>
-                    <option>กำลังผลิต</option>
-                    <option>ผลิตเสร็จแล้ว</option>
-                </select>';
-
-                // prepare material request status
-                $mr = '<select class="pill pill-primary pointer-none">
-                    <option>ยังไม่เบิก</option>
-                </select>';
-
-                $data[] = [
-                    $item->id,
-                    $item->item_info->title,
-                    $item->mixing_group_info->name,
-                    $item->quantity,
-                    strtoupper($item->item_info->unit_type),
-                    to_decimal_format3($item->costs),
-                    lang("THB"),
-                    $produce,
-                    $mr,
-                    $buttons
-                ];
+                $data[] = $this->production_order_prepare_data($item);
             }
         }
 
         // var_dump(arr($items)); exit();
         echo json_encode(array("data" => $data));
+    }
+
+    public function production_order_state_change($project_id)
+    {
+        $post = (object) $_POST;
+        $post->project_id = $project_id;
+
+        $this->db->trans_begin();
+
+        $result = $this->Projects_model->dev2_postProduceStateById($post->id, $post->state);
+        $result["data"] = $this->production_order_prepare_data($result["info"]);
+
+        if ($this->db->trans_status() === FALSE) {
+            $this->db->trans_rollback();
+        } else {
+            $this->db->trans_commit();
+        }
+
+        echo json_encode($result);
+    }
+
+    public function production_order_modal_form()
+    {
+        $post = (object) $this->input->post();
+
+        if (!isset($post->project_id) || empty($post->project_id)) {
+            // have no a project id
+            return;
+        }
+
+        $data["info"] = $this->Projects_model->dev2_getProjectInfoByProjectId($post->project_id);
+        $data["items_dropdown"] = $this->Projects_model->dev2_getFinishedGoodsDropdown();
+        $data["items_mixing_dropdown"] = $this->Projects_model->dev2_getMixingGroupDropdown();
+
+        // var_dump(arr($data)); exit();
+        $this->load->view("projects/production_orders/modal_add", $data);
+    }
+
+    function production_order_modal_form_save()
+    {
+        $post = $this->input->post();
+        $data = array();
+        
+        if (isset($post["item_id"]) && !empty($post["item_id"])) {
+            for ($i = 0; $i < count($post["item_id"]); $i++) {
+                if ($post["item_id"][$i] == "") {
+                    echo json_encode(array("success" => false, "post" => $post, "message" => "กรุณาระบุข้อมูลให้ครบถ้วน"));
+                    return;
+                }
+
+                if ($post["item_mixing"][$i] == "") {
+                    echo json_encode(array("success" => false, "post" => $post, "message" => "กรุณาระบุข้อมูลให้ครบถ้วน"));
+                    return;
+                }
+
+                if ($post["quantity"][$i] == "" || $post["quantity"][$i] <= 0 || $post["quantity"][$i] == "0") {
+                    echo json_encode(array("success" => false, "post" => $post, "message" => "กรุณาระบุจำนวนให้ถูกต้อง"));
+                    return;
+                }
+
+                $data[] = [
+                    "project_id" => $post["project_id"],
+                    "item_id" => $post["item_id"][$i],
+                    "item_mixing" => $post["item_mixing"][$i],
+                    "quantity" => $post["quantity"][$i]
+                ];
+            }
+
+            // data processing
+            if (sizeof($data)) {
+                $dataProcessing = $this->Projects_model->dev2_postProductionBomDataProcessing($data);
+            }
+        }
+
+        echo json_encode(array("success" => true, "post" => $post, "data" => $data, "process" => $dataProcessing));
+    }
+
+    private function production_order_prepare_data($item)
+    {
+        $buttons = "";
+
+        // get cost of each production order
+        $item->costs = $this->Projects_model->dev2_getRawMatCostOfProductionOrderByProductionOrderId($item->id, $item->quantity);
+
+        // prepare btn-bag-project
+        if ($this->Permission_m->access_material_request || $this->Permission_m->access_purchase_request) {
+            $buttons .= modal_anchor(
+                get_uri("projects/production_order_modal_items"),
+                "<i class='fa fa-shopping-bag'></i>",
+                array(
+                    "class" => "edit bom-item-modal",
+                    "data-modal-lg" => true,
+                    "title" => lang('item'),
+                    "data-post-id" => $item->id
+                )
+            );
+        }
+
+        // prepare btn-delete-project
+        if ($this->check_permission('can_delete_projects')) {
+            $buttons .= js_anchor(
+                '<i class="fa fa-times fa-fw"></i>',
+                array(
+                    "title" => lang("delete_project"),
+                    "class" => "delete",
+                    "data-id" => $item->id,
+                    "data-action-url" => get_uri("projects/production_order_delete"),
+                    "data-action" => "delete-confirmation"
+                )
+            );
+        }
+
+        // prepare produce state
+        $produce = "";
+        if ($item->produce_status == 0) {
+            $produce = '<select class="pill pill-primary produce-status" data-id="' . $item->id . '">
+                        <option value="0" selected>' . lang("production_order_not_yet_produce") . '</option>
+                        <option value="1">' . lang("production_order_producing") . '</option>
+                    </select>';
+        } elseif ($item->produce_status == 1) {
+            $produce = '<select class="pill pill-warning produce-status" data-id="' . $item->id . '">
+                        <option value="1" selected>' . lang("production_order_producing") . '</option>
+                        <option value="2">' . lang("production_order_produced_completed") . '</option>
+                    </select>';
+        } elseif ($item->produce_status == 2) {
+            $produce = '<select class="pill pill-success produce-status pointer-none" data-id="' . $item->id . '">
+                        <option value="2" selected>' . lang("production_order_produced_completed") . '</option>
+                    </select>';
+        }
+
+        // prepare material request status
+        $mr = "";
+        if ($item->mr_status == 0) {
+            $mr = '<select class="pill pill-primary pointer-none">
+                        <option>' . lang("production_order_not_yet_withdrawn") . '</option>
+                    </select>';
+        } elseif ($item->mr_status == 1) {
+            $mr = '<select class="pill pill-warning pointer-none">
+                        <option>' . lang("production_order_partially_withdrawn") . '</option>
+                    </select>';
+        } elseif ($item->mr_status == 2) {
+            $mr = '<select class="pill pill-success pointer-none">
+                        <option>' . lang("production_order_completed_withdrawal") . '</option>
+                    </select>';
+        }
+
+        return [
+            $item->id,
+            $item->item_info->title,
+            $item->mixing_group_info->name,
+            $item->quantity,
+            strtoupper($item->item_info->unit_type),
+            to_decimal_format3($item->costs),
+            lang("THB"),
+            $produce,
+            $mr,
+            $buttons
+        ];
     }
 
 }
