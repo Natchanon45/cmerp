@@ -214,6 +214,7 @@ $autoload['model'] = array(
     'Items_model',
     'Bom_item_model',
     'Bom_item_files_model',
+    'Bom_item_m',
     'Labels_m',
     'Settings_m',
     'Users_m',
@@ -233,5 +234,5 @@ $autoload['model'] = array(
     'Suppliers_m',
     'Payment_voucher_m',
     'Credit_notes_m',
-    'Debit_notes_m'
+    'Debit_notes_m',
 );

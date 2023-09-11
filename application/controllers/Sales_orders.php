@@ -88,7 +88,7 @@ class Sales_orders extends MY_Controller {
 
     function item() {
         if(isset($this->json->task)){
-            if($this->json->task == "get_formulas") jout($this->Products_m->getFomulasByItemId($this->json->item_id));
+            if($this->json->task == "choose_product") jout($this->Sales_orders_m->itemInfo($this->json->item_id));
             if($this->json->task == "save") jout($this->Sales_orders_m->saveItem());
             return;   
         }
@@ -126,6 +126,6 @@ class Sales_orders extends MY_Controller {
         }
         
         $data = $this->Sales_orders_m->getDoc($this->input->post("doc_id"));
-        $this->load->view('sales-orders/share', $data);
+        $this->load->view('sales_orders/share', $data);
     }
 }

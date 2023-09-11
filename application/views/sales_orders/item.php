@@ -6,16 +6,26 @@
             <input type="text" id="product_name" value="<?php echo $product_name; ?>" placeholder="<?php echo lang('select_or_create_new_item'); ?>" class="form-control" >
         </div>
     </div>
-    <div class="form-group">
+    <div id="product_description_section" class="form-group">
         <label for="product_description" class="col-md-3"><?php echo lang('description'); ?></label>
         <div class=" col-md-9">
             <textarea id="product_description" class="form-control"><?php echo $product_description; ?></textarea>
         </div>
     </div>
-    <div class="form-group">
-        <label for="product_formula" class="col-md-3">ส่วนประกอบ</label>
-        <div class=" col-md-9"><select id="product_formula" class="form-control"></select></div>
-    </div>
+    <?php if($item_mixing_groups_id != null): ?>
+        <?php if(!empty($product_formulas)): ?>
+            <div id="product_formula_section" class="form-group">
+                <label for="product_formula" class="col-md-3">ส่วนประกอบ</label>
+                <div class=" col-md-9">
+                    <select id="product_formula" class="form-control">
+                        <?php foreach($product_formulas as $pf): ?>
+                            <option value="<?php echo $pf['id']; ?>" <?php if($pf['id'] == $item_mixing_groups_id) echo "selected"; ?>><?php echo $pf['name']; ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+            </div>
+        <?php endif; ?>
+    <?php endif;?>
     <div class="form-group">
         <label for="quantity" class=" col-md-3"><?php echo lang('quantity'); ?></label>
         <div class="col-md-9">
@@ -48,13 +58,16 @@
 <script type="text/javascript">
 $(document).ready(function () {
     $("#btnSubmit").click(function() {
+        product_formula_id = "none";
+        if($("#product_formula").val() != undefined) product_formula_id = $("#product_formula").val();
         axios.post('<?php echo current_url(); ?>', {
             task: 'save',
             doc_id : "<?php echo $doc_id; ?>",
             item_id : "<?php if(isset($item_id)) echo $item_id; ?>",
             product_id:$("#product_id").val(),
+            product_formula_id:product_formula_id,
             product_name:$("#product_name").val(),
-            product_description: $("#product_description").val(),
+            product_description:$("#product_description").val(),
             quantity: $("#quantity").val(),
             unit: $("#unit").val(),
             price: $("#price").val()
@@ -97,34 +110,39 @@ $(document).ready(function () {
             }
         }
     }).change(function (e) {
-        /*if (e.val === "+") {
-            $("#product_name").select2("destroy").val("").focus();
-            $("#product_id").val(""); //set the flag to add new item in library
-        } else if (e.val) {
-            $("#product_id").val(e.added.id);
-            $("#product_name").val(e.added.text);
-            $("#product_description").val(e.added.description);
-            $("#quantity").val("1");
-            $("#unit").val(e.added.unit);
-            $("#price").val(e.added.price);
-
-            calculatePrice();
-        }*/
-        
         axios.post('<?php echo current_url(); ?>', {
-            task: 'get_formulas',
+            task: 'choose_product',
             item_id: e.added.id,
         }).then(function (response) {
             data = response.data;
 
-            $("#product_formula").append("<option></option>");
+            $("#product_id").val(data.id);
+            $("#product_name").val(data.title);
+            $("#product_description").val(data.description);
+            $("#quantity").val(data.quantity);
+            $("#unit").val(data.unit);
+            $("#price").val(data.price);
+            $("#total_price").val(data.total_price);
+            
+            product_formulas = data.formulas;
 
-            for(i = 0; i < data.length; i++){
-                var obj = data[i];
-                $("#product_formula").append("<option value='"+obj['id']+"'>"+obj['name']+"</option>");
+            $("#product_description_section").next().remove("#product_formula_section");
+
+            if(product_formulas.length >= 1){
+                pf = '<div id="product_formula_section" class="form-group">';
+                    pf += '<label for="product_formula" class="col-md-3">ส่วนประกอบ</label>';
+                    pf += '<div class=" col-md-9">';
+                        pf += '<select id="product_formula" class="form-control">';
+                            for(i = 0; i < product_formulas.length; i++){
+                                let obj = product_formulas[i];
+                                pf += "<option value='"+obj['id']+"'>"+obj['name']+"</option>";
+                            }
+                        pf += '</select>';
+                    pf += '</div>';
+                pf += '</div>';
+
+                $("#product_description_section").after(pf);
             }
-
-            console.log(response.data);
         });
     });
 

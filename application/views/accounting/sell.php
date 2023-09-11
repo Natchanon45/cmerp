@@ -203,14 +203,15 @@ function loadDataGrid(){
         $(".buttons li.add a").attr("data-title", "สร้างใบสั่งขาย");
         $(".buttons li.add a").attr("data-action-url", "<?php echo get_uri("sales-orders/addedit"); ?>");
         $(".buttons li.add span").append("สร้างใบสั่งขาย");
-        doc_status = [{id:"", text:"-- <?php echo lang("status"); ?> --"}, {id:"W", text:"รออนุมัติ"}, {id:"A", text:"อนุมัติ"}, {id:"I", text:"ดำเนินการแล้ว"}, {id:"R", text:"ไม่อนุมัติ"}];
+        doc_status = [{id:"", text:"-- <?php echo lang("status"); ?> --"}, {id:"W", text:"รออนุมัติ"}, {id:"A", text:"อนุมัติ"}, {id:"R", text:"ยกเลิก"}];
 
         grid_columns = [
                             {title: "วันที่", "class":"w10p"},
                             {title: "เลขที่เอกสาร", "class":"w15p"},
                             {title: "เลขที่อ้างอิง", "class":"w15p"},
-                            {title: "หัวเรื่อง", "class":"w20p"},
-                            {title: "ลูกค้า", "class":"w20p"},
+                            {title: "หัวเรื่อง", "class":"w15p"},
+                            {title: "ลูกค้า", "class":"w15p"},
+                            {title: "ราคา", "class":"w10p"},
                             {title: "สถานะ", "class":"text-left w10p"},
                             {title: "<i class='fa fa-bars'></i>", "class":"text-center option w10p"}
                         ];

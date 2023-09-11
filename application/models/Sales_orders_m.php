@@ -35,23 +35,12 @@ class Sales_orders_m extends MY_Model {
         if($sorow->status == "W"){
             $doc_status .= "<option selected>รออนุมัติ</option>";
             $doc_status .= "<option value='A'>อนุมัติ</option>";
-            $doc_status .= "<option value='R'>ไม่อนุมัติ</option>";
+            $doc_status .= "<option value='V'>ยกเลิก</option>";
         }elseif($sorow->status == "A"){
             $doc_status .= "<option selected>อนุมัติ</option>";
-
-            /*if($company_setting["company_billing_type"] == 3 || $company_setting["company_billing_type"] == 6){
-                $doc_status .= "<option value='I'>ออกใบเสร็จรับเงิน</option>";
-            }else{
-                $doc_status .= "<option value='I'>ออกใบแจ้งหนี้</option>";
-            }*/
-
-            $doc_status .= "<option value='RESET'>รีเซ็ต</option>";
-        }elseif($sorow->status == "R"){
-            $doc_status .= "<option selected>ไม่อนุมัติ</option>";
-            $doc_status .= "<option value='RESET'>รีเซ็ต</option>";
-        }elseif($sorow->status == "I"){
-            $doc_status .= "<option selected>ดำเนินการแล้ว</option>";
-            $doc_status .= "<option value='RESET'>รีเซ็ต</option>";
+            $doc_status .= "<option value='V'>ยกเลิก</option>";
+        }elseif($sorow->status == "V"){
+            $doc_status .= "<option selected>ยกเลิก</option>";
         }
 
         $doc_status .= "</select>";
@@ -60,7 +49,7 @@ class Sales_orders_m extends MY_Model {
                     "<a href='".get_uri("sales-orders/view/".$sorow->id)."'>".convertDate($sorow->doc_date, true)."</a>",
                     "<a href='".get_uri("sales-orders/view/".$sorow->id)."'>".$sorow->doc_number."</a>",
                     $sorow->reference_number, "<a href='".get_uri("clients/view/".$sorow->client_id)."'>".$sorow->project_title."</a>",
-                    $this->Clients_m->getCompanyName($sorow->client_id), $doc_status,
+                    $this->Clients_m->getCompanyName($sorow->client_id), $sorow->project_price, $doc_status,
                     "<a data-post-id='".$sorow->id."' data-action-url='".get_uri("sales-orders/addedit")."' data-act='ajax-modal' class='edit'><i class='fa fa-pencil'></i></a>"
                 ];
 
@@ -143,11 +132,11 @@ class Sales_orders_m extends MY_Model {
             }
 
             $this->data["doc_id"] = $docId;
-            $this->data["doc_date"] = date("Y-m-d");
+            $this->data["doc_date"] = $sorow->doc_date;
             $this->data["doc_number"] = $sorow->doc_number;
             $this->data["share_link"] = $sorow->sharekey != null ? get_uri($this->shareHtmlAddress."th/".$sorow->sharekey) : null;
 
-            $this->data["reference_number"] = "";
+            $this->data["reference_number"] = $sorow->reference_number;;
             $this->data["project_id"] = null;
             $this->data["project_title"] = $sorow->project_title;
             $this->data["client_id"] = $client_id;
@@ -162,7 +151,7 @@ class Sales_orders_m extends MY_Model {
             $this->data["created_datetime"] = $sorow->created_datetime;
             $this->data["approved_by"] = $sorow->approved_by;
             $this->data["approved_datetime"] = $sorow->approved_datetime;
-            if(file_exists($_SERVER['DOCUMENT_ROOT']."/".$company_setting["company_stamp"])) $this->data["company_stamp"] = $company_setting["company_stamp"];
+            if($sorow->approved_by != null) if(file_exists($_SERVER['DOCUMENT_ROOT']."/".$company_setting["company_stamp"])) $this->data["company_stamp"] = $company_setting["company_stamp"];
             $this->data["doc_status"] = $sorow->status;
             
         }
@@ -189,7 +178,7 @@ class Sales_orders_m extends MY_Model {
         }
 
         $sorow = $db->select("*")
-                    ->from("quotation")
+                    ->from("sales_order")
                     ->where("deleted", 0)
                     ->get()->row();
 
@@ -197,9 +186,9 @@ class Sales_orders_m extends MY_Model {
 
         $docId = $sorow->id;
 
-        $qirows = $db->select("*")
-                        ->from("quotation_items")
-                        ->where("quotation_id", $docId)
+        $soirows = $db->select("*")
+                        ->from("sales_order_items")
+                        ->where("sales_order_id", $docId)
                         ->order_by("sort", "asc")
                         ->get()->result();
 
@@ -213,14 +202,8 @@ class Sales_orders_m extends MY_Model {
 
         $this->data["doc_number"] = $sorow->doc_number;
         $this->data["doc_date"] = $sorow->doc_date;
-        $this->data["credit"] = $sorow->credit;
-        $this->data["doc_valid_until_date"] = $sorow->doc_valid_until_date;
         $this->data["reference_number"] = $sorow->reference_number;
         $this->data["remark"] = $sorow->remark;
-
-        
-
-        
 
         $this->data["sharekey_by"] = $sorow->sharekey_by;
 
@@ -228,11 +211,11 @@ class Sales_orders_m extends MY_Model {
         $this->data["created_datetime"] = $sorow->created_datetime;
         $this->data["approved_by"] = $sorow->approved_by;
         $this->data["approved_datetime"] = $sorow->approved_datetime;
-        if(file_exists($_SERVER['DOCUMENT_ROOT']."/".$company_setting["company_stamp"])) $this->data["company_stamp"] = $company_setting["company_stamp"];
+        if($sorow->approved_by != null) if(file_exists($_SERVER['DOCUMENT_ROOT']."/".$company_setting["company_stamp"])) $this->data["company_stamp"] = $company_setting["company_stamp"];
         $this->data["doc_status"] = $sorow->status;
 
         $this->data["doc"] = $sorow;
-        $this->data["items"] = $qirows;
+        $this->data["items"] = $soirows;
 
         $this->data["status"] = "success";
         $this->data["message"] = "ok";
@@ -240,130 +223,7 @@ class Sales_orders_m extends MY_Model {
         return $this->data;
     }
 
-    function updateDoc($docId = null){
-        $db = $this->db;
-
-        $discount_type = "P";
-        $discount_percent = 0;
-        $discount_amount = 0;
-
-        $vat_inc = "N";
-        $vat_percent = $this->Taxes_m->getVatPercent();
-        $vat_value = 0;
-
-        $wht_inc = "N";
-        $wht_percent = $this->Taxes_m->getWhtPercent();
-        $wht_value = 0;
-        
-        if($docId == null && isset($this->json->doc_id)){
-            $docId = $this->json->doc_id;
-
-            $vat_inc = $this->json->vat_inc == true ? "Y":"N";
-            $wht_inc = $this->json->wht_inc == true ? "Y":"N";
-            
-            $sorow = $db->select("*")
-                        ->from("quotation")
-                        ->where("id", $docId)
-                        ->where("deleted", 0)
-                        ->get()->row();
-
-            if(empty($sorow)) return $this->data;
-
-            $discount_type = $this->json->discount_type;
-
-            if($discount_type == "P"){
-                $discount_percent = getNumber($this->json->discount_percent);
-                if($discount_percent >= 100) $discount_percent = 99.99;
-                if($discount_percent < 0) $discount_percent = 0;
-            }else{
-                $discount_amount = getNumber($this->json->discount_value);
-            }
-            
-
-            if($vat_inc == "Y") $vat_percent = $this->Taxes_m->getVatPercent();
-            if($wht_inc == "Y") $wht_percent = getNumber($this->json->wht_percent);
-
-        }else{
-            $sorow = $db->select("*")
-                        ->from("quotation")
-                        ->where("id", $docId)
-                        ->where("deleted", 0)
-                        ->get()->row();
-
-            if(empty($sorow)) return $this->data;            
-
-            $discount_type = $sorow->discount_type;
-            $discount_percent = $sorow->discount_percent;
-            $discount_amount = $sorow->discount_amount;
-
-
-            $vat_inc = $sorow->vat_inc;
-            $wht_inc = $sorow->wht_inc;
-
-            if($vat_inc == "Y") $vat_percent = $sorow->vat_percent;
-            if($wht_inc == "Y") $wht_percent = $sorow->wht_percent;
-        }
-        
-        $sub_total_before_discount = $db->select("SUM(total_price) AS SUB_TOTAL")
-                                        ->from("quotation_items")
-                                        ->where("quotation_id", $docId)
-                                        ->get()->row()->SUB_TOTAL;
-
-        if($sub_total_before_discount == null) $sub_total_before_discount = 0;
-        if($discount_type == "P"){
-            if($discount_percent > 0){
-                $discount_amount = ($sub_total_before_discount * $discount_percent)/100;
-            }
-        }else{
-            if($discount_amount > $sub_total_before_discount) $discount_amount = $sub_total_before_discount;
-            if($discount_amount < 0) $discount_amount = 0;
-        }
-
-        $sub_total = $sub_total_before_discount - $discount_amount;
-
-        if($vat_inc == "Y") $vat_value = ($sub_total * $vat_percent)/100;
-        $total = $sub_total + $vat_value;
-
-        if($wht_inc == "Y") $wht_value = ($sub_total * $wht_percent) / 100;
-        $payment_amount = $total - $wht_value;
-
-        $db->where("id", $docId);
-        $db->update("quotation", [
-                                    "sub_total_before_discount"=>$sub_total_before_discount,
-                                    "discount_type"=>$discount_type,
-                                    "discount_percent"=>$discount_percent,
-                                    "discount_amount"=>$discount_amount,
-                                    "sub_total"=>$sub_total,
-                                    "vat_inc"=>$vat_inc,
-                                    "vat_percent"=>$vat_percent,
-                                    "vat_value"=>$vat_value,
-                                    "total"=>$total,
-                                    "wht_inc"=>$wht_inc,
-                                    "wht_percent"=>$wht_percent,
-                                    "wht_value"=>$wht_value,
-                                    "payment_amount"=>$payment_amount
-                                ]);
-
-        $this->data["sub_total_before_discount"] = number_format($sub_total_before_discount, 2);
-        $this->data["discount_type"] = $discount_type;
-        $this->data["discount_percent"] = number_format($discount_percent, 2);
-        $this->data["discount_amount"] = number_format($discount_amount, 2);
-        $this->data["sub_total"] = number_format($sub_total, 2);
-        $this->data["vat_inc"] = $vat_inc;
-        $this->data["vat_percent"] = number_format_drop_zero_decimals($vat_percent, 2);
-        $this->data["vat_value"] = number_format($vat_value, 2);
-        $this->data["total"] = number_format($total, 2);
-        $this->data["total_in_text"] = numberToText($total);
-        $this->data["wht_inc"] = $wht_inc;
-        $this->data["wht_percent"] = number_format_drop_zero_decimals($wht_percent, 2);
-        $this->data["wht_value"] = number_format($wht_value, 2);
-        $this->data["payment_amount"] = number_format($payment_amount, 2);
-
-        $this->data["status"] = "success";
-        $this->data["message"] = lang("record_saved");
-
-        return $this->data;
-    }
+    function updateDoc($docId = null){}
 
     function validateDoc(){
         $_POST = json_decode(file_get_contents('php://input'), true);
@@ -477,32 +337,14 @@ class Sales_orders_m extends MY_Model {
         $docId = $this->input->post("id");
 
         $sorow = $db->select("status")
-                        ->from("quotation")
+                        ->from("sales_order")
                         ->where("id", $docId)
                         ->get()->row();
 
         if(empty($sorow)) return $this->data;
 
-        $bnrow = $db->select("*")
-                    ->from("billing_note")
-                    ->where("quotation_id", $docId)
-                    ->where("deleted", 0)
-                    ->get()->row();
-
-        if(!empty($bnrow)){
-            $this->data["success"] = false;
-            $this->data["message"] = "คุณไม่สามารถลบเอกสารได้ เนื่องจากเอกสารถูกอ้างอิงในใบวางบิลแล้ว";
-            return $this->data;
-        }
-
-        if($sorow->status != "W"){
-            $this->data["success"] = false;
-            $this->data["message"] = "คุณไม่สามารถลบเอกสารได้ เนื่องจากเอกสารมีการเปลี่ยนแปลงสถานะแล้ว";
-            return $this->data;
-        }
-
         $db->where("id", $docId);
-        $db->update("quotation", ["deleted"=>1]);
+        $db->update("sales_order", ["deleted"=>1]);
 
         $data["success"] = true;
         $data["message"] = lang('record_deleted');
@@ -515,10 +357,10 @@ class Sales_orders_m extends MY_Model {
         $docId = $this->input->post("id");
 
         $db->where("id", $docId);
-        $db->update("quotation", ["deleted"=>0]);
+        $db->update("sales_order", ["deleted"=>0]);
 
         $sorow = $db->select("*")
-                    ->from("quotation")
+                    ->from("sales_order")
                     ->where("id", $docId)
                     ->get()->row();
 
@@ -531,6 +373,7 @@ class Sales_orders_m extends MY_Model {
 
     function items(){
         $db = $this->db;
+        $ci = get_instance();
         
         $sorow = $db->select("id, status")
                         ->from("sales_order")
@@ -555,9 +398,12 @@ class Sales_orders_m extends MY_Model {
         $items = [];
 
         foreach($soirows as $soirow){
-            $item["product_id"] = $soirow->id;
+            $product_formula = $ci->Bom_item_m->getMixingGroupsInfoById($soirow->item_mixing_groups_id) == null ? "":$ci->Bom_item_m->getMixingGroupsInfoById($soirow->item_mixing_groups_id);
+            $item["id"] = $soirow->id;
+            $item["product_id"] = $soirow->product_id;
             $item["product_name"] = $soirow->product_name;
             $item["product_description"] = $soirow->product_description;
+            $item["product_formula_name"] = $product_formula["name"];
             $item["quantity"] = $soirow->quantity;
             $item["unit"] = $soirow->unit;
             $item["price"] = number_format($soirow->price, 2);
@@ -575,6 +421,7 @@ class Sales_orders_m extends MY_Model {
 
     function item(){
         $db = $this->db;
+        $ci = get_instance();
         $docId = $this->input->post("doc_id");
         $itemId = $this->input->post("item_id");
 
@@ -588,6 +435,8 @@ class Sales_orders_m extends MY_Model {
 
         $this->data["doc_id"] = $docId;
         $this->data["product_id"] = "";
+        $this->data["product_formulas"] = [];
+        $this->data["item_mixing_groups_id"] = null;
         $this->data["product_name"] = "";
         $this->data["product_description"] = "";
         $this->data["quantity"] = number_format(1, $this->Settings_m->getDecimalPlacesNumber());
@@ -596,25 +445,28 @@ class Sales_orders_m extends MY_Model {
         $this->data["total_price"] = number_format(0, 2);
 
         if(!empty($itemId)){
-            $qirow = $db->select("*")
+            $soirow = $db->select("*")
                         ->from("sales_order_items")
                         ->where("id", $itemId)
-                        ->where("quotation_id", $docId)
+                        ->where("sales_order_id", $docId)
                         ->get()->row();
 
-            if(empty($qirow)) return $this->data;
+            if(empty($soirow)) return $this->data;
 
-            $this->data["item_id"] = $qirow->id;
-            $this->data["product_id"] = $qirow->product_id;
-            $this->data["product_name"] = $qirow->product_name;
-            $this->data["product_description"] = $qirow->product_description;
-            $this->data["quantity"] = number_format($qirow->quantity, $this->Settings_m->getDecimalPlacesNumber());
-            $this->data["unit"] = $qirow->unit;
-            $this->data["price"] = number_format($qirow->price, 2);
-            $this->data["total_price"] = number_format($qirow->total_price, 2);
+            $this->data["item_id"] = $soirow->id;
+            $this->data["product_id"] = $soirow->product_id;
+            $this->data["product_formulas"] = $ci->Products_m->getFomulasByItemId($soirow->product_id);
+            $this->data["item_mixing_groups_id"] = $soirow->item_mixing_groups_id;
+            $this->data["product_name"] = $soirow->product_name;
+            $this->data["product_description"] = $soirow->product_description;
+            $this->data["quantity"] = number_format($soirow->quantity, $this->Settings_m->getDecimalPlacesNumber());
+            $this->data["unit"] = $soirow->unit;
+            $this->data["price"] = number_format($soirow->price, 2);
+            $this->data["total_price"] = number_format($soirow->total_price, 2);
         }
 
         $this->data["status"] = "success";
+        $this->data["message"] = "ok";
 
         return $this->data;
     }
@@ -642,7 +494,7 @@ class Sales_orders_m extends MY_Model {
         $docId = isset($this->json->doc_id)?$this->json->doc_id:null;
 
         $sorow = $db->select("id")
-                    ->from("quotation")
+                    ->from("sales_order")
                     ->where("id", $docId)
                     ->where("deleted", 0)
                     ->get()->row();
@@ -654,6 +506,7 @@ class Sales_orders_m extends MY_Model {
 
         $itemId = $this->json->item_id;
         $product_id = $this->json->product_id == ""?null:$this->json->product_id;
+        $item_mixing_groups_id = $this->json->product_formula_id == "none"?null:$this->json->product_formula_id;
         $product_name = $this->json->product_name;
         $product_description = $this->json->product_description;
         $quantity = round(getNumber($this->json->quantity), $this->Settings_m->getDecimalPlacesNumber());
@@ -662,8 +515,9 @@ class Sales_orders_m extends MY_Model {
         $total_price = round($price * $quantity, 2);
 
         $fdata = [
-                    "quotation_id"=>$docId,
+                    "sales_order_id"=>$docId,
                     "product_id"=>$product_id,
+                    "item_mixing_groups_id"=>$item_mixing_groups_id,
                     "product_name"=>$product_name,
                     "product_description"=>$product_description,
                     "quantity"=>$quantity,
@@ -675,15 +529,16 @@ class Sales_orders_m extends MY_Model {
         $db->trans_begin();
         
         if(empty($itemId)){
-            $db->where("quotation_id", $docId);
-            $total_items = $db->count_all_results("quotation_items");
-            $fdata["quotation_id"] = $docId;
+            $db->where("sales_order_id", $docId);
+            $total_items = $db->count_all_results("sales_order_items");
+            $fdata["sales_order_id"] = $docId;
             $fdata["sort"] = $total_items + 1;
-            $db->insert("quotation_items", $fdata);
+            $db->insert("sales_order_items", $fdata);
+
         }else{
             $db->where("id", $itemId);
-            $db->where("quotation_id", $docId);
-            $db->update("quotation_items", $fdata);
+            $db->where("sales_order_id", $docId);
+            $db->update("sales_order_items", $fdata);
         }
 
         
@@ -693,9 +548,9 @@ class Sales_orders_m extends MY_Model {
             $db->trans_commit();
         }
 
-        $this->updateDoc($docId);
+        //$this->updateDoc($docId);
 
-        $this->data["target"] = get_uri("quotations/view/".$docId);
+        $this->data["target"] = get_uri("sales-orders/view/".$docId);
         $this->data["status"] = "success";
 
         return $this->data;
@@ -707,12 +562,12 @@ class Sales_orders_m extends MY_Model {
         $docId = $this->json->doc_id;
         
         $db->where("id", $this->json->item_id);
-        $db->where("quotation_id", $docId);
-        $db->delete("quotation_items");
+        $db->where("sales_order_id", $docId);
+        $db->delete("sales_order_items");
 
         if($db->affected_rows() != 1) return $this->data;
 
-        $this->updateDoc($docId);
+        //$this->updateDoc($docId);
 
         $this->data["status"] = "success";
 
@@ -721,42 +576,22 @@ class Sales_orders_m extends MY_Model {
 
     function updateStatus(){
         $db = $this->db;
-        $company_setting = $this->Settings_m->getCompany();
         $docId = $this->json->doc_id;
         $updateStatusTo = $this->json->update_status_to;
 
         $sorow = $db->select("*")
-                    ->from("quotation")
+                    ->from("sales_order")
                     ->where("id",$docId)
                     ->where("deleted", 0)
                     ->get()->row();
 
         if(empty($sorow)) return $this->data;
 
-        $quotation_id = $this->data["doc_id"] = $docId;
-        $quotation_number = $sorow->doc_number;
+        $sales_order_id = $this->data["doc_id"] = $docId;
+        $sales_order_number = $sorow->doc_number;
         $currentStatus = $sorow->status;
 
-        $quotation_sub_total_before_discount = $sorow->sub_total_before_discount;
-
-        $quotation_discount_type = $sorow->discount_type;
-        $quotation_discount_percent = $sorow->discount_percent;
-        $quotation_discount_amount = $sorow->discount_amount;
-
-        $quotation_sub_total = $sorow->sub_total;
-
-        $quotation_vat_inc = $sorow->vat_inc;
-        $quotation_vat_percent = $sorow->vat_percent;
-        $quotation_vat_value = $sorow->vat_value;
-
-        $quotation_wht_inc = $sorow->wht_inc;
-        $quotation_wht_percent = $sorow->wht_percent;
-        $quotation_wht_value = $sorow->wht_value;
-
-        $quotation_total = $sorow->total;
-        $quotation_payment_amount = $sorow->payment_amount;
-
-        if($sorow->status == $updateStatusTo && $updateStatusTo != "P"){
+        if($sorow->status == $updateStatusTo){
             $this->data["dataset"] = $this->getIndexDataSetHTML($sorow);
             return $this->data;
         }
@@ -764,147 +599,24 @@ class Sales_orders_m extends MY_Model {
         $this->db->trans_begin();
 
         if($updateStatusTo == "A"){//Approved
-            if($currentStatus == "R"){
+            if($currentStatus == "V"){
                 $this->data["dataset"] = $this->getIndexDataSetHTML($sorow);
                 return $this->data;
             }
 
-            $db->where("id", $quotation_id);
-            $db->update("quotation", [
+            $db->where("id", $sales_order_id);
+            $db->update("sales_order", [
                                         "approved_by"=>$this->login_user->id,
                                         "approved_datetime"=>date("Y-m-d H:i:s"),
                                         "status"=>"A"
                                     ]);
 
-        }elseif($updateStatusTo == "R"){//Refused
-            $db->where("id", $quotation_id);
-            $db->update("quotation", ["status"=>"R"]);
-
-        }elseif($updateStatusTo == "I"){
-            $db->where("id", $quotation_id);
-            $db->update("quotation", ["status"=>"I"]);
-
-            $item_table2 = "";
-
-            $fields1 = [
-                        "doc_date"=>date("Y-m-d"),
-                        "quotation_id"=>$quotation_id,
-                        "reference_number"=>$quotation_number,
-                        "project_id"=>$sorow->project_id,
-                        "client_id"=>$sorow->client_id,
-                        "sub_total_before_discount"=>$quotation_sub_total_before_discount,
-                        "discount_type"=>$quotation_discount_type,
-                        "discount_percent"=>$quotation_discount_percent,
-                        "discount_amount"=>$quotation_discount_amount,
-                        "sub_total"=>$quotation_sub_total,
-                        "vat_inc"=>$quotation_vat_inc,
-                        "vat_percent"=>$quotation_vat_percent,
-                        "vat_value"=>$quotation_vat_value,
-                        "total"=>$quotation_total,
-                        "wht_inc"=>$quotation_wht_inc,
-                        "wht_percent"=>$quotation_wht_percent,
-                        "wht_value"=>$quotation_wht_value,
-                        "payment_amount"=>$quotation_payment_amount,
-                        "remark"=>$sorow->remark,
-                        "created_by"=>$this->login_user->id,
-                        "created_datetime"=>date("Y-m-d H:i:s"),
-                        "status"=>"W",
-                        "deleted"=>0
-                    ];
-
-            /*if($company_setting["company_billing_type"] == 3 || $company_setting["company_billing_type"] == 6){
-                $item_table2 = "receipt_items";
-                $fields2 = ["doc_number"=>$this->Receipts_m->getNewDocNumber()];
-
-                $db->insert("receipt", array_merge($fields1, $fields2));
-                $doc_id2 = $db->insert_id();
-                $this->data["url"] = get_uri("receipts/view/".$doc_id2);
-            }else{
-                $item_table2 = "invoice_items";
-                $invoice_date = date("Y-m-d");
-                $invoice_credit = $sorow->credit;
-                $invoice_due_date = date("Y-m-d", strtotime($invoice_date. " + ".$invoice_credit." days"));
-
-                $fields2 = [
-                                "doc_number"=>$this->Invoices_m->getNewDocNumber(),
-                                "credit"=>$sorow->credit,
-                                "due_date"=>$invoice_due_date
-                            ];
-
-                $db->insert("invoice", array_merge($fields1, $fields2));
-                $doc_id2 = $db->insert_id();
-                $this->data["url"] = get_uri("invoices/view/".$doc_id2);
-            }*/
-
-            $qirows = $db->select("*")
-                            ->from("quotation_items")
-                            ->where("quotation_id", $quotation_id)
-                            ->order_by("sort", "ASC")
-                            ->get()->result();
-
-            if(empty(!$qirows)){
-                if($item_table2 == "receipt_items") $fields2 = ["receipt_id"=>$doc_id2];
-                else $fields2 = ["invoice_id"=>$doc_id2];
-
-                foreach($qirows as $qirow){
-                    $fields1 = [
-                            "product_id"=>$qirow->product_id,
-                            "product_name"=>$qirow->product_name,
-                            "product_description"=>$qirow->product_description,
-                            "quantity"=>$qirow->quantity,
-                            "unit"=>$qirow->unit,
-                            "price"=>$qirow->price,
-                            "total_price"=>$qirow->total_price,
-                            "sort"=>$qirow->sort
-                        ];
-
-                    $db->insert($item_table2, array_merge($fields1, $fields2));
-                }
-            }
-
-            $this->data["task"] = "create_invoice";
-            $this->data["status"] = "success";
-            $this->data["message"] = lang('record_saved');
-
-        }elseif($updateStatusTo == "RESET"){
-            /*if($company_setting["company_billing_type"] == 3 || $company_setting["company_billing_type"] == 6){
-                $rerow = $db->select("doc_number")
-                            ->from("receipt")
-                            ->where("quotation_id", $quotation_id)
-                            ->where("status !=", "V")
-                            ->where("deleted", 0)
-                            ->get()->row();
-
-                if(!empty($rerow)){
-                    $this->data["dataset"] = $this->getIndexDataSetHTML($sorow);
-                    $this->data["message"] = "ไม่สามารถรีเซ็ตใบเสนอราคาได้ เนื่องจากมีการผูกใบเสนอราคากับใบเสร็จเลขที่ ".$rerow->doc_number." แล้ว";
-                    $this->data["status"] = "error";
-                    $db->trans_rollback();
-                    return $this->data;
-                }
-            }else{
-                $ivrow = $db->select("doc_number")
-                        ->from("invoice")
-                        ->where("quotation_id", $quotation_id)
-                        ->where_in("status", ["W", "O", "P"])
-                        ->where("deleted", 0)
-                        ->get()->row();
-
-                if(!empty($ivrow)){
-                    $this->data["dataset"] = $this->getIndexDataSetHTML($sorow);
-                    $this->data["message"] = "ไม่สามารถรีเซ็ตใบเสนอราคาได้ เนื่องจากมีการผูกใบเสนอราคากับใบแจ้งหนี้เลขที่ ".$ivrow->doc_number." แล้ว";
-                    $this->data["status"] = "error";
-                    $db->trans_rollback();
-                    return $this->data;
-                }
-            }*/
-
-            $db->where("id", $quotation_id);
-            $db->update("quotation", [
-                                        "approved_by"=>NULL,
-                                        "approved_datetime"=>NULL,
-                                        "status"=>"W"
-                                    ]);
+        }elseif($updateStatusTo == "V"){
+            $db->where("id", $docId);
+            $db->where("deleted", 0);
+            $db->update("sales_order", ["status"=>"V"]);
+        }else{
+            return $this->data;
         }
 
         if ($db->trans_status() === FALSE){
@@ -918,7 +630,7 @@ class Sales_orders_m extends MY_Model {
         if(isset($this->data["task"])) return $this->data;
 
         $sorow = $db->select("*")
-                    ->from("quotation")
+                    ->from("sales_order")
                     ->where("id",$docId)
                     ->where("deleted", 0)
                     ->get()->row();
@@ -944,15 +656,44 @@ class Sales_orders_m extends MY_Model {
             while(true){
                 $sharekey = uniqid();
                 $db->where("sharekey", $sharekey);
-                if($db->count_all_results("quotation") < 1) break;
+                if($db->count_all_results("sales_order") < 1) break;
             }
 
             $this->data["sharelink"] = get_uri($this->shareHtmlAddress."th/".$sharekey);
         }
 
         $db->where("id", $docId);
-        $db->update("quotation", ["sharekey"=>$sharekey, "sharekey_by"=>$sharekey_by]);
+        $db->update("sales_order", ["sharekey"=>$sharekey, "sharekey_by"=>$sharekey_by]);
 
         return $this->data;
     }
+
+
+    function itemInfo($item_id){
+        $db = $this->db;
+        $ci = get_instance();
+
+        $irow = $db->select("*")
+                        ->from("items")
+                        ->where("id", $item_id)
+                        ->where("deleted", 0)
+                        ->get()->row();
+
+        if(empty($irow)) return $this->data;
+
+        $this->data["id"] = $item_id = $irow->id;
+        $this->data["title"] = $irow->title;
+        $this->data["description"] = $irow->description;
+        $this->data["formulas"] = $ci->Products_m->getFomulasByItemId($item_id);
+        $this->data["quantity"] = number_format(1, $this->Settings_m->getDecimalPlacesNumber());
+        $this->data["unit"] = $irow->unit_type;
+        $this->data["price"] = number_format($irow->rate, 2);
+        $this->data["total_price"] = number_format($irow->rate, 2);
+        $this->data["status"] = "success";
+        $this->data["message"] = "ok";
+
+        return $this->data;
+    }
+
+
 }

@@ -48,10 +48,6 @@ class Products_m extends MY_Model {
             }
         }
 
-        
-
         return $formulas;
-
-        //bom_item_mixing_groups
     }
 }

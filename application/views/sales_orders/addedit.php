@@ -13,7 +13,7 @@
 
     <div class="form-group">
         <label for="project_title" class=" col-md-3">หัวเรื่อง</label>
-        <div class="col-md-9"><input type="text" id="project_title" value="<?php echo $project_title; ?>" placeholder="หัวเรื่อง" class="form-control"></div>
+        <div class="col-md-9"><input type="text" id="project_title" value="<?php echo $project_title; ?>" placeholder="หัวเรื่อง" class="form-control" <?php if($doc_status != "W" && isset($doc_id)) echo "disabled";?>></div>
     </div>
 
     <div class="form-group">
@@ -45,7 +45,7 @@
     <div class="form-group">
         <label for="project_description" class=" col-md-3">คำบรรยาย</label>
         <div class=" col-md-9">
-            <textarea id="project_description" placeholder="คำบรรยาย" class="form-control"><?php echo $project_description; ?></textarea>
+            <textarea id="project_description" placeholder="คำบรรยาย" class="form-control" <?php if($doc_status != "W" && isset($doc_id)) echo "disabled";?>><?php echo $project_description; ?></textarea>
         </div>
     </div>
 
@@ -66,7 +66,7 @@
     <div class="form-group">
         <label for="project_price" class=" col-md-3">ราคา</label>
         <div class="col-md-9">
-            <input type="number" id="project_price" value="<?php echo number_format($project_price, 2); ?>" class="form-control numb" autocomplete="off">
+            <input type="number" id="project_price" value="<?php echo number_format($project_price, 2); ?>" class="form-control numb" autocomplete="off" <?php if($doc_status != "W" && isset($doc_id)) echo "disabled";?>>
         </div>
     </div>
 
@@ -167,11 +167,12 @@ $(document).ready(function() {
         <?php if($project_deadline != null): ?>
             project_deadline.datepicker("setDate", "<?php echo date('d/m/Y', strtotime($project_deadline)); ?>");
         <?php endif;?>
-        
-        
-    <?php endif; ?>
 
-    $("#doc_date").val("<?php echo date('d/m/Y', strtotime($doc_date)); ?>");
+    <?php else: ?>
+        $("#doc_date").val("<?php echo date('d/m/Y', strtotime($doc_date)); ?>");
+        $("#project_start_date").val("<?php echo date('d/m/Y', strtotime($project_start_date)); ?>");
+        $("#project_deadline").val("<?php echo date('d/m/Y', strtotime($project_deadline)); ?>");
+    <?php endif; ?>
 
     $(".numb").blur(function(){
         let price = tonum($("#project_price").val(), <?php echo $this->Settings_m->getDecimalPlacesNumber(); ?>);

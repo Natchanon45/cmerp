@@ -4,7 +4,7 @@
         <h1>ใบสั่งขาย <?php echo $doc_number;?></h1>
         <div class="title-button-group">
             <a style="margin-left: 15px;" class="btn btn-default mt0 mb0 back-to-index-btn" href="<?php echo get_uri("accounting/sell/sales-orders");?>" ><i class="fa fa-hand-o-left" aria-hidden="true"></i> ย้อนกลับไปตารางรายการ</a>
-            <a id="add_item_button" class="btn btn-default" data-post-doc_id="<?php echo $doc_id; ?>" data-act="ajax-modal" data-title="แชร์เอกสาร <?php echo $doc_number; ?>" data-action-url="<?php echo get_uri("/quotations/share"); ?>">แชร์</a>
+            <a id="add_item_button" class="btn btn-default" data-post-doc_id="<?php echo $doc_id; ?>" data-act="ajax-modal" data-title="แชร์เอกสาร <?php echo $doc_number; ?>" data-action-url="<?php echo get_uri("/sales-orders/share"); ?>">แชร์</a>
             <a onclick="window.open('<?php echo $print_url;?>', '' ,'width=980,height=720');" class="btn btn-default">พิมพ์</a>
         </div>
     </div>
@@ -158,15 +158,15 @@
                 <div class="name">
                     <span class="l1">
                         <span class="signature">
-                            <?php if(null != $signature = $this->Users_m->getSignature($created_by)): ?>
+                            <?php if(null != $signature = $this->Users_m->getSignature($approved_by)): ?>
                                 <img src='<?php echo "/".$signature; ?>'>
                             <?php endif; ?>
                         </span>
                     </span>
-                    <span class="l2">ผู้ออก</span>
+                    <span class="l2">ผู้อนุมัติ</span>
                 </div>
                 <div class="date">
-                    <span class="l1"><span class="approved_date"><?php echo convertDate($created_datetime, true); ?></span></span>
+                    <span class="l1"><span class="approved_date"><?php echo convertDate($approved_datetime, true); ?></span></span>
                     <span class="l2">วันที่</span>
                 </div>
             </div>
@@ -205,6 +205,7 @@ function loadItems(){
                     tbody += "<td>";
                         tbody += "<p class='desc1'>"+items[i]["product_name"]+"</p>";
                         tbody += "<p class='desc2'>"+items[i]["product_description"]+"</p>";
+                        tbody += "<p class='desc3'>"+items[i]["product_formula_name"]+"</p>";
                     tbody += "</td>";
                     tbody += "<td>"+items[i]["quantity"]+"</td>"; 
                     tbody += "<td>"+items[i]["unit"]+"</td>"; 
@@ -212,7 +213,7 @@ function loadItems(){
                     tbody += "<td>"+items[i]["total_price"]+"</td>";
                     tbody += "<td class='edititem'>";
                         if(data.doc_status == "W"){
-                            tbody += "<a class='edit' data-post-doc_id='<?php echo $doc_id; ?>' data-post-item_id='"+items[i]["id"]+"' data-act='ajax-modal' data-action-url='<?php echo_uri("quotations/item"); ?>' ><i class='fa fa-pencil'></i></a>";
+                            tbody += "<a class='edit' data-post-doc_id='<?php echo $doc_id; ?>' data-post-item_id='"+items[i]["id"]+"' data-act='ajax-modal' data-action-url='<?php echo_uri("sales-orders/item"); ?>' ><i class='fa fa-pencil'></i></a>";
                             tbody += "<a class='delete' data-item_id='"+items[i]["id"]+"'><i class='fa fa-times fa-fw'></i></a>";
                         }
                     tbody += "</td>";
@@ -231,8 +232,6 @@ function loadItems(){
         console.log(error);
     });
 }
-
-
 
 function deleteItem(item_id){
     axios.post('<?php echo current_url(); ?>', {
