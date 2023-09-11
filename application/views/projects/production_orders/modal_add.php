@@ -1,6 +1,24 @@
 <style type="text/css">
 .modal-dialog {
     width: calc(70% - 5rem);
+    height: 100%;
+    max-height: calc(100% - 8rem);
+    overflow-y: auto;
+    transition: width .55s ease;
+}
+
+@media only screen and (max-width: 1575px) {
+    .modal-dialog {
+        width: 1024px;
+        transition: width .4s ease;
+    }
+}
+
+@media only screen and (max-width: 1024px) {
+    .modal-dialog {
+        width: 99%;
+        transition: width .4s ease;
+    }
 }
 
 .modal-body table {
@@ -118,7 +136,6 @@ $(document).ready(function () {
 
     $("#btn-add-item").on("click", function (e) {
         e.preventDefault();
-
         tableBody.append(`
             <tr>
                 <td>
@@ -153,7 +170,11 @@ $(document).ready(function () {
 
     productionForm.appForm({
         onSuccess: function (result) {
-            console.log(result);
+            if (result.success) {
+                setTimeout(async () => {
+                    await window.parent.loadProductionOrderList();
+                }, 1000);
+            }
         }
     });
 });

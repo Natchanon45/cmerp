@@ -2181,9 +2181,12 @@ $lang["coa"] = "Chart of Account";
 
 $lang["production_order"] = "Production Order";
 $lang["production_order_add"] = "Add Order";
+$lang["production_order_delete"] = "Delete Order";
 $lang["production_order_rm_cost"] = "RM Cost";
 $lang["production_order_produce_status"] = "Production";
+$lang["production_order_produce_status_select"] = "Select produce state";
 $lang["production_order_mr_status"] = "Material Request";
+$lang["production_order_mr_status_select"] = "Select MR state";
 $lang["production_order_not_yet_produce"] = "Not yet produce";
 $lang["production_order_producing"] = "Producing";
 $lang["production_order_produced_completed"] = "Produced completed";
@@ -2193,3 +2196,4 @@ $lang["production_order_completed_withdrawal"] = "Withdrawal completed";
 $lang["production_order_create_mr_all"] = "MR Create all";
 $lang["production_order_change_to_producing"] = "Change to producing all";
 $lang["production_order_change_to_completed"] = "Change to completed all";
+$lang["production_order_bom_list"] = "Bill of material list";

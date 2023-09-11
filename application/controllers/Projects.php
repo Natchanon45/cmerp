@@ -949,16 +949,16 @@ class Projects extends MY_Controller
             } // btn-edit-project
 
             if ($this->Permission_m->access_material_request || $this->Permission_m->access_purchase_request) {
-                $optoins .= modal_anchor(
-                    get_uri("projects/modal_items"),
-                    "<i class='fa fa-shopping-bag'></i>",
-                    array(
-                        "class" => "edit bom-item-modal",
-                        "data-modal-lg" => true,
-                        "title" => lang('item') . ' - ' . $data->title,
-                        "data-post-id" => $data->id
-                    )
-                );
+                // $optoins .= modal_anchor(
+                //     get_uri("projects/modal_items"),
+                //     "<i class='fa fa-shopping-bag'></i>",
+                //     array(
+                //         "class" => "edit bom-item-modal",
+                //         "data-modal-lg" => true,
+                //         "title" => lang('item') . ' - ' . $data->title,
+                //         "data-post-id" => $data->id
+                //     )
+                // );
             } // btn-bag-project
 
             if ($this->check_permission('can_delete_projects') && $dev2_canDeleteProject) {
@@ -5995,6 +5995,16 @@ class Projects extends MY_Controller
         echo json_encode(array("success" => true, "post" => $post, "data" => $data, "process" => $dataProcessing));
     }
 
+    function production_order_modal_items()
+    {
+        var_dump(arr($this->input->post()));
+    }
+
+    function production_order_delete()
+    {
+        var_dump(arr($this->input->post()));
+    }
+
     private function production_order_prepare_data($item)
     {
         $buttons = "";
@@ -6010,41 +6020,43 @@ class Projects extends MY_Controller
                 array(
                     "class" => "edit bom-item-modal",
                     "data-modal-lg" => true,
-                    "title" => lang('item'),
-                    "data-post-id" => $item->id
+                    "title" => lang('production_order_bom_list'),
+                    "data-post-id" => $item->id,
+                    "data-post-project_id" => $item->project_id
                 )
             );
         }
 
         // prepare btn-delete-project
         if ($this->check_permission('can_delete_projects')) {
-            $buttons .= js_anchor(
-                '<i class="fa fa-times fa-fw"></i>',
+            $buttons .= modal_anchor(
+                get_uri("projects/production_order_delete"),
+                "<i class='fa fa-times fa-fw'></i>",
                 array(
-                    "title" => lang("delete_project"),
                     "class" => "delete",
-                    "data-id" => $item->id,
-                    "data-action-url" => get_uri("projects/production_order_delete"),
-                    "data-action" => "delete-confirmation"
+                    "data-modal-sm" => true,
+                    "title" => lang('production_order_delete'),
+                    "data-post-id" => $item->id,
+                    "data-post-project_id" => $item->project_id
                 )
             );
         }
 
         // prepare produce state
         $produce = "";
-        if ($item->produce_status == 0) {
+        if ($item->produce_status == 1) {
             $produce = '<select class="pill pill-primary produce-status" data-id="' . $item->id . '">
-                        <option value="0" selected>' . lang("production_order_not_yet_produce") . '</option>
-                        <option value="1">' . lang("production_order_producing") . '</option>
-                    </select>';
-        } elseif ($item->produce_status == 1) {
-            $produce = '<select class="pill pill-warning produce-status" data-id="' . $item->id . '">
-                        <option value="1" selected>' . lang("production_order_producing") . '</option>
-                        <option value="2">' . lang("production_order_produced_completed") . '</option>
+                        <option value="1" selected>' . lang("production_order_not_yet_produce") . '</option>
+                        <option value="2">' . lang("production_order_producing") . '</option>
                     </select>';
         } elseif ($item->produce_status == 2) {
+            $produce = '<select class="pill pill-warning produce-status" data-id="' . $item->id . '">
+                        <option value="2" selected>' . lang("production_order_producing") . '</option>
+                        <option value="3">' . lang("production_order_produced_completed") . '</option>
+                    </select>';
+        } elseif ($item->produce_status == 3) {
             $produce = '<select class="pill pill-success produce-status pointer-none" data-id="' . $item->id . '">
-                        <option value="2" selected>' . lang("production_order_produced_completed") . '</option>
+                        <option value="3" selected>' . lang("production_order_produced_completed") . '</option>
                     </select>';
         }
 

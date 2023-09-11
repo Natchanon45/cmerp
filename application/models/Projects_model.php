@@ -488,7 +488,15 @@ class Projects_model extends Crud_model {
     public function dev2_getProductionOrderListByProjectId(int $id): array
     {
         $info = array();
-        $get = $this->db->get_where("bom_project_items", ["project_id" => $id])->result();
+        $this->db->select("*")->from("bom_project_items");
+        $this->db->where("project_id", $id);
+
+        $produce_status = $this->input->post("produce_status");
+        if (isset($produce_status) && !empty($produce_status)) {
+            $this->db->where("produce_status", $produce_status);
+        }
+
+        $get = $this->db->get()->result();
 
         if (sizeof($get) && !empty($get)) {
             foreach ($get as $item) {
@@ -552,8 +560,8 @@ class Projects_model extends Crud_model {
 
         if (!empty($info)) {
             // update to producing
-            if ($status == "1") {
-                if ($info->produce_status != 0) {
+            if ($status == "2") {
+                if ($info->produce_status != 1) {
                     $result["status"] = "failure";
                 }
 
@@ -567,8 +575,8 @@ class Projects_model extends Crud_model {
             }
 
             // update to produced completed
-            if ($status == "2") {
-                if ($info->produce_status != 1) {
+            if ($status == "3") {
+                if ($info->produce_status != 2) {
                     $result["status"] = "failure";
                 }
 
@@ -682,7 +690,7 @@ class Projects_model extends Crud_model {
                                         $this->db->insert("bom_project_item_materials", [
                                             "project_id" => $item["project_id"],
                                             "project_item_id" => $bpi_id,
-                                            "material_id" => $stocking->material_id,
+                                            "material_id" => $mixing->material_id,
                                             "stock_id" => $stocking->id,
                                             "ratio" => $used,
                                             "created_by" => $this->login_user->id
@@ -697,7 +705,7 @@ class Projects_model extends Crud_model {
                                 $this->db->insert("bom_project_item_materials", [
                                     "project_id" => $item["project_id"],
                                     "project_item_id" => $bpi_id,
-                                    "material_id" => $stocking->material_id,
+                                    "material_id" => $mixing->material_id,
                                     "ratio" => $total_ratio * -1,
                                     "created_by" => $this->login_user->id
                                 ]);

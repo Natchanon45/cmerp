@@ -2580,9 +2580,12 @@ $lang["coa"] = "ผังบัญชี";
 
 $lang["production_order"] = "รายการผลิต";
 $lang["production_order_add"] = "เพิ่มรายการผลิต";
+$lang["production_order_delete"] = "ลบรายการผลิต";
 $lang["production_order_rm_cost"] = "ต้นทุนวัตถุดิบ";
 $lang["production_order_produce_status"] = "การผลิต";
+$lang["production_order_produce_status_select"] = "สถานะการผลิต";
 $lang["production_order_mr_status"] = "การเบิกวัตถุดิบ";
+$lang["production_order_mr_status_select"] = "สถานะเบิกวัตถุดิบ";
 $lang["production_order_not_yet_produce"] = "ยังไม่ผลิต";
 $lang["production_order_producing"] = "กำลังผลิต";
 $lang["production_order_produced_completed"] = "ผลิตเสร็จแล้ว";
@@ -2592,3 +2595,4 @@ $lang["production_order_completed_withdrawal"] = "เบิกครบแล้
 $lang["production_order_create_mr_all"] = "สร้างใบเบิกทุกรายการ";
 $lang["production_order_change_to_producing"] = "เปลี่ยนสถานะเป็น กำลังผลิต ทุกรายการ";
 $lang["production_order_change_to_completed"] = "เปลี่ยนสถานะเป็น ผลิตเสร็จแล้ว ทุกรายการ";
+$lang["production_order_bom_list"] = "รายการสูตรผสม";

@@ -102,69 +102,83 @@
             ?>
         </div>
     </div>
-    <div class="table-responsive">
-        <table id="production-order-table" class="display" width="100%"></table>
-    </div>
+    <div id="table-wrapper" class="table-responsive"></div>
 </div>
 
 <script type="text/javascript">
-function loadProductionOrderList() {
-    $("#production-order-table").empty();
-
-    $("#production-order-table").appTable({
+async function loadProductionOrderList() {
+    let ajaxTable = '<table id="production-order-table" class="display" width="100%"></table>';
+    let ajaxApp = {
         source: '<?php echo_uri("projects/production_order_list/" . $project_info["id"]); ?>',
+        order: [[0, 'desc']],
+        filterDropdown: [
+            {
+                name: 'mr_status',
+                class: 'w200',
+                options: [
+                    { id: 0, text: '<?php echo "-- " . lang("production_order_mr_status_select") . " --"; ?>' },
+                    { id: 1, text: '<?php echo lang("production_order_not_yet_withdrawn"); ?>' },
+                    { id: 2, text: '<?php echo lang("production_order_partially_withdrawn"); ?>' },
+                    { id: 3, text: '<?php echo lang("production_order_completed_withdrawal"); ?>' }
+                ]
+            },
+            {
+                name: 'produce_status',
+                class: 'w200',
+                options: [
+                    { id: 0, text: '<?php echo "-- " . lang("production_order_produce_status_select") . " --"; ?>' },
+                    { id: 1, text: '<?php echo lang("production_order_not_yet_produce"); ?>' },
+                    { id: 2, text: '<?php echo lang("production_order_producing"); ?>' },
+                    { id: 3, text: '<?php echo lang("production_order_produced_completed"); ?>' }
+                ]
+            }
+        ],
         destroy: true,
         columns: [
             { title: '<?php echo lang("id"); ?>', class: 'text-center' },
-            { title: '<?php echo lang("item"); ?>', class: '' },
+            { title: '<?php echo lang("item"); ?>' },
             { title: '<?php echo lang("item_mixing_name"); ?>' },
             { title: '<?php echo lang("quantity"); ?>', class: 'text-right' },
             { title: '<?php echo lang("stock_material_unit"); ?>', class: 'text-left' },
             { title: '<?php echo lang("production_order_rm_cost"); ?>', class: 'text-right' },
             { title: '<?php echo lang("currency"); ?>', class: 'text-left' },
-            { title: '<?php echo lang("status") . "<br>" . lang("production_order_produce_status"); ?>', class: 'text-center' },
-            { title: '<?php echo lang("status") . "<br>" . lang("production_order_mr_status"); ?>', class: 'text-center' },
+            { title: '<?php echo lang("status") . '<br>' . lang("production_order_produce_status"); ?>', class: 'text-center' },
+            { title: '<?php echo lang("status") . '<br>' . lang("production_order_mr_status"); ?>', class: 'text-center' },
             { title: '<i class="fa fa-bars"></i>', class: 'text-center option' }
+        ],
+        summation: [
+            { column: 5, dataType: 'currency' }
         ]
-    });
+    };
 
-    $("#production-order-table").on("draw.dt", function () {
-        
-        // produce state change
+    await $("#table-wrapper").empty();
+    await $("#table-wrapper").append(ajaxTable);
+
+    await $("#production-order-table").appTable(ajaxApp);
+    await $("#production-order-table").on("draw.dt", async function () {
         let currentProduceState = $(".produce-status").val();
-        $(".produce-status").on("change", function (e) {
+        $(".produce-status").on("change", async function (e) {
             e.preventDefault();
-
             if ($(this).val() !== currentProduceState) {
                 let url = '<?php echo get_uri("projects/production_order_state_change/" . $project_info["id"]); ?>';
                 let req = {
                     id: $(this).data("id"),
                     state: $(this).val()
                 };
-
-                produceStateChange(url, req);
+                await produceStateChange(url, req);
             }
         });
     });
 }
 
-$(document).ready(function () {
-    loadProductionOrderList();
-});
-
 async function produceStateChange (url = "", req = {}) {
-    // await console.log(url, req);
-
     await $.ajax({
         type: "POST",
         url: url,
         data: req,
         success: function (data, status) {
             let res = JSON.parse(data);
-
             if (status === "success") {
-                console.log(res);
-
                 $("#production-order-table").appTable({
                     newData: res.data,
                     dataId: res.info.id
@@ -176,4 +190,8 @@ async function produceStateChange (url = "", req = {}) {
         }
     });
 };
+
+$(document).ready(function () {
+    loadProductionOrderList();
+});
 </script>
