@@ -258,7 +258,7 @@ class Items extends MY_Controller
 			$preview,
 			anchor(get_uri('' . $this->className . '/detail/' . $data->id), $data->title),
 			nl2br($data->description),
-			$data->category_title ? $data->category_title : "-",
+			$data->category_title ? "$data->category_title" : "-",
 			// $data->account_id ? $this->Account_category_model->account_by($data->account_id) : "-",
 			$type,
 			@$data->barcode ? '<div style="text-align:center"><a href="' . $src . '" class="barcode_img" download><img src="' . $src . '" /><div class="text">Click to download</div></a></div>' : '-',
@@ -1355,7 +1355,13 @@ class Items extends MY_Controller
 
 		$fs = $this->getRolePermission["filters"]["WHERE"];
 
-		$this->db->select("*, title AS category_title")->from("items");
+		//$this->db->select("*, title AS category_title")->from("items");
+		$this->db->select("items.*, item_categories.title AS category_title")
+					->from("items")
+					->join("item_categories", "items.category_id = item_categories.id");
+
+		if($category_id)$this->db->where("items.category_id", $category_id);
+		
 
 		if(!empty($fs)){
 			foreach($fs as $f){
