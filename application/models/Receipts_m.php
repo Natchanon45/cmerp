@@ -143,6 +143,7 @@ class Receipts_m extends MY_Model {
         $this->data["created_datetime"] = null;
         $this->data["approved_by"] = null;
         $this->data["approved_datetime"] = null;
+        $this->data["company_stamp"] = null;
         $this->data["doc_status"] = NULL;
 
         if(!empty($docId)){
@@ -186,6 +187,7 @@ class Receipts_m extends MY_Model {
             $this->data["created_datetime"] = $rerow->created_datetime;
             $this->data["approved_by"] = $rerow->approved_by;
             $this->data["approved_datetime"] = $rerow->approved_datetime;
+            if($rerow->approved_by != null) if(file_exists($_SERVER['DOCUMENT_ROOT']."/".$company_setting["company_stamp"])) $this->data["company_stamp"] = $company_setting["company_stamp"];
             $this->data["doc_status"] = $rerow->status;
         }
 
@@ -263,6 +265,11 @@ class Receipts_m extends MY_Model {
         $this->data["created_datetime"] = $rerow->created_datetime;
         $this->data["approved_by"] = $rerow->approved_by;
         $this->data["approved_datetime"] = $rerow->approved_datetime;
+
+        if($rerow->approved_by != null && file_exists($_SERVER['DOCUMENT_ROOT']."/".$company_setting["company_stamp"])){
+            $this->data["company_stamp"] = $company_setting["company_stamp"];
+        }
+        
         $this->data["doc_status"] = $rerow->status;
 
         $this->data["doc"] = $rerow;
@@ -766,12 +773,13 @@ class Receipts_m extends MY_Model {
                 return $this->data;
             }
 
+            $stock_updated = "N";
             $company_stock_type = $company_setting["company_stock_type"];
             
             if($company_stock_type == "receipt"){
                 $item = [
                         "sale_id"=>$rerow->id,
-                        "sale_type"=>"RE",
+                        "sale_type"=>$this->code,
                         "sale_document"=>$rerow->doc_number,
                         "project_id"=>$rerow->project_id,
                         "created_by"=>$rerow->created_by
@@ -799,10 +807,27 @@ class Receipts_m extends MY_Model {
                 $item["items"] = $items;
                 
                 $bism = $this->Bom_item_stocks_model->processFinishedGoodsSale($item);
+
+                if($bism["status"] == "success"){
+                    $stock_updated = "Y";
+
+                    if(!empty($bism["result"])){
+                        foreach($bism["result"] as $bism_item){
+                            $db->where("id", $bism_item["id"]);
+                            $db->update("receipt_items", ["bpii_id"=>json_encode($bism_item["bpii_id"])]);
+                        }
+                    }
+                }
             }
 
             $db->where("id", $docId);
-            $db->update("receipt", ["approved_by"=>$this->login_user->id, "approved_datetime"=>date("Y-m-d H:i:s"), "status"=>"P"]);
+            $db->where("deleted", 0);
+            $db->update("receipt", [
+                                        "approved_by"=>$this->login_user->id,
+                                        "approved_datetime"=>date("Y-m-d H:i:s"),
+                                        "stock_updated"=>$stock_updated,
+                                        "status"=>"P"
+                                    ]);
 
         }elseif($updateStatusTo == "V"){
             $db->where("id", $docId);

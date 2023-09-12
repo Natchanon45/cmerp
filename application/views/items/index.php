@@ -16,6 +16,7 @@
 </div>
 
 <script type="text/javascript">
+    //alert('<?php echo json_encode($categories_dropdown); ?>');
     $(document).ready(function () {
         $("#item-table").appTable({
             source: '<?php echo_uri("items/list_data") ?>',

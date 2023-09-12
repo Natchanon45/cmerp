@@ -249,6 +249,11 @@
 				</div>
 			</div>
 			<div class="c2">
+				<div class="company_stamp">
+	                <?php if($doc["company_stamp"] != null): ?>
+	                    <img src="<?php echo base_url($doc["company_stamp"]);?>">
+	                <?php endif;?>
+	            </div>
 				<div class="on_behalf_of"></div>
 				<div class="signature clear">
 					<div class="name">
