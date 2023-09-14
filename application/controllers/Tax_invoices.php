@@ -5,7 +5,7 @@ class Tax_invoices extends MY_Controller {
     function __construct() {
         parent::__construct();
         
-        if($this->Permission_m->accounting["invoice"]["access"] != true){
+        if($this->Permission_m->accounting["tax_invoice"]["access"] != true){
             $this->session->set_flashdata('notice_error', lang('no_permissions'));
             redirect(get_uri("accounting/sell"));
         }
@@ -66,7 +66,7 @@ class Tax_invoices extends MY_Controller {
         $data["created"] = $this->Users_m->getInfo($data["created_by"]);
         $data["client"] = $this->Customers_m->getInfo($data["customer_id"]);
         $data["client_contact"] = $this->Customers_m->getContactInfo($data["client_id"]);
-        $data["print_url"] = get_uri("invoices/print/".str_replace("=", "", base64_encode($data['doc_id'].':'.$data['doc_number'])));
+        $data["print_url"] = get_uri("tax-invoices/print/".str_replace("=", "", base64_encode($data['doc_id'].':'.$data['doc_number'])));
 
         $this->template->rander("tax_invoices/view", $data);
     }
@@ -76,7 +76,7 @@ class Tax_invoices extends MY_Controller {
         if($doc["status"] != "success") redirect("forbidden");
 
         $this->data["docmode"] = "private_print";
-        $this->load->view('edocs/invoice', $this->data);
+        $this->load->view('edocs/tax_invoice', $this->data);
     }
 
     function delete_doc() {

@@ -510,7 +510,7 @@ class Invoices_m extends MY_Model {
                                         "due_date"=>$due_date,
                                         "reference_number"=>$reference_number,
                                         "client_id"=>$customer_id,
-                                        "project_id"=>($project_id != null ? $project:null),
+                                        "project_id"=>($project_id != null ? $project_id:null),
                                         "remark"=>$remark
                                     ]);
         }else{
@@ -525,7 +525,7 @@ class Invoices_m extends MY_Model {
                                         "reference_number"=>$reference_number,
                                         "vat_inc"=>$company_setting["company_vat_registered"],
                                         "client_id"=>$customer_id,
-                                        "project_id"=>($project_id != null ? $project:null),
+                                        "project_id"=>($project_id != null ? $project_id:null),
                                         "remark"=>$remark,
                                         "created_by"=>$this->login_user->id,
                                         "created_datetime"=>date("Y-m-d H:i:s"),
