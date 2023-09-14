@@ -2197,3 +2197,4 @@ $lang["production_order_create_mr_all"] = "MR Create all";
 $lang["production_order_change_to_producing"] = "Change to producing all";
 $lang["production_order_change_to_completed"] = "Change to completed all";
 $lang["production_order_bom_list"] = "Bill of material list";
+$lang["production_order_produce_in"] = "Produce in<br>stock";

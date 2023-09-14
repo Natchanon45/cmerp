@@ -1,9 +1,6 @@
 <style type="text/css">
 .modal-dialog {
     width: calc(70% - 5rem);
-    height: 100%;
-    max-height: calc(100% - 8rem);
-    overflow-y: auto;
     transition: width .55s ease;
 }
 
@@ -19,6 +16,12 @@
         width: 99%;
         transition: width .4s ease;
     }
+}
+
+.modal-body {
+    max-height: calc(100vh - 22.5rem);
+    overflow-y: auto;
+    overflow-x: hidden;
 }
 
 .modal-body table {
@@ -73,7 +76,10 @@ echo form_open(
             <tr>
                 <th width="35%"><?php echo lang("item"); ?></th>
                 <th><?php echo lang("item_mixing_name"); ?></th>
-                <th width="256px"><?php echo lang("quantity"); ?></th>
+                <th width="128px"><?php echo lang("quantity"); ?></th>
+                <th width="128px">
+                    <span><?php echo lang("production_order_produce_in"); ?></span>
+                </th>
                 <th>
                     <button id="btn-add-item" class="btn btn-primary">
                         <span class="fa fa-plus-circle"></span> 
@@ -104,6 +110,12 @@ echo form_open(
                         <input name="quantity[]" class="form-control select-quantity" value="1" required>
                         <div class="input-tag"></div>
                     </div>
+                </td>
+                <td>
+                    <select name="produce_in[]" class="form-control select-produce-in">
+                        <option value="1"><?php echo lang("yes"); ?></option>
+                        <option value="0"><?php echo lang("no"); ?></option>
+                    </select>
                 </td>
                 <td></td>
             </tr>
@@ -158,6 +170,12 @@ $(document).ready(function () {
                     </div>
                 </td>
                 <td>
+                    <select name="produce_in[]" class="form-control select-produce-in">
+                        <option value="1"><?php echo lang("yes"); ?></option>
+                        <option value="2"><?php echo lang("no"); ?></option>
+                    </select>
+                </td>
+                <td>
                     <button class="btn btn-danger button-delete">
                         <span class="fa fa-trash"></span> 
                         <?php echo lang("delete"); ?>
@@ -180,6 +198,9 @@ $(document).ready(function () {
 });
 
 async function processBinding() {
+    $(".select-produce-in").select2("destroy");
+    $(".select-produce-in").select2();
+
     $(".button-delete").unbind();
     $(".button-delete").on("click", function (e) {
         e.preventDefault();

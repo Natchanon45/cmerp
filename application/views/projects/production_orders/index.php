@@ -16,6 +16,7 @@
         border: none;
         border-radius: .65rem;
         appearance: none;
+        width: 90%;
     }
 
     .pill-primary {
@@ -39,7 +40,7 @@
     }
 
     .pill-warning {
-        color: #212529;
+        color: #fff;
         background-color: #ffc107;
     }
 
@@ -156,10 +157,10 @@ async function loadProductionOrderList() {
 
     await $("#production-order-table").appTable(ajaxApp);
     await $("#production-order-table").on("draw.dt", async function () {
-        let currentProduceState = $(".produce-status").val();
         $(".produce-status").on("change", async function (e) {
             e.preventDefault();
-            if ($(this).val() !== currentProduceState) {
+
+            if ($(this).val()) {
                 let url = '<?php echo get_uri("projects/production_order_state_change/" . $project_info["id"]); ?>';
                 let req = {
                     id: $(this).data("id"),

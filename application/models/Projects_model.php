@@ -496,6 +496,11 @@ class Projects_model extends Crud_model {
             $this->db->where("produce_status", $produce_status);
         }
 
+        $mr_status = $this->input->post("mr_status");
+        if (isset($mr_status) && !empty($mr_status)) {
+            $this->db->where("mr_status", $mr_status);
+        }
+
         $get = $this->db->get()->result();
 
         if (sizeof($get) && !empty($get)) {
@@ -647,6 +652,7 @@ class Projects_model extends Crud_model {
                     "item_id" => $item["item_id"],
                     "mixing_group_id" => $item["item_mixing"],
                     "quantity" => $item["quantity"],
+                    "produce_in" => $item["produce_in"],
                     "created_by" => $this->login_user->id
                 ]);
                 $bpi_id = $this->db->insert_id();
@@ -716,11 +722,151 @@ class Projects_model extends Crud_model {
                     }
                 }
                 $item["bim_list"] = $bim_list;
+                $result[] = $item;
             }
-            $result = $data;
         }
 
         return $result;
+    }
+
+    public function dev2_getProductionOrderHeaderById(int $id): stdClass
+    {
+        $info = new stdClass();
+        $get = $this->db->get_where("bom_project_items", ["id" => $id])->row();
+
+        if (!empty($get)) {
+            $get->item_info = $this->dev2_getRowInfoByRowId($get->item_id, "items");
+            $get->mixing_group = $this->dev2_getRowInfoByRowId($get->mixing_group_id, "bom_item_mixing_groups");
+            $info = $get;
+        }
+        return $info;
+    }
+
+    public function dev2_getProductionOrderDetailByProjectHeaderId(int $project_id, int $project_item_id): stdClass
+    {
+        $info = new stdClass();
+        
+        $get = $this->db->select("*")
+        ->from("bom_project_item_materials")
+        ->where("project_id", $project_id)
+        ->where("project_item_id", $project_item_id)
+        ->order_by("material_id", "ASC")
+        ->order_by("stock_id", "ASC")
+        ->get()
+        ->result();
+
+        if (sizeof($get) && !empty($get)) {
+            foreach ($get as $item) {
+                $item->material_info = $this->dev2_getRowInfoByRowId($item->material_id, "bom_materials");
+                if (isset($item->stock_id) && !empty($item->stock_id)) {
+                    $item->stock_info = $this->dev2_getRowInfoByRowId($item->stock_id, "bom_stocks");
+                    $item->stock_info->group_info = $this->dev2_getRowInfoByRowId($item->stock_info->group_id, "bom_stock_groups");
+                }
+                if (isset($item->mr_id) && !empty($item->mr_id)) {
+                    $item->mr_info = $this->dev2_getRowInfoByRowId($item->mr_id, "materialrequests");
+                }
+            }
+            $info = $get;
+        }
+        return (object) $info;
+    }
+
+    public function dev2_postProductionMaterialRequestCreation(int $project_id, string $project_name, int $project_item_id): array
+    {
+        $info = [
+            "mr_id" => null,
+            "mr_info" => null,
+            "mr_items_info" => null,
+            "process" => "failure",
+            "success" => false,
+            "target" => null
+        ];
+
+        $sql = "SELECT * FROM bom_project_item_materials WHERE project_id = ? AND project_item_id = ? AND ratio > 0 AND mr_id IS NULL AND used_status = 0 AND entry_flag = 0 ORDER BY material_id, stock_id";
+        $get = $this->db->query($sql, [$project_id, $project_item_id])->result();
+
+        $param_docno = [
+            "prefix" => "MR",
+            "LPAD" => 4,
+            "column" => "doc_no",
+            "table" => "materialrequests"
+        ];
+
+        if (sizeof($get) && !empty($get)) {
+            // create a material request document
+            $header_data = [
+                "doc_no" => $this->Db_model->genDocNo($param_docno),
+                "mr_type" => 1,
+                "project_name" => $project_name,
+                "project_id" => $project_id,
+                "mr_date" => date("Y-m-d"),
+                "status_id" => 1,
+                "created_by" => $this->login_user->id,
+                "requester_id" => $this->login_user->id
+            ];
+
+            $this->db->insert("materialrequests", $header_data);
+            $header_id = $this->db->insert_id();
+
+            $mr_items_info = array();
+            foreach ($get as $item) {
+                // add some material items to material request document
+                $material_info = $this->dev2_getRowInfoByRowId($item->material_id, "bom_materials");
+                $item_data = [
+                    "mr_id" => $header_id,
+                    "project_id" => $project_id,
+                    "project_name" => $project_name,
+                    "code" => $material_info->name,
+                    "title" => $material_info->production_name,
+                    "description" => $material_info->description,
+                    "quantity" => $item->ratio,
+                    "unit_type" => $material_info->unit,
+                    "material_id" => $item->material_id,
+                    "bpim_id" => $item->id,
+                    "stock_id" => $item->stock_id
+                ];
+                
+                $this->db->insert("mr_items", $item_data);
+                $item_id = $this->db->insert_id();
+                $mr_items_info[$item_id] = $item_data;
+
+                // patch mr id to bom project item material
+                $this->dev2_patchMaterialRequestIdForBomItemByItemId($item->id, $header_id);
+            }
+
+            // patch material request status for production order
+            $this->dev2_patchProductionMaterialRequestStatus($project_item_id);
+
+            // prepare info to return
+            $info = [
+                "mr_id" => $header_id,
+                "mr_info" => $header_data,
+                "mr_items_info" => $mr_items_info,
+                "process" => "success",
+                "success" => true,
+                "target" => get_uri("materialrequests/view/" . $header_id)
+            ];
+        }
+
+        return $info;
+    }
+
+    private function dev2_patchMaterialRequestIdForBomItemByItemId(int $id, int $mr_id): void
+    {
+        $this->db->where("id", $id);
+        $this->db->update("bom_project_item_materials", [
+            "mr_id" => $mr_id
+        ]);
+    }
+
+    private function dev2_patchProductionMaterialRequestStatus(int $production_id): void
+    {
+        $sql = "SELECT IFNULL(COUNT(id), 0) AS row_count FROM bom_project_item_materials WHERE mr_id IS NULL AND project_item_id = ?";
+        $query = $this->db->query($sql, $production_id)->row();
+        $mr_status = $query->row_count ? 2 : 3;
+
+        $this->db->where("id", $production_id);
+        $this->db->update("bom_project_items", ["mr_status" => $mr_status]);
     }
 
     private function dev2_getRowInfoByRowId(int $id, string $table): stdClass
