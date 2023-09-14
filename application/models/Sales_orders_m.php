@@ -27,6 +27,12 @@ class Sales_orders_m extends MY_Model {
         }
     }
 
+    function getPurposeInfo($purpose_code){
+        if($purpose_code == "P") return "สร้างเพื่อผลิต";
+        elseif($purpose_code == "S") return "สร้างเพื่อขาย";
+        return "";
+    }
+
     function getIndexDataSetHTML($sorow){
         $company_setting = $this->Settings_m->getCompany();
 
@@ -38,6 +44,12 @@ class Sales_orders_m extends MY_Model {
             $doc_status .= "<option value='V'>ยกเลิก</option>";
         }elseif($sorow->status == "A"){
             $doc_status .= "<option selected>อนุมัติ</option>";
+
+            if($sorow->purpose == "S"){
+                $doc_status .= "<option value='PR'>สร้างใบขอซื้อ</option>";
+            }
+
+
             $doc_status .= "<option value='V'>ยกเลิก</option>";
         }elseif($sorow->status == "V"){
             $doc_status .= "<option selected>ยกเลิก</option>";
@@ -48,7 +60,7 @@ class Sales_orders_m extends MY_Model {
         $data = [
                     "<a href='".get_uri("sales-orders/view/".$sorow->id)."'>".convertDate($sorow->doc_date, true)."</a>",
                     "<a href='".get_uri("sales-orders/view/".$sorow->id)."'>".$sorow->doc_number."</a>",
-                    $sorow->reference_number, "<a href='".get_uri("clients/view/".$sorow->client_id)."'>".$sorow->project_title."</a>",
+                    $sorow->reference_number, $this->getPurposeInfo($sorow->purpose),
                     $this->Clients_m->getCompanyName($sorow->client_id), $sorow->project_price, $doc_status,
                     "<a data-post-id='".$sorow->id."' data-action-url='".get_uri("sales-orders/addedit")."' data-act='ajax-modal' class='edit'><i class='fa fa-pencil'></i></a>"
                 ];
@@ -56,33 +68,40 @@ class Sales_orders_m extends MY_Model {
         return $data;
     }
 
-    function indexDataSet() {
+    function indexDataSet($doc_id = null) {
         $db = $this->db;
-        $company_setting = $this->Settings_m->getCompany();
+        $dataset = null;
 
         $db->select("*")->from("sales_order");
 
-        if($this->input->post("status") != null){
-            $db->where("status", $this->input->post("status"));
-        }
+        if($doc_id != null){
+            $sorow = $db->where("id", $doc_id)->get()->row();
+            if(!empty($sorow)){
+                $this->data["status"] = "success";
+                $this->data["doc_id"] = $doc_id;
+                $this->data["dataset"] = $this->getIndexDataSetHTML($sorow);
+                return $this->data;
+            }
 
-        if($this->input->post("start_date") != null && $this->input->post("end_date")){
-            $db->where("doc_date >=", $this->input->post("start_date"));
-            $db->where("doc_date <=", $this->input->post("end_date"));
-        }
+            return $this->data;
+            
+        }else{
+            if($this->input->post("status") != null) $db->where("status", $this->input->post("status"));
 
-        if($this->input->post("client_id") != null){
-            $db->where("client_id", $this->input->post("client_id"));
-        }
+            if($this->input->post("start_date") != null && $this->input->post("end_date")){
+                $db->where("doc_date >=", $this->input->post("start_date"));
+                $db->where("doc_date <=", $this->input->post("end_date"));
+            }
 
-        $db->where("deleted", 0);
+            if($this->input->post("client_id") != null) $db->where("client_id", $this->input->post("client_id"));
 
-        $sorows = $db->order_by("doc_number", "desc")->get()->result();
+            $db->where("deleted", 0);
 
-        $dataset = [];
+            $sorows = $db->order_by("doc_number", "desc")->get()->result();
 
-        foreach($sorows as $sorow){
-            $dataset[] = $this->getIndexDataSetHTML($sorow);
+            foreach($sorows as $sorow){
+                $dataset[] = $this->getIndexDataSetHTML($sorow);
+            }    
         }
 
         return $dataset;
@@ -93,6 +112,7 @@ class Sales_orders_m extends MY_Model {
         $company_setting = $this->Settings_m->getCompany();
 
         $this->data["doc_id"] = null;
+        $this->data["purpose"] = null;
         $this->data["doc_date"] = date("Y-m-d");
         $this->data["reference_number"] = null;
         $this->data["project_id"] = null;
@@ -132,6 +152,7 @@ class Sales_orders_m extends MY_Model {
             }
 
             $this->data["doc_id"] = $docId;
+            $this->data["purpose"] = $sorow->purpose;
             $this->data["doc_date"] = $sorow->doc_date;
             $this->data["doc_number"] = $sorow->doc_number;
             $this->data["share_link"] = $sorow->sharekey != null ? get_uri($this->shareHtmlAddress."th/".$sorow->sharekey) : null;
@@ -157,6 +178,8 @@ class Sales_orders_m extends MY_Model {
         }
 
         $this->data["status"] = "success";
+
+
 
         return $this->data;
     }
@@ -252,6 +275,7 @@ class Sales_orders_m extends MY_Model {
 
         $docId = $this->json->doc_id;
         $doc_date = convertDate($this->json->doc_date);
+        $purpose = $this->json->purpose;
         $reference_number = $this->json->reference_number;
         $project_title = $this->json->project_title;
         $client_id = $this->json->client_id;
@@ -294,6 +318,7 @@ class Sales_orders_m extends MY_Model {
             $db->where("id", $docId);
             $db->where("deleted", 0);
             $db->update("sales_order", [
+                                        "purpose"=>$purpose,
                                         "doc_date"=>$doc_date,
                                         "reference_number"=>$reference_number,
                                         "client_id"=>$customer_id,
@@ -308,6 +333,7 @@ class Sales_orders_m extends MY_Model {
             $doc_number = $this->getNewDocNumber();
         
             $db->insert("sales_order", [
+                                        "purpose"=>$purpose,
                                         "doc_number"=>$doc_number,
                                         "doc_date"=>$doc_date,
                                         "reference_number"=>$reference_number,
@@ -591,8 +617,9 @@ class Sales_orders_m extends MY_Model {
         $sales_order_number = $sorow->doc_number;
         $currentStatus = $sorow->status;
 
+        $this->data["dataset"] = $this->getIndexDataSetHTML($sorow);
+
         if($sorow->status == $updateStatusTo){
-            $this->data["dataset"] = $this->getIndexDataSetHTML($sorow);
             return $this->data;
         }
 
@@ -600,7 +627,12 @@ class Sales_orders_m extends MY_Model {
 
         if($updateStatusTo == "A"){//Approved
             if($currentStatus == "V"){
-                $this->data["dataset"] = $this->getIndexDataSetHTML($sorow);
+                return $this->data;
+            }
+
+            $db->where("id", $sales_order_id);
+            if($db->count_all_results("sales_order_items") < 1){
+                $this->data["message"] = "ไม่พบรายการสำหรับอนุมัติ";
                 return $this->data;
             }
 
@@ -611,6 +643,13 @@ class Sales_orders_m extends MY_Model {
                                         "status"=>"A"
                                     ]);
 
+        }elseif($updateStatusTo == "PR"){
+            $this->data["popup_doc_id"] = $sales_order_id;
+            $this->data["popup_title"] = "เลือกผู้จัดจำหน่ายสำหรับสร้างใบขอซื้อ";
+            $this->data["popup_url"] = get_uri("sales-orders/make_purchase_requisition");
+            $this->data["task"] = "popup";
+            $this->data["status"] = "success";
+            return $this->data;
         }elseif($updateStatusTo == "V"){
             $db->where("id", $docId);
             $db->where("deleted", 0);
@@ -621,7 +660,6 @@ class Sales_orders_m extends MY_Model {
 
         if ($db->trans_status() === FALSE){
             $db->trans_rollback();
-            $this->data["dataset"] = $this->getIndexDataSetHTML($sorow);
             return $this->data;
         }
 
@@ -691,6 +729,123 @@ class Sales_orders_m extends MY_Model {
         $this->data["total_price"] = number_format($irow->rate, 2);
         $this->data["status"] = "success";
         $this->data["message"] = "ok";
+
+        return $this->data;
+    }
+
+    function productsToPR($sales_order_id){
+        $db = $this->db;
+
+        $sorow = $db->select("*")
+                        ->from("sales_order")
+                        ->where("id", $sales_order_id)
+                        ->where("status", "A")
+                        ->where("deleted", 0)
+                        ->get()->row();
+
+        if(empty($sorow)){
+            return $this->data;
+        }
+
+        $soirows = $db->select("*")
+                        ->from("sales_order_items")
+                        ->where("sales_order_id", $sales_order_id)
+                        ->order_by("sort", "asc")
+                        ->get()->result();
+
+        $html = "";
+        $total_records = 0;
+        
+        if(!empty($soirows)){
+
+            foreach($soirows as $soirow){
+                $biprows = $db->select("*")
+                                ->from("bom_item_pricings")
+                                ->where("item_id", $soirow->product_id)
+                                ->get()->result();
+
+                
+                $html .= "<tr class='sales_order_items' data-id='".$soirow->id."'>";
+                    $html .= "<td class='product_name'>".$soirow->product_name."</td>";
+                    $html .= "<td class='product_supplier'>";
+
+                        if(empty($biprows)){
+                            $html .= "<span class='supplier_not_found'>ไม่พบผู้จัดจำหน่าย</span>";
+                        }else{
+                            $html .= "<select class='suppliers'>";
+                                foreach($biprows as $biprow){
+                                    $html .= "<option value='".$biprow->supplier_id."'>".$this->Suppliers_m->getInfo($biprow->supplier_id)["company_name"]."</option>";
+                                }
+                            $html .= "</select>";
+                        }
+
+                    $html .= "</td>";
+                    $html .= "<td class='reference_number'></td>";
+                $html .= "</tr>";
+                $total_records++;
+            }
+        }
+
+        if($total_records >= 1){
+            $this->data["html"] = $html;
+        }else{
+            $this->data["html"] = "<tr class='norecord'><td colspan='2'>ไม่พบข้อมูลสินค้า</td></tr>";
+        }
+
+        return $this->data;
+    }
+
+    function makePurchaseRequisition(){
+        $db = $this->db;
+        $ci = get_instance();
+        $doc_id = $this->json->doc_id;
+
+        $sorow = $db->select("*")
+                    ->from("sales_order")
+                    ->where("id", $doc_id)
+                    ->where("deleted", 0)
+                    ->get()->row();
+
+        if(empty($sorow)) return $this->data;
+
+
+
+        $soirows = $db->select("*")
+                        ->from("sales_order_items")
+                        ->where("sales_order_id", $doc_id)
+                        ->where("pr_header_id IS NULL")
+                        ->get()->result();
+
+        if(!empty($soirows)){
+            foreach($soirows as $soirow){
+                $pr_doc_number = $ci->Purchase_request_m->getNewDocNumber();
+                $pr_doc_date = date("Y-m-d");
+                $pr_type = 3;
+                $pr_doc_valid_until_date = date("Y-m-d");
+                $pr_supplier_id = date("Y-m-d");//<--looking for spplier id
+                $pr_product_id = 0;
+
+                $prd_id = $soirow;
+                
+                $db->insert("pr_header", [
+                                            "doc_number"=>$pr_doc_number,
+                                            "pr_type"=>$pr_type,
+                                            "doc_date"=>$pr_doc_date,
+                                            "doc_valid_until_date"=>$pr_doc_valid_until_date,
+                                            "supplier_id"=>$pr_supplier_id,
+                                            "created_by"=>$this->login_user->id,
+                                            "created_datetime"=>date("Y-m-d H:i:s"),
+                                            "status"=>"W",
+                                        ]);
+
+                $pr_header_id = $db->insert_id();
+
+                $db->insert("pr_detail", [
+                                            "pr_id"=>$pr_header_id,
+                                            "product_id"=>$pr_header_id,
+                                        ]);
+            }
+        }
 
         return $this->data;
     }

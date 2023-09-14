@@ -12,6 +12,16 @@
     </div>
 
     <div class="form-group">
+        <label for="purpose" class=" col-md-3">วัตถุประสงค์</label>
+        <div class="col-md-9">
+            <select id="purpose" class="form-control" <?php if($doc_status != "W" && isset($doc_id)) echo "disabled";?>>
+                <option value="P" <?php if($purpose == "P") echo "selected"; ?>>สร้างเพื่อผลิต</option>
+                <option value="S" <?php if($purpose == "P") echo "selected"; ?>>สร้างเพื่อขาย</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="form-group">
         <label for="project_title" class=" col-md-3">หัวเรื่อง</label>
         <div class="col-md-9"><input type="text" id="project_title" value="<?php echo $project_title; ?>" placeholder="หัวเรื่อง" class="form-control" <?php if($doc_status != "W" && isset($doc_id)) echo "disabled";?>></div>
     </div>
@@ -101,6 +111,7 @@ $(document).ready(function() {
             axios.post('<?php echo current_url(); ?>', {
                 task: 'save_doc',
                 doc_id : "<?php if(isset($doc_id)) echo $doc_id; ?>",
+                purpose: $("#purpose").val(),
                 doc_date:$("#doc_date").val(),
                 reference_number: $("#reference_number").val(),
                 project_title: $("#project_title").val(),

@@ -6,7 +6,7 @@
 }
 
 #accounting_navs .tabs{
-    width: 70%;
+    width: calc(100% - 100px);
     float: left;
     list-style: none;
     margin-top: 18px;
@@ -51,12 +51,18 @@
 }
 
 #accounting_navs .buttons{
-    width: 20%;
     float: right;
     text-align: right;
     list-style: none;
     margin-top: 18px;
     margin-right: 18px;
+    width: 1px;
+    position: relative;
+}
+
+#accounting_navs .buttons li{
+    position: absolute;
+    right: 0;
 }
 
 #accounting_navs .buttons .add a i{
@@ -209,7 +215,7 @@ function loadDataGrid(){
                             {title: "วันที่", "class":"w10p"},
                             {title: "เลขที่เอกสาร", "class":"w15p"},
                             {title: "เลขที่อ้างอิง", "class":"w15p"},
-                            {title: "หัวเรื่อง", "class":"w15p"},
+                            {title: "วัตถุประสงค์", "class":"w15p"},
                             {title: "ลูกค้า", "class":"w15p"},
                             {title: "ราคา", "class":"w10p"},
                             {title: "สถานะ", "class":"text-left w10p"},
@@ -318,6 +324,16 @@ function loadDataGrid(){
     });
 }
 
+function updateRow(doc_id){
+    axios.post("<?php echo_uri(); ?>"+active_module, {
+        task: 'update_grid_row',
+        doc_id: doc_id
+    }).then(function (response) {
+        data = response.data;
+        if(data.status == "success") $("#datagrid").appTable({newData: data.dataset, dataId: data.doc_id});
+    }).catch(function (error) {});
+}
+
 function updateStatus(docId, updateStatusTo){
     axios.post("<?php echo_uri(); ?>"+active_module, {
         task: 'update_doc_status',
@@ -327,7 +343,14 @@ function updateStatus(docId, updateStatusTo){
         data = response.data;
         if(data.status == "success"){
             if(typeof data.task !== 'undefined') {
-                location.href = data.url;
+                if(data.task == "popup"){
+                    $("#popup").attr("data-post-id", data.popup_doc_id)
+                    $("#popup").attr("data-title", data.popup_title);
+                    $("#popup").attr("data-action-url", data.popup_url);
+                    $("#popup").trigger("click");
+                }else{
+                    location.href = data.url;
+                }
                 return;
             }
 

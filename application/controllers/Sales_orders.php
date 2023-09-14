@@ -19,6 +19,9 @@ class Sales_orders extends MY_Controller {
             return;
         }elseif(isset($this->json->task)){
             if($this->json->task == "update_doc_status") jout($this->Sales_orders_m->updateStatus());
+            if($this->json->task == "update_grid_row"){
+                jout($this->Sales_orders_m->indexDataSet($this->json->doc_id));
+            }
             return;    
         }
 
@@ -127,5 +130,17 @@ class Sales_orders extends MY_Controller {
         
         $data = $this->Sales_orders_m->getDoc($this->input->post("doc_id"));
         $this->load->view('sales_orders/share', $data);
+    }
+
+    function make_purchase_requisition(){
+        if(isset($this->json->task)){
+            if($this->json->task == "get_products") jout($this->Sales_orders_m->productsToPR($this->json->doc_id));
+            if($this->json->task == "do_make_purchase_requisition") jout($this->Sales_orders_m->makePurchaseRequisition());
+            return;   
+        }
+
+        $data = $this->Sales_orders_m->getDoc($this->input->post("id"));
+
+        $this->load->view('sales_orders/make_purchase_requisition', $data);
     }
 }
