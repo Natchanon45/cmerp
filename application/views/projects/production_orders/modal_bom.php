@@ -232,13 +232,13 @@ async function mrCreation () {
             window.parent.loadProductionOrderList();
 
             setTimeout(async () => {
-                await document.querySelector(`[data-post-id="${req.projectBomId}"]`).click();
+                await document.querySelector(`[data-post-reclick_id="${req.projectBomId}"]`).click();
             }, 300);
         } else {
             window.parent.loadProductionOrderList();
 
             setTimeout(async () => {
-                await document.querySelector(`[data-post-id="${req.projectBomId}"]`).click();
+                await document.querySelector(`[data-post-reclick_id="${req.projectBomId}"]`).click();
             }, 300);
         }
     }).catch(err => {

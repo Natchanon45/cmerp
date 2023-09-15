@@ -6013,7 +6013,9 @@ class Projects extends MY_Controller
 
     function production_order_delete()
     {
-        var_dump(arr($this->input->post()));
+        $data = $this->input->post();
+
+        var_dump(arr($data)); exit();
     }
 
     function production_order_mr_creation()
@@ -6026,6 +6028,42 @@ class Projects extends MY_Controller
             $post->projectBomId
         );
         echo json_encode($mr_creation);
+    }
+
+    function production_order_mr_creation_all()
+    {
+        $data = $this->input->post();
+        
+        // var_dump(arr($data)); exit();
+        $this->load->view("projects/production_orders/mr_creation_all", $data);
+    }
+
+    function production_order_mr_creation_all_post()
+    {
+        $post = $this->json;
+
+        // var_dump(arr($post)); exit();
+        $mr_creation_all = $this->Projects_model->dev2_postProductionMaterialRequestCreationAll(
+            $post->projectId,
+            $post->projectName
+        );
+        echo json_encode($mr_creation_all);
+    }
+
+    function production_order_change_to_producing_all()
+    {
+        $data = $this->input->post();
+
+        // var_dump(arr($data)); exit();
+        $this->load->view("projects/production_orders/producing_all", $data);
+    }
+
+    function production_order_change_to_completed_all()
+    {
+        $data = $this->input->post();
+
+        // var_dump(arr($data)); exit();
+        $this->load->view("projects/production_orders/completed_all", $data);
     }
 
     private function production_order_count_no_mr($production_id) // Integration testing 
@@ -6061,7 +6099,8 @@ class Projects extends MY_Controller
                     "data-modal-lg" => true,
                     "title" => lang('production_order_bom_list'),
                     "data-post-id" => $item->id,
-                    "data-post-project_id" => $item->project_id
+                    "data-post-project_id" => $item->project_id,
+                    "data-post-reclick_id" =>$item->id
                 )
             );
         }

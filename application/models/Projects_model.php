@@ -771,6 +771,91 @@ class Projects_model extends Crud_model {
         return (object) $info;
     }
 
+    public function dev2_postProductionMaterialRequestCreationAll(int $project_id, string $project_name): array
+    {
+        $info = [
+            "mr_id" => null,
+            "mr_info" => null,
+            "mr_items_info" => null,
+            "process" => "failure",
+            "success" => false,
+            "target" => null
+        ];
+
+        $sql = "SELECT * FROM bom_project_item_materials WHERE project_id = ? AND ratio > 0 AND mr_id IS NULL AND used_status = 0 AND entry_flag = 0 ORDER BY material_id, stock_id";
+        $get = $this->db->query($sql, $project_id)->result();
+
+        $param_docno = [
+            "prefix" => "MR",
+            "LPAD" => 4,
+            "column" => "doc_no",
+            "table" => "materialrequests"
+        ];
+
+        if (sizeof($get) && !empty($get)) {
+            // create a material request document
+            $header_data = [
+                "doc_no" => $this->Db_model->genDocNo($param_docno),
+                "mr_type" => 1,
+                "project_name" => $project_name,
+                "project_id" => $project_id,
+                "mr_date" => date("Y-m-d"),
+                "status_id" => 1,
+                "created_by" => $this->login_user->id,
+                "requester_id" => $this->login_user->id
+            ];
+
+            $this->db->insert("materialrequests", $header_data);
+            $header_id = $this->db->insert_id();
+
+            $project_item_ids = array();
+            $mr_items_info = array();
+            foreach ($get as $item) {
+                // add some material items to material request document
+                $material_info = $this->dev2_getRowInfoByRowId($item->material_id, "bom_materials");
+                $item_data = [
+                    "mr_id" => $header_id,
+                    "project_id" => $project_id,
+                    "project_name" => $project_name,
+                    "code" => $material_info->name,
+                    "title" => $material_info->production_name,
+                    "description" => $material_info->description,
+                    "quantity" => $item->ratio,
+                    "unit_type" => $material_info->unit,
+                    "material_id" => $item->material_id,
+                    "bpim_id" => $item->id,
+                    "stock_id" => $item->stock_id
+                ];
+                
+                $this->db->insert("mr_items", $item_data);
+                $item_id = $this->db->insert_id();
+                $mr_items_info[$item_id] = $item_data;
+
+                // patch mr id to bom project item material
+                $this->dev2_patchMaterialRequestIdForBomItemByItemId($item->id, $header_id);
+
+                array_push($project_item_ids, $item->project_item_id);
+            }
+
+            // patch material request status for production order
+            $project_item_id = array_unique($project_item_ids);
+            foreach ($project_item_id as $id) {
+                $this->dev2_patchProductionMaterialRequestStatus($id);
+            }
+
+            $info = [
+                "mr_id" => $header_id,
+                "mr_info" => $header_data,
+                "mr_items_info" => $mr_items_info,
+                "process" => "success",
+                "success" => true,
+                "target" => get_uri("materialrequests/view/" . $header_id)
+            ];
+        }
+
+        return $info;
+    }
+
     public function dev2_postProductionMaterialRequestCreation(int $project_id, string $project_name, int $project_item_id): array
     {
         $info = [

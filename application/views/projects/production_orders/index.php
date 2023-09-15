@@ -58,8 +58,8 @@
         <div class="title-button-group">
             <?php
             echo modal_anchor(
-                get_uri("projects/production_order_change_to_completed"),
-                "<i class='fa fa-plus-circle'></i> " . lang("production_order_change_to_completed"),
+                get_uri("projects/production_order_change_to_completed_all"),
+                "<i class='fa fa-check-square'></i> " . lang("production_order_change_to_completed"),
                 array(
                     "class" => "btn btn-success",
                     "title" => lang("production_order_change_to_completed"),
@@ -69,8 +69,8 @@
             );
 
             echo modal_anchor(
-                get_uri("projects/production_order_change_to_producing"),
-                "<i class='fa fa-plus-circle'></i> " . lang("production_order_change_to_producing"),
+                get_uri("projects/production_order_change_to_producing_all"),
+                "<i class='fa fa-check-square-o'></i> " . lang("production_order_change_to_producing"),
                 array(
                     "class" => "btn btn-warning",
                     "title" => lang("production_order_change_to_producing"),
@@ -80,13 +80,14 @@
             );
 
             echo modal_anchor(
-                get_uri("projects/production_order_create_all_mr"),
+                get_uri("projects/production_order_mr_creation_all"),
                 "<i class='fa fa-plus-circle'></i> " . lang("production_order_create_mr_all"),
                 array(
                     "class" => "btn btn-info",
                     "title" => lang("production_order_create_mr_all"),
                     "data-title" => lang("production_order_create_mr_all"),
-                    "data-post-project_id" => $project_info["id"]
+                    "data-post-project_id" => $project_info["id"],
+                    "data-post-project_name" => $project_info["title"]
                 )
             );
 
