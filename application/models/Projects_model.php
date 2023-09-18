@@ -771,6 +771,86 @@ class Projects_model extends Crud_model {
         return (object) $info;
     }
 
+    public function dev2_postProductionSetProducingStateAll(int $project_id): array
+    {
+        $info = [
+            "result" => [],
+            "process" => "failure",
+            "success" => false
+        ];
+
+        $get = $this->db->get_where("bom_project_items", ["project_id" => $project_id, "produce_status" => 1])->result();
+        if (sizeof($get) && !empty($get)) {
+            foreach ($get as $item) {
+                $this->db->where("id", $item->id);
+                $this->db->update("bom_project_items", ["produce_status" => 2]);
+            }
+
+            $info["result"] = $get;
+            $info["process"] = "success";
+            $info["success"] = true;
+        }
+
+        return $info;
+    }
+
+    public function dev2_postProductionSetCompletedStateAll(int $project_id): array
+    {
+        $info = [
+            "result" => [],
+            "process" => "failure",
+            "success" => false
+        ];
+
+        $project_info = $this->dev2_getRowInfoByRowId($project_id, "projects");
+
+        $get = $this->db->get_where("bom_project_items", ["project_id" => $project_id, "produce_status => 2"])->result();
+        if (sizeof($get) && !empty($get)) {
+            // create a fg stock header to bom_item_groups
+            $header_data = [
+                "project_id" => $project_info->id,
+                "name" => $project_info->title,
+                "po_no" => 0,
+                "created_by" => $this->login_user->id,
+                "created_date" => date("Y-m-d")
+            ];
+            
+            $this->db->insert("bom_item_groups", $header_data);
+            $header_id = $this->db->insert_id();
+            $info["result"]["header_id"] = $header_id;
+            $info["result"]["header_data"] = $header_data;
+
+            foreach ($get as $item) {
+                // add some production order in stock item to bom_item_stocks
+                $item_data = [
+                    "group_id" => $header_id,
+                    "item_id" => $item->item_id,
+                    "production_id" => $item->id,
+                    "mixing_group_id" => $item->mixing_group_id,
+                    "stock" => $item->quantity,
+                    "remaining" => $item->quantity
+                ];
+
+                // if need stock after produced put item data into bom_item_stocks
+                if ($item->produce_in) {
+                    $this->db->insert("bom_item_stocks", $item_data);
+                    $item_id = $this->db->insert_id();
+                    $item_data["id"] = $item_id;
+
+                    $info["result"]["items"][] = $item_data;
+                }
+
+                $this->db->where("id", $item->id);
+                $this->db->update("bom_project_items", ["produce_status" => 3]);
+            }
+
+            $info["process"] = "success";
+            $info["success"] = true;
+        }
+
+        return $info;
+    }
+
     public function dev2_postProductionMaterialRequestCreationAll(int $project_id, string $project_name): array
     {
         $info = [

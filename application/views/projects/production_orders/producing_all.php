@@ -21,6 +21,8 @@
 
 <div class="modal-body clearfix">
     <input type="hidden" id="project_id" value="<?php echo $project_id; ?>">
+    <input type="hidden" id="target_url" value="<?php echo get_uri("projects/production_order_change_to_producing_all_post"); ?>">
+
     <div class="p3">
         <p style="font-size: 110%;">ต้องการเปลี่ยนสถานะการผลิตเป็น <span class="pill pill-warning">กำลังผลิต</span> ทุกรายการใช่หรือไม่?</p>
     </div>
@@ -37,3 +39,28 @@
         <?php echo lang("yes"); ?>
     </button>
 </div>
+
+<script type="text/javascript">
+const projectId = document.querySelector("#project_id").value;
+const targetUrl = document.querySelector("#target_url").value;
+
+async function producingAll() {
+    let url = targetUrl;
+    let req = {
+        projectId: projectId
+    };
+
+    await axios.post(url, req).then(res => {
+        // console.log(res);
+        window.parent.loadProductionOrderList();
+    }).catch(err => {
+        console.log(err);
+    });
+}
+
+$(document).ready(function () {
+    $("#btn-submit").on("click", async function () {
+        await producingAll();
+    });
+});
+</script>

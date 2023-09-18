@@ -53,7 +53,7 @@
 <div class="panel">
     <div class="tab-title clearfix">
         <h4>
-            <?php echo lang('production_order'); ?>
+            <?php echo lang("production_order"); ?>
         </h4>
         <div class="title-button-group">
             <?php

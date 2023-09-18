@@ -6058,12 +6058,34 @@ class Projects extends MY_Controller
         $this->load->view("projects/production_orders/producing_all", $data);
     }
 
+    function production_order_change_to_producing_all_post()
+    {
+        $post = $this->json;
+
+        // var_dump(arr($post)); exit();
+        $producing_all = $this->Projects_model->dev2_postProductionSetProducingStateAll(
+            $post->projectId
+        );
+        echo json_encode($producing_all);
+    }
+
     function production_order_change_to_completed_all()
     {
         $data = $this->input->post();
 
         // var_dump(arr($data)); exit();
         $this->load->view("projects/production_orders/completed_all", $data);
+    }
+
+    function production_order_change_to_completed_all_post()
+    {
+        $post = $this->json;
+
+        // var_dump(arr($post)); exit();
+        $completed_all = $this->Projects_model->dev2_postProductionSetCompletedStateAll(
+            $post->projectId
+        );
+        echo json_encode($completed_all);
     }
 
     private function production_order_count_no_mr($production_id) // Integration testing 
