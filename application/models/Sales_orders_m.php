@@ -70,7 +70,7 @@ class Sales_orders_m extends MY_Model {
 
     function indexDataSet($doc_id = null) {
         $db = $this->db;
-        $dataset = null;
+        $dataset = [];
 
         $db->select("*")->from("sales_order");
 
@@ -630,7 +630,7 @@ class Sales_orders_m extends MY_Model {
                 return $this->data;
             }
 
-            $db->where("id", $sales_order_id);
+            $db->where("sales_order_id", $sales_order_id);
             if($db->count_all_results("sales_order_items") < 1){
                 $this->data["message"] = "ไม่พบรายการสำหรับอนุมัติ";
                 return $this->data;
@@ -781,15 +781,15 @@ class Sales_orders_m extends MY_Model {
                             }
                         }else{
                             $supplier = $ci->Suppliers_m->getInfo($soirow->supplier_id);
-                            if($supplier != null) $html .= "<a>".$supplier["company_name"]."</a>";
+                            if($supplier != null) $html .= "<span class='supplier_name'>".$supplier["company_name"]."</span>";
                         }
 
                     $html .= "</td>";
                     $html .= "<td class='reference_number'>";
 
                     if($soirow->pr_header_id != null){
-                        $reference_number = $ci->Purchase_request_m->getNewDocNumber($soirow->pr_header_id);
-                        if($reference_number != "") $html .= "<a>".$reference_number."</a>";
+                        $reference_number = $ci->Purchase_request_m->getDocNumber($soirow->pr_header_id);
+                        if($reference_number != "") $html .= "<a href='".get_uri("purchase_request/view/".$soirow->pr_header_id)."'>".$reference_number."</a>";
                     }else{
                         $html .= "#";
                     }

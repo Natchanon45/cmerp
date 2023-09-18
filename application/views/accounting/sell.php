@@ -295,7 +295,7 @@ function loadDataGrid(){
     }
 
     filterDropdown = [{name: "client_id", class: "w120", options: <?php echo $client_ids; ?>}, {name: "status", class: "w120", options: doc_status}];
-
+    
     $("#datagrid").appTable({
         source: "<?php echo_uri(); ?>"+active_module,
         rangeDatepicker: [

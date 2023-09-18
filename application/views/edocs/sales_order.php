@@ -195,11 +195,7 @@
 				</div>
 			</div>
 			<div class="c2">
-				<div class="company_stamp">
-	                <?php if(isset($doc["company_stamp"])): ?>
-	                    <img src="<?php echo base_url($doc["company_stamp"]);?>">
-	                <?php endif;?>
-	            </div>
+				<div class="company_stamp"></div>
 				<div class="on_behalf_of">ในนาม <?php echo get_setting("company_name"); ?></div>
 				<div class="signature clear">
 					<div class="name">

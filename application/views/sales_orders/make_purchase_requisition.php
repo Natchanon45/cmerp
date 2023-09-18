@@ -53,6 +53,11 @@
     margin-top: 3px;
 }
 
+.popup .product td.product_supplier .supplier_name{
+    display: inline-block;
+    margin-top: 3px;
+}
+
 .popup .product td.reference_number{
     width: 20%;
 }
