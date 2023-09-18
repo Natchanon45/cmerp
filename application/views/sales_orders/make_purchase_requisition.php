@@ -31,7 +31,11 @@
     vertical-align: top;
     padding: 12px 12px;
     text-align: left;
-    /*border: 1px solid #ff0000;*/
+}
+
+.popup .product td a{
+    display: inline-block;
+    margin-top: 3px;
 }
 
 .popup .product td.product_name{
@@ -101,7 +105,7 @@
                     <tr>
                         <td class="custom-bg product_name">สินค้า</td>
                         <td class="custom-bg product_supplier">ผู้จัดจำหน่าย</td>
-                        <td class="custom-bg reference_number">เลขที่อ้างอิง</td>
+                        <td class="custom-bg reference_number">เลขที่ใบขอซื้อ</td>
                     </tr>
                 </thead>
                 <tbody></tbody>
@@ -116,52 +120,42 @@
 <script type="text/javascript">
 $(document).ready(function() {
     getProducts('<?php echo $doc_id; ?>');
-    /*$("#customer_id").select2().on("change", function (e) {
-        getInvs($(this).select2("val"));
-    });*/
-
     
     $('#ajaxModal').on('hidden.bs.modal', function (e) {
         parent.updateRow("<?php echo $doc_id; ?>");
     });
+
+    $("#btnSubmit").click(function() {
+        sales_order_items = [];
+        $(".sales_order_items").each(function(i, obj) {
+            supplier_id = $(obj).find(".suppliers").val();
+            if(supplier_id === undefined) supplier_id = null;
+            sales_order_items.push({sales_order_item_id:$(obj).data("id"), supplier_id:supplier_id});
+        });
+
+        axios.post('<?php echo current_url(); ?>', {
+            task: 'do_make_purchase_requisition',
+            sales_order_id: '<?php echo $doc_id; ?>',
+            sales_order_items: JSON.stringify(sales_order_items)
+        }).then(function (response) {
+            data = response.data;
+            alert(data.message);
+            
+            if(data.status == "success"){
+                getProducts("<?php echo $doc_id; ?>");
+            }
+            
+        }).catch(function (error) {});
+    });
 });
 
 function getProducts(sales_order_id){
-    //$("#btnSubmit").unbind('click');
-    //alert(sales_order_id);
-    //return;
-
     axios.post('<?php echo current_url(); ?>', {
         task: 'get_products',
         doc_id: sales_order_id
     }).then(function (response) {
         let data = response.data;
         $(".product table tbody").empty().append(data.html);
-
-        $("#btnSubmit").click(function() {
-            
-
-            $(".sales_order_items").each(function(i, obj) {
-                //alert($(obj).data("id"));
-                alert($(obj).find(".suppliers").val());
-            });
-
-            return;
-            axios.post('<?php echo current_url(); ?>', {
-                task: 'do_make_purchase_requisition',
-                doc_id: '<?php echo $doc_id; ?>'
-            }).then(function (response) {
-                data = response.data;
-
-                alert(data.message);
-
-                /*if(data.status == "success"){
-                    location.href = data.url;
-                }else{
-                    alert(data.message);
-                }*/
-            }).catch(function (error) {});
-        });
     }).catch(function (error) {});
 }
 </script>

@@ -235,4 +235,5 @@ $autoload['model'] = array(
     'Payment_voucher_m',
     'Credit_notes_m',
     'Debit_notes_m',
+    'Purchase_request_m',
 );

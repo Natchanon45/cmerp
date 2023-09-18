@@ -34,6 +34,17 @@ class Purchase_request_m extends MY_Model
         return $doc_number;
     }
 
+    function getDocNumber($doc_id)
+    {
+        $prhrow = $this->db->select("doc_number")
+                            ->from("pr_header")
+                            ->where("id", $doc_id)
+                            ->get()->row();
+
+        if(empty($prhrow)) return "";
+        return $prhrow->doc_number;
+    }
+
     function getStatusName($status_code)
     {
         if ($status_code == 'W') {

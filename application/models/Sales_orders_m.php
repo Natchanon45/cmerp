@@ -735,6 +735,7 @@ class Sales_orders_m extends MY_Model {
 
     function productsToPR($sales_order_id){
         $db = $this->db;
+        $ci = get_instance();
 
         $sorow = $db->select("*")
                         ->from("sales_order")
@@ -764,23 +765,36 @@ class Sales_orders_m extends MY_Model {
                                 ->where("item_id", $soirow->product_id)
                                 ->get()->result();
 
-                
                 $html .= "<tr class='sales_order_items' data-id='".$soirow->id."'>";
                     $html .= "<td class='product_name'>".$soirow->product_name."</td>";
                     $html .= "<td class='product_supplier'>";
 
-                        if(empty($biprows)){
-                            $html .= "<span class='supplier_not_found'>ไม่พบผู้จัดจำหน่าย</span>";
+                        if($soirow->pr_header_id == null){
+                            if(empty($biprows)){
+                                $html .= "<span class='supplier_not_found'>ไม่พบผู้จัดจำหน่าย</span>";
+                            }else{
+                                $html .= "<select class='suppliers'>";
+                                    foreach($biprows as $biprow){
+                                        $html .= "<option value='".$biprow->supplier_id."'>".$this->Suppliers_m->getInfo($biprow->supplier_id)["company_name"]."</option>";
+                                    }
+                                $html .= "</select>";
+                            }
                         }else{
-                            $html .= "<select class='suppliers'>";
-                                foreach($biprows as $biprow){
-                                    $html .= "<option value='".$biprow->supplier_id."'>".$this->Suppliers_m->getInfo($biprow->supplier_id)["company_name"]."</option>";
-                                }
-                            $html .= "</select>";
+                            $supplier = $ci->Suppliers_m->getInfo($soirow->supplier_id);
+                            if($supplier != null) $html .= "<a>".$supplier["company_name"]."</a>";
                         }
 
                     $html .= "</td>";
-                    $html .= "<td class='reference_number'></td>";
+                    $html .= "<td class='reference_number'>";
+
+                    if($soirow->pr_header_id != null){
+                        $reference_number = $ci->Purchase_request_m->getNewDocNumber($soirow->pr_header_id);
+                        if($reference_number != "") $html .= "<a>".$reference_number."</a>";
+                    }else{
+                        $html .= "#";
+                    }
+
+                    $html .= "</td>";
                 $html .= "</tr>";
                 $total_records++;
             }
@@ -798,40 +812,69 @@ class Sales_orders_m extends MY_Model {
     function makePurchaseRequisition(){
         $db = $this->db;
         $ci = get_instance();
-        $doc_id = $this->json->doc_id;
+        $sales_order_id = $this->json->sales_order_id;
+        $sales_order_items = json_decode($this->json->sales_order_items);
 
         $sorow = $db->select("*")
                     ->from("sales_order")
-                    ->where("id", $doc_id)
+                    ->where("id", $sales_order_id)
                     ->where("deleted", 0)
                     ->get()->row();
 
         if(empty($sorow)) return $this->data;
 
+        $suppliers = [];
 
+        if(!empty($sales_order_items)){
+            foreach($sales_order_items as $soi){
+                if($soi->supplier_id == null) continue;
+                
+                $soirow = $db->select("*")
+                                    ->from("sales_order_items")
+                                    ->where("id", $soi->sales_order_item_id)
+                                    ->where("sales_order_id", $sales_order_id)
+                                    ->where("pr_header_id IS NULL")
+                                    ->get()->row();
 
-        $soirows = $db->select("*")
-                        ->from("sales_order_items")
-                        ->where("sales_order_id", $doc_id)
-                        ->where("pr_header_id IS NULL")
-                        ->get()->result();
+                if(empty($soirow)) continue;
 
-        if(!empty($soirows)){
-            foreach($soirows as $soirow){
+                $biprow = $db->select("*")
+                                    ->from("bom_item_pricings")
+                                    ->where("item_id", $soirow->product_id)
+                                    ->where("supplier_id", $soi->supplier_id)
+                                    ->get()->row();
+
+                if(empty($biprow)) continue;
+
+                $suppliers[$soi->supplier_id][] = [
+                                                        "sales_order_items_id"=>$soi->sales_order_item_id,
+                                                        "product_id"=>$soirow->product_id,
+                                                        "product_name"=>$soirow->product_name,
+                                                        "product_description"=>$soirow->product_description,
+                                                        "quantity"=>$soirow->quantity,
+                                                        "unit"=>$soirow->unit,
+                                                        "price"=>$soirow->price,
+                                                        "total_price"=>$soirow->total_price
+                                                    ];
+            }
+        }
+
+        $db->trans_begin();
+
+        foreach($suppliers as $supid => $products){
+            if(!empty($products)){
                 $pr_doc_number = $ci->Purchase_request_m->getNewDocNumber();
                 $pr_doc_date = date("Y-m-d");
                 $pr_type = 3;
                 $pr_doc_valid_until_date = date("Y-m-d");
-                $pr_supplier_id = date("Y-m-d");//<--looking for spplier id
-                $pr_product_id = 0;
+                $pr_supplier_id = $supid;
 
-                $prd_id = $soirow;
-                
                 $db->insert("pr_header", [
                                             "doc_number"=>$pr_doc_number,
                                             "pr_type"=>$pr_type,
                                             "doc_date"=>$pr_doc_date,
                                             "doc_valid_until_date"=>$pr_doc_valid_until_date,
+                                            "project_id"=>0,
                                             "supplier_id"=>$pr_supplier_id,
                                             "created_by"=>$this->login_user->id,
                                             "created_datetime"=>date("Y-m-d H:i:s"),
@@ -839,14 +882,37 @@ class Sales_orders_m extends MY_Model {
                                         ]);
 
                 $pr_header_id = $db->insert_id();
+                $sort = 0;
 
-                $db->insert("pr_detail", [
-                                            "pr_id"=>$pr_header_id,
-                                            "product_id"=>$pr_header_id,
-                                        ]);
+                foreach($products as $p){
+                    $db->insert("pr_detail", [
+                                                "pr_id"=>$pr_header_id,
+                                                "product_id"=>$p["product_id"],
+                                                "product_name"=>$p["product_name"],
+                                                "product_description"=>$p["product_description"],
+                                                "quantity"=>$p["quantity"],
+                                                "unit"=>$p["unit"],
+                                                "price"=>$p["price"],
+                                                "total_price"=>$p["total_price"],
+                                                "sort"=>++$sort,
+                                            ]);
+
+                    $db->where("id", $p["sales_order_items_id"]);
+                    $db->update("sales_order_items", ["pr_header_id"=>$pr_header_id, "supplier_id"=>$pr_supplier_id]);
+                }
             }
         }
 
+        
+        if ($db->trans_status() === FALSE){
+            $db->trans_rollback();
+            return $this->data;
+        }
+
+        $db->trans_commit();
+
+        $this->data["status"] = "success";
+        $this->data["message"] = "สร้างใบขอซื้อเรียบร้อย";
         return $this->data;
     }
 
