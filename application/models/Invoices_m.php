@@ -907,9 +907,6 @@ class Invoices_m extends MY_Model {
             $db->where("id", $docId);
             $db->where("deleted", 0);
             $db->update("invoice", ["status"=>"V"]);
-
-            $db->trans_rollback();
-            return $this->data;
         }
 
         if ($db->trans_status() === FALSE){
