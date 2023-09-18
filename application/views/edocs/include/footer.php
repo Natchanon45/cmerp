@@ -1,4 +1,4 @@
-<span class="sharefrom">ผู้ใช้งาน <?php echo $this->Users_m->getInfo($doc["sharekey_by"])["email"]; ?> ได้แชร์เอกสารนี้ให้คุณจาก ระบบ <a href="https://www.cosmatch.com/" target="_blank">CMERP</a>, </span>
+<span class="sharefrom">ผู้ใช้งาน <?php echo $this->Users_m->getInfo($doc["sharekey_by"])["email"]; ?> ได้แชร์เอกสารนี้ให้คุณจาก <?php echo get_setting("company_name"); ?>, </span>
 <span class="copyright">&copy; <?php echo date("Y") ?> Copyright Cosmatch Inter Group all rights reserved</span>
 
 <script type="text/javascript">

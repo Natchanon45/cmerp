@@ -426,7 +426,7 @@ class Quotations_m extends MY_Model {
         $docId = $this->json->doc_id;
         $doc_date = convertDate($this->json->doc_date);
         $credit = intval($this->json->credit) < 0 ? 0:intval($this->json->credit);
-        $doc_valid_until_date = date('Y-m-d', strtotime($doc_date." + ".$credit." days"));
+        $doc_valid_until_date = convertDate($this->json->doc_valid_until_date);
         $reference_number = $this->json->reference_number;
         $client_id = $this->json->client_id;
         $lead_id = $this->json->lead_id;
