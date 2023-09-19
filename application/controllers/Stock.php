@@ -1303,7 +1303,7 @@ class Stock extends MY_Controller
                 $data->category ? $data->category : '-',
                 $data->description ? trim($data->description) : '-',
                 $data->remaining ? to_decimal_format3($data->remaining) : 0,
-                $data->unit ? strtoupper($data->unit) : '-'
+                $data->unit ? mb_strtoupper($data->unit) : '-'
             );
         } else {
             $row_data = array(
@@ -1314,7 +1314,7 @@ class Stock extends MY_Controller
                 $data->category ? $data->category : '-',
                 $data->description ? trim($data->description) : '-',
                 $data->remaining ? to_decimal_format3($data->remaining) : 0,
-                $data->unit ? strtoupper($data->unit) : '-'
+                $data->unit ? mb_strtoupper($data->unit) : '-'
             );
         }
 
