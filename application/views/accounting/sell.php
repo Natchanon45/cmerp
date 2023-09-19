@@ -88,7 +88,7 @@
                     <?php if($this->Permission_m->accounting["sales_order"]["access"] == true): ?>
                         <?php $number_of_enable_module++; ?>
                         <li data-module="sales-orders" class="<?php if($module == "sales-orders") echo 'active custom-bg01'; ?>">
-                            <a class="<?php if($module == "sales-orders") echo 'custom-color'; ?>">ใบสั่งขาย</a>
+                            <a class="<?php if($module == "sales-orders") echo 'custom-color'; ?>">ใบสั่งงาน</a>
                         </li>
                     <?php endif; ?>
                     <?php if($this->Permission_m->accounting["quotation"]["access"] == true): ?>

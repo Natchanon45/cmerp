@@ -110,6 +110,7 @@
                     <tr>
                         <td class="custom-bg product_name">สินค้า</td>
                         <td class="custom-bg product_supplier">ผู้จัดจำหน่าย</td>
+                        <td class="custom-bg product_supplier">จำนวนที่ขาด</td>
                         <td class="custom-bg reference_number">เลขที่ใบขอซื้อ</td>
                     </tr>
                 </thead>

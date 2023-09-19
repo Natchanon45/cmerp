@@ -15,8 +15,8 @@
         <label for="purpose" class=" col-md-3">วัตถุประสงค์</label>
         <div class="col-md-9">
             <select id="purpose" class="form-control" <?php if($doc_status != "W" && isset($doc_id)) echo "disabled";?>>
-                <option value="P" <?php if($purpose == "P") echo "selected"; ?>>สร้างเพื่อผลิต</option>
-                <option value="S" <?php if($purpose == "P") echo "selected"; ?>>สร้างเพื่อขาย</option>
+                <option value="P" <?php if($purpose == "P") echo "selected"; ?>>ใบสั่งผลิต</option>
+                <option value="S" <?php if($purpose == "S") echo "selected"; ?>>ใบสั่งขาย</option>
             </select>
         </div>
     </div>
