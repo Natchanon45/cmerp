@@ -959,6 +959,7 @@ $lang["client_can_view_overview"] = "Client can view project overview?";
 $lang["client_can_view_milestones"] = "Client can view milestones?";
 
 $lang["items"] = "Product items";
+$lang["items_fg"] = "Product items";
 $lang["edit_item"] = "Edit product item";
 $lang["item_edit_instruction"] = "Note: The changes will not be affected on existing invoices, estimates or orders.";
 
@@ -2198,6 +2199,7 @@ $lang["production_order_create_mr_all"] = "MR Create all";
 $lang["production_order_change_to_producing"] = "Change to producing all";
 $lang["production_order_change_to_completed"] = "Change to completed all";
 $lang["production_order_bom_list"] = "Bill of material list";
+$lang["production_order_bom_name"] = "BOM name";
 $lang["production_order_produce_in"] = "Produce in<br>stock";
 $lang["production_order_want_to_chage"] = "Would you like to update the order status to ";
 $lang["production_order_all_of_order"] = " all of order?";

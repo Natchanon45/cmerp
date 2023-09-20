@@ -174,7 +174,7 @@ class Bom_item_groups_model extends Crud_model {
             $where_create_by = "AND `big`.`created_by` = " . $post;
         }
 
-        $sql = "SELECT bis.id AS id, big.id AS group_id, big.name AS group_name, bis.serial_number AS sern, i.id AS item_id, i.title AS item_name, i.item_code AS item_code, bis.stock AS stock_qty, bis.remaining AS remain_qty, i.unit_type AS item_unit, big.created_by AS create_by, big.created_date AS create_date 
+        $sql = "SELECT bis.id AS id, big.id AS group_id, big.name AS group_name, bis.serial_number AS sern, bis.mixing_group_id, i.id AS item_id, i.title AS item_name, i.item_code AS item_code, bis.stock AS stock_qty, bis.remaining AS remain_qty, i.unit_type AS item_unit, big.created_by AS create_by, big.created_date AS create_date 
         FROM bom_item_stocks bis 
         LEFT JOIN bom_item_groups big ON bis.group_id = big.id 
         INNER JOIN items i ON bis.item_id = i.id 
@@ -187,6 +187,18 @@ class Bom_item_groups_model extends Crud_model {
     function dev2_deleteRestockingItemById($id)
     {
         $this->db->delete('bom_item_stocks', array('id' => $id));
+    }
+
+    public function dev2_getMixingNameByMixingGroupId(int $id) : string
+    {
+        $name = "";
+        $get = $this->db->get_where("bom_item_mixing_groups", ["id" => $id])->row();
+
+        if (isset($get) && !empty($get)) {
+            $name = $get->name;
+        }
+
+        return (string) $name;
     }
 
 }

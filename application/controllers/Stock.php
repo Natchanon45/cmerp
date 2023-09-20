@@ -3919,6 +3919,7 @@ class Stock extends MY_Controller
         );
 
         $list_data = $this->Bom_item_groups_model->get_restocks($options)->result();
+        // var_dump(arr($list_data)); exit;
 
         $result = array();
         foreach ($list_data as $data) {
@@ -3959,17 +3960,35 @@ class Stock extends MY_Controller
             }
         }
 
+        // REMARK
+        $item_name = $data->item_name;
+        if (isset($data->item_code) && !empty($data->item_code)) {
+            $item_name = mb_strtoupper($data->item_code) . ' - ' . $data->item_name;
+        }
+
+        $display_item = '<span>
+            <span style="display: block;"><b>' . lang("stock_product_name") . '</b>: ' . anchor(get_uri('items/detail/' . $data->item_id), $item_name) . '</span>
+        </span>';
+
+        $mixing_name = null;
+        if (isset($data->mixing_group_id) && !empty($data->mixing_group_id)) {
+            $mixing_name = $this->Bom_item_groups_model->dev2_getMixingNameByMixingGroupId($data->mixing_group_id);
+
+            $display_item = '<span>
+                <span style="display: block;"><b>' . lang("stock_product_name") . '</b>: ' . anchor(get_uri('items/detail/' . $data->item_id), $item_name) . '</span>
+                <span style="display: block;"><b>' . lang("production_order_bom_name") . '</b>: ' . $mixing_name . '</span>
+            </span>';
+        }
+
         $row_data = array(
             $data->id,
-            $this->check_permission('bom_material_read_production_name')
-            ? anchor(get_uri('items/detail/' . $data->item_id), $data->item_code . ' - ' . $data->item_name)
-            : anchor(get_uri('items/detail/' . $data->item_id), $data->item_code),
+            $display_item,
             $data->serial_number ? $data->serial_number : '-',
             $files_link ? $files_link : '-',
             is_date_exists($data->expiration_date) ? format_to_date($data->expiration_date, false) : '-',
-            to_decimal_format2($data->stock),
-            to_decimal_format2($data->remaining),
-            strtoupper($data->item_unit)
+            to_decimal_format3($data->stock),
+            to_decimal_format3($data->remaining),
+            mb_strtoupper($data->item_unit)
         );
 
         if ($this->check_permission('bom_restock_read_price')) { 
@@ -5601,17 +5620,37 @@ class Stock extends MY_Controller
             $remaining_value = $data->price * $data->remaining / $data->stock;
         }
 
+        // REMARK
+        $item_name = $data->item_name;
+        if (isset($data->item_code) && !empty($data->item_code)) {
+            $item_name = mb_strtoupper($data->item_code) . ' - ' . $data->item_name;
+        }
+
+        $display_item = '<span>
+            <span style="display: block;"><b>' . lang("stock_product_name") . '</b>: ' . anchor(get_uri('items/detail/' . $data->item_id), $item_name) . '</span>
+        </span>';
+
+        $mixing_name = null;
+        if (isset($data->mixing_group_id) && !empty($data->mixing_group_id)) {
+            $mixing_name = $this->Bom_item_groups_model->dev2_getMixingNameByMixingGroupId($data->mixing_group_id);
+
+            $display_item = '<span>
+                <span style="display: block;"><b>' . lang("stock_product_name") . '</b>: ' . anchor(get_uri('stock/item_view/' . $data->item_id), $item_name) . '</span>
+                <span style="display: block;"><b>' . lang("production_order_bom_name") . '</b>: ' . $mixing_name . '</span>
+            </span>';
+        }
+
         $lack = $data->noti_threshold - $data->remaining;
         $is_lack = $lack > 0 ? true : false;
         $row_data = array(
             $data->id,
             anchor(get_uri('stock/restock_item_view/' . $data->group_id), $data->group_name),
-            anchor(get_uri('stock/item_view/' . $data->item_id), $data->item_name),
+            $display_item,
             $data->item_desc,
             format_to_date($data->created_date),
             is_date_exists($data->expiration_date) ? format_to_date($data->expiration_date, false) : '-',
-            to_decimal_format2($data->stock),
-            '<span class="' . ($is_lack ? 'lacked_material' : '') . '" data-item-id="' . $data->item_id . '" data-lacked-amount="' . ($is_lack ? $lack : 0) . '" data-unit="' . strtoupper($data->item_unit) . '" data-supplier-id="' . $data->supplier_id . '" data-supplier-name="' . $data->supplier_name . '" data-price="' . $data->price . '" data-currency="' . $data->currency . '" data-currency-symbol="' . $data->currency_symbol . '">' . to_decimal_format2($data->remaining) . '</span>',
+            to_decimal_format3($data->stock),
+            '<span class="' . ($is_lack ? 'lacked_material' : '') . '" data-item-id="' . $data->item_id . '" data-lacked-amount="' . ($is_lack ? $lack : 0) . '" data-unit="' . strtoupper($data->item_unit) . '" data-supplier-id="' . $data->supplier_id . '" data-supplier-name="' . $data->supplier_name . '" data-price="' . $data->price . '" data-currency="' . $data->currency . '" data-currency-symbol="' . $data->currency_symbol . '">' . to_decimal_format3($data->remaining) . '</span>',
             strtoupper($data->item_unit)
         );
 
@@ -5621,23 +5660,11 @@ class Stock extends MY_Controller
                 $price_per_stock = $data->price / $data->stock;
             }
 
-            $row_data[] = to_decimal_format3($data->price, 2);
+            $row_data[] = to_decimal_format3($data->price);
             $row_data[] = to_decimal_format3($price_per_stock);
-            $row_data[] = to_decimal_format3($remaining_value, 2);
+            $row_data[] = to_decimal_format3($remaining_value);
             $row_data[] = !empty($data->currency) && isset($data->currency) ? lang($data->currency) : lang("THB");
         }
-
-        // $options = '';
-        // if($this->bom_can_access_restock() && $this->check_permission('bom_restock_update')) {
-        //   $options .= modal_anchor(get_uri("stock/restock_view_modal"), "<i class='fa fa-pencil'></i>", array("class" => "edit", "title" => lang('stock_restock_edit'), "data-post-id" => $data->id, "data-post-view" => "material"))
-        //     . modal_anchor(get_uri("stock/restock_withdraw_modal"), "<i class='fa fa-share-square-o'></i>", array("class" => "edit", "title" => lang('stock_restock_withdraw'), "data-post-id" => $data->id, "data-post-view" => "material"));
-        // } else {
-        //   $options .= modal_anchor(get_uri("stock/restock_view_modal"), "<i class='fa fa-eye'></i>", array("class" => "edit", "title" => lang('stock_restock_edit'), "data-post-id" => $data->id, "data-post-view" => "material"));
-        // }
-        // if($this->bom_can_access_restock() && $this->check_permission('bom_restock_delete')) {
-        //   $options .= js_anchor("<i class='fa fa-times fa-fw'></i>", array('title' => lang('stock_restock_delete'), "class" => "delete", "data-id" => $data->id, "data-action-url" => get_uri("stock/restock_view_delete"), "data-action" => "delete-confirmation"));
-        // }
-        // $row_data[] = $options;
 
         return $row_data;
     }
@@ -5700,10 +5727,12 @@ class Stock extends MY_Controller
         }
 
         $data = array();
+        // var_dump(arr($result)); exit();
         foreach ($result as $item) {
             $data[] = $this->dev2_rowDataItemList($item);
         }
 
+        // var_dump(arr($data)); exit();
         echo json_encode(array("data" => $data));
     }
 
@@ -5753,13 +5782,31 @@ class Stock extends MY_Controller
             $button .= js_anchor("<i class='fa fa-times fa-fw'></i>", array('title' => lang('stock_restock_delete'), "class" => "delete", "data-id" => $item->id, "data-action-url" => get_uri("stock/dev2_restock_item_delete"), "data-action" => "delete-confirmation"));
         }
 
+        // REMARK
+        $item_name = $item->item_name;
+        if (isset($item->item_code) && !empty($item->item_code)) {
+            $item_name = mb_strtoupper($item->item_code) . ' - ' . $item->item_name;
+        }
+
+        $display_item = '<span>
+            <span style="display: block;"><b>' . lang("stock_product_name") . '</b>: ' . anchor(get_uri('items/detail/' . $item->item_id), $item_name) . '</span>
+        </span>';
+
+        $mixing_name = null;
+        if (isset($item->mixing_group_id) && !empty($item->mixing_group_id)) {
+            $mixing_name = $this->Bom_item_groups_model->dev2_getMixingNameByMixingGroupId($item->mixing_group_id);
+
+            $display_item = '<span>
+                <span style="display: block;"><b>' . lang("stock_product_name") . '</b>: ' . anchor(get_uri('items/detail/' . $item->item_id), $item_name) . '</span>
+                <span style="display: block;"><b>' . lang("production_order_bom_name") . '</b>: ' . $mixing_name . '</span>
+            </span>';
+        }
+
         return array(
             $item->id,
             anchor(get_uri('stock/restock_item_view/' . $item->group_id), $item->group_name),
             $item->sern ? $item->sern : '-',
-            $this->dev2_canReadMaterialName()
-            ? anchor(get_uri('items/detail/' . $item->item_id), strtoupper($item->item_code) . ' - ' . ucwords(strtolower($item->item_name)))
-            : anchor(get_uri('items/detail/' . $item->item_id), strtoupper($item->item_code)),
+            $display_item,
             to_decimal_format3($item->stock_qty),
             to_decimal_format3($item->remain_qty),
             strtoupper($item->item_unit),
