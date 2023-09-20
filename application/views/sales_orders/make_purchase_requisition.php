@@ -1,7 +1,7 @@
 <style type="text/css">
 .modal-dialog {
     width: 100%;
-    max-width: 980px;
+    max-width: 1000px;
 }
 
 .popup .product {
@@ -27,39 +27,66 @@
 }
 
 .popup .product td{
+    border-bottom: 1px solid #f2f2f2;
+}
+
+.popup .product tr:last-child td{
+    border-bottom: 0;
+}
+
+.popup .product thead td{
+    border-right: 1px solid #f2f2f2;
+}
+
+.popup .product thead td:last-child{
+    border-right: 0;
+}
+
+.popup .product td{
     line-break: anywhere;
     vertical-align: top;
     padding: 12px 12px;
     text-align: left;
 }
 
-.popup .product td a{
-    display: inline-block;
-    margin-top: 3px;
-}
-
 .popup .product td.product_name{
     padding-left: 8px;
-    width: 40%;
-    padding-top: 15px;
+    width: 25%;
 }
 
 .popup .product td.product_supplier{
-    width: 40%;
+    width: 25%;
+    padding-top: 10px;
 }
 
 .popup .product td.product_supplier .supplier_not_found{
     display: inline-block;
-    margin-top: 3px;
+    margin-top: 2px;
 }
 
 .popup .product td.product_supplier .supplier_name{
     display: inline-block;
-    margin-top: 3px;
+    margin-top: 2px;
+}
+
+.popup .product td.instock{
+    width: 12%;
+    text-align: right;
+}
+
+.popup .product td.quantity{
+    width: 12%;
+    text-align: right;
+}
+
+.popup .product td.topurchase{
+    width: 12%;
+    text-align: right;
 }
 
 .popup .product td.reference_number{
-    width: 20%;
+    width: 14%;
+    text-align: center;
 }
 
 .popup .product thead tr td {
@@ -110,7 +137,9 @@
                     <tr>
                         <td class="custom-bg product_name">สินค้า</td>
                         <td class="custom-bg product_supplier">ผู้จัดจำหน่าย</td>
-                        <td class="custom-bg product_supplier">จำนวนที่ขาด</td>
+                        <td class="custom-bg instock">คงคลัง</td>
+                        <td class="custom-bg quantity">จำนวนที่ใช้</td>
+                        <td class="custom-bg topurchase">จำนวนขอซื้อ</td>
                         <td class="custom-bg reference_number">เลขที่ใบขอซื้อ</td>
                     </tr>
                 </thead>

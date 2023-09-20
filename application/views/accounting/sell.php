@@ -216,11 +216,13 @@ function loadDataGrid(){
                             {title: "เลขที่เอกสาร", "class":"w15p"},
                             {title: "เลขที่อ้างอิง", "class":"w15p"},
                             {title: "วัตถุประสงค์", "class":"w15p"},
-                            {title: "ลูกค้า", "class":"w15p"},
-                            {title: "ราคา", "class":"w10p"},
-                            {title: "สถานะ", "class":"text-left w10p"},
+                            {title: "ลูกค้า", "class":"w20p"},
+                            {title: "สถานะ", "class":"text-left w15p"},
                             {title: "<i class='fa fa-bars'></i>", "class":"text-center option w10p"}
                         ];
+
+        summation_column = null;
+
     }else if(active_module == "quotations"){
         $(".buttons li.add a").attr("data-title", "สร้างใบเสนอราคา");
         $(".buttons li.add a").attr("data-action-url", "<?php echo get_uri("quotations/addedit"); ?>");
@@ -295,8 +297,8 @@ function loadDataGrid(){
     }
 
     filterDropdown = [{name: "client_id", class: "w120", options: <?php echo $client_ids; ?>}, {name: "status", class: "w120", options: doc_status}];
-    
-    $("#datagrid").appTable({
+
+    datagrid_data = {
         source: "<?php echo_uri(); ?>"+active_module,
         rangeDatepicker: [
             {
@@ -309,10 +311,11 @@ function loadDataGrid(){
         columns: grid_columns,
         printColumns: combineCustomFieldsColumns([0, 1, 2, 3, 4, 5]),
         xlsColumns: combineCustomFieldsColumns([0, 1, 2, 3, 4, 5]),
-        summation: [
-            {column: summation_column, dataType: 'currency'}
-        ]
-    });
+    };
+
+    if(summation_column != null) datagrid_data.summation = [{column: summation_column, dataType: 'currency'}];
+    
+    $("#datagrid").appTable(datagrid_data);
 
     $("#datagrid").on("draw.dt", function () {
         $(".dropdown_status").on( "change", function() {
@@ -341,6 +344,8 @@ function updateStatus(docId, updateStatusTo){
         update_status_to: updateStatusTo,
     }).then(function (response) {
         data = response.data;
+        $(".modal-content").css("height", "auto");
+        
         if(data.status == "success"){
             if(typeof data.task !== 'undefined') {
                 if(data.task == "popup"){

@@ -21,7 +21,7 @@
         </div>
     </div>
 
-    <div class="form-group">
+    <div class="form-group objective project">
         <label for="project_title" class=" col-md-3">หัวเรื่อง</label>
         <div class="col-md-9"><input type="text" id="project_title" value="<?php echo $project_title; ?>" placeholder="หัวเรื่อง" class="form-control" <?php if($doc_status != "W" && isset($doc_id)) echo "disabled";?>></div>
     </div>
@@ -52,28 +52,28 @@
         </div>
     </div>
 
-    <div class="form-group">
+    <div class="form-group objective project">
         <label for="project_description" class=" col-md-3">คำบรรยาย</label>
         <div class=" col-md-9">
             <textarea id="project_description" placeholder="คำบรรยาย" class="form-control" <?php if($doc_status != "W" && isset($doc_id)) echo "disabled";?>><?php echo $project_description; ?></textarea>
         </div>
     </div>
 
-    <div class="form-group">
+    <div class="form-group objective project">
         <label for="project_start_date" class=" col-md-3">วันที่เริ่ม</label>
         <div class="col-md-9">
             <input type="text" id="project_start_date" class="form-control" placeholder="วันที่เริ่ม" autocomplete="off" readonly>
         </div>
     </div>
 
-    <div class="form-group">
+    <div class="form-group objective project">
         <label for="project_deadline" class=" col-md-3">วันกำหนดส่ง</label>
         <div class="col-md-9">
             <input type="text" id="project_deadline" class="form-control" placeholder="วันกำหนดส่ง" autocomplete="off" readonly>
         </div>
     </div>
 
-    <div class="form-group">
+    <div class="form-group objective project">
         <label for="project_price" class=" col-md-3">ราคา</label>
         <div class="col-md-9">
             <input type="number" id="project_price" value="<?php echo number_format($project_price, 2); ?>" class="form-control numb" autocomplete="off" <?php if($doc_status != "W" && isset($doc_id)) echo "disabled";?>>
@@ -96,9 +96,10 @@
 
 <script type="text/javascript">
 $(document).ready(function() {
-    <?php if($doc_status == "W" || !isset($doc_id)): ?>
-        $('#project_id').select2();
+    setPopupSize($("#purpose").val());
 
+    <?php if($doc_status == "W" || !isset($doc_id)): ?>
+        
         $("#client_id").select2().on("change", function (e) {
             $("#lead_id").select2("val", "");
         });
@@ -107,22 +108,31 @@ $(document).ready(function() {
             $("#client_id").select2("val", "");
         });
 
+        $("#purpose").on("change", function() {
+            setPopupSize($(this).val());
+        });
+
         $("#btnSubmit").click(function() {
-            axios.post('<?php echo current_url(); ?>', {
+            data = {
                 task: 'save_doc',
                 doc_id : "<?php if(isset($doc_id)) echo $doc_id; ?>",
                 purpose: $("#purpose").val(),
                 doc_date:$("#doc_date").val(),
                 reference_number: $("#reference_number").val(),
-                project_title: $("#project_title").val(),
                 client_id: $("#client_id").val(),
-                lead_id: $("#lead_id").val(),project_description,
-                project_description: $("#project_description").val(),
-                project_start_date: $("#project_start_date").val(),
-                project_deadline: $("#project_deadline").val(),
-                project_price: $("#project_price").val(),
+                lead_id: $("#lead_id").val(),
                 remark: $("#remark").val()
-            }).then(function (response) {
+            };
+
+            if($("#purpose").val() == "P"){
+                data.project_title = $("#project_title").val();
+                data.project_description = $("#project_description").val();
+                data.project_start_date = $("#project_start_date").val();
+                data.project_deadline = $("#project_deadline").val();
+                data.project_price = $("#project_price").val();
+            }
+
+            axios.post('<?php echo current_url(); ?>', data).then(function (response) {
                 data = response.data;
                 $(".fnotvalid").remove();
 
@@ -190,4 +200,17 @@ $(document).ready(function() {
         $("#project_price").val($.number(price, 2));
     });
 });
+
+function setPopupSize(purpose){
+    if(purpose == "P"){
+        $(".objective.project").css("display", "block");
+        $(".modal-content").css("height", "610px");
+        $(".general-form").css("height", "488px");
+        $(".general-form").css("overflow-y", "scroll");
+    }else{
+        $(".objective.project").css("display", "none");
+        $(".modal-content").css("height", "488px");
+        $(".general-form").css("height", "auto");
+    }
+}
 </script>

@@ -1,7 +1,7 @@
 <link rel="stylesheet" href="/assets/css/printd.css?t=<?php echo time();?>">
 <div id="dcontroller" class="clearfix">
     <div class="page-title clearfix mt15 clear">
-        <h1>ใบสั่งขาย <?php echo $doc_number;?></h1>
+        <h1><?php echo $purpose == "P"?"ใบสั่งผลิต":"ใบสั่งขาย";?> <?php echo $doc_number;?></h1>
         <div class="title-button-group">
             <a style="margin-left: 15px;" class="btn btn-default mt0 mb0 back-to-index-btn" href="<?php echo get_uri("accounting/sell/sales-orders");?>" ><i class="fa fa-hand-o-left" aria-hidden="true"></i> ย้อนกลับไปตารางรายการ</a>
             <a id="add_item_button" class="btn btn-default" data-post-doc_id="<?php echo $doc_id; ?>" data-act="ajax-modal" data-title="แชร์เอกสาร <?php echo $doc_number; ?>" data-action-url="<?php echo get_uri("/sales-orders/share"); ?>">แชร์</a>
@@ -57,7 +57,7 @@
             </div><!-- .company -->
         </div><!--.l-->
         <div class="r">
-            <h1 class="document_name custom-color">ใบสั่งขาย</h1>
+            <h1 class="document_name custom-color"><?php echo $purpose == "P"?"ใบสั่งผลิต":"ใบสั่งขาย";?></h1>
             <div class="about_company">
                 <table>
                     <tr>

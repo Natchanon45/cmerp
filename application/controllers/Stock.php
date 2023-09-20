@@ -5758,11 +5758,11 @@ class Stock extends MY_Controller
             anchor(get_uri('stock/restock_item_view/' . $item->group_id), $item->group_name),
             $item->sern ? $item->sern : '-',
             $this->dev2_canReadMaterialName()
-            ? anchor(get_uri('items/detail/' . $item->item_id), strtoupper($item->item_code) . ' - ' . ucwords(strtolower($item->item_name)))
-            : anchor(get_uri('items/detail/' . $item->item_id), strtoupper($item->item_code)),
+            ? anchor(get_uri('items/detail/' . $item->item_id), mb_strtoupper($item->item_code) . ' - ' . mb_strtoupper($item->item_name))
+            : anchor(get_uri('items/detail/' . $item->item_id), mb_strtoupper($item->item_code)),
             to_decimal_format3($item->stock_qty),
             to_decimal_format3($item->remain_qty),
-            strtoupper($item->item_unit),
+            mb_strtoupper($item->item_unit),
             $item->create_by ? anchor(get_uri('team_members/view/' . $item->create_by), $this->Account_category_model->created_by($item->create_by)) : '',
             format_to_date($item->create_date),
             $button

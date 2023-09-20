@@ -111,7 +111,6 @@ class Sales_orders extends MY_Controller {
                 }
                 //$suggestion[] = array("id" => "+", "text" => "+ " . lang("create_new_item"));
                 jout($suggestion);
-
             }
             
             return;

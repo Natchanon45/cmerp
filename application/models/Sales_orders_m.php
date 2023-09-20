@@ -28,8 +28,8 @@ class Sales_orders_m extends MY_Model {
     }
 
     function getPurposeInfo($purpose_code){
-        if($purpose_code == "P") return "สร้างเพื่อผลิต";
-        elseif($purpose_code == "S") return "สร้างเพื่อขาย";
+        if($purpose_code == "P") return "ใบสั่งผลิต";
+        elseif($purpose_code == "S") return "ใบสั่งขาย";
         return "";
     }
 
@@ -61,7 +61,7 @@ class Sales_orders_m extends MY_Model {
                     "<a href='".get_uri("sales-orders/view/".$sorow->id)."'>".convertDate($sorow->doc_date, true)."</a>",
                     "<a href='".get_uri("sales-orders/view/".$sorow->id)."'>".$sorow->doc_number."</a>",
                     $sorow->reference_number, $this->getPurposeInfo($sorow->purpose),
-                    $this->Clients_m->getCompanyName($sorow->client_id), $sorow->project_price, $doc_status,
+                    $this->Clients_m->getCompanyName($sorow->client_id), $doc_status,
                     "<a data-post-id='".$sorow->id."' data-action-url='".get_uri("sales-orders/addedit")."' data-act='ajax-modal' class='edit'><i class='fa fa-pencil'></i></a>"
                 ];
 
@@ -277,13 +277,13 @@ class Sales_orders_m extends MY_Model {
         $doc_date = convertDate($this->json->doc_date);
         $purpose = $this->json->purpose;
         $reference_number = $this->json->reference_number;
-        $project_title = $this->json->project_title;
+        $project_title = isset($this->json->project_title)?$this->json->project_title:null;
         $client_id = $this->json->client_id;
         $lead_id = $this->json->lead_id;
-        $project_description = $this->json->project_description;
-        $project_start_date = convertDate($this->json->project_start_date);
-        $project_deadline = convertDate($this->json->project_deadline);
-        $project_price = getNumber($this->json->project_price);
+        $project_description = isset($this->json->project_description)?$this->json->project_description:null;
+        $project_start_date = isset($this->json->project_start_date)?convertDate($this->json->project_start_date):null;
+        $project_deadline = isset($this->json->project_deadline)?convertDate($this->json->project_deadline):null;
+        $project_price = isset($this->json->project_price)?getNumber($this->json->project_price):null;
         $remark = $this->json->remark;
 
         if($client_id == "" && $lead_id == ""){
@@ -429,7 +429,7 @@ class Sales_orders_m extends MY_Model {
             $item["product_id"] = $soirow->product_id;
             $item["product_name"] = $soirow->product_name;
             $item["product_description"] = $soirow->product_description;
-            $item["product_formula_name"] = $product_formula["name"];
+            $item["product_formula_name"] = $product_formula != null ? $product_formula["name"] : "";
             $item["quantity"] = $soirow->quantity;
             $item["unit"] = $soirow->unit;
             $item["price"] = number_format($soirow->price, 2);
@@ -760,6 +760,19 @@ class Sales_orders_m extends MY_Model {
         if(!empty($soirows)){
 
             foreach($soirows as $soirow){
+                $product_remaining = 0;
+
+                if($soirow->pr_header_id == null){
+                    $product_remaining = $ci->Bom_item_m->getTotalRemaining($soirow->product_id);
+                    /*if(){
+
+                    }*/
+                    //$product_remaining - $soirow->quantity
+
+                }else{
+                    $product_remaining = $soirow->product_remaining;
+                }
+
                 $biprows = $db->select("*")
                                 ->from("bom_item_pricings")
                                 ->where("item_id", $soirow->product_id)
@@ -785,6 +798,9 @@ class Sales_orders_m extends MY_Model {
                         }
 
                     $html .= "</td>";
+                    $html .= "<td class='instock'>".($soirow->pr_header_id == null ? $product_remaining." ".$soirow->unit:'-')."</td>";
+                    $html .= "<td class='quantity'>".$soirow->quantity." ".$soirow->unit."</td>";
+                    $html .= "<td class='topurchase'>".abs($product_remaining - $soirow->quantity)." ".$soirow->unit."</td>";
                     $html .= "<td class='reference_number'>";
 
                     if($soirow->pr_header_id != null){
@@ -897,8 +913,15 @@ class Sales_orders_m extends MY_Model {
                                                 "sort"=>++$sort,
                                             ]);
 
+                    $product_remaining = $ci->Bom_item_m->getTotalRemaining($p["product_id"]);
+
                     $db->where("id", $p["sales_order_items_id"]);
-                    $db->update("sales_order_items", ["pr_header_id"=>$pr_header_id, "supplier_id"=>$pr_supplier_id]);
+                    $db->update("sales_order_items", [
+                                                        "pr_header_id"=>$pr_header_id,
+                                                        "supplier_id"=>$pr_supplier_id,
+                                                        "product_remaining"=>$product_remaining,
+                                                        "product_remaining_datetime"=>date("Y-m-d H:i:s")
+                                                    ]);
                 }
             }
         }
