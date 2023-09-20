@@ -435,7 +435,8 @@ class Projects_model extends Crud_model {
         $result = array();
         $this->db->where('deleted', 0);
         if (!$this->login_user->is_admin) {
-            $this->db->where('created_by', $this->login_user->id);
+            // $this->db->where('created_by', $this->login_user->id);
+            // temporary stop to verify is_admin
         }
 
         $query = $this->db->get('projects')->result();
@@ -583,6 +584,52 @@ class Projects_model extends Crud_model {
             if ($status == "3") {
                 if ($info->produce_status != 2) {
                     $result["status"] = "failure";
+                }
+
+                // verify stock group id by project id from bom_item_groups
+                $stock_info = $this->dev2_getStockGroupByProjectId($info->project_id);
+                if (isset($stock_info->id) && !empty($stock_info->id)) {
+                    // add an item to bom_item_stocks only
+                    $item_data = [
+                        "group_id" => $stock_info->id,
+                        "item_id" => $info->item_id,
+                        "production_id" => $info->id,
+                        "mixing_group_id" => $info->mixing_group_id,
+                        "stock" => $info->quantity,
+                        "remaining" => $info->quantity
+                    ];
+
+                    if ($info->produce_in) {
+                        $this->db->insert("bom_item_stocks", $item_data);
+                    }
+                } else {
+                    $project_info = $this->dev2_getRowInfoByRowId($info->project_id, "projects");
+
+                    // create a fg stock header to bom_item_groups
+                    $header_data = [
+                        "project_id" => $project_info->id,
+                        "name" => $project_info->title,
+                        "po_no" => 0,
+                        "created_by" => $this->login_user->id,
+                        "created_date" => date("Y-m-d")
+                    ];
+                    
+                    $this->db->insert("bom_item_groups", $header_data);
+                    $header_id = $this->db->insert_id();
+
+                    // add an item to bom_item_stocks only
+                    $item_data = [
+                        "group_id" => $header_id,
+                        "item_id" => $info->item_id,
+                        "production_id" => $info->id,
+                        "mixing_group_id" => $info->mixing_group_id,
+                        "stock" => $info->quantity,
+                        "remaining" => $info->quantity
+                    ];
+
+                    if ($info->produce_in) {
+                        $this->db->insert("bom_item_stocks", $item_data);
+                    }
                 }
 
                 $this->db->where("id", $id);
@@ -804,19 +851,28 @@ class Projects_model extends Crud_model {
 
         $project_info = $this->dev2_getRowInfoByRowId($project_id, "projects");
 
-        $get = $this->db->get_where("bom_project_items", ["project_id" => $project_id, "produce_status => 2"])->result();
+        $get = $this->db->get_where("bom_project_items", ["project_id" => $project_id, "produce_status" => 2])->result();
         if (sizeof($get) && !empty($get)) {
-            // create a fg stock header to bom_item_groups
-            $header_data = [
-                "project_id" => $project_info->id,
-                "name" => $project_info->title,
-                "po_no" => 0,
-                "created_by" => $this->login_user->id,
-                "created_date" => date("Y-m-d")
-            ];
-            
-            $this->db->insert("bom_item_groups", $header_data);
-            $header_id = $this->db->insert_id();
+            // verify stock group id by project id from bom_item_groups
+            $stock_info = $this->dev2_getStockGroupByProjectId($project_id);
+
+            $header_id = 0;
+            if (isset($stock_info->id) && !empty($stock_info->id)) {
+                $header_id = $stock_info->id;
+            } else {
+                // create a fg stock header to bom_item_groups
+                $header_data = [
+                    "project_id" => $project_info->id,
+                    "name" => $project_info->title,
+                    "po_no" => 0,
+                    "created_by" => $this->login_user->id,
+                    "created_date" => date("Y-m-d")
+                ];
+
+                $this->db->insert("bom_item_groups", $header_data);
+                $header_id = $this->db->insert_id();
+            }
+
             $info["result"]["header_id"] = $header_id;
             $info["result"]["header_data"] = $header_data;
 
@@ -1016,6 +1072,55 @@ class Projects_model extends Crud_model {
         return $info;
     }
 
+    public function dev2_postProductionOrderDeleteByOrderId(int $project_id, int $production_id): array
+    {
+        $info = [
+            "success" => false,
+            "header" => null,
+            "items" => null
+        ];
+
+        // get production order info
+        $header_data = $this->dev2_getRowInfoByRowId($production_id, "bom_project_items");
+        $items_data = $this->dev2_getItemListByRowHeaderId($production_id, "bom_project_item_materials", "project_item_id");
+
+        if (isset($header_data) && !empty($header_data)) {
+            if (isset($items_data) && !empty($items_data)) {
+                $this->db->delete("bom_project_item_materials", ["project_item_id" => $production_id]);
+                $info["items"] = $items_data;
+            }
+
+            $this->db->delete("bom_project_items", ["id" => $production_id]);
+            $info["header"] = $header_data;
+            $info["success"] = true;
+        }
+
+        return $info;
+    }
+
+    public function dev2_getProductionOrderStatusById(int $id): int
+    {
+        $status = 0;
+        $get = $this->dev2_getRowInfoByRowId($id, "bom_project_items");
+
+        if (isset($get->produce_status) && !empty($get->produce_status)) {
+            $status = $get->produce_status;
+        }
+        return $status;
+    }
+
+    public function dev2_getCountMrForProductionOrderById(int $id): int
+    {
+        $count = 0;
+        $sql = "SELECT COUNT(id) AS rows_num FROM bom_project_item_materials WHERE mr_id IS NOT NULL AND project_item_id = ?";
+        $get = $this->db->query($sql, $id)->row();
+
+        if (isset($get->rows_num) && !empty($get->rows_num)) {
+            $count = $get->rows_num;
+        }
+        return $count;
+    }
+
     private function dev2_patchMaterialRequestIdForBomItemByItemId(int $id, int $mr_id): void
     {
         $this->db->where("id", $id);
@@ -1032,6 +1137,17 @@ class Projects_model extends Crud_model {
 
         $this->db->where("id", $production_id);
         $this->db->update("bom_project_items", ["mr_status" => $mr_status]);
+    }
+
+    private function dev2_getStockGroupByProjectId(int $project_id): stdClass
+    {
+        $info = new stdClass();
+        $get = $this->db->get_where("bom_item_groups", ["project_id" => $project_id])->row();
+
+        if (!empty($get)) {
+            $info = $get;
+        }
+        return $info;
     }
 
     private function dev2_getRowInfoByRowId(int $id, string $table): stdClass

@@ -24,7 +24,7 @@
     <input type="hidden" id="target_url" value="<?php echo get_uri("projects/production_order_change_to_producing_all_post"); ?>">
 
     <div class="p3">
-        <p style="font-size: 110%;">ต้องการเปลี่ยนสถานะการผลิตเป็น <span class="pill pill-warning">กำลังผลิต</span> ทุกรายการใช่หรือไม่?</p>
+        <p style="font-size: 110%;"><?php echo lang("production_order_want_to_chage"); ?> <span class="pill pill-warning"><?php echo lang("production_order_producing"); ?></span> <?php echo lang("production_order_all_of_order"); ?></p>
     </div>
 </div>
 

@@ -21,7 +21,7 @@
 .modal-body {
     max-height: calc(100vh - 22.5rem);
     overflow-y: auto;
-    overflow-x: hidden;
+    overflow-x: auto;
 }
 
 .modal-body table {
@@ -55,6 +55,14 @@
     pointer-events: none;
     appearance: none;
 }
+
+.mw192px {
+    min-width: 192px;
+}
+
+.mw96px {
+    min-width: 96px;
+}
 </style>
 
 <?php
@@ -76,8 +84,8 @@ echo form_open(
             <tr>
                 <th width="35%"><?php echo lang("item"); ?></th>
                 <th><?php echo lang("item_mixing_name"); ?></th>
-                <th width="128px"><?php echo lang("quantity"); ?></th>
-                <th width="128px">
+                <th width="192px" class="mw192px"><?php echo lang("quantity"); ?></th>
+                <th width="128px" class="mw96px">
                     <span><?php echo lang("production_order_produce_in"); ?></span>
                 </th>
                 <th>

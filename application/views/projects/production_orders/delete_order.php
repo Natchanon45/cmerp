@@ -1,9 +1,12 @@
+<?php // var_dump(arr($id)); ?>
+<?php // var_dump(arr($project_id)); ?>
+
 <div class="modal-body clearfix">
     <input type="hidden" id="project_id" value="<?php echo $project_id; ?>">
-    <input type="hidden" id="project_name" value="<?php echo $project_name; ?>">
-    <input type="hidden" id="post_url" value="<?php echo get_uri("projects/production_order_mr_creation_all_post"); ?>">
+    <input type="hidden" id="production_id" value="<?php echo $id; ?>">
+    <input type="hidden" id="post_url" value="<?php echo get_uri("projects/production_order_delete_post"); ?>">
     <div class="p3">
-        <p style="font-size: 110%;"><?php echo lang("production_order_mr_creation_all"); ?></p>
+        <p style="font-size: 110%;"><?php echo lang("production_order_delete_question"); ?></p>
     </div>
 </div>
 
@@ -21,27 +24,30 @@
 
 <script type="text/javascript">
 const projectId = document.querySelector("#project_id").value;
-const projectName = document.querySelector("#project_name").value;
+const productionId = document.querySelector("#production_id").value;
 const postUrl = document.querySelector("#post_url").value;
 
 async function mrCreationAll() {
     let url = postUrl;
     let req = {
         projectId: projectId,
-        projectName: projectName
+        productionId: productionId
     };
 
     await axios.post(url, req).then(res => {
-        const { success, target } = res.data;
+        const { success } = res.data;
         
         if (success) {
-            window.open(target, "_blank");
-            window.parent.loadProductionOrderList();
+            appAlert.success("Order has been deleted.", { duration: 3001 });
         } else {
-            window.parent.loadProductionOrderList();
+            appAlert.error("Something went wrong!", { duration: 3001 });
         }
+        window.parent.loadProductionOrderList();
     }).catch(err => {
         console.log(err);
+
+        appAlert.error("500 Internal Server Error.", { duration: 3001 });
+        window.parent.loadProductionOrderList();
     });
 }
 

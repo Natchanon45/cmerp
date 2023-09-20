@@ -110,19 +110,19 @@
         <thead>
             <tr>
                 <th>
-                    <?php echo "วัตถุดิบ"; ?>
+                    <?php echo lang("stock_material"); ?>
                 </th>
                 <th>
-                    <?php echo "ชื่อการนำเข้า"; ?>
+                    <?php echo lang("stock_restock_name"); ?>
                 </th>
                 <th>
-                    <?php echo "จำนวน"; ?>
+                    <?php echo lang("quantity"); ?>
                 </th>
                 <th>
-                    <?php echo "มูลค่าต้นทุน"; ?>
+                    <?php echo lang("production_order_rm_cost"); ?>
                 </th>
                 <th>
-                    <?php echo "เลขที่ใบเบิก"; ?>
+                    <?php echo lang("material_request_no"); ?>
                 </th>
             </tr>
         </thead>
@@ -195,7 +195,7 @@
         </tbody>
         <tfoot>
             <tr>
-                <td class="text-center font-bold" colspan="3"><?php echo "รวมต้นทุนวัตถุดิบ"; ?></td>
+                <td class="text-center font-bold" colspan="3"><?php echo lang("production_order_rm_cost_total"); ?></td>
                 <td class="text-right font-bold"><?php echo number_format($total_rm_cost, 2) . " " . lang("THB"); ?></td>
                 <td></td>
             </tr>

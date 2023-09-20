@@ -6015,7 +6015,19 @@ class Projects extends MY_Controller
     {
         $data = $this->input->post();
 
-        var_dump(arr($data)); exit();
+        // var_dump(arr($data)); exit();
+        $this->load->view("projects/production_orders/delete_order", $data);
+    }
+
+    function production_order_delete_post()
+    {
+        $post = $this->json;
+
+        $production_delete = $this->Projects_model->dev2_postProductionOrderDeleteByOrderId(
+            $post->projectId,
+            $post->productionId
+        );
+        echo json_encode($production_delete);
     }
 
     function production_order_mr_creation()
@@ -6104,12 +6116,36 @@ class Projects extends MY_Controller
         var_dump(arr($result));
     }
 
+    private function production_order_can_delete($id)
+    {
+        $can_delete = true;
+
+        // verify order status
+        $order_status = $this->Projects_model->dev2_getProductionOrderStatusById($id);
+        if (isset($order_status) && !empty($order_status)) {
+            if ($order_status !== 1) {
+                $can_delete = false;
+            }
+        }
+
+        // verify material requisition created
+        $count_mr = $this->Projects_model->dev2_getCountMrForProductionOrderById($id);
+        if (isset($count_mr) && !empty($count_mr)) {
+            if ($count_mr > 0) {
+                $can_delete = false;
+            }
+        }
+
+        return $can_delete;
+    }
+
     private function production_order_prepare_data($item)
     {
         $buttons = "";
 
         // get cost of each production order
         $item->costs = $this->Projects_model->dev2_getRawMatCostOfProductionOrderByProductionOrderId($item->id, $item->quantity);
+        $item->can_delete = $this->production_order_can_delete($item->id);
 
         // prepare btn-bag-project
         if ($this->Permission_m->access_material_request || $this->Permission_m->access_purchase_request) {
@@ -6128,7 +6164,8 @@ class Projects extends MY_Controller
         }
 
         // prepare btn-delete-project
-        if ($this->check_permission('can_delete_projects')) {
+        // if ($this->check_permission('can_delete_projects')) {
+        if ($item->can_delete) {
             $buttons .= modal_anchor(
                 get_uri("projects/production_order_delete"),
                 "<i class='fa fa-times fa-fw'></i>",
