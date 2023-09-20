@@ -1,6 +1,3 @@
-<?php // var_dump(arr($id)); ?>
-<?php // var_dump(arr($project_id)); ?>
-
 <div class="modal-body clearfix">
     <input type="hidden" id="project_id" value="<?php echo $project_id; ?>">
     <input type="hidden" id="production_id" value="<?php echo $id; ?>">

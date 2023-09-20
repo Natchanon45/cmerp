@@ -118,9 +118,11 @@
                 <th>
                     <?php echo lang("quantity"); ?>
                 </th>
-                <th>
-                    <?php echo lang("production_order_rm_cost"); ?>
-                </th>
+                <?php if ($auth_read_cost): ?>
+                    <th>
+                        <?php echo lang("production_order_rm_cost"); ?>
+                    </th>
+                <?php endif; ?>
                 <th>
                     <?php echo lang("material_request_no"); ?>
                 </th>
@@ -156,24 +158,26 @@
                                 <span class="<?php echo $detail->ratio > 0 ? "color-success" : "color-danger"; ?>"><?php echo number_format($detail->ratio, 3) . " " . $detail->material_info->unit; ?></span>
                             <?php endif; ?>
                         </td>
-                        <td class="text-right">
-                            <?php
-                            if (!empty($detail->stock_id)):
-                                if (isset($detail->stock_info) && !empty($detail->stock_info)):
-                                    $rm_cost = 0;
-                                    if ($detail->stock_info->price > 0):
-                                        $rm_cost = ($detail->stock_info->price / $detail->stock_info->stock) * $detail->ratio;
+                        <?php if ($auth_read_cost): ?>
+                            <td class="text-right">
+                                <?php
+                                if (!empty($detail->stock_id)):
+                                    if (isset($detail->stock_info) && !empty($detail->stock_info)):
+                                        $rm_cost = 0;
+                                        if ($detail->stock_info->price > 0):
+                                            $rm_cost = ($detail->stock_info->price / $detail->stock_info->stock) * $detail->ratio;
+                                        endif;
+                                        echo number_format($rm_cost, 2) . " " . lang("THB");
+                                        $total_rm_cost += $rm_cost;
+                                    else:
+                                        echo "-";
                                     endif;
-                                    echo number_format($rm_cost, 2) . " " . lang("THB");
-                                    $total_rm_cost += $rm_cost;
                                 else:
                                     echo "-";
                                 endif;
-                            else:
-                                echo "-";
-                            endif;
-                            ?>
-                        </td>
+                                ?>
+                            </td>
+                        <?php endif; ?>
                         <td>
                             <?php
                             if (!empty($detail->mr_id)):
@@ -193,13 +197,15 @@
                 <?php endforeach; ?>
             <?php endif; ?>
         </tbody>
-        <tfoot>
-            <tr>
-                <td class="text-center font-bold" colspan="3"><?php echo lang("production_order_rm_cost_total"); ?></td>
-                <td class="text-right font-bold"><?php echo number_format($total_rm_cost, 2) . " " . lang("THB"); ?></td>
-                <td></td>
-            </tr>
-        </tfoot>
+        <?php if ($auth_read_cost): ?>
+            <tfoot>
+                <tr>
+                    <td class="text-center font-bold" colspan="3"><?php echo lang("production_order_rm_cost_total"); ?></td>
+                    <td class="text-right font-bold"><?php echo number_format($total_rm_cost, 2) . " " . lang("THB"); ?></td>
+                    <td></td>
+                </tr>
+            </tfoot>
+        <?php endif; ?>
     </table>
 </div>
 

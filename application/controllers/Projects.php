@@ -5898,6 +5898,7 @@ class Projects extends MY_Controller
         // get a project info by project id
         $data["project_info"] = $this->Projects_model->dev2_getProjectInfoByProjectId($project_id);
         $data["project_bom_info"] = $this->Projects_model->dev2_getProductionOrderListByProjectId($project_id);
+        $data["auth_read_cost"] = $this->check_permission("bom_restock_read_price");
         
         // var_dump(arr($data)); exit();
         $this->load->view("projects/production_orders/index", $data);
@@ -6006,6 +6007,7 @@ class Projects extends MY_Controller
             $data["project_post"]["project_id"],
             $data["project_post"]["id"]
         );
+        $data["auth_read_cost"] = $this->check_permission("bom_restock_read_price");
         
         // var_dump(arr($data)); exit();
         $this->load->view("projects/production_orders/modal_bom", $data);
@@ -6139,6 +6141,21 @@ class Projects extends MY_Controller
         return $can_delete;
     }
 
+    private function auth_bom_read_price() // finding authorization about ["bom_restock_read_price"]
+    {
+        $login_user = $this->login_user;
+        var_dump(arr($login_user->role_id));
+
+        $auth = $this->db->get_where("roles", ["id" => $login_user->role_id, "deleted" => 0])->row();
+        var_dump(arr($auth));
+
+        $permissions = unserialize($auth->permissions);
+        var_dump(arr($permissions));
+
+        $bom_restock_read_price = $this->check_permission("bom_restock_read_price");
+        var_dump(arr($bom_restock_read_price));
+    }
+
     private function production_order_prepare_data($item)
     {
         $buttons = "";
@@ -6146,6 +6163,7 @@ class Projects extends MY_Controller
         // get cost of each production order
         $item->costs = $this->Projects_model->dev2_getRawMatCostOfProductionOrderByProductionOrderId($item->id, $item->quantity);
         $item->can_delete = $this->production_order_can_delete($item->id);
+        $item->auth_cost = $this->check_permission("bom_restock_read_price");
 
         // prepare btn-bag-project
         if ($this->Permission_m->access_material_request || $this->Permission_m->access_purchase_request) {
@@ -6213,18 +6231,35 @@ class Projects extends MY_Controller
             </select>';
         }
 
-        return [
-            $item->id,
-            $item->item_info->title,
-            $item->mixing_group_info->name,
-            number_format($item->quantity, 2),
-            strtoupper($item->item_info->unit_type),
-            to_decimal_format3($item->costs),
-            lang("THB"),
-            $produce,
-            $mr,
-            $buttons
-        ];
+        if ($item->auth_cost) {
+            $result = [
+                $item->id,
+                $item->item_info->title,
+                $item->mixing_group_info->name,
+                number_format($item->quantity, 2),
+                strtoupper($item->item_info->unit_type),
+                to_decimal_format3($item->costs),
+                lang("THB"),
+                $item->produce_in ? lang("yes") : lang("no"),
+                $produce,
+                $mr,
+                $buttons
+            ];
+        } else {
+            $result = [
+                $item->id,
+                $item->item_info->title,
+                $item->mixing_group_info->name,
+                number_format($item->quantity, 2),
+                strtoupper($item->item_info->unit_type),
+                $item->produce_in ? lang("yes") : lang("no"),
+                $produce,
+                $mr,
+                $buttons
+            ];
+        }
+
+        return $result;
     }
 
 }

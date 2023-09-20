@@ -51,6 +51,7 @@
 </style>
 
 <div class="panel">
+    <input type="hidden" name="authReadCostAmount" id="authReadCostAmount" value="<?php echo $auth_read_cost; ?>">
     <div class="tab-title clearfix">
         <h4>
             <?php echo lang("production_order"); ?>
@@ -108,49 +109,71 @@
 </div>
 
 <script type="text/javascript">
+const authReadCostAmount = document.querySelector("#authReadCostAmount");
+const source = '<?php echo_uri("projects/production_order_list/" . $project_info["id"]); ?>';
+
+const mrStatus = {
+    name: 'mr_status', class: 'w200',
+    options: [
+        { id: 0, text: '<?php echo "-- " . lang("production_order_mr_status_select") . " --"; ?>' },
+        { id: 1, text: '<?php echo lang("production_order_not_yet_withdrawn"); ?>' },
+        { id: 2, text: '<?php echo lang("production_order_partially_withdrawn"); ?>' },
+        { id: 3, text: '<?php echo lang("production_order_completed_withdrawal"); ?>' }
+    ]
+};
+
+const produceStatus = {
+    name: 'produce_status',
+    class: 'w200',
+    options: [
+        { id: 0, text: '<?php echo "-- " . lang("production_order_produce_status_select") . " --"; ?>' },
+        { id: 1, text: '<?php echo lang("production_order_not_yet_produce"); ?>' },
+        { id: 2, text: '<?php echo lang("production_order_producing"); ?>' },
+        { id: 3, text: '<?php echo lang("production_order_produced_completed"); ?>' }
+    ]
+};
+
+let summation = [];
+let columns = [
+    { title: '<?php echo lang("id"); ?>', class: 'text-center' },
+    { title: '<?php echo lang("item"); ?>' },
+    { title: '<?php echo lang("item_mixing_name"); ?>' },
+    { title: '<?php echo lang("quantity"); ?>', class: 'text-right' },
+    { title: '<?php echo lang("stock_material_unit"); ?>', class: 'text-left' },
+    { title: '<?php echo lang("production_order_produce_in"); ?>', class: 'text-center' },
+    { title: '<?php echo lang("status") . '<br>' . lang("production_order_produce_status"); ?>', class: 'text-center' },
+    { title: '<?php echo lang("status") . '<br>' . lang("production_order_mr_status"); ?>', class: 'text-center' },
+    { title: '<i class="fa fa-bars"></i>', class: 'text-center option' }
+];
+
+if (authReadCostAmount.value) {
+    columns = [
+        { title: '<?php echo lang("id"); ?>', class: 'text-center' },
+        { title: '<?php echo lang("item"); ?>' },
+        { title: '<?php echo lang("item_mixing_name"); ?>' },
+        { title: '<?php echo lang("quantity"); ?>', class: 'text-right' },
+        { title: '<?php echo lang("stock_material_unit"); ?>', class: 'text-left' },
+        { title: '<?php echo lang("production_order_rm_cost"); ?>', class: 'text-right' },
+        { title: '<?php echo lang("currency"); ?>', class: 'text-left' },
+        { title: '<?php echo lang("production_order_produce_in"); ?>', class: 'text-center' },
+        { title: '<?php echo lang("status") . '<br>' . lang("production_order_produce_status"); ?>', class: 'text-center' },
+        { title: '<?php echo lang("status") . '<br>' . lang("production_order_mr_status"); ?>', class: 'text-center' },
+        { title: '<i class="fa fa-bars"></i>', class: 'text-center option' }
+    ];
+    summation = [
+        { column: 5, dataType: 'currency' }
+    ];
+}
+
 async function loadProductionOrderList() {
     let ajaxTable = '<table id="production-order-table" class="display" width="100%"></table>';
     let ajaxApp = {
-        source: '<?php echo_uri("projects/production_order_list/" . $project_info["id"]); ?>',
+        source: source,
         order: [[0, 'desc']],
-        filterDropdown: [
-            {
-                name: 'mr_status',
-                class: 'w200',
-                options: [
-                    { id: 0, text: '<?php echo "-- " . lang("production_order_mr_status_select") . " --"; ?>' },
-                    { id: 1, text: '<?php echo lang("production_order_not_yet_withdrawn"); ?>' },
-                    { id: 2, text: '<?php echo lang("production_order_partially_withdrawn"); ?>' },
-                    { id: 3, text: '<?php echo lang("production_order_completed_withdrawal"); ?>' }
-                ]
-            },
-            {
-                name: 'produce_status',
-                class: 'w200',
-                options: [
-                    { id: 0, text: '<?php echo "-- " . lang("production_order_produce_status_select") . " --"; ?>' },
-                    { id: 1, text: '<?php echo lang("production_order_not_yet_produce"); ?>' },
-                    { id: 2, text: '<?php echo lang("production_order_producing"); ?>' },
-                    { id: 3, text: '<?php echo lang("production_order_produced_completed"); ?>' }
-                ]
-            }
-        ],
+        filterDropdown: [mrStatus, produceStatus],
         destroy: true,
-        columns: [
-            { title: '<?php echo lang("id"); ?>', class: 'text-center' },
-            { title: '<?php echo lang("item"); ?>' },
-            { title: '<?php echo lang("item_mixing_name"); ?>' },
-            { title: '<?php echo lang("quantity"); ?>', class: 'text-right' },
-            { title: '<?php echo lang("stock_material_unit"); ?>', class: 'text-left' },
-            { title: '<?php echo lang("production_order_rm_cost"); ?>', class: 'text-right' },
-            { title: '<?php echo lang("currency"); ?>', class: 'text-left' },
-            { title: '<?php echo lang("status") . '<br>' . lang("production_order_produce_status"); ?>', class: 'text-center' },
-            { title: '<?php echo lang("status") . '<br>' . lang("production_order_mr_status"); ?>', class: 'text-center' },
-            { title: '<i class="fa fa-bars"></i>', class: 'text-center option' }
-        ],
-        summation: [
-            { column: 5, dataType: 'currency' }
-        ]
+        columns: columns,
+        summation: summation
     };
 
     await $("#table-wrapper").empty();
