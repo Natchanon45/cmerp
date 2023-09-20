@@ -6,10 +6,8 @@
         <input type="hidden" name="client_id" value="<?php echo $client_id; ?>" />
         <input type="hidden" name="user_id" value="<?php echo $user_id; ?>" />
 		<div class="form-group">
-            <div class="form-group">
-                <label for="invoice_labels" class=" col-md-3"><?php echo lang( 'labels' );?></label>
-                <div class=" col-md-9"><?php echo $this->Labels_m->genLabel("notes", $model_info->id); ?></div>
-            </div>
+            <label for="invoice_labels" class=" col-md-3"><?php echo lang( 'labels' );?></label>
+            <div class=" col-md-9"><?php echo $this->Labels_m->genLabel("notes", $model_info->id); ?></div>
         </div>
         <div class="form-group">
             <label for="title" class=" col-md-3">หัวเรื่อง</label>
@@ -29,11 +27,28 @@
             </div>
         </div>
 
-        <?php if($project_id == 0): ?>
+        <?php /*if($project_id == 0): ?>
             <div class="form-group">
                 <label for="note_type_id" class=" col-md-3">ประเภทเอกสาร</label>
                 <div class="col-md-9"><?php echo form_dropdown("note_type_id", $note_types_dropdown, $model_info->note_type_id, "class='select2 validate-hidden' id='note_type_id' data-rule-required='true', data-msg-required='" . lang('field_required') . "'"); ?></div>
             </div>
+        <?php endif;*/ ?>
+        <?php if($project_id == 0): ?>
+            <?php if(!empty($note_types)): ?>
+                <div class="form-group">
+                    <label for="note_type_id" class=" col-md-3">ประเภทเอกสาร</label>
+                    <div class="col-md-9">
+                        <select name="note_type_id" id="note_type_id" class="select2 validate-hidden" data-rule-required="true" data-msg-required="<?php echo lang('field_required'); ?>">
+                            <?php if($model_info->note_type_id == 0):?>
+                                <option>เอกสารยังไม่ระบุประเภท</option>
+                            <?php endif; ?>
+                            <?php foreach($note_types as $note_type): ?>
+                                <option value="<?php echo $note_type['id']; ?>" <?php if($note_type['id'] == $model_info->note_type_id) echo "selected"; ?> ><?php echo $note_type['title']; ?></option>
+                            <?php endforeach;  ?>
+                        </select>
+                    </div>
+                </div>
+            <?php endif;?>
         <?php endif; ?>
 
         <div class="form-group">
