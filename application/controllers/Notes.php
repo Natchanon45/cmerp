@@ -70,14 +70,16 @@ class Notes extends MY_Controller {
 
         //$view_data['note_types_dropdown'] = array(0 => "-") + $this->Note_types_model->get_dropdown_list(array("title"), "id", []);
 
-        $view_data['note_types_dropdown'] = array(null => "-");
+        /*$view_data['note_types_dropdown'] = array(null => "-");
 
         $note_types_dropdown = [];
         $note_types = $this->Note_types_model->get_dropdown_list(array("title"), "id");
 
         foreach ($note_types as $id => $name) {
             $view_data['note_types_dropdown'][$id] = $name;
-        }
+        }*/
+
+        $view_data["note_types"] = $this->Notes_m->getAvailableNoteTypes();
 
         $this->load->view('notes/modal_form', $view_data);
     }
