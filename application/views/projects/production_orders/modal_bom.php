@@ -249,6 +249,13 @@
         <span class="fa fa-book"></span> 
         <?php echo " " . lang("create_matreq"); ?>
     </button>
+
+    <?php if ($auth_read_cost): ?>
+        <button type="button" class="btn btn-default" id="btn-pdf">
+            <span class="fa fa-download"></span> 
+            <?php echo " " . lang("download_pdf"); ?>
+        </button>
+    <?php endif; ?>
 </div>
 
 <script type="text/javascript">
@@ -311,6 +318,13 @@ $(document).ready(function () {
     $("#btn-mr-creator").on("click", async function (e) {
         e.preventDefault();
         await mrCreation();
+    });
+
+    $("#btn-pdf").on("click", async function (e) {
+        e.preventDefault();
+
+        let url = '<?php echo get_uri("pdf_export/production_pdf/" . $project_info["id"] . "/" . $production_bom_header->id); ?>';
+        await window.open(url, '_blank');
     });
 });
 </script>

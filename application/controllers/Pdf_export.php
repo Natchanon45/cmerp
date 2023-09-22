@@ -1,148 +1,148 @@
 <?php
 if (!defined('BASEPATH'))
     exit('No direct script access allowed');
- 
-    
-    use Dompdf\Dompdf; 
-        
 
-class Pdf_export extends CI_Controller {
-        
 
-        public function __construct(){
+use Dompdf\Dompdf;
 
-            parent::__construct();
-       
-            // Load model
-            $this->load->model('Db_model');
-            $this->load->model('Estimates_model');
-            $this->load->model('Payment_vouchers_model');
-            $this->load->model('Invoices_model');
-            $this->load->model('Provetable_model');
-            $this->load->model('Purchaserequests_model');
-            $this->load->model('Orders_model');
-            $this->load->model('Receipts_model');
-            $this->load->model('Receipt_taxinvoices_model');
-            $this->load->model('Materialrequests_model');
-            $this->load->model('Mr_items_model');
-            $this->load->model('Deliverys_model');
+
+class Pdf_export extends CI_Controller
+{
+
+
+    public function __construct()
+    {
+
+        parent::__construct();
+
+        // Load model
+        $this->load->model('Db_model');
+        $this->load->model('Estimates_model');
+        $this->load->model('Payment_vouchers_model');
+        $this->load->model('Invoices_model');
+        $this->load->model('Provetable_model');
+        $this->load->model('Purchaserequests_model');
+        $this->load->model('Orders_model');
+        $this->load->model('Receipts_model');
+        $this->load->model('Receipt_taxinvoices_model');
+        $this->load->model('Materialrequests_model');
+        $this->load->model('Mr_items_model');
+        $this->load->model('Deliverys_model');
+    }
+
+    public function ReadNumber($number)
+    {
+        $position_call = array("แสน", "หมื่น", "พัน", "ร้อย", "สิบ", "");
+        $number_call = array("", "หนึ่ง", "สอง", "สาม", "สี่", "ห้า", "หก", "เจ็ด", "แปด", "เก้า");
+        $number = $number + 0;
+        $ret = "";
+        if ($number == 0)
+            return $ret;
+        if ($number > 1000000) {
+            $ret .= $this->ReadNumber(intval($number / 1000000)) . "ล้าน";
+            $number = intval(fmod($number, 1000000));
         }
 
-        public function ReadNumber($number)
-        {
-            $position_call = array("แสน", "หมื่น", "พัน", "ร้อย", "สิบ", "");
-            $number_call = array("", "หนึ่ง", "สอง", "สาม", "สี่", "ห้า", "หก", "เจ็ด", "แปด", "เก้า");
-            $number = $number + 0;
-            $ret = "";
-            if ($number == 0) return $ret;
-            if ($number > 1000000)
-            {
-                $ret .= $this->ReadNumber(intval($number / 1000000)) . "ล้าน";
-                $number = intval(fmod($number, 1000000));
-            }
-            
-            $divider = 100000;
-            $pos = 0;
-            while($number > 0)
-            {
-                $d = intval($number / $divider);
-                $ret .= (($divider == 10) && ($d == 2)) ? "ยี่" : 
-                    ((($divider == 10) && ($d == 1)) ? "" :
+        $divider = 100000;
+        $pos = 0;
+        while ($number > 0) {
+            $d = intval($number / $divider);
+            $ret .= (($divider == 10) && ($d == 2)) ? "ยี่" :
+                ((($divider == 10) && ($d == 1)) ? "" :
                     ((($divider == 1) && ($d == 1) && ($ret != "")) ? "เอ็ด" : $number_call[$d]));
-                $ret .= ($d ? $position_call[$pos] : "");
-                $number = $number % $divider;
-                $divider = $divider / 10;
-                $pos++;
-            }
-            return $ret;
+            $ret .= ($d ? $position_call[$pos] : "");
+            $number = $number % $divider;
+            $divider = $divider / 10;
+            $pos++;
+        }
+        return $ret;
+    }
+
+    public function Convert($amount_number)
+    {
+        $amount_number = number_format($amount_number, 2, ".", "");
+        $pt = strpos($amount_number, ".");
+        $number = $fraction = "";
+        if ($pt === false)
+            $number = $amount_number;
+        else {
+            $number = substr($amount_number, 0, $pt);
+            $fraction = substr($amount_number, $pt + 1);
         }
 
-        public function Convert($amount_number)
-        {
-            $amount_number = number_format($amount_number, 2, ".","");
-            $pt = strpos($amount_number , ".");
-            $number = $fraction = "";
-            if ($pt === false) 
-                $number = $amount_number;
-            else
-            {
-                $number = substr($amount_number, 0, $pt);
-                $fraction = substr($amount_number, $pt + 1);
-            }
-            
-            $ret = "";
-            $baht = $this->ReadNumber($number);
-            if ($baht != "")
-                $ret .= $baht . "บาท";
-            
-            $satang = $this->ReadNumber($fraction);
-            if ($satang != "")
-                $ret .=  $satang . "สตางค์";
-            else 
-                $ret .= "ถ้วน";
-            return $ret;
-        }
+        $ret = "";
+        $baht = $this->ReadNumber($number);
+        if ($baht != "")
+            $ret .= $baht . "บาท";
 
-        public function index($estimate_id = 0)
-        {
-            
-            echo 'Hello World! <br/>';
-            // $user_id = 3;
-            // $sql = "SELECT * FROM `invoices` WHERE id = 6";
-            // $data = $this->Db_model->fetchAll($sql);
-            // foreach($data as $d){
-            //     $da = explode("-",$d->note);
-            //     echo implode("<br/>",$da);
-            // }
-            
-        }
+        $satang = $this->ReadNumber($fraction);
+        if ($satang != "")
+            $ret .= $satang . "สตางค์";
+        else
+            $ret .= "ถ้วน";
+        return $ret;
+    }
 
-        public function DateConvert($strDate = 0)
-        {           
-            $date=date_create($strDate);
-            return date_format($date,"d / m / Y");
-        }
+    public function index($estimate_id = 0)
+    {
 
- 
-    
-        public function estimates_pdf($estimate_id = 0 )
-        {            
-            $template = '<div style="text-align: [align]; position:absolute; top:[top]px; left:[left]px; width:[w]px; height:[h]px;"><span>[val]</span></div>';
+        echo 'Hello World! <br/>';
+        // $user_id = 3;
+        // $sql = "SELECT * FROM `invoices` WHERE id = 6";
+        // $data = $this->Db_model->fetchAll($sql);
+        // foreach($data as $d){
+        //     $da = explode("-",$d->note);
+        //     echo implode("<br/>",$da);
+        // }
 
-            $defaultConfig = (new Mpdf\Config\ConfigVariables())->getDefaults();
-            $fontDirs = $defaultConfig['fontDir'];
-    
-            $defaultFontConfig = (new Mpdf\Config\FontVariables())->getDefaults();
-            $fontData = $defaultFontConfig['fontdata'];
-            
+    }
 
-            $mpdf = new \Mpdf\Mpdf([
-                'fontDir' => array_merge($fontDirs, [
-                    __DIR__ . '/fonts',
-                ]),
-                'fontdata' => $fontData + [
-                    'def' => [
-                        'R' => 'THSarabun_Bold.ttf',
-                        //'I' => 'THSarabunNew Italic.ttf',
-                        //'B' => 'THSarabunNew Bold.ttf',
-                    ]
-                ],
-                'default_font' => 'def',
-                'tempDir' => '/tmp'
-            ]);
-            $mpdf->charset_in = 'UTF-8';
-            
-    
-            $keep = array();
-            $html = '';
-            $company_address = nl2br(get_setting("company_address"));
-            $company_phone = get_setting("company_phone");
-            $company_website = get_setting("company_website");
-            $company_vat_number = get_setting("company_vat_number");
-            $company_name = get_setting("company_name");
-           
-    
-            $sql = "SELECT *,estimates.id as esId,estimate_items.id as itemId, clients.id as clientId , estimates.note as es_note, projects.title as protitle, estimate_items.title as esITitle, estimate_items.description as esDescription,
+    public function DateConvert($strDate = 0)
+    {
+        $date = date_create($strDate);
+        return date_format($date, "d / m / Y");
+    }
+
+
+
+    public function estimates_pdf($estimate_id = 0)
+    {
+        $template = '<div style="text-align: [align]; position:absolute; top:[top]px; left:[left]px; width:[w]px; height:[h]px;"><span>[val]</span></div>';
+
+        $defaultConfig = (new Mpdf\Config\ConfigVariables())->getDefaults();
+        $fontDirs = $defaultConfig['fontDir'];
+
+        $defaultFontConfig = (new Mpdf\Config\FontVariables())->getDefaults();
+        $fontData = $defaultFontConfig['fontdata'];
+
+
+        $mpdf = new \Mpdf\Mpdf([
+            'fontDir' => array_merge($fontDirs, [
+                __DIR__ . '/fonts',
+            ]),
+            'fontdata' => $fontData + [
+                'def' => [
+                    'R' => 'THSarabun_Bold.ttf',
+                    //'I' => 'THSarabunNew Italic.ttf',
+                    //'B' => 'THSarabunNew Bold.ttf',
+                ]
+            ],
+            'default_font' => 'def',
+            'tempDir' => '/tmp'
+        ]);
+        $mpdf->charset_in = 'UTF-8';
+
+
+        $keep = array();
+        $html = '';
+        $company_address = nl2br(get_setting("company_address"));
+        $company_phone = get_setting("company_phone");
+        $company_website = get_setting("company_website");
+        $company_vat_number = get_setting("company_vat_number");
+        $company_name = get_setting("company_name");
+
+
+        $sql = "SELECT *,estimates.id as esId,estimate_items.id as itemId, clients.id as clientId , estimates.note as es_note, projects.title as protitle, estimate_items.title as esITitle, estimate_items.description as esDescription,
             clients.company_name as company_name, clients.address as address, clients.city as city, clients.state as state, clients.zip as zip, clients.country as country, clients.vat_number as vat_number
             FROM `estimates` 
             LEFT JOIN estimate_items ON estimate_items.estimate_id = estimates.id AND estimate_items.deleted = 0
@@ -150,30 +150,30 @@ class Pdf_export extends CI_Controller {
             LEFT JOIN users ON clients.id = users.client_id AND users.is_primary_contact = 1
             LEFT JOIN projects ON projects.id = estimates.project_id
             WHERE estimates.id = $estimate_id;";
-            
-            
-            $data = $this->Db_model->creatBy($estimate_id, "estimates");
-            $fname = $data->first_name;
-            $lname = $data->last_name;
-            
 
-            $cal_payment = $this->Estimates_model->get_estimate_total_summary($estimate_id);
-            // var_dump($cal_payment);exit;
-            if($cal_payment->tax_name){
-                $tax_name = $cal_payment->tax_name;
-            }else{
-                $tax_name = "-";
-            }
 
-            $tax_name2 = isset($cal_payment->tax_name2) ? $cal_payment->tax_name2 : "-";
-            if($cal_payment->tax_id == 1){
-                $tax_val = ($cal_payment->estimate_subtotal - $cal_payment->discount_total) + $cal_payment->tax;
-            }else{
-                $tax_val = ($cal_payment->estimate_subtotal - $cal_payment->discount_total) - $cal_payment->tax;
-            }
+        $data = $this->Db_model->creatBy($estimate_id, "estimates");
+        $fname = $data->first_name;
+        $lname = $data->last_name;
 
-            if($cal_payment->tax2 != NULL){
-                $trs_tax2 = '
+
+        $cal_payment = $this->Estimates_model->get_estimate_total_summary($estimate_id);
+        // var_dump($cal_payment);exit;
+        if ($cal_payment->tax_name) {
+            $tax_name = $cal_payment->tax_name;
+        } else {
+            $tax_name = "-";
+        }
+
+        $tax_name2 = isset($cal_payment->tax_name2) ? $cal_payment->tax_name2 : "-";
+        if ($cal_payment->tax_id == 1) {
+            $tax_val = ($cal_payment->estimate_subtotal - $cal_payment->discount_total) + $cal_payment->tax;
+        } else {
+            $tax_val = ($cal_payment->estimate_subtotal - $cal_payment->discount_total) - $cal_payment->tax;
+        }
+
+        if ($cal_payment->tax2 != NULL) {
+            $trs_tax2 = '
                     
                     <tr>
                         <td colspan="3"></td> 
@@ -183,199 +183,199 @@ class Pdf_export extends CI_Controller {
 
                     <tr>
                         <td colspan="2"></td> 
-                        <td colspan="3" style="text-align: right;"><span class="label">'.$tax_name2.'</span></td>
-                        <td style="text-align: right;">'.number_format($cal_payment->tax2,2,'.',',').' บาท</td>
+                        <td colspan="3" style="text-align: right;"><span class="label">' . $tax_name2 . '</span></td>
+                        <td style="text-align: right;">' . number_format($cal_payment->tax2, 2, '.', ',') . ' บาท</td>
                     </tr>
                     <tr>
                         <td colspan="2"></td> 
                         
                         <td colspan="3" style="text-align: right;"><span class="label" >ยอดชำระ</span></td>
-                        <td style="text-align: right;">'.number_format($cal_payment->estimate_total,2,'.',',').' บาท</td>
+                        <td style="text-align: right;">' . number_format($cal_payment->estimate_total, 2, '.', ',') . ' บาท</td>
                     </tr>
 
                 ';
-         }
+        }
 
-            if($cal_payment->discount_total == ''){
-                
-                $trs_total[] = '
+        if ($cal_payment->discount_total == '') {
+
+            $trs_total[] = '
                         <tr>
                             <td colspan="2"></td>                            
                             <td colspan="3" style="text-align: right; margin-top: 4%"><span class="label">รวมเป็นเงิน</span></td>                            
-                            <td style="text-align: right;">'.number_format($cal_payment->estimate_subtotal,2,'.',',').' บาท</td>
+                            <td style="text-align: right;">' . number_format($cal_payment->estimate_subtotal, 2, '.', ',') . ' บาท</td>
                         </tr>                        
                         <tr>
                             <td colspan="2"></td> 
-                            <td colspan="3" style="text-align: right;"><span class="label">'.$tax_name.'</span></td>
-                            <td style="text-align: right;">'.number_format($cal_payment->tax,2,'.',',').' บาท</td>
+                            <td colspan="3" style="text-align: right;"><span class="label">' . $tax_name . '</span></td>
+                            <td style="text-align: right;">' . number_format($cal_payment->tax, 2, '.', ',') . ' บาท</td>
                         </tr>
                         <tr>
                             
-                            <td colspan="2" style="text-align: left;"><span>('.$this->Convert($cal_payment->estimate_total).')</span></td> 
+                            <td colspan="2" style="text-align: left;"><span>(' . $this->Convert($cal_payment->estimate_total) . ')</span></td> 
                             
                             <td colspan="3" style="text-align: right;"><span class="label" >จำนวนเงินรวมทั้งสิ้น</span></td>
-                            <td style="text-align: right;">'.number_format($tax_val,2,'.',',').' บาท</td>
+                            <td style="text-align: right;">' . number_format($tax_val, 2, '.', ',') . ' บาท</td>
                         </tr>
-                        '.$trs_tax2.'
+                        ' . $trs_tax2 . '
 
-                    ';            
-            }else if($cal_payment->discount_type == "before_tax"){
-                
+                    ';
+        } else if ($cal_payment->discount_type == "before_tax") {
 
 
-                $trs_total[] = '
+
+            $trs_total[] = '
                     <tr>
                         <td colspan="2"></td>                            
                         <td colspan="3" style="text-align: right;"><span class="label">ราคาก่อนหักส่วนลด</span></td>                            
-                        <td style="text-align: right;">'.number_format($cal_payment->estimate_subtotal,2,'.',',').'</td>
+                        <td style="text-align: right;">' . number_format($cal_payment->estimate_subtotal, 2, '.', ',') . '</td>
                     </tr>
                     <tr>
                         <td colspan="2"></td> 
                         <td colspan="3" style="text-align: right;"><span class="label"><u>หัก</u> ส่วนลด</span></td>
-                        <td style="text-align: right;">'.number_format($cal_payment->discount_total,2,'.',',').'</td>
+                        <td style="text-align: right;">' . number_format($cal_payment->discount_total, 2, '.', ',') . '</td>
                     </tr>
                     <tr>
                         <td colspan="2"></td> 
                         <td colspan="3" style="text-align: right;"><span class="label">ราคาหลังส่วนลด</span></td>
-                        <td style="text-align: right;">'.number_format($cal_payment->estimate_subtotal-$cal_payment->discount_total,2,'.',',').'</td>
+                        <td style="text-align: right;">' . number_format($cal_payment->estimate_subtotal - $cal_payment->discount_total, 2, '.', ',') . '</td>
                     </tr>
                     <tr>
                         <td colspan="2"></td> 
-                        <td colspan="3" style="text-align: right;"><span class="label">'.$tax_name.'</span></td>
-                        <td style="text-align: right;">'.number_format($cal_payment->tax,2,'.',',').'</td>
+                        <td colspan="3" style="text-align: right;"><span class="label">' . $tax_name . '</span></td>
+                        <td style="text-align: right;">' . number_format($cal_payment->tax, 2, '.', ',') . '</td>
                     </tr>
                                         
                     <tr>
                         
-                        <td colspan="2" style="text-align: left;"><span>'.$this->Convert($cal_payment->estimate_total).'</span></td> 
+                        <td colspan="2" style="text-align: left;"><span>' . $this->Convert($cal_payment->estimate_total) . '</span></td> 
                         <td colspan="3" style="text-align: right;"><span class="label" >จำนวนเงินรวมทั้งสิ้น</span></td>
-                        <td style="text-align: right;">'.number_format($tax_val,2,'.',',').'</td>
+                        <td style="text-align: right;">' . number_format($tax_val, 2, '.', ',') . '</td>
                     </tr>
-                    '.$trs_tax2.'
+                    ' . $trs_tax2 . '
 
                 ';
 
-            }else if($cal_payment->discount_type == "after_tax"){
-                
-                $trs_total[] = '
+        } else if ($cal_payment->discount_type == "after_tax") {
+
+            $trs_total[] = '
                     <tr>
                         <td colspan="2"></td>                            
                         <td colspan="3" style="text-align: right;"><span class="label">ราคาก่อนหักส่วนลด</span></td>                            
-                        <td style="text-align: right;">'.number_format($cal_payment->estimate_subtotal,2,'.',',').'</td>
+                        <td style="text-align: right;">' . number_format($cal_payment->estimate_subtotal, 2, '.', ',') . '</td>
                     </tr>
                     <tr>
                         <td colspan="2"></td> 
-                        <td colspan="3" style="text-align: right;"><span class="label">'.$tax_name.'</span></td>
-                        <td style="text-align: right;">'.number_format($cal_payment->tax,2,'.',',').'</td>
+                        <td colspan="3" style="text-align: right;"><span class="label">' . $tax_name . '</span></td>
+                        <td style="text-align: right;">' . number_format($cal_payment->tax, 2, '.', ',') . '</td>
                     </tr>
                     <tr>
                         <td colspan="2"></td> 
                         <td colspan="3" style="text-align: right;"><span class="label"><u>หัก</u> ส่วนลด</span></td>
-                        <td style="text-align: right;">'.number_format($cal_payment->discount_total,2,'.',',').'</td>
+                        <td style="text-align: right;">' . number_format($cal_payment->discount_total, 2, '.', ',') . '</td>
                     </tr>
                     
                     <tr>
                         <td colspan="2"></td> 
                         <td colspan="3" style="text-align: right;"><span class="label">ราคาหลังส่วนลด</span></td>
-                        <td style="text-align: right;">'.number_format($cal_payment->estimate_subtotal-$cal_payment->discount_total,2,'.',',').'</td>
+                        <td style="text-align: right;">' . number_format($cal_payment->estimate_subtotal - $cal_payment->discount_total, 2, '.', ',') . '</td>
                     </tr>
                     
                     <tr>                        
-                        <td colspan="2" style="text-align: left;"><span>'.$this->Convert($cal_payment->estimate_total).'</span></td>                         
+                        <td colspan="2" style="text-align: left;"><span>' . $this->Convert($cal_payment->estimate_total) . '</span></td>                         
                         <td colspan="3" style="text-align: right;"><span class="label" >จำนวนเงินรวมทั้งสิ้น</span></td>
-                        <td style="text-align: right;">'.number_format($tax_val,2,'.',',').'</td>
+                        <td style="text-align: right;">' . number_format($tax_val, 2, '.', ',') . '</td>
                     </tr>
-                    '.$trs_tax2.'
+                    ' . $trs_tax2 . '
 
                 ';
 
-            }
-            
-            
-             
-                    
-                    
+        }
 
-                
-            
-            $marks[1] = array();
-            $left = 460;
-            $user_signature = $this->Db_model->signature_approve( $estimate_id, "estimates" );
-            // var_dump($user_signature);exit;
-            if( $user_signature){
-                if($user_signature->signature == ''){
-                    $top = 1010;
-                    $marks[1][] = array('key' => 'signauture', '[left]' => $left, '[w]' => 130, '[top]' => $top, '[val]' => $user_signature->first_name.' '.$user_signature->last_name, '[align]' => 'center');
-                }else{
-                    $top = 1000;
-                    $marks[1][] = array('key' => 'signauture', '[left]' => $left, '[w]' => 130, '[top]' => $top, '[val]' => '<img src='.base_url().$user_signature->signature.'>', '[align]' => 'center');
-                }
-                $top=1040;
-                $left += 165;
-                $marks[1][] = array('key' => 'date_approved', '[left]' => $left, '[w]' => 130, '[top]' => $top, '[val]' => $this->DateConvert($user_signature->doc_date), '[align]' => 'center');
-            }
-            
-            //End Item-List------------------------------------------------------------------------------------------------------------
-            
-    
-            $rangItem = 9;
-    
-            foreach( $this->Db_model->fetchAll($sql) as $parentKey => $child ){
-                
-                if(!isset($keep[$child->esId])){
-                    $page = 1;
-                }
-                
-                $keep[$child->esId][$page][] = $child;
-                
-                if(count($keep[$child->esId][$page]) == $rangItem ){
-                    $page += 1;
-                }
-                
-            }
-          
-            foreach( $keep as $kd => $kv ){
-                 
-                $i=1;
-                foreach( $kv as $kpage => $vpage ){
-                    $dbs = convertObJectToArray($vpage[0]);
-                    $dbs = array_merge($dbs,[
-                        'estimate_date' => $this->DateConvert($vpage[0]->estimate_date),
-                        'valid_until' => $this->DateConvert($vpage[0]->valid_until),
-                        'price_before_dis' => '<span class="label">ราคาก่อนหักส่วนลด</span>',
-                        'discount_name' => '<span class="label"><u>หัก</u> ส่วนลด</span>',
-                        'price_after_dis' => '<span class="label">ราคาหลังส่วนลด</span>',
-                        'vat_name' => '<span class="label">'.isset($cal_payment->tax_name) ? '<span class="label">'.$cal_payment->tax_name.'</span>' : "-".'</span>',
-                        'total_name' => '<span class="label">รวมเงินทั้งสิ้น</span>',
 
-                    ]);
-                    
-                    $divs = array(); 
-                    
-                    foreach ($marks[1] as $km => $vm) {
-                        $vm['[align]'] = isset($vm['[align]']) ? $vm['[align]'] : 'left';
-                        $vm['[val]'] = isset($dbs[$vm['key']]) ? $dbs[$vm['key']] : $vm['[val]'];
-                        $divs[] = str_replace(array_keys( $vm ), $vm, $template);
-                    } 
-                    $top = 326;
-                    $trs =array();
-                    
-                    foreach($vpage as $vkpage => $vvpage ){  
-                        
 
-                        if($vvpage->esITitle){
-                            $trs[] = '
+
+
+
+
+
+        $marks[1] = array();
+        $left = 460;
+        $user_signature = $this->Db_model->signature_approve($estimate_id, "estimates");
+        // var_dump($user_signature);exit;
+        if ($user_signature) {
+            if ($user_signature->signature == '') {
+                $top = 1010;
+                $marks[1][] = array('key' => 'signauture', '[left]' => $left, '[w]' => 130, '[top]' => $top, '[val]' => $user_signature->first_name . ' ' . $user_signature->last_name, '[align]' => 'center');
+            } else {
+                $top = 1000;
+                $marks[1][] = array('key' => 'signauture', '[left]' => $left, '[w]' => 130, '[top]' => $top, '[val]' => '<img src=' . base_url() . $user_signature->signature . '>', '[align]' => 'center');
+            }
+            $top = 1040;
+            $left += 165;
+            $marks[1][] = array('key' => 'date_approved', '[left]' => $left, '[w]' => 130, '[top]' => $top, '[val]' => $this->DateConvert($user_signature->doc_date), '[align]' => 'center');
+        }
+
+        //End Item-List------------------------------------------------------------------------------------------------------------
+
+
+        $rangItem = 9;
+
+        foreach ($this->Db_model->fetchAll($sql) as $parentKey => $child) {
+
+            if (!isset($keep[$child->esId])) {
+                $page = 1;
+            }
+
+            $keep[$child->esId][$page][] = $child;
+
+            if (count($keep[$child->esId][$page]) == $rangItem) {
+                $page += 1;
+            }
+
+        }
+
+        foreach ($keep as $kd => $kv) {
+
+            $i = 1;
+            foreach ($kv as $kpage => $vpage) {
+                $dbs = convertObJectToArray($vpage[0]);
+                $dbs = array_merge($dbs, [
+                    'estimate_date' => $this->DateConvert($vpage[0]->estimate_date),
+                    'valid_until' => $this->DateConvert($vpage[0]->valid_until),
+                    'price_before_dis' => '<span class="label">ราคาก่อนหักส่วนลด</span>',
+                    'discount_name' => '<span class="label"><u>หัก</u> ส่วนลด</span>',
+                    'price_after_dis' => '<span class="label">ราคาหลังส่วนลด</span>',
+                    'vat_name' => '<span class="label">' . isset($cal_payment->tax_name) ? '<span class="label">' . $cal_payment->tax_name . '</span>' : "-" . '</span>',
+                    'total_name' => '<span class="label">รวมเงินทั้งสิ้น</span>',
+
+                ]);
+
+                $divs = array();
+
+                foreach ($marks[1] as $km => $vm) {
+                    $vm['[align]'] = isset($vm['[align]']) ? $vm['[align]'] : 'left';
+                    $vm['[val]'] = isset($dbs[$vm['key']]) ? $dbs[$vm['key']] : $vm['[val]'];
+                    $divs[] = str_replace(array_keys($vm), $vm, $template);
+                }
+                $top = 326;
+                $trs = array();
+
+                foreach ($vpage as $vkpage => $vvpage) {
+
+
+                    if ($vvpage->esITitle) {
+                        $trs[] = '
                             <tr>
-                                <td style="width: 5%; border-bottom: 1px solid #999; vertical-align: top;">'.$i++.'</td>
-                                <td style="text-align: left; width: 55%; border-bottom: 1px solid #999;">'.$vvpage->esITitle.'<br/>'.$vvpage->esDescription.'</td>
-                                <td style=" min-width: 6%; border-bottom: 1px solid #999; text-align: right; vertical-align: top;">'.number_format($vvpage->quantity,0,'.',',').'</td>
-                                <td style=" width: 6%; border-bottom: 1px solid #999; text-align: right; vertical-align: top;">'.$vvpage->unit_type.'</td>                                
-                                <td style=" width: 12%; text-align: right; border-bottom: 1px solid #999; vertical-align: top;">'.number_format($vvpage->rate,2,'.',',').'</td>
-                                <td style="text-align: right; border-bottom: 1px solid #999; vertical-align: top;">'.number_format($vvpage->total,2,'.',',').'</td>
+                                <td style="width: 5%; border-bottom: 1px solid #999; vertical-align: top;">' . $i++ . '</td>
+                                <td style="text-align: left; width: 55%; border-bottom: 1px solid #999;">' . $vvpage->esITitle . '<br/>' . $vvpage->esDescription . '</td>
+                                <td style=" min-width: 6%; border-bottom: 1px solid #999; text-align: right; vertical-align: top;">' . number_format($vvpage->quantity, 0, '.', ',') . '</td>
+                                <td style=" width: 6%; border-bottom: 1px solid #999; text-align: right; vertical-align: top;">' . $vvpage->unit_type . '</td>                                
+                                <td style=" width: 12%; text-align: right; border-bottom: 1px solid #999; vertical-align: top;">' . number_format($vvpage->rate, 2, '.', ',') . '</td>
+                                <td style="text-align: right; border-bottom: 1px solid #999; vertical-align: top;">' . number_format($vvpage->total, 2, '.', ',') . '</td>
                             </tr>
                             ';
-                        }else{
-                            $trs[] = '
+                    } else {
+                        $trs[] = '
                             <tr>
                                 <td style="width: 3%;"></td>
                                 <td style="width: 63%;"></td>
@@ -385,55 +385,55 @@ class Pdf_export extends CI_Controller {
                                 <td ></td>
                             </tr>
                             ';
-                        }
-                        
-                        
-                        $marks[2] = array(); //สร้าง array แยกแต่ละรายการ
-                        
-                        $dbs = convertObJectToArray( $vvpage );
-                      
-                        foreach ($marks[2] as $km => $vm) {
-                            $vm['[align]'] = isset($vm['[align]']) ? $vm['[align]'] : 'center';
-                            $vm['[val]'] = isset($dbs[$vm['key']]) ? $dbs[$vm['key']] : $vm['[val]'];
-                            $divs[] = str_replace(array_keys( $vm ), $vm, $template);
-                        }
-                        
                     }
 
-                    $trs_note = array();
-                    // var_dump($vpage[0]->es_note);exit;
-                   
-                    if($vpage[0]->es_note){
-                        $trs_note[] = '
+
+                    $marks[2] = array(); //สร้าง array แยกแต่ละรายการ
+
+                    $dbs = convertObJectToArray($vvpage);
+
+                    foreach ($marks[2] as $km => $vm) {
+                        $vm['[align]'] = isset($vm['[align]']) ? $vm['[align]'] : 'center';
+                        $vm['[val]'] = isset($dbs[$vm['key']]) ? $dbs[$vm['key']] : $vm['[val]'];
+                        $divs[] = str_replace(array_keys($vm), $vm, $template);
+                    }
+
+                }
+
+                $trs_note = array();
+                // var_dump($vpage[0]->es_note);exit;
+
+                if ($vpage[0]->es_note) {
+                    $trs_note[] = '
                         <tr>
                             
-                            <td colspan="6" style="text-align: left;"><br/><p class="label">หมายเหตุ : </p>'.nl2br($vpage[0]->es_note).'</td>
+                            <td colspan="6" style="text-align: left;"><br/><p class="label">หมายเหตุ : </p>' . nl2br($vpage[0]->es_note) . '</td>
                         </tr>
-                    ';                    
-                    }
+                    ';
+                }
 
-                    $divTop =   110;
-                    $divleft = 27;
-                    $trs_client ='
-                    <div style="position:absolute; top:'.$divTop.'px; left:'.$divleft.'px; width: 390px; height: 190px;">
+                $divTop = 110;
+                $divleft = 27;
+                $trs_client = '
+                    <div style="position:absolute; top:' . $divTop . 'px; left:' . $divleft . 'px; width: 390px; height: 190px;">
                         <table style="width: 100%; ">
                             <tr>
-                                <td style="text-align: left;">'.$company_name.'<br/>'.$company_address.'<br/>หมายเลขประจำตัวผู้เสียภาษี '.$company_vat_number.'<br/>'.$company_phone.'</td>
+                                <td style="text-align: left;">' . $company_name . '<br/>' . $company_address . '<br/>หมายเลขประจำตัวผู้เสียภาษี ' . $company_vat_number . '<br/>' . $company_phone . '</td>
                             </tr>
                             <tr>
                                 <td style="text-align: left;"><span class="label"><br/>ลูกค้า</span></td>
                             </tr>
                             <tr>
-                                <td style="text-align: left;">'.$vpage[0]->company_name.'<br/>'.$vpage[0]->address.' '.$vpage[0]->city.' '.$vpage[0]->state.' '.$vpage[0]->zip.' '.$vpage[0]->country.'<br/>'.'เลขประจำตัวผู้เสียภาษี '.$vpage[0]->vat_number.'</td>
+                                <td style="text-align: left;">' . $vpage[0]->company_name . '<br/>' . $vpage[0]->address . ' ' . $vpage[0]->city . ' ' . $vpage[0]->state . ' ' . $vpage[0]->zip . ' ' . $vpage[0]->country . '<br/>' . 'เลขประจำตัวผู้เสียภาษี ' . $vpage[0]->vat_number . '</td>
                             </tr>
                         </table>
                     </div>
                     ';
 
-                    $divTop +=   190;
-                    $divleft = 27;
-                    $tabletemplate = '
-                    <div style="position:absolute; top:'.$divTop.'px; left:'.$divleft.'px; width: 1000px">
+                $divTop += 190;
+                $divleft = 27;
+                $tabletemplate = '
+                    <div style="position:absolute; top:' . $divTop . 'px; left:' . $divleft . 'px; width: 1000px">
                         <table>
                             <tr>
                                 <td class="thStyle">#</td>
@@ -443,75 +443,74 @@ class Pdf_export extends CI_Controller {
                                 <td class="thStyle">ราคาต่อหน่วย</td>
                                 <td class="thStyle" style="text-align: right;">ยอดรวม</td>
                             </tr>
-                            '.implode("",$trs).'
-                            '.implode("",$trs_total).'
-                            '.implode("",$trs_note).'
+                            ' . implode("", $trs) . '
+                            ' . implode("", $trs_total) . '
+                            ' . implode("", $trs_note) . '
                         </table>
                     </div>';
-                    $info_contact = array();
+                $info_contact = array();
 
-                    $project_title = isset($vpage[0]->protitle) ? $vpage[0]->protitle : "-";
+                $project_title = isset($vpage[0]->protitle) ? $vpage[0]->protitle : "-";
 
-                    $info_contact[] = '
+                $info_contact[] = '
                          <tr>
                             <td style="text-align: left; padding-left: 5px;"><span class="label">ชื่องาน</span></td>
-                            <td style="text-align: left;"><span>'.$project_title.'</span></td>
+                            <td style="text-align: left;"><span>' . $project_title . '</span></td>
                             <td colspan="2"></td>
                         </tr>
                     ';
 
-                    
-                    if($vpage[0]->first_name){
-                        $info_contact[] = '
+
+                if ($vpage[0]->first_name) {
+                    $info_contact[] = '
                         
                         <tr>
                             <td style="text-align: left; padding-left: 5px;"><span class="label">ผู้ติดต่อ</span></td>
-                            <td style="text-align: left;"><span>'.$vpage[0]->first_name.' '.$vpage[0]->last_name.'</span></td>
+                            <td style="text-align: left;"><span>' . $vpage[0]->first_name . ' ' . $vpage[0]->last_name . '</span></td>
                             <td colspan="2"></td>
                         </tr>
                         <tr>
                             <td style="text-align: left; padding-left: 5px;"><span class="label">เบอร์โทร</span></td>
-                            <td style="text-align: left;"><span>'.$vpage[0]->phone.'</span></td>
+                            <td style="text-align: left;"><span>' . $vpage[0]->phone . '</span></td>
                             <td colspan="2"></td>
                         </tr>
                         <tr>
                             <td style="text-align: left; padding-left: 5px;"><span class="label">อีเมล</span></td>
-                            <td style="text-align: left;"><span>'.$vpage[0]->email.'</span></td>
+                            <td style="text-align: left;"><span>' . $vpage[0]->email . '</span></td>
                             <td colspan="2"></td>
                         </tr>';
-                    }
-                    
+                }
 
-                    // <tr>
-                    //                 <td style="text-align: left; width: 50px;"><span class="label">อ้างอิง</span></td>
-                    //                 <td style="text-align: left;"><span>(free text)</span></td>
-                    //             </tr>
-                    
-                    if($vpage[0]->credit != 0){
-                        $pay_c = $vpage[0]->credit ." วัน";
-                        if($vpage[0]->pay_type == "percentage"){
-                            $pay = $vpage[0]->pay_sp." %";
-                        }else{
-                            $pay = $vpage[0]->pay_sp." งวด";
-                        }
-                        $pay_detail = '
+
+                // <tr>
+                //                 <td style="text-align: left; width: 50px;"><span class="label">อ้างอิง</span></td>
+                //                 <td style="text-align: left;"><span>(free text)</span></td>
+                //             </tr>
+
+                if ($vpage[0]->credit != 0) {
+                    $pay_c = $vpage[0]->credit . " วัน";
+                    if ($vpage[0]->pay_type == "percentage") {
+                        $pay = $vpage[0]->pay_sp . " %";
+                    } else {
+                        $pay = $vpage[0]->pay_sp . " งวด";
+                    }
+                    $pay_detail = '
                         <td style="text-align: left; width: 50px; border-bottom: 1.5px solid #999;"><span class="label">การชำระ</span></td>
-                        <td style="text-align: left; border-bottom: 1.5px solid #999;">'.$pay.'</td>
+                        <td style="text-align: left; border-bottom: 1.5px solid #999;">' . $pay . '</td>
                         ';
-                    }
-                    else{          
-                        $pay_c = "จ่ายเป็นเงินสด";
-                        $pay_detail ='';
-                    }
+                } else {
+                    $pay_c = "จ่ายเป็นเงินสด";
+                    $pay_detail = '';
+                }
 
 
-                    // var_dump($pay);
-                    // var_dump($vpage[0]);exit;
+                // var_dump($pay);
+                // var_dump($vpage[0]);exit;
 
-                    $divTop =   50;
-                    $divleft = 420;
-                    $info_table = '
-                        <div style="position:absolute; top:'.$divTop.'px; left:'.$divleft.'px; width: 340px">
+                $divTop = 50;
+                $divleft = 420;
+                $info_table = '
+                        <div style="position:absolute; top:' . $divTop . 'px; left:' . $divleft . 'px; width: 340px">
                             <table style="width: 100%">
                                 <tr>
                                     <th colspan="4" style="text-align: center; border-bottom: 1.5px solid #999; font-size: 30px;"><span class="label">ใบเสนอราคา</span></th>
@@ -519,49 +518,49 @@ class Pdf_export extends CI_Controller {
                                 </tr>
                                 <tr>
                                     <td style="text-align: left; padding-left: 5px; width: 70px;"><span class="label" >เลขที่</span></td>
-                                    <td style="text-align: left;"><span>'.$vpage[0]->doc_no.'</span></td>
+                                    <td style="text-align: left;"><span>' . $vpage[0]->doc_no . '</span></td>
                                     <td colspan="2"></td>
                                 </tr>
                                 
                                 
                                 <tr>
                                     <td style="text-align: left; padding-left: 5px;"><span class="label">วันที่</span></td>
-                                    <td style="text-align: left;"><span>'.$this->DateConvert($vpage[0]->estimate_date).'</span></td>
+                                    <td style="text-align: left;"><span>' . $this->DateConvert($vpage[0]->estimate_date) . '</span></td>
                                     <td colspan="2"></td>
                                 </tr>
                                 <tr>
                                     <td style="text-align: left; padding-left: 5px;"><span class="label">ผู้ขาย</span></td>
-                                    <td style="text-align: left; "><span>'.$fname.' '.$lname.'</span></td>
+                                    <td style="text-align: left; "><span>' . $fname . ' ' . $lname . '</span></td>
                                     <td colspan="2"></td>
                                 </tr>
 
                                 <tr>
                                     <td style="text-align: left; padding-left: 5px; border-bottom: 1.5px solid #999;"><span class="label">เครดิต</span></td>
-                                    <td style="text-align: left; border-bottom: 1.5px solid #999;">'.$pay_c.'</td>
-                                    '.$pay_detail.'
+                                    <td style="text-align: left; border-bottom: 1.5px solid #999;">' . $pay_c . '</td>
+                                    ' . $pay_detail . '
                                 </tr>
 
                                 <tr>
                                     <td></td>
                                 </tr>
                                 
-                                '.implode("",$info_contact).'
+                                ' . implode("", $info_contact) . '
                             </table>
                         </div>';
 
-                        // <tr>
-                        //             <td style="text-align: left; border-bottom: 1.5px solid #999; padding-left: 5px;"><span class="label">อ้างอิงใบสั่งซื้อ</span></td>
-                        //             <td style="text-align: left; border-bottom: 1.5px solid #999;"><span> - </span></td>
-                        //         </tr>
+                // <tr>
+                //             <td style="text-align: left; border-bottom: 1.5px solid #999; padding-left: 5px;"><span class="label">อ้างอิงใบสั่งซื้อ</span></td>
+                //             <td style="text-align: left; border-bottom: 1.5px solid #999;"><span> - </span></td>
+                //         </tr>
 
-                    $divTop =   1020;
-                    $divleft = 27;
-                    $trs_approve = '<div style="position:absolute; top:'.$divTop.'px; left:'.$divleft.'px; width: 750px; ">
+                $divTop = 1020;
+                $divleft = 27;
+                $trs_approve = '<div style="position:absolute; top:' . $divTop . 'px; left:' . $divleft . 'px; width: 750px; ">
                         <table>
                             <tr>
-                                <td colspan="2">ในนาม '.$vpage[0]->company_name.'</td>
+                                <td colspan="2">ในนาม ' . $vpage[0]->company_name . '</td>
                                 <td></td>
-                                <td colspan="2">ในนาม '.$company_name.'</td>
+                                <td colspan="2">ในนาม ' . $company_name . '</td>
                             </tr>
                             <tr>
                                 <td style="height: 100px;">___________________________<p>ผู้สั่งซื้อสินค้า</p></td>
@@ -573,17 +572,17 @@ class Pdf_export extends CI_Controller {
                         </table>
                     </div>';
 
-                    $divTop =   5;
-                    $divleft = -60;
-                    $estimate_logo = "estimate_logo";
-                    $logos = '<img src="'.get_file_from_setting($estimate_logo, get_setting('only_file_path')).'" style="width: 300px"/>';
+                $divTop = 5;
+                $divleft = -60;
+                $estimate_logo = "estimate_logo";
+                $logos = '<img src="' . get_file_from_setting($estimate_logo, get_setting('only_file_path')) . '" style="width: 300px"/>';
 
-                    $logo_es = '<div style="position:absolute; top:'.$divTop.'px; left:'.$divleft.'px; ">
-                        '.$logos.'
+                $logo_es = '<div style="position:absolute; top:' . $divTop . 'px; left:' . $divleft . 'px; ">
+                        ' . $logos . '
                     </div>';
-              
 
-                    $html = ' 
+
+                $html = ' 
                             <style>
                             div{
                                 font-size: 17px;
@@ -624,103 +623,103 @@ class Pdf_export extends CI_Controller {
                             }
                            
                             </style>
-                            '.$logo_es.'
-                            '.$trs_client.'
-                            '.$info_table.'
-                            '.$tabletemplate.'
-                            '.$trs_approve.'
-                            '. implode('', $divs) . '
+                            ' . $logo_es . '
+                            ' . $trs_client . '
+                            ' . $info_table . '
+                            ' . $tabletemplate . '
+                            ' . $trs_approve . '
+                            ' . implode('', $divs) . '
                         ';
-                        
-                        //  . implode('', $divs) . 
-                        $mpdf->SetTitle($vpage[0]->doc_no);
-                        $mpdf->AddPage('P');
-                        $pagecount = $mpdf->SetSourceFile('pdf_Template/template.pdf');
-                        $tplId = $mpdf->importPage(1);
-                        $mpdf->useTemplate($tplId);
-                        $mpdf->WriteHTML($html);   
-                }
-                
-                
-            } 
-                
-            $mpdf->Output();
-            // $mpdf->Output($vpage[0]->doc_no.'.pdf', \Mpdf\Output\Destination::DOWNLOAD);       
-       
+
+                //  . implode('', $divs) . 
+                $mpdf->SetTitle($vpage[0]->doc_no);
+                $mpdf->AddPage('P');
+                $pagecount = $mpdf->SetSourceFile('pdf_Template/template.pdf');
+                $tplId = $mpdf->importPage(1);
+                $mpdf->useTemplate($tplId);
+                $mpdf->WriteHTML($html);
+            }
+
+
         }
 
+        $mpdf->Output();
+        // $mpdf->Output($vpage[0]->doc_no.'.pdf', \Mpdf\Output\Destination::DOWNLOAD);       
+
+    }
 
 
-        public function order_pdf($order_id = 0 )
-        {            
-            $template = '<div style="text-align: [align]; position:absolute; top:[top]px; left:[left]px; width:[w]px; height:[h]px;"><span>[val]</span></div>';
 
-            $defaultConfig = (new Mpdf\Config\ConfigVariables())->getDefaults();
-            $fontDirs = $defaultConfig['fontDir'];
-    
-            $defaultFontConfig = (new Mpdf\Config\FontVariables())->getDefaults();
-            $fontData = $defaultFontConfig['fontdata'];
-            
+    public function order_pdf($order_id = 0)
+    {
+        $template = '<div style="text-align: [align]; position:absolute; top:[top]px; left:[left]px; width:[w]px; height:[h]px;"><span>[val]</span></div>';
 
-            $mpdf = new \Mpdf\Mpdf([
-                'fontDir' => array_merge($fontDirs, [
-                    __DIR__ . '/fonts',
-                ]),
-                'fontdata' => $fontData + [
-                    'def' => [
-                        'R' => 'THSarabun_Bold.ttf',
-                        //'I' => 'THSarabunNew Italic.ttf',
-                        //'B' => 'THSarabunNew Bold.ttf',
-                    ]
-                ],
-                'default_font' => 'def',
-                'tempDir' => '/tmp'
-            ]);
-            $mpdf->charset_in = 'UTF-8';
-            
-    
-            $keep = array();
-            $html = '';
-            $company_address = nl2br(get_setting("company_address"));
-            $company_phone = get_setting("company_phone");
-            $company_website = get_setting("company_website");
-            $company_vat_number = get_setting("company_vat_number");
-            $company_name = get_setting("company_name");
-           
-    
-            $sql = "SELECT *,orders.id as orderId,order_items.id as itemId, clients.id as clientId , orders.note as order_note, order_items.title as orderITitle
+        $defaultConfig = (new Mpdf\Config\ConfigVariables())->getDefaults();
+        $fontDirs = $defaultConfig['fontDir'];
+
+        $defaultFontConfig = (new Mpdf\Config\FontVariables())->getDefaults();
+        $fontData = $defaultFontConfig['fontdata'];
+
+
+        $mpdf = new \Mpdf\Mpdf([
+            'fontDir' => array_merge($fontDirs, [
+                __DIR__ . '/fonts',
+            ]),
+            'fontdata' => $fontData + [
+                'def' => [
+                    'R' => 'THSarabun_Bold.ttf',
+                    //'I' => 'THSarabunNew Italic.ttf',
+                    //'B' => 'THSarabunNew Bold.ttf',
+                ]
+            ],
+            'default_font' => 'def',
+            'tempDir' => '/tmp'
+        ]);
+        $mpdf->charset_in = 'UTF-8';
+
+
+        $keep = array();
+        $html = '';
+        $company_address = nl2br(get_setting("company_address"));
+        $company_phone = get_setting("company_phone");
+        $company_website = get_setting("company_website");
+        $company_vat_number = get_setting("company_vat_number");
+        $company_name = get_setting("company_name");
+
+
+        $sql = "SELECT *,orders.id as orderId,order_items.id as itemId, clients.id as clientId , orders.note as order_note, order_items.title as orderITitle
             FROM `orders` 
             LEFT JOIN order_items ON order_items.order_id = orders.id AND order_items.deleted = 0
             LEFT JOIN clients ON orders.client_id = clients.id            
             LEFT JOIN users ON clients.id = users.client_id AND users.is_primary_contact = 1
-            WHERE orders.id = $order_id;";  
-            
-            //var_dump($order_id,$this->Db_model->fetchAll($sql));exit;
-            
-            
-            $data = $this->Db_model->creatBy($order_id, "orders");
-            $fname = $data->first_name;
-            $lname = $data->last_name;
-            
+            WHERE orders.id = $order_id;";
 
-            $cal_payment = $this->Orders_model->get_order_total_summary($order_id);
-            //var_dump($cal_payment);exit;
-            if($cal_payment->tax_name){
-                $tax_name = $cal_payment->tax_name;
-            }else{
-                $tax_name = "-";
-            }
-            $trs_tax2 = '';
+        //var_dump($order_id,$this->Db_model->fetchAll($sql));exit;
 
-            $tax_name2 = isset($cal_payment->tax_name2) ? $cal_payment->tax_name2 : "-";
-            /* if($cal_payment->tax == 1){
-                $tax_val = ($cal_payment->order_total - $cal_payment->discount_total) + $cal_payment->tax;
-            }else{
-                $tax_val = ($cal_payment->order_total - $cal_payment->discount_total) - $cal_payment->tax;
-            } */
 
-            if($cal_payment->tax2 != NULL){
-                $trs_tax2 = '
+        $data = $this->Db_model->creatBy($order_id, "orders");
+        $fname = $data->first_name;
+        $lname = $data->last_name;
+
+
+        $cal_payment = $this->Orders_model->get_order_total_summary($order_id);
+        //var_dump($cal_payment);exit;
+        if ($cal_payment->tax_name) {
+            $tax_name = $cal_payment->tax_name;
+        } else {
+            $tax_name = "-";
+        }
+        $trs_tax2 = '';
+
+        $tax_name2 = isset($cal_payment->tax_name2) ? $cal_payment->tax_name2 : "-";
+        /* if($cal_payment->tax == 1){
+            $tax_val = ($cal_payment->order_total - $cal_payment->discount_total) + $cal_payment->tax;
+        }else{
+            $tax_val = ($cal_payment->order_total - $cal_payment->discount_total) - $cal_payment->tax;
+        } */
+
+        if ($cal_payment->tax2 != NULL) {
+            $trs_tax2 = '
                     
                     <tr>
                         
@@ -731,203 +730,203 @@ class Pdf_export extends CI_Controller {
 
                     <tr>
                         <td colspan="2"></td> 
-                        <td colspan="3" style="text-align: right;"><span class="label">'.$tax_name2.'</span></td>
-                        <td style="text-align: right;">'.number_format($cal_payment->tax2,2,'.',',').' บาท</td>
+                        <td colspan="3" style="text-align: right;"><span class="label">' . $tax_name2 . '</span></td>
+                        <td style="text-align: right;">' . number_format($cal_payment->tax2, 2, '.', ',') . ' บาท</td>
                     </tr>
                     <tr>
                         <td colspan="2"></td> 
                         
                         <td colspan="3" style="text-align: right;"><span class="label" >ยอดชำระ</span></td>
-                        <td style="text-align: right;">'.number_format($cal_payment->order_total,2,'.',',').' บาท</td>
+                        <td style="text-align: right;">' . number_format($cal_payment->order_total, 2, '.', ',') . ' บาท</td>
                     </tr>
 
                 ';
-         }
+        }
 
-         //var_dump($trs_tax2);exit;
+        //var_dump($trs_tax2);exit;
 
-            if($cal_payment->discount_total == '' || $cal_payment->discount_total == 0){
-                //var_dump(number_format($cal_payment->order_subtotal,2,'.',','));exit;
-                $trs_total[] = '
+        if ($cal_payment->discount_total == '' || $cal_payment->discount_total == 0) {
+            //var_dump(number_format($cal_payment->order_subtotal,2,'.',','));exit;
+            $trs_total[] = '
                         <tr>
                             <td colspan="2"></td>                            
                             <td colspan="3" style="text-align: right; margin-top: 4%"><span class="label">รวมเป็นเงิน</span></td>                            
-                            <td style="text-align: right;">'.number_format($cal_payment->order_subtotal,2,'.',',').' บาท</td>
+                            <td style="text-align: right;">' . number_format($cal_payment->order_subtotal, 2, '.', ',') . ' บาท</td>
                         </tr>                        
                         <tr>
                             <td colspan="2"></td> 
-                            <td colspan="3" style="text-align: right;"><span class="label">'.$tax_name.'</span></td>
-                            <td style="text-align: right;">'.number_format($cal_payment->tax,2,'.',',').' บาท</td>
+                            <td colspan="3" style="text-align: right;"><span class="label">' . $tax_name . '</span></td>
+                            <td style="text-align: right;">' . number_format($cal_payment->tax, 2, '.', ',') . ' บาท</td>
                         </tr>
                         <tr>
                             
-                            <td colspan="2" style="text-align: left;"><span>('.$this->Convert($cal_payment->order_total).')</span></td> 
+                            <td colspan="2" style="text-align: left;"><span>(' . $this->Convert($cal_payment->order_total) . ')</span></td> 
                             
                             <td colspan="3" style="text-align: right;"><span class="label" >จำนวนเงินรวมทั้งสิ้น</span></td>
-                            <td style="text-align: right;">'.number_format($cal_payment->order_total,2,'.',',').' บาท</td>
+                            <td style="text-align: right;">' . number_format($cal_payment->order_total, 2, '.', ',') . ' บาท</td>
                         </tr>
-                        '.$trs_tax2.'
+                        ' . $trs_tax2 . '
 
-                    ';            
-            }else if($cal_payment->discount_type == "before_tax"){
-                
+                    ';
+        } else if ($cal_payment->discount_type == "before_tax") {
 
 
-                $trs_total[] = '
+
+            $trs_total[] = '
                     <tr>
                         <td colspan="2"></td>                            
                         <td colspan="3" style="text-align: right;"><span class="label">ราคาก่อนหักส่วนลด</span></td>                            
-                        <td style="text-align: right;">'.number_format($cal_payment->order_subtotal,2,'.',',').'</td>
+                        <td style="text-align: right;">' . number_format($cal_payment->order_subtotal, 2, '.', ',') . '</td>
                     </tr>
                     <tr>
                         <td colspan="2"></td> 
                         <td colspan="3" style="text-align: right;"><span class="label"><u>หัก</u> ส่วนลด</span></td>
-                        <td style="text-align: right;">'.number_format($cal_payment->discount_total,2,'.',',').'</td>
+                        <td style="text-align: right;">' . number_format($cal_payment->discount_total, 2, '.', ',') . '</td>
                     </tr>
                     <tr>
                         <td colspan="2"></td> 
                         <td colspan="3" style="text-align: right;"><span class="label">ราคาหลังส่วนลด</span></td>
-                        <td style="text-align: right;">'.number_format($cal_payment->order_total-$cal_payment->discount_total,2,'.',',').'</td>
+                        <td style="text-align: right;">' . number_format($cal_payment->order_total - $cal_payment->discount_total, 2, '.', ',') . '</td>
                     </tr>
                     <tr>
                         <td colspan="2"></td> 
-                        <td colspan="3" style="text-align: right;"><span class="label">'.$tax_name.'</span></td>
-                        <td style="text-align: right;">'.number_format($cal_payment->tax,2,'.',',').'</td>
+                        <td colspan="3" style="text-align: right;"><span class="label">' . $tax_name . '</span></td>
+                        <td style="text-align: right;">' . number_format($cal_payment->tax, 2, '.', ',') . '</td>
                     </tr>
                                         
                     <tr>
                         
-                        <td colspan="2" style="text-align: left;"><span>'.$this->Convert($cal_payment->order_total).'</span></td> 
+                        <td colspan="2" style="text-align: left;"><span>' . $this->Convert($cal_payment->order_total) . '</span></td> 
                         <td colspan="3" style="text-align: right;"><span class="label" >จำนวนเงินรวมทั้งสิ้น</span></td>
-                        <td style="text-align: right;">'.number_format($cal_payment->order_total,2,'.',',').'</td>
+                        <td style="text-align: right;">' . number_format($cal_payment->order_total, 2, '.', ',') . '</td>
                     </tr>
-                    '.$trs_tax2.'
+                    ' . $trs_tax2 . '
 
                 ';
 
-            }else if($cal_payment->discount_type == "after_tax"){
-                
-                $trs_total[] = '
+        } else if ($cal_payment->discount_type == "after_tax") {
+
+            $trs_total[] = '
                     <tr>
                         <td colspan="2"></td>                            
                         <td colspan="3" style="text-align: right;"><span class="label">ราคาก่อนหักส่วนลด</span></td>                            
-                        <td style="text-align: right;">'.number_format($cal_payment->order_subtotal,2,'.',',').'</td>
+                        <td style="text-align: right;">' . number_format($cal_payment->order_subtotal, 2, '.', ',') . '</td>
                     </tr>
                     <tr>
                         <td colspan="2"></td> 
-                        <td colspan="3" style="text-align: right;"><span class="label">'.$tax_name.'</span></td>
-                        <td style="text-align: right;">'.number_format($cal_payment->tax,2,'.',',').'</td>
+                        <td colspan="3" style="text-align: right;"><span class="label">' . $tax_name . '</span></td>
+                        <td style="text-align: right;">' . number_format($cal_payment->tax, 2, '.', ',') . '</td>
                     </tr>
                     <tr>
                         <td colspan="2"></td> 
                         <td colspan="3" style="text-align: right;"><span class="label"><u>หัก</u> ส่วนลด</span></td>
-                        <td style="text-align: right;">'.number_format($cal_payment->discount_total,2,'.',',').'</td>
+                        <td style="text-align: right;">' . number_format($cal_payment->discount_total, 2, '.', ',') . '</td>
                     </tr>
                     
                     <tr>
                         <td colspan="2"></td> 
                         <td colspan="3" style="text-align: right;"><span class="label">ราคาหลังส่วนลด</span></td>
-                        <td style="text-align: right;">'.number_format($cal_payment->order_total-$cal_payment->discount_total,2,'.',',').'</td>
+                        <td style="text-align: right;">' . number_format($cal_payment->order_total - $cal_payment->discount_total, 2, '.', ',') . '</td>
                     </tr>
                     
                     <tr>                        
-                        <td colspan="2" style="text-align: left;"><span>'.$this->Convert($cal_payment->order_total).'</span></td>                         
+                        <td colspan="2" style="text-align: left;"><span>' . $this->Convert($cal_payment->order_total) . '</span></td>                         
                         <td colspan="3" style="text-align: right;"><span class="label" >จำนวนเงินรวมทั้งสิ้น</span></td>
-                        <td style="text-align: right;">'.number_format($cal_payment->order_total,2,'.',',').'</td>
+                        <td style="text-align: right;">' . number_format($cal_payment->order_total, 2, '.', ',') . '</td>
                     </tr>
-                    '.$trs_tax2.'
+                    ' . $trs_tax2 . '
 
                 ';
 
-            }
-            
-            
-             
-                    
-                    
+        }
 
-                
-            /* <img src="<?php echo get_file_from_setting($estimate_logo, get_setting('only_file_path')); ?>" />*/
-            $marks[1] = array();
-            $left = 460;
-            $user_signature = $this->Db_model->signature_approve( $order_id, "orders" );
-            // var_dump($user_signature);exit;
-            if( $user_signature){
-                if($user_signature->signature == ''){
-                    $top = 1010;
-                    $marks[1][] = array('key' => 'signauture', '[left]' => $left, '[w]' => 130, '[top]' => $top, '[val]' => $user_signature->first_name.' '.$user_signature->last_name, '[align]' => 'center');
-                }else{
-                    $top = 1000;
-                    $marks[1][] = array('key' => 'signauture', '[left]' => $left, '[w]' => 130, '[top]' => $top, '[val]' => '<img src='.base_url().$user_signature->signature.'>', '[align]' => 'center');
-                }
-                $top=1040;
-                $left += 165;
-                $marks[1][] = array('key' => 'date_approved', '[left]' => $left, '[w]' => 130, '[top]' => $top, '[val]' => $this->DateConvert($user_signature->doc_date), '[align]' => 'center');
+
+
+
+
+
+
+        /* <img src="<?php echo get_file_from_setting($estimate_logo, get_setting('only_file_path')); ?>" />*/
+        $marks[1] = array();
+        $left = 460;
+        $user_signature = $this->Db_model->signature_approve($order_id, "orders");
+        // var_dump($user_signature);exit;
+        if ($user_signature) {
+            if ($user_signature->signature == '') {
+                $top = 1010;
+                $marks[1][] = array('key' => 'signauture', '[left]' => $left, '[w]' => 130, '[top]' => $top, '[val]' => $user_signature->first_name . ' ' . $user_signature->last_name, '[align]' => 'center');
+            } else {
+                $top = 1000;
+                $marks[1][] = array('key' => 'signauture', '[left]' => $left, '[w]' => 130, '[top]' => $top, '[val]' => '<img src=' . base_url() . $user_signature->signature . '>', '[align]' => 'center');
             }
-            
-            //End Item-List------------------------------------------------------------------------------------------------------------
-            
-    
-            $rangItem = 9;
-    
-            foreach( $this->Db_model->fetchAll($sql) as $parentKey => $child ){
-                
-                if(!isset($keep[$child->orderId])){
-                    $page = 1;
-                }
-                
-                $keep[$child->orderId][$page][] = $child;
-                
-                if(count($keep[$child->orderId][$page]) == $rangItem ){
-                    $page += 1;
-                }
-                
+            $top = 1040;
+            $left += 165;
+            $marks[1][] = array('key' => 'date_approved', '[left]' => $left, '[w]' => 130, '[top]' => $top, '[val]' => $this->DateConvert($user_signature->doc_date), '[align]' => 'center');
+        }
+
+        //End Item-List------------------------------------------------------------------------------------------------------------
+
+
+        $rangItem = 9;
+
+        foreach ($this->Db_model->fetchAll($sql) as $parentKey => $child) {
+
+            if (!isset($keep[$child->orderId])) {
+                $page = 1;
             }
 
-            //arr($keep);exit;
-          
-            foreach( $keep as $kd => $kv ){
-                
-                $i=1;
-                foreach( $kv as $kpage => $vpage ){
-                    //arr($vpage);exit;
-                    $dbs = convertObJectToArray($vpage[0]);
-                    $dbs = array_merge($dbs,[
-                        'estimate_date' => $this->DateConvert($vpage[0]->order_date),
-                        'price_before_dis' => '<span class="label">ราคาก่อนหักส่วนลด</span>',
-                        'discount_name' => '<span class="label"><u>หัก</u> ส่วนลด</span>',
-                        'price_after_dis' => '<span class="label">ราคาหลังส่วนลด</span>',
-                        'vat_name' => '<span class="label">'.isset($cal_payment->tax_name) ? '<span class="label">'.$cal_payment->tax_name.'</span>' : "-".'</span>',
-                        'total_name' => '<span class="label">รวมเงินทั้งสิ้น</span>',
+            $keep[$child->orderId][$page][] = $child;
 
-                    ]);
-                    
-                    $divs = array(); 
-                    
-                    foreach ($marks[1] as $km => $vm) {
-                        $vm['[align]'] = isset($vm['[align]']) ? $vm['[align]'] : 'left';
-                        $vm['[val]'] = isset($dbs[$vm['key']]) ? $dbs[$vm['key']] : $vm['[val]'];
-                        $divs[] = str_replace(array_keys( $vm ), $vm, $template);
-                    } 
-                    $top = 326;
-                    $trs =array();
-                    
-                    foreach($vpage as $vkpage => $vvpage ){  
-                        
+            if (count($keep[$child->orderId][$page]) == $rangItem) {
+                $page += 1;
+            }
 
-                        if($vvpage->orderITitle){
-                            $trs[] = '
+        }
+
+        //arr($keep);exit;
+
+        foreach ($keep as $kd => $kv) {
+
+            $i = 1;
+            foreach ($kv as $kpage => $vpage) {
+                //arr($vpage);exit;
+                $dbs = convertObJectToArray($vpage[0]);
+                $dbs = array_merge($dbs, [
+                    'estimate_date' => $this->DateConvert($vpage[0]->order_date),
+                    'price_before_dis' => '<span class="label">ราคาก่อนหักส่วนลด</span>',
+                    'discount_name' => '<span class="label"><u>หัก</u> ส่วนลด</span>',
+                    'price_after_dis' => '<span class="label">ราคาหลังส่วนลด</span>',
+                    'vat_name' => '<span class="label">' . isset($cal_payment->tax_name) ? '<span class="label">' . $cal_payment->tax_name . '</span>' : "-" . '</span>',
+                    'total_name' => '<span class="label">รวมเงินทั้งสิ้น</span>',
+
+                ]);
+
+                $divs = array();
+
+                foreach ($marks[1] as $km => $vm) {
+                    $vm['[align]'] = isset($vm['[align]']) ? $vm['[align]'] : 'left';
+                    $vm['[val]'] = isset($dbs[$vm['key']]) ? $dbs[$vm['key']] : $vm['[val]'];
+                    $divs[] = str_replace(array_keys($vm), $vm, $template);
+                }
+                $top = 326;
+                $trs = array();
+
+                foreach ($vpage as $vkpage => $vvpage) {
+
+
+                    if ($vvpage->orderITitle) {
+                        $trs[] = '
                             <tr>
-                                <td style="width: 5%; border-bottom: 1px solid #999; vertical-align: top;">'.$i++.'</td>
-                                <td style="text-align: left; width: 55%; border-bottom: 1px solid #999;">'.$vvpage->orderITitle.'<br/></td>
-                                <td style=" width: 6%; border-bottom: 1px solid #999; text-align: right; vertical-align: top;">'.number_format($vvpage->quantity,0,'.',',').'</td>
-                                <td style=" width: 6%; border-bottom: 1px solid #999; text-align: right; vertical-align: top;">'.$vvpage->unit_type.'</td>                                
-                                <td style=" width: 12%; text-align: right; border-bottom: 1px solid #999; vertical-align: top;">'.number_format($vvpage->rate,2,'.',',').'</td>
-                                <td style="text-align: right; border-bottom: 1px solid #999; vertical-align: top;">'.number_format($vvpage->total,2,'.',',').'</td>
+                                <td style="width: 5%; border-bottom: 1px solid #999; vertical-align: top;">' . $i++ . '</td>
+                                <td style="text-align: left; width: 55%; border-bottom: 1px solid #999;">' . $vvpage->orderITitle . '<br/></td>
+                                <td style=" width: 6%; border-bottom: 1px solid #999; text-align: right; vertical-align: top;">' . number_format($vvpage->quantity, 0, '.', ',') . '</td>
+                                <td style=" width: 6%; border-bottom: 1px solid #999; text-align: right; vertical-align: top;">' . $vvpage->unit_type . '</td>                                
+                                <td style=" width: 12%; text-align: right; border-bottom: 1px solid #999; vertical-align: top;">' . number_format($vvpage->rate, 2, '.', ',') . '</td>
+                                <td style="text-align: right; border-bottom: 1px solid #999; vertical-align: top;">' . number_format($vvpage->total, 2, '.', ',') . '</td>
                             </tr>
                             ';
-                        }else{
-                            $trs[] = '
+                    } else {
+                        $trs[] = '
                             <tr>
                                 <td style="width: 3%;"></td>
                                 <td style="width: 63%;"></td>
@@ -937,55 +936,55 @@ class Pdf_export extends CI_Controller {
                                 <td ></td>
                             </tr>
                             ';
-                        }
-                        
-                        
-                        $marks[2] = array(); //สร้าง array แยกแต่ละรายการ
-                        
-                        $dbs = convertObJectToArray( $vvpage );
-                      
-                        foreach ($marks[2] as $km => $vm) {
-                            $vm['[align]'] = isset($vm['[align]']) ? $vm['[align]'] : 'center';
-                            $vm['[val]'] = isset($dbs[$vm['key']]) ? $dbs[$vm['key']] : $vm['[val]'];
-                            $divs[] = str_replace(array_keys( $vm ), $vm, $template);
-                        }
-                        
                     }
 
-                    $trs_note = array();
-                    // var_dump($vpage[0]->es_note);exit;
-                   
-                    if($vpage[0]->order_note){
-                        $trs_note[] = '
+
+                    $marks[2] = array(); //สร้าง array แยกแต่ละรายการ
+
+                    $dbs = convertObJectToArray($vvpage);
+
+                    foreach ($marks[2] as $km => $vm) {
+                        $vm['[align]'] = isset($vm['[align]']) ? $vm['[align]'] : 'center';
+                        $vm['[val]'] = isset($dbs[$vm['key']]) ? $dbs[$vm['key']] : $vm['[val]'];
+                        $divs[] = str_replace(array_keys($vm), $vm, $template);
+                    }
+
+                }
+
+                $trs_note = array();
+                // var_dump($vpage[0]->es_note);exit;
+
+                if ($vpage[0]->order_note) {
+                    $trs_note[] = '
                         <tr>
                             
-                            <td colspan="6" style="text-align: left;"><br/><p class="label">หมายเหตุ : </p>'.nl2br($vpage[0]->order_note).'</td>
+                            <td colspan="6" style="text-align: left;"><br/><p class="label">หมายเหตุ : </p>' . nl2br($vpage[0]->order_note) . '</td>
                         </tr>
-                    ';                    
-                    }
+                    ';
+                }
 
-                    $divTop =   110;
-                    $divleft = 27;
-                    $trs_client ='
-                    <div style="position:absolute; top:'.$divTop.'px; left:'.$divleft.'px; width: 390px">
+                $divTop = 110;
+                $divleft = 27;
+                $trs_client = '
+                    <div style="position:absolute; top:' . $divTop . 'px; left:' . $divleft . 'px; width: 390px">
                         <table style="width: 100%; ">
                             <tr>
-                                <td style="text-align: left;">'.$company_name.'<br/>'.$company_address.'<br/>หมายเลขประจำตัวผู้เสียภาษี '.$company_vat_number.'<br/>'.$company_phone.'</td>
+                                <td style="text-align: left;">' . $company_name . '<br/>' . $company_address . '<br/>หมายเลขประจำตัวผู้เสียภาษี ' . $company_vat_number . '<br/>' . $company_phone . '</td>
                             </tr>
                             <tr>
                                 <td style="text-align: left;"><span class="label"><br/>ลูกค้า</span></td>
                             </tr>
                             <tr>
-                                <td style="text-align: left;">'.$vpage[0]->company_name.'<br/>'.$vpage[0]->address.' '.$vpage[0]->city.' '.$vpage[0]->state.' '.$vpage[0]->zip.' '.$vpage[0]->country.'<br/>'.'เลขประจำตัวผู้เสียภาษี '.$vpage[0]->vat_number.'</td>
+                                <td style="text-align: left;">' . $vpage[0]->company_name . '<br/>' . $vpage[0]->address . ' ' . $vpage[0]->city . ' ' . $vpage[0]->state . ' ' . $vpage[0]->zip . ' ' . $vpage[0]->country . '<br/>' . 'เลขประจำตัวผู้เสียภาษี ' . $vpage[0]->vat_number . '</td>
                             </tr>
                         </table>
                     </div>
                     ';
 
-                    $divTop +=   190;
-                    $divleft = 27;
-                    $tabletemplate = '
-                    <div style="position:absolute; top:'.$divTop.'px; left:'.$divleft.'px; width: 1000px">
+                $divTop += 190;
+                $divleft = 27;
+                $tabletemplate = '
+                    <div style="position:absolute; top:' . $divTop . 'px; left:' . $divleft . 'px; width: 1000px">
                         <table>
                             <tr>
                                 <td class="thStyle">#</td>
@@ -995,63 +994,62 @@ class Pdf_export extends CI_Controller {
                                 <td class="thStyle">ราคาต่อหน่วย</td>
                                 <td class="thStyle" style="text-align: right;">ยอดรวม</td>
                             </tr>
-                            '.implode("",$trs).'
-                            '.implode("",$trs_total).'
-                            '.implode("",$trs_note).'
+                            ' . implode("", $trs) . '
+                            ' . implode("", $trs_total) . '
+                            ' . implode("", $trs_note) . '
                         </table>
                     </div>';
-                    $info_contact = array();
+                $info_contact = array();
 
-                    $project_title = isset($vpage[0]->protitle) ? $vpage[0]->protitle : "-";
+                $project_title = isset($vpage[0]->protitle) ? $vpage[0]->protitle : "-";
 
-                    /* $info_contact[] = '
-                         <tr>
-                            <td style="text-align: left; padding-left: 5px;"><span class="label">ชื่องาน</span></td>
-                            <td style="text-align: left;"><span>'.$project_title.'</span></td>
-                            <td colspan="2"></td>
-                        </tr>
-                    '; */
+                /* $info_contact[] = '
+                     <tr>
+                        <td style="text-align: left; padding-left: 5px;"><span class="label">ชื่องาน</span></td>
+                        <td style="text-align: left;"><span>'.$project_title.'</span></td>
+                        <td colspan="2"></td>
+                    </tr>
+                '; */
 
-                    
-                    if($vpage[0]->first_name){
-                        $info_contact[] = '
+
+                if ($vpage[0]->first_name) {
+                    $info_contact[] = '
                         
                         <tr>
                             <td style="text-align: left; padding-left: 5px;"><span class="label">ผู้ติดต่อ</span></td>
-                            <td style="text-align: left;"><span>'.$vpage[0]->first_name.' '.$vpage[0]->last_name.'</span></td>
+                            <td style="text-align: left;"><span>' . $vpage[0]->first_name . ' ' . $vpage[0]->last_name . '</span></td>
                             <td colspan="2"></td>
                         </tr>
                         <tr>
                             <td style="text-align: left; padding-left: 5px;"><span class="label">เบอร์โทร</span></td>
-                            <td style="text-align: left;"><span>'.$vpage[0]->phone.'</span></td>
+                            <td style="text-align: left;"><span>' . $vpage[0]->phone . '</span></td>
                             <td colspan="2"></td>
                         </tr>
                         <tr>
                             <td style="text-align: left; padding-left: 5px;"><span class="label">อีเมล</span></td>
-                            <td style="text-align: left;"><span>'.$vpage[0]->email.'</span></td>
+                            <td style="text-align: left;"><span>' . $vpage[0]->email . '</span></td>
                             <td colspan="2"></td>
                         </tr>';
-                    }                  
-                    if($vpage[0]->credit != 0){
-                        $pay_c = $vpage[0]->credit ." วัน";
-                        if($vpage[0]->pay_type == "percentage"){
-                            $pay = $vpage[0]->pay_sp." %";
-                        }else{
-                            $pay = $vpage[0]->pay_sp." งวด";
-                        }
-                        $pay_detail = '
+                }
+                if ($vpage[0]->credit != 0) {
+                    $pay_c = $vpage[0]->credit . " วัน";
+                    if ($vpage[0]->pay_type == "percentage") {
+                        $pay = $vpage[0]->pay_sp . " %";
+                    } else {
+                        $pay = $vpage[0]->pay_sp . " งวด";
+                    }
+                    $pay_detail = '
                         <td style="text-align: left; width: 50px; border-bottom: 1.5px solid #999;"><span class="label">การชำระ</span></td>
-                        <td style="text-align: left; border-bottom: 1.5px solid #999;">'.$pay.'</td>
+                        <td style="text-align: left; border-bottom: 1.5px solid #999;">' . $pay . '</td>
                         ';
-                    }
-                    else{          
-                        $pay_c = "จ่ายเป็นเงินสด";
-                        $pay_detail ='';
-                    }
-                    $divTop =   50;
-                    $divleft = 420;
-                    $info_table = '
-                        <div style="position:absolute; top:'.$divTop.'px; left:'.$divleft.'px; width: 340px">
+                } else {
+                    $pay_c = "จ่ายเป็นเงินสด";
+                    $pay_detail = '';
+                }
+                $divTop = 50;
+                $divleft = 420;
+                $info_table = '
+                        <div style="position:absolute; top:' . $divTop . 'px; left:' . $divleft . 'px; width: 340px">
                             <table style="width: 100%">
                                 <tr>
                                     <th colspan="4" style="text-align: center; border-bottom: 1.5px solid #999; font-size: 30px;"><span class="label">คำสั่งซื้อ</span></th>
@@ -1059,43 +1057,43 @@ class Pdf_export extends CI_Controller {
                                 </tr>
                                 <tr>
                                     <td style="text-align: left; padding-left: 5px; width: 70px;"><span class="label" >เลขที่</span></td>
-                                    <td style="text-align: left;"><span>'.$vpage[0]->doc_no.'</span></td>
+                                    <td style="text-align: left;"><span>' . $vpage[0]->doc_no . '</span></td>
                                     <td colspan="2"></td>
                                 </tr>
                                 
                                 
                                 <tr>
                                     <td style="text-align: left; padding-left: 5px;"><span class="label">วันที่</span></td>
-                                    <td style="text-align: left;"><span>'.$this->DateConvert($vpage[0]->order_date).'</span></td>
+                                    <td style="text-align: left;"><span>' . $this->DateConvert($vpage[0]->order_date) . '</span></td>
                                     <td colspan="2"></td>
                                 </tr>
                                 <tr>
                                     <td style="text-align: left; padding-left: 5px;"><span class="label">ผู้ขาย</span></td>
-                                    <td style="text-align: left; "><span>'.$fname.' '.$lname.'</span></td>
+                                    <td style="text-align: left; "><span>' . $fname . ' ' . $lname . '</span></td>
                                     <td colspan="2"></td>
                                 </tr>
 
                                 <tr>
                                     <td style="text-align: left; padding-left: 5px;"><span class="label">เครดิต</span></td>
-                                    <td style="text-align: left;">'.$pay_c.'</td>
-                                    '.$pay_detail.'
+                                    <td style="text-align: left;">' . $pay_c . '</td>
+                                    ' . $pay_detail . '
                                 </tr>
 
                                 <tr>
                                     <td></td>
                                 </tr>
                                 
-                                '.implode("",$info_contact).'
+                                ' . implode("", $info_contact) . '
                             </table>
                         </div>';
-                    $divTop =   990;
-                    $divleft = 27;
-                    $trs_approve = '<div style="position:absolute; top:'.$divTop.'px; left:'.$divleft.'px; width: 750px; ">
+                $divTop = 990;
+                $divleft = 27;
+                $trs_approve = '<div style="position:absolute; top:' . $divTop . 'px; left:' . $divleft . 'px; width: 750px; ">
                         <table>
                             <tr>
-                                <td colspan="2">ในนาม '.$vpage[0]->company_name.'</td>
+                                <td colspan="2">ในนาม ' . $vpage[0]->company_name . '</td>
                                 <td></td>
-                                <td colspan="2">ในนาม '.$company_name.'</td>
+                                <td colspan="2">ในนาม ' . $company_name . '</td>
                             </tr>
                             <tr>
                                 <td style="height: 100px;">___________________________<p>ผู้สั่งซื้อสินค้า</p></td>
@@ -1107,17 +1105,17 @@ class Pdf_export extends CI_Controller {
                         </table>
                     </div>';
 
-                    $divTop =   5;
-                    $divleft = -60;
-                    $estimate_logo = "estimate_logo";
-                    $logos = '<img src="'.get_file_from_setting($estimate_logo, get_setting('only_file_path')).'" style="width: 300px"/>';
+                $divTop = 5;
+                $divleft = -60;
+                $estimate_logo = "estimate_logo";
+                $logos = '<img src="' . get_file_from_setting($estimate_logo, get_setting('only_file_path')) . '" style="width: 300px"/>';
 
-                    $logo_es = '<div style="position:absolute; top:'.$divTop.'px; left:'.$divleft.'px; ">
-                        '.$logos.'
+                $logo_es = '<div style="position:absolute; top:' . $divTop . 'px; left:' . $divleft . 'px; ">
+                        ' . $logos . '
                     </div>';
-              
 
-                    $html = ' 
+
+                $html = ' 
                             <style>
                             div{
                                 font-size: 17px;
@@ -1158,285 +1156,288 @@ class Pdf_export extends CI_Controller {
                             }
                            
                             </style>
-                            '.$logo_es.'
-                            '.$trs_client.'
-                            '.$info_table.'
-                            '.$tabletemplate.'
-                            '.$trs_approve.'
-                            '. implode('', $divs) . '
+                            ' . $logo_es . '
+                            ' . $trs_client . '
+                            ' . $info_table . '
+                            ' . $tabletemplate . '
+                            ' . $trs_approve . '
+                            ' . implode('', $divs) . '
                         ';
-                        
-                        $mpdf->SetTitle($vpage[0]->doc_no);
-                        $mpdf->AddPage('P');
-                        $pagecount = $mpdf->SetSourceFile('pdf_Template/template.pdf');
-                        $tplId = $mpdf->importPage(1);
-                        $mpdf->useTemplate($tplId);
-                        $mpdf->WriteHTML($html);   
-                }    
-            }      
-            $mpdf->Output();        
+
+                $mpdf->SetTitle($vpage[0]->doc_no);
+                $mpdf->AddPage('P');
+                $pagecount = $mpdf->SetSourceFile('pdf_Template/template.pdf');
+                $tplId = $mpdf->importPage(1);
+                $mpdf->useTemplate($tplId);
+                $mpdf->WriteHTML($html);
+            }
         }
+        $mpdf->Output();
+    }
 
 
 
 
 
 
-        protected function dump($a, $exit=false) {
-            echo "<xmp>";
-            var_dump($a);
-            echo "</xmp>";
-            if($exit) exit;
-        }
+    protected function dump($a, $exit = false)
+    {
+        echo "<xmp>";
+        var_dump($a);
+        echo "</xmp>";
+        if ($exit)
+            exit;
+    }
 
-        public function pr_pdf($pr_id = 0 ){
-            //$pr_info = $this->Purchaserequests_model->get_details(array("id" => $pr_id))->row();
-            $pr_data = get_pr_making_data($pr_id);
-            $pr_items = $pr_data['pr_items'];
-            $buyer = $pr_data['client_info'];
-            $pr_info = $pr_data['pr_info'];
-            //$this->dump($pr_data, true);
-            // var_dump($pr_data);exit;
+    public function pr_pdf($pr_id = 0)
+    {
+        //$pr_info = $this->Purchaserequests_model->get_details(array("id" => $pr_id))->row();
+        $pr_data = get_pr_making_data($pr_id);
+        $pr_items = $pr_data['pr_items'];
+        $buyer = $pr_data['client_info'];
+        $pr_info = $pr_data['pr_info'];
+        //$this->dump($pr_data, true);
+        // var_dump($pr_data);exit;
 
-            $template = '<div style="text-align: [align]; position:absolute; top:[top]px; left:[left]px; width:[w]px; height:[h]px;"><span>[val]</span></div>';
+        $template = '<div style="text-align: [align]; position:absolute; top:[top]px; left:[left]px; width:[w]px; height:[h]px;"><span>[val]</span></div>';
 
-            $defaultConfig = (new Mpdf\Config\ConfigVariables())->getDefaults();
-            $fontDirs = $defaultConfig['fontDir'];
-    
-            $defaultFontConfig = (new Mpdf\Config\FontVariables())->getDefaults();
-            $fontData = $defaultFontConfig['fontdata'];
-                
-            $mpdf = new \Mpdf\Mpdf([
-                'fontDir' => array_merge($fontDirs, [
-                    __DIR__ . '/fonts',
-                ]),
-                'fontdata' => $fontData + [
-                    'def' => [
-                        'R' => 'THSarabun_Bold.ttf',
-                        //'I' => 'THSarabunNew Italic.ttf',
-                        //'B' => 'THSarabunNew Bold.ttf',
-                    ]
-                ],
-                'default_font' => 'def',
-                'tempDir' => '/tmp'
-            ]);
-            $mpdf->charset_in = 'UTF-8';
-            //$mpdf->SetTitle(get_pr_id($pr_id));
-            $mpdf->SetTitle($pr_info->doc_no?$pr_info->doc_no:lang('no_have_doc_no').':'.$pr_info->id);
-    
-            $keep = array();
-            $html = '';
-            $company_address = nl2br(get_setting("company_address"));
-            $company_phone = get_setting("company_phone");
-            $company_website = get_setting("company_website");
-            $company_vat_number = get_setting("company_vat_number");
-            $company_name = get_setting("company_name");
-           
-    
-            /*$sql = "SELECT *,pr.id as pr_id,estimate_items.id as itemId, clients.id as clientId
-            FROM `estimates` 
-            LEFT JOIN estimate_items ON estimate_items.estimate_id = estimates.id AND estimate_items.deleted = 0
-            LEFT JOIN clients ON estimates.client_id = clients.id
-            WHERE estimates.id = $pr_id";*/
-            //$pr_data = get_pr_making_data($pr_id);
-            //$pr_items = $pr_data['pr_items'];
-            // AND estimate_items.deleted = 0 $this->session->user_id
-            //หัวตารากระดาษ------------------------------------------------------------------------------------------------------------
-            // var_dump($buyer);exit;
+        $defaultConfig = (new Mpdf\Config\ConfigVariables())->getDefaults();
+        $fontDirs = $defaultConfig['fontDir'];
 
-            $cal_payment = $this->Purchaserequests_model->get_pr_total_summary($pr_id);
-            $vat_name = $cal_payment->tax_name != null ? $cal_payment->tax_name : "-";
-        
-            if($cal_payment->discount_total == ''){
-                $trs_total[] = '                
+        $defaultFontConfig = (new Mpdf\Config\FontVariables())->getDefaults();
+        $fontData = $defaultFontConfig['fontdata'];
+
+        $mpdf = new \Mpdf\Mpdf([
+            'fontDir' => array_merge($fontDirs, [
+                __DIR__ . '/fonts',
+            ]),
+            'fontdata' => $fontData + [
+                'def' => [
+                    'R' => 'THSarabun_Bold.ttf',
+                    //'I' => 'THSarabunNew Italic.ttf',
+                    //'B' => 'THSarabunNew Bold.ttf',
+                ]
+            ],
+            'default_font' => 'def',
+            'tempDir' => '/tmp'
+        ]);
+        $mpdf->charset_in = 'UTF-8';
+        //$mpdf->SetTitle(get_pr_id($pr_id));
+        $mpdf->SetTitle($pr_info->doc_no ? $pr_info->doc_no : lang('no_have_doc_no') . ':' . $pr_info->id);
+
+        $keep = array();
+        $html = '';
+        $company_address = nl2br(get_setting("company_address"));
+        $company_phone = get_setting("company_phone");
+        $company_website = get_setting("company_website");
+        $company_vat_number = get_setting("company_vat_number");
+        $company_name = get_setting("company_name");
+
+
+        /*$sql = "SELECT *,pr.id as pr_id,estimate_items.id as itemId, clients.id as clientId
+        FROM `estimates` 
+        LEFT JOIN estimate_items ON estimate_items.estimate_id = estimates.id AND estimate_items.deleted = 0
+        LEFT JOIN clients ON estimates.client_id = clients.id
+        WHERE estimates.id = $pr_id";*/
+        //$pr_data = get_pr_making_data($pr_id);
+        //$pr_items = $pr_data['pr_items'];
+        // AND estimate_items.deleted = 0 $this->session->user_id
+        //หัวตารากระดาษ------------------------------------------------------------------------------------------------------------
+        // var_dump($buyer);exit;
+
+        $cal_payment = $this->Purchaserequests_model->get_pr_total_summary($pr_id);
+        $vat_name = $cal_payment->tax_name != null ? $cal_payment->tax_name : "-";
+
+        if ($cal_payment->discount_total == '') {
+            $trs_total[] = '                
                     <tr>
                     <td colspan="5" style="border-top: 1.5px solid #999;"></td>                            
                         <td colspan="2" style="text-align: right; margin-top: 4%; border-top: 1.5px solid #999;"><span class="label">รวมเป็นเงิน</span></td>                            
-                        <td style="text-align: right; border-top: 1.5px solid #999;">'.number_format($cal_payment->pr_subtotal,2,'.',',').' บาท</td>
+                        <td style="text-align: right; border-top: 1.5px solid #999;">' . number_format($cal_payment->pr_subtotal, 2, '.', ',') . ' บาท</td>
                     </tr>
                     
                     <tr>
                         <td colspan="5"></td> 
-                        <td colspan="2" style="text-align: right;"><span class="label">'.$vat_name.'</span></td>
-                        <td style="text-align: right;">'.number_format($cal_payment->tax,2,'.',',').' บาท</td>
+                        <td colspan="2" style="text-align: right;"><span class="label">' . $vat_name . '</span></td>
+                        <td style="text-align: right;">' . number_format($cal_payment->tax, 2, '.', ',') . ' บาท</td>
                     </tr>
                     <tr>
                         
-                        <td colspan="5" style="text-align: left;"><span>('.$this->Convert($cal_payment->pr_total).')</span></td> 
+                        <td colspan="5" style="text-align: left;"><span>(' . $this->Convert($cal_payment->pr_total) . ')</span></td> 
                                               
                         <td colspan="2" style="text-align: right;"><span class="label" >จำนวนเงินรวมทั้งสิ้น</span></td>
-                        <td style="text-align: right;">'.number_format($cal_payment->pr_total,2,'.',',').' บาท</td>
+                        <td style="text-align: right;">' . number_format($cal_payment->pr_total, 2, '.', ',') . ' บาท</td>
                     </tr>
 
                 ';
-            }else
-            
-            if($cal_payment->discount_type == "before_tax"){
+        } else
+
+            if ($cal_payment->discount_type == "before_tax") {
                 $trs_total[] = '
                     <tr>
                         <td colspan="5" style="border-top: 1.5px solid #999;"></td>                            
                         <td colspan="2" style="text-align: right; margin-top: 4%; border-top: 1.5px solid #999;"><span class="label">รวมเป็นเงิน</span></td>                            
-                        <td style="text-align: right; border-top: 1.5px solid #999;">'.number_format($cal_payment->pr_subtotal,2,'.',',').' บาท</td>
+                        <td style="text-align: right; border-top: 1.5px solid #999;">' . number_format($cal_payment->pr_subtotal, 2, '.', ',') . ' บาท</td>
                     </tr>
                     <tr>
                         <td colspan="5"></td> 
                         <td colspan="2" style="text-align: right;"><span class="label"><u>หัก</u> ส่วนลด</span></td>
-                        <td style="text-align: right;">'.number_format($cal_payment->discount_total,2,'.',',').' บาท</td>
+                        <td style="text-align: right;">' . number_format($cal_payment->discount_total, 2, '.', ',') . ' บาท</td>
                     </tr>
                     <tr>
                         <td colspan="5"></td> 
                         <td colspan="2" style="text-align: right;"><span class="label">ราคาหลังส่วนลด</span></td>
-                        <td style="text-align: right;">'.number_format($cal_payment->pr_subtotal-$cal_payment->discount_total,2,'.',',').' บาท</td>
+                        <td style="text-align: right;">' . number_format($cal_payment->pr_subtotal - $cal_payment->discount_total, 2, '.', ',') . ' บาท</td>
                     </tr>
                     <tr>
                         <td colspan="5"></td> 
-                        <td colspan="2" style="text-align: right;"><span class="label">'.$vat_name.'</span></td>
-                        <td style="text-align: right;">'.number_format($cal_payment->tax,2,'.',',').' บาท</td>
+                        <td colspan="2" style="text-align: right;"><span class="label">' . $vat_name . '</span></td>
+                        <td style="text-align: right;">' . number_format($cal_payment->tax, 2, '.', ',') . ' บาท</td>
                     </tr>
                     <tr>
                     
-                        <td colspan="5" style="text-align: left;"><span>('.$this->Convert($cal_payment->pr_total).')</span></td> 
+                        <td colspan="5" style="text-align: left;"><span>(' . $this->Convert($cal_payment->pr_total) . ')</span></td> 
                         <td colspan="2" style="text-align: right;"><span class="label" >จำนวนเงินรวมทั้งสิ้น</span></td>
-                        <td style="text-align: right;">'.number_format($cal_payment->pr_total,2,'.',',').' บาท</td>
+                        <td style="text-align: right;">' . number_format($cal_payment->pr_total, 2, '.', ',') . ' บาท</td>
                     </tr>
 
                 ';
                 // <td ><span>'.$this->Convert($cal_payment->estimate_total).'</span></td> 
-                
 
-            }else if($cal_payment->discount_type == "after_tax"){
+
+            } else if ($cal_payment->discount_type == "after_tax") {
 
                 $trs_total[] = '
                     <tr>
                         <td colspan="3" style="border-top: 1.5px solid #999;"></td>                            
                         <td colspan="2" style="text-align: right; border-top: 1.5px solid #999;"><span class="label">ราคาก่อนหักส่วนลด</span></td>                            
-                        <td style="text-align: right; border-top: 1.5px solid #999;">'.number_format($cal_payment->pr_subtotal,2,'.',',').' บาท</td>
+                        <td style="text-align: right; border-top: 1.5px solid #999;">' . number_format($cal_payment->pr_subtotal, 2, '.', ',') . ' บาท</td>
                     </tr>
                     <tr>
                         <td colspan="3"></td> 
                         <td colspan="2" style="text-align: right;"><span class="label"><u>หัก</u> ส่วนลด</span></td>
-                        <td style="text-align: right;">'.number_format($cal_payment->discount_total,2,'.',',').' บาท</td>
+                        <td style="text-align: right;">' . number_format($cal_payment->discount_total, 2, '.', ',') . ' บาท</td>
                     </tr>
                     <tr>
                         <td colspan="3"></td> 
-                        <td colspan="2" style="text-align: right;"><span class="label">'.$vat_name.'</span></td>
-                        <td style="text-align: right;">'.number_format($cal_payment->tax,2,'.',',').' บาท</td>
+                        <td colspan="2" style="text-align: right;"><span class="label">' . $vat_name . '</span></td>
+                        <td style="text-align: right;">' . number_format($cal_payment->tax, 2, '.', ',') . ' บาท</td>
                     </tr>
                     <tr>
                         <td colspan="3"></td> 
                         <td colspan="2" style="text-align: right;"><span class="label">ราคาหลังส่วนลด</span></td>
-                        <td style="text-align: right;">'.number_format($cal_payment->pr_subtotal-$cal_payment->discount_total,2,'.',',').' บาท</td>
+                        <td style="text-align: right;">' . number_format($cal_payment->pr_subtotal - $cal_payment->discount_total, 2, '.', ',') . ' บาท</td>
                     </tr>
                     
                     <tr>
                    
-                        <td colspan="3" style="text-align: left;"><span>('.$this->Convert($cal_payment->pr_total).')</span></td> 
+                        <td colspan="3" style="text-align: left;"><span>(' . $this->Convert($cal_payment->pr_total) . ')</span></td> 
                         
                         <td colspan="2" style="text-align: right;"><span class="label" >จำนวนเงินรวมทั้งสิ้น</span></td>
-                        <td style="text-align: right;">'.number_format($cal_payment->pr_total,2,'.',',').' บาท</td>
+                        <td style="text-align: right;">' . number_format($cal_payment->pr_total, 2, '.', ',') . ' บาท</td>
                     </tr>
 
                 ';
 
             }
-               
 
-            $marks[1] = array();
-            $user_signature = $this->Db_model->userSignature( $pr_info->buyer_id );
-            $top = 1020;
-            $left = 65;
-            if($user_signature) {
-                if($user_signature->signature == ''){
-                    $top = 990;
-                    $marks[1][] = array('key' => 'buyer_signauture', '[left]' => $left, '[w]' => 170, '[top]' => $top, '[val]' => $user_signature->first_name.' '.$user_signature->last_name, '[align]' => 'center');
-                }else{
-                    $top = 930;
-                    $marks[1][] = array('key' => 'buyer_signauture', '[left]' => $left, '[w]' => 170, '[top]' => $top, '[val]' => '<img src='.base_url().$user_signature->signature.'>', '[align]' => 'center');
-                }
-                $top=1035;
-                $marks[1][] = array('key' => 'buyer_date_approved', '[left]' => $left, '[w]' => 170, '[top]' => $top, '[val]' => $this->DateConvert($pr_info->pr_date), '[align]' => 'center');
+
+        $marks[1] = array();
+        $user_signature = $this->Db_model->userSignature($pr_info->buyer_id);
+        $top = 1020;
+        $left = 65;
+        if ($user_signature) {
+            if ($user_signature->signature == '') {
+                $top = 990;
+                $marks[1][] = array('key' => 'buyer_signauture', '[left]' => $left, '[w]' => 170, '[top]' => $top, '[val]' => $user_signature->first_name . ' ' . $user_signature->last_name, '[align]' => 'center');
+            } else {
+                $top = 930;
+                $marks[1][] = array('key' => 'buyer_signauture', '[left]' => $left, '[w]' => 170, '[top]' => $top, '[val]' => '<img src=' . base_url() . $user_signature->signature . '>', '[align]' => 'center');
+            }
+            $top = 1035;
+            $marks[1][] = array('key' => 'buyer_date_approved', '[left]' => $left, '[w]' => 170, '[top]' => $top, '[val]' => $this->DateConvert($pr_info->pr_date), '[align]' => 'center');
+        }
+
+
+        $left = 555;
+        $user_signature = $this->Db_model->signature_approve($pr_id, "purchaserequests");
+        // var_dump($user_signature);exit;
+        if ($user_signature) {
+            if ($user_signature->signature == '') {
+                $top = 990;
+                $marks[1][] = array('key' => 'signauture', '[left]' => $left, '[w]' => 170, '[top]' => $top, '[val]' => $user_signature->first_name . ' ' . $user_signature->last_name, '[align]' => 'center');
+            } else {
+                $top = 930;
+                $marks[1][] = array('key' => 'signauture', '[left]' => $left, '[w]' => 170, '[top]' => $top, '[val]' => '<img src=' . base_url() . $user_signature->signature . '>', '[align]' => 'center');
+            }
+            $top = 1035;
+
+            $marks[1][] = array('key' => 'date_approved', '[left]' => $left, '[w]' => 170, '[top]' => $top, '[val]' => $this->DateConvert($user_signature->doc_date), '[align]' => 'center');
+        }
+
+        //End Item-List------------------------------------------------------------------------------------------------------------
+
+
+        $rangItem = 13;
+
+        foreach ($pr_items as $parentKey => $child) {
+
+            if (!isset($keep[$child->pr_id])) {
+                $page = 1;
             }
 
-            
-            $left = 555;
-            $user_signature = $this->Db_model->signature_approve( $pr_id,"purchaserequests" );
-            // var_dump($user_signature);exit;
-            if( $user_signature){
-                if($user_signature->signature == ''){
-                    $top = 990;
-                    $marks[1][] = array('key' => 'signauture', '[left]' => $left, '[w]' => 170, '[top]' => $top, '[val]' => $user_signature->first_name.' '.$user_signature->last_name, '[align]' => 'center');
-                }else{
-                    $top = 930;
-                    $marks[1][] = array('key' => 'signauture', '[left]' => $left, '[w]' => 170, '[top]' => $top, '[val]' => '<img src='.base_url().$user_signature->signature.'>', '[align]' => 'center');
-                }
-                $top=1035;
-                
-                $marks[1][] = array('key' => 'date_approved', '[left]' => $left, '[w]' => 170, '[top]' => $top, '[val]' => $this->DateConvert($user_signature->doc_date), '[align]' => 'center');
+            $keep[$child->pr_id][$page][] = $child;
+
+            if (count($keep[$child->pr_id][$page]) == $rangItem) {
+                $page += 1;
             }
-            
-            //End Item-List------------------------------------------------------------------------------------------------------------
-            
-    
-            $rangItem = 13;
-    
-            foreach( $pr_items as $parentKey => $child ){
-                
-                if(!isset($keep[$child->pr_id])){
-                    $page = 1;
+
+        }
+
+        foreach ($keep as $kd => $kv) {
+            //  var_dump($kv);exit;
+            $i = 1;
+            foreach ($kv as $kpage => $vpage) {
+                $dbs = convertObJectToArray($vpage[0]);
+                $dbs = array_merge($dbs, [
+                    'pr_date' => $this->DateConvert($pr_info->pr_date),
+                    'price_before_dis' => '<span class="label">ราคาก่อนหักส่วนลด</span>',
+                    'discount_name' => '<span class="label"><u>หัก</u> ส่วนลด</span>',
+                    'price_after_dis' => '<span class="label">ราคาหลังส่วนลด</span>',
+                    'vat_name' => '<span class="label">' . isset($cal_payment->tax_name) ? '<span class="label">' . $cal_payment->tax_name . '</span>' : "-" . '</span>',
+                    'total_name' => '<span class="label">รวมเงินทั้งสิ้น</span>'
+
+                    //,'valid_until' => $this->DateConvert($vpage[0]->valid_until)
+                ]);
+
+                $divs = array();
+
+                foreach ($marks[1] as $km => $vm) {
+                    $vm['[align]'] = isset($vm['[align]']) ? $vm['[align]'] : 'left';
+                    $vm['[val]'] = isset($dbs[$vm['key']]) ? $dbs[$vm['key']] : $vm['[val]'];
+                    $divs[] = str_replace(array_keys($vm), $vm, $template);
                 }
-                
-                $keep[$child->pr_id][$page][] = $child;
-                
-                if(count($keep[$child->pr_id][$page]) == $rangItem ){
-                    $page += 1;
-                }
-                
-            }
-          
-            foreach( $keep as $kd => $kv ){
-                //  var_dump($kv);exit;
-                $i=1;
-                foreach( $kv as $kpage => $vpage ){
-                    $dbs = convertObJectToArray($vpage[0]);
-                    $dbs = array_merge($dbs,[
-                        'pr_date' => $this->DateConvert($pr_info->pr_date),
-                        'price_before_dis' => '<span class="label">ราคาก่อนหักส่วนลด</span>',
-                        'discount_name' => '<span class="label"><u>หัก</u> ส่วนลด</span>',
-                        'price_after_dis' => '<span class="label">ราคาหลังส่วนลด</span>',
-                        'vat_name' => '<span class="label">'.isset($cal_payment->tax_name) ? '<span class="label">'.$cal_payment->tax_name.'</span>' : "-".'</span>',
-                        'total_name' => '<span class="label">รวมเงินทั้งสิ้น</span>'
-                    
-                        //,'valid_until' => $this->DateConvert($vpage[0]->valid_until)
-                    ]);
-                    
-                    $divs = array(); 
-                    
-                    foreach ($marks[1] as $km => $vm) {
-                        $vm['[align]'] = isset($vm['[align]']) ? $vm['[align]'] : 'left';
-                        $vm['[val]'] = isset($dbs[$vm['key']]) ? $dbs[$vm['key']] : $vm['[val]'];
-                        $divs[] = str_replace(array_keys( $vm ), $vm, $template);
-                    } 
-                    $top = 315;
-                    
-                    $trs =array();
-                    foreach($vpage as $vkpage => $vvpage ){
-                        
-                        $marks[2] = array(); //สร้าง array แยกแต่ละรายการ
-                        if($vvpage->title){
-                            $trs[] = '
+                $top = 315;
+
+                $trs = array();
+                foreach ($vpage as $vkpage => $vvpage) {
+
+                    $marks[2] = array(); //สร้าง array แยกแต่ละรายการ
+                    if ($vvpage->title) {
+                        $trs[] = '
                             <tr>
-                                <td style="width: 5%; ">'.$i++.'</td>
-                                <td style="text-align: left; width: 20%; ">'.$vvpage->title.'<br/>'.$vvpage->description.'</td>
-                                <td style="text-align: left; width: 15%; ">'.$vvpage->project_name.'</td>
-                                <td style="text-align: left; width: 15%; ">'.$vvpage->supplier_name.'</td>
-                                <td style=" width: 6%; ">'.number_format($vvpage->quantity,0,'.',',').'</td>
-                                <td style=" width: 6%; text-align: right;">'.$vvpage->unit_type.'</td>                                
-                                <td style="text-align: right;">'.number_format($vvpage->rate,2,'.',',').'</td>
-                                <td style="text-align: right; width: 15%;">'.number_format($vvpage->total,2,'.',',').'</td>
+                                <td style="width: 5%; ">' . $i++ . '</td>
+                                <td style="text-align: left; width: 20%; ">' . $vvpage->title . '<br/>' . $vvpage->description . '</td>
+                                <td style="text-align: left; width: 15%; ">' . $vvpage->project_name . '</td>
+                                <td style="text-align: left; width: 15%; ">' . $vvpage->supplier_name . '</td>
+                                <td style=" width: 6%; ">' . number_format($vvpage->quantity, 0, '.', ',') . '</td>
+                                <td style=" width: 6%; text-align: right;">' . $vvpage->unit_type . '</td>                                
+                                <td style="text-align: right;">' . number_format($vvpage->rate, 2, '.', ',') . '</td>
+                                <td style="text-align: right; width: 15%;">' . number_format($vvpage->total, 2, '.', ',') . '</td>
                             </tr>
                             ';
-                        }else{
-                            $trs[] = '
+                    } else {
+                        $trs[] = '
                             <tr>
                                 <td style="width: 5%;"></td>
                                 <td style="width: 20%;"></td>
@@ -1448,86 +1449,86 @@ class Pdf_export extends CI_Controller {
                                 <td ></td>
                             </tr>
                             ';
-                        }
-                        
-
-                        $dbs = convertObJectToArray( $vvpage );
-                        
-                        foreach ($marks[2] as $km => $vm) {
-                            $vm['[align]'] = isset($vm['[align]']) ? $vm['[align]'] : 'center';
-                            $vm['[val]'] = isset($dbs[$vm['key']]) ? $dbs[$vm['key']] : $vm['[val]'];
-                            $divs[] = str_replace(array_keys( $vm ), $vm, $template);
-                        }
-                        
                     }
-                    $trs_note = array();
-                    $str_text = explode("-", $pr_info->note);
-                    if($pr_info->note){
-                        $trs_note[] = '
+
+
+                    $dbs = convertObJectToArray($vvpage);
+
+                    foreach ($marks[2] as $km => $vm) {
+                        $vm['[align]'] = isset($vm['[align]']) ? $vm['[align]'] : 'center';
+                        $vm['[val]'] = isset($dbs[$vm['key']]) ? $dbs[$vm['key']] : $vm['[val]'];
+                        $divs[] = str_replace(array_keys($vm), $vm, $template);
+                    }
+
+                }
+                $trs_note = array();
+                $str_text = explode("-", $pr_info->note);
+                if ($pr_info->note) {
+                    $trs_note[] = '
                         <tr>
-                            <td colspan="3" style="text-align: left;"><br/><p class="label">หมายเหตุ : </p>'.nl2br($pr_info->note).'</td>
+                            <td colspan="3" style="text-align: left;"><br/><p class="label">หมายเหตุ : </p>' . nl2br($pr_info->note) . '</td>
                         </tr>
                     ';
-                    }
-                    
-                    
-                    $data = $this->Db_model->creatBy($pr_id,"purchaserequests");
-                    // var_dump($buyer);exit;
+                }
 
-                    $divTop =   110;
-                    $divleft = 30;
-                    $trs_client ='
-                    <div style="position:absolute; top:'.$divTop.'px; left:'.$divleft.'px; width: 370px">
+
+                $data = $this->Db_model->creatBy($pr_id, "purchaserequests");
+                // var_dump($buyer);exit;
+
+                $divTop = 110;
+                $divleft = 30;
+                $trs_client = '
+                    <div style="position:absolute; top:' . $divTop . 'px; left:' . $divleft . 'px; width: 370px">
                         <table style="width: 100%;">
                             <tr>
-                                <td style="text-align: left;">'.$company_name.'<br/>'.$company_address.'<br/>หมายเลขประจำตัวผู้เสียภาษี '.$company_vat_number.'<br/>'.$company_phone.'</td>
+                                <td style="text-align: left;">' . $company_name . '<br/>' . $company_address . '<br/>หมายเลขประจำตัวผู้เสียภาษี ' . $company_vat_number . '<br/>' . $company_phone . '</td>
                             </tr>
                             <tr>
                             
                                 <td style="text-align: left;"><span class="label"><br/>ผู้ขอซื้อ</span></td>
                             </tr>
                             <tr>
-                                <td style="text-align: left;">'.$buyer->first_name.' '.$buyer->last_name.'<br/> ตำแหน่ง : '.$buyer->job_title.'<br/> อีเมล : '.$buyer->email.'<br/> เบอร์โทร : '.$buyer->phone.'</td>
+                                <td style="text-align: left;">' . $buyer->first_name . ' ' . $buyer->last_name . '<br/> ตำแหน่ง : ' . $buyer->job_title . '<br/> อีเมล : ' . $buyer->email . '<br/> เบอร์โทร : ' . $buyer->phone . '</td>
                             </tr>
                         </table>
                     </div>
                     ';
 
-                    $trs_ref = array();
-                    // var_dump($pr_info);exit;
+                $trs_ref = array();
+                // var_dump($pr_info);exit;
 
-                    if($pr_info->project_name != ''){
-                        $project_ref = $pr_info->project_name;
-                    }else{
-                        $project_ref = "-";
-                    }
-                    
-                    if($pr_info->category_name != ''){
-                        $category_name_ref = $pr_info->category_name;
-                    }else{
-                        
-                        $category_name_ref = "-";
-                    }
-                    $trs_ref[]='                        
+                if ($pr_info->project_name != '') {
+                    $project_ref = $pr_info->project_name;
+                } else {
+                    $project_ref = "-";
+                }
+
+                if ($pr_info->category_name != '') {
+                    $category_name_ref = $pr_info->category_name;
+                } else {
+
+                    $category_name_ref = "-";
+                }
+                $trs_ref[] = '                        
                         <tr>
                             <td style="text-align: left; padding-left: 5px;"><span class="label">หมวดหมู่ใบขอซื้อ</span></td>
-                            <td style="text-align: left;">'.$category_name_ref.'</td>
+                            <td style="text-align: left;">' . $category_name_ref . '</td>
                         </tr>
                         <tr>
                             <td style="text-align: left; padding-left: 5px;"><span class="label">ชื่องาน</span></td>
-                            <td style="text-align: left;">'.$project_ref.'</td>
+                            <td style="text-align: left;">' . $project_ref . '</td>
                         </tr>
                     ';
 
-                    $divTop =   60;
-                    $divleft = 410;
-                    if($pr_info->payment ){
-                        $payment = $pr_info->payment;
-                    }else{
-                        $payment = "-";
-                    }
-                    $info_table = '
-                        <div style="position:absolute; top:'.$divTop.'px; left:'.$divleft.'px; width: 340px">
+                $divTop = 60;
+                $divleft = 410;
+                if ($pr_info->payment) {
+                    $payment = $pr_info->payment;
+                } else {
+                    $payment = "-";
+                }
+                $info_table = '
+                        <div style="position:absolute; top:' . $divTop . 'px; left:' . $divleft . 'px; width: 340px">
                             <table style="width: 100%;">
                                 <tr>
                                     <th colspan="2" style="text-align: center; padding-left: 5px; border-bottom: 1.5px solid #999; font-size: 30px;"><span class="label">ใบขอซื้อ</span></th>
@@ -1535,16 +1536,16 @@ class Pdf_export extends CI_Controller {
                                 </tr>
                                 <tr>
                                     <td style="text-align: left; padding-left: 5px;"><span class="label">เลขที่</span></td>
-                                    <td style="text-align: left; "><span>'.$pr_info->doc_no.'</span></td>
+                                    <td style="text-align: left; "><span>' . $pr_info->doc_no . '</span></td>
                                 </tr>
                                 <tr>
                                     <td style="text-align: left; padding-left: 5px;"><span class="label">วันที่</span></td>
-                                    <td style="text-align: left;"><span>'.$this->DateConvert($pr_info->pr_date).'</span></td>
+                                    <td style="text-align: left;"><span>' . $this->DateConvert($pr_info->pr_date) . '</span></td>
                                 </tr>
                                 
                                 <tr>
-                                    <td style="text-align: left; border-bottom: 1.5px solid #999; padding-left: 5px;"><span class="label">'.lang('payment_type').' </span></td>
-                                    <td style="text-align: left; border-bottom: 1.5px solid #999;"><span>'.$payment.'</span></td>
+                                    <td style="text-align: left; border-bottom: 1.5px solid #999; padding-left: 5px;"><span class="label">' . lang('payment_type') . ' </span></td>
+                                    <td style="text-align: left; border-bottom: 1.5px solid #999;"><span>' . $payment . '</span></td>
                                 </tr>
 
                                 <tr>
@@ -1553,17 +1554,17 @@ class Pdf_export extends CI_Controller {
                                 <tr>
                                     <td></td>
                                 </tr>
-                                '.implode("",$trs_ref).'
+                                ' . implode("", $trs_ref) . '
 
                             </table>
                         </div>';
-                    
-                    
-                    
-                    $divTop =   310;
-                    $divleft = 30;
-                    $tabletemplate = '
-                    <div style="position:absolute; top:'.$divTop.'px; left:'.$divleft.'px; width: 720px">
+
+
+
+                $divTop = 310;
+                $divleft = 30;
+                $tabletemplate = '
+                    <div style="position:absolute; top:' . $divTop . 'px; left:' . $divleft . 'px; width: 720px">
                         <table>
                             <tr>
                                 <td class="thStyle">#</td>
@@ -1575,15 +1576,15 @@ class Pdf_export extends CI_Controller {
                                 <td class="thStyle" style="text-align: right;">ราคาต่อหน่วย</td>
                                 <td class="thStyle" style="text-align: right;">ยอดรวม</td>
                             </tr>
-                            '.implode("",$trs).'
-                            '.implode("",$trs_total).'
-                            '.implode("",$trs_note).'
+                            ' . implode("", $trs) . '
+                            ' . implode("", $trs_total) . '
+                            ' . implode("", $trs_note) . '
                         </table>
                     </div>';
 
-                    $divTop =   990;
-                    $divleft = 27;
-                    $trs_approve = '<div style="position:absolute; top:'.$divTop.'px; left:'.$divleft.'px; width: 750px; ">
+                $divTop = 990;
+                $divleft = 27;
+                $trs_approve = '<div style="position:absolute; top:' . $divTop . 'px; left:' . $divleft . 'px; width: 750px; ">
                         <table>
                             <tr>
                                 <td>___________________________<br/>ผู้จัดทำ</td>
@@ -1597,8 +1598,8 @@ class Pdf_export extends CI_Controller {
                             </tr>                            
                         </table>
                     </div>';
-    
-                    $html = ' 
+
+                $html = ' 
                             <style>
                             div{
                                 font-size: 17px;
@@ -1637,303 +1638,303 @@ class Pdf_export extends CI_Controller {
                             </style>
     
                             
-                            '.$info_table.'
-                            '.$tabletemplate.'
-                            '.$trs_approve.'
-                            '.$trs_client.'
-                            '. implode('', $divs) . '
+                            ' . $info_table . '
+                            ' . $tabletemplate . '
+                            ' . $trs_approve . '
+                            ' . $trs_client . '
+                            ' . implode('', $divs) . '
                             
                         ';
-                        $mpdf->AddPage('P');
-                        $pagecount = $mpdf->SetSourceFile('pdf_Template/main_template.pdf');
-                        $tplId = $mpdf->importPage(1);
-                        $mpdf->useTemplate($tplId);
-                        $mpdf->WriteHTML($html);   
-                }
-                
-                
-            } 
-                
-            // $mpdf->Output();
-            $mpdf->Output($pr_info->doc_no.'.pdf', \Mpdf\Output\Destination::DOWNLOAD);
+                $mpdf->AddPage('P');
+                $pagecount = $mpdf->SetSourceFile('pdf_Template/main_template.pdf');
+                $tplId = $mpdf->importPage(1);
+                $mpdf->useTemplate($tplId);
+                $mpdf->WriteHTML($html);
+            }
+
+
         }
 
-        public function po_pdf($pr_id = 0,$po_no = 0)
-        {
-            // var_dump($po_no);exit;
-            $template = '<div style="text-align: [align]; position:absolute; top:[top]px; left:[left]px; width:[w]px; height:[h]px;"><span>[val]</span></div>';
-            
-            $defaultConfig = (new Mpdf\Config\ConfigVariables())->getDefaults();
-            $fontDirs = $defaultConfig['fontDir'];
-    
-            $defaultFontConfig = (new Mpdf\Config\FontVariables())->getDefaults();
-            $fontData = $defaultFontConfig['fontdata'];
-                
-            $mpdf = new \Mpdf\Mpdf([
-                'fontDir' => array_merge($fontDirs, [
-                    __DIR__ . '/fonts',
-                ]),
-                'fontdata' => $fontData + [
-                    'def' => [
-                        'R' => 'THSarabun_Bold.ttf',
-                        //'I' => 'THSarabunNew Italic.ttf',
-                        //'B' => 'THSarabunNew Bold.ttf',
-                    ]
-                ],
-                'default_font' => 'def',
-                'tempDir' => '/tmp'
-            ]);
-            $mpdf->charset_in = 'UTF-8';
-            
-            $marks = array();
-            $keep = array();
-            $html = '';
-            $company_address = nl2br(get_setting("company_address"));
-            $company_phone = get_setting("company_phone");
-            $company_website = get_setting("company_website");
-            $company_vat_number = get_setting("company_vat_number");
-            $company_name = get_setting("company_name");
-            
+        // $mpdf->Output();
+        $mpdf->Output($pr_info->doc_no . '.pdf', \Mpdf\Output\Destination::DOWNLOAD);
+    }
 
-            //$approver = $this->Provetable_model->getAprover($pr_id, "purchaserequests");
+    public function po_pdf($pr_id = 0, $po_no = 0)
+    {
+        // var_dump($po_no);exit;
+        $template = '<div style="text-align: [align]; position:absolute; top:[top]px; left:[left]px; width:[w]px; height:[h]px;"><span>[val]</span></div>';
 
-            //$pr_info = $this->Purchaserequests_model->get_details(array("id" => $pr_id))->row();
-            $pr_data = get_po_making_data($pr_id);
-           
-            /*$items_per_page = 15;
-                $pr_data['items_per_page'] = $items_per_page;
-                $num_rows = count($po_items);
-                $pages = ceil($num_rows/$items_per_page);
-                
-                $pr_data['supplier'] = $supplier;*/
+        $defaultConfig = (new Mpdf\Config\ConfigVariables())->getDefaults();
+        $fontDirs = $defaultConfig['fontDir'];
+
+        $defaultFontConfig = (new Mpdf\Config\FontVariables())->getDefaults();
+        $fontData = $defaultFontConfig['fontdata'];
+
+        $mpdf = new \Mpdf\Mpdf([
+            'fontDir' => array_merge($fontDirs, [
+                __DIR__ . '/fonts',
+            ]),
+            'fontdata' => $fontData + [
+                'def' => [
+                    'R' => 'THSarabun_Bold.ttf',
+                    //'I' => 'THSarabunNew Italic.ttf',
+                    //'B' => 'THSarabunNew Bold.ttf',
+                ]
+            ],
+            'default_font' => 'def',
+            'tempDir' => '/tmp'
+        ]);
+        $mpdf->charset_in = 'UTF-8';
+
+        $marks = array();
+        $keep = array();
+        $html = '';
+        $company_address = nl2br(get_setting("company_address"));
+        $company_phone = get_setting("company_phone");
+        $company_website = get_setting("company_website");
+        $company_vat_number = get_setting("company_vat_number");
+        $company_name = get_setting("company_name");
+
+
+        //$approver = $this->Provetable_model->getAprover($pr_id, "purchaserequests");
+
+        //$pr_info = $this->Purchaserequests_model->get_details(array("id" => $pr_id))->row();
+        $pr_data = get_po_making_data($pr_id);
+
+        /*$items_per_page = 15;
+            $pr_data['items_per_page'] = $items_per_page;
+            $num_rows = count($po_items);
+            $pages = ceil($num_rows/$items_per_page);
             
-    
-            $sql = "SELECT pr.*,pr_items.*,pr.id as pr_id,pr_items.id as itemId
+            $pr_data['supplier'] = $supplier;*/
+
+
+        $sql = "SELECT pr.*,pr_items.*,pr.id as pr_id,pr_items.id as itemId
             FROM `purchaserequests` as pr 
             LEFT JOIN pr_items ON pr_items.pr_id = pr.id AND pr_items.deleted = 0 
             WHERE pr.id = $pr_id";
-            // AND estimate_items.deleted = 0 $this->session->user_id
-            //หัวตารากระดาษ------------------------------------------------------------------------------------------------------------                 
+        // AND estimate_items.deleted = 0 $this->session->user_id
+        //หัวตารากระดาษ------------------------------------------------------------------------------------------------------------                 
 
-            $left = 460;
-            $user_signature = $this->Db_model->signature_approve( $pr_id, "purchaserequests" );
-    
-            if( $user_signature){
-                if($user_signature->signature == ''){
-                    $top = 1010;
-                    $marks[1][] = array('key' => 'signauture', '[left]' => $left, '[w]' => 130, '[top]' => $top, '[val]' => $user_signature->first_name.' '.$user_signature->last_name, '[align]' => 'center');
-                }else{
-                    $top = 1000;
-                    $marks[1][] = array('key' => 'signauture', '[left]' => $left, '[w]' => 130, '[top]' => $top, '[val]' => '<img src='.base_url().$user_signature->signature.'>', '[align]' => 'center');
-                }
-                $top=1040;
-                $left += 155;
-                $marks[1][] = array('key' => 'date_approved', '[left]' => $left, '[w]' => 130, '[top]' => $top, '[val]' => $this->DateConvert($user_signature->doc_date) , '[align]' => 'center');
+        $left = 460;
+        $user_signature = $this->Db_model->signature_approve($pr_id, "purchaserequests");
+
+        if ($user_signature) {
+            if ($user_signature->signature == '') {
+                $top = 1010;
+                $marks[1][] = array('key' => 'signauture', '[left]' => $left, '[w]' => 130, '[top]' => $top, '[val]' => $user_signature->first_name . ' ' . $user_signature->last_name, '[align]' => 'center');
+            } else {
+                $top = 1000;
+                $marks[1][] = array('key' => 'signauture', '[left]' => $left, '[w]' => 130, '[top]' => $top, '[val]' => '<img src=' . base_url() . $user_signature->signature . '>', '[align]' => 'center');
             }
-            //End Item-List------------------------------------------------------------------------------------------------------------
-            
-    
-            $items_per_page = 14;
-            $p_po_items = $pr_data['po_items'];
-            $approver = $pr_data['approver'];
-            $page = 0;
+            $top = 1040;
+            $left += 155;
+            $marks[1][] = array('key' => 'date_approved', '[left]' => $left, '[w]' => 130, '[top]' => $top, '[val]' => $this->DateConvert($user_signature->doc_date), '[align]' => 'center');
+        }
+        //End Item-List------------------------------------------------------------------------------------------------------------
 
-            
-            
-            $c_mark1 = count($marks[1]);
-            foreach($p_po_items as $supplier=>$po_items) {
-                $keep = [];
-                // var_dump($po_items[0]->po_no);exit;
-            if(isset($po_no)){
-                if($po_items[0]->po_no == $po_no){
 
-                
+        $items_per_page = 14;
+        $p_po_items = $pr_data['po_items'];
+        $approver = $pr_data['approver'];
+        $page = 0;
+
+
+
+        $c_mark1 = count($marks[1]);
+        foreach ($p_po_items as $supplier => $po_items) {
+            $keep = [];
+            // var_dump($po_items[0]->po_no);exit;
+            if (isset($po_no)) {
+                if ($po_items[0]->po_no == $po_no) {
+
+
                     $num_rows = count($po_items);
-                    $pages = ceil($num_rows/$items_per_page);
-                    if($pages==1) {
+                    $pages = ceil($num_rows / $items_per_page);
+                    if ($pages == 1) {
                         $page++;
-                        $keep[$pr_id][$page.'_1'] = $po_items;
-                    }else{
-                        for($p=1;$p<=$pages;$p++) {
+                        $keep[$pr_id][$page . '_1'] = $po_items;
+                    } else {
+                        for ($p = 1; $p <= $pages; $p++) {
                             $page++;
-                            $keep[$pr_id][$page.'_'.$p] = array_slice($po_items, ((($p-1)*$pages)), $items_per_page);
+                            $keep[$pr_id][$page . '_' . $p] = array_slice($po_items, ((($p - 1) * $pages)), $items_per_page);
                         }
                     }
                 }
-            }else{
-                
+            } else {
 
-                
-                    $num_rows = count($po_items);
-                    $pages = ceil($num_rows/$items_per_page);
-                    if($pages==1) {
+
+
+                $num_rows = count($po_items);
+                $pages = ceil($num_rows / $items_per_page);
+                if ($pages == 1) {
+                    $page++;
+                    $keep[$pr_id][$page . '_1'] = $po_items;
+                } else {
+                    for ($p = 1; $p <= $pages; $p++) {
                         $page++;
-                        $keep[$pr_id][$page.'_1'] = $po_items;
-                    }else{
-                        for($p=1;$p<=$pages;$p++) {
-                            $page++;
-                            $keep[$pr_id][$page.'_'.$p] = array_slice($po_items, ((($p-1)*$pages)), $items_per_page);
-                        }
+                        $keep[$pr_id][$page . '_' . $p] = array_slice($po_items, ((($p - 1) * $pages)), $items_per_page);
                     }
-                
+                }
+
             }
-                
-                $cal_payment = $this->Purchaserequests_model->get_pr_total_summary($pr_id, $supplier);
-                // var_dump($cal_payment);exit;
-                $trs_total = array();
-                $vat_name = isset($cal_payment->tax_name) ? $cal_payment->tax_name : "ภาษีมูลค่าเพิ่ม 0%";
-                if($cal_payment->discount_total == ''){
-                    $trs_total[] = '
+
+            $cal_payment = $this->Purchaserequests_model->get_pr_total_summary($pr_id, $supplier);
+            // var_dump($cal_payment);exit;
+            $trs_total = array();
+            $vat_name = isset($cal_payment->tax_name) ? $cal_payment->tax_name : "ภาษีมูลค่าเพิ่ม 0%";
+            if ($cal_payment->discount_total == '') {
+                $trs_total[] = '
                         <tr>
                             <td colspan="3"></td>                            
                             <td colspan="2" style="text-align: right; margin-top: 4%"><span class="label">รวมเป็นเงิน</span></td>                            
-                            <td style="text-align: right;">'.number_format($cal_payment->pr_subtotal,2,'.',',').' บาท</td>
+                            <td style="text-align: right;">' . number_format($cal_payment->pr_subtotal, 2, '.', ',') . ' บาท</td>
                         </tr>
                         <tr>
                             <td colspan="3"></td> 
-                            <td colspan="2" style="text-align: right;"><span class="label">'.$vat_name.'</span></td>
-                            <td style="text-align: right;">'.number_format($cal_payment->tax,2,'.',',').' บาท</td>
+                            <td colspan="2" style="text-align: right;"><span class="label">' . $vat_name . '</span></td>
+                            <td style="text-align: right;">' . number_format($cal_payment->tax, 2, '.', ',') . ' บาท</td>
                         </tr>
                         <tr>
                             
-                            <td colspan="3" style="text-align: left;"><span>('.$this->Convert($cal_payment->pr_total).')</span></td> 
+                            <td colspan="3" style="text-align: left;"><span>(' . $this->Convert($cal_payment->pr_total) . ')</span></td> 
                             
                             <td colspan="2" style="text-align: right;"><span class="label" >จำนวนเงินรวมทั้งสิ้น</span></td>
-                            <td style="text-align: right;">'.number_format($cal_payment->pr_total,2,'.',',').' บาท</td>
+                            <td style="text-align: right;">' . number_format($cal_payment->pr_total, 2, '.', ',') . ' บาท</td>
                         </tr>
 
                     ';
-                }else if($cal_payment->discount_type == "before_tax"){
-                    $trs_total[] = '
+            } else if ($cal_payment->discount_type == "before_tax") {
+                $trs_total[] = '
                     <tr>
                         <td colspan="3" style="border-top: 1.5px solid #999;"></td>                            
                         <td colspan="2" style="text-align: right; margin-top: 4%; border-top: 1.5px solid #999;"><span class="label">รวมเป็นเงิน</span></td>                            
-                        <td style="text-align: right; border-top: 1.5px solid #999;">'.number_format($cal_payment->pr_subtotal,2,'.',',').' บาท</td>
+                        <td style="text-align: right; border-top: 1.5px solid #999;">' . number_format($cal_payment->pr_subtotal, 2, '.', ',') . ' บาท</td>
                     </tr>
                     <tr>
                         <td colspan="3"></td> 
                         <td colspan="2" style="text-align: right;"><span class="label"><u>หัก</u> ส่วนลด</span></td>
-                        <td style="text-align: right;">'.number_format($cal_payment->discount_total,2,'.',',').' บาท</td>
+                        <td style="text-align: right;">' . number_format($cal_payment->discount_total, 2, '.', ',') . ' บาท</td>
                     </tr>
                     <tr>
                         <td colspan="3"></td> 
                         <td colspan="2" style="text-align: right;"><span class="label">ราคาหลังส่วนลด</span></td>
-                        <td style="text-align: right;">'.number_format($cal_payment->pr_subtotal-$cal_payment->discount_total,2,'.',',').' บาท</td>
+                        <td style="text-align: right;">' . number_format($cal_payment->pr_subtotal - $cal_payment->discount_total, 2, '.', ',') . ' บาท</td>
                     </tr>
                     <tr>
                         <td colspan="3"></td> 
-                        <td colspan="2" style="text-align: right;"><span class="label">'.$vat_name.'</span></td>
-                        <td style="text-align: right;">'.number_format($cal_payment->tax,2,'.',',').' บาท</td>
+                        <td colspan="2" style="text-align: right;"><span class="label">' . $vat_name . '</span></td>
+                        <td style="text-align: right;">' . number_format($cal_payment->tax, 2, '.', ',') . ' บาท</td>
                     </tr>
                     <tr>
                     
-                        <td colspan="3" style="text-align: left;"><span>('.$this->Convert($cal_payment->pr_total).')</span></td> 
+                        <td colspan="3" style="text-align: left;"><span>(' . $this->Convert($cal_payment->pr_total) . ')</span></td> 
                         
                         
                         <td colspan="2" style="text-align: right;"><span class="label" >จำนวนเงินรวมทั้งสิ้น</span></td>
-                        <td style="text-align: right;">'.number_format($cal_payment->pr_total,2,'.',',').' บาท</td>
+                        <td style="text-align: right;">' . number_format($cal_payment->pr_total, 2, '.', ',') . ' บาท</td>
                     </tr>
 
                 ';
-            }else if($cal_payment->discount_type == "after_tax"){
+            } else if ($cal_payment->discount_type == "after_tax") {
 
                 $trs_total[] = '
                     <tr>
                         <td colspan="3" style="border-top: 1.5px solid #999;"></td>                            
                         <td colspan="2" style="text-align: right; border-top: 1.5px solid #999;"><span class="label">ราคาก่อนหักส่วนลด</span></td>                            
-                        <td style="text-align: right; border-top: 1.5px solid #999;">'.number_format($cal_payment->pr_subtotal,2,'.',',').' บาท</td>
+                        <td style="text-align: right; border-top: 1.5px solid #999;">' . number_format($cal_payment->pr_subtotal, 2, '.', ',') . ' บาท</td>
                     </tr>
                     <tr>
                         <td colspan="3"></td> 
                         <td colspan="2" style="text-align: right;"><span class="label"><u>หัก</u> ส่วนลด</span></td>
-                        <td style="text-align: right;">'.number_format($cal_payment->discount_total,2,'.',',').' บาท</td>
+                        <td style="text-align: right;">' . number_format($cal_payment->discount_total, 2, '.', ',') . ' บาท</td>
                     </tr>
                     <tr>
                         <td colspan="3"></td> 
-                        <td colspan="2" style="text-align: right;"><span class="label">'.$vat_name.'</span></td>
-                        <td style="text-align: right;">'.number_format($cal_payment->tax,2,'.',',').' บาท</td>
+                        <td colspan="2" style="text-align: right;"><span class="label">' . $vat_name . '</span></td>
+                        <td style="text-align: right;">' . number_format($cal_payment->tax, 2, '.', ',') . ' บาท</td>
                     </tr>
                     <tr>
                         <td colspan="3"></td> 
                         <td colspan="2" style="text-align: right;"><span class="label">ราคาหลังส่วนลด</span></td>
-                        <td style="text-align: right;">'.number_format($cal_payment->pr_subtotal-$cal_payment->discount_total,2,'.',',').' บาท</td>
+                        <td style="text-align: right;">' . number_format($cal_payment->pr_subtotal - $cal_payment->discount_total, 2, '.', ',') . ' บาท</td>
                     </tr>
                     
                     <tr>
                     
-                        <td colspan="3" style="text-align: left;"><span>('.$this->Convert($cal_payment->pr_total).')</span></td> 
+                        <td colspan="3" style="text-align: left;"><span>(' . $this->Convert($cal_payment->pr_total) . ')</span></td> 
                         
                         <td colspan="2" style="text-align: right;"><span class="label" >จำนวนเงินรวมทั้งสิ้น</span></td>
-                        <td style="text-align: right;">'.number_format($cal_payment->pr_total,2,'.',',').' บาท</td>
+                        <td style="text-align: right;">' . number_format($cal_payment->pr_total, 2, '.', ',') . ' บาท</td>
                     </tr>
 
                 ';
 
             }
-                
-                
-                foreach( $keep as $kd => $kv ){
-                    $i=1;
-                    
-                    foreach( $kv as $kpage => $vpage ){
-                        list($p_page, $p) = explode('_', $kpage);
-                        
-                        $name = isset($vpage[0]->po_no) ? $vpage[0]->po_no : "PO".date('Ymd');
 
-                        $dbs = convertObJectToArray($vpage[0]);
-                        
-                        $dbs = array_merge($dbs, [
-                            'page'=>$p.'/'.$pages,
-                            'supplier_name'=>$supplier,
-                            'supplier_address'=>$vpage[0]->address.' '.$po_items[0]->city.' '.$po_items[0]->state.' '.$po_items[0]->zip.' '.$po_items[0]->country.' '.$po_items[0]->website.' '.$po_items[0]->phone. 
-                                                $po_items[0]->vat_number != '' ? 'หมายเลขภาษี : '.$po_items[0]->vat_number : "",
 
-                            'supplier_taxno'=>'',
-                            'pr_id'=>$pr_id,
-                            'pr_date'=>$this->DateConvert($approver->doc_date),
-                            'pr_total'=>($p==$pages)?number_format($cal_payment->pr_total,2,'.',','):'',
-                            'pr_total_txt'=>($p==$pages)?$this->Convert(doubleval($cal_payment->pr_total)):'',
-                            'note'=>'',
-                            'pr_subtotal'=>($p==$pages)?number_format(doubleval($cal_payment->pr_subtotal),2,'.',','):'',
-                            'discount_total'=>($p==$pages)?number_format(doubleval($cal_payment->discount_total),2,'.',','):'',
-                            'tax_name'=>($p==$pages)?(isset($cal_payment->tax_name) ? $cal_payment->tax_name : "-"):'',
-                            'tax'=>($p==$pages)?number_format(doubleval($cal_payment->tax),2,'.',','):'',
-                            'tax_name2'=>($p==$pages)?(isset($cal_payment->tax_name2) ? $cal_payment->tax_name2 : "-"):'',
-                            'tax2'=>($p==$pages)?number_format(doubleval($cal_payment->tax2),2,'.',','):'',
-                            'amout_name' => '<span class="label">รวมเงิน</span>',
-                            'vat_name' => '<span class="label">'.($p==$pages)?(isset($cal_payment->tax_name) ? '<span class="label">'.$cal_payment->tax_name.'</span>' : "-"):'-'.'</span>',
-                            'total_name' => '<span class="label">รวมเงินทั้งสิ้น</span>',
-                            'supplier_name_new' => 'ในนาม '.$supplier
-                        ]);
-                        
-                        $divs = array(); 
-                        
-                        //หัวกระดาษ
-                        foreach ($marks[1] as $km => $vm) {
-                            $vm['[align]'] = isset($vm['[align]']) ? $vm['[align]'] : 'left';
-                            $vm['[val]'] = isset($dbs[$vm['key']]) ? $dbs[$vm['key']] : $vm['[val]'];
-                            $head = str_replace(array_keys( $vm ), $vm, $template);
-                            //$head = str_replace('page', $p.'/'.$pages, $head);
-                            $divs[] = $head;
-                        } 
-                        $top = 315;
-                        $trs =array();
-                        
-                        foreach($vpage as $vkpage => $vvpage ){
-                            
-                            if($vvpage->title){
-                                $trs[] = '
+            foreach ($keep as $kd => $kv) {
+                $i = 1;
+
+                foreach ($kv as $kpage => $vpage) {
+                    list($p_page, $p) = explode('_', $kpage);
+
+                    $name = isset($vpage[0]->po_no) ? $vpage[0]->po_no : "PO" . date('Ymd');
+
+                    $dbs = convertObJectToArray($vpage[0]);
+
+                    $dbs = array_merge($dbs, [
+                        'page' => $p . '/' . $pages,
+                        'supplier_name' => $supplier,
+                        'supplier_address' => $vpage[0]->address . ' ' . $po_items[0]->city . ' ' . $po_items[0]->state . ' ' . $po_items[0]->zip . ' ' . $po_items[0]->country . ' ' . $po_items[0]->website . ' ' . $po_items[0]->phone .
+                            $po_items[0]->vat_number != '' ? 'หมายเลขภาษี : ' . $po_items[0]->vat_number : "",
+
+                        'supplier_taxno' => '',
+                        'pr_id' => $pr_id,
+                        'pr_date' => $this->DateConvert($approver->doc_date),
+                        'pr_total' => ($p == $pages) ? number_format($cal_payment->pr_total, 2, '.', ',') : '',
+                        'pr_total_txt' => ($p == $pages) ? $this->Convert(doubleval($cal_payment->pr_total)) : '',
+                        'note' => '',
+                        'pr_subtotal' => ($p == $pages) ? number_format(doubleval($cal_payment->pr_subtotal), 2, '.', ',') : '',
+                        'discount_total' => ($p == $pages) ? number_format(doubleval($cal_payment->discount_total), 2, '.', ',') : '',
+                        'tax_name' => ($p == $pages) ? (isset($cal_payment->tax_name) ? $cal_payment->tax_name : "-") : '',
+                        'tax' => ($p == $pages) ? number_format(doubleval($cal_payment->tax), 2, '.', ',') : '',
+                        'tax_name2' => ($p == $pages) ? (isset($cal_payment->tax_name2) ? $cal_payment->tax_name2 : "-") : '',
+                        'tax2' => ($p == $pages) ? number_format(doubleval($cal_payment->tax2), 2, '.', ',') : '',
+                        'amout_name' => '<span class="label">รวมเงิน</span>',
+                        'vat_name' => '<span class="label">' . ($p == $pages) ? (isset($cal_payment->tax_name) ? '<span class="label">' . $cal_payment->tax_name . '</span>' : "-") : '-' . '</span>',
+                        'total_name' => '<span class="label">รวมเงินทั้งสิ้น</span>',
+                        'supplier_name_new' => 'ในนาม ' . $supplier
+                    ]);
+
+                    $divs = array();
+
+                    //หัวกระดาษ
+                    foreach ($marks[1] as $km => $vm) {
+                        $vm['[align]'] = isset($vm['[align]']) ? $vm['[align]'] : 'left';
+                        $vm['[val]'] = isset($dbs[$vm['key']]) ? $dbs[$vm['key']] : $vm['[val]'];
+                        $head = str_replace(array_keys($vm), $vm, $template);
+                        //$head = str_replace('page', $p.'/'.$pages, $head);
+                        $divs[] = $head;
+                    }
+                    $top = 315;
+                    $trs = array();
+
+                    foreach ($vpage as $vkpage => $vvpage) {
+
+                        if ($vvpage->title) {
+                            $trs[] = '
                                 <tr>
-                                    <td style="width: 5%; border-bottom: 1px solid #999;">'.$i++.'</td>
-                                    <td style="text-align: left; width: 55%; border-bottom: 1px solid #999;">'.$vvpage->title.'<br/>'.$vvpage->description.'</td>
-                                    <td style="border-bottom: 1px solid #999;">'.number_format($vvpage->quantity,0,'.',',').'</td>
-                                    <td style="text-align: right; border-bottom: 1px solid #999;">'.$vvpage->unit_type.'</td>                                
-                                    <td style="text-align: right; border-bottom: 1px solid #999;">'.number_format($vvpage->rate,2,'.',',').'</td>
-                                    <td style="text-align: right; width: 17%; border-bottom: 1px solid #999;">'.number_format($vvpage->total,2,'.',',').'</td>
+                                    <td style="width: 5%; border-bottom: 1px solid #999;">' . $i++ . '</td>
+                                    <td style="text-align: left; width: 55%; border-bottom: 1px solid #999;">' . $vvpage->title . '<br/>' . $vvpage->description . '</td>
+                                    <td style="border-bottom: 1px solid #999;">' . number_format($vvpage->quantity, 0, '.', ',') . '</td>
+                                    <td style="text-align: right; border-bottom: 1px solid #999;">' . $vvpage->unit_type . '</td>                                
+                                    <td style="text-align: right; border-bottom: 1px solid #999;">' . number_format($vvpage->rate, 2, '.', ',') . '</td>
+                                    <td style="text-align: right; width: 17%; border-bottom: 1px solid #999;">' . number_format($vvpage->total, 2, '.', ',') . '</td>
                                 </tr>
                                 ';
-                            }else{
-                                $trs[] = '
+                        } else {
+                            $trs[] = '
                                 <tr>
                                     <td style="width: 5%;"></td>
                                     <td style="width: 60%"></td>
@@ -1943,73 +1944,73 @@ class Pdf_export extends CI_Controller {
                                     <td style="text-align: right;"></td>
                                 </tr>
                                 ';
-                            }
-                            
-
-                            $marks[2] = array(); //สร้าง array แยกแต่ละรายการ
-                            // $top += 29;
-                            // $left = 40; 
-                            // $marks[2][] = array('key' => '', '[left]' => $left, '[w]' => 37, '[top]' => $top, '[val]' => $i++);                    
-                            // $left += 42;
-                            // $marks[2][] = array('key' => 'title', '[left]' => $left, '[w]' =>450, '[top]' => $top, '[val]' => 'ไม่มีรายการสินค้า', '[align]' => 'left');
-                            // $left += 400;
-                            // $marks[2][] = array('key' => '', '[left]' => $left, '[w]' => 50, '[top]' => $top, '[val]' => number_format($vvpage->quantity,0,'.',','));
-                            // $left += 49;
-                            // $marks[2][] = array('key' => '', '[left]' => $left, '[w]' => 50, '[top]' => $top, '[val]' => isset($vvpage->unit_type)? $vvpage->unit_type : '-');
-                            // $left += 53;
-                            // $marks[2][] = array('key' => '', '[left]' => $left, '[w]' => 85, '[top]' => $top, '[val]' => number_format($vvpage->rate,2,'.',','));
-                            // $left += 90;
-                            // $marks[2][] = array('key' => '', '[left]' => $left, '[w]' => 80, '[top]' => $top, '[val]' => number_format($vvpage->total,2,'.',','),'[align]' => 'right');
-                                
-                            $dbs = convertObJectToArray( $vvpage );
-                            
-                            foreach ($marks[2] as $km => $vm) {
-                                $vm['[align]'] = isset($vm['[align]']) ? $vm['[align]'] : 'center';
-                                $vm['[val]'] = isset($dbs[$vm['key']]) ? $dbs[$vm['key']] : $vm['[val]'];
-                                $divs[] = str_replace(array_keys( $vm ), $vm, $template);
-                            }
-                            
                         }
-                        
 
-                        $trs_note = array();
-                        if($pr_data['pr_info']->note){
-                            $trs_note[] = '
+
+                        $marks[2] = array(); //สร้าง array แยกแต่ละรายการ
+                        // $top += 29;
+                        // $left = 40; 
+                        // $marks[2][] = array('key' => '', '[left]' => $left, '[w]' => 37, '[top]' => $top, '[val]' => $i++);                    
+                        // $left += 42;
+                        // $marks[2][] = array('key' => 'title', '[left]' => $left, '[w]' =>450, '[top]' => $top, '[val]' => 'ไม่มีรายการสินค้า', '[align]' => 'left');
+                        // $left += 400;
+                        // $marks[2][] = array('key' => '', '[left]' => $left, '[w]' => 50, '[top]' => $top, '[val]' => number_format($vvpage->quantity,0,'.',','));
+                        // $left += 49;
+                        // $marks[2][] = array('key' => '', '[left]' => $left, '[w]' => 50, '[top]' => $top, '[val]' => isset($vvpage->unit_type)? $vvpage->unit_type : '-');
+                        // $left += 53;
+                        // $marks[2][] = array('key' => '', '[left]' => $left, '[w]' => 85, '[top]' => $top, '[val]' => number_format($vvpage->rate,2,'.',','));
+                        // $left += 90;
+                        // $marks[2][] = array('key' => '', '[left]' => $left, '[w]' => 80, '[top]' => $top, '[val]' => number_format($vvpage->total,2,'.',','),'[align]' => 'right');
+
+                        $dbs = convertObJectToArray($vvpage);
+
+                        foreach ($marks[2] as $km => $vm) {
+                            $vm['[align]'] = isset($vm['[align]']) ? $vm['[align]'] : 'center';
+                            $vm['[val]'] = isset($dbs[$vm['key']]) ? $dbs[$vm['key']] : $vm['[val]'];
+                            $divs[] = str_replace(array_keys($vm), $vm, $template);
+                        }
+
+                    }
+
+
+                    $trs_note = array();
+                    if ($pr_data['pr_info']->note) {
+                        $trs_note[] = '
                             <tr>
-                                <td colspan="6" style="text-align: left;"><br/><p class="label">หมายเหตุ : </p>'.nl2br($pr_data['pr_info']->note).'</td>
+                                <td colspan="6" style="text-align: left;"><br/><p class="label">หมายเหตุ : </p>' . nl2br($pr_data['pr_info']->note) . '</td>
                             </tr>
                         ';
-                        }
-                            
-                        // arr($po_items); exit;
-                        $divTop =   110;
-                        $divleft = 27;
-                        $vat = $po_items[0]->vat_number != null ? 'เลขประจำตัวผู้เสียภาษี '.$po_items[0]->vat_number : '';
-                        $trs_client ='
-                        <div style="position:absolute; top:'.$divTop.'px; left:'.$divleft.'px; width: 370px">
+                    }
+
+                    // arr($po_items); exit;
+                    $divTop = 110;
+                    $divleft = 27;
+                    $vat = $po_items[0]->vat_number != null ? 'เลขประจำตัวผู้เสียภาษี ' . $po_items[0]->vat_number : '';
+                    $trs_client = '
+                        <div style="position:absolute; top:' . $divTop . 'px; left:' . $divleft . 'px; width: 370px">
                             <table style="width: 100%; ">
                                 
                                 <tr>
-                                    <td style="text-align: left;">'.$company_name.'<br/>'.$company_address.'<br/>หมายเลขประจำตัวผู้เสียภาษี '.$company_vat_number.'<br/>'.$company_phone.'</td>
+                                    <td style="text-align: left;">' . $company_name . '<br/>' . $company_address . '<br/>หมายเลขประจำตัวผู้เสียภาษี ' . $company_vat_number . '<br/>' . $company_phone . '</td>
                                 </tr>
                                 <tr>
                                     <td style="text-align: left;"><span class="label"><br/>ผู้จำหน่าย</span></td>
                                 </tr>
                                 <tr>
-                                    <td style="text-align: left;">'.$supplier.'<br/>'.$po_items[0]->address.' '.$po_items[0]->city.' '.$po_items[0]->state.' '.$po_items[0]->zip.' '.$po_items[0]->country.'<br/>'.$vat.'</td>
+                                    <td style="text-align: left;">' . $supplier . '<br/>' . $po_items[0]->address . ' ' . $po_items[0]->city . ' ' . $po_items[0]->state . ' ' . $po_items[0]->zip . ' ' . $po_items[0]->country . '<br/>' . $vat . '</td>
                                 </tr>
                             </table>
                         </div>
                         ';
 
-                        $divTop =   990;
-                        $divleft = 27;
-                        $trs_approve = '<div style="position:absolute; top:'.$divTop.'px; left:'.$divleft.'px; width: 750px; ">
+                    $divTop = 990;
+                    $divleft = 27;
+                    $trs_approve = '<div style="position:absolute; top:' . $divTop . 'px; left:' . $divleft . 'px; width: 750px; ">
                             <table>
                                 <tr>
-                                    <td colspan="2">ในนาม '.$supplier.'</td>
+                                    <td colspan="2">ในนาม ' . $supplier . '</td>
                                     <td></td>
-                                    <td colspan="2">ในนาม '.$company_name.'</td>
+                                    <td colspan="2">ในนาม ' . $company_name . '</td>
                                 </tr>
                                 <tr>
                                     <td style="height: 100px;">___________________________<p>ผู้ขาย</p></td>
@@ -2020,54 +2021,54 @@ class Pdf_export extends CI_Controller {
                                 </tr>                            
                             </table>
                         </div>';
-                        $su_id = $vpage[0]->supplier_id;
-                        $sql_sup = "SELECT *                         
+                    $su_id = $vpage[0]->supplier_id;
+                    $sql_sup = "SELECT *                         
                                     FROM bom_suppliers
                                     LEFT JOIN bom_supplier_contacts on bom_supplier_contacts.supplier_id = bom_suppliers.id
                                     WHERE bom_suppliers.id = $su_id";
-                        $a = $this->db->query($sql_sup)->row();
-                        $contact_name = isset($a->first_name) ? $a->first_name.' '.$a->last_name : "-";
-                        $contact_phone = isset($a->phone) ? $a->phone : "-";
-                        $contact_email = isset($a->email) ? $a->email : "-";
-                        $pro_name = !empty($pr_data['pr_info']->project_name) ? $pr_data['pr_info']->project_name : "-";
+                    $a = $this->db->query($sql_sup)->row();
+                    $contact_name = isset($a->first_name) ? $a->first_name . ' ' . $a->last_name : "-";
+                    $contact_phone = isset($a->phone) ? $a->phone : "-";
+                    $contact_email = isset($a->email) ? $a->email : "-";
+                    $pro_name = !empty($pr_data['pr_info']->project_name) ? $pr_data['pr_info']->project_name : "-";
 
-                        // var_dump($pr_data['pr_info']->project_name);exit;
-                        // var_dump($a);
-                        $info_contact = array();
-                        
-                            $info_contact[] = '
+                    // var_dump($pr_data['pr_info']->project_name);exit;
+                    // var_dump($a);
+                    $info_contact = array();
+
+                    $info_contact[] = '
                             <tr>
                                 <td style="text-align: left; width: 50px; padding-left: 5px;"><span class="label">ชื่องาน</span></td>
-                                <td style="text-align: left;"><span>'.$pro_name.'</span></td>
+                                <td style="text-align: left;"><span>' . $pro_name . '</span></td>
                             </tr>
                             <tr>
                                 <td style="text-align: left; width: 50px; padding-left: 5px;"><span class="label">ผู้ติดต่อ</span></td>
-                                <td style="text-align: left;"><span>'.$contact_name.'</span></td>
+                                <td style="text-align: left;"><span>' . $contact_name . '</span></td>
                             </tr>
                             <tr>
                                 <td style="text-align: left; padding-left: 5px;"><span class="label">เบอร์โทร</span></td>
-                                <td style="text-align: left;"><span>'.$contact_phone.'</span></td>
+                                <td style="text-align: left;"><span>' . $contact_phone . '</span></td>
                             </tr>
                             <tr>
                                 <td style="text-align: left; padding-left: 5px;"><span class="label">อีเมล</span></td>
-                                <td style="text-align: left;"><span>'.$contact_email.'</span></td>
+                                <td style="text-align: left;"><span>' . $contact_email . '</span></td>
                             </tr>';
-                        
 
-                        $data = $this->Db_model->creatBy($pr_id, "purchaserequests");
-                        $fname = $data->first_name;
-                        $lname = $data->last_name;
 
-                        
-                        
-                        $expired = !empty($data->expired) ? $this->DateConvert($data->expired) : "-";
-                        
-                        
-                        
-                        $divTop =   25;
-                        $divleft = 410;
-                        $info_table = '
-                            <div style="position:absolute; top:'.$divTop.'px; left:'.$divleft.'px; width: 340px">
+                    $data = $this->Db_model->creatBy($pr_id, "purchaserequests");
+                    $fname = $data->first_name;
+                    $lname = $data->last_name;
+
+
+
+                    $expired = !empty($data->expired) ? $this->DateConvert($data->expired) : "-";
+
+
+
+                    $divTop = 25;
+                    $divleft = 410;
+                    $info_table = '
+                            <div style="position:absolute; top:' . $divTop . 'px; left:' . $divleft . 'px; width: 340px">
                                 <table style="width: 100%;">
                                     <tr>
                                         <th colspan="4" style="text-align: center; border-bottom: 1.5px solid #999; font-size: 30px;"><span class="label">ใบสั่งซื้อ</span></th>
@@ -2075,31 +2076,31 @@ class Pdf_export extends CI_Controller {
                                     </tr>
                                     <tr>
                                         <td style="text-align: left; padding-left: 5px; width: 100px;"><span class="label">เลขที่</span></td>
-                                        <td style="text-align: left;"><span>'.$name.'</span></td>
+                                        <td style="text-align: left;"><span>' . $name . '</span></td>
                                         <td style="text-align: left;"><span class="label">หน้า</span></td>
-                                        <td style="text-align: left;"><span>'.$p.'/'.$pages.'</span></td>
+                                        <td style="text-align: left;"><span>' . $p . '/' . $pages . '</span></td>
                                     </tr>
                                     <tr>
                                         <td style="text-align: left; padding-left: 5px;"><span class="label">วันที่</span></td>
-                                        <td style="text-align: left;"><span>'.$this->DateConvert($data->pr_date).'</span></td>
+                                        <td style="text-align: left;"><span>' . $this->DateConvert($data->pr_date) . '</span></td>
                                     </tr>
                                     <tr>
                                         <td style="text-align: left; padding-left: 5px;"><span class="label">เครดิต</span></td>
-                                        <td style="text-align: left;"><span> '.$data->credit.' วัน</span></td>
+                                        <td style="text-align: left;"><span> ' . $data->credit . ' วัน</span></td>
                                     </tr>
                                     <tr>
                                         <td style="text-align: left; padding-left: 5px;"><span class="label">ครบกำหนด</span></td>
-                                        <td style="text-align: left;"><span>'.$expired.'</span></td>
+                                        <td style="text-align: left;"><span>' . $expired . '</span></td>
                                     </tr>
 
                                     <tr>
                                         <td style="text-align: left; padding-left: 5px;"><span class="label">ผู้สั่งซื้อ</span></td>
-                                        <td style="text-align: left;"><span>'.$fname.' '.$lname.'</span></td>
+                                        <td style="text-align: left;"><span>' . $fname . ' ' . $lname . '</span></td>
                                     </tr>
                                     
                                     <tr>
                                         <td style="text-align: left; border-bottom: 1.5px solid #999; padding-left: 5px;"><span class="label">อ้างอิงใบขอซื้อ</span></td>
-                                        <td style="text-align: left; border-bottom: 1.5px solid #999;"><span>'.$data->doc_no.'</span></td>
+                                        <td style="text-align: left; border-bottom: 1.5px solid #999;"><span>' . $data->doc_no . '</span></td>
                                         <td style="text-align: left; border-bottom: 1.5px solid #999;"></td>
                                         <td style="text-align: left; border-bottom: 1.5px solid #999;"></td>
                                     </tr>
@@ -2110,16 +2111,16 @@ class Pdf_export extends CI_Controller {
                                     <tr>
                                         <td></td>
                                     </tr>
-                                    '.implode("",$info_contact).'
+                                    ' . implode("", $info_contact) . '
                                     
                                     
                                 </table>
                             </div>';
 
-                            $divTop =   315;
-                            $divleft = 30;
-                            $tabletemplate = '
-                            <div style="position:absolute; top:'.$divTop.'px; left:'.$divleft.'px; width: 750px">
+                    $divTop = 315;
+                    $divleft = 30;
+                    $tabletemplate = '
+                            <div style="position:absolute; top:' . $divTop . 'px; left:' . $divleft . 'px; width: 750px">
                                 <table>
                                     <tr>
                                         <td class="thStyle">#</td>
@@ -2129,13 +2130,13 @@ class Pdf_export extends CI_Controller {
                                         <td class="thStyle" style="text-align: right;">ราคาต่อหน่วย</td>
                                         <td class="thStyle" style="text-align: right;">ยอดรวม</td>
                                     </tr>
-                                    '.implode("",$trs).'
-                                    '.implode("",$trs_total).'
-                                    '.implode("",$trs_note).'
+                                    ' . implode("", $trs) . '
+                                    ' . implode("", $trs_total) . '
+                                    ' . implode("", $trs_note) . '
                                 </table>
                             </div>';
-        
-                        $html = ' 
+
+                    $html = ' 
                                 <style>
                                 div{
                                     font-size: 17px;
@@ -2171,206 +2172,207 @@ class Pdf_export extends CI_Controller {
                                 }
 
                                 </style>
-                                '.$trs_client.'
-                                '.$info_table.'
-                                '.$tabletemplate.'
-                                '.$trs_approve.'
+                                ' . $trs_client . '
+                                ' . $info_table . '
+                                ' . $tabletemplate . '
+                                ' . $trs_approve . '
                                 ' . implode('', $divs) . '
                             ';
-                            $mpdf->SetTitle($data->doc_no);
-                            $mpdf->AddPage('P');                            
-                            $pagecount = $mpdf->SetSourceFile('pdf_Template/main_template.pdf');
-                            $tplId = $mpdf->importPage(1);
-                            $mpdf->useTemplate($tplId);
-                            $mpdf->WriteHTML($html);   
-                    }
+                    $mpdf->SetTitle($data->doc_no);
+                    $mpdf->AddPage('P');
+                    $pagecount = $mpdf->SetSourceFile('pdf_Template/main_template.pdf');
+                    $tplId = $mpdf->importPage(1);
+                    $mpdf->useTemplate($tplId);
+                    $mpdf->WriteHTML($html);
                 }
             }
-            //exit;
-            // $mpdf->Output();
-            
-            $mpdf->Output($name.'.pdf', \Mpdf\Output\Destination::DOWNLOAD);       
+        }
+        //exit;
+        // $mpdf->Output();
+
+        $mpdf->Output($name . '.pdf', \Mpdf\Output\Destination::DOWNLOAD);
+
+    }
+
+    function project_materials_pdf($project_id)
+    {
+        $pdfCtl = &get_instance();
+        $view_data['can_read_price'] = true; //$pdfCtl->check_permission('bom_restock_read_price');
+
+        $view_data['label_column'] = "col-md-3";
+        $view_data['field_column'] = "col-md-9";
+
+        $view_data["view"] = $pdfCtl->input->post('view');
+        $view_data['model_info'] = $pdfCtl->Projects_model->get_one($project_id);
+
+
+        $view_data['items'] = $pdfCtl->Items_model->get_items([])->result();
+        foreach ($view_data['items'] as $item) {
+            unset($item->files);
+            unset($item->description);
+            // var_dump($view_data['items']);
+        }
+        // exit;
+        $view_data['item_mixings'] = $pdfCtl->Bom_item_mixing_groups_model->get_detail_items([
+            'for_client_id' => $view_data['model_info']->client_id
+        ])->result();
+
+        $view_data['project_items'] = $pdfCtl->Bom_item_mixing_groups_model
+            ->get_project_items(['project_id' => $view_data['model_info']->id])->result();
+
+        $view_data['project_materials'] = $pdfCtl->Bom_item_mixing_groups_model
+            ->get_project_materials($view_data['project_items']);
+
+        // arr($view_data['project_materials']);exit;
+
+        $trs_materials = array();
+        $table_stock = '';
+        $keep = array();
+        $rangItem = 10;
+        $info = $view_data['model_info'];
+
+        $defaultConfig = (new Mpdf\Config\ConfigVariables())->getDefaults();
+
+        $fontDirs = $defaultConfig['fontDir'];
+        $defaultFontConfig = (new Mpdf\Config\FontVariables())->getDefaults();
+        $fontData = $defaultFontConfig['fontdata'];
+
+        $mpdf = new \Mpdf\Mpdf([
+            'fontDir' => array_merge($fontDirs, [
+                __DIR__ . '/fonts',
+            ]),
+            'fontdata' => $fontData + [
+                'def' => [
+                    'R' => 'THSarabun_Bold.ttf',
+                    //'I' => 'THSarabunNew Italic.ttf',
+                    //'B' => 'THSarabunNew Bold.ttf',
+                ]
+            ],
+            'default_font' => 'def',
+            'tempDir' => '/tmp'
+        ]);
+        $mpdf->charset_in = 'UTF-8';
+        $mpdf->SetTitle('project-' . $project_id);
+        $html = '';
+
+        foreach ($view_data['project_materials'] as $parentKey => $child) {
+
+            if (!isset($keep[$child->project_id])) {
+                $page = 1;
+            }
+
+            $keep[$child->project_id][$page][] = $child;
+
+            if (count($keep[$child->project_id][$page]) == $rangItem) {
+                $page += 1;
+            }
 
         }
 
-        function project_materials_pdf($project_id) {
-            $pdfCtl = &get_instance();
-            $view_data['can_read_price'] = true;//$pdfCtl->check_permission('bom_restock_read_price');
-        
-            $view_data['label_column'] = "col-md-3";
-            $view_data['field_column'] = "col-md-9";
-        
-            $view_data["view"] = $pdfCtl->input->post('view');
-            $view_data['model_info'] = $pdfCtl->Projects_model->get_one($project_id);
-            
-            
-            $view_data['items'] = $pdfCtl->Items_model->get_items([])->result();
-            foreach($view_data['items'] as $item){
-                unset($item->files);
-                unset($item->description);
-                // var_dump($view_data['items']);
-            }
-            // exit;
-            $view_data['item_mixings'] = $pdfCtl->Bom_item_mixing_groups_model->get_detail_items([
-                'for_client_id' => $view_data['model_info']->client_id
-            ])->result();
-    
-            $view_data['project_items'] = $pdfCtl->Bom_item_mixing_groups_model
-                ->get_project_items(['project_id' => $view_data['model_info']->id])->result();
-            
-            $view_data['project_materials'] = $pdfCtl->Bom_item_mixing_groups_model
-                ->get_project_materials($view_data['project_items']);
-                
-            // arr($view_data['project_materials']);exit;
-           
-            $trs_materials = array();
-            $table_stock ='';
-            $keep=array();
-            $rangItem = 10;
-            $info = $view_data['model_info'];
 
-            $defaultConfig = (new Mpdf\Config\ConfigVariables())->getDefaults();
-    
-            $fontDirs = $defaultConfig['fontDir'];
-            $defaultFontConfig = (new Mpdf\Config\FontVariables())->getDefaults();
-            $fontData = $defaultFontConfig['fontdata'];
-                
-            $mpdf = new \Mpdf\Mpdf([
-                'fontDir' => array_merge($fontDirs, [
-                    __DIR__ . '/fonts',
-                ]),
-                'fontdata' => $fontData + [
-                    'def' => [
-                        'R' => 'THSarabun_Bold.ttf',
-                        //'I' => 'THSarabunNew Italic.ttf',
-                        //'B' => 'THSarabunNew Bold.ttf',
-                    ]
-                ],
-                'default_font' => 'def',
-                'tempDir' => '/tmp'
-            ]);
-            $mpdf->charset_in = 'UTF-8';
-            $mpdf->SetTitle('project-'.$project_id);
-            $html = '';
 
-            foreach( $view_data['project_materials'] as $parentKey => $child ){
-                
-                if(!isset($keep[$child->project_id])){
-                    $page = 1;
-                }
-                
-                $keep[$child->project_id][$page][] = $child;
-                
-                if(count($keep[$child->project_id][$page]) == $rangItem ){
-                    $page += 1;
-                }
-                
-            }
 
-            
-            
-            
-            if($keep){
+        if ($keep) {
 
-            
-            foreach( $keep as $kd => $kv ){
+
+            foreach ($keep as $kd => $kv) {
                 // var_dump($kv);
-                
-                foreach( $kv as $kpage => $vpage  ){
-                    
-                    
+
+                foreach ($kv as $kpage => $vpage) {
+
+
                     $trs_materials = array();
-                    foreach($vpage as $vkpage => $vvpage ){
-                        
-                        $mixing_name = isset($vvpage->mixing_name) ? $vvpage->mixing_name : '-';    
-                        
-                        if(isset($vvpage->result)){ 
-                            
-                            $trs_materials[] ='
+                    foreach ($vpage as $vkpage => $vvpage) {
+
+                        $mixing_name = isset($vvpage->mixing_name) ? $vvpage->mixing_name : '-';
+
+                        if (isset($vvpage->result)) {
+
+                            $trs_materials[] = '
                             <tr>
-                                <td>'.$vvpage->title.'</td>
-                                <td>'.$mixing_name.'</td>
-                                <td>'.to_decimal_format2($vvpage->quantity).' '.$vvpage->unit_type.'</td> 
+                                <td>' . $vvpage->title . '</td>
+                                <td>' . $mixing_name . '</td>
+                                <td>' . to_decimal_format2($vvpage->quantity) . ' ' . $vvpage->unit_type . '</td> 
                             </tr>
                         ';
-                        $trs_materials[] ='
+                            $trs_materials[] = '
                                     <tr>
                                         <td colspan="3">
                                             <div class="toggle-container">
                                                 <table class="sub_mat" style="width: 100%" >
                                                 <tr>
-                                                    <th class="sub_thStyle" style="text-align: center;">'.lang('stock_material').'</th>
-                                                    <th class="sub_thStyle" style="text-align: center;">'.lang('stock_material_name').'</th>
-                                                    <th class="sub_thStyle" style="text-align: center;">'.lang('stock_restock_name').'</th>
-                                                    <th class="sub_thStyle" style="text-align: center;">'.lang('quantity').'</th>
-                                                    <th class="sub_thStyle" style="text-align: center;">'.lang('stock_calculator_value').'</th>
+                                                    <th class="sub_thStyle" style="text-align: center;">' . lang('stock_material') . '</th>
+                                                    <th class="sub_thStyle" style="text-align: center;">' . lang('stock_material_name') . '</th>
+                                                    <th class="sub_thStyle" style="text-align: center;">' . lang('stock_restock_name') . '</th>
+                                                    <th class="sub_thStyle" style="text-align: center;">' . lang('quantity') . '</th>
+                                                    <th class="sub_thStyle" style="text-align: center;">' . lang('stock_calculator_value') . '</th>
                                                 </tr>
                                                
                                     ';
-                            
-                            $total = 0; 
-                            foreach($vvpage->result as $rk){
-                                $stock_name = isset($rk->stock_name) ? $rk->stock_name: '-';
+
+                            $total = 0;
+                            foreach ($vvpage->result as $rk) {
+                                $stock_name = isset($rk->stock_name) ? $rk->stock_name : '-';
                                 $rk->ratio = floatval($rk->ratio);
                                 $classer = 'red';
-                                if($rk->ratio > 0) {
+                                if ($rk->ratio > 0) {
                                     $classer = 'green';
                                 }
 
-                                if($vvpage->id == $rk->bpim_Pid){ 
+                                if ($vvpage->id == $rk->bpim_Pid) {
                                     $trs_materials[] = '                                    
                                         <tr>                                            
-                                            <td>'.$rk->material_name.'</td>
-                                            <td>'.$rk->material_desc.'</td>
-                                            <td>'.$stock_name.'</td>
-                                            <td style="text-align: right; color:'.$classer.'">'.to_decimal_format2($rk->ratio).' '.$rk->material_unit.'</td>
+                                            <td>' . $rk->material_name . '</td>
+                                            <td>' . $rk->material_desc . '</td>
+                                            <td>' . $stock_name . '</td>
+                                            <td style="text-align: right; color:' . $classer . '">' . to_decimal_format2($rk->ratio) . ' ' . $rk->material_unit . '</td>
                                                                
                                     ';
-                                    if($rk->value != 0){
+                                    if ($rk->value != 0) {
                                         $total += $rk->value;
-                                        $trs_materials[]='
-                                        <td style="text-align: right;">'.to_currency($total).'</td>
+                                        $trs_materials[] = '
+                                        <td style="text-align: right;">' . to_currency($total) . '</td>
                                         </tr> 
                                         ';
-                                    }else{
-                                        $trs_materials[]='
+                                    } else {
+                                        $trs_materials[] = '
                                         <td style="text-align: right;">-</td>
                                         </tr> 
                                         ';
-                                    } 
+                                    }
                                 }
-                                
+
                             }
-                             
+
                             $trs_materials[] = '
                                 <tr>
                                     <th colspan="3"></th>
-                                    <th style="text-align: right;">'.lang('total').'</th>
-                                    <td style="text-align: right;">'.to_currency($total).'</td>
+                                    <th style="text-align: right;">' . lang('total') . '</th>
+                                    <td style="text-align: right;">' . to_currency($total) . '</td>
                                 </tr>
                                 </table>
                                 </div>
                             </td>
                         </tr>
                         ';
-                        
-                        
-                        }else{
-                            $trs_materials[] ='
+
+
+                        } else {
+                            $trs_materials[] = '
                             <tr>
-                                <td >'.$vvpage->title.'</td>
-                                <td >'.$mixing_name.'</td>
-                                <td >'.to_decimal_format2($vvpage->quantity).' '.$vvpage->unit_type.'</td> 
+                                <td >' . $vvpage->title . '</td>
+                                <td >' . $mixing_name . '</td>
+                                <td >' . to_decimal_format2($vvpage->quantity) . ' ' . $vvpage->unit_type . '</td> 
                             </tr>
                         ';
                         }
 
-                        
-                        
+
+
                     }
-                
+
                     $titleLength = strlen($info->title);
-                    $divTop =   190;
+                    $divTop = 190;
                     $divleft = 27;
                     if ($titleLength > 100) {
                         $divTop += 20;
@@ -2380,45 +2382,45 @@ class Pdf_export extends CI_Controller {
                     }
                     $table_stock = '         
     
-                    <div style="position:absolute; top:'.$divTop.'px; left: '.$divleft.'px; width: 100%">
+                    <div style="position:absolute; top:' . $divTop . 'px; left: ' . $divleft . 'px; width: 100%">
                         <table>
                             <tr>
-                                <th class="thStyle" style="text-align: center;">'.lang('item').'</th>
-                                <th class="thStyle" style="text-align: center;">'.lang('item_mixing_name').'</th>
-                                <th class="thStyle" style="text-align: center;">'.lang('quantity').'</th>
+                                <th class="thStyle" style="text-align: center;">' . lang('item') . '</th>
+                                <th class="thStyle" style="text-align: center;">' . lang('item_mixing_name') . '</th>
+                                <th class="thStyle" style="text-align: center;">' . lang('quantity') . '</th>
                             </tr>
                            
-                            '.implode(" ",$trs_materials).'
+                            ' . implode(" ", $trs_materials) . '
                             
                         </table>
                     </div>
                     ';
-                    
-                    $divTop =   40;
+
+                    $divTop = 40;
                     $divleft = 480;
-                    $table_info ='
-                        <div style="position:absolute; top:'.$divTop.'px; left: '.$divleft.'px; width: 750px">
+                    $table_info = '
+                        <div style="position:absolute; top:' . $divTop . 'px; left: ' . $divleft . 'px; width: 750px">
                             <table style="width: 270px; border: none;">
                                 <tr>
                                         <th colspan="2" style="text-align: center; border: none; border-bottom: 1.5px solid #999; font-size: 30px; "><span class="label" style="font-weight:bold;">โครงการ</span></th>
                                 </tr>
                                 <tr>
                                     <td style="border: none; vertical-align: top; width: 66px;"> <span class="label">เลขที่</span></td>
-                                    <td style="border: none;">'.$info->id.'</td>
+                                    <td style="border: none;">' . $info->id . '</td>
                                    
                                 </tr>
                                 <tr>
                                     <td style="border: none; vertical-align: top;"><span class="label">ชื่อโครงการ</span></td>
-                                    <td style="border: none;">'. $info->title . '</td>
+                                    <td style="border: none;">' . $info->title . '</td>
                                 </tr>
                                 <tr>
                                     <td style="border: none; vertical-align: top;"><span class="label">วันที่</span></td>
-                                    <td style="border: none;">'.$this->DateConvert($info->created_date).'</td>
+                                    <td style="border: none;">' . $this->DateConvert($info->created_date) . '</td>
                                 </tr>
                             </table>
                         </div>
                     ';
-                    
+
                     $html = '<style>
                     div{
                         font-size: 17px;
@@ -2461,36 +2463,36 @@ class Pdf_export extends CI_Controller {
                     }
                     </style>
                     
-                    '.$table_stock.'
-                    '.$table_info.'
+                    ' . $table_stock . '
+                    ' . $table_info . '
                     ';
-                    
-                    
+
+
                     // echo $html;exit;
-    
+
                     $mpdf->AddPage('P');
                     // var_dump($mpdf->AddPage('P'));exit;
                     $pagecount = $mpdf->SetSourceFile('pdf_Template/main_template.pdf');
                     $tplId = $mpdf->importPage(1);
                     ;
                     $mpdf->useTemplate($tplId);
-                    $mpdf->WriteHTML($html); 
-                    
-                }                           
+                    $mpdf->WriteHTML($html);
+
+                }
                 $mpdf->Output();
                 // $mpdf->Output('project-'.$project_id.'.pdf', \Mpdf\Output\Destination::DOWNLOAD); 
             }
-        }else{
-                    $divTop =   170;
-                    $divleft = 27;
-                    $table_stock = '          
+        } else {
+            $divTop = 170;
+            $divleft = 27;
+            $table_stock = '          
 
-                    <div style="position:absolute; top:'.$divTop.'px; left: '.$divleft.'px; width: 750px">
+                    <div style="position:absolute; top:' . $divTop . 'px; left: ' . $divleft . 'px; width: 750px">
                         <table>
                             <tr>
-                                <th class="thStyle" style="text-align: center;">'.lang('item').'</th>
-                                <th class="thStyle" style="text-align: center;">'.lang('item_mixing_name').'</th>
-                                <th class="thStyle" style="text-align: center;">'.lang('quantity').'</th>
+                                <th class="thStyle" style="text-align: center;">' . lang('item') . '</th>
+                                <th class="thStyle" style="text-align: center;">' . lang('item_mixing_name') . '</th>
+                                <th class="thStyle" style="text-align: center;">' . lang('quantity') . '</th>
                             </tr>
                             <tr>
                                 <td colspan="3" style="text-align: center;">ไม่มีรายการวัตถุดิบ</td>
@@ -2498,11 +2500,11 @@ class Pdf_export extends CI_Controller {
                         </table>
                     </div>
                     ';
-                    
-                    $divTop =   40;
-                $divleft = 526;
-                $table_info ='
-                    <div style="position:absolute; top:'.$divTop.'px; left: '.$divleft.'px; width: 750px">
+
+            $divTop = 40;
+            $divleft = 526;
+            $table_info = '
+                    <div style="position:absolute; top:' . $divTop . 'px; left: ' . $divleft . 'px; width: 750px">
                         <table style="width: 230px; border: none;">
                             <tr>
                                     <th colspan="2" style="text-align: center; border: none; border-bottom: 1.5px solid #999; font-size: 30px; "><span class="label" style="font-weight:bold;">วัตถุดิบโครงการ</span></th>
@@ -2510,22 +2512,22 @@ class Pdf_export extends CI_Controller {
                             </tr>
                             <tr>
                                 <td style="border: none;"> <span class="label">เลขที่</span></td>
-                                <td style="border: none;">'.$info->id.'</td>
+                                <td style="border: none;">' . $info->id . '</td>
                                
                             </tr>
                             <tr>
                                 <td style="border: none;"><span class="label">ชื่อโครงการ</span></td>
-                                <td style="border: none;">'.$info->title.'</td>
+                                <td style="border: none;">' . $info->title . '</td>
                             </tr>
                             <tr>
                                 <td style="border: none;"><span class="label">วันที่</span></td>
-                                <td style="border: none;">'.$this->DateConvert($info->created_date).'</td>
+                                <td style="border: none;">' . $this->DateConvert($info->created_date) . '</td>
                             </tr>
                         </table>
                     </div>
                 ';
 
-                    $html = '<style>
+            $html = '<style>
                     div{
                         font-size: 17px;
                         // border: solid 1px #000;
@@ -2563,582 +2565,577 @@ class Pdf_export extends CI_Controller {
                     }
                     </style>
                     
-                    '.$table_stock.'
-                    '.$table_info.'
+                    ' . $table_stock . '
+                    ' . $table_info . '
                     ';
-                    
-            
-                    
-                    $mpdf->AddPage('P');
-                    // var_dump($mpdf->AddPage('P'));exit;
-                    $pagecount = $mpdf->SetSourceFile('pdf_Template/main_template.pdf');
-                    $tplId = $mpdf->importPage(1);
-                    // $mpdf->shrink_tables_to_fit = 0.5;
-                    $mpdf->useTemplate($tplId);
-                    $mpdf->WriteHTML($html);
-                    $mpdf->Output(); 
-                    // $mpdf->Output('project-'.$project_id.'.pdf', \Mpdf\Output\Destination::DOWNLOAD);
-            }
 
-              
+
+
+            $mpdf->AddPage('P');
+            // var_dump($mpdf->AddPage('P'));exit;
+            $pagecount = $mpdf->SetSourceFile('pdf_Template/main_template.pdf');
+            $tplId = $mpdf->importPage(1);
+            // $mpdf->shrink_tables_to_fit = 0.5;
+            $mpdf->useTemplate($tplId);
+            $mpdf->WriteHTML($html);
+            $mpdf->Output();
+            // $mpdf->Output('project-'.$project_id.'.pdf', \Mpdf\Output\Destination::DOWNLOAD);
         }
 
-        public function payment_vouchers_pdf($invoice_id = 0){
 
-            //print_r($invoice_id); exit;
-            
-            $template = '<div style="text-align: [align]; position:absolute; top:[top]px; left:[left]px; width:[w]px; height:[h]px;"><span>[val]</span></div>';
-    
-            $defaultConfig = (new Mpdf\Config\ConfigVariables())->getDefaults();
-            $fontDirs = $defaultConfig['fontDir'];
-    
-            $defaultFontConfig = (new Mpdf\Config\FontVariables())->getDefaults();
-            $fontData = $defaultFontConfig['fontdata'];
-                
-            $mpdf = new \Mpdf\Mpdf([
-                'fontDir' => array_merge($fontDirs, [
-                    __DIR__ . '/fonts',
-                ]),
-                'fontdata' => $fontData + [
-                    'def' => [
-                        'R' => 'THSarabun.ttf',
-                        //'I' => 'THSarabunNew Italic.ttf',
-                        //'B' => 'THSarabunNew Bold.ttf',
-                    ]
-                ],
-                'default_font' => 'def',
-                'tempDir' => '/tmp'
-            ]);
-            $mpdf->charset_in = 'UTF-8';
-    
-    
-            $html = '';
-            $company_address = nl2br(get_setting("company_address"));
-            $company_phone = get_setting("company_phone");
-            $company_website = get_setting("company_website");
-            $company_vat_number = get_setting("company_vat_number");
-            $company_name = get_setting("company_name");
-    
-            // $sql = "SELECT *,payment_vouchers.id as pvId, clients.id as clientId, payment_voucher_payments.note as detail
-            // FROM `payment_vouchers` 
-            // LEFT JOIN payment_voucher_payments ON payment_voucher_payments.payment_vouchers_id = payment_vouchers.id
-            // LEFT JOIN orders ON payment_voucher_payments.invoice_id = orders.id
-            // LEFT JOIN clients ON orders.client_id = clients.id
-            // WHERE payment_vouchers.id = $invoice_id AND payment_voucher_payments.deleted=0";
+    }
 
-            $sql = " SELECT *,payment_vouchers.doc_no as pvId, bom_suppliers.id as supplierId, payment_voucher_payments.note as detail
+    public function payment_vouchers_pdf($invoice_id = 0)
+    {
+
+        //print_r($invoice_id); exit;
+
+        $template = '<div style="text-align: [align]; position:absolute; top:[top]px; left:[left]px; width:[w]px; height:[h]px;"><span>[val]</span></div>';
+
+        $defaultConfig = (new Mpdf\Config\ConfigVariables())->getDefaults();
+        $fontDirs = $defaultConfig['fontDir'];
+
+        $defaultFontConfig = (new Mpdf\Config\FontVariables())->getDefaults();
+        $fontData = $defaultFontConfig['fontdata'];
+
+        $mpdf = new \Mpdf\Mpdf([
+            'fontDir' => array_merge($fontDirs, [
+                __DIR__ . '/fonts',
+            ]),
+            'fontdata' => $fontData + [
+                'def' => [
+                    'R' => 'THSarabun.ttf',
+                    //'I' => 'THSarabunNew Italic.ttf',
+                    //'B' => 'THSarabunNew Bold.ttf',
+                ]
+            ],
+            'default_font' => 'def',
+            'tempDir' => '/tmp'
+        ]);
+        $mpdf->charset_in = 'UTF-8';
+
+
+        $html = '';
+        $company_address = nl2br(get_setting("company_address"));
+        $company_phone = get_setting("company_phone");
+        $company_website = get_setting("company_website");
+        $company_vat_number = get_setting("company_vat_number");
+        $company_name = get_setting("company_name");
+
+        // $sql = "SELECT *,payment_vouchers.id as pvId, clients.id as clientId, payment_voucher_payments.note as detail
+        // FROM `payment_vouchers` 
+        // LEFT JOIN payment_voucher_payments ON payment_voucher_payments.payment_vouchers_id = payment_vouchers.id
+        // LEFT JOIN orders ON payment_voucher_payments.invoice_id = orders.id
+        // LEFT JOIN clients ON orders.client_id = clients.id
+        // WHERE payment_vouchers.id = $invoice_id AND payment_voucher_payments.deleted=0";
+
+        $sql = " SELECT *,payment_vouchers.doc_no as pvId, bom_suppliers.id as supplierId, payment_voucher_payments.note as detail
             FROM `payment_vouchers` 
             LEFT JOIN payment_voucher_payments ON payment_voucher_payments.payment_vouchers_id = payment_vouchers.id
             LEFT JOIN orders ON payment_voucher_payments.invoice_id = orders.id
             LEFT JOIN bom_suppliers ON orders.supplier_id = bom_suppliers.id
             LEFT JOIN bank ON payment_voucher_payments.bank_id = bank.id
             WHERE payment_vouchers.id = $invoice_id AND payment_voucher_payments.deleted=0";
-            // AND estimate_items.deleted = 0
-            //หัวตารากระดาษ------------------------------------------------------------------------------------------------------------
-            $top = 107;
+        // AND estimate_items.deleted = 0
+        //หัวตารากระดาษ------------------------------------------------------------------------------------------------------------
+        $top = 107;
+        $left = 35;
+        $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 420, '[top]' => $top, '[val]' => $company_name, '[align]' => 'left');
+        $top += 25;
+        $marks[1][] = array('key' => 'company_address', '[left]' => $left, '[w]' => 420, '[top]' => $top, '[val]' => $company_address);
+        $top += 25;
+        $marks[1][] = array('key' => 'tax', '[left]' => $left, '[w]' => 420, '[top]' => $top, '[val]' => 'หมายเลขประจำตัวผู้เสียภาษี : ' . $company_vat_number);
+        $top += 25;
+        $marks[1][] = array('key' => 'Tel_company', '[left]' => $left, '[w]' => 420, '[top]' => $top, '[val]' => $company_phone);
+
+
+        $top = 220;
+        $left = 35;
+        foreach ($this->Db_model->fetchAll($sql) as $kcus => $vcus) {
+            // var_dump($vcus);exit;
+
+            $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 420, '[top]' => $top, '[val]' => $vcus->company_name);
+
+            $top += 30;
+            $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 420, '[top]' => $top, '[val]' => $vcus->address . ' ' . $vcus->city . '<br/> ' . $vcus->state . ' ' . $vcus->zip . ' ' . $vcus->country);
+
+            $top += 45;
             $left = 35;
-            $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 420, '[top]' => $top, '[val]' => $company_name, '[align]' => 'left');
+            $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 420, '[top]' => $top, '[val]' => 'เลขประจำตัวผู้เสียภาษี : ' . $vcus->vat_number);
+            break;
+        }
+
+        $top = 65;
+        $left = 630;
+        // var_dump($sql);exit;
+        foreach ($this->Db_model->fetchAll($sql) as $dd) {
+            $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 80, '[top]' => $top, '[val]' => $dd->pvId);
             $top += 25;
-            $marks[1][] = array('key' => 'company_address', '[left]' => $left, '[w]' => 420, '[top]' => $top, '[val]' => $company_address);
-            $top += 25;
-            $marks[1][] = array('key' => 'tax', '[left]' => $left, '[w]' => 420, '[top]' => $top, '[val]' => 'หมายเลขประจำตัวผู้เสียภาษี : '.$company_vat_number);
-            $top += 25;
-            $marks[1][] = array('key' => 'Tel_company', '[left]' => $left, '[w]' => 420, '[top]' => $top, '[val]' => $company_phone);
-            
-    
-            $top = 220;
-            $left = 35;
-            foreach($this->Db_model->fetchAll($sql) as $kcus => $vcus){
-                // var_dump($vcus);exit;
-            
-                $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 420, '[top]' => $top, '[val]' => $vcus->company_name);
-    
-                $top += 30;
-                $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 420, '[top]' => $top, '[val]' => $vcus->address.' '.$vcus->city.'<br/> '.$vcus->state.' '.$vcus->zip.' '.$vcus->country);
-                
-                $top += 45;
-                $left = 35;
-                $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 420, '[top]' => $top, '[val]' => 'เลขประจำตัวผู้เสียภาษี : '.$vcus->vat_number);
-                break;
-            }
-            
-            $top = 65;
+            $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 80, '[top]' => $top, '[val]' => $this->DateConvert($dd->bill_date));
+            $top += 100;
             $left = 630;
-            // var_dump($sql);exit;
-            foreach($this->Db_model->fetchAll($sql) as $dd){
-                $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 80, '[top]' => $top, '[val]' => $dd->pvId);
-                $top += 25;
-                $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 80, '[top]' => $top, '[val]' => $this->DateConvert($dd->bill_date));
-                $top += 100;
-                $left = 630;
-                $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 80, '[top]' => $top, '[val]' => $dd->project_name);
-                break;
+            $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 80, '[top]' => $top, '[val]' => $dd->project_name);
+            break;
+        }
+
+
+        $top = 220;
+        $left = 545;
+        // foreach($this->Db_model->fetchAll($sql) as $method => $id){
+        //     if($id->payment_method_id == '1'){
+        //         $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 150, '[top]' => $top, '[val]' => 'เงินสด');
+        //     }
+        //     if($id->payment_method_id == '2'){
+        //         $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 150, '[top]' => $top, '[val]' => 'ระบบชำระเงิน Stripe');
+        //     }
+        //     if($id->payment_method_id == '3'){
+        //         $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 150, '[top]' => $top, '[val]' => 'PayPal');
+        //     }
+        //     if($id->payment_method_id == '4'){
+        //         $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 150, '[top]' => $top, '[val]' => 'ระบบชำระเงิน Paytm');
+        //     }
+        //     if($id->payment_method_id == '5'){
+        //         $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 150, '[top]' => $top, '[val]' => 'โอนเงิน');
+        //     }
+        //     if($id->payment_method_id == '6'){
+        //         $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 150, '[top]' => $top, '[val]' => 'บัตรเครดิต/บัตรเดบิต');
+        //     }
+        //     break;
+        // }
+        // $marks[1][] = array('key' => 'Work_name', '[left]' => $left, '[w]' => 180, '[top]' => $top, '[val]' => 'ชื่องาน');
+        //$marks[1][] = array('key' => 'Work_name', '[left]' => $left, '[w]' => 180, '[top]' => $top, '[val]' => '-');
+        //$top += 25;
+        // $marks[1][] = array('key' => 'date', '[left]' => $left, '[w]' => 180, '[top]' => $top, '[val]' => 'ผู้ติดต่อ');
+        //$marks[1][] = array('key' => 'date', '[left]' => $left, '[w]' => 180, '[top]' => $top, '[val]' => '-');
+        //$top += 25;
+        // $marks[1][] = array('key' => 'Tel', '[left]' => $left, '[w]' => 180, '[top]' => $top, '[val]' => 'เบอร์โทร');
+        //$marks[1][] = array('key' => 'Tel', '[left]' => $left, '[w]' => 180, '[top]' => $top, '[val]' => '-');
+        //$top += 25;
+        //$left = 600;
+        // $marks[1][] = array('key' => 'email', '[left]' => $left, '[w]' => 180, '[top]' => $top, '[val]' => 'E-mail');
+        //$marks[1][] = array('key' => 'email', '[left]' => $left, '[w]' => 180, '[top]' => $top, '[val]' => '-');
+
+
+
+        $se_id = $this->Db_model->fetchAll($sql);
+        $order_id = $se_id[0]->invoice_id;
+        // print_r($order_id);exit;
+
+        $cal_payment = $this->Payment_vouchers_model->get_invoice_total_summary($invoice_id, $order_id);
+
+        // var_dump($cal_payment);exit;
+        $top = 735;
+        $left = 25;
+        //$marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 323, '[top]' => $top, '[val]' => '('.$this->Convert($cal_payment->sumvat3).')');
+        // $top += 30;
+        // $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 50, '[top]' => $top, '[val]' => 'ชำระโดย : ');
+        // $left += 50;
+        // foreach($this->Db_model->fetchAll($sql) as $method => $id){
+        //     if($id->payment_method_id == '1'){
+        //         $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 42, '[top]' => $top, '[val]' => 'เงินสด');
+        //     }
+        //     if($id->payment_method_id == '2'){
+        //         $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 42, '[top]' => $top, '[val]' => 'ระบบชำระเงิน Stripe');
+        //     }
+        //     if($id->payment_method_id == '3'){
+        //         $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 42, '[top]' => $top, '[val]' => 'PayPal');
+        //     }
+        //     if($id->payment_method_id == '4'){
+        //         $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 42, '[top]' => $top, '[val]' => 'ระบบชำระเงิน Paytm');
+        //     }
+        //     if($id->payment_method_id == '5'){
+        //         $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 42, '[top]' => $top, '[val]' => 'เงินโอน');
+        //         $left += 42;
+        //         $marks[1][] = array('key' => 'name_bank', '[left]' => $left, '[w]' => 100, '[top]' => $top, '[val]' => '');
+        //         $left += 100;
+        //         $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 50, '[top]' => $top, '[val]' => 'เลขที่บัญชี');
+        //         $left += 50;
+        //         $marks[1][] = array('key' => 'number_bank', '[left]' => $left, '[w]' => 80, '[top]' => $top, '[val]' => '');
+        //     }
+        //     if($id->payment_method_id == '6'){
+        //         $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 42, '[top]' => $top, '[val]' => 'บัตรเครดิต/บัตรเดบิต');
+        //     }
+        //     if($id->payment_method_id == '7'){
+        //         $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 42, '[top]' => $top, '[val]' => 'เช็ค');
+        //         $left += 42;
+        //         $marks[1][] = array('key' => 'name_bank', '[left]' => $left, '[w]' => 100, '[top]' => $top, '[val]' => '');
+        //         $left += 100;
+        //         $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 50, '[top]' => $top, '[val]' => 'เลขที่');
+        //         $left += 50;
+        //         $marks[1][] = array('key' => 'number_bank', '[left]' => $left, '[w]' => 80, '[top]' => $top, '[val]' => '');
+        //         $top += 30;
+        //         $left = 25;
+        //         $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 30, '[top]' => $top, '[val]' => 'วันที่');
+        //         $left += 30;
+        //         $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 80, '[top]' => $top, '[val]' => ''.$this->DateConvert($id->due_date).'');
+        //     }
+        //     break;
+        // }
+        //$marks[1][] = array('key' => 'payment_method_id', '[left]' => $left, '[w]' => 100, '[top]' => $top, '[val]' => '');
+
+        // $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 100, '[top]' => $top, '[val]' => lang("sub_total"),'[align]' => 'right');
+        // $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 100, '[top]' => $top, '[val]' => 'จำนวนเงินรวมทั้งสิ้น','[align]' => 'left');
+        // $top = 735;
+        // $left = 530;
+        // $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 100, '[top]' => $top, '[val]' => 'รวมเป็นยอดชำระ','[align]' => 'right');
+        // $left = 660;
+        // $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 100, '[top]' => $top, '[val]' =>  number_format($cal_payment->invoice_total,2,'.',',').' บาท','[align]' => 'right');
+        // $top += 20;
+        // $left = 530;
+        // $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 100, '[top]' => $top, '[val]' => 'ภาษีมูลค่าเพื่ม 7%','[align]' => 'right');
+        // $left = 660;
+        // $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 100, '[top]' => $top, '[val]' =>  number_format($cal_payment->tolvat7,2,'.',',').' บาท','[align]' => 'right');
+        // $top += 20;
+        // $left = 530;
+        // $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 100, '[top]' => $top, '[val]' => 'จำนวนเงินรวมทั้งสิ้น','[align]' => 'right');
+        // $left = 660;
+        // $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 100, '[top]' => $top, '[val]' =>  number_format($cal_payment->sumvat7,2,'.',',').' บาท','[align]' => 'right');
+
+        // $top += 20;
+        // $left = 530;
+        // $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 100, '[top]' => $top, '[val]' => 'ภาษีหัก ณ ที่จ่าย 3%','[align]' => 'right');
+        // $left = 660;
+        // $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 100, '[top]' => $top, '[val]' =>  number_format($cal_payment->tolvat3,2,'.',',').' บาท','[align]' => 'right');
+        // $top += 20;
+        // $left = 530;
+        // $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 100, '[top]' => $top, '[val]' => 'ยอดชำระ','[align]' => 'right');
+        // $left = 660;
+        // $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 100, '[top]' => $top, '[val]' =>  number_format($cal_payment->sumvat3,2,'.',',').' บาท','[align]' => 'right');
+        // $left = 25;
+        $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 323, '[top]' => $top, '[val]' => '(' . $this->Convert($cal_payment->sumvat3) . ')');
+
+
+        $top += 30;
+        $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 735, '[top]' => $top, '[val]' => '<hr>');
+        $top += 20;
+        $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 50, '[top]' => $top, '[val]' => 'ชำระโดย : ');
+        $left += 50;
+        foreach ($this->Db_model->fetchAll($sql) as $method => $id) {
+            if ($id->payment_method_id == '1') {
+                $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 42, '[top]' => $top, '[val]' => 'เงินสด');
             }
-    
-           
-            $top = 220;
-            $left = 545;
-            // foreach($this->Db_model->fetchAll($sql) as $method => $id){
-            //     if($id->payment_method_id == '1'){
-            //         $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 150, '[top]' => $top, '[val]' => 'เงินสด');
-            //     }
-            //     if($id->payment_method_id == '2'){
-            //         $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 150, '[top]' => $top, '[val]' => 'ระบบชำระเงิน Stripe');
-            //     }
-            //     if($id->payment_method_id == '3'){
-            //         $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 150, '[top]' => $top, '[val]' => 'PayPal');
-            //     }
-            //     if($id->payment_method_id == '4'){
-            //         $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 150, '[top]' => $top, '[val]' => 'ระบบชำระเงิน Paytm');
-            //     }
-            //     if($id->payment_method_id == '5'){
-            //         $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 150, '[top]' => $top, '[val]' => 'โอนเงิน');
-            //     }
-            //     if($id->payment_method_id == '6'){
-            //         $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 150, '[top]' => $top, '[val]' => 'บัตรเครดิต/บัตรเดบิต');
-            //     }
-            //     break;
-            // }
-            // $marks[1][] = array('key' => 'Work_name', '[left]' => $left, '[w]' => 180, '[top]' => $top, '[val]' => 'ชื่องาน');
-            //$marks[1][] = array('key' => 'Work_name', '[left]' => $left, '[w]' => 180, '[top]' => $top, '[val]' => '-');
-            //$top += 25;
-            // $marks[1][] = array('key' => 'date', '[left]' => $left, '[w]' => 180, '[top]' => $top, '[val]' => 'ผู้ติดต่อ');
-            //$marks[1][] = array('key' => 'date', '[left]' => $left, '[w]' => 180, '[top]' => $top, '[val]' => '-');
-            //$top += 25;
-            // $marks[1][] = array('key' => 'Tel', '[left]' => $left, '[w]' => 180, '[top]' => $top, '[val]' => 'เบอร์โทร');
-            //$marks[1][] = array('key' => 'Tel', '[left]' => $left, '[w]' => 180, '[top]' => $top, '[val]' => '-');
-            //$top += 25;
-            //$left = 600;
-            // $marks[1][] = array('key' => 'email', '[left]' => $left, '[w]' => 180, '[top]' => $top, '[val]' => 'E-mail');
-            //$marks[1][] = array('key' => 'email', '[left]' => $left, '[w]' => 180, '[top]' => $top, '[val]' => '-');
-    
-            
-    
-            $se_id = $this->Db_model->fetchAll($sql);
-            $order_id = $se_id[0]->invoice_id;
-            // print_r($order_id);exit;
-    
-            $cal_payment = $this->Payment_vouchers_model->get_invoice_total_summary($invoice_id, $order_id);
-    
-                // var_dump($cal_payment);exit;
-                $top = 735;
-                $left = 25;
-                //$marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 323, '[top]' => $top, '[val]' => '('.$this->Convert($cal_payment->sumvat3).')');
-                // $top += 30;
-                // $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 50, '[top]' => $top, '[val]' => 'ชำระโดย : ');
-                // $left += 50;
-                // foreach($this->Db_model->fetchAll($sql) as $method => $id){
-                //     if($id->payment_method_id == '1'){
-                //         $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 42, '[top]' => $top, '[val]' => 'เงินสด');
-                //     }
-                //     if($id->payment_method_id == '2'){
-                //         $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 42, '[top]' => $top, '[val]' => 'ระบบชำระเงิน Stripe');
-                //     }
-                //     if($id->payment_method_id == '3'){
-                //         $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 42, '[top]' => $top, '[val]' => 'PayPal');
-                //     }
-                //     if($id->payment_method_id == '4'){
-                //         $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 42, '[top]' => $top, '[val]' => 'ระบบชำระเงิน Paytm');
-                //     }
-                //     if($id->payment_method_id == '5'){
-                //         $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 42, '[top]' => $top, '[val]' => 'เงินโอน');
-                //         $left += 42;
-                //         $marks[1][] = array('key' => 'name_bank', '[left]' => $left, '[w]' => 100, '[top]' => $top, '[val]' => '');
-                //         $left += 100;
-                //         $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 50, '[top]' => $top, '[val]' => 'เลขที่บัญชี');
-                //         $left += 50;
-                //         $marks[1][] = array('key' => 'number_bank', '[left]' => $left, '[w]' => 80, '[top]' => $top, '[val]' => '');
-                //     }
-                //     if($id->payment_method_id == '6'){
-                //         $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 42, '[top]' => $top, '[val]' => 'บัตรเครดิต/บัตรเดบิต');
-                //     }
-                //     if($id->payment_method_id == '7'){
-                //         $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 42, '[top]' => $top, '[val]' => 'เช็ค');
-                //         $left += 42;
-                //         $marks[1][] = array('key' => 'name_bank', '[left]' => $left, '[w]' => 100, '[top]' => $top, '[val]' => '');
-                //         $left += 100;
-                //         $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 50, '[top]' => $top, '[val]' => 'เลขที่');
-                //         $left += 50;
-                //         $marks[1][] = array('key' => 'number_bank', '[left]' => $left, '[w]' => 80, '[top]' => $top, '[val]' => '');
-                //         $top += 30;
-                //         $left = 25;
-                //         $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 30, '[top]' => $top, '[val]' => 'วันที่');
-                //         $left += 30;
-                //         $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 80, '[top]' => $top, '[val]' => ''.$this->DateConvert($id->due_date).'');
-                //     }
-                //     break;
-                // }
-                //$marks[1][] = array('key' => 'payment_method_id', '[left]' => $left, '[w]' => 100, '[top]' => $top, '[val]' => '');
-    
-                // $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 100, '[top]' => $top, '[val]' => lang("sub_total"),'[align]' => 'right');
-                // $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 100, '[top]' => $top, '[val]' => 'จำนวนเงินรวมทั้งสิ้น','[align]' => 'left');
-                // $top = 735;
-                // $left = 530;
-                // $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 100, '[top]' => $top, '[val]' => 'รวมเป็นยอดชำระ','[align]' => 'right');
-                // $left = 660;
-                // $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 100, '[top]' => $top, '[val]' =>  number_format($cal_payment->invoice_total,2,'.',',').' บาท','[align]' => 'right');
-                // $top += 20;
-                // $left = 530;
-                // $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 100, '[top]' => $top, '[val]' => 'ภาษีมูลค่าเพื่ม 7%','[align]' => 'right');
-                // $left = 660;
-                // $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 100, '[top]' => $top, '[val]' =>  number_format($cal_payment->tolvat7,2,'.',',').' บาท','[align]' => 'right');
-                // $top += 20;
-                // $left = 530;
-                // $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 100, '[top]' => $top, '[val]' => 'จำนวนเงินรวมทั้งสิ้น','[align]' => 'right');
-                // $left = 660;
-                // $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 100, '[top]' => $top, '[val]' =>  number_format($cal_payment->sumvat7,2,'.',',').' บาท','[align]' => 'right');
-                
-                // $top += 20;
-                // $left = 530;
-                // $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 100, '[top]' => $top, '[val]' => 'ภาษีหัก ณ ที่จ่าย 3%','[align]' => 'right');
-                // $left = 660;
-                // $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 100, '[top]' => $top, '[val]' =>  number_format($cal_payment->tolvat3,2,'.',',').' บาท','[align]' => 'right');
-                // $top += 20;
-                // $left = 530;
-                // $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 100, '[top]' => $top, '[val]' => 'ยอดชำระ','[align]' => 'right');
-                // $left = 660;
-                // $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 100, '[top]' => $top, '[val]' =>  number_format($cal_payment->sumvat3,2,'.',',').' บาท','[align]' => 'right');
-                // $left = 25;
-                $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 323, '[top]' => $top, '[val]' => '('.$this->Convert($cal_payment->sumvat3).')');
-
-
-                $top += 30;
-                $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 735, '[top]' => $top, '[val]' => '<hr>');
-                $top += 20;
-                $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 50, '[top]' => $top, '[val]' => 'ชำระโดย : ');
+            if ($id->payment_method_id == '2') {
+                $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 42, '[top]' => $top, '[val]' => 'ระบบชำระเงิน Stripe');
+            }
+            if ($id->payment_method_id == '3') {
+                $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 42, '[top]' => $top, '[val]' => 'PayPal');
+            }
+            if ($id->payment_method_id == '4') {
+                $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 42, '[top]' => $top, '[val]' => 'ระบบชำระเงิน Paytm');
+            }
+            if ($id->payment_method_id == '5') {
+                $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 42, '[top]' => $top, '[val]' => 'เงินโอน');
+                $left += 42;
+                $marks[1][] = array('key' => 'name_bank', '[left]' => $left, '[w]' => 100, '[top]' => $top, '[val]' => '');
+                $left += 100;
+                $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 50, '[top]' => $top, '[val]' => 'เลขที่บัญชี');
                 $left += 50;
-                foreach($this->Db_model->fetchAll($sql) as $method => $id){
-                    if($id->payment_method_id == '1'){
-                        $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 42, '[top]' => $top, '[val]' => 'เงินสด');
-                    }
-                    if($id->payment_method_id == '2'){
-                        $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 42, '[top]' => $top, '[val]' => 'ระบบชำระเงิน Stripe');
-                    }
-                    if($id->payment_method_id == '3'){
-                        $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 42, '[top]' => $top, '[val]' => 'PayPal');
-                    }
-                    if($id->payment_method_id == '4'){
-                        $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 42, '[top]' => $top, '[val]' => 'ระบบชำระเงิน Paytm');
-                    }
-                    if($id->payment_method_id == '5'){
-                        $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 42, '[top]' => $top, '[val]' => 'เงินโอน');
-                        $left += 42;
-                        $marks[1][] = array('key' => 'name_bank', '[left]' => $left, '[w]' => 100, '[top]' => $top, '[val]' => '');
-                        $left += 100;
-                        $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 50, '[top]' => $top, '[val]' => 'เลขที่บัญชี');
-                        $left += 50;
-                        $marks[1][] = array('key' => 'number_bank', '[left]' => $left, '[w]' => 80, '[top]' => $top, '[val]' => '');
-                    }
-                    if($id->payment_method_id == '6'){
-                        $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 42, '[top]' => $top, '[val]' => 'บัตรเครดิต/บัตรเดบิต');
-                    }
-                    if($id->payment_method_id == '7'){
-                        $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 42, '[top]' => $top, '[val]' => 'เช็ค');
-                        $left += 42;
-                        $marks[1][] = array('key' => 'name_bank', '[left]' => $left, '[w]' => 100, '[top]' => $top, '[val]' => '');
-                        $left += 100;
-                        $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 50, '[top]' => $top, '[val]' => 'เลขที่');
-                        $left += 50;
-                        $marks[1][] = array('key' => 'number_bank', '[left]' => $left, '[w]' => 80, '[top]' => $top, '[val]' => '');
-                        $top += 20;
-                        $left = 25;
-                        $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 30, '[top]' => $top, '[val]' => 'วันที่');
-                        $left += 30;
-                        $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 80, '[top]' => $top, '[val]' => ''.$this->DateConvert($id->due_date).'');
-                    }
-                    break;
-                }
-
-
-
-
-
-
-                // $top = 760;
-                // $left = 572;
-                // $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 100, '[top]' => $top, '[val]' => '<u>หัก</u> ภาษี ณ ที่จ่าย 3%','[align]' => 'left');
-                // $left = 583;
-                // $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 180, '[top]' => $top, '[val]' =>  number_format($cal_payment->vat3,2,'.',','),'[align]' => 'right');
-                // $top = 788;
-                // $left = 572;
-                // $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 100, '[top]' => $top, '[val]' => 'ยอดที่ต้องชำระ','[align]' => 'left');
-                // $left = 583;
-                // $marks[1][] = array('key' => 'tt_sum', '[left]' => $left, '[w]' => 180, '[top]' => $top, '[val]' =>  number_format($cal_payment->tol,2,'.',','),'[align]' => 'right');
-                // ==========================================
-    
-                if(true){
-                    if($cal_payment->discount_type == "before_tax"){
-                        // $top += 20;
-                        // $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 100, '[top]' => $top, '[val]' => lang("discount"),'[align]' => 'right');           
-                        // $marks[1][] = array('key' => 'dis', '[left]' => $left, '[w]' => 180, '[top]' => $top, '[val]' => number_format($cal_payment->discount_total,2,'.',','),'[align]' => 'right');
-                        
-                        // $top += 20;
-                        // $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 100, '[top]' => $top, '[val]' => isset($cal_payment->tax_name) ? $cal_payment->tax_name : "-",'[align]' => 'right');           
-                        // $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 180, '[top]' => $top, '[val]' => number_format($cal_payment->tax,2,'.',','),'[align]' => 'right');
-        
-                        // $top += 20;
-                        // $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 100, '[top]' => $top, '[val]' => isset($cal_payment->tax_name3) ? $cal_payment->tax_name3 : "-",'[align]' => 'right');           
-                        // $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 180, '[top]' => $top, '[val]' => number_format($cal_payment->tax3,2,'.',','),'[align]' => 'right');
-                        // ==========================================
-                        // $top += 20;
-                        // $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 100, '[top]' => $top, '[val]' => lang("total"),'[align]' => 'right');           
-                        // $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 180, '[top]' => $top, '[val]' => number_format($cal_payment->invoice_total,2,'.',','),'[align]' => 'right');
-                    }else if($cal_payment->discount_type == "after_tax"){
-                        $top += 20;
-                        $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 100, '[top]' => $top, '[val]' => isset($cal_payment->tax_name2) ? $cal_payment->tax_name2 : "-",'[align]' => 'right');           
-                        $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 180, '[top]' => $top, '[val]' => number_format($cal_payment->tax2,2,'.',','),'[align]' => 'right');
-                        
-                        $top += 20;
-                        $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 100, '[top]' => $top, '[val]' => isset($cal_payment->tax_name) ? $cal_payment->tax_name : "-",'[align]' => 'right');           
-                        $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 180, '[top]' => $top, '[val]' => number_format($cal_payment->tax,2,'.',','),'[align]' => 'right');
-        
-                        $top += 20;                
-                        $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 100, '[top]' => $top, '[val]' => lang("discount"),'[align]' => 'right');           
-                        $marks[1][] = array('key' => 'dis', '[left]' => $left, '[w]' => 180, '[top]' => $top, '[val]' => number_format($cal_payment->discount_total,2,'.',','),'[align]' => 'right');
-                        // ==========================================
-                        $top += 20;
-                        $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 100, '[top]' => $top, '[val]' => lang("total"),'[align]' => 'right');           
-                        $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 180, '[top]' => $top, '[val]' => number_format($cal_payment->invoice_total,2,'.',','),'[align]' => 'right');    
-                    }
-                }else{
-                    if($cal_payment->discount_type == "before_tax"){
-                        $top += 20;
-                        $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 100, '[top]' => $top, '[val]' => lang("discount"),'[align]' => 'right');           
-                        $marks[1][] = array('key' => 'dis', '[left]' => $left, '[w]' => 180, '[top]' => $top, '[val]' => number_format($cal_payment->discount_total,2,'.',','),'[align]' => 'right');
-                        
-                        $top += 20;
-                        $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 100, '[top]' => $top, '[val]' => isset($cal_payment->tax_name) ? $cal_payment->tax_name : "-",'[align]' => 'right');           
-                        $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 180, '[top]' => $top, '[val]' => number_format($cal_payment->tax,2,'.',','),'[align]' => 'right');
-        
-                        $top += 20;
-                        $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 100, '[top]' => $top, '[val]' => isset($cal_payment->tax_name2) ? $cal_payment->tax_name2 : "-",'[align]' => 'right');           
-                        $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 180, '[top]' => $top, '[val]' => number_format($cal_payment->tax2,2,'.',','),'[align]' => 'right');
-                        // ==========================================
-                        $top += 20;
-                        $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 100, '[top]' => $top, '[val]' => lang("total"),'[align]' => 'right');           
-                        $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 180, '[top]' => $top, '[val]' => number_format($cal_payment->invoice_total,2,'.',','),'[align]' => 'right');
-                    }else if($cal_payment->discount_type == "after_tax"){
-                        $top += 20;
-                        $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 100, '[top]' => $top, '[val]' => isset($cal_payment->tax_name2) ? $cal_payment->tax_name2 : "-",'[align]' => 'right');           
-                        $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 180, '[top]' => $top, '[val]' => number_format($cal_payment->tax2,2,'.',','),'[align]' => 'right');
-                        
-                        $top += 20;
-                        $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 100, '[top]' => $top, '[val]' => isset($cal_payment->tax_name) ? $cal_payment->tax_name : "-",'[align]' => 'right');           
-                        $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 180, '[top]' => $top, '[val]' => number_format($cal_payment->tax,2,'.',','),'[align]' => 'right');
-        
-                        $top += 20;                
-                        $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 100, '[top]' => $top, '[val]' => lang("discount"),'[align]' => 'right');           
-                        $marks[1][] = array('key' => 'dis', '[left]' => $left, '[w]' => 180, '[top]' => $top, '[val]' => number_format($cal_payment->discount_total,2,'.',','),'[align]' => 'right');
-                        // ==========================================
-                        $top += 20;
-                        $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 100, '[top]' => $top, '[val]' => lang("total"),'[align]' => 'right');           
-                        $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 180, '[top]' => $top, '[val]' => number_format($cal_payment->invoice_total,2,'.',','),'[align]' => 'right');    
-                    }
-                }
-    
-                
-                $top = 905;
+                $marks[1][] = array('key' => 'number_bank', '[left]' => $left, '[w]' => 80, '[top]' => $top, '[val]' => '');
+            }
+            if ($id->payment_method_id == '6') {
+                $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 42, '[top]' => $top, '[val]' => 'บัตรเครดิต/บัตรเดบิต');
+            }
+            if ($id->payment_method_id == '7') {
+                $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 42, '[top]' => $top, '[val]' => 'เช็ค');
+                $left += 42;
+                $marks[1][] = array('key' => 'name_bank', '[left]' => $left, '[w]' => 100, '[top]' => $top, '[val]' => '');
+                $left += 100;
+                $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 50, '[top]' => $top, '[val]' => 'เลขที่');
+                $left += 50;
+                $marks[1][] = array('key' => 'number_bank', '[left]' => $left, '[w]' => 80, '[top]' => $top, '[val]' => '');
+                $top += 20;
                 $left = 25;
-                // $marks[1][] = array('key' => 'note', '[left]' => $left, '[w]' => 323, '[top]' => $top, '[val]' => '','[align]' => 'left');
-    
-            //$left = 460;
-            
-            //echo $invoice_id;
-            
-            
-            //exit;
-            $user_signature = $this->Db_model->signature_approve($invoice_id,"payment_vouchers");
-          // arr($user_signature);
-           
-          // exit;
-            // var_dump($user_signature);exit;
-    
-            if( $user_signature->tbName != ''){
-                if($user_signature->signature == ''){
-                    $top = 980;
-                    $marks[1][] = array('key' => 'signauture', '[left]' => $left, '[w]' => 130, '[top]' => $top, '[val]' => $user_signature->first_name.' '.$user_signature->last_name, '[align]' => 'center');
-                }else{
-                    $top = 980;
-                    $marks[1][] = array('key' => 'signauture', '[left]' => $left, '[w]' => 130, '[top]' => $top, '[val]' => '<img src='.base_url().$user_signature->signature.'>', '[align]' => 'center');
-                }
-                //$top=1060;
-                //$left += 175;
-                //$marks[1][] = array('key' => 'date_approved', '[left]' => $left, '[w]' => 130, '[top]' => $top, '[val]' => $user_signature->doc_date, '[align]' => 'center');
+                $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 30, '[top]' => $top, '[val]' => 'วันที่');
+                $left += 30;
+                $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 80, '[top]' => $top, '[val]' => '' . $this->DateConvert($id->due_date) . '');
             }
-    
-            //End Item-List------------------------------------------------------------------------------------------------------------
-            $keep = array();
-    
-            $rangItem = 14;
-    
-            foreach( $this->Db_model->fetchAll($sql) as $parentKey => $child ){
-                
-                // var_dump($child);
-                // exit;
-                if(!isset($keep[$child->pvId])){
-                    $page = 1;
-                }
-                
-                $keep[$child->pvId][$page][] = $child;
-                
-                if(count($keep[$child->pvId][$page]) == $rangItem ){
-                    $page += 1;
-                }
-                
+            break;
+        }
+
+
+
+
+
+
+        // $top = 760;
+        // $left = 572;
+        // $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 100, '[top]' => $top, '[val]' => '<u>หัก</u> ภาษี ณ ที่จ่าย 3%','[align]' => 'left');
+        // $left = 583;
+        // $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 180, '[top]' => $top, '[val]' =>  number_format($cal_payment->vat3,2,'.',','),'[align]' => 'right');
+        // $top = 788;
+        // $left = 572;
+        // $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 100, '[top]' => $top, '[val]' => 'ยอดที่ต้องชำระ','[align]' => 'left');
+        // $left = 583;
+        // $marks[1][] = array('key' => 'tt_sum', '[left]' => $left, '[w]' => 180, '[top]' => $top, '[val]' =>  number_format($cal_payment->tol,2,'.',','),'[align]' => 'right');
+        // ==========================================
+
+        if (true) {
+            if ($cal_payment->discount_type == "before_tax") {
+                // $top += 20;
+                // $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 100, '[top]' => $top, '[val]' => lang("discount"),'[align]' => 'right');           
+                // $marks[1][] = array('key' => 'dis', '[left]' => $left, '[w]' => 180, '[top]' => $top, '[val]' => number_format($cal_payment->discount_total,2,'.',','),'[align]' => 'right');
+
+                // $top += 20;
+                // $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 100, '[top]' => $top, '[val]' => isset($cal_payment->tax_name) ? $cal_payment->tax_name : "-",'[align]' => 'right');           
+                // $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 180, '[top]' => $top, '[val]' => number_format($cal_payment->tax,2,'.',','),'[align]' => 'right');
+
+                // $top += 20;
+                // $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 100, '[top]' => $top, '[val]' => isset($cal_payment->tax_name3) ? $cal_payment->tax_name3 : "-",'[align]' => 'right');           
+                // $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 180, '[top]' => $top, '[val]' => number_format($cal_payment->tax3,2,'.',','),'[align]' => 'right');
+                // ==========================================
+                // $top += 20;
+                // $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 100, '[top]' => $top, '[val]' => lang("total"),'[align]' => 'right');           
+                // $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 180, '[top]' => $top, '[val]' => number_format($cal_payment->invoice_total,2,'.',','),'[align]' => 'right');
+            } else if ($cal_payment->discount_type == "after_tax") {
+                $top += 20;
+                $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 100, '[top]' => $top, '[val]' => isset($cal_payment->tax_name2) ? $cal_payment->tax_name2 : "-", '[align]' => 'right');
+                $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 180, '[top]' => $top, '[val]' => number_format($cal_payment->tax2, 2, '.', ','), '[align]' => 'right');
+
+                $top += 20;
+                $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 100, '[top]' => $top, '[val]' => isset($cal_payment->tax_name) ? $cal_payment->tax_name : "-", '[align]' => 'right');
+                $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 180, '[top]' => $top, '[val]' => number_format($cal_payment->tax, 2, '.', ','), '[align]' => 'right');
+
+                $top += 20;
+                $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 100, '[top]' => $top, '[val]' => lang("discount"), '[align]' => 'right');
+                $marks[1][] = array('key' => 'dis', '[left]' => $left, '[w]' => 180, '[top]' => $top, '[val]' => number_format($cal_payment->discount_total, 2, '.', ','), '[align]' => 'right');
+                // ==========================================
+                $top += 20;
+                $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 100, '[top]' => $top, '[val]' => lang("total"), '[align]' => 'right');
+                $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 180, '[top]' => $top, '[val]' => number_format($cal_payment->invoice_total, 2, '.', ','), '[align]' => 'right');
             }
-            
-            foreach( $keep as $kd => $kv ){
-                $i=1;
-                //  var_dump($kv);exit;
+        } else {
+            if ($cal_payment->discount_type == "before_tax") {
+                $top += 20;
+                $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 100, '[top]' => $top, '[val]' => lang("discount"), '[align]' => 'right');
+                $marks[1][] = array('key' => 'dis', '[left]' => $left, '[w]' => 180, '[top]' => $top, '[val]' => number_format($cal_payment->discount_total, 2, '.', ','), '[align]' => 'right');
+
+                $top += 20;
+                $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 100, '[top]' => $top, '[val]' => isset($cal_payment->tax_name) ? $cal_payment->tax_name : "-", '[align]' => 'right');
+                $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 180, '[top]' => $top, '[val]' => number_format($cal_payment->tax, 2, '.', ','), '[align]' => 'right');
+
+                $top += 20;
+                $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 100, '[top]' => $top, '[val]' => isset($cal_payment->tax_name2) ? $cal_payment->tax_name2 : "-", '[align]' => 'right');
+                $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 180, '[top]' => $top, '[val]' => number_format($cal_payment->tax2, 2, '.', ','), '[align]' => 'right');
+                // ==========================================
+                $top += 20;
+                $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 100, '[top]' => $top, '[val]' => lang("total"), '[align]' => 'right');
+                $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 180, '[top]' => $top, '[val]' => number_format($cal_payment->invoice_total, 2, '.', ','), '[align]' => 'right');
+            } else if ($cal_payment->discount_type == "after_tax") {
+                $top += 20;
+                $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 100, '[top]' => $top, '[val]' => isset($cal_payment->tax_name2) ? $cal_payment->tax_name2 : "-", '[align]' => 'right');
+                $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 180, '[top]' => $top, '[val]' => number_format($cal_payment->tax2, 2, '.', ','), '[align]' => 'right');
+
+                $top += 20;
+                $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 100, '[top]' => $top, '[val]' => isset($cal_payment->tax_name) ? $cal_payment->tax_name : "-", '[align]' => 'right');
+                $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 180, '[top]' => $top, '[val]' => number_format($cal_payment->tax, 2, '.', ','), '[align]' => 'right');
+
+                $top += 20;
+                $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 100, '[top]' => $top, '[val]' => lang("discount"), '[align]' => 'right');
+                $marks[1][] = array('key' => 'dis', '[left]' => $left, '[w]' => 180, '[top]' => $top, '[val]' => number_format($cal_payment->discount_total, 2, '.', ','), '[align]' => 'right');
+                // ==========================================
+                $top += 20;
+                $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 100, '[top]' => $top, '[val]' => lang("total"), '[align]' => 'right');
+                $marks[1][] = array('key' => '', '[left]' => $left, '[w]' => 180, '[top]' => $top, '[val]' => number_format($cal_payment->invoice_total, 2, '.', ','), '[align]' => 'right');
+            }
+        }
 
 
-                foreach( $kv as $kpage => $vpage ){
-                    $dbs = convertObJectToArray($vpage[0]);
-                    
-                    $divs = array(); 
-                    
-                    foreach ($marks[1] as $km => $vm) {
-                        $vm['[align]'] = isset($vm['[align]']) ? $vm['[align]'] : 'left';
-                        $vm['[val]'] = isset($dbs[$vm['key']]) ? $dbs[$vm['key']] : $vm['[val]'];
-                        $divs[] = str_replace(array_keys( $vm ), $vm, $template);
-                    } 
-                    $top = 324;
-                    $trs =array();
-                    
-                    
-                    foreach($vpage as $vkpage => $vvpage ){
-                        // var_dump($vvpage);exit;
+        $top = 905;
+        $left = 25;
+        // $marks[1][] = array('key' => 'note', '[left]' => $left, '[w]' => 323, '[top]' => $top, '[val]' => '','[align]' => 'left');
 
-                            if($vvpage->payment_method_id == '1'){
-                                $method = 'เงินสด';
-                            }
-                            else if($vvpage->payment_method_id == '2'){
-                                $method ='Stripe';
-                            }
-                            else if($vvpage->payment_method_id == '3'){
-                                $method = 'PayPal';
-                            }
-                            else if($vvpage->payment_method_id == '4'){
-                                $method = 'Paytm';
-                            }
-                            else if($vvpage->payment_method_id == '5'){
-                                $method = 'เงินโอน';
-                            }
-                            else if($vvpage->payment_method_id == '6'){
-                                $method = 'บัตรเครดิต/บัตรเดบิต';
-                            }
-                            else if($vvpage->payment_method_id == '7'){
-                                $method = 'เช็ค';
-                            }
-                            $trs[] = '
+        //$left = 460;
+
+        //echo $invoice_id;
+
+
+        //exit;
+        $user_signature = $this->Db_model->signature_approve($invoice_id, "payment_vouchers");
+        // arr($user_signature);
+
+        // exit;
+        // var_dump($user_signature);exit;
+
+        if ($user_signature->tbName != '') {
+            if ($user_signature->signature == '') {
+                $top = 980;
+                $marks[1][] = array('key' => 'signauture', '[left]' => $left, '[w]' => 130, '[top]' => $top, '[val]' => $user_signature->first_name . ' ' . $user_signature->last_name, '[align]' => 'center');
+            } else {
+                $top = 980;
+                $marks[1][] = array('key' => 'signauture', '[left]' => $left, '[w]' => 130, '[top]' => $top, '[val]' => '<img src=' . base_url() . $user_signature->signature . '>', '[align]' => 'center');
+            }
+            //$top=1060;
+            //$left += 175;
+            //$marks[1][] = array('key' => 'date_approved', '[left]' => $left, '[w]' => 130, '[top]' => $top, '[val]' => $user_signature->doc_date, '[align]' => 'center');
+        }
+
+        //End Item-List------------------------------------------------------------------------------------------------------------
+        $keep = array();
+
+        $rangItem = 14;
+
+        foreach ($this->Db_model->fetchAll($sql) as $parentKey => $child) {
+
+            // var_dump($child);
+            // exit;
+            if (!isset($keep[$child->pvId])) {
+                $page = 1;
+            }
+
+            $keep[$child->pvId][$page][] = $child;
+
+            if (count($keep[$child->pvId][$page]) == $rangItem) {
+                $page += 1;
+            }
+
+        }
+
+        foreach ($keep as $kd => $kv) {
+            $i = 1;
+            //  var_dump($kv);exit;
+
+
+            foreach ($kv as $kpage => $vpage) {
+                $dbs = convertObJectToArray($vpage[0]);
+
+                $divs = array();
+
+                foreach ($marks[1] as $km => $vm) {
+                    $vm['[align]'] = isset($vm['[align]']) ? $vm['[align]'] : 'left';
+                    $vm['[val]'] = isset($dbs[$vm['key']]) ? $dbs[$vm['key']] : $vm['[val]'];
+                    $divs[] = str_replace(array_keys($vm), $vm, $template);
+                }
+                $top = 324;
+                $trs = array();
+
+
+                foreach ($vpage as $vkpage => $vvpage) {
+                    // var_dump($vvpage);exit;
+
+                    if ($vvpage->payment_method_id == '1') {
+                        $method = 'เงินสด';
+                    } else if ($vvpage->payment_method_id == '2') {
+                        $method = 'Stripe';
+                    } else if ($vvpage->payment_method_id == '3') {
+                        $method = 'PayPal';
+                    } else if ($vvpage->payment_method_id == '4') {
+                        $method = 'Paytm';
+                    } else if ($vvpage->payment_method_id == '5') {
+                        $method = 'เงินโอน';
+                    } else if ($vvpage->payment_method_id == '6') {
+                        $method = 'บัตรเครดิต/บัตรเดบิต';
+                    } else if ($vvpage->payment_method_id == '7') {
+                        $method = 'เช็ค';
+                    }
+                    $trs[] = '
                             <tr>
-                                <td style="border-bottom: 1px solid #999; text-align: center;">'.$i++.'</td>
-                                <td style="border-bottom: 1px solid #999; text-align: center;">'.$this->DateConvert($vvpage->payment_date).'</td>
-                                <td style="border-bottom: 1px solid #999; text-align: center;">'.$vvpage->invoice1_id.'</td>
-                                <td style="border-bottom: 1px solid #999; text-align: center;">'.$this->DateConvert($vvpage->tax_date).'</td>
-                                <td style="border-bottom: 1px solid #999; text-align: center;">'.$vvpage->taxnumber_id.'</td>
-                                <td style="border-bottom: 1px solid #999; text-align: left; padding-left: 10px;">'.$vvpage->detail.'</td>
-                                <td style="border-bottom: 1px solid #999; text-align: right; padding-right: 10px;">'.number_format($vvpage->amount,2,'.',',').'</td>
+                                <td style="border-bottom: 1px solid #999; text-align: center;">' . $i++ . '</td>
+                                <td style="border-bottom: 1px solid #999; text-align: center;">' . $this->DateConvert($vvpage->payment_date) . '</td>
+                                <td style="border-bottom: 1px solid #999; text-align: center;">' . $vvpage->invoice1_id . '</td>
+                                <td style="border-bottom: 1px solid #999; text-align: center;">' . $this->DateConvert($vvpage->tax_date) . '</td>
+                                <td style="border-bottom: 1px solid #999; text-align: center;">' . $vvpage->taxnumber_id . '</td>
+                                <td style="border-bottom: 1px solid #999; text-align: left; padding-left: 10px;">' . $vvpage->detail . '</td>
+                                <td style="border-bottom: 1px solid #999; text-align: right; padding-right: 10px;">' . number_format($vvpage->amount, 2, '.', ',') . '</td>
                             </tr>
                             ';
-                        
-                        
-                        $marks[2] = array(); //สร้าง array แยกแต่ละรายการ
-                        //$top += 28;
-                        $left = 20; 
-                        //$marks[2][] = array('key' => '', '[left]' => $left, '[w]' => 40, '[top]' => $top, '[val]' => $i++);                    
-                        
-                        //$marks[2][] = array('key' => '', '[left]' => $left, '[w]' => 80, '[top]' => $top, '[val]' => $this->DateConvert($vvpage->payment_date));
-                        
-                        $left += 110;
-                        // if($vvpage->invoice1_id == 0 || $vvpage->invoice1_id == '' || $vvpage->invoice1_id == null){
-                        // $marks[2][] = array('key' => '', '[left]' => $left, '[w]' => 20, '[top]' => $top, '[val]' => $vvpage->invoice_id);
-                        // }else{
-                        // $marks[2][] = array('key' => '', '[left]' => $left, '[w]' => 20, '[top]' => $top, '[val]' => $vvpage->invoice1_id);
-                        // }
-    
-                        $left += 50;
-                        //$marks[2][] = array('key' => '', '[left]' => $left, '[w]' => 390, '[top]' => $top, '[val]' => $vvpage->detail,'[align]' => 'left');
-                        
-                        $left += 390;
-                        $top += 18;
-                        // if($vvpage->payment_method_id == '1'){
-                        //     $marks[2][] = array('key' => '', '[left]' => $left, '[w]' => 105, '[top]' => $top, '[val]' => 'เงินสด');
-                        // }
-                        // else if($vvpage->payment_method_id == '2'){
-                        //     $marks[2][] = array('key' => '', '[left]' => $left, '[w]' => 105, '[top]' => $top, '[val]' => 'ระบบชำระเงิน Stripe');
-                        // }
-                        // else if($vvpage->payment_method_id == '3'){
-                        //     $marks[2][] = array('key' => '', '[left]' => $left, '[w]' => 105, '[top]' => $top, '[val]' => 'PayPal');
-                        // }
-                        // else if($vvpage->payment_method_id == '4'){
-                        //     $marks[2][] = array('key' => '', '[left]' => $left, '[w]' => 105, '[top]' => $top, '[val]' => 'ระบบชำระเงิน Paytm');
-                        // }
-                        // else if($vvpage->payment_method_id == '5'){
-                        //     $marks[2][] = array('key' => '', '[left]' => $left, '[w]' => 105, '[top]' => $top, '[val]' => 'โอนเงิน');
-                        // }
-                        // else if($vvpage->payment_method_id == '6'){
-                        //     $marks[2][] = array('key' => '', '[left]' => $left, '[w]' => 105, '[top]' => $top, '[val]' => 'บัตรเครดิต/บัตรเดบิต');
-                        // }
-                        // else if($vvpage->payment_method_id == '7'){
-                        //     $marks[2][] = array('key' => '', '[left]' => $left, '[w]' => 105, '[top]' => $top, '[val]' => 'เช็ค');
-                        // }
-                        //$marks[2][] = array('key' => '', '[left]' => $left, '[w]' => 80, '[top]' => $top, '[val]' => $vvpage->payment_date);
-                        // foreach($this->Db_model->fetchAll($sql) as $method => $id){
-                            // if($id->payment_method_id == '1'){
-                            //     $marks[2][] = array('key' => '', '[left]' => $left, '[w]' => 50, '[top]' => $top, '[val]' => 'เงินสด');
-                            // }
-                            // else if($id->payment_method_id == '2'){
-                            //     $marks[2][] = array('key' => '', '[left]' => $left, '[w]' => 50, '[top]' => $top, '[val]' => 'ระบบชำระเงิน Stripe');
-                            // }
-                            // else if($id->payment_method_id == '3'){
-                            //     $marks[2][] = array('key' => '', '[left]' => $left, '[w]' => 50, '[top]' => $top, '[val]' => 'PayPal');
-                            // }
-                            // else if($id->payment_method_id == '4'){
-                            //     $marks[2][] = array('key' => '', '[left]' => $left, '[w]' => 50, '[top]' => $top, '[val]' => 'ระบบชำระเงิน Paytm');
-                            // }
-                            // else if($id->payment_method_id == '5'){
-                            //     $marks[2][] = array('key' => '', '[left]' => $left, '[w]' => 50, '[top]' => $top, '[val]' => 'โอนเงิน');
-                            // }
-                            // else if($id->payment_method_id == '6'){
-                            //     $marks[2][] = array('key' => '', '[left]' => $left, '[w]' => 50, '[top]' => $top, '[val]' => 'บัตรเครดิต/บัตรเดบิต');
-                            // }
-                            // else if($id->payment_method_id == '7'){
-                            //     $marks[2][] = array('key' => '', '[left]' => $left, '[w]' => 50, '[top]' => $top, '[val]' => 'เช็คเงินสด');
-                            // }
-                        //     break;
-                        // }
-                        // $left += 60;
-                        // foreach($this->Db_model->fetchAll($sql) as $method => $id){
-                        //     $marks[2][] = array('key' => '', '[left]' => $left, '[w]' => 250, '[top]' => $top, '[val]' => $vvpage->company_name, '[align]' => 'left');
-                        // }
-                        //$marks[2][] = array('key' => '', '[left]' => $left, '[w]' => 250, '[top]' => $top, '[val]' => $vvpage->company_name, '[align]' => 'left');
-                        
-                        // $left += 20;
-                        // $marks[2][] = array('key' => 'note', '[left]' => $left, '[w]' => 300, '[top]' => $top, '[val]' => '', '[align]' => 'left');
-                        
-    
-                        $left += 100;
-                        //$marks[2][] = array('key' => '', '[left]' => $left, '[w]' => 90, '[top]' => $top, '[val]' => number_format($vvpage->amount,2,'.',',') ,'[align]' => 'right');
-                        
-                        
-                        //$left += 70;
-                        //$marks[2][] = array('key' => '', '[left]' => $left, '[w]' => 110, '[top]' => $top, '[val]' => number_format($vvpage->amount,2,'.',','));
-                        
-                        $dbs = convertObJectToArray( $vvpage );
-                        
-                        foreach ($marks[2] as $km => $vm) {
-                            $vm['[align]'] = isset($vm['[align]']) ? $vm['[align]'] : 'center';
-                            $vm['[val]'] = isset($dbs[$vm['key']]) ? $dbs[$vm['key']] : $vm['[val]'];
-                            $divs[] = str_replace(array_keys( $vm ), $vm, $template);
-                        }
-                        
+
+
+                    $marks[2] = array(); //สร้าง array แยกแต่ละรายการ
+                    //$top += 28;
+                    $left = 20;
+                    //$marks[2][] = array('key' => '', '[left]' => $left, '[w]' => 40, '[top]' => $top, '[val]' => $i++);                    
+
+                    //$marks[2][] = array('key' => '', '[left]' => $left, '[w]' => 80, '[top]' => $top, '[val]' => $this->DateConvert($vvpage->payment_date));
+
+                    $left += 110;
+                    // if($vvpage->invoice1_id == 0 || $vvpage->invoice1_id == '' || $vvpage->invoice1_id == null){
+                    // $marks[2][] = array('key' => '', '[left]' => $left, '[w]' => 20, '[top]' => $top, '[val]' => $vvpage->invoice_id);
+                    // }else{
+                    // $marks[2][] = array('key' => '', '[left]' => $left, '[w]' => 20, '[top]' => $top, '[val]' => $vvpage->invoice1_id);
+                    // }
+
+                    $left += 50;
+                    //$marks[2][] = array('key' => '', '[left]' => $left, '[w]' => 390, '[top]' => $top, '[val]' => $vvpage->detail,'[align]' => 'left');
+
+                    $left += 390;
+                    $top += 18;
+                    // if($vvpage->payment_method_id == '1'){
+                    //     $marks[2][] = array('key' => '', '[left]' => $left, '[w]' => 105, '[top]' => $top, '[val]' => 'เงินสด');
+                    // }
+                    // else if($vvpage->payment_method_id == '2'){
+                    //     $marks[2][] = array('key' => '', '[left]' => $left, '[w]' => 105, '[top]' => $top, '[val]' => 'ระบบชำระเงิน Stripe');
+                    // }
+                    // else if($vvpage->payment_method_id == '3'){
+                    //     $marks[2][] = array('key' => '', '[left]' => $left, '[w]' => 105, '[top]' => $top, '[val]' => 'PayPal');
+                    // }
+                    // else if($vvpage->payment_method_id == '4'){
+                    //     $marks[2][] = array('key' => '', '[left]' => $left, '[w]' => 105, '[top]' => $top, '[val]' => 'ระบบชำระเงิน Paytm');
+                    // }
+                    // else if($vvpage->payment_method_id == '5'){
+                    //     $marks[2][] = array('key' => '', '[left]' => $left, '[w]' => 105, '[top]' => $top, '[val]' => 'โอนเงิน');
+                    // }
+                    // else if($vvpage->payment_method_id == '6'){
+                    //     $marks[2][] = array('key' => '', '[left]' => $left, '[w]' => 105, '[top]' => $top, '[val]' => 'บัตรเครดิต/บัตรเดบิต');
+                    // }
+                    // else if($vvpage->payment_method_id == '7'){
+                    //     $marks[2][] = array('key' => '', '[left]' => $left, '[w]' => 105, '[top]' => $top, '[val]' => 'เช็ค');
+                    // }
+                    //$marks[2][] = array('key' => '', '[left]' => $left, '[w]' => 80, '[top]' => $top, '[val]' => $vvpage->payment_date);
+                    // foreach($this->Db_model->fetchAll($sql) as $method => $id){
+                    // if($id->payment_method_id == '1'){
+                    //     $marks[2][] = array('key' => '', '[left]' => $left, '[w]' => 50, '[top]' => $top, '[val]' => 'เงินสด');
+                    // }
+                    // else if($id->payment_method_id == '2'){
+                    //     $marks[2][] = array('key' => '', '[left]' => $left, '[w]' => 50, '[top]' => $top, '[val]' => 'ระบบชำระเงิน Stripe');
+                    // }
+                    // else if($id->payment_method_id == '3'){
+                    //     $marks[2][] = array('key' => '', '[left]' => $left, '[w]' => 50, '[top]' => $top, '[val]' => 'PayPal');
+                    // }
+                    // else if($id->payment_method_id == '4'){
+                    //     $marks[2][] = array('key' => '', '[left]' => $left, '[w]' => 50, '[top]' => $top, '[val]' => 'ระบบชำระเงิน Paytm');
+                    // }
+                    // else if($id->payment_method_id == '5'){
+                    //     $marks[2][] = array('key' => '', '[left]' => $left, '[w]' => 50, '[top]' => $top, '[val]' => 'โอนเงิน');
+                    // }
+                    // else if($id->payment_method_id == '6'){
+                    //     $marks[2][] = array('key' => '', '[left]' => $left, '[w]' => 50, '[top]' => $top, '[val]' => 'บัตรเครดิต/บัตรเดบิต');
+                    // }
+                    // else if($id->payment_method_id == '7'){
+                    //     $marks[2][] = array('key' => '', '[left]' => $left, '[w]' => 50, '[top]' => $top, '[val]' => 'เช็คเงินสด');
+                    // }
+                    //     break;
+                    // }
+                    // $left += 60;
+                    // foreach($this->Db_model->fetchAll($sql) as $method => $id){
+                    //     $marks[2][] = array('key' => '', '[left]' => $left, '[w]' => 250, '[top]' => $top, '[val]' => $vvpage->company_name, '[align]' => 'left');
+                    // }
+                    //$marks[2][] = array('key' => '', '[left]' => $left, '[w]' => 250, '[top]' => $top, '[val]' => $vvpage->company_name, '[align]' => 'left');
+
+                    // $left += 20;
+                    // $marks[2][] = array('key' => 'note', '[left]' => $left, '[w]' => 300, '[top]' => $top, '[val]' => '', '[align]' => 'left');
+
+
+                    $left += 100;
+                    //$marks[2][] = array('key' => '', '[left]' => $left, '[w]' => 90, '[top]' => $top, '[val]' => number_format($vvpage->amount,2,'.',',') ,'[align]' => 'right');
+
+
+                    //$left += 70;
+                    //$marks[2][] = array('key' => '', '[left]' => $left, '[w]' => 110, '[top]' => $top, '[val]' => number_format($vvpage->amount,2,'.',','));
+
+                    $dbs = convertObJectToArray($vvpage);
+
+                    foreach ($marks[2] as $km => $vm) {
+                        $vm['[align]'] = isset($vm['[align]']) ? $vm['[align]'] : 'center';
+                        $vm['[val]'] = isset($dbs[$vm['key']]) ? $dbs[$vm['key']] : $vm['[val]'];
+                        $divs[] = str_replace(array_keys($vm), $vm, $template);
                     }
 
-                    $divTop =   320;
-                    $divleft = 27;
-                    $tabletemplate = '
-                    <div style="position:absolute; top:'.$divTop.'px; left:'.$divleft.'px; width: 1000px">
+                }
+
+                $divTop = 320;
+                $divleft = 27;
+                $tabletemplate = '
+                    <div style="position:absolute; top:' . $divTop . 'px; left:' . $divleft . 'px; width: 1000px">
                         <table>
                             <tr>
                                 <th class="thN" style="border-bottom: 1px solid #999; border-top: 1px solid #999;">#</th>
@@ -3149,39 +3146,39 @@ class Pdf_export extends CI_Controller {
                                 <th class="thB" style="border-bottom: 1px solid #999; border-top: 1px solid #999;">รายละเอียด</th>
                                 <th class="thE" style="border-bottom: 1px solid #999; border-top: 1px solid #999; text-align: right; padding-right: 10px;">ยอดชำระ</th>
                             </tr>
-                            '.implode("",$trs).'
+                            ' . implode("", $trs) . '
                         </table>
                     </div>';
 
-                    $divTop =   640;
-                    $divleft = 357;
-                    $tablepaytol = '
-                    <div style="position:absolute; top:'.$divTop.'px; left:'.$divleft.'px;">
+                $divTop = 640;
+                $divleft = 357;
+                $tablepaytol = '
+                    <div style="position:absolute; top:' . $divTop . 'px; left:' . $divleft . 'px;">
                         <table style="font-size: 16px; width: 200px;">
                             <tr>
                                 <td style="color: #00b050; width: 200px; text-align: right;">รวมเป็นยอดชำระ</td>
-                                <td style="text-align: right; width: 200px;">'.number_format($cal_payment->invoice_total,2,'.',',').' บาท</td>
+                                <td style="text-align: right; width: 200px;">' . number_format($cal_payment->invoice_total, 2, '.', ',') . ' บาท</td>
                             </tr>
                             <tr>
                                 <td style="color: #00b050; text-align: right;">ภาษีมูลค่าเพื่ม 7%</td>
-                                <td style="text-align: right;">'.number_format($cal_payment->tolvat7,2,'.',',').' บาท</td>
+                                <td style="text-align: right;">' . number_format($cal_payment->tolvat7, 2, '.', ',') . ' บาท</td>
                             </tr>
                             <tr>
                                 <td style="color: #00b050; text-align: right;">จำนวนเงินรวมทั้งสิ้น</td>
-                                <td style="text-align: right;">'.number_format($cal_payment->sumvat7,2,'.',',').' บาท</td>
+                                <td style="text-align: right;">' . number_format($cal_payment->sumvat7, 2, '.', ',') . ' บาท</td>
                             </tr>
                             <tr>
                                 <td style="color: #00b050; text-align: right;">ภาษีหัก ณ ที่จ่าย 3%</td>
-                                <td style="text-align: right;">'.number_format($cal_payment->tolvat3,2,'.',',').' บาท</td>
+                                <td style="text-align: right;">' . number_format($cal_payment->tolvat3, 2, '.', ',') . ' บาท</td>
                             </tr>
                             <tr>
                                 <td style="color: #00b050; text-align: right;">ยอดชำระ</td>
-                                <td style="text-align: right;">'.number_format($cal_payment->sumvat3,2,'.',',').' บาท</td>
+                                <td style="text-align: right;">' . number_format($cal_payment->sumvat3, 2, '.', ',') . ' บาท</td>
                             </tr>
                         </table>
                     </div>';
-    
-                    $html = ' 
+
+                $html = ' 
                             <style>
                             div{
                                 font-size: 16px;
@@ -3223,36 +3220,36 @@ class Pdf_export extends CI_Controller {
                             }
                            
                             </style>
-                            '.$tabletemplate.'
-                            '.$tablepaytol.'
-                            '. implode('', $divs) . '
+                            ' . $tabletemplate . '
+                            ' . $tablepaytol . '
+                            ' . implode('', $divs) . '
                            
                             
             
                             
                         ';
-                        
-                        //exitl
-                        $mpdf->AddPage('P');
-                        $pagecount = $mpdf->SetSourceFile('pdf_Template/pv1.pdf');
-                        $tplId = $mpdf->importPage(1);
-                        $mpdf->useTemplate($tplId);
-                        $mpdf->WriteHTML($html);   
-                }
-                
-                
-            } 
-            
-            //echo $html; exit;
-            //   $mpdf->Output();
-            $mpdf->Output('ใบสำคัญจ่าย '.$invoice_id.'.pdf', \Mpdf\Output\Destination::DOWNLOAD);
-           
+
+                //exitl
+                $mpdf->AddPage('P');
+                $pagecount = $mpdf->SetSourceFile('pdf_Template/pv1.pdf');
+                $tplId = $mpdf->importPage(1);
+                $mpdf->useTemplate($tplId);
+                $mpdf->WriteHTML($html);
             }
 
 
-        public function invoices_pdf($invoices_id = 0 )
-        {            
-            
+        }
+
+        //echo $html; exit;
+        //   $mpdf->Output();
+        $mpdf->Output('ใบสำคัญจ่าย ' . $invoice_id . '.pdf', \Mpdf\Output\Destination::DOWNLOAD);
+
+    }
+
+
+    public function invoices_pdf($invoices_id = 0)
+    {
+
         $template = '<div style="text-align: [align]; position:absolute; top:[top]px; left:[left]px; width:[w]px; height:[h]px;"><span>[val]</span></div>';
 
         $defaultConfig = (new Mpdf\Config\ConfigVariables())->getDefaults();
@@ -3260,7 +3257,7 @@ class Pdf_export extends CI_Controller {
 
         $defaultFontConfig = (new Mpdf\Config\FontVariables())->getDefaults();
         $fontData = $defaultFontConfig['fontdata'];
-            
+
         $mpdf = new \Mpdf\Mpdf([
             'autoPageBreak' => false,
             'fontDir' => array_merge($fontDirs, [
@@ -3277,10 +3274,10 @@ class Pdf_export extends CI_Controller {
             'tempDir' => '/tmp'
         ]);
         $mpdf->charset_in = 'UTF-8';
-        
+
 
         $keep = array();
-        
+
         $company_address = nl2br(get_setting("company_address"));
         $company_phone = get_setting("company_phone");
         $company_vat_number = get_setting("company_vat_number");
@@ -3311,89 +3308,89 @@ class Pdf_export extends CI_Controller {
 
 
         $cal_payment = $this->Invoices_model->get_invoice_total_summary($invoices_id);
-        
-        
-        $sql_invo_pay ="SELECT pay_spilter FROM invoices WHERE invoices.id = $invoices_id";
+
+
+        $sql_invo_pay = "SELECT pay_spilter FROM invoices WHERE invoices.id = $invoices_id";
         $result = $this->db->query($sql_invo_pay)->row();
         $get_ps = $this->db->query($sql)->row();
         // var_dump($get_ps);exit;
-        if($cal_payment->tax_name){
+        if ($cal_payment->tax_name) {
             $tax_name = $cal_payment->tax_name;
-        }else{
+        } else {
             $tax_name = "-";
         }
 
-        $pay_spliter ="";
+        $pay_spliter = "";
 
-        $val1 = ($result->pay_spilter*$cal_payment->tax_percentage)/100;
-        $val2 = ($result->pay_spilter*$cal_payment->tax_percentage2)/100;
+        $val1 = ($result->pay_spilter * $cal_payment->tax_percentage) / 100;
+        $val2 = ($result->pay_spilter * $cal_payment->tax_percentage2) / 100;
 
-        $trs_deposit ='';
-        if($cal_payment->deposit != 0 && $cal_payment->include_deposit == 1){
+        $trs_deposit = '';
+        if ($cal_payment->deposit != 0 && $cal_payment->include_deposit == 1) {
             $trs_deposit = '
             <tr>
                 <td colspan="3"></td> 
                 <td colspan="2" style="text-align: right;"><span class="label" >วางค่ามัดจำแล้ว</span></td>
-                <td style="text-align: right;">'.number_format($cal_payment->deposit,2,'.',',').' บาท</td>
+                <td style="text-align: right;">' . number_format($cal_payment->deposit, 2, '.', ',') . ' บาท</td>
             </tr>
             ';
 
         }
 
-        $trs_paid ="";
+        $trs_paid = "";
         $total_paids = 0;
-        if(isset($cal_payment->total_paid)){
+        if (isset($cal_payment->total_paid)) {
             $trs_paid = '
             <tr>
                 <td colspan="3"></td> 
                 <td colspan="2" style="text-align: right;"><span class="label" >จ่ายแล้ว</span></td>
-                <td style="text-align: right;">'.number_format($cal_payment->total_paid,2,'.',',').' บาท</td>
+                <td style="text-align: right;">' . number_format($cal_payment->total_paid, 2, '.', ',') . ' บาท</td>
             </tr>
             ';
-        $total_paids = isset($cal_payment->total_paid) ? $cal_payment->total_paid : 0;
+            $total_paids = isset($cal_payment->total_paid) ? $cal_payment->total_paid : 0;
         }
-        
 
-        
-            if($get_ps->pay_type == "percentage"){
-                $get_ps_data = $get_ps->pay_sp.' %';
-            }else{
-                $get_ps_data = $get_ps->pay_sp.' งวด';
+
+
+        if ($get_ps->pay_type == "percentage") {
+            $get_ps_data = $get_ps->pay_sp . ' %';
+        } else {
+            $get_ps_data = $get_ps->pay_sp . ' งวด';
+        }
+
+
+        $tax_n_pay = '';
+        if (!empty($cal_payment->tax_id)) {
+            if ($cal_payment->tax_percentage == 7) {
+                $ture_val1 = ($result->pay_spilter - $total_paids) + $val1;
+            } else {
+                $ture_val1 = ($result->pay_spilter - $total_paids) - $val1;
             }
-            
 
-            $tax_n_pay ='';
-            if(!empty($cal_payment->tax_id)){
-                if($cal_payment->tax_percentage == 7 ){
-                    $ture_val1 = ($result->pay_spilter-$total_paids) + $val1 ;
-                }else{
-                    $ture_val1 = ($result->pay_spilter-$total_paids) - $val1;
-                }
-
-                $tax_n_pay = '
+            $tax_n_pay = '
                 <tr>
                     <td colspan="3"></td> 
-                    <td colspan="2" style="text-align: right;"><span class="label">'.$tax_name.'</span></td>
-                    <td style="text-align: right;">'.number_format($val1,2,'.',',').' บาท</td>
+                    <td colspan="2" style="text-align: right;"><span class="label">' . $tax_name . '</span></td>
+                    <td style="text-align: right;">' . number_format($val1, 2, '.', ',') . ' บาท</td>
                 </tr>
                 <tr>
-                    <td colspan="3" style="text-align: left;"><span>('.$this->Convert($ture_val1).')</span></td> 
+                    <td colspan="3" style="text-align: left;"><span>(' . $this->Convert($ture_val1) . ')</span></td> 
                     <td colspan="2" style="text-align: right;"><span class="label" >จำนวนเงินรวมทั้งสิ้น</span></td>
-                    <td style="text-align: right;">'.number_format($ture_val1,2,'.',',').' บาท</td>
+                    <td style="text-align: right;">' . number_format($ture_val1, 2, '.', ',') . ' บาท</td>
                 </tr>
                 ';
-            }else{
-                $tax_n_pay = '';
+        } else {
+            $tax_n_pay = '';
+        }
+        if (!empty($cal_payment->tax_id2)) {
+            $tax_name2 = isset($cal_payment->tax_name2) ? $cal_payment->tax_name2 : "-";
+            if ($cal_payment->tax_percentage2 == 3) {
+                $ture_val2 = $ture_val1 - $val2;
+            } else {
+                $ture_val2 = $ture_val1 + $val2;
             }
-            if(!empty($cal_payment->tax_id2)){
-                $tax_name2 = isset($cal_payment->tax_name2) ? $cal_payment->tax_name2 : "-";
-                if($cal_payment->tax_percentage2 == 3 ){
-                    $ture_val2 = $ture_val1 - $val2 ;
-                }else{
-                    $ture_val2 = $ture_val1 + $val2;
-                }
-                
-                $tax2_n_pay ='
+
+            $tax2_n_pay = '
                 <tr>
                     <td colspan="3"></td> 
                     <td colspan="3" style="border-top: 2px solid #999; height:10px;" ></td>                 
@@ -3401,187 +3398,185 @@ class Pdf_export extends CI_Controller {
                             
                 <tr>
                    <td colspan="3"></td> 
-                   <td colspan="2" style="text-align: right;"><span class="label">'.$tax_name2.'</span></td>
-                   <td style="text-align: right;">'.number_format($val2,2,'.',',').' บาท</td>
+                   <td colspan="2" style="text-align: right;"><span class="label">' . $tax_name2 . '</span></td>
+                   <td style="text-align: right;">' . number_format($val2, 2, '.', ',') . ' บาท</td>
                </tr>
                <tr>
                    <td colspan="3"></td> 
                    <td colspan="2" style="text-align: right;"><span class="label" >ยอดชำระ</span></td>
-                   <td style="text-align: right;">'.number_format($ture_val2,2,'.',',').' บาท</td>
+                   <td style="text-align: right;">' . number_format($ture_val2, 2, '.', ',') . ' บาท</td>
                </tr>
                
                 ';
-            }else{
-                $tax2_n_pay = '';
-            }
+        } else {
+            $tax2_n_pay = '';
+        }
 
-            
-            // var_dump($get_ps_data);
-            if($get_ps->pay_type == "time"){
-                if(!empty(json_decode($get_ps->pay_sps))){
-                    $pay_spliter = '
-                    <tr><td style="height: 2mm;"></td></tr>
-                    <tr>
-                        <td colspan="2"></td> 
-                        <td colspan="3" style="text-align: right;"><span class="label">แบ่งชำระ</span></td>
-                        <td style="text-align: right;">'.number_format($result->pay_spilter,2,'.',',').' บาท</td>
-                    </tr>
-                    '.$trs_paid.'  
-                    '.$tax_n_pay.'
-                    '.$tax2_n_pay.'
-                             
-                    ';
-                }else{
-                    $pay_spliter = '
-                    <tr><td style="height: 2mm;"></td></tr>
-                    <tr>
-                        <td colspan="2"></td> 
-                        <td colspan="3" style="text-align: right;"><span class="label">แบ่งชำระ '.$get_ps_data.'</span></td>
-                        <td style="text-align: right;">'.number_format($result->pay_spilter,2,'.',',').' บาท</td>
-                    </tr>
-                    '.$trs_paid.'  
-                    '.$tax_n_pay.'
-                    '.$tax2_n_pay.'
-                       
-                    ';
-                }
 
-            }else{
+        // var_dump($get_ps_data);
+        if ($get_ps->pay_type == "time") {
+            if (!empty(json_decode($get_ps->pay_sps))) {
                 $pay_spliter = '
                     <tr><td style="height: 2mm;"></td></tr>
                     <tr>
                         <td colspan="2"></td> 
-                        <td colspan="3" style="text-align: right;"><span class="label">แบ่งชำระ '.$get_ps_data.'</span></td>
-                        <td style="text-align: right;">'.number_format($result->pay_spilter,2,'.',',').' บาท</td>
+                        <td colspan="3" style="text-align: right;"><span class="label">แบ่งชำระ</span></td>
+                        <td style="text-align: right;">' . number_format($result->pay_spilter, 2, '.', ',') . ' บาท</td>
                     </tr>
-            '.$trs_paid.'  
-            '.$tax_n_pay.'
-            '.$tax2_n_pay.'
+                    ' . $trs_paid . '  
+                    ' . $tax_n_pay . '
+                    ' . $tax2_n_pay . '
+                             
+                    ';
+            } else {
+                $pay_spliter = '
+                    <tr><td style="height: 2mm;"></td></tr>
+                    <tr>
+                        <td colspan="2"></td> 
+                        <td colspan="3" style="text-align: right;"><span class="label">แบ่งชำระ ' . $get_ps_data . '</span></td>
+                        <td style="text-align: right;">' . number_format($result->pay_spilter, 2, '.', ',') . ' บาท</td>
+                    </tr>
+                    ' . $trs_paid . '  
+                    ' . $tax_n_pay . '
+                    ' . $tax2_n_pay . '
+                       
+                    ';
+            }
+
+        } else {
+            $pay_spliter = '
+                    <tr><td style="height: 2mm;"></td></tr>
+                    <tr>
+                        <td colspan="2"></td> 
+                        <td colspan="3" style="text-align: right;"><span class="label">แบ่งชำระ ' . $get_ps_data . '</span></td>
+                        <td style="text-align: right;">' . number_format($result->pay_spilter, 2, '.', ',') . ' บาท</td>
+                    </tr>
+            ' . $trs_paid . '  
+            ' . $tax_n_pay . '
+            ' . $tax2_n_pay . '
                       
             ';
-            }
-            
-        
+        }
 
 
-        $tax_cal1 = $cal_payment->invoice_subtotal+$cal_payment->tax;
+
+
+        $tax_cal1 = $cal_payment->invoice_subtotal + $cal_payment->tax;
         $tax_name2 = isset($cal_payment->tax_name2) ? $cal_payment->tax_name2 : "-";
-            if($cal_payment->tax_id == 1){
-                
-                $tax_val = ($cal_payment->invoice_subtotal - $cal_payment->deposit - $cal_payment->discount_total) + $cal_payment->tax - $cal_payment->tax2;
-            }else{
-                $tax_val = ($cal_payment->invoice_subtotal - $cal_payment->deposit - $cal_payment->discount_total) - $cal_payment->tax + $cal_payment->tax2;
-                
-            }
+        if ($cal_payment->tax_id == 1) {
 
-            
-            $trs_total_tax="";
+            $tax_val = ($cal_payment->invoice_subtotal - $cal_payment->deposit - $cal_payment->discount_total) + $cal_payment->tax - $cal_payment->tax2;
+        } else {
+            $tax_val = ($cal_payment->invoice_subtotal - $cal_payment->deposit - $cal_payment->discount_total) - $cal_payment->tax + $cal_payment->tax2;
 
-            $trs_bar = '
+        }
+
+
+        $trs_total_tax = "";
+
+        $trs_bar = '
             <tr>
                 <td colspan="3"></td> 
                 <td colspan="3" style="border-top: 2px solid #999; height:10px;" ></td>                 
             </tr>';
 
-            
 
-            
 
-            // if($get_ps->credit != 0){
-                $new_tax = $result->pay_spilter;
-            // }else{
-                // $new_tax = $cal_payment->tax_id == 1 ? $tax_cal1 : $tax_val;                
-            // }
-        
-    //  var_dump($get_ps);exit;
-    // var_dump($cal_payment);exit;
-     if($get_ps->include_deposit == 2){
-        $trs_tax_d = '';
-        if($cal_payment->tax){
-            $trs_tax_d ='
+
+
+        // if($get_ps->credit != 0){
+        $new_tax = $result->pay_spilter;
+        // }else{
+        // $new_tax = $cal_payment->tax_id == 1 ? $tax_cal1 : $tax_val;                
+        // }
+
+        //  var_dump($get_ps);exit;
+        // var_dump($cal_payment);exit;
+        if ($get_ps->include_deposit == 2) {
+            $trs_tax_d = '';
+            if ($cal_payment->tax) {
+                $trs_tax_d = '
             <tr>
                 <td colspan="3"></td> 
-                <td colspan="2" style="text-align: right;"><span class="label">'.$tax_name.'</span></td>
-                <td style="text-align: right;">'.number_format($cal_payment->tax,2,'.',',').' บาท</td>
+                <td colspan="2" style="text-align: right;"><span class="label">' . $tax_name . '</span></td>
+                <td style="text-align: right;">' . number_format($cal_payment->tax, 2, '.', ',') . ' บาท</td>
             </tr>
             ';
-        }
+            }
 
-        $trs_tax_d2 = '';
-        if($cal_payment->tax2){
-            $trs_tax_d2 ='
+            $trs_tax_d2 = '';
+            if ($cal_payment->tax2) {
+                $trs_tax_d2 = '
             <tr>
                 <td colspan="3"></td> 
-                <td colspan="2" style="text-align: right;"><span class="label">'.$tax_name2.'</span></td>
-                <td style="text-align: right;">'.number_format($cal_payment->tax2,2,'.',',').' บาท</td>
+                <td colspan="2" style="text-align: right;"><span class="label">' . $tax_name2 . '</span></td>
+                <td style="text-align: right;">' . number_format($cal_payment->tax2, 2, '.', ',') . ' บาท</td>
             </tr>
             ';
-        }
+            }
 
-        $trs_total[] ='
+            $trs_total[] = '
             <tr>
                 <td colspan="3"></td> 
                 <td colspan="2" style="text-align: right;"><span class="label">รวมเป็นเงิน</span></td>
-                <td style="text-align: right;">'.number_format($cal_payment->invoice_subtotal,2,'.',',').' บาท</td>
+                <td style="text-align: right;">' . number_format($cal_payment->invoice_subtotal, 2, '.', ',') . ' บาท</td>
             </tr>
-            '.$trs_tax_d.'
-            '.$trs_tax_d2.'
+            ' . $trs_tax_d . '
+            ' . $trs_tax_d2 . '
             <tr>
                 <td colspan="3"></td> 
                 <td colspan="2" style="text-align: right;"><span class="label" >จำนวนเงินรวมทั้งสิ้น</span></td>
-                <td style="text-align: right;">'.number_format($cal_payment->invoice_total,2,'.',',').' บาท</td>
+                <td style="text-align: right;">' . number_format($cal_payment->invoice_total, 2, '.', ',') . ' บาท</td>
             </tr>
             <tr>
-                <td colspan="3" style="text-align: left;"><span>('.$this->Convert($cal_payment->invoice_total).')</span></td> 
-                <td colspan="3" style="font-size: 20px; background-color:#D8D8D8" ><span class="label" >ยอดคงเหลือชำระ: '.number_format($cal_payment->total_es - $cal_payment->invoice_total,2,'.',',').' บาท</span></td> 
+                <td colspan="3" style="text-align: left;"><span>(' . $this->Convert($cal_payment->invoice_total) . ')</span></td> 
+                <td colspan="3" style="font-size: 20px; background-color:#D8D8D8" ><span class="label" >ยอดคงเหลือชำระ: ' . number_format($cal_payment->total_es - $cal_payment->invoice_total, 2, '.', ',') . ' บาท</span></td> 
             </tr>
         ';
-     }
+        } else if ($cal_payment->discount_total == '') {
 
-        else if($cal_payment->discount_total == ''){
-            
-            $a ='';
+            $a = '';
 
-            if(!empty($cal_payment->tax2)){
-                
-                if(isset($tax_cal1)){
-                    $cal_tax2 = $new_tax-$cal_payment->tax2;
-                }else{
+            if (!empty($cal_payment->tax2)) {
+
+                if (isset($tax_cal1)) {
+                    $cal_tax2 = $new_tax - $cal_payment->tax2;
+                } else {
                     $cal_tax2 = $tax_val;
                 }
 
                 $trs_total_tax = ' 
-                    '.$trs_bar.'               
+                    ' . $trs_bar . '               
                      <tr>
                         <td colspan="3"></td> 
-                        <td colspan="2" style="text-align: right;"><span class="label">'.$tax_name2.'</span></td>
-                        <td style="text-align: right;">'.number_format($cal_payment->tax2,2,'.',',').' บาท</td>
+                        <td colspan="2" style="text-align: right;"><span class="label">' . $tax_name2 . '</span></td>
+                        <td style="text-align: right;">' . number_format($cal_payment->tax2, 2, '.', ',') . ' บาท</td>
                     </tr>
                     <tr>
                         <td colspan="3"></td> 
                         <td colspan="2" style="text-align: right;"><span class="label" >ยอดชำระ</span></td>
-                        <td style="text-align: right;">'.number_format($cal_tax2,2,'.',',').' บาท</td>
+                        <td style="text-align: right;">' . number_format($cal_tax2, 2, '.', ',') . ' บาท</td>
                     </tr>
                    
                     
                 ';
-         }
+            }
 
-            if(empty($pay_spliter)){
+            if (empty($pay_spliter)) {
                 $a = '
                      <tr>
                             <td colspan="2"></td> 
-                            <td colspan="3" style="text-align: right;"><span class="label">'.$tax_name.'</span></td>
-                            <td style="text-align: right;">'.number_format($cal_payment->tax,2,'.',',').' บาท</td>
+                            <td colspan="3" style="text-align: right;"><span class="label">' . $tax_name . '</span></td>
+                            <td style="text-align: right;">' . number_format($cal_payment->tax, 2, '.', ',') . ' บาท</td>
                         </tr>
                         
                         
                         <tr>                            
-                            <td colspan="2" style="text-align: left;" ><span>('.$this->Convert($new_tax).')</span></td> 
+                            <td colspan="2" style="text-align: left;" ><span>(' . $this->Convert($new_tax) . ')</span></td> 
                             <td colspan="3" style="text-align: right;"><span class="label" >จำนวนเงินรวมทั้งสิ้น</span></td>
-                            <td style="text-align: right;">'.number_format($new_tax,2,'.',',').' บาท</td>
+                            <td style="text-align: right;">' . number_format($new_tax, 2, '.', ',') . ' บาท</td>
                         </tr>
-                        '.$trs_total_tax.'
+                        ' . $trs_total_tax . '
             ';
             }
 
@@ -3589,375 +3584,374 @@ class Pdf_export extends CI_Controller {
                         <tr>
                             <td colspan="2"></td>                            
                             <td colspan="3" style="text-align: right; margin-top: 4%"><span class="label">รวมเป็นเงิน</span></td>                            
-                            <td style="text-align: right;">'.number_format($cal_payment->invoice_subtotal,2,'.',',').' บาท</td>
+                            <td style="text-align: right;">' . number_format($cal_payment->invoice_subtotal, 2, '.', ',') . ' บาท</td>
                         </tr>
-                        '.$trs_deposit.'
-                        '.$a.'
-                        '.$pay_spliter.'
+                        ' . $trs_deposit . '
+                        ' . $a . '
+                        ' . $pay_spliter . '
 
                     ';
-                    
-        }else if($cal_payment->discount_type == "before_tax"){//before_tax
-            
 
-        $trs_vat ='';
-        if(empty($pay_spliter)){
-            if(isset($cal_payment->tax)){
-                $cal_tax = ($cal_payment->invoice_subtotal - $cal_payment->deposit - $cal_payment->discount_total) + $cal_payment->tax;
-            }else{
-                $cal_tax = ($cal_payment->invoice_subtotal - $cal_payment->deposit - $cal_payment->discount_total) - $cal_payment->tax;
-            }
+        } else if ($cal_payment->discount_type == "before_tax") { //before_tax
 
-            if($cal_payment->tax2 != NULL){
-                
-                if(isset($cal_tax)){
-                    $cal_tax2 = $cal_tax - $cal_payment->tax2;
-                }else{
-                    $cal_tax2 = $cal_tax + $cal_payment->tax2;
+
+            $trs_vat = '';
+            if (empty($pay_spliter)) {
+                if (isset($cal_payment->tax)) {
+                    $cal_tax = ($cal_payment->invoice_subtotal - $cal_payment->deposit - $cal_payment->discount_total) + $cal_payment->tax;
+                } else {
+                    $cal_tax = ($cal_payment->invoice_subtotal - $cal_payment->deposit - $cal_payment->discount_total) - $cal_payment->tax;
                 }
-    
-                $trs_total_tax = ' 
-                    '.$trs_bar.'               
+
+                if ($cal_payment->tax2 != NULL) {
+
+                    if (isset($cal_tax)) {
+                        $cal_tax2 = $cal_tax - $cal_payment->tax2;
+                    } else {
+                        $cal_tax2 = $cal_tax + $cal_payment->tax2;
+                    }
+
+                    $trs_total_tax = ' 
+                    ' . $trs_bar . '               
                      <tr>
                         <td colspan="3"></td> 
-                        <td colspan="2" style="text-align: right;"><span class="label">'.$tax_name2.'</span></td>
-                        <td style="text-align: right;">'.number_format($cal_payment->tax2,2,'.',',').' บาท</td>
+                        <td colspan="2" style="text-align: right;"><span class="label">' . $tax_name2 . '</span></td>
+                        <td style="text-align: right;">' . number_format($cal_payment->tax2, 2, '.', ',') . ' บาท</td>
                     </tr>
                     <tr>
                         <td colspan="3"></td> 
                         <td colspan="2" style="text-align: right;"><span class="label" >ยอดชำระ</span></td>
-                        <td style="text-align: right;">'.number_format($cal_tax2,2,'.',',').' บาท</td>
+                        <td style="text-align: right;">' . number_format($cal_tax2, 2, '.', ',') . ' บาท</td>
                     </tr>
                    
                     
                 ';
-            }
-            $trs_vat ='
+                }
+                $trs_vat = '
                 <tr>
                     <td colspan="3"></td> 
-                    <td colspan="2" style="text-align: right;"><span class="label">'.$tax_name.'</span></td>
-                    <td style="text-align: right;">'.number_format($cal_payment->tax,2,'.',',').' บาท</td>
+                    <td colspan="2" style="text-align: right;"><span class="label">' . $tax_name . '</span></td>
+                    <td style="text-align: right;">' . number_format($cal_payment->tax, 2, '.', ',') . ' บาท</td>
                 </tr> 
             
             <tr>
-                <td colspan="3" style="text-align: left;"><span>('.$this->Convert($tax_val).')</span></td> 
+                <td colspan="3" style="text-align: left;"><span>(' . $this->Convert($tax_val) . ')</span></td> 
                 <td colspan="2" style="text-align: right;"><span class="label" >จำนวนเงินรวมทั้งสิ้น</span></td>
-                <td style="text-align: right;">'.number_format($cal_tax,2,'.',',').' บาท</td>
+                <td style="text-align: right;">' . number_format($cal_tax, 2, '.', ',') . ' บาท</td>
             </tr>
-            '.$trs_total_tax.' 
+            ' . $trs_total_tax . ' 
             ';
 
-        }
+            }
 
-        
-        
 
-        $trs_total[] = '
+
+
+            $trs_total[] = '
                     <tr>
                     <td colspan="3" style="border-top: 1.5px solid #999;"></td>                            
                         <td colspan="2" style="text-align: right; margin-top: 4%; border-top: 1.5px solid #999;"><span class="label">รวมเป็นเงิน</span></td>                            
-                        <td style="text-align: right; border-top: 1.5px solid #999;">'.number_format($cal_payment->invoice_subtotal,2,'.',',').' บาท</td>
+                        <td style="text-align: right; border-top: 1.5px solid #999;">' . number_format($cal_payment->invoice_subtotal, 2, '.', ',') . ' บาท</td>
                     </tr>
-                    '.$trs_deposit.'
+                    ' . $trs_deposit . '
                     <tr>
                         <td colspan="3"></td> 
                         <td colspan="2" style="text-align: right;"><span class="label"><u>หัก</u> ส่วนลด</span></td>
-                        <td style="text-align: right;">'.number_format($cal_payment->discount_total,2,'.',',').' บาท</td>
+                        <td style="text-align: right;">' . number_format($cal_payment->discount_total, 2, '.', ',') . ' บาท</td>
                     </tr>
                     <tr>
                         <td colspan="3"></td> 
                         <td colspan="2" style="text-align: right;"><span class="label">จำนวนเงินหลังหักส่วนลด</span></td>
-                        <td style="text-align: right;">'.number_format($cal_payment->invoice_subtotal - $cal_payment->deposit - $cal_payment->discount_total,2,'.',',').' บาท</td>
+                        <td style="text-align: right;">' . number_format($cal_payment->invoice_subtotal - $cal_payment->deposit - $cal_payment->discount_total, 2, '.', ',') . ' บาท</td>
                     </tr>
-                    '.$trs_vat.'
-                    '.$trs_paid.'  
+                    ' . $trs_vat . '
+                    ' . $trs_paid . '  
                                     
-                    '.$pay_spliter.'
+                    ' . $pay_spliter . '
                 ';
-                // <td ><span>'.$this->Convert($cal_payment->estimate_total).'</span></td> 
-                
+            // <td ><span>'.$this->Convert($cal_payment->estimate_total).'</span></td> 
 
-            }else if($cal_payment->discount_type == "after_tax"){//after_tax
 
-                $trs_total[] = '
+        } else if ($cal_payment->discount_type == "after_tax") { //after_tax
+
+            $trs_total[] = '
                     <tr>
                         <td colspan="3" style="border-top: 1.5px solid #999;"></td>                            
                         <td colspan="2" style="text-align: right; border-top: 1.5px solid #999;"><span class="label">รวมเป็นเงิน</span></td>                            
-                        <td style="text-align: right; border-top: 1.5px solid #999;">'.number_format($cal_payment->invoice_subtotal,2,'.',',').' บาท</td>
+                        <td style="text-align: right; border-top: 1.5px solid #999;">' . number_format($cal_payment->invoice_subtotal, 2, '.', ',') . ' บาท</td>
                     </tr>                    
                     <tr>
                         <td colspan="3"></td> 
-                        <td colspan="2" style="text-align: right;"><span class="label">'.$tax_name.'</span></td>
-                        <td style="text-align: right;">'.number_format($cal_payment->tax,2,'.',',').' บาท</td>
+                        <td colspan="2" style="text-align: right;"><span class="label">' . $tax_name . '</span></td>
+                        <td style="text-align: right;">' . number_format($cal_payment->tax, 2, '.', ',') . ' บาท</td>
                     </tr>
-                    '.$trs_total_tax.'
+                    ' . $trs_total_tax . '
                     <tr>
                         <td colspan="3"></td> 
                         <td colspan="2" style="text-align: right;"><span class="label"><u>หัก</u> ส่วนลด</span></td>
-                        <td style="text-align: right;">'.number_format($cal_payment->discount_total,2,'.',',').' บาท</td>
+                        <td style="text-align: right;">' . number_format($cal_payment->discount_total, 2, '.', ',') . ' บาท</td>
                     </tr>                  
                                        
                     <tr>                        
-                        <td colspan="3" style="text-align: left;"><span>('.$this->Convert($tax_val).')</span></td>                        
+                        <td colspan="3" style="text-align: left;"><span>(' . $this->Convert($tax_val) . ')</span></td>                        
                         <td colspan="2" style="text-align: right;"><span class="label" >จำนวนเงินหลังหักส่วนลด</span></td>
-                        <td style="text-align: right;">'.number_format($tax_val,2,'.',',').' บาท</td>
+                        <td style="text-align: right;">' . number_format($tax_val, 2, '.', ',') . ' บาท</td>
                     </tr>
                     
                     
-                    '.$pay_spliter.'
+                    ' . $pay_spliter . '
                     
                    
 
                 ';
 
-            }
-            
+        }
+
 
         $left = 460;
         $marks[1] = array();
-        $user_signature = $this->Db_model->signature_approve($invoices_id,"invoices");
-       
+        $user_signature = $this->Db_model->signature_approve($invoices_id, "invoices");
+
         // var_dump($user_signature);exit;
-        if( $user_signature){
-            if($user_signature->signature == ''){
+        if ($user_signature) {
+            if ($user_signature->signature == '') {
                 $top = 1040;
                 $left = 450;
                 $marks[1][] = array('key' => 'signauture', '[left]' => $left, '[w]' => 130, '[top]' => $top, '[val]' => $user_signature->first_name, '[align]' => 'center');
-            }else{
+            } else {
                 $top = 1000;
-                $marks[1][] = array('key' => 'signauture', '[left]' => $left, '[w]' => 130, '[top]' => $top, '[val]' => '<img src='.base_url().$user_signature->signature.'>', '[align]' => 'center');
+                $marks[1][] = array('key' => 'signauture', '[left]' => $left, '[w]' => 130, '[top]' => $top, '[val]' => '<img src=' . base_url() . $user_signature->signature . '>', '[align]' => 'center');
             }
-            $top=1040;
+            $top = 1040;
             $left += 155;
             $marks[1][] = array('key' => 'date_approved', '[left]' => $left, '[w]' => 130, '[top]' => $top, '[val]' => $this->DateConvert($user_signature->doc_date), '[align]' => 'center');
         }
-        
+
 
         //End Item-List------------------------------------------------------------------------------------------------------------
-        
 
-        $data = $this->Db_model->creatBy($invoices_id,"invoices");
+
+        $data = $this->Db_model->creatBy($invoices_id, "invoices");
         $fname = $data->first_name;
         $lname = $data->last_name;
 
         $rangItem = 7;
 
-        foreach( $this->Db_model->fetchAll($sql) as $parentKey => $child ){
-            
-            if(!isset($keep[$child->InvId])){
+        foreach ($this->Db_model->fetchAll($sql) as $parentKey => $child) {
+
+            if (!isset($keep[$child->InvId])) {
                 $page = 1;
             }
-            
+
             $keep[$child->InvId][$page][] = $child;
-            
-            if(count($keep[$child->InvId][$page]) == $rangItem ){
+
+            if (count($keep[$child->InvId][$page]) == $rangItem) {
                 $page += 1;
             }
-            
+
         }
 
-        
-        
-        foreach( $keep as $kd => $kv ){
+
+
+        foreach ($keep as $kd => $kv) {
             // var_dump($kv);exit;
-            $i=1;
-            
-            foreach( $kv as $kpage => $vpage ){
+            $i = 1;
+
+            foreach ($kv as $kpage => $vpage) {
                 // var_dump($vpage);exit;
-                
-                
+
+
                 $dbs = convertObJectToArray($vpage[0]);
-                $dbs = array_merge($dbs,[
+                $dbs = array_merge($dbs, [
                     'bill_date' => $this->DateConvert($vpage[0]->bill_date),
                     'due_date' => $this->DateConvert($vpage[0]->due_date),
                     'amout_name' => '<span class="label">รวมเงิน</span>',
-                    'vat_name' => '<span class="label">'.isset($cal_payment->tax_name) ? '<span class="label">'.$cal_payment->tax_name.'</span>' : "-".'</span>',
+                    'vat_name' => '<span class="label">' . isset($cal_payment->tax_name) ? '<span class="label">' . $cal_payment->tax_name . '</span>' : "-" . '</span>',
                     'total_name' => '<span class="label">รวมเงินทั้งสิ้น</span>',
                     // 'note' => '<span class="label">หมายเหตุ : </span> '.implode("<br/> -",$str_text)
-                         
+
                 ]);
-                
-                
-                $divs = array(); 
-                
+
+
+                $divs = array();
+
                 foreach ($marks[1] as $km => $vm) {
                     $vm['[align]'] = isset($vm['[align]']) ? $vm['[align]'] : 'left';
                     $vm['[val]'] = isset($dbs[$vm['key']]) ? $dbs[$vm['key']] : $vm['[val]'];
-                    $divs[] = str_replace(array_keys( $vm ), $vm, $template);
-                } 
-                
+                    $divs[] = str_replace(array_keys($vm), $vm, $template);
+                }
+
                 // exit;
                 $top = 326;
-                $trs =array();     
-                foreach($vpage as $vkpage => $vvpage ){
+                $trs = array();
+                foreach ($vpage as $vkpage => $vvpage) {
                     // var_dump($vvpage);exit;
-                    
-                    if($vvpage->include_deposit == 2){
+
+                    if ($vvpage->include_deposit == 2) {
                         $trs[] = '
                         <tr>
-                            <td style="width: 5%; border-bottom: 1px solid #999; vertical-align: top;">'.$i++.'</td>
-                            <td style="text-align: left; width: 55%; border-bottom: 1px solid #999;">'.$vvpage->itTitle.'<br/>'.$vvpage->itDes.'</td>
+                            <td style="width: 5%; border-bottom: 1px solid #999; vertical-align: top;">' . $i++ . '</td>
+                            <td style="text-align: left; width: 55%; border-bottom: 1px solid #999;">' . $vvpage->itTitle . '<br/>' . $vvpage->itDes . '</td>
                             <td style=" border-bottom: 1px solid #999; vertical-align: top;"></td>
                             <td style=" text-align: right; border-bottom: 1px solid #999; vertical-align: top;"></td>                                
                             <td style="text-align: right; border-bottom: 1px solid #999; vertical-align: top;"></td>
-                            <td style="text-align: right; width:17%; border-bottom: 1px solid #999; vertical-align: top;">'.number_format($vvpage->total,2,'.',',').'</td>
+                            <td style="text-align: right; width:17%; border-bottom: 1px solid #999; vertical-align: top;">' . number_format($vvpage->total, 2, '.', ',') . '</td>
                         </tr>
-                    ';  
-                    }else{
+                    ';
+                    } else {
                         $trs[] = '
                         <tr>
-                            <td style="width: 5%; border-bottom: 1px solid #999; vertical-align: top;">'.$i++.'</td>
-                            <td style="text-align: left; width: 55%; border-bottom: 1px solid #999;">'.$vvpage->itTitle.'<br/>'.$vvpage->itDes.'</td>
-                            <td style=" border-bottom: 1px solid #999; vertical-align: top;">'.number_format($vvpage->quantity,0,'.',',').'</td>
-                            <td style=" text-align: right; border-bottom: 1px solid #999; vertical-align: top;">'.$vvpage->unit_type.'</td>                                
-                            <td style="text-align: right; border-bottom: 1px solid #999; vertical-align: top;">'.number_format($vvpage->rate,2,'.',',').'</td>
-                            <td style="text-align: right; width:17%; border-bottom: 1px solid #999; vertical-align: top;">'.number_format($vvpage->total,2,'.',',').'</td>
+                            <td style="width: 5%; border-bottom: 1px solid #999; vertical-align: top;">' . $i++ . '</td>
+                            <td style="text-align: left; width: 55%; border-bottom: 1px solid #999;">' . $vvpage->itTitle . '<br/>' . $vvpage->itDes . '</td>
+                            <td style=" border-bottom: 1px solid #999; vertical-align: top;">' . number_format($vvpage->quantity, 0, '.', ',') . '</td>
+                            <td style=" text-align: right; border-bottom: 1px solid #999; vertical-align: top;">' . $vvpage->unit_type . '</td>                                
+                            <td style="text-align: right; border-bottom: 1px solid #999; vertical-align: top;">' . number_format($vvpage->rate, 2, '.', ',') . '</td>
+                            <td style="text-align: right; width:17%; border-bottom: 1px solid #999; vertical-align: top;">' . number_format($vvpage->total, 2, '.', ',') . '</td>
                         </tr>
-                    ';  
+                    ';
                     }
-                    
+
 
                     $marks[2] = array(); //สร้าง array แยกแต่ละรายการ
 
-                    $dbs = convertObJectToArray( $vvpage );
-                    
+                    $dbs = convertObJectToArray($vvpage);
+
                     foreach ($marks[2] as $km => $vm) {
                         $vm['[align]'] = isset($vm['[align]']) ? $vm['[align]'] : 'center';
                         $vm['[val]'] = isset($dbs[$vm['key']]) ? $dbs[$vm['key']] : $vm['[val]'];
-                        $divs[] = str_replace(array_keys( $vm ), $vm, $template);
+                        $divs[] = str_replace(array_keys($vm), $vm, $template);
                     }
-                    
+
                 }
                 $trs_note = array();
-                
 
-                if($vpage[0]->inNote){
+
+                if ($vpage[0]->inNote) {
                     $trs_note[] = '
                     <tr>
-                        <td colspan="6" style="text-align: left;"><br/><p class="label">หมายเหตุ : </p>'.nl2br($vpage[0]->inNote,false).'</td>
+                        <td colspan="6" style="text-align: left;"><br/><p class="label">หมายเหตุ : </p>' . nl2br($vpage[0]->inNote, false) . '</td>
                     </tr>
                 ';
                 }
 
-                $divTop =   110;
-                    $divleft = 27;
-                    $trs_client ='
-                    <div style="position:absolute; top:'.$divTop.'px; left:'.$divleft.'px; width: 350px">
+                $divTop = 110;
+                $divleft = 27;
+                $trs_client = '
+                    <div style="position:absolute; top:' . $divTop . 'px; left:' . $divleft . 'px; width: 350px">
                         <table style="width: 100%; ">
                             <tr>
-                                <td style="text-align: left;">'.$company_name.'<br/>'.$company_address.'<br/>หมายเลขประจำตัวผู้เสียภาษี '.$company_vat_number.'<br/>'.$company_phone.'</td>
+                                <td style="text-align: left;">' . $company_name . '<br/>' . $company_address . '<br/>หมายเลขประจำตัวผู้เสียภาษี ' . $company_vat_number . '<br/>' . $company_phone . '</td>
                             </tr>
                             <tr>
                                 <td style="text-align: left;"><span class="label"><br/>ลูกค้า</span></td>
                             </tr>
                             <tr>
-                                <td style="text-align: left;">'.$vpage[0]->company_name.'<br/>'.$vpage[0]->address.' '.$vpage[0]->city.' '.$vpage[0]->state.' '.$vpage[0]->zip.' '.$vpage[0]->country.'<br/>'.'เลขประจำตัวผู้เสียภาษี '.$vpage[0]->vat_number.'</td>
+                                <td style="text-align: left;">' . $vpage[0]->company_name . '<br/>' . $vpage[0]->address . ' ' . $vpage[0]->city . ' ' . $vpage[0]->state . ' ' . $vpage[0]->zip . ' ' . $vpage[0]->country . '<br/>' . 'เลขประจำตัวผู้เสียภาษี ' . $vpage[0]->vat_number . '</td>
                             </tr>
                         </table>
                     </div>
                     ';
 
                 $pro_title = isset($vpage[0]->proTitle) ? $vpage[0]->proTitle : "-";
-                $name = isset($vpage[0]->first_name) ? $vpage[0]->first_name.' '.$vpage[0]->last_name : "-";
+                $name = isset($vpage[0]->first_name) ? $vpage[0]->first_name . ' ' . $vpage[0]->last_name : "-";
                 $phone = isset($vpage[0]->phone) ? $vpage[0]->phone : "-";
                 $email = isset($vpage[0]->email) ? $vpage[0]->email : "-";
-                    
+
                 // $info_contact = array();
-                
-                        $info_contact = '
+
+                $info_contact = '
                         <tr>
                             <td style="text-align: left; padding-left: 5px;"><span class="label">ชื่องาน</span></td>
-                            <td style="text-align: left;"><span>'.$pro_title.'</span></td>
+                            <td style="text-align: left;"><span>' . $pro_title . '</span></td>
                             <td colspan="2"></td>
                         </tr>                        
                         <tr>
                             <td style="text-align: left; padding-left: 5px;"><span class="label">ผู้ติดต่อ</span></td>
-                            <td style="text-align: left;"><span>'.$name.'</span></td>
+                            <td style="text-align: left;"><span>' . $name . '</span></td>
                             <td colspan="2"></td>
                         </tr>
                         <tr>
                             <td style="text-align: left; padding-left: 5px;"><span class="label">เบอร์โทร</span></td>
-                            <td style="text-align: left;"><span>'.$phone.'</span></td>
+                            <td style="text-align: left;"><span>' . $phone . '</span></td>
                             <td colspan="2"></td>
                         </tr>
                         <tr>
                             <td style="text-align: left; padding-left: 5px;"><span class="label">อีเมล</span></td>
-                            <td style="text-align: left;"><span>'.$email.'</span></td>
+                            <td style="text-align: left;"><span>' . $email . '</span></td>
                             <td colspan="2"></td>
                         </tr>
                         ';
-                    
-                    // width: 150px;
 
-                    // var_dump($vpage[0]);exit;
+                // width: 150px;
 
-                    if($vpage[0]->credit != 0){
-                        if($vpage[0]->pay_type == "percentage"){
-                            $pay = $vpage[0]->pay_sp." %";
-                        }else{
-                            $pay = $vpage[0]->pay_sp." งวด";
-                        }
-                        $credits_s = '
-                        <td style="text-align: left; "><span class="label">เครดิต</span></td>
-                        <td style="text-align: left;">'.$vpage[0]->credit.' วัน</td>
-                        ';
+                // var_dump($vpage[0]);exit;
+
+                if ($vpage[0]->credit != 0) {
+                    if ($vpage[0]->pay_type == "percentage") {
+                        $pay = $vpage[0]->pay_sp . " %";
+                    } else {
+                        $pay = $vpage[0]->pay_sp . " งวด";
                     }
-                    else{                        
-                        $credits_s = '
+                    $credits_s = '
+                        <td style="text-align: left; "><span class="label">เครดิต</span></td>
+                        <td style="text-align: left;">' . $vpage[0]->credit . ' วัน</td>
+                        ';
+                } else {
+                    $credits_s = '
                         <td style="text-align: left;"><span class="label">เครดิต</span></td>
                         <td style="text-align: left;">จ่ายเป็นเงินสด</td>
                         ';
-                    }
-                    
-                    // var_dump($get_ps);exit;
-                    if($get_ps->pay_type == "time"){
-                        if(!empty(json_decode($get_ps->pay_sps))){
-                            $pay_detail = '
+                }
+
+                // var_dump($get_ps);exit;
+                if ($get_ps->pay_type == "time") {
+                    if (!empty(json_decode($get_ps->pay_sps))) {
+                        $pay_detail = '
                             <td style="text-align: left;"><span class="label">การชำระ</span></td>
-                            <td style="text-align: left;">'.$pay.'</td>
+                            <td style="text-align: left;">' . $pay . '</td>
                         ';
-                        }else if($get_ps->include_deposit == 2){
-                            $pay_detail = '';
-                        }else{
-                            
+                    } else if ($get_ps->include_deposit == 2) {
                         $pay_detail = '';
-                        }
-                        
+                    } else {
+
+                        $pay_detail = '';
                     }
 
-                    $divTop =   10;
-                    $divleft = 400;
-                    $info_table = '
+                }
+
+                $divTop = 10;
+                $divleft = 400;
+                $info_table = '
                     
-                        <div style="position:absolute; top:'.$divTop.'px; left:'.$divleft.'px; width: 360px">
+                        <div style="position:absolute; top:' . $divTop . 'px; left:' . $divleft . 'px; width: 360px">
                             <table style="width: 100%;">
                                 <tr>
                                     <th colspan="4" style="text-align: center; border-bottom: 1.5px solid #999; font-size: 30px; "><span class="label">ใบวางบิล/ใบแจ้งหนี้</span><br/><span class="label" style="font-size: 20px;">ต้นฉบับ</span></th>    
                                 </tr>
                                 <tr>
                                     <td style="text-align: left;  padding-left: 5px; width:120px;"><span class="label">เลขที่</span></td>
-                                    <td style="text-align: left; width:100px;"><span>'.$vpage[0]->invDoc_no.'</span></td>
+                                    <td style="text-align: left; width:100px;"><span>' . $vpage[0]->invDoc_no . '</span></td>
                                     <td colspan="2" ></td>
                                 </tr>
                                 
                                 <tr>
                                     <td style="text-align: left; padding-left: 5px;"><span class="label">วันที่</span></td>
-                                    <td style="text-align: left; width:50px;"><span>'.$this->DateConvert($vpage[0]->bill_date).'</span></td>
-                                    '.$credits_s.'
+                                    <td style="text-align: left; width:50px;"><span>' . $this->DateConvert($vpage[0]->bill_date) . '</span></td>
+                                    ' . $credits_s . '
                                 </tr>
                                 <tr>
                                     <td style="text-align: left; padding-left: 5px;"><span class="label">ครบกำหนด</span></td>
-                                    <td style="text-align: left; width:50px;"><span>'.$this->DateConvert($vpage[0]->due_date).'</span></td>
-                                    '.$pay_detail.'
+                                    <td style="text-align: left; width:50px;"><span>' . $this->DateConvert($vpage[0]->due_date) . '</span></td>
+                                    ' . $pay_detail . '
                                 </tr>
                                 <tr>
                                     <td style="text-align: left; padding-left: 5px;"><span class="label">ผู้ขาย</span></td>
-                                    <td style="text-align: left;"><span></span>'.$fname.' '.$lname.'</td>
+                                    <td style="text-align: left;"><span></span>' . $fname . ' ' . $lname . '</td>
                                     <td colspan="2"></td>
                                 </tr>
                                 <tr>
                                     <td style="text-align: left; padding-left: 5px; width: 90px; border-bottom: 1.5px solid #999;"><span class="label">อ้างอิงใบเสนอราคา</span></td>
-                                    <td style="text-align: left; border-bottom: 1.5px solid #999;"><span>'.$vpage[0]->esDoc_no.'</span></td>
+                                    <td style="text-align: left; border-bottom: 1.5px solid #999;"><span>' . $vpage[0]->esDoc_no . '</span></td>
                                     <td colspan="2" style="border-bottom: 1.5px solid #999;"></td>
                                 </tr>
                             
@@ -3965,24 +3959,24 @@ class Pdf_export extends CI_Controller {
                                     <td></td>
                                 </tr>
 
-                                '.$info_contact.'
+                                ' . $info_contact . '
                                 
                             </table>
                         </div>
-                        '.$trs_client.'
+                        ' . $trs_client . '
                         ';
 
-                        
 
-                        $divTop =   990;
-                        $divleft = 27;
-                        $trs_approve = '
-                        <div style="position:absolute; top:'.$divTop.'px; left:'.$divleft.'px; width: 740px;">
+
+                $divTop = 990;
+                $divleft = 27;
+                $trs_approve = '
+                        <div style="position:absolute; top:' . $divTop . 'px; left:' . $divleft . 'px; width: 740px;">
                                 <table style="width:100%;">
                                     <tr>
-                                        <td colspan="2">ในนาม '.$vpage[0]->company_name.'</td>
+                                        <td colspan="2">ในนาม ' . $vpage[0]->company_name . '</td>
                                         <td></td>
-                                        <td colspan="2">ในนาม '.$company_name.'</td>
+                                        <td colspan="2">ในนาม ' . $company_name . '</td>
                                     </tr>
                                     <tr>
                                         <td style="height: 100px;">___________________________<p>ผู้รับวางบิล</p></td>
@@ -3996,11 +3990,11 @@ class Pdf_export extends CI_Controller {
                         
                        ';
 
-                    $divTop =   318;
-                    $divleft = 30;
-                    if($vvpage->include_deposit == 2){
-                        $tabletemplate = '
-                        <div style="position:absolute; top:'.$divTop.'px; left:'.$divleft.'px; width: 730px;">
+                $divTop = 318;
+                $divleft = 30;
+                if ($vvpage->include_deposit == 2) {
+                    $tabletemplate = '
+                        <div style="position:absolute; top:' . $divTop . 'px; left:' . $divleft . 'px; width: 730px;">
                             <table style="width:100%; overflow: auto; page-break-inside:avoid">
                                 <tr>
                                     <td class="thStyle">#</td>
@@ -4010,19 +4004,19 @@ class Pdf_export extends CI_Controller {
                                     <td class="thStyle" style="text-align: right;"></td>
                                     <td class="thStyle" style="text-align: right;">ยอดมัดจำ</td>
                                 </tr>
-                                '.implode("",$trs).'
-                                '.implode("",$trs_total).'
-                                '.implode("",$trs_note).'
+                                ' . implode("", $trs) . '
+                                ' . implode("", $trs_total) . '
+                                ' . implode("", $trs_note) . '
                             </table>
                             
                         </div>
                     
                             
                         
-                        ';//
-                    }else{
-                        $tabletemplate = '
-                            <div style="position:absolute; top:'.$divTop.'px; left:'.$divleft.'px; width: 730px;">
+                        '; //
+                } else {
+                    $tabletemplate = '
+                            <div style="position:absolute; top:' . $divTop . 'px; left:' . $divleft . 'px; width: 730px;">
                                 <table style="width:100%; overflow: auto; page-break-inside:avoid">
                                     <tr>
                                         <td class="thStyle">#</td>
@@ -4032,9 +4026,9 @@ class Pdf_export extends CI_Controller {
                                         <td class="thStyle" style="text-align: right;">ราคาต่อหน่วย</td>
                                         <td class="thStyle" style="text-align: right;">ยอดรวม</td>
                                     </tr>
-                                    '.implode("",$trs).'
-                                    '.implode("",$trs_total).'
-                                    '.implode("",$trs_note).'
+                                    ' . implode("", $trs) . '
+                                    ' . implode("", $trs_total) . '
+                                    ' . implode("", $trs_note) . '
                                 </table>
                                 
                             </div>
@@ -4042,15 +4036,15 @@ class Pdf_export extends CI_Controller {
                             
                                 
                             
-                            ';//
-                    }
-                    
-                
-                    
-                
+                            '; //
+                }
+
+
+
+
                 // var_dump($keep);exit;
 
-                
+
                 $html = ' 
                         <style>
                         div{
@@ -4091,98 +4085,98 @@ class Pdf_export extends CI_Controller {
                 
                                      
                                                
-                        '.$tabletemplate.'
+                        ' . $tabletemplate . '
                         </body>       
                         
                     ';
-                    //' . implode('', $divs) . ' 
-                    $mpdf->SetHTMLHeader($info_table);
-                    
-                    $Note = nl2br($vpage[0]->inNote,false);
-                        preg_match_all("/(<br>)/", $Note, $matches);
-                        
-                        for($j = 0 ; $j < 8;$j++){
-                            // var_dump($page);exit;
-                            if($j <= 8 ){                    
-                                $mpdf->SetHTMLFooter($trs_approve);
-                                break;
-                                
-                            }else{                                
-                                $mpdf->SetHTMLFooter($trs_approve);
-                                break;
-                            }
-                        }
-                      
-                            
-                        
-                        
-                        
+                //' . implode('', $divs) . ' 
+                $mpdf->SetHTMLHeader($info_table);
 
-                    
-                    
+                $Note = nl2br($vpage[0]->inNote, false);
+                preg_match_all("/(<br>)/", $Note, $matches);
+
+                for ($j = 0; $j < 8; $j++) {
+                    // var_dump($page);exit;
+                    if ($j <= 8) {
+                        $mpdf->SetHTMLFooter($trs_approve);
+                        break;
+
+                    } else {
+                        $mpdf->SetHTMLFooter($trs_approve);
+                        break;
+                    }
+                }
 
 
-            
 
-                    // echo $html;exit; 
-                    $mpdf->SetTitle($vpage[0]->invDoc_no);
-                    $mpdf->autoPageBreak = false;
-                    $mpdf->use_kwt = true; 
-                    $mpdf->shrink_tables_to_fit = 1;
-                    $mpdf->AddPage('P');
-                    // var_dump($mpdf->AddPage('P'));exit;
-                    $pagecount = $mpdf->SetSourceFile('pdf_Template/main_template.pdf');
-                    $tplId = $mpdf->importPage(1);
-                    $mpdf->useTemplate($tplId);
-                    $mpdf->WriteHTML($html); 
-                   
+
+
+
+
+
+
+
+
+
+                // echo $html;exit; 
+                $mpdf->SetTitle($vpage[0]->invDoc_no);
+                $mpdf->autoPageBreak = false;
+                $mpdf->use_kwt = true;
+                $mpdf->shrink_tables_to_fit = 1;
+                $mpdf->AddPage('P');
+                // var_dump($mpdf->AddPage('P'));exit;
+                $pagecount = $mpdf->SetSourceFile('pdf_Template/main_template.pdf');
+                $tplId = $mpdf->importPage(1);
+                $mpdf->useTemplate($tplId);
+                $mpdf->WriteHTML($html);
+
             }
-            
-            
-        } 
-        
-        // $mpdf->Output();
-        $mpdf->Output($vpage[0]->invDoc_no.'.pdf', \Mpdf\Output\Destination::DOWNLOAD);
-       
+
+
         }
 
-        public function receipt_pdf($receipt_id = 0 )
-        {            
-            $template = '<div style="text-align: [align]; position:absolute; top:[top]px; left:[left]px; width:[w]px; height:[h]px;"><span>[val]</span></div>';
+        // $mpdf->Output();
+        $mpdf->Output($vpage[0]->invDoc_no . '.pdf', \Mpdf\Output\Destination::DOWNLOAD);
 
-            $defaultConfig = (new Mpdf\Config\ConfigVariables())->getDefaults();
-            $fontDirs = $defaultConfig['fontDir'];
-    
-            $defaultFontConfig = (new Mpdf\Config\FontVariables())->getDefaults();
-            $fontData = $defaultFontConfig['fontdata'];
-                
-            $mpdf = new \Mpdf\Mpdf([
-                'fontDir' => array_merge($fontDirs, [
-                    __DIR__ . '/fonts',
-                ]),
-                'fontdata' => $fontData + [
-                    'def' => [
-                        'R' => 'THSarabun_Bold.ttf',
-                        //'I' => 'THSarabunNew Italic.ttf',
-                        //'B' => 'THSarabunNew Bold.ttf',
-                    ]
-                ],
-                'default_font' => 'def',
-                'tempDir' => '/tmp'
-            ]);
-            $mpdf->charset_in = 'UTF-8';
-            
-            
-            $keep = array();
-            $html = '';
-            $company_address = nl2br(get_setting("company_address"));
-            $company_phone = get_setting("company_phone");
-            $company_website = get_setting("company_website");
-            $company_vat_number = get_setting("company_vat_number");
-            $company_name = get_setting("company_name");
-           
-    
-            $sql = "SELECT 
+    }
+
+    public function receipt_pdf($receipt_id = 0)
+    {
+        $template = '<div style="text-align: [align]; position:absolute; top:[top]px; left:[left]px; width:[w]px; height:[h]px;"><span>[val]</span></div>';
+
+        $defaultConfig = (new Mpdf\Config\ConfigVariables())->getDefaults();
+        $fontDirs = $defaultConfig['fontDir'];
+
+        $defaultFontConfig = (new Mpdf\Config\FontVariables())->getDefaults();
+        $fontData = $defaultFontConfig['fontdata'];
+
+        $mpdf = new \Mpdf\Mpdf([
+            'fontDir' => array_merge($fontDirs, [
+                __DIR__ . '/fonts',
+            ]),
+            'fontdata' => $fontData + [
+                'def' => [
+                    'R' => 'THSarabun_Bold.ttf',
+                    //'I' => 'THSarabunNew Italic.ttf',
+                    //'B' => 'THSarabunNew Bold.ttf',
+                ]
+            ],
+            'default_font' => 'def',
+            'tempDir' => '/tmp'
+        ]);
+        $mpdf->charset_in = 'UTF-8';
+
+
+        $keep = array();
+        $html = '';
+        $company_address = nl2br(get_setting("company_address"));
+        $company_phone = get_setting("company_phone");
+        $company_website = get_setting("company_website");
+        $company_vat_number = get_setting("company_vat_number");
+        $company_name = get_setting("company_name");
+
+
+        $sql = "SELECT 
                     bom_suppliers.company_name as su_comname, 
                     bom_suppliers.address as su_add,
                     bom_suppliers.city as su_city,
@@ -4200,40 +4194,40 @@ class Pdf_export extends CI_Controller {
             FROM receipts
             LEFT JOIN receipt_items on receipt_items.receipt_id = receipts.id AND receipt_items.deleted = 0
             LEFT JOIN bom_suppliers on bom_suppliers.id = receipts.supplier_id
-            WHERE receipts.id = $receipt_id";     
-            // arr($sql);exit;
-            
-            $data = $this->Db_model->creatBy($receipt_id, "receipts");
-            $fname = $data->first_name;
-            $lname = $data->last_name;
-            
+            WHERE receipts.id = $receipt_id";
+        // arr($sql);exit;
 
-            $cal_payment = $this->Receipts_model->get_receipt_total_summary($receipt_id);
+        $data = $this->Db_model->creatBy($receipt_id, "receipts");
+        $fname = $data->first_name;
+        $lname = $data->last_name;
 
-            if($cal_payment->tax_name){
-                $tax_name = $cal_payment->tax_name;
-            }else{
-                $tax_name ="ภาษีมูลค่าเพิ่ม 0%";
-            }
-            $value_cal = $cal_payment->receipt_subtotal-$cal_payment->discount_total;
-            // var_dump($cal_payment);exit;
-                // if($cal_payment->discount_type == "before_tax"){
-                    $trs_total[] = '
+
+        $cal_payment = $this->Receipts_model->get_receipt_total_summary($receipt_id);
+
+        if ($cal_payment->tax_name) {
+            $tax_name = $cal_payment->tax_name;
+        } else {
+            $tax_name = "ภาษีมูลค่าเพิ่ม 0%";
+        }
+        $value_cal = $cal_payment->receipt_subtotal - $cal_payment->discount_total;
+        // var_dump($cal_payment);exit;
+        // if($cal_payment->discount_type == "before_tax"){
+        $trs_total[] = '
                         <tr>
                             <td colspan="2" style="border-top: 1.5px solid #999;"></td>                            
                             <td colspan="3" style="text-align: right; margin-top: 4%; border-top: 1.5px solid #999;"><span class="label">รวมเป็นเงิน</span></td>                            
-                            <td style="text-align: right; border-top: 1.5px solid #999;">'.number_format($cal_payment->receipt_subtotal,2,'.',',').' บาท</td>
+                            <td style="text-align: right; border-top: 1.5px solid #999;">' . number_format($cal_payment->receipt_subtotal, 2, '.', ',') . ' บาท</td>
                         </tr>
 
                         <tr>
                             <td colspan="2"></td> 
                             <td colspan="3" style="text-align: right;"><span class="label">ส่วนลด</span></td>
-                            <td style="text-align: right;">'.number_format($cal_payment->discount_total,2,'.',',').' บาท</td>
+                            <td style="text-align: right;">' . number_format($cal_payment->discount_total, 2, '.', ',') . ' บาท</td>
                         </tr>
                         <tr>
                             <td colspan="2"></td> 
                             <td colspan="3" style="text-align: right;"><span class="label">จำนวนเงินหลังหักส่วนลด</span></td>
-                            <td style="text-align: right;">'.number_format($cal_payment->receipt_subtotal-$cal_payment->discount_total,2,'.',',').' บาท</td>
+                            <td style="text-align: right;">' . number_format($cal_payment->receipt_subtotal - $cal_payment->discount_total, 2, '.', ',') . ' บาท</td>
                         </tr>
 
                         <tr>
@@ -4243,153 +4237,153 @@ class Pdf_export extends CI_Controller {
                         
                         <tr>
                             <td colspan="2"></td> 
-                            <td colspan="3" style="text-align: right;"><span class="label">'.$tax_name.'</span></td>
-                            <td style="text-align: right;">'.number_format($cal_payment->tax,2,'.',',').' บาท</td>
+                            <td colspan="3" style="text-align: right;"><span class="label">' . $tax_name . '</span></td>
+                            <td style="text-align: right;">' . number_format($cal_payment->tax, 2, '.', ',') . ' บาท</td>
                         </tr>
                         <tr>
                             <td colspan="2"></td> 
                             <td colspan="3" style="text-align: right;"><span class="label">ราคาไม่รวมภาษีมูลค่าเพิ่ม</span></td>
-                            <td style="text-align: right;">'.number_format($cal_payment->receipt_total - $cal_payment->tax,2,'.',',').' บาท</td>
+                            <td style="text-align: right;">' . number_format($cal_payment->receipt_total - $cal_payment->tax, 2, '.', ',') . ' บาท</td>
                         </tr>
                         <tr>
                             
-                            <td colspan="2" style="text-align: left;"><span>('.$this->Convert($cal_payment->receipt_total).')</span></td> 
+                            <td colspan="2" style="text-align: left;"><span>(' . $this->Convert($cal_payment->receipt_total) . ')</span></td> 
                             
                             <td colspan="3" style="text-align: right;"><span class="label" >จำนวนเงินรวมทั้งสิ้น</span></td>
-                            <td style="text-align: right;">'.number_format($cal_payment->receipt_total,2,'.',',').' บาท</td>
+                            <td style="text-align: right;">' . number_format($cal_payment->receipt_total, 2, '.', ',') . ' บาท</td>
                         </tr>
                         <tr>
                             <td colspan="2"></td> 
                             <td colspan="3" style="text-align: right;"><span class="label" >ชำระเงินแล้ว</span></td>
-                            <td style="text-align: right;">'.number_format($cal_payment->payment,2,'.',',').' บาท</td>
+                            <td style="text-align: right;">' . number_format($cal_payment->payment, 2, '.', ',') . ' บาท</td>
                         </tr>
 
                         <tr>
                             <td colspan="2"></td> 
-                            <td colspan="3" style="text-align: right;"><span class="label" >'.$cal_payment->paymentStatus.'</span></td>
-                            <td style="text-align: right;">'.number_format($cal_payment->notPaid_n,2,'.',',').' บาท</td>
+                            <td colspan="3" style="text-align: right;"><span class="label" >' . $cal_payment->paymentStatus . '</span></td>
+                            <td style="text-align: right;">' . number_format($cal_payment->notPaid_n, 2, '.', ',') . ' บาท</td>
                         </tr>
 
                     ';
-                    // <td ><span>'.$this->Convert($cal_payment->estimate_total).'</span></td> 
-                    
-
-                // }else if($cal_payment->discount_type == "after_tax"){
-
-                //     $trs_total[] = '
-                //         <tr>
-                //             <td colspan="3" style="border-top: 1.5px solid #999;"></td>                            
-                //             <td colspan="2" style="text-align: right; border-top: 1.5px solid #999;"><span class="label">รวมเป็นเงิน</span></td>                            
-                //             <td style="text-align: right; border-top: 1.5px solid #999;">'.number_format($cal_payment->order_subtotal,2,'.',',').'</td>
-                //         </tr>                       
-                //         <tr>
-                //             <td colspan="3"></td> 
-                //             <td colspan="2" style="text-align: right;"><span class="label">'.$tax_name.'</span></td>
-                //             <td style="text-align: right;">'.number_format($cal_payment->tax,2,'.',',').'</td>
-                //         </tr>                       
-                        
-                //         <tr>
-                //             <td></td>
-                //             <td><span>'.$this->Convert($cal_payment->order_total).'</span></td> 
-                //             <td></td>
-                //             <td colspan="2" style="text-align: right;"><span class="label" >รวมเงินทั้งสิ้น</span></td>
-                //             <td style="text-align: right;">'.number_format($cal_payment->order_total,2,'.',',').'</td>
-                //         </tr>
-                //         <tr>
-                //             <td colspan="3"></td> 
-                //             <td colspan="2" style="text-align: right;"><span class="label" >ชำระเงินแล้ว</span></td>
-                //             <td style="text-align: right;">'.number_format($cal_payment->payment,2,'.',',').'</td>
-                //         </tr>
-
-                //         <tr>
-                //             <td colspan="3"></td> 
-                //             <td colspan="2" style="text-align: right;"><span class="label" >'.$cal_payment->paymentStatus.'</span></td>
-                //             <td style="text-align: right;">'.number_format($cal_payment->notPaid_n,2,'.',',').'</td>
-                //         </tr>
+        // <td ><span>'.$this->Convert($cal_payment->estimate_total).'</span></td> 
 
 
-                //     ';
+        // }else if($cal_payment->discount_type == "after_tax"){
 
-                // }
-                $divTop =   14;
-                    $divleft = 27;
-                    
-                    $logos = '<img src="'.get_file_from_setting('order_logo', get_setting('only_file_path')).'" style="width: 80px; height:80px;"/>';
+        //     $trs_total[] = '
+        //         <tr>
+        //             <td colspan="3" style="border-top: 1.5px solid #999;"></td>                            
+        //             <td colspan="2" style="text-align: right; border-top: 1.5px solid #999;"><span class="label">รวมเป็นเงิน</span></td>                            
+        //             <td style="text-align: right; border-top: 1.5px solid #999;">'.number_format($cal_payment->order_subtotal,2,'.',',').'</td>
+        //         </tr>                       
+        //         <tr>
+        //             <td colspan="3"></td> 
+        //             <td colspan="2" style="text-align: right;"><span class="label">'.$tax_name.'</span></td>
+        //             <td style="text-align: right;">'.number_format($cal_payment->tax,2,'.',',').'</td>
+        //         </tr>                       
 
-                    $logo_es = '<div style="position:absolute; top:'.$divTop.'px; left:'.$divleft.'px; width: auto;">
-                        '.$logos.'
+        //         <tr>
+        //             <td></td>
+        //             <td><span>'.$this->Convert($cal_payment->order_total).'</span></td> 
+        //             <td></td>
+        //             <td colspan="2" style="text-align: right;"><span class="label" >รวมเงินทั้งสิ้น</span></td>
+        //             <td style="text-align: right;">'.number_format($cal_payment->order_total,2,'.',',').'</td>
+        //         </tr>
+        //         <tr>
+        //             <td colspan="3"></td> 
+        //             <td colspan="2" style="text-align: right;"><span class="label" >ชำระเงินแล้ว</span></td>
+        //             <td style="text-align: right;">'.number_format($cal_payment->payment,2,'.',',').'</td>
+        //         </tr>
+
+        //         <tr>
+        //             <td colspan="3"></td> 
+        //             <td colspan="2" style="text-align: right;"><span class="label" >'.$cal_payment->paymentStatus.'</span></td>
+        //             <td style="text-align: right;">'.number_format($cal_payment->notPaid_n,2,'.',',').'</td>
+        //         </tr>
+
+
+        //     ';
+
+        // }
+        $divTop = 14;
+        $divleft = 27;
+
+        $logos = '<img src="' . get_file_from_setting('order_logo', get_setting('only_file_path')) . '" style="width: 80px; height:80px;"/>';
+
+        $logo_es = '<div style="position:absolute; top:' . $divTop . 'px; left:' . $divleft . 'px; width: auto;">
+                        ' . $logos . '
                     </div>';
-        
-            $marks[1] = array();
-            $left = 460;
-            $user_signature = $this->Db_model->signature_approve( $receipt_id, "receipts" );
-                // var_dump($user_signature);exit;
-            if( $user_signature){
-                if($user_signature->signature == ''){
-                    $top = 1010;
-                    $marks[1][] = array('key' => 'signauture', '[left]' => $left, '[w]' => 130, '[top]' => $top, '[val]' => $user_signature->first_name.' '.$user_signature->last_name, '[align]' => 'center');
-                }else{
-                    $top = 1000;
-                    $marks[1][] = array('key' => 'signauture', '[left]' => $left, '[w]' => 130, '[top]' => $top, '[val]' => '<img src='.base_url().$user_signature->signature.'>', '[align]' => 'center');
-                }
-                $top=1040;
-                $left += 155;
-                $marks[1][] = array('key' => 'date_approved', '[left]' => $left, '[w]' => 130, '[top]' => $top, '[val]' => $this->DateConvert($user_signature->doc_date), '[align]' => 'center');
-            }
-            
-            //End Item-List------------------------------------------------------------------------------------------------------------
-            
-    
-            $rangItem = 7;
-    
-            foreach( $this->Db_model->fetchAll($sql) as $parentKey => $child ){
-                
-                if(!isset($keep[$child->oID])){
-                    $page = 1;
-                }
-                
-                $keep[$child->oID][$page][] = $child;
-                
-                if(count($keep[$child->oID][$page]) == $rangItem ){
-                    $page += 1;
-                }
-                
-            }
-          
-            foreach( $keep as $kd => $kv ){
-                $i=1;
-                foreach( $kv as $kpage => $vpage ){
-                    $str_text = explode("-", $vpage[0]->note);
-                    $po_id = explode("-",$vpage[0]->po_id);
-                    // var_dump($vpage);exit;
-                    $dbs = convertObJectToArray($vpage[0]);                   
-                    
-                    $divs = array(); 
-                    
-                    foreach ($marks[1] as $km => $vm) {
-                        $vm['[align]'] = isset($vm['[align]']) ? $vm['[align]'] : 'left';
-                        $vm['[val]'] = isset($dbs[$vm['key']]) ? $dbs[$vm['key']] : $vm['[val]'];
-                        $divs[] = str_replace(array_keys( $vm ), $vm, $template);
-                    } 
-                    $top = 326;
-                    $trs =array();
-                    
-                    foreach($vpage as $vkpage => $vvpage ){  
-                        // var_dump($vvpage);exit;
 
-                        if($vvpage->orItTitle){
-                            $trs[] = '
+        $marks[1] = array();
+        $left = 460;
+        $user_signature = $this->Db_model->signature_approve($receipt_id, "receipts");
+        // var_dump($user_signature);exit;
+        if ($user_signature) {
+            if ($user_signature->signature == '') {
+                $top = 1010;
+                $marks[1][] = array('key' => 'signauture', '[left]' => $left, '[w]' => 130, '[top]' => $top, '[val]' => $user_signature->first_name . ' ' . $user_signature->last_name, '[align]' => 'center');
+            } else {
+                $top = 1000;
+                $marks[1][] = array('key' => 'signauture', '[left]' => $left, '[w]' => 130, '[top]' => $top, '[val]' => '<img src=' . base_url() . $user_signature->signature . '>', '[align]' => 'center');
+            }
+            $top = 1040;
+            $left += 155;
+            $marks[1][] = array('key' => 'date_approved', '[left]' => $left, '[w]' => 130, '[top]' => $top, '[val]' => $this->DateConvert($user_signature->doc_date), '[align]' => 'center');
+        }
+
+        //End Item-List------------------------------------------------------------------------------------------------------------
+
+
+        $rangItem = 7;
+
+        foreach ($this->Db_model->fetchAll($sql) as $parentKey => $child) {
+
+            if (!isset($keep[$child->oID])) {
+                $page = 1;
+            }
+
+            $keep[$child->oID][$page][] = $child;
+
+            if (count($keep[$child->oID][$page]) == $rangItem) {
+                $page += 1;
+            }
+
+        }
+
+        foreach ($keep as $kd => $kv) {
+            $i = 1;
+            foreach ($kv as $kpage => $vpage) {
+                $str_text = explode("-", $vpage[0]->note);
+                $po_id = explode("-", $vpage[0]->po_id);
+                // var_dump($vpage);exit;
+                $dbs = convertObJectToArray($vpage[0]);
+
+                $divs = array();
+
+                foreach ($marks[1] as $km => $vm) {
+                    $vm['[align]'] = isset($vm['[align]']) ? $vm['[align]'] : 'left';
+                    $vm['[val]'] = isset($dbs[$vm['key']]) ? $dbs[$vm['key']] : $vm['[val]'];
+                    $divs[] = str_replace(array_keys($vm), $vm, $template);
+                }
+                $top = 326;
+                $trs = array();
+
+                foreach ($vpage as $vkpage => $vvpage) {
+                    // var_dump($vvpage);exit;
+
+                    if ($vvpage->orItTitle) {
+                        $trs[] = '
                             <tr>
-                                <td style="width: 3%; vertical-align: top;">'.$i++.'</td>
-                                <td style="text-align: left; width:62%; vertical-align: top;">'.$vvpage->orItTitle.'<br/>'.$vvpage->orItdescription.'</td>
-                                <td style="vertical-align: top;">'.number_format($vvpage->quantity,0,'.',',').'</td>
-                                <td style="text-align: right; vertical-align: top;">'.$vvpage->unit_type.'</td>                                
-                                <td style="text-align: right; vertical-align: top;">'.number_format($vvpage->rate,2,'.',',').'</td>
-                                <td style="text-align: right; width: 15%; vertical-align: top;">'.number_format($vvpage->total,2,'.',',').'</td>
+                                <td style="width: 3%; vertical-align: top;">' . $i++ . '</td>
+                                <td style="text-align: left; width:62%; vertical-align: top;">' . $vvpage->orItTitle . '<br/>' . $vvpage->orItdescription . '</td>
+                                <td style="vertical-align: top;">' . number_format($vvpage->quantity, 0, '.', ',') . '</td>
+                                <td style="text-align: right; vertical-align: top;">' . $vvpage->unit_type . '</td>                                
+                                <td style="text-align: right; vertical-align: top;">' . number_format($vvpage->rate, 2, '.', ',') . '</td>
+                                <td style="text-align: right; width: 15%; vertical-align: top;">' . number_format($vvpage->total, 2, '.', ',') . '</td>
                             </tr>
                             ';
-                        }else{
-                            $trs[] = '
+                    } else {
+                        $trs[] = '
                             <tr>
                                 <td style="width: 3%;"></td>
                                 <td style="width: 62%;"></td>
@@ -4399,55 +4393,55 @@ class Pdf_export extends CI_Controller {
                                 <td ></td>
                             </tr>
                             ';
-                        }
-                        
-                        
-                        $marks[2] = array(); //สร้าง array แยกแต่ละรายการ
-                        
-                        $dbs = convertObJectToArray( $vvpage );
-                      
-                        foreach ($marks[2] as $km => $vm) {
-                            $vm['[align]'] = isset($vm['[align]']) ? $vm['[align]'] : 'center';
-                            $vm['[val]'] = isset($dbs[$vm['key']]) ? $dbs[$vm['key']] : $vm['[val]'];
-                            $divs[] = str_replace(array_keys( $vm ), $vm, $template);
-                        }
-                        
                     }
 
-                    $trs_note = array();
-                    // var_dump($str_text);exit;
-                    if($vpage[0]->note){
-                        $trs_note[] = '
+
+                    $marks[2] = array(); //สร้าง array แยกแต่ละรายการ
+
+                    $dbs = convertObJectToArray($vvpage);
+
+                    foreach ($marks[2] as $km => $vm) {
+                        $vm['[align]'] = isset($vm['[align]']) ? $vm['[align]'] : 'center';
+                        $vm['[val]'] = isset($dbs[$vm['key']]) ? $dbs[$vm['key']] : $vm['[val]'];
+                        $divs[] = str_replace(array_keys($vm), $vm, $template);
+                    }
+
+                }
+
+                $trs_note = array();
+                // var_dump($str_text);exit;
+                if ($vpage[0]->note) {
+                    $trs_note[] = '
                         <tr>
-                            <td colspan="3" style="text-align: left;"><span class="label">หมายเหตุ : </span>'.implode("<br/> -",$str_text).'</td>
+                            <td colspan="3" style="text-align: left;"><span class="label">หมายเหตุ : </span>' . implode("<br/> -", $str_text) . '</td>
                         </tr>
-                    ';                    
-                    }
+                    ';
+                }
 
-                    $divTop =   110;
-                    $divleft = 27;
-                    $vat_name = $vpage[0]->su_vat_number != NULL ? 'เลขประจำตัวผู้เสียภาษี '.$vpage[0]->su_vat_number: "";
-                    $trs_client ='
-                    <div style="position:absolute; top:'.$divTop.'px; left:'.$divleft.'px; width: 500px">
+                $divTop = 110;
+                $divleft = 27;
+                $vat_name = $vpage[0]->su_vat_number != NULL ? 'เลขประจำตัวผู้เสียภาษี ' . $vpage[0]->su_vat_number : "";
+                $trs_client = '
+                    <div style="position:absolute; top:' . $divTop . 'px; left:' . $divleft . 'px; width: 500px">
                         
                         <table style="width: 250px; ">
                             <tr>
-                                <td style="text-align: left;">'.$company_name.'<br/>'.$company_address.'<br/>หมายเลขประจำตัวผู้เสียภาษี '.$company_vat_number.'<br/>'.$company_phone.'</td>
+                                <td style="text-align: left;">' . $company_name . '<br/>' . $company_address . '<br/>หมายเลขประจำตัวผู้เสียภาษี ' . $company_vat_number . '<br/>' . $company_phone . '</td>
                             </tr>
                             <tr>
                                 <td style="text-align: left;"><span class="label"><br/>ผู้จำหน่าย</span></td>
                             </tr>
                             <tr>
-                                <td style="text-align: left;">'.$vpage[0]->su_comname.'<br/>'.$vpage[0]->su_add.' '.$vpage[0]->su_city.' '.$vpage[0]->su_state.' '.$vpage[0]->su_zip.' '.$vpage[0]->su_country.'<br/>'. $vat_name.'</td>
+                                <td style="text-align: left;">' . $vpage[0]->su_comname . '<br/>' . $vpage[0]->su_add . ' ' . $vpage[0]->su_city . ' ' . $vpage[0]->su_state . ' ' . $vpage[0]->su_zip . ' ' . $vpage[0]->su_country . '<br/>' . $vat_name . '</td>
                             </tr>
                         </table>
                     </div>
                     ';
 
-                    $divTop +=   190;
-                    $divleft = 27;
-                    $tabletemplate = '
-                    <div style="position:absolute; top:'.$divTop.'px; left:'.$divleft.'px; width: 1000px">
+                $divTop += 190;
+                $divleft = 27;
+                $tabletemplate = '
+                    <div style="position:absolute; top:' . $divTop . 'px; left:' . $divleft . 'px; width: 1000px">
                         <table>
                             <tr>
                                 <td class="thStyle">#</td>
@@ -4457,66 +4451,66 @@ class Pdf_export extends CI_Controller {
                                 <td class="thStyle" style="text-align: right;">ราคาต่อหน่วย</td>
                                 <td class="thStyle" style="text-align: right;">ยอดรวม</td>
                             </tr>
-                            '.implode("",$trs).'
-                            '.implode("",$trs_total).'
-                            '.implode("",$trs_note).'
+                            ' . implode("", $trs) . '
+                            ' . implode("", $trs_total) . '
+                            ' . implode("", $trs_note) . '
                         </table>
                     </div>';
 
-                    $info_contact = array();
-                    $credit ='';
-                    
-                    if(!empty($po_id[0])&&!empty($po_id[1])){
-                        $sql = "SELECT pri.po_no, pri.supplier_id, purchaserequests.*
+                $info_contact = array();
+                $credit = '';
+
+                if (!empty($po_id[0]) && !empty($po_id[1])) {
+                    $sql = "SELECT pri.po_no, pri.supplier_id, purchaserequests.*
                             FROM pr_items pri
                             LEFT JOIN purchaserequests on purchaserequests.id = pri.pr_id                         
-                            WHERE pri.pr_id = ".$po_id[0]." AND pri.supplier_id=".$po_id[1]."";
-                        
-                        $result = $this->db->query($sql)->row();
-                        // var_dump($result);exit;
-                        $expired_d = isset($result->expired) ? $this->DateConvert($result->expired): "-";
-                        $pro_name = !empty($result->project_name) ? $result->project_name : "-";
-                        $info_contact[] ='
+                            WHERE pri.pr_id = " . $po_id[0] . " AND pri.supplier_id=" . $po_id[1] . "";
+
+                    $result = $this->db->query($sql)->row();
+                    // var_dump($result);exit;
+                    $expired_d = isset($result->expired) ? $this->DateConvert($result->expired) : "-";
+                    $pro_name = !empty($result->project_name) ? $result->project_name : "-";
+                    $info_contact[] = '
                             <tr>
                                 <td style="text-align: left; width: 50px; padding-left: 5px;"><span class="label">ชื่องาน</span></td>
-                                <td style="text-align: left;"><span>'.$pro_name.'</span></td>
+                                <td style="text-align: left;"><span>' . $pro_name . '</span></td>
                             </tr>
                         ';
 
-                        $credit = '
+                    $credit = '
                         <tr>
                             <td style="text-align: left; padding-left: 5px;"><span class="label">ครบกำหนด</span></td>
-                            <td style="text-align: left;"><span>'.$expired_d.'</span></td>
+                            <td style="text-align: left;"><span>' . $expired_d . '</span></td>
                         </tr>
                         ';
-                    }
-                    
-                    // arr($result);exit;
-                    $tax_ref = $vpage[0]->tax_ref != NULL ? $vpage[0]->tax_ref: "-";
-                    
+                }
 
-                    if(isset($vpage[0]->first_name)){
-                        $info_contact[] = '
+                // arr($result);exit;
+                $tax_ref = $vpage[0]->tax_ref != NULL ? $vpage[0]->tax_ref : "-";
+
+
+                if (isset($vpage[0]->first_name)) {
+                    $info_contact[] = '
                         <tr>
                             <td style="text-align: left; width: 50px; padding-left: 5px;"><span class="label">ผู้ติดต่อ</span></td>
-                            <td style="text-align: left;"><span>'.$vpage[0]->first_name.' '.$vpage[0]->last_name.'</span></td>
+                            <td style="text-align: left;"><span>' . $vpage[0]->first_name . ' ' . $vpage[0]->last_name . '</span></td>
                         </tr>
                         <tr>
                             <td style="text-align: left; padding-left: 5px;"><span class="label">เบอร์โทร</span></td>
-                            <td style="text-align: left; padding-left: 5px;"><span>'.$vpage[0]->phone.'</span></td>
+                            <td style="text-align: left; padding-left: 5px;"><span>' . $vpage[0]->phone . '</span></td>
                         </tr>
                         <tr>
                             <td style="text-align: left; padding-left: 5px;"><span class="label">Email</span></td>
-                            <td style="text-align: left; padding-left: 5px;"><span>'.$vpage[0]->email.'</span></td>
+                            <td style="text-align: left; padding-left: 5px;"><span>' . $vpage[0]->email . '</span></td>
                         </tr>';
-                    }
-                    
-                    $po= isset($result->po_no) ? $result->po_no : '-';
-                    // var_dump($vpage[0]->order_date);exit;
-                    $divTop =   30;
-                    $divleft = 410;
-                    $info_table = '
-                        <div style="position:absolute; top:'.$divTop.'px; left:'.$divleft.'px; width: 340px">
+                }
+
+                $po = isset($result->po_no) ? $result->po_no : '-';
+                // var_dump($vpage[0]->order_date);exit;
+                $divTop = 30;
+                $divleft = 410;
+                $info_table = '
+                        <div style="position:absolute; top:' . $divTop . 'px; left:' . $divleft . 'px; width: 340px">
                             <table style="width: 100%;">
                                 <tr>
                                     <th colspan="2" style="text-align: center; border-bottom: 1.5px solid #999; font-size:30px;"><span class="label">ใบรับสินค้า</span></th>
@@ -4524,24 +4518,24 @@ class Pdf_export extends CI_Controller {
                                 </tr>
                                 <tr>
                                     <td style="text-align: left; padding-left: 5px; width: 150px;"><span class="label">เลขที่</span></td>
-                                    <td style="text-align: left;"><span>'.$vpage[0]->doc_no.'</span></td>
+                                    <td style="text-align: left;"><span>' . $vpage[0]->doc_no . '</span></td>
                                 </tr>
                                 <tr>
                                     <td style="text-align: left; padding-left: 5px;"><span class="label">วันที่</span></td>
-                                    <td style="text-align: left;"><span>'.$this->DateConvert($vpage[0]->receipt_date).'</span></td>
+                                    <td style="text-align: left;"><span>' . $this->DateConvert($vpage[0]->receipt_date) . '</span></td>
                                 </tr>
-                                '.$credit.'
+                                ' . $credit . '
                                 <tr>
                                     <td style="text-align: left; padding-left: 5px;"><span class="label">ผู้สั่งซื้อ</span></td>
-                                    <td style="text-align: left;"><span>'.$fname.' '.$lname.'</span></td>
+                                    <td style="text-align: left;"><span>' . $fname . ' ' . $lname . '</span></td>
                                 </tr>
                                 <tr>
                                     <td style="text-align: left; padding-left: 5px;"><span class="label"> อ้างอิงใบสั่งซื้อ</span></td>
-                                    <td style="text-align: left;"><span>'.$po.'</span></td>
+                                    <td style="text-align: left;"><span>' . $po . '</span></td>
                                 </tr>
                                 <tr>
                                     <td style="text-align: left; padding-left: 5px; border-bottom: 1.5px solid #999;"><span class="label">อ้างอิงใบกำกับภาษี</span></td>
-                                    <td style="text-align: left; border-bottom: 1.5px solid #999;"><span>'.$tax_ref.'</span></td>
+                                    <td style="text-align: left; border-bottom: 1.5px solid #999;"><span>' . $tax_ref . '</span></td>
                                 </tr>
 
                                 <tr>
@@ -4550,18 +4544,18 @@ class Pdf_export extends CI_Controller {
                                 <tr>
                                     <td></td>
                                 </tr>
-                                '.implode("",$info_contact).'
+                                ' . implode("", $info_contact) . '
                             </table>
                         </div>';
 
-                    $divTop =   990;
-                    $divleft = 27;
-                    $trs_approve = '<div style="position:absolute; top:'.$divTop.'px; left:'.$divleft.'px; width: 750px; ">
+                $divTop = 990;
+                $divleft = 27;
+                $trs_approve = '<div style="position:absolute; top:' . $divTop . 'px; left:' . $divleft . 'px; width: 750px; ">
                         <table>
                             <tr>
-                                <td colspan="2">ในนาม '.$vpage[0]->su_comname.'</td>
+                                <td colspan="2">ในนาม ' . $vpage[0]->su_comname . '</td>
                                 <td></td>
-                                <td colspan="2">ในนาม '.$company_name.'</td>
+                                <td colspan="2">ในนาม ' . $company_name . '</td>
                             </tr>
                             <tr>
                                 <td style="height: 100px;">___________________________<p>ผู้ขาย</p></td>
@@ -4572,9 +4566,9 @@ class Pdf_export extends CI_Controller {
                             </tr>                            
                         </table>
                     </div>';
-              
 
-                    $html = ' 
+
+                $html = ' 
                             <style>
                             div{
                                 font-size: 17px;
@@ -4611,36 +4605,36 @@ class Pdf_export extends CI_Controller {
                             }
                            
                             </style>
-                            '.$logo_es.'
-                            '.$trs_client.'
-                            '.$info_table.'
-                            '.$tabletemplate.'
-                            '.$trs_approve.'
-                            '. implode('', $divs) . '
+                            ' . $logo_es . '
+                            ' . $trs_client . '
+                            ' . $info_table . '
+                            ' . $tabletemplate . '
+                            ' . $trs_approve . '
+                            ' . implode('', $divs) . '
                         ';
-                        
-                        //  . implode('', $divs) . 
-                        $mpdf->AddPage('P');
-                        $mpdf->SetTitle($vpage[0]->doc_no);
-                        // var_dump($mpdf->AddPage('P'));exit;
-                        $pagecount = $mpdf->SetSourceFile('pdf_Template/template.pdf');
-                        $tplId = $mpdf->importPage(1);
-                        $mpdf->useTemplate($tplId);
-                        $mpdf->WriteHTML($html);   
-                }
-                
-                
-            } 
-                
-            // $mpdf->Output();
-            $mpdf->Output($vpage[0]->doc_no.'.pdf', \Mpdf\Output\Destination::DOWNLOAD);       
-       
+
+                //  . implode('', $divs) . 
+                $mpdf->AddPage('P');
+                $mpdf->SetTitle($vpage[0]->doc_no);
+                // var_dump($mpdf->AddPage('P'));exit;
+                $pagecount = $mpdf->SetSourceFile('pdf_Template/template.pdf');
+                $tplId = $mpdf->importPage(1);
+                $mpdf->useTemplate($tplId);
+                $mpdf->WriteHTML($html);
+            }
+
+
         }
 
+        // $mpdf->Output();
+        $mpdf->Output($vpage[0]->doc_no . '.pdf', \Mpdf\Output\Destination::DOWNLOAD);
 
-        public function receipt_taxinvoices_pdf($receipt_taxinvoices_id = 0 )
-        {            
-            
+    }
+
+
+    public function receipt_taxinvoices_pdf($receipt_taxinvoices_id = 0)
+    {
+
         $template = '<div style="text-align: [align]; position:absolute; top:[top]px; left:[left]px; width:[w]px; height:[h]px;"><span>[val]</span></div>';
 
         $defaultConfig = (new Mpdf\Config\ConfigVariables())->getDefaults();
@@ -4648,7 +4642,7 @@ class Pdf_export extends CI_Controller {
 
         $defaultFontConfig = (new Mpdf\Config\FontVariables())->getDefaults();
         $fontData = $defaultFontConfig['fontdata'];
-            
+
         $mpdf = new \Mpdf\Mpdf([
             'autoPageBreak' => false,
             'fontDir' => array_merge($fontDirs, [
@@ -4665,10 +4659,10 @@ class Pdf_export extends CI_Controller {
             'tempDir' => '/tmp'
         ]);
         $mpdf->charset_in = 'UTF-8';
-        
+
 
         $keep = array();
-        
+
         $company_address = nl2br(get_setting("company_address"));
         $company_phone = get_setting("company_phone");
         $company_vat_number = get_setting("company_vat_number");
@@ -4708,88 +4702,88 @@ class Pdf_export extends CI_Controller {
         $method = [1 => 'เงินสด', 5 => 'เช็ค', 6 => 'โอนเงิน', 7 => 'เครดิต'];
         $cal_payment = $this->Receipt_taxinvoices_model->get_receipt_taxinvoice_total_summary($receipt_taxinvoices_id);
         // var_dump($cal_payment);exit;
-        
-        $sql_invo_pay ="SELECT pay_spilter FROM receipt_taxinvoices WHERE receipt_taxinvoices.id = $receipt_taxinvoices_id";
+
+        $sql_invo_pay = "SELECT pay_spilter FROM receipt_taxinvoices WHERE receipt_taxinvoices.id = $receipt_taxinvoices_id";
         $result = $this->db->query($sql_invo_pay)->row();
         $get_ps = $this->db->query($sql)->row();
         // var_dump($get_ps);exit;
-        if($cal_payment->tax_name){
+        if ($cal_payment->tax_name) {
             $tax_name = $cal_payment->tax_name;
-        }else{
+        } else {
             $tax_name = "-";
         }
 
-        $pay_spliter ="";
+        $pay_spliter = "";
 
-        $val1 = ($result->pay_spilter*$cal_payment->tax_percentage)/100;
-        $val2 = ($result->pay_spilter*$cal_payment->tax_percentage2)/100;
+        $val1 = ($result->pay_spilter * $cal_payment->tax_percentage) / 100;
+        $val2 = ($result->pay_spilter * $cal_payment->tax_percentage2) / 100;
 
-        $trs_deposit ='';
-        if($cal_payment->deposit != 0 && $cal_payment->include_deposit == 1){
+        $trs_deposit = '';
+        if ($cal_payment->deposit != 0 && $cal_payment->include_deposit == 1) {
             $trs_deposit = '
             <tr>
                 <td colspan="3"></td> 
                 <td colspan="2" style="text-align: right;"><span class="label" >วางค่ามัดจำแล้ว</span></td>
-                <td style="text-align: right;">'.number_format($cal_payment->deposit,2,'.',',').' บาท</td>
+                <td style="text-align: right;">' . number_format($cal_payment->deposit, 2, '.', ',') . ' บาท</td>
             </tr>
             ';
 
         }
 
-        $trs_paid ="";
+        $trs_paid = "";
         $total_paids = 0;
-        if(isset($cal_payment->total_paid)){
+        if (isset($cal_payment->total_paid)) {
             $trs_paid = '
             <tr>
                 <td colspan="3"></td> 
                 <td colspan="2" style="text-align: right;"><span class="label" >จ่ายแล้ว</span></td>
-                <td style="text-align: right;">'.number_format($cal_payment->total_paid,2,'.',',').' บาท</td>
+                <td style="text-align: right;">' . number_format($cal_payment->total_paid, 2, '.', ',') . ' บาท</td>
             </tr>
             ';
-        $total_paids = isset($cal_payment->total_paid) ? $cal_payment->total_paid : 0;
+            $total_paids = isset($cal_payment->total_paid) ? $cal_payment->total_paid : 0;
         }
-        
 
-        
-            if($get_ps->pay_type == "percentage"){
-                $get_ps_data = $get_ps->pay_sp.' %';
-            }else{
-                $get_ps_data = $get_ps->pay_sp.' งวด';
+
+
+        if ($get_ps->pay_type == "percentage") {
+            $get_ps_data = $get_ps->pay_sp . ' %';
+        } else {
+            $get_ps_data = $get_ps->pay_sp . ' งวด';
+        }
+
+
+        $tax_n_pay = '';
+        if (!empty($cal_payment->tax_id)) {
+            if ($cal_payment->tax_percentage == 7) {
+                $ture_val1 = ($result->pay_spilter - $total_paids) + $val1;
+            } else {
+                $ture_val1 = ($result->pay_spilter - $total_paids) - $val1;
             }
-            
 
-            $tax_n_pay ='';
-            if(!empty($cal_payment->tax_id)){
-                if($cal_payment->tax_percentage == 7 ){
-                    $ture_val1 = ($result->pay_spilter-$total_paids) + $val1 ;
-                }else{
-                    $ture_val1 = ($result->pay_spilter-$total_paids) - $val1;
-                }
-
-                $tax_n_pay = '
+            $tax_n_pay = '
                 <tr>
                     <td colspan="3"></td> 
-                    <td colspan="2" style="text-align: right;"><span class="label">'.$tax_name.'</span></td>
-                    <td style="text-align: right;">'.number_format($val1,2,'.',',').' บาท</td>
+                    <td colspan="2" style="text-align: right;"><span class="label">' . $tax_name . '</span></td>
+                    <td style="text-align: right;">' . number_format($val1, 2, '.', ',') . ' บาท</td>
                 </tr>
                 <tr>
-                    <td colspan="3" style="text-align: left;"><span>('.$this->Convert($total_paids).')</span></td> 
+                    <td colspan="3" style="text-align: left;"><span>(' . $this->Convert($total_paids) . ')</span></td> 
                     <td colspan="2" style="text-align: right;"><span class="label" >จำนวนเงินรวมทั้งสิ้น</span></td>
-                    <td style="text-align: right;">'.number_format($total_paids,2,'.',',').' บาท</td>
+                    <td style="text-align: right;">' . number_format($total_paids, 2, '.', ',') . ' บาท</td>
                 </tr>
                 ';
-            }else{
-                $tax_n_pay = '';
+        } else {
+            $tax_n_pay = '';
+        }
+        if (!empty($cal_payment->tax_id2)) {
+            $tax_name2 = isset($cal_payment->tax_name2) ? $cal_payment->tax_name2 : "-";
+            if ($cal_payment->tax_percentage2 == 3) {
+                $ture_val2 = $ture_val1 - $val2;
+            } else {
+                $ture_val2 = $ture_val1 + $val2;
             }
-            if(!empty($cal_payment->tax_id2)){
-                $tax_name2 = isset($cal_payment->tax_name2) ? $cal_payment->tax_name2 : "-";
-                if($cal_payment->tax_percentage2 == 3 ){
-                    $ture_val2 = $ture_val1 - $val2 ;
-                }else{
-                    $ture_val2 = $ture_val1 + $val2;
-                }
-                
-                $tax2_n_pay ='
+
+            $tax2_n_pay = '
                 <tr>
                     <td colspan="3"></td> 
                     <td colspan="3" style="border-top: 2px solid #999; height:10px;" ></td>                 
@@ -4797,183 +4791,181 @@ class Pdf_export extends CI_Controller {
                             
                 <tr>
                    <td colspan="3"></td> 
-                   <td colspan="2" style="text-align: right;"><span class="label">'.$tax_name2.'</span></td>
-                   <td style="text-align: right;">'.number_format($val2,2,'.',',').' บาท</td>
+                   <td colspan="2" style="text-align: right;"><span class="label">' . $tax_name2 . '</span></td>
+                   <td style="text-align: right;">' . number_format($val2, 2, '.', ',') . ' บาท</td>
                </tr>
                <tr>
                    <td colspan="3"></td> 
                    <td colspan="2" style="text-align: right;"><span class="label" >ยอดชำระ</span></td>
-                   <td style="text-align: right;">'.number_format($ture_val2,2,'.',',').' บาท</td>
+                   <td style="text-align: right;">' . number_format($ture_val2, 2, '.', ',') . ' บาท</td>
                </tr>
                
                 ';
-            }else{
-                $tax2_n_pay = '';
-            }
+        } else {
+            $tax2_n_pay = '';
+        }
 
-            
-            // var_dump($get_ps_data);
-            if($get_ps->pay_type == "time"){
-                if(!empty(json_decode($get_ps->pay_sps))){
-                    $pay_spliter = '
+
+        // var_dump($get_ps_data);
+        if ($get_ps->pay_type == "time") {
+            if (!empty(json_decode($get_ps->pay_sps))) {
+                $pay_spliter = '
                     <tr><td style="height: 2mm;"></td></tr>
                     <tr>
                         <td colspan="2"></td> 
                         <td colspan="3" style="text-align: right;"><span class="label">แบ่งชำระ</span></td>
-                        <td style="text-align: right;">'.number_format($result->pay_spilter,2,'.',',').' บาท</td>
+                        <td style="text-align: right;">' . number_format($result->pay_spilter, 2, '.', ',') . ' บาท</td>
                     </tr>
-                    '.$trs_paid.'  
-                    '.$tax_n_pay.'
-                    '.$tax2_n_pay.'
+                    ' . $trs_paid . '  
+                    ' . $tax_n_pay . '
+                    ' . $tax2_n_pay . '
                              
                     ';
-                }else{
-                    $pay_spliter = '
+            } else {
+                $pay_spliter = '
                     <tr><td style="height: 2mm;"></td></tr>
                     <tr>
                         <td colspan="2"></td> 
-                        <td colspan="3" style="text-align: right;"><span class="label">แบ่งชำระ '.$get_ps_data.'</span></td>
-                        <td style="text-align: right;">'.number_format($result->pay_spilter,2,'.',',').' บาท</td>
+                        <td colspan="3" style="text-align: right;"><span class="label">แบ่งชำระ ' . $get_ps_data . '</span></td>
+                        <td style="text-align: right;">' . number_format($result->pay_spilter, 2, '.', ',') . ' บาท</td>
                     </tr>
-                    '.$trs_paid.'  
-                    '.$tax_n_pay.'
-                    '.$tax2_n_pay.'
+                    ' . $trs_paid . '  
+                    ' . $tax_n_pay . '
+                    ' . $tax2_n_pay . '
                        
                     ';
-                }
+            }
 
-            }else{
-                $pay_spliter = '
+        } else {
+            $pay_spliter = '
                     <tr><td style="height: 2mm;"></td></tr>
 
 
-            '.$tax_n_pay.'
-            '.$tax2_n_pay.'
+            ' . $tax_n_pay . '
+            ' . $tax2_n_pay . '
                       
             ';
-            }
-            
-        
+        }
 
 
-        $tax_cal1 = $cal_payment->receipt_taxinvoice_subtotal+$cal_payment->tax;
+
+
+        $tax_cal1 = $cal_payment->receipt_taxinvoice_subtotal + $cal_payment->tax;
         $tax_name2 = isset($cal_payment->tax_name2) ? $cal_payment->tax_name2 : "-";
-            if($cal_payment->tax_id == 1){
-                
-                $tax_val = ($cal_payment->receipt_taxinvoice_subtotal - $cal_payment->deposit - $cal_payment->discount_total) + $cal_payment->tax - $cal_payment->tax2;
-            }else{
-                $tax_val = ($cal_payment->receipt_taxinvoice_subtotal - $cal_payment->deposit - $cal_payment->discount_total) - $cal_payment->tax + $cal_payment->tax2;
-                
-            }
+        if ($cal_payment->tax_id == 1) {
 
-            
-            $trs_total_tax="";
+            $tax_val = ($cal_payment->receipt_taxinvoice_subtotal - $cal_payment->deposit - $cal_payment->discount_total) + $cal_payment->tax - $cal_payment->tax2;
+        } else {
+            $tax_val = ($cal_payment->receipt_taxinvoice_subtotal - $cal_payment->deposit - $cal_payment->discount_total) - $cal_payment->tax + $cal_payment->tax2;
 
-            $trs_bar = '
+        }
+
+
+        $trs_total_tax = "";
+
+        $trs_bar = '
             <tr>
                 <td colspan="3"></td> 
                 <td colspan="3" style="border-top: 2px solid #999; height:10px;" ></td>                 
             </tr>';
 
-            
 
-            
 
-            // if($get_ps->credit != 0){
-                $new_tax = $result->pay_spilter;
-            // }else{
-                // $new_tax = $cal_payment->tax_id == 1 ? $tax_cal1 : $tax_val;                
-            // }
-        
-    //  var_dump($get_ps);exit;
-    // var_dump($cal_payment);exit;
-     if($get_ps->include_deposit == 2){
-        $trs_tax_d = '';
-        if($cal_payment->tax){
-            $trs_tax_d ='
+
+
+        // if($get_ps->credit != 0){
+        $new_tax = $result->pay_spilter;
+        // }else{
+        // $new_tax = $cal_payment->tax_id == 1 ? $tax_cal1 : $tax_val;                
+        // }
+
+        //  var_dump($get_ps);exit;
+        // var_dump($cal_payment);exit;
+        if ($get_ps->include_deposit == 2) {
+            $trs_tax_d = '';
+            if ($cal_payment->tax) {
+                $trs_tax_d = '
             <tr>
                 <td colspan="3"></td> 
-                <td colspan="2" style="text-align: right;"><span class="label">'.$tax_name.'</span></td>
-                <td style="text-align: right;">'.number_format($cal_payment->tax,2,'.',',').' บาท</td>
+                <td colspan="2" style="text-align: right;"><span class="label">' . $tax_name . '</span></td>
+                <td style="text-align: right;">' . number_format($cal_payment->tax, 2, '.', ',') . ' บาท</td>
             </tr>
             ';
-        }
+            }
 
-        $trs_tax_d2 = '';
-        if($cal_payment->tax2){
-            $trs_tax_d2 ='
+            $trs_tax_d2 = '';
+            if ($cal_payment->tax2) {
+                $trs_tax_d2 = '
             <tr>
                 <td colspan="3"></td> 
-                <td colspan="2" style="text-align: right;"><span class="label">'.$tax_name2.'</span></td>
-                <td style="text-align: right;">'.number_format($cal_payment->tax2,2,'.',',').' บาท</td>
+                <td colspan="2" style="text-align: right;"><span class="label">' . $tax_name2 . '</span></td>
+                <td style="text-align: right;">' . number_format($cal_payment->tax2, 2, '.', ',') . ' บาท</td>
             </tr>
             ';
-        }
+            }
 
-        $trs_total[] ='
+            $trs_total[] = '
             <tr>
                 <td colspan="3"></td> 
                 <td colspan="2" style="text-align: right;"><span class="label">รวมเป็นเงิน</span></td>
-                <td style="text-align: right;">'.number_format($cal_payment->receipt_taxinvoice_subtotal,2,'.',',').' บาท</td>
+                <td style="text-align: right;">' . number_format($cal_payment->receipt_taxinvoice_subtotal, 2, '.', ',') . ' บาท</td>
             </tr>
-            '.$trs_tax_d.'
-            '.$trs_tax_d2.'
+            ' . $trs_tax_d . '
+            ' . $trs_tax_d2 . '
             <tr>
                 <td colspan="3"></td> 
                 <td colspan="2" style="text-align: right;"><span class="label" >จำนวนเงินรวมทั้งสิ้น</span></td>
-                <td style="text-align: right;">'.number_format($cal_payment->invoice_total,2,'.',',').' บาท</td>
+                <td style="text-align: right;">' . number_format($cal_payment->invoice_total, 2, '.', ',') . ' บาท</td>
             </tr>
             <tr>
-                <td colspan="3" style="text-align: left;"><span>('.$this->Convert($cal_payment->invoice_total).')</span></td> 
-                <td colspan="3" style="font-size: 20px; background-color:#D8D8D8" ><span class="label" >ยอดคงเหลือชำระ: '.number_format($cal_payment->total_es - $cal_payment->invoice_total,2,'.',',').' บาท</span></td> 
+                <td colspan="3" style="text-align: left;"><span>(' . $this->Convert($cal_payment->invoice_total) . ')</span></td> 
+                <td colspan="3" style="font-size: 20px; background-color:#D8D8D8" ><span class="label" >ยอดคงเหลือชำระ: ' . number_format($cal_payment->total_es - $cal_payment->invoice_total, 2, '.', ',') . ' บาท</span></td> 
             </tr>
         ';
-     }
+        } else if ($cal_payment->discount_total == '') {
 
-        else if($cal_payment->discount_total == ''){
-            
-            $a ='';
+            $a = '';
 
-            if(!empty($cal_payment->tax2)){
-                
-                if(isset($tax_cal1)){
-                    $cal_tax2 = $new_tax-$cal_payment->tax2;
-                }else{
+            if (!empty($cal_payment->tax2)) {
+
+                if (isset($tax_cal1)) {
+                    $cal_tax2 = $new_tax - $cal_payment->tax2;
+                } else {
                     $cal_tax2 = $tax_val;
                 }
 
                 $trs_total_tax = ' 
-                    '.$trs_bar.'               
+                    ' . $trs_bar . '               
                      <tr>
                         <td colspan="3"></td> 
-                        <td colspan="2" style="text-align: right;"><span class="label">'.$tax_name2.'</span></td>
-                        <td style="text-align: right;">'.number_format($cal_payment->tax2,2,'.',',').' บาท</td>
+                        <td colspan="2" style="text-align: right;"><span class="label">' . $tax_name2 . '</span></td>
+                        <td style="text-align: right;">' . number_format($cal_payment->tax2, 2, '.', ',') . ' บาท</td>
                     </tr>
                     <tr>
                         <td colspan="3"></td> 
                         <td colspan="2" style="text-align: right;"><span class="label" >ยอดชำระ</span></td>
-                        <td style="text-align: right;">'.number_format($cal_tax2,2,'.',',').' บาท</td>
+                        <td style="text-align: right;">' . number_format($cal_tax2, 2, '.', ',') . ' บาท</td>
                     </tr>
                    
                     
                 ';
-         }
+            }
 
-            if(empty($pay_spliter)){
+            if (empty($pay_spliter)) {
                 $a = '
                      <tr>
                             <td colspan="2"></td> 
-                            <td colspan="3" style="text-align: right;"><span class="label">'.$tax_name.'</span></td>
-                            <td style="text-align: right;">'.number_format($cal_payment->tax,2,'.',',').' บาท</td>
+                            <td colspan="3" style="text-align: right;"><span class="label">' . $tax_name . '</span></td>
+                            <td style="text-align: right;">' . number_format($cal_payment->tax, 2, '.', ',') . ' บาท</td>
                         </tr>
                         
                         
                         <tr>                            
-                            <td colspan="2" style="text-align: left;" ><span>('.$this->Convert($new_tax).')</span></td> 
+                            <td colspan="2" style="text-align: left;" ><span>(' . $this->Convert($new_tax) . ')</span></td> 
                             <td colspan="3" style="text-align: right;"><span class="label" >จำนวนเงินรวมทั้งสิ้น</span></td>
-                            <td style="text-align: right;">'.number_format($new_tax,2,'.',',').' บาท</td>
+                            <td style="text-align: right;">' . number_format($new_tax, 2, '.', ',') . ' บาท</td>
                         </tr>
-                        '.$trs_total_tax.'
+                        ' . $trs_total_tax . '
             ';
             }
 
@@ -4981,462 +4973,462 @@ class Pdf_export extends CI_Controller {
                         <tr>
                             <td colspan="2"></td>                            
                             <td colspan="3" style="text-align: right; margin-top: 4%"><span class="label">รวมเป็นเงิน</span></td>                            
-                            <td style="text-align: right;">'.number_format($cal_payment->receipt_taxinvoice_subtotal,2,'.',',').' บาท</td>
+                            <td style="text-align: right;">' . number_format($cal_payment->receipt_taxinvoice_subtotal, 2, '.', ',') . ' บาท</td>
                         </tr>
-                        '.$trs_deposit.'
-                        '.$a.'
-                        '.$pay_spliter.'
+                        ' . $trs_deposit . '
+                        ' . $a . '
+                        ' . $pay_spliter . '
 
                     ';
-                    
-        }else if($cal_payment->discount_type == "before_tax"){//before_tax
-            
 
-        $trs_vat ='';
-        if(empty($pay_spliter)){
-            if(isset($cal_payment->tax)){
-                $cal_tax = ($cal_payment->receipt_taxinvoice_subtotal - $cal_payment->deposit - $cal_payment->discount_total) + $cal_payment->tax;
-            }else{
-                $cal_tax = ($cal_payment->receipt_taxinvoice_subtotal - $cal_payment->deposit - $cal_payment->discount_total) - $cal_payment->tax;
-            }
+        } else if ($cal_payment->discount_type == "before_tax") { //before_tax
 
-            if($cal_payment->tax2 != NULL){
-                
-                if(isset($cal_tax)){
-                    $cal_tax2 = $cal_tax - $cal_payment->tax2;
-                }else{
-                    $cal_tax2 = $cal_tax + $cal_payment->tax2;
+
+            $trs_vat = '';
+            if (empty($pay_spliter)) {
+                if (isset($cal_payment->tax)) {
+                    $cal_tax = ($cal_payment->receipt_taxinvoice_subtotal - $cal_payment->deposit - $cal_payment->discount_total) + $cal_payment->tax;
+                } else {
+                    $cal_tax = ($cal_payment->receipt_taxinvoice_subtotal - $cal_payment->deposit - $cal_payment->discount_total) - $cal_payment->tax;
                 }
-    
-                $trs_total_tax = ' 
-                    '.$trs_bar.'               
+
+                if ($cal_payment->tax2 != NULL) {
+
+                    if (isset($cal_tax)) {
+                        $cal_tax2 = $cal_tax - $cal_payment->tax2;
+                    } else {
+                        $cal_tax2 = $cal_tax + $cal_payment->tax2;
+                    }
+
+                    $trs_total_tax = ' 
+                    ' . $trs_bar . '               
                      <tr>
                         <td colspan="3"></td> 
-                        <td colspan="2" style="text-align: right;"><span class="label">'.$tax_name2.'</span></td>
-                        <td style="text-align: right;">'.number_format($cal_payment->tax2,2,'.',',').' บาท</td>
+                        <td colspan="2" style="text-align: right;"><span class="label">' . $tax_name2 . '</span></td>
+                        <td style="text-align: right;">' . number_format($cal_payment->tax2, 2, '.', ',') . ' บาท</td>
                     </tr>
                     <tr>
                         <td colspan="3"></td> 
                         <td colspan="2" style="text-align: right;"><span class="label" >ยอดชำระ</span></td>
-                        <td style="text-align: right;">'.number_format($cal_tax2,2,'.',',').' บาท</td>
+                        <td style="text-align: right;">' . number_format($cal_tax2, 2, '.', ',') . ' บาท</td>
                     </tr>
                    
                     
                 ';
-            }
-            $trs_vat ='
+                }
+                $trs_vat = '
                 <tr>
                     <td colspan="3"></td> 
-                    <td colspan="2" style="text-align: right;"><span class="label">'.$tax_name.'</span></td>
-                    <td style="text-align: right;">'.number_format($cal_payment->tax,2,'.',',').' บาท</td>
+                    <td colspan="2" style="text-align: right;"><span class="label">' . $tax_name . '</span></td>
+                    <td style="text-align: right;">' . number_format($cal_payment->tax, 2, '.', ',') . ' บาท</td>
                 </tr> 
             
             <tr>
-                <td colspan="3" style="text-align: left;"><span>('.$this->Convert($tax_val).')</span></td> 
+                <td colspan="3" style="text-align: left;"><span>(' . $this->Convert($tax_val) . ')</span></td> 
                 <td colspan="2" style="text-align: right;"><span class="label" >จำนวนเงินรวมทั้งสิ้น</span></td>
-                <td style="text-align: right;">'.number_format($cal_tax,2,'.',',').' บาท</td>
+                <td style="text-align: right;">' . number_format($cal_tax, 2, '.', ',') . ' บาท</td>
             </tr>
-            '.$trs_total_tax.' 
+            ' . $trs_total_tax . ' 
             ';
 
-        }
+            }
 
-        
-        
 
-        $trs_total[] = '
+
+
+            $trs_total[] = '
                     <tr>
                     <td colspan="3" style="border-top: 1.5px solid #999;"></td>                            
                         <td colspan="2" style="text-align: right; margin-top: 4%; border-top: 1.5px solid #999;"><span class="label">รวมเป็นเงิน</span></td>                            
-                        <td style="text-align: right; border-top: 1.5px solid #999;">'.number_format($cal_payment->receipt_taxinvoice_subtotal,2,'.',',').' บาท</td>
+                        <td style="text-align: right; border-top: 1.5px solid #999;">' . number_format($cal_payment->receipt_taxinvoice_subtotal, 2, '.', ',') . ' บาท</td>
                     </tr>
-                    '.$trs_deposit.'
+                    ' . $trs_deposit . '
 
-                    '.$trs_vat.'
+                    ' . $trs_vat . '
                                     
-                    '.$pay_spliter.'
+                    ' . $pay_spliter . '
                 ';
-                // <td ><span>'.$this->Convert($cal_payment->estimate_total).'</span></td> 
-                
+            // <td ><span>'.$this->Convert($cal_payment->estimate_total).'</span></td> 
 
-            }else if($cal_payment->discount_type == "after_tax"){//after_tax
 
-                $trs_total[] = '
+        } else if ($cal_payment->discount_type == "after_tax") { //after_tax
+
+            $trs_total[] = '
                     <tr>
                         <td colspan="3" style="border-top: 1.5px solid #999;"></td>                            
                         <td colspan="2" style="text-align: right; border-top: 1.5px solid #999;"><span class="label">รวมเป็นเงิน</span></td>                            
-                        <td style="text-align: right; border-top: 1.5px solid #999;">'.number_format($cal_payment->receipt_taxinvoice_subtotal,2,'.',',').' บาท</td>
+                        <td style="text-align: right; border-top: 1.5px solid #999;">' . number_format($cal_payment->receipt_taxinvoice_subtotal, 2, '.', ',') . ' บาท</td>
                     </tr>                    
                     <tr>
                         <td colspan="3"></td> 
-                        <td colspan="2" style="text-align: right;"><span class="label">'.$tax_name.'</span></td>
-                        <td style="text-align: right;">'.number_format($cal_payment->tax,2,'.',',').' บาท</td>
+                        <td colspan="2" style="text-align: right;"><span class="label">' . $tax_name . '</span></td>
+                        <td style="text-align: right;">' . number_format($cal_payment->tax, 2, '.', ',') . ' บาท</td>
                     </tr>
-                    '.$trs_total_tax.'
+                    ' . $trs_total_tax . '
                     <tr>
                         <td colspan="3"></td> 
                         <td colspan="2" style="text-align: right;"><span class="label"><u>หัก</u> ส่วนลด</span></td>
-                        <td style="text-align: right;">'.number_format($cal_payment->discount_total,2,'.',',').' บาท</td>
+                        <td style="text-align: right;">' . number_format($cal_payment->discount_total, 2, '.', ',') . ' บาท</td>
                     </tr>                  
                                        
                     <tr>                        
-                        <td colspan="3" style="text-align: left;"><span>('.$this->Convert($tax_val).')</span></td>                        
+                        <td colspan="3" style="text-align: left;"><span>(' . $this->Convert($tax_val) . ')</span></td>                        
                         <td colspan="2" style="text-align: right;"><span class="label" >จำนวนเงินหลังหักส่วนลด</span></td>
-                        <td style="text-align: right;">'.number_format($tax_val,2,'.',',').' บาท</td>
+                        <td style="text-align: right;">' . number_format($tax_val, 2, '.', ',') . ' บาท</td>
                     </tr>
                     
                     
-                    '.$pay_spliter.'
+                    ' . $pay_spliter . '
                     
                    
 
                 ';
 
-            }
-            
+        }
+
 
         $left = 460;
         $marks[1] = array();
-        $user_signature = $this->Db_model->signature_approve($receipt_taxinvoices_id,"receipt_taxinvoices");
-       
+        $user_signature = $this->Db_model->signature_approve($receipt_taxinvoices_id, "receipt_taxinvoices");
+
         // var_dump($user_signature);exit;
-        if( $user_signature){
-            if($user_signature->signature == ''){
+        if ($user_signature) {
+            if ($user_signature->signature == '') {
                 $top = 500;
                 $left = 450;
                 $marks[1][] = array('key' => 'signauture', '[left]' => $left, '[w]' => 130, '[top]' => $top, '[val]' => $user_signature->first_name, '[align]' => 'center');
-            }else{
+            } else {
                 $top = 500;
-                $marks[1][] = array('key' => 'signauture', '[left]' => $left, '[w]' => 130, '[top]' => $top, '[val]' => '<img src='.base_url().$user_signature->signature.'>', '[align]' => 'center');
+                $marks[1][] = array('key' => 'signauture', '[left]' => $left, '[w]' => 130, '[top]' => $top, '[val]' => '<img src=' . base_url() . $user_signature->signature . '>', '[align]' => 'center');
             }
-            $top=500;
+            $top = 500;
             $left += 155;
             $marks[1][] = array('key' => 'date_approved', '[left]' => $left, '[w]' => 130, '[top]' => $top, '[val]' => $this->DateConvert($user_signature->doc_date), '[align]' => 'center');
         }
-        
+
 
         //End Item-List------------------------------------------------------------------------------------------------------------
-        
+
 
         $rangItem = 4;
 
-        foreach( $this->Db_model->fetchAll($sql) as $parentKey => $child ){
-            
-            if(!isset($keep[$child->InvId])){
+        foreach ($this->Db_model->fetchAll($sql) as $parentKey => $child) {
+
+            if (!isset($keep[$child->InvId])) {
                 $page = 1;
             }
-            
+
             $keep[$child->InvId][$page][] = $child;
-            
-            if(count($keep[$child->InvId][$page]) == $rangItem ){
+
+            if (count($keep[$child->InvId][$page]) == $rangItem) {
                 $page += 1;
             }
-            
+
         }
 
-        
-        
-        foreach( $keep as $kd => $kv ){
+
+
+        foreach ($keep as $kd => $kv) {
             // var_dump($kv);exit;
-            $i=1;
-            
-            foreach( $kv as $kpage => $vpage ){
+            $i = 1;
+
+            foreach ($kv as $kpage => $vpage) {
                 // var_dump($vpage);exit;
-                
-                
+
+
                 $dbs = convertObJectToArray($vpage[0]);
-                $dbs = array_merge($dbs,[
+                $dbs = array_merge($dbs, [
                     'bill_date' => $this->DateConvert($vpage[0]->bill_date),
                     'due_date' => $this->DateConvert($vpage[0]->due_date),
                     'amout_name' => '<span class="label">รวมเงิน</span>',
-                    'vat_name' => '<span class="label">'.isset($cal_payment->tax_name) ? '<span class="label">'.$cal_payment->tax_name.'</span>' : "-".'</span>',
+                    'vat_name' => '<span class="label">' . isset($cal_payment->tax_name) ? '<span class="label">' . $cal_payment->tax_name . '</span>' : "-" . '</span>',
                     'total_name' => '<span class="label">รวมเงินทั้งสิ้น</span>',
                     // 'note' => '<span class="label">หมายเหตุ : </span> '.implode("<br/> -",$str_text)
-                         
+
                 ]);
-                
-                
-                $divs = array(); 
-                
+
+
+                $divs = array();
+
                 foreach ($marks[1] as $km => $vm) {
                     $vm['[align]'] = isset($vm['[align]']) ? $vm['[align]'] : 'left';
                     $vm['[val]'] = isset($dbs[$vm['key']]) ? $dbs[$vm['key']] : $vm['[val]'];
-                    $divs[] = str_replace(array_keys( $vm ), $vm, $template);
-                } 
-                
+                    $divs[] = str_replace(array_keys($vm), $vm, $template);
+                }
+
                 // exit;
                 $top = 326;
-                $trs =array();     
-                foreach($vpage as $vkpage => $vvpage ){
+                $trs = array();
+                foreach ($vpage as $vkpage => $vvpage) {
                     // var_dump($vvpage);exit;
-                    
-                    if($vvpage->include_deposit == 2){
+
+                    if ($vvpage->include_deposit == 2) {
                         $trs[] = '
                         <tr>
-                            <td style="width: 5%; border-bottom: 1px solid #999; vertical-align: top;">'.$i++.'</td>
-                            <td style="text-align: left; width: 55%; border-bottom: 1px solid #999;">'.$vvpage->itTitle.'<br/>'.$vvpage->itDes.'</td>
+                            <td style="width: 5%; border-bottom: 1px solid #999; vertical-align: top;">' . $i++ . '</td>
+                            <td style="text-align: left; width: 55%; border-bottom: 1px solid #999;">' . $vvpage->itTitle . '<br/>' . $vvpage->itDes . '</td>
                             <td style=" border-bottom: 1px solid #999; vertical-align: top;"></td>
                             <td style=" text-align: right; border-bottom: 1px solid #999; vertical-align: top;"></td>                                
                             <td style="text-align: right; border-bottom: 1px solid #999; vertical-align: top;"></td>
-                            <td style="text-align: right; width:17%; border-bottom: 1px solid #999; vertical-align: top;">'.number_format($vvpage->total,2,'.',',').'</td>
+                            <td style="text-align: right; width:17%; border-bottom: 1px solid #999; vertical-align: top;">' . number_format($vvpage->total, 2, '.', ',') . '</td>
                         </tr>
-                    ';  
-                    }else{
+                    ';
+                    } else {
                         $trs[] = '
                         <tr>
-                            <td style="width: 5%; border-bottom: 1px solid #999; vertical-align: top;">'.$i++.'</td>
-                            <td style="text-align: left; width: 55%; border-bottom: 1px solid #999;">'.$vvpage->itTitle.'<br/>'.$vvpage->itDes.'</td>
-                            <td style=" border-bottom: 1px solid #999; vertical-align: top;">'.number_format($vvpage->quantity,0,'.',',').'</td>
-                            <td style=" text-align: right; border-bottom: 1px solid #999; vertical-align: top;">'.$vvpage->unit_type.'</td>                                
-                            <td style="text-align: right; border-bottom: 1px solid #999; vertical-align: top;">'.number_format($vvpage->rate,2,'.',',').'</td>
-                            <td style="text-align: right; width:17%; border-bottom: 1px solid #999; vertical-align: top;">'.number_format($vvpage->total,2,'.',',').'</td>
+                            <td style="width: 5%; border-bottom: 1px solid #999; vertical-align: top;">' . $i++ . '</td>
+                            <td style="text-align: left; width: 55%; border-bottom: 1px solid #999;">' . $vvpage->itTitle . '<br/>' . $vvpage->itDes . '</td>
+                            <td style=" border-bottom: 1px solid #999; vertical-align: top;">' . number_format($vvpage->quantity, 0, '.', ',') . '</td>
+                            <td style=" text-align: right; border-bottom: 1px solid #999; vertical-align: top;">' . $vvpage->unit_type . '</td>                                
+                            <td style="text-align: right; border-bottom: 1px solid #999; vertical-align: top;">' . number_format($vvpage->rate, 2, '.', ',') . '</td>
+                            <td style="text-align: right; width:17%; border-bottom: 1px solid #999; vertical-align: top;">' . number_format($vvpage->total, 2, '.', ',') . '</td>
                         </tr>
-                    ';  
+                    ';
                     }
-                    
+
 
                     $marks[2] = array(); //สร้าง array แยกแต่ละรายการ
 
-                    $dbs = convertObJectToArray( $vvpage );
-                    
+                    $dbs = convertObJectToArray($vvpage);
+
                     foreach ($marks[2] as $km => $vm) {
                         $vm['[align]'] = isset($vm['[align]']) ? $vm['[align]'] : 'center';
                         $vm['[val]'] = isset($dbs[$vm['key']]) ? $dbs[$vm['key']] : $vm['[val]'];
-                        $divs[] = str_replace(array_keys( $vm ), $vm, $template);
+                        $divs[] = str_replace(array_keys($vm), $vm, $template);
                     }
-                    
+
                 }
                 $trs_note = array();
-                
 
-                if($vpage[0]->inNote){
+
+                if ($vpage[0]->inNote) {
                     $trs_note[] = '
                     <tr>
-                        <td colspan="6" style="text-align: left;"><br/><p class="label">หมายเหตุ : </p>'.nl2br($vpage[0]->inNote,false).'</td>
+                        <td colspan="6" style="text-align: left;"><br/><p class="label">หมายเหตุ : </p>' . nl2br($vpage[0]->inNote, false) . '</td>
                     </tr>
                 ';
                 }
 
-                $divTop =   110;
-                    $divleft = 27;
-                    $trs_client ='
-                    <div style="position:absolute; top:'.$divTop.'px; left:'.$divleft.'px; width: 350px">
+                $divTop = 110;
+                $divleft = 27;
+                $trs_client = '
+                    <div style="position:absolute; top:' . $divTop . 'px; left:' . $divleft . 'px; width: 350px">
                         <table style="width: 100%; ">
                             <tr>
-                                <td style="text-align: left;">'.$company_name.'<br/>'.$company_address.'<br/>หมายเลขประจำตัวผู้เสียภาษี '.$company_vat_number.'<br/>'.$company_phone.'</td>
+                                <td style="text-align: left;">' . $company_name . '<br/>' . $company_address . '<br/>หมายเลขประจำตัวผู้เสียภาษี ' . $company_vat_number . '<br/>' . $company_phone . '</td>
                             </tr>
                             <tr>
                                 <td style="text-align: left;"><span class="label"><br/>ลูกค้า</span></td>
                             </tr>
                             <tr>
-                                <td style="text-align: left;">'.$vpage[0]->company_name.'<br/>'.$vpage[0]->address.' '.$vpage[0]->city.' '.$vpage[0]->state.' '.$vpage[0]->zip.' '.$vpage[0]->country.'<br/>'.'เลขประจำตัวผู้เสียภาษี '.$vpage[0]->vat_number.'</td>
+                                <td style="text-align: left;">' . $vpage[0]->company_name . '<br/>' . $vpage[0]->address . ' ' . $vpage[0]->city . ' ' . $vpage[0]->state . ' ' . $vpage[0]->zip . ' ' . $vpage[0]->country . '<br/>' . 'เลขประจำตัวผู้เสียภาษี ' . $vpage[0]->vat_number . '</td>
                             </tr>
                         </table>
                     </div>
                     ';
 
                 $pro_title = isset($vpage[0]->proTitle) ? $vpage[0]->proTitle : "-";
-                $name = isset($vpage[0]->first_name) ? $vpage[0]->first_name.' '.$vpage[0]->last_name : "-";
+                $name = isset($vpage[0]->first_name) ? $vpage[0]->first_name . ' ' . $vpage[0]->last_name : "-";
                 $phone = isset($vpage[0]->phone) ? $vpage[0]->phone : "-";
                 $email = isset($vpage[0]->email) ? $vpage[0]->email : "-";
-                    
+
                 // $info_contact = array();
-                
-                        $info_contact = '
+
+                $info_contact = '
                         <tr>
                             <td style="text-align: left; padding-left: 5px;"><span class="label">ชื่องาน</span></td>
-                            <td style="text-align: left; padding-left: 5px;"><span>'.$pro_title.'</span></td>
+                            <td style="text-align: left; padding-left: 5px;"><span>' . $pro_title . '</span></td>
                             
                         </tr>                        
                         <tr>
                             <td style="text-align: left; padding-left: 5px;"><span class="label">ผู้ติดต่อ</span></td>
-                            <td style="text-align: left; padding-left: 5px;"><span>'.$name.'</span></td>
+                            <td style="text-align: left; padding-left: 5px;"><span>' . $name . '</span></td>
                             
                         </tr>
                         <tr>
                             <td style="text-align: left; padding-left: 5px;"><span class="label">เบอร์โทร</span></td>
-                            <td style="text-align: left; padding-left: 5px;"><span>'.$phone.'</span></td>
+                            <td style="text-align: left; padding-left: 5px;"><span>' . $phone . '</span></td>
                             
                         </tr>
                         <tr>
                             <td style="text-align: left; padding-left: 5px;"><span class="label">อีเมล</span></td>
-                            <td style="text-align: left; padding-left: 5px;"><span>'.$email.'</span></td>
+                            <td style="text-align: left; padding-left: 5px;"><span>' . $email . '</span></td>
                             
                         </tr>
                         ';
-                    
-                    // width: 150px;
 
-                    // var_dump($vpage[0]);exit;
+                // width: 150px;
 
-                    // if($vpage[0]->credit != 0){
-                    //     if($vpage[0]->pay_type == "percentage"){
-                    //         $pay = $vpage[0]->pay_sp." %";
-                    //     }else{
-                    //         $pay = $vpage[0]->pay_sp." งวด";
-                    //     }
-                    //     $credits_s = '
-                    //     <td style="text-align: left; "><span class="label">เครดิต</span></td>
-                    //     <td style="text-align: left;">'.$vpage[0]->credit.' วัน</td>
-                    //     ';
-                    // }
-                    // else{                        
-                    //     $credits_s = '
-                    //     <td style="text-align: left;"><span class="label">เครดิต</span></td>
-                    //     <td style="text-align: left;">จ่ายเป็นเงินสด</td>
-                    //     ';
-                    // }
-                    
-                    // var_dump($get_ps);exit;
-                    // if($get_ps->pay_type == "time"){
-                    //     if(!empty(json_decode($get_ps->pay_sps))){
-                    //         $pay_detail = '
-                    //         <td style="text-align: left;"><span class="label">การชำระ</span></td>
-                    //         <td style="text-align: left;">'.$pay.'</td>
-                    //     ';
-                    //     }else if($get_ps->include_deposit == 2){
-                    //         $pay_detail = '';
-                    //     }else{
-                            
-                    //     $pay_detail = '';
-                    //     }
-                        
-                    // }
+                // var_dump($vpage[0]);exit;
 
-                    $divTop =   10;
-                    $divleft = 400;
-                    // var_dump($vpage[0]);exit;
-                    $info_table = '
+                // if($vpage[0]->credit != 0){
+                //     if($vpage[0]->pay_type == "percentage"){
+                //         $pay = $vpage[0]->pay_sp." %";
+                //     }else{
+                //         $pay = $vpage[0]->pay_sp." งวด";
+                //     }
+                //     $credits_s = '
+                //     <td style="text-align: left; "><span class="label">เครดิต</span></td>
+                //     <td style="text-align: left;">'.$vpage[0]->credit.' วัน</td>
+                //     ';
+                // }
+                // else{                        
+                //     $credits_s = '
+                //     <td style="text-align: left;"><span class="label">เครดิต</span></td>
+                //     <td style="text-align: left;">จ่ายเป็นเงินสด</td>
+                //     ';
+                // }
+
+                // var_dump($get_ps);exit;
+                // if($get_ps->pay_type == "time"){
+                //     if(!empty(json_decode($get_ps->pay_sps))){
+                //         $pay_detail = '
+                //         <td style="text-align: left;"><span class="label">การชำระ</span></td>
+                //         <td style="text-align: left;">'.$pay.'</td>
+                //     ';
+                //     }else if($get_ps->include_deposit == 2){
+                //         $pay_detail = '';
+                //     }else{
+
+                //     $pay_detail = '';
+                //     }
+
+                // }
+
+                $divTop = 10;
+                $divleft = 400;
+                // var_dump($vpage[0]);exit;
+                $info_table = '
                     
-                        <div style="position:absolute; top:'.$divTop.'px; left:'.$divleft.'px; width: 360px">
+                        <div style="position:absolute; top:' . $divTop . 'px; left:' . $divleft . 'px; width: 360px">
                             <table style="width: 100%;">
                                 <tr>
                                     <th colspan="4" style="text-align: center; border-bottom: 1.5px solid #999; font-size: 30px; "><span class="label">ใบกำกับภาษี/ใบเสร็จรับเงิน</span><br/><span class="label" style="font-size: 20px;">ต้นฉบับ</span></th>    
                                 </tr>
                                 <tr>
                                     <td style="text-align: left;  padding-left: 5px; width:120px;"><span class="label">เลขที่</span></td>
-                                    <td style="text-align: left; width:100px; padding-left: 5px;"><span>'.$vpage[0]->invDoc_no.'</span></td>
+                                    <td style="text-align: left; width:100px; padding-left: 5px;"><span>' . $vpage[0]->invDoc_no . '</span></td>
                                     
                                 </tr>
                                 
                                 <tr>
                                     <td style="text-align: left; padding-left: 5px;"><span class="label">วันที่</span></td>
-                                    <td style="text-align: left; width:50px; padding-left: 5px;"><span>'.$this->DateConvert($vpage[0]->bill_date).'</span></td>
+                                    <td style="text-align: left; width:50px; padding-left: 5px;"><span>' . $this->DateConvert($vpage[0]->bill_date) . '</span></td>
                                 </tr>
                                 <tr>
                                     <td style="text-align: left; padding-left: 5px;"><span class="label">ผู้ขาย</span></td>
-                                    <td style="text-align: left; padding-left: 5px;"><span></span>'.$fname.' '.$lname.'</td>
+                                    <td style="text-align: left; padding-left: 5px;"><span></span>' . $fname . ' ' . $lname . '</td>
                                     
                                 </tr>
                                 <tr>
                                     <td style="text-align: left; padding-left: 5px; border-bottom: 1.5px solid #999; width: 90px;"><span class="label">อ้างอิง</span></td>
-                                    <td style="text-align: left; border-bottom: 1.5px solid #999; padding-left: 5px; width: 240px;"><span>'.$vpage[0]->esDoc_no.'</span></td>                              
+                                    <td style="text-align: left; border-bottom: 1.5px solid #999; padding-left: 5px; width: 240px;"><span>' . $vpage[0]->esDoc_no . '</span></td>                              
                                 </tr>
                             
                                 <tr>
                                     <td></td>
                                 </tr>
 
-                                '.$info_contact.'
+                                ' . $info_contact . '
                                 
                             </table>
                         </div>
-                        '.$trs_client.'
+                        ' . $trs_client . '
                         ';
 
-                        $info_table2 = '
+                $info_table2 = '
                     
-                        <div style="position:absolute; top:'.$divTop.'px; left:'.$divleft.'px; width: 360px">
+                        <div style="position:absolute; top:' . $divTop . 'px; left:' . $divleft . 'px; width: 360px">
                             <table style="width: 100%;">
                                 <tr>
                                     <th colspan="4" style="text-align: center; border-bottom: 1.5px solid #999; font-size: 30px; "><span class="label">ใบกำกับภาษี/ใบเสร็จรับเงิน</span><br/><span class="label" style="font-size: 20px;">สำเนา</span></th>    
                                 </tr>
                                 <tr>
                                     <td style="text-align: left;  padding-left: 5px; width:120px;"><span class="label">เลขที่</span></td>
-                                    <td style="text-align: left; width:100px; padding-left: 5px;"><span>'.$vpage[0]->invDoc_no.'</span></td>
+                                    <td style="text-align: left; width:100px; padding-left: 5px;"><span>' . $vpage[0]->invDoc_no . '</span></td>
                                     
                                 </tr>
                                 
                                 <tr>
                                     <td style="text-align: left; padding-left: 5px;"><span class="label">วันที่</span></td>
-                                    <td style="text-align: left; width:50px; padding-left: 5px;"><span>'.$this->DateConvert($vpage[0]->bill_date).'</span></td>
+                                    <td style="text-align: left; width:50px; padding-left: 5px;"><span>' . $this->DateConvert($vpage[0]->bill_date) . '</span></td>
                                 </tr>
                                 <tr>
                                     <td style="text-align: left; padding-left: 5px;"><span class="label">ผู้ขาย</span></td>
-                                    <td style="text-align: left; padding-left: 5px;"><span></span>'.$fname.' '.$lname.'</td>
+                                    <td style="text-align: left; padding-left: 5px;"><span></span>' . $fname . ' ' . $lname . '</td>
                                     
                                 </tr>
                                 <tr>
                                     <td style="text-align: left; padding-left: 5px; border-bottom: 1.5px solid #999; width: 90px;"><span class="label">อ้างอิง</span></td>
-                                    <td style="text-align: left; border-bottom: 1.5px solid #999; padding-left: 5px; width: 240px;"><span>'.$vpage[0]->esDoc_no.'</span></td>                              
+                                    <td style="text-align: left; border-bottom: 1.5px solid #999; padding-left: 5px; width: 240px;"><span>' . $vpage[0]->esDoc_no . '</span></td>                              
                                 </tr>
                             
                                 <tr>
                                     <td></td>
                                 </tr>
 
-                                '.$info_contact.'
+                                ' . $info_contact . '
                                 
                             </table>
                         </div>
-                        '.$trs_client.'
+                        ' . $trs_client . '
                         ';
 
-                        $divTop =   590;
-                        $divleft = 27;
-                        $paymentmethod = [];
-                        $checked = '';
-                        $footer = get_setting("rt_footer");
+                $divTop = 590;
+                $divleft = 27;
+                $paymentmethod = [];
+                $checked = '';
+                $footer = get_setting("rt_footer");
 
 
-                        $trs_approve = '
-                        <div style="position:absolute; top:'.$divTop.'px; left:'.$divleft.'px; width: 740px;">
+                $trs_approve = '
+                        <div style="position:absolute; top:' . $divTop . 'px; left:' . $divleft . 'px; width: 740px;">
                             <table style="width: 100%;">
                                 <tr>
-                                    <td style="text-align: left;">'.$footer.'</td>
+                                    <td style="text-align: left;">' . $footer . '</td>
                                 </tr>
                             </table>
                         </div>
                         <br>';
 
-                        foreach($method as $key => $value){
-                            // var_dump($value);
-                            if($key == $vpage[0]->payment_method_id){
-                                $checked = 'checked="checked"';
-                            }else{
-                                $checked = '';
-                            }
-                            $paymentmethod[] = '<input type="checkbox" '.$checked.'> '.$value.'';          
-                        }
-                        $ck = implode(' ', $paymentmethod);
-                        // var_dump($paymentmethod);
-                        // if(in_array($vpage[0]->payment_method_id,$method)  )
-                        // {
-                        //     $checked = 'checked';
-                        // }
-                        // else
-                        // {
-                        //     $checked = 'wwwww';
-                        // }
-                        // $test[] = $checked;
-                        // var_dump($vpage);exit;
-                        $divTop =   890;
-                        $divleft = 27;
-                        $trs_approve .= '
-                        <div style="position:absolute; top:'.$divTop.'px; left:'.$divleft.'px; width: 740px;">
+                foreach ($method as $key => $value) {
+                    // var_dump($value);
+                    if ($key == $vpage[0]->payment_method_id) {
+                        $checked = 'checked="checked"';
+                    } else {
+                        $checked = '';
+                    }
+                    $paymentmethod[] = '<input type="checkbox" ' . $checked . '> ' . $value . '';
+                }
+                $ck = implode(' ', $paymentmethod);
+                // var_dump($paymentmethod);
+                // if(in_array($vpage[0]->payment_method_id,$method)  )
+                // {
+                //     $checked = 'checked';
+                // }
+                // else
+                // {
+                //     $checked = 'wwwww';
+                // }
+                // $test[] = $checked;
+                // var_dump($vpage);exit;
+                $divTop = 890;
+                $divleft = 27;
+                $trs_approve .= '
+                        <div style="position:absolute; top:' . $divTop . 'px; left:' . $divleft . 'px; width: 740px;">
                                 <table style="width:100%;">
                                     <tr>
-                                        <td colspan="6" style="text-align: left; font-size: 20px;">การชำระเงินจะสมบูรณ์เมื่อบริษัทได้รับเงินเรียบร้อยแล้ว : '.$ck.'</td>
+                                        <td colspan="6" style="text-align: left; font-size: 20px;">การชำระเงินจะสมบูรณ์เมื่อบริษัทได้รับเงินเรียบร้อยแล้ว : ' . $ck . '</td>
                                     </tr>
                                     <tr>
-                                       <td colspan="6" style="text-align: left; font-size: 20px;">ธนาคาร '.$vpage[0]->namebank.' เลขที่ '.$vpage[0]->runnumber.' วันที่ '.$this->DateConvert($vpage[0]->payment_date).' จำนวนเงิน '.number_format($vpage[0]->amount,2,'.',',').' บาท </td>
+                                       <td colspan="6" style="text-align: left; font-size: 20px;">ธนาคาร ' . $vpage[0]->namebank . ' เลขที่ ' . $vpage[0]->runnumber . ' วันที่ ' . $this->DateConvert($vpage[0]->payment_date) . ' จำนวนเงิน ' . number_format($vpage[0]->amount, 2, '.', ',') . ' บาท </td>
                                     </tr>
                                     <tr>
                                         <td colspan="6" style="text-align: left; font-size: 20px;">&nbsp;</td>
                                     </tr>
                                     <tr>
-                                        <td colspan="4" style="text-align: center; font-size: 20px;">ในนาม '.$vpage[0]->company_name.'</td>
-                                        <td colspan="4" style="text-align: center; font-size: 20px;">ในนาม '.$company_name.'</td>
+                                        <td colspan="4" style="text-align: center; font-size: 20px;">ในนาม ' . $vpage[0]->company_name . '</td>
+                                        <td colspan="4" style="text-align: center; font-size: 20px;">ในนาม ' . $company_name . '</td>
                                     </tr>
                                     <tr>
                                         <td colspan="6" style="text-align: left; font-size: 20px;">&nbsp;</td>
@@ -5444,8 +5436,8 @@ class Pdf_export extends CI_Controller {
                                     <tr>
                                         <td colspan="2">_________________</td>
                                         <td colspan="2">_________________</td>
-                                        <td colspan="2">'.$user_signature->first_name.' '.$user_signature->last_name.'</td>
-                                        <td colspan="2">'.$this->DateConvert($user_signature->doc_date).'</td>
+                                        <td colspan="2">' . $user_signature->first_name . ' ' . $user_signature->last_name . '</td>
+                                        <td colspan="2">' . $this->DateConvert($user_signature->doc_date) . '</td>
                                     </tr>
                                     <tr>
                                         <td colspan="2">ผู้รับสินค้า / บริการ</td>
@@ -5457,29 +5449,29 @@ class Pdf_export extends CI_Controller {
                         </div>              
                        ';
 
-                    //    $trs_approve = '
-                    //    <div style="position:absolute; top:'.$divTop.'px; left:'.$divleft.'px; width: 740px;">
-                    //            <table style="width:100%;">
-                                //    <tr>
-                                //        <td colspan="2">การชำระเงินจะสมบูรณ์เมื่อบริษัทได้รับเงินเรียบร้อยแล้ว '.$vpage[0]->company_name.'</td>
-                                //        <td colspan="2">ในนาม '.$company_name.'</td>
-                                //    </tr>
-                                //    <tr>
-                                //        <td style="height: 100px;">___________________________<p>ผู้รับวางบิล</p></td>
-                                //        <td>___________________________<p>วันที่</p></td>
-                                //        <td style="width: 10%;"></td>
-                                //        <td>___________________________<p>ผู้วางบิล</p></td>
-                                //        <td>___________________________<p>วันที่</p></td>
-                                //    </tr>                            
-                    //            </table>
-                    //    </div>             
-                    //   ';
+                //    $trs_approve = '
+                //    <div style="position:absolute; top:'.$divTop.'px; left:'.$divleft.'px; width: 740px;">
+                //            <table style="width:100%;">
+                //    <tr>
+                //        <td colspan="2">การชำระเงินจะสมบูรณ์เมื่อบริษัทได้รับเงินเรียบร้อยแล้ว '.$vpage[0]->company_name.'</td>
+                //        <td colspan="2">ในนาม '.$company_name.'</td>
+                //    </tr>
+                //    <tr>
+                //        <td style="height: 100px;">___________________________<p>ผู้รับวางบิล</p></td>
+                //        <td>___________________________<p>วันที่</p></td>
+                //        <td style="width: 10%;"></td>
+                //        <td>___________________________<p>ผู้วางบิล</p></td>
+                //        <td>___________________________<p>วันที่</p></td>
+                //    </tr>                            
+                //            </table>
+                //    </div>             
+                //   ';
 
-                    $divTop =   318;
-                    $divleft = 30;
-                    if($vvpage->include_deposit == 2){
-                        $tabletemplate = '
-                        <div style="position:absolute; top:'.$divTop.'px; left:'.$divleft.'px; width: 730px;">
+                $divTop = 318;
+                $divleft = 30;
+                if ($vvpage->include_deposit == 2) {
+                    $tabletemplate = '
+                        <div style="position:absolute; top:' . $divTop . 'px; left:' . $divleft . 'px; width: 730px;">
                             <table style="width:100%; overflow: auto; page-break-inside:avoid">
                                 <tr>
                                     <td class="thStyle">#</td>
@@ -5489,19 +5481,19 @@ class Pdf_export extends CI_Controller {
                                     <td class="thStyle" style="text-align: right;"></td>
                                     <td class="thStyle" style="text-align: right;">ยอดมัดจำ</td>
                                 </tr>
-                                '.implode("",$trs).'
-                                '.implode("",$trs_total).'
-                                '.implode("",$trs_note).'
+                                ' . implode("", $trs) . '
+                                ' . implode("", $trs_total) . '
+                                ' . implode("", $trs_note) . '
                             </table>
                             
                         </div>
                     
                             
                         
-                        ';//
-                    }else{
-                        $tabletemplate = '
-                            <div style="position:absolute; top:'.$divTop.'px; left:'.$divleft.'px; width: 730px;">
+                        '; //
+                } else {
+                    $tabletemplate = '
+                            <div style="position:absolute; top:' . $divTop . 'px; left:' . $divleft . 'px; width: 730px;">
                                 <table style="width:100%; overflow: auto; page-break-inside:avoid">
                                     <tr>
                                         <td class="thStyle">#</td>
@@ -5511,9 +5503,9 @@ class Pdf_export extends CI_Controller {
                                         <td class="thStyle" style="text-align: right;">ราคาต่อหน่วย</td>
                                         <td class="thStyle" style="text-align: right;">ยอดรวม</td>
                                     </tr>
-                                    '.implode("",$trs).'
-                                    '.implode("",$trs_total).'
-                                    '.implode("",$trs_note).'
+                                    ' . implode("", $trs) . '
+                                    ' . implode("", $trs_total) . '
+                                    ' . implode("", $trs_note) . '
                                 </table>
                                 
                             </div>
@@ -5521,15 +5513,15 @@ class Pdf_export extends CI_Controller {
                             
                                 
                             
-                            ';//
-                    }
-                    
-                
-                    
-                
+                            '; //
+                }
+
+
+
+
                 // var_dump($keep);exit;
 
-                
+
                 $html = ' 
                         <style>
                         div{
@@ -5570,7 +5562,7 @@ class Pdf_export extends CI_Controller {
                 
                                      
                                                
-                        '.$tabletemplate.'
+                        ' . $tabletemplate . '
                         </body>       
                         
                     ';
@@ -5614,314 +5606,315 @@ class Pdf_export extends CI_Controller {
                 
                                      
                                                
-                        '.$tabletemplate.'
+                        ' . $tabletemplate . '
                         </body>       
                         
                     ';
-                    //' . implode('', $divs) . ' 
-                    $mpdf->SetHTMLHeader($info_table);
-                    
-                    $Note = nl2br($vpage[0]->inNote,false);
-                        preg_match_all("/(<br>)/", $Note, $matches);
-                        
-                        for($j = 0 ; $j < 4;$j++){
-                            // var_dump($page);exit;
-                            if($j <= 4 ){                    
-                                $mpdf->SetHTMLFooter($trs_approve);
-                                break;
-                                
-                            }else{                                
-                                $mpdf->SetHTMLFooter($trs_approve);
-                                break;
-                            }
-                        }
-                      
-                            
-                        
-                        
-                        
+                //' . implode('', $divs) . ' 
+                $mpdf->SetHTMLHeader($info_table);
 
-                    
-                    
+                $Note = nl2br($vpage[0]->inNote, false);
+                preg_match_all("/(<br>)/", $Note, $matches);
+
+                for ($j = 0; $j < 4; $j++) {
+                    // var_dump($page);exit;
+                    if ($j <= 4) {
+                        $mpdf->SetHTMLFooter($trs_approve);
+                        break;
+
+                    } else {
+                        $mpdf->SetHTMLFooter($trs_approve);
+                        break;
+                    }
+                }
 
 
-            
 
-                    // echo $html;exit; 
-                    $mpdf->SetTitle($vpage[0]->invDoc_no);
-                    $mpdf->autoPageBreak = false;
-                    $mpdf->use_kwt = true; 
-                    $mpdf->shrink_tables_to_fit = 1;
-                    $mpdf->AddPage('P');
-                    // var_dump($mpdf->AddPage('P'));exit;
-                    $pagecount = $mpdf->SetSourceFile('pdf_Template/main_template.pdf');
-                    $tplId = $mpdf->importPage(1);
-                    $mpdf->useTemplate($tplId);
-                    $mpdf->WriteHTML($html); 
 
-                    $mpdf->SetHTMLHeader($info_table2);
-                    $mpdf->AddPage('P','NEXT-EVEN');
-                    $tplId = $mpdf->importPage(1);
-                    $mpdf->useTemplate($tplId);
-                    $mpdf->WriteHTML($html); 
+
+
+
+
+
+
+
+
+                // echo $html;exit; 
+                $mpdf->SetTitle($vpage[0]->invDoc_no);
+                $mpdf->autoPageBreak = false;
+                $mpdf->use_kwt = true;
+                $mpdf->shrink_tables_to_fit = 1;
+                $mpdf->AddPage('P');
+                // var_dump($mpdf->AddPage('P'));exit;
+                $pagecount = $mpdf->SetSourceFile('pdf_Template/main_template.pdf');
+                $tplId = $mpdf->importPage(1);
+                $mpdf->useTemplate($tplId);
+                $mpdf->WriteHTML($html);
+
+                $mpdf->SetHTMLHeader($info_table2);
+                $mpdf->AddPage('P', 'NEXT-EVEN');
+                $tplId = $mpdf->importPage(1);
+                $mpdf->useTemplate($tplId);
+                $mpdf->WriteHTML($html);
 
             }
             // exit;
-            
-        } 
-        
-         $mpdf->Output();
-        // $mpdf->Output($vpage[0]->invDoc_no.'.pdf', \Mpdf\Output\Destination::DOWNLOAD);
-       
+
         }
 
-        public function materialrequests_pdf($pr_id = 0 ){
-            //$pr_info = $this->Purchaserequests_model->get_details(array("id" => $pr_id))->row();
-           
-            $pr_data = get_mr_making_data($pr_id);
-            $pr_items = $pr_data['mr_items'];
-            $buyer = $pr_data['client_info'];
-            $pr_info = $pr_data['mr_info'];
-            //$this->dump($pr_data, true);
-            // var_dump($pr_data);exit;
+        $mpdf->Output();
+        // $mpdf->Output($vpage[0]->invDoc_no.'.pdf', \Mpdf\Output\Destination::DOWNLOAD);
 
-            $template = '<div style="text-align: [align]; position:absolute; top:[top]px; left:[left]px; width:[w]px; height:[h]px;"><span>[val]</span></div>';
+    }
 
-            $defaultConfig = (new Mpdf\Config\ConfigVariables())->getDefaults();
-            $fontDirs = $defaultConfig['fontDir'];
-    
-            $defaultFontConfig = (new Mpdf\Config\FontVariables())->getDefaults();
-            $fontData = $defaultFontConfig['fontdata'];
-                
-            $mpdf = new \Mpdf\Mpdf([
-                'fontDir' => array_merge($fontDirs, [
-                    __DIR__ . '/fonts',
-                ]),
-                'fontdata' => $fontData + [
-                    'def' => [
-                        'R' => 'THSarabun_Bold.ttf',
-                        //'I' => 'THSarabunNew Italic.ttf',
-                        //'B' => 'THSarabunNew Bold.ttf',
-                    ]
-                ],
-                'default_font' => 'def',
-                'tempDir' => '/tmp'
-            ]);
-            $mpdf->charset_in = 'UTF-8';
-            //$mpdf->SetTitle(get_pr_id($pr_id));
-            $mpdf->SetTitle($pr_info->doc_no?$pr_info->doc_no:lang('no_have_doc_no').':'.$pr_info->id);
-    
-            $keep = array();
-            $html = '';
-            $company_address = nl2br(get_setting("company_address"));
-            $company_phone = get_setting("company_phone");
-            $company_website = get_setting("company_website");
-            $company_vat_number = get_setting("company_vat_number");
-            $company_name = get_setting("company_name");
-           
-    
-            /*$sql = "SELECT *,pr.id as pr_id,estimate_items.id as itemId, clients.id as clientId
-            FROM `estimates` 
-            LEFT JOIN estimate_items ON estimate_items.estimate_id = estimates.id AND estimate_items.deleted = 0
-            LEFT JOIN clients ON estimates.client_id = clients.id
-            WHERE estimates.id = $pr_id";*/
-            //$pr_data = get_pr_making_data($pr_id);
-            //$pr_items = $pr_data['pr_items'];
-            // AND estimate_items.deleted = 0 $this->session->user_id
-            //หัวตารากระดาษ------------------------------------------------------------------------------------------------------------
-            
+    public function materialrequests_pdf($pr_id = 0)
+    {
+        //$pr_info = $this->Purchaserequests_model->get_details(array("id" => $pr_id))->row();
 
-            $cal_payment = $this->Materialrequests_model->get_mr_total_summary($pr_id);
-            $vat_name = $cal_payment->tax_name != null ? $cal_payment->tax_name : "-";
-        
-            if($cal_payment->discount_total == ''){
-                $trs_total[] = '                
+        $pr_data = get_mr_making_data($pr_id);
+        $pr_items = $pr_data['mr_items'];
+        $buyer = $pr_data['client_info'];
+        $pr_info = $pr_data['mr_info'];
+        //$this->dump($pr_data, true);
+        // var_dump($pr_data);exit;
+
+        $template = '<div style="text-align: [align]; position:absolute; top:[top]px; left:[left]px; width:[w]px; height:[h]px;"><span>[val]</span></div>';
+
+        $defaultConfig = (new Mpdf\Config\ConfigVariables())->getDefaults();
+        $fontDirs = $defaultConfig['fontDir'];
+
+        $defaultFontConfig = (new Mpdf\Config\FontVariables())->getDefaults();
+        $fontData = $defaultFontConfig['fontdata'];
+
+        $mpdf = new \Mpdf\Mpdf([
+            'fontDir' => array_merge($fontDirs, [
+                __DIR__ . '/fonts',
+            ]),
+            'fontdata' => $fontData + [
+                'def' => [
+                    'R' => 'THSarabun_Bold.ttf',
+                    //'I' => 'THSarabunNew Italic.ttf',
+                    //'B' => 'THSarabunNew Bold.ttf',
+                ]
+            ],
+            'default_font' => 'def',
+            'tempDir' => '/tmp'
+        ]);
+        $mpdf->charset_in = 'UTF-8';
+        //$mpdf->SetTitle(get_pr_id($pr_id));
+        $mpdf->SetTitle($pr_info->doc_no ? $pr_info->doc_no : lang('no_have_doc_no') . ':' . $pr_info->id);
+
+        $keep = array();
+        $html = '';
+        $company_address = nl2br(get_setting("company_address"));
+        $company_phone = get_setting("company_phone");
+        $company_website = get_setting("company_website");
+        $company_vat_number = get_setting("company_vat_number");
+        $company_name = get_setting("company_name");
+
+
+        /*$sql = "SELECT *,pr.id as pr_id,estimate_items.id as itemId, clients.id as clientId
+        FROM `estimates` 
+        LEFT JOIN estimate_items ON estimate_items.estimate_id = estimates.id AND estimate_items.deleted = 0
+        LEFT JOIN clients ON estimates.client_id = clients.id
+        WHERE estimates.id = $pr_id";*/
+        //$pr_data = get_pr_making_data($pr_id);
+        //$pr_items = $pr_data['pr_items'];
+        // AND estimate_items.deleted = 0 $this->session->user_id
+        //หัวตารากระดาษ------------------------------------------------------------------------------------------------------------
+
+
+        $cal_payment = $this->Materialrequests_model->get_mr_total_summary($pr_id);
+        $vat_name = $cal_payment->tax_name != null ? $cal_payment->tax_name : "-";
+
+        if ($cal_payment->discount_total == '') {
+            $trs_total[] = '                
                     <tr>
                     <td colspan="5" style="border-top: 1.5px solid #999;"></td>                            
                         <td colspan="2" style="text-align: right; margin-top: 4%; border-top: 1.5px solid #999;"><span class="label">รวมเป็นเงิน</span></td>                            
-                        <td style="text-align: right; border-top: 1.5px solid #999;">'.number_format($cal_payment->mr_subtotal,2,'.',',').' บาท</td>
+                        <td style="text-align: right; border-top: 1.5px solid #999;">' . number_format($cal_payment->mr_subtotal, 2, '.', ',') . ' บาท</td>
                     </tr>
                     
                     <tr>
                         <td colspan="5"></td> 
-                        <td colspan="2" style="text-align: right;"><span class="label">'.$vat_name.'</span></td>
-                        <td style="text-align: right;">'.number_format($cal_payment->tax,2,'.',',').' บาท</td>
+                        <td colspan="2" style="text-align: right;"><span class="label">' . $vat_name . '</span></td>
+                        <td style="text-align: right;">' . number_format($cal_payment->tax, 2, '.', ',') . ' บาท</td>
                     </tr>
                     <tr>
                         
-                        <td colspan="5" style="text-align: left;"><span>('.$this->Convert($cal_payment->mr_total).')</span></td> 
+                        <td colspan="5" style="text-align: left;"><span>(' . $this->Convert($cal_payment->mr_total) . ')</span></td> 
                                               
                         <td colspan="2" style="text-align: right;"><span class="label" >จำนวนเงินรวมทั้งสิ้น</span></td>
-                        <td style="text-align: right;">'.number_format($cal_payment->mr_total,2,'.',',').' บาท</td>
+                        <td style="text-align: right;">' . number_format($cal_payment->mr_total, 2, '.', ',') . ' บาท</td>
                     </tr>
 
                 ';
-            }else
-            
-            if($cal_payment->discount_type == "before_tax"){
+        } else
+
+            if ($cal_payment->discount_type == "before_tax") {
                 $trs_total[] = '
                     <tr>
                         <td colspan="5" style="border-top: 1.5px solid #999;"></td>                            
                         <td colspan="2" style="text-align: right; margin-top: 4%; border-top: 1.5px solid #999;"><span class="label">รวมเป็นเงิน</span></td>                            
-                        <td style="text-align: right; border-top: 1.5px solid #999;">'.number_format($cal_payment->mr_subtotal,2,'.',',').' บาท</td>
+                        <td style="text-align: right; border-top: 1.5px solid #999;">' . number_format($cal_payment->mr_subtotal, 2, '.', ',') . ' บาท</td>
                     </tr>
                     <tr>
                         <td colspan="5"></td> 
                         <td colspan="2" style="text-align: right;"><span class="label"><u>หัก</u> ส่วนลด</span></td>
-                        <td style="text-align: right;">'.number_format($cal_payment->discount_total,2,'.',',').' บาท</td>
+                        <td style="text-align: right;">' . number_format($cal_payment->discount_total, 2, '.', ',') . ' บาท</td>
                     </tr>
                     <tr>
                         <td colspan="5"></td> 
                         <td colspan="2" style="text-align: right;"><span class="label">ราคาหลังส่วนลด</span></td>
-                        <td style="text-align: right;">'.number_format($cal_payment->mr_subtotal-$cal_payment->discount_total,2,'.',',').' บาท</td>
+                        <td style="text-align: right;">' . number_format($cal_payment->mr_subtotal - $cal_payment->discount_total, 2, '.', ',') . ' บาท</td>
                     </tr>
                     <tr>
                         <td colspan="5"></td> 
-                        <td colspan="2" style="text-align: right;"><span class="label">'.$vat_name.'</span></td>
-                        <td style="text-align: right;">'.number_format($cal_payment->tax,2,'.',',').' บาท</td>
+                        <td colspan="2" style="text-align: right;"><span class="label">' . $vat_name . '</span></td>
+                        <td style="text-align: right;">' . number_format($cal_payment->tax, 2, '.', ',') . ' บาท</td>
                     </tr>
                     <tr>
                     
-                        <td colspan="5" style="text-align: left;"><span>('.$this->Convert($cal_payment->mr_total).')</span></td> 
+                        <td colspan="5" style="text-align: left;"><span>(' . $this->Convert($cal_payment->mr_total) . ')</span></td> 
                         <td colspan="2" style="text-align: right;"><span class="label" >จำนวนเงินรวมทั้งสิ้น</span></td>
-                        <td style="text-align: right;">'.number_format($cal_payment->mr_total,2,'.',',').' บาท</td>
+                        <td style="text-align: right;">' . number_format($cal_payment->mr_total, 2, '.', ',') . ' บาท</td>
                     </tr>
 
                 ';
                 // <td ><span>'.$this->Convert($cal_payment->estimate_total).'</span></td> 
-                
 
-            }else if($cal_payment->discount_type == "after_tax"){
+
+            } else if ($cal_payment->discount_type == "after_tax") {
 
                 $trs_total[] = '
                     <tr>
                         <td colspan="3" style="border-top: 1.5px solid #999;"></td>                            
                         <td colspan="2" style="text-align: right; border-top: 1.5px solid #999;"><span class="label">ราคาก่อนหักส่วนลด</span></td>                            
-                        <td style="text-align: right; border-top: 1.5px solid #999;">'.number_format($cal_payment->mr_subtotal,2,'.',',').' บาท</td>
+                        <td style="text-align: right; border-top: 1.5px solid #999;">' . number_format($cal_payment->mr_subtotal, 2, '.', ',') . ' บาท</td>
                     </tr>
                     <tr>
                         <td colspan="3"></td> 
                         <td colspan="2" style="text-align: right;"><span class="label"><u>หัก</u> ส่วนลด</span></td>
-                        <td style="text-align: right;">'.number_format($cal_payment->discount_total,2,'.',',').' บาท</td>
+                        <td style="text-align: right;">' . number_format($cal_payment->discount_total, 2, '.', ',') . ' บาท</td>
                     </tr>
                     <tr>
                         <td colspan="3"></td> 
-                        <td colspan="2" style="text-align: right;"><span class="label">'.$vat_name.'</span></td>
-                        <td style="text-align: right;">'.number_format($cal_payment->tax,2,'.',',').' บาท</td>
+                        <td colspan="2" style="text-align: right;"><span class="label">' . $vat_name . '</span></td>
+                        <td style="text-align: right;">' . number_format($cal_payment->tax, 2, '.', ',') . ' บาท</td>
                     </tr>
                     <tr>
                         <td colspan="3"></td> 
                         <td colspan="2" style="text-align: right;"><span class="label">ราคาหลังส่วนลด</span></td>
-                        <td style="text-align: right;">'.number_format($cal_payment->mr_subtotal-$cal_payment->discount_total,2,'.',',').' บาท</td>
+                        <td style="text-align: right;">' . number_format($cal_payment->mr_subtotal - $cal_payment->discount_total, 2, '.', ',') . ' บาท</td>
                     </tr>
                     
                     <tr>
                    
-                        <td colspan="3" style="text-align: left;"><span>('.$this->Convert($cal_payment->mr_total).')</span></td> 
+                        <td colspan="3" style="text-align: left;"><span>(' . $this->Convert($cal_payment->mr_total) . ')</span></td> 
                         
                         <td colspan="2" style="text-align: right;"><span class="label" >จำนวนเงินรวมทั้งสิ้น</span></td>
-                        <td style="text-align: right;">'.number_format($cal_payment->mr_total,2,'.',',').' บาท</td>
+                        <td style="text-align: right;">' . number_format($cal_payment->mr_total, 2, '.', ',') . ' บาท</td>
                     </tr>
 
                 ';
 
             }
-            
 
-            $marks[1] = array();
-            $user_signature = $this->Db_model->userSignature( $pr_info->requester_id );
-            $top = 1020;
-            $left = 65;
-            if($user_signature) {
-                if($user_signature->signature == ''){
-                    $top = 990;
-                    $marks[1][] = array('key' => 'buyer_signauture', '[left]' => $left, '[w]' => 170, '[top]' => $top, '[val]' => $user_signature->first_name.' '.$user_signature->last_name, '[align]' => 'center');
-                }else{
-                    $top = 930;
-                    $marks[1][] = array('key' => 'buyer_signauture', '[left]' => $left, '[w]' => 170, '[top]' => $top, '[val]' => '<img src='.base_url().$user_signature->signature.'>', '[align]' => 'center');
-                }
-                $top=1035;
-                $marks[1][] = array('key' => 'buyer_date_approved', '[left]' => $left, '[w]' => 170, '[top]' => $top, '[val]' => $this->DateConvert($pr_info->mr_date), '[align]' => 'center');
+
+        $marks[1] = array();
+        $user_signature = $this->Db_model->userSignature($pr_info->requester_id);
+        $top = 1020;
+        $left = 65;
+        if ($user_signature) {
+            if ($user_signature->signature == '') {
+                $top = 990;
+                $marks[1][] = array('key' => 'buyer_signauture', '[left]' => $left, '[w]' => 170, '[top]' => $top, '[val]' => $user_signature->first_name . ' ' . $user_signature->last_name, '[align]' => 'center');
+            } else {
+                $top = 930;
+                $marks[1][] = array('key' => 'buyer_signauture', '[left]' => $left, '[w]' => 170, '[top]' => $top, '[val]' => '<img src=' . base_url() . $user_signature->signature . '>', '[align]' => 'center');
+            }
+            $top = 1035;
+            $marks[1][] = array('key' => 'buyer_date_approved', '[left]' => $left, '[w]' => 170, '[top]' => $top, '[val]' => $this->DateConvert($pr_info->mr_date), '[align]' => 'center');
+        }
+
+
+        $left = 555;
+        $user_signature = $this->Db_model->signature_approve($pr_id, "purchaserequests");
+        // var_dump($user_signature);exit;
+        if ($user_signature) {
+            if ($user_signature->signature == '') {
+                $top = 990;
+                $marks[1][] = array('key' => 'signauture', '[left]' => $left, '[w]' => 170, '[top]' => $top, '[val]' => $user_signature->first_name . ' ' . $user_signature->last_name, '[align]' => 'center');
+            } else {
+                $top = 930;
+                $marks[1][] = array('key' => 'signauture', '[left]' => $left, '[w]' => 170, '[top]' => $top, '[val]' => '<img src=' . base_url() . $user_signature->signature . '>', '[align]' => 'center');
+            }
+            $top = 1035;
+
+            $marks[1][] = array('key' => 'date_approved', '[left]' => $left, '[w]' => 170, '[top]' => $top, '[val]' => $this->DateConvert($user_signature->doc_date), '[align]' => 'center');
+        }
+
+        //End Item-List------------------------------------------------------------------------------------------------------------
+
+
+        $rangItem = 13;
+
+        foreach ($pr_items as $parentKey => $child) {
+
+            if (!isset($keep[$child->mr_id])) {
+                $page = 1;
             }
 
-            
-            $left = 555;
-            $user_signature = $this->Db_model->signature_approve( $pr_id,"purchaserequests" );
-            // var_dump($user_signature);exit;
-            if( $user_signature){
-                if($user_signature->signature == ''){
-                    $top = 990;
-                    $marks[1][] = array('key' => 'signauture', '[left]' => $left, '[w]' => 170, '[top]' => $top, '[val]' => $user_signature->first_name.' '.$user_signature->last_name, '[align]' => 'center');
-                }else{
-                    $top = 930;
-                    $marks[1][] = array('key' => 'signauture', '[left]' => $left, '[w]' => 170, '[top]' => $top, '[val]' => '<img src='.base_url().$user_signature->signature.'>', '[align]' => 'center');
-                }
-                $top=1035;
-                
-                $marks[1][] = array('key' => 'date_approved', '[left]' => $left, '[w]' => 170, '[top]' => $top, '[val]' => $this->DateConvert($user_signature->doc_date), '[align]' => 'center');
-            }
-            
-            //End Item-List------------------------------------------------------------------------------------------------------------
-            
-    
-            $rangItem = 13;
-    
-            foreach( $pr_items as $parentKey => $child ){
-                
-                if(!isset($keep[$child->mr_id])){
-                    $page = 1;
-                }
-                
-                $keep[$child->mr_id][$page][] = $child;
-                
-                if(count($keep[$child->mr_id][$page]) == $rangItem ){
-                    $page += 1;
-                }
-                
+            $keep[$child->mr_id][$page][] = $child;
+
+            if (count($keep[$child->mr_id][$page]) == $rangItem) {
+                $page += 1;
             }
 
-            
-          
-            foreach( $keep as $kd => $kv ){
-                //  var_dump($kv);exit;
-                $i=1;
-                foreach( $kv as $kpage => $vpage ){
-                    $dbs = convertObJectToArray($vpage[0]);
-                    $dbs = array_merge($dbs,[
-                        'pr_date' => $this->DateConvert($pr_info->mr_date),
-                        'price_before_dis' => '<span class="label">ราคาก่อนหักส่วนลด</span>',
-                        'discount_name' => '<span class="label"><u>หัก</u> ส่วนลด</span>',
-                        'price_after_dis' => '<span class="label">ราคาหลังส่วนลด</span>',
-                        'vat_name' => '<span class="label">'.isset($cal_payment->tax_name) ? '<span class="label">'.$cal_payment->tax_name.'</span>' : "-".'</span>',
-                        'total_name' => '<span class="label">รวมเงินทั้งสิ้น</span>'
-                    
-                        //,'valid_until' => $this->DateConvert($vpage[0]->valid_until)
-                    ]);
-                    
-                    $divs = array(); 
-                    
-                    foreach ($marks[1] as $km => $vm) {
-                        $vm['[align]'] = isset($vm['[align]']) ? $vm['[align]'] : 'left';
-                        $vm['[val]'] = isset($dbs[$vm['key']]) ? $dbs[$vm['key']] : $vm['[val]'];
-                        $divs[] = str_replace(array_keys( $vm ), $vm, $template);
-                    } 
-                    $top = 315;
-                   
-                    $trs =array();
-                    foreach($vpage as $vkpage => $vvpage ){
-                        
-                        $marks[2] = array(); //สร้าง array แยกแต่ละรายการ
-                        if($vvpage->title){
-                            $trs[] = '
+        }
+
+
+
+        foreach ($keep as $kd => $kv) {
+            //  var_dump($kv);exit;
+            $i = 1;
+            foreach ($kv as $kpage => $vpage) {
+                $dbs = convertObJectToArray($vpage[0]);
+                $dbs = array_merge($dbs, [
+                    'pr_date' => $this->DateConvert($pr_info->mr_date),
+                    'price_before_dis' => '<span class="label">ราคาก่อนหักส่วนลด</span>',
+                    'discount_name' => '<span class="label"><u>หัก</u> ส่วนลด</span>',
+                    'price_after_dis' => '<span class="label">ราคาหลังส่วนลด</span>',
+                    'vat_name' => '<span class="label">' . isset($cal_payment->tax_name) ? '<span class="label">' . $cal_payment->tax_name . '</span>' : "-" . '</span>',
+                    'total_name' => '<span class="label">รวมเงินทั้งสิ้น</span>'
+
+                    //,'valid_until' => $this->DateConvert($vpage[0]->valid_until)
+                ]);
+
+                $divs = array();
+
+                foreach ($marks[1] as $km => $vm) {
+                    $vm['[align]'] = isset($vm['[align]']) ? $vm['[align]'] : 'left';
+                    $vm['[val]'] = isset($dbs[$vm['key']]) ? $dbs[$vm['key']] : $vm['[val]'];
+                    $divs[] = str_replace(array_keys($vm), $vm, $template);
+                }
+                $top = 315;
+
+                $trs = array();
+                foreach ($vpage as $vkpage => $vvpage) {
+
+                    $marks[2] = array(); //สร้าง array แยกแต่ละรายการ
+                    if ($vvpage->title) {
+                        $trs[] = '
                             <tr>
-                                <td style="width: 10%; ">'.$i++.'</td>
-                                <td style="width: 10%; ">'.$vvpage->code.'</td>
-                                <td style="text-align: left; width: 70%; ">'.$vvpage->title.'</td>
-                                <td style=" width: 20%; ">'.number_format($vvpage->quantity,0,'.',',').'</td>
+                                <td style="width: 10%; ">' . $i++ . '</td>
+                                <td style="width: 10%; ">' . $vvpage->code . '</td>
+                                <td style="text-align: left; width: 70%; ">' . $vvpage->title . '</td>
+                                <td style=" width: 20%; ">' . number_format($vvpage->quantity, 0, '.', ',') . '</td>
                             </tr>
                             ';
-                        }else{
-                            $trs[] = '
+                    } else {
+                        $trs[] = '
                             <tr>
                                 <td style="width: 5%;"></td>
                                 <td style="width: 20%;"></td>
@@ -5933,76 +5926,76 @@ class Pdf_export extends CI_Controller {
                                 <td ></td>
                             </tr>
                             ';
-                        }
-                        
-
-                        $dbs = convertObJectToArray( $vvpage );
-                        
-                        foreach ($marks[2] as $km => $vm) {
-                            $vm['[align]'] = isset($vm['[align]']) ? $vm['[align]'] : 'center';
-                            $vm['[val]'] = isset($dbs[$vm['key']]) ? $dbs[$vm['key']] : $vm['[val]'];
-                            $divs[] = str_replace(array_keys( $vm ), $vm, $template);
-                        }
-                        
                     }
-                    
-                    $trs_note = array();
-                    $str_text = explode("-", $pr_info->note);
-                    if($pr_info->note){
-                        $trs_note[] = '
+
+
+                    $dbs = convertObJectToArray($vvpage);
+
+                    foreach ($marks[2] as $km => $vm) {
+                        $vm['[align]'] = isset($vm['[align]']) ? $vm['[align]'] : 'center';
+                        $vm['[val]'] = isset($dbs[$vm['key']]) ? $dbs[$vm['key']] : $vm['[val]'];
+                        $divs[] = str_replace(array_keys($vm), $vm, $template);
+                    }
+
+                }
+
+                $trs_note = array();
+                $str_text = explode("-", $pr_info->note);
+                if ($pr_info->note) {
+                    $trs_note[] = '
                         <tr>
-                            <td colspan="3" style="text-align: left;"><br/><p class="label">หมายเหตุ : </p>'.nl2br($pr_info->note).'</td>
+                            <td colspan="3" style="text-align: left;"><br/><p class="label">หมายเหตุ : </p>' . nl2br($pr_info->note) . '</td>
                         </tr>
                     ';
-                    }
-                    
-                    if($pr_info->created_by_user != ''){
-                        $created_by_user = $pr_info->created_by_user;
-                    }else{
-                        $created_by_user = "-";
-                    }
-                    
+                }
 
-                    $divTop =   110;
-                    $divleft = 30;
-                    $trs_client ='
-                    <div style="position:absolute; top:'.$divTop.'px; left:'.$divleft.'px; width: 370px">
+                if ($pr_info->created_by_user != '') {
+                    $created_by_user = $pr_info->created_by_user;
+                } else {
+                    $created_by_user = "-";
+                }
+
+
+                $divTop = 110;
+                $divleft = 30;
+                $trs_client = '
+                    <div style="position:absolute; top:' . $divTop . 'px; left:' . $divleft . 'px; width: 370px">
                         <table style="width: 100%;">
                             <tr>
-                                <td style="text-align: left;">'.$company_name.'<br/>'.$company_address.'<br/>หมายเลขประจำตัวผู้เสียภาษี '.$company_vat_number.'<br/>'.$company_phone.'</td>
+                                <td style="text-align: left;">' . $company_name . '<br/>' . $company_address . '<br/>หมายเลขประจำตัวผู้เสียภาษี ' . $company_vat_number . '<br/>' . $company_phone . '</td>
                             </tr>
                             <tr>
                             
-                                <td style="text-align: left;"><span class="label"><br/>ผู้ขอเบิก</span> '.$created_by_user.'</td>
+                                <td style="text-align: left;"><span class="label"><br/>ผู้ขอเบิก</span> ' . $created_by_user . '</td>
                             </tr>
                             <tr>
-                                <td style="text-align: left;">'.$buyer->first_name.' '.$buyer->last_name.'<br/> ตำแหน่ง : '.$buyer->job_title.'<br/>อีเมล : '.$buyer->email.'<br/></td>
+                                <td style="text-align: left;">' . $buyer->first_name . ' ' . $buyer->last_name . '<br/> ตำแหน่ง : ' . $buyer->job_title . '<br/>อีเมล : ' . $buyer->email . '<br/></td>
                             </tr>
                         </table>
                     </div>
                     ';
-                   
-                    $trs_ref = array();
-                    //var_dump($pr_info);exit;
 
-                    if($pr_info->project_name != ''){
-                        $project_ref = $pr_info->project_name;
-                    }else{
-                        $project_ref = "-";
-                    }
-                    
-                    
-                    
-                    if($pr_info->category_name != ''){
-                        $category_name_ref = $pr_info->category_name;
-                    }else{
-                        
-                        $category_name_ref = "-";
-                    }
-                    $trs_ref[]='                        
+                $trs_ref = array();
+                //var_dump($pr_info);exit;
+
+                if ($pr_info->project_name != '') {
+                    $project_ref = $pr_info->project_name;
+                } else {
+                    $project_ref = "-";
+                }
+
+
+
+                if ($pr_info->category_name != '') {
+                    $category_name_ref = $pr_info->category_name;
+                } else {
+
+                    $category_name_ref = "-";
+                }
+                $trs_ref[] = '                        
                         <tr>
                             <td style="text-align: left; padding-left: 5px;"><span class="label">ชื่อโปรเจค</span></td>
-                            <td style="text-align: left;">'.$project_ref.'</td>
+                            <td style="text-align: left;">' . $project_ref . '</td>
                         </tr>
                         <tr>
                             <td style="text-align: left; padding-left: 5px;"><span class="label">ชื่อผู้ลูกค้า</span></td>
@@ -6010,17 +6003,17 @@ class Pdf_export extends CI_Controller {
                         </tr>
                     ';
 
-                    $divTop =   60;
-                    $divleft = 410;
-                    if($pr_info->payment ){
-                        $payment = $pr_info->payment;
-                    }else{
-                        $payment = "-";
-                    }
+                $divTop = 60;
+                $divleft = 410;
+                if ($pr_info->payment) {
+                    $payment = $pr_info->payment;
+                } else {
+                    $payment = "-";
+                }
 
-                    
-                    $info_table = '
-                        <div style="position:absolute; top:'.$divTop.'px; left:'.$divleft.'px; width: 340px">
+
+                $info_table = '
+                        <div style="position:absolute; top:' . $divTop . 'px; left:' . $divleft . 'px; width: 340px">
                             <table style="width: 100%;">
                                 <tr>
                                     <th colspan="2" style="text-align: center; padding-left: 5px; border-bottom: 1.5px solid #999; font-size: 30px;"><span class="label">ใบขอเบิก</span></th>
@@ -6028,11 +6021,11 @@ class Pdf_export extends CI_Controller {
                                 </tr>
                                 <tr>
                                     <td style="text-align: left; padding-left: 5px;"><span class="label">เลขที่</span></td>
-                                    <td style="text-align: left; "><span>'.$pr_info->doc_no.'</span></td>
+                                    <td style="text-align: left; "><span>' . $pr_info->doc_no . '</span></td>
                                 </tr>
                                 <tr>
                                     <td style="text-align: left; padding-left: 5px;"><span class="label">วันที่</span></td>
-                                    <td style="text-align: left;"><span>'.$this->DateConvert($pr_info->mr_date).'</span></td>
+                                    <td style="text-align: left;"><span>' . $this->DateConvert($pr_info->mr_date) . '</span></td>
                                 </tr>
 
                                 <tr>
@@ -6041,17 +6034,17 @@ class Pdf_export extends CI_Controller {
                                 <tr>
                                     <td></td>
                                 </tr>
-                                '.implode("",$trs_ref).'
+                                ' . implode("", $trs_ref) . '
 
                             </table>
                         </div>';
-                    
-                    
-                    
-                    $divTop =   320;
-                    $divleft = 30;
-                    $tabletemplate = '
-                    <div style="position:absolute; top:'.$divTop.'px; left:'.$divleft.'px; width: 720px">
+
+
+
+                $divTop = 320;
+                $divleft = 30;
+                $tabletemplate = '
+                    <div style="position:absolute; top:' . $divTop . 'px; left:' . $divleft . 'px; width: 720px">
                         <table>
                             <tr>
                                 <td class="thStyle">#</td>
@@ -6059,14 +6052,14 @@ class Pdf_export extends CI_Controller {
                                 <td class="thStyle">รายละเอียด</td>
                                 <td class="thStyle">จำนวน</td>
                             </tr>
-                            '.implode("",$trs).'
-                            '.implode("",$trs_note).'
+                            ' . implode("", $trs) . '
+                            ' . implode("", $trs_note) . '
                         </table>
                     </div>';
 
-                    $divTop =   990;
-                    $divleft = 27;
-                    $trs_approve = '<div style="position:absolute; top:'.$divTop.'px; left:'.$divleft.'px; width: 750px; ">
+                $divTop = 990;
+                $divleft = 27;
+                $trs_approve = '<div style="position:absolute; top:' . $divTop . 'px; left:' . $divleft . 'px; width: 750px; ">
                         <table>
                             <tr>
                                 <td>___________________________<br/>ผู้จัดทำ</td>
@@ -6080,8 +6073,8 @@ class Pdf_export extends CI_Controller {
                             </tr>                            
                         </table>
                     </div>';
-    
-                    $html = ' 
+
+                $html = ' 
                             <style>
                             div{
                                 font-size: 17px;
@@ -6120,110 +6113,110 @@ class Pdf_export extends CI_Controller {
                             </style>
     
                             
-                            '.$info_table.'
-                            '.$tabletemplate.'
-                            '.$trs_approve.'
-                            '.$trs_client.'
-                            '. implode('', $divs) . '
+                            ' . $info_table . '
+                            ' . $tabletemplate . '
+                            ' . $trs_approve . '
+                            ' . $trs_client . '
+                            ' . implode('', $divs) . '
                             
                         ';
-                        $mpdf->AddPage('P');
-                        $pagecount = $mpdf->SetSourceFile('pdf_Template/main_template.pdf');
-                        $tplId = $mpdf->importPage(1);
-                        $mpdf->useTemplate($tplId);
-                        $mpdf->WriteHTML($html);   
-                }
-                
-                // var_dump($buyer);exit;
-            } 
-                
-            $mpdf->Output();
-            // $mpdf->Output($pr_info->doc_no.'.pdf', \Mpdf\Output\Destination::DOWNLOAD);
+                $mpdf->AddPage('P');
+                $pagecount = $mpdf->SetSourceFile('pdf_Template/main_template.pdf');
+                $tplId = $mpdf->importPage(1);
+                $mpdf->useTemplate($tplId);
+                $mpdf->WriteHTML($html);
+            }
+
+            // var_dump($buyer);exit;
         }
 
+        $mpdf->Output();
+        // $mpdf->Output($pr_info->doc_no.'.pdf', \Mpdf\Output\Destination::DOWNLOAD);
+    }
 
 
-        public function deliverys_pdf($delivery_id = 0 )
-        {            
-            $template = '<div style="text-align: [align]; position:absolute; top:[top]px; left:[left]px; width:[w]px; height:[h]px;"><span>[val]</span></div>';
 
-            $defaultConfig = (new Mpdf\Config\ConfigVariables())->getDefaults();
-            $fontDirs = $defaultConfig['fontDir'];
-    
-            $defaultFontConfig = (new Mpdf\Config\FontVariables())->getDefaults();
-            $fontData = $defaultFontConfig['fontdata'];
-            
+    public function deliverys_pdf($delivery_id = 0)
+    {
+        $template = '<div style="text-align: [align]; position:absolute; top:[top]px; left:[left]px; width:[w]px; height:[h]px;"><span>[val]</span></div>';
 
-            $mpdf = new \Mpdf\Mpdf([
-                'fontDir' => array_merge($fontDirs, [
-                    __DIR__ . '/fonts',
-                ]),
-                'fontdata' => $fontData + [
-                    'def' => [
-                        'R' => 'THSarabun_Bold.ttf',
-                        //'I' => 'THSarabunNew Italic.ttf',
-                        //'B' => 'THSarabunNew Bold.ttf',
-                    ]
-                ],
-                'default_font' => 'def',
-                'tempDir' => '/tmp'
-            ]);
-            $mpdf->charset_in = 'UTF-8';
-            
-    
-            $keep = array();
-            $html = '';
-            $company_address = nl2br(get_setting("company_address"));
-            $company_phone = get_setting("company_phone");
-            $company_website = get_setting("company_website");
-            $company_vat_number = get_setting("company_vat_number");
-            $company_name = get_setting("company_name");
-           
-    
-            $sql = "SELECT *,deliverys.id as esId,delivery_items.id as itemId, clients.id as clientId , deliverys.note as es_note, projects.title as protitle, delivery_items.title as esITitle
+        $defaultConfig = (new Mpdf\Config\ConfigVariables())->getDefaults();
+        $fontDirs = $defaultConfig['fontDir'];
+
+        $defaultFontConfig = (new Mpdf\Config\FontVariables())->getDefaults();
+        $fontData = $defaultFontConfig['fontdata'];
+
+
+        $mpdf = new \Mpdf\Mpdf([
+            'fontDir' => array_merge($fontDirs, [
+                __DIR__ . '/fonts',
+            ]),
+            'fontdata' => $fontData + [
+                'def' => [
+                    'R' => 'THSarabun_Bold.ttf',
+                    //'I' => 'THSarabunNew Italic.ttf',
+                    //'B' => 'THSarabunNew Bold.ttf',
+                ]
+            ],
+            'default_font' => 'def',
+            'tempDir' => '/tmp'
+        ]);
+        $mpdf->charset_in = 'UTF-8';
+
+
+        $keep = array();
+        $html = '';
+        $company_address = nl2br(get_setting("company_address"));
+        $company_phone = get_setting("company_phone");
+        $company_website = get_setting("company_website");
+        $company_vat_number = get_setting("company_vat_number");
+        $company_name = get_setting("company_name");
+
+
+        $sql = "SELECT *,deliverys.id as esId,delivery_items.id as itemId, clients.id as clientId , deliverys.note as es_note, projects.title as protitle, delivery_items.title as esITitle
             FROM `deliverys` 
             LEFT JOIN delivery_items ON delivery_items.delivery_id = deliverys.id AND delivery_items.deleted = 0
             LEFT JOIN clients ON deliverys.client_id = clients.id            
             LEFT JOIN users ON clients.id = users.client_id AND users.is_primary_contact = 1
             LEFT JOIN projects ON projects.id = deliverys.project_id
-            WHERE deliverys.id = $delivery_id;";  
+            WHERE deliverys.id = $delivery_id;";
 
-            //arr($sql);exit;
-            
-           
-            
-            
-            $data = $this->Db_model->creatBy($delivery_id, "deliverys");
-            $fname = $data->first_name;
-            $lname = $data->last_name;
-            $deliverys_data = get_deliverys_making_data($delivery_id);
-            $buyer = $deliverys_data['client_info'];
-            // var_dump($buyer);exit;
-            // exit;
-            
+        //arr($sql);exit;
 
-            $cal_payment = $this->Deliverys_model->get_delivery_total_summary($delivery_id);
-            // var_dump($cal_payment);exit;
-            if($cal_payment->tax_name){
-                $tax_name = $cal_payment->tax_name;
-            }else{
-                $tax_name = "-";
-            }
 
-            $tax_name2 = isset($cal_payment->tax_name2) ? $cal_payment->tax_name2 : "-";
-            if($cal_payment->tax_id == 1){
-                $tax_val = ($cal_payment->delivery_subtotal - $cal_payment->discount_total) + $cal_payment->tax;
-            }else{
-                $tax_val = ($cal_payment->delivery_subtotal - $cal_payment->discount_total) - $cal_payment->tax;
-            }
+
+
+        $data = $this->Db_model->creatBy($delivery_id, "deliverys");
+        $fname = $data->first_name;
+        $lname = $data->last_name;
+        $deliverys_data = get_deliverys_making_data($delivery_id);
+        $buyer = $deliverys_data['client_info'];
+        // var_dump($buyer);exit;
+        // exit;
+
+
+        $cal_payment = $this->Deliverys_model->get_delivery_total_summary($delivery_id);
+        // var_dump($cal_payment);exit;
+        if ($cal_payment->tax_name) {
+            $tax_name = $cal_payment->tax_name;
+        } else {
+            $tax_name = "-";
+        }
+
+        $tax_name2 = isset($cal_payment->tax_name2) ? $cal_payment->tax_name2 : "-";
+        if ($cal_payment->tax_id == 1) {
+            $tax_val = ($cal_payment->delivery_subtotal - $cal_payment->discount_total) + $cal_payment->tax;
+        } else {
+            $tax_val = ($cal_payment->delivery_subtotal - $cal_payment->discount_total) - $cal_payment->tax;
+        }
 
         //     if($cal_payment->tax2 != NULL){
         //         $trs_tax2 = '
-                    
+
         //             <tr>
         //                 <td colspan="3"></td> 
         //                 <td colspan="3" style="border-top: 2px solid #999; height:10px;" ></td> 
-                        
+
         //             </tr>
 
         //             <tr>
@@ -6233,7 +6226,7 @@ class Pdf_export extends CI_Controller {
         //             </tr>
         //             <tr>
         //                 <td colspan="2"></td> 
-                        
+
         //                 <td colspan="3" style="text-align: right;"><span class="label" >ยอดชำระ</span></td>
         //                 <td style="text-align: right;">'.number_format($cal_payment->delivery_total,2,'.',',').' บาท</td>
         //             </tr>
@@ -6242,7 +6235,7 @@ class Pdf_export extends CI_Controller {
         //  }
 
         //     if($cal_payment->discount_total == ''){
-                
+
         //         $trs_total[] = '
         //                 <tr>
         //                     <td colspan="2"></td>                            
@@ -6255,9 +6248,9 @@ class Pdf_export extends CI_Controller {
         //                     <td style="text-align: right;">'.number_format($cal_payment->tax,2,'.',',').' บาท</td>
         //                 </tr>
         //                 <tr>
-                            
+
         //                     <td colspan="2" style="text-align: left;"><span>('.$this->Convert($cal_payment->delivery_total).')</span></td> 
-                            
+
         //                     <td colspan="3" style="text-align: right;"><span class="label" >จำนวนเงินรวมทั้งสิ้น</span></td>
         //                     <td style="text-align: right;">'.number_format($tax_val,2,'.',',').' บาท</td>
         //                 </tr>
@@ -6265,7 +6258,7 @@ class Pdf_export extends CI_Controller {
 
         //             ';            
         //     }else if($cal_payment->discount_type == "before_tax"){
-                
+
 
 
         //         $trs_total[] = '
@@ -6289,9 +6282,9 @@ class Pdf_export extends CI_Controller {
         //                 <td colspan="3" style="text-align: right;"><span class="label">'.$tax_name.'</span></td>
         //                 <td style="text-align: right;">'.number_format($cal_payment->tax,2,'.',',').'</td>
         //             </tr>
-                                        
+
         //             <tr>
-                        
+
         //                 <td colspan="2" style="text-align: left;"><span>'.$this->Convert($cal_payment->delivery_total).'</span></td> 
         //                 <td colspan="3" style="text-align: right;"><span class="label" >จำนวนเงินรวมทั้งสิ้น</span></td>
         //                 <td style="text-align: right;">'.number_format($tax_val,2,'.',',').'</td>
@@ -6301,7 +6294,7 @@ class Pdf_export extends CI_Controller {
         //         ';
 
         //     }else if($cal_payment->discount_type == "after_tax"){
-                
+
         //         $trs_total[] = '
         //             <tr>
         //                 <td colspan="2"></td>                            
@@ -6318,13 +6311,13 @@ class Pdf_export extends CI_Controller {
         //                 <td colspan="3" style="text-align: right;"><span class="label"><u>หัก</u> ส่วนลด</span></td>
         //                 <td style="text-align: right;">'.number_format($cal_payment->discount_total,2,'.',',').'</td>
         //             </tr>
-                    
+
         //             <tr>
         //                 <td colspan="2"></td> 
         //                 <td colspan="3" style="text-align: right;"><span class="label">ราคาหลังส่วนลด</span></td>
         //                 <td style="text-align: right;">'.number_format($cal_payment->delivery_subtotal-$cal_payment->discount_total,2,'.',',').'</td>
         //             </tr>
-                    
+
         //             <tr>                        
         //                 <td colspan="2" style="text-align: left;"><span>'.$this->Convert($cal_payment->delivery_total).'</span></td>                         
         //                 <td colspan="3" style="text-align: right;"><span class="label" >จำนวนเงินรวมทั้งสิ้น</span></td>
@@ -6335,105 +6328,105 @@ class Pdf_export extends CI_Controller {
         //         ';
 
         //     }
-            
-            
-             
-                    
-                    
 
-                
-            /* <img src="<?php echo get_file_from_setting($delivery_logo, get_setting('only_file_path')); ?>" />*/
-            $marks[1] = array();
-            $top = 1020;
-            $left = 90;
-            $user_signature = $this->Db_model->signature_approve( $delivery_id, "deliverys" );
-            // var_dump($user_signature);exit;
-            if( $user_signature){
-                if($user_signature->signature == ''){
-                    $top = 990;
-                    $marks[1][] = array('key' => 'signauture', '[left]' => $left, '[w]' => 130, '[top]' => $top, '[val]' => $user_signature->first_name.' '.$user_signature->last_name, '[align]' => 'center');
-                }else{
-                    $top = 930;
-                    $marks[1][] = array('key' => 'signauture', '[left]' => $left, '[w]' => 130, '[top]' => $top, '[val]' => '<img src='.base_url().$user_signature->signature.'>', '[align]' => 'center');
-                }
-                $top=1035;
-                $left = 570;
-                $marks[1][] = array('key' => 'date_approved', '[left]' => $left, '[w]' => 130, '[top]' => $top, '[val]' => $this->DateConvert($user_signature->doc_date), '[align]' => 'center');
-            }
-            
-            if($user_signature->signature == ''){
+
+
+
+
+
+
+        /* <img src="<?php echo get_file_from_setting($delivery_logo, get_setting('only_file_path')); ?>" />*/
+        $marks[1] = array();
+        $top = 1020;
+        $left = 90;
+        $user_signature = $this->Db_model->signature_approve($delivery_id, "deliverys");
+        // var_dump($user_signature);exit;
+        if ($user_signature) {
+            if ($user_signature->signature == '') {
                 $top = 990;
-                $marks[1][] = array('key' => 'signauture', '[left]' => $left, '[w]' => 130, '[top]' => $top, '[val]' => $user_signature->first_name.' '.$user_signature->last_name, '[align]' => 'center');
-            }else{
+                $marks[1][] = array('key' => 'signauture', '[left]' => $left, '[w]' => 130, '[top]' => $top, '[val]' => $user_signature->first_name . ' ' . $user_signature->last_name, '[align]' => 'center');
+            } else {
                 $top = 930;
-                $marks[1][] = array('key' => 'signauture', '[left]' => $left, '[w]' => 130, '[top]' => $top, '[val]' => '<img src='.base_url().$user_signature->signature.'>', '[align]' => 'center');
+                $marks[1][] = array('key' => 'signauture', '[left]' => $left, '[w]' => 130, '[top]' => $top, '[val]' => '<img src=' . base_url() . $user_signature->signature . '>', '[align]' => 'center');
             }
-            $top=1035;
-            $left = 90;
+            $top = 1035;
+            $left = 570;
             $marks[1][] = array('key' => 'date_approved', '[left]' => $left, '[w]' => 130, '[top]' => $top, '[val]' => $this->DateConvert($user_signature->doc_date), '[align]' => 'center');
+        }
+
+        if ($user_signature->signature == '') {
+            $top = 990;
+            $marks[1][] = array('key' => 'signauture', '[left]' => $left, '[w]' => 130, '[top]' => $top, '[val]' => $user_signature->first_name . ' ' . $user_signature->last_name, '[align]' => 'center');
+        } else {
+            $top = 930;
+            $marks[1][] = array('key' => 'signauture', '[left]' => $left, '[w]' => 130, '[top]' => $top, '[val]' => '<img src=' . base_url() . $user_signature->signature . '>', '[align]' => 'center');
+        }
+        $top = 1035;
+        $left = 90;
+        $marks[1][] = array('key' => 'date_approved', '[left]' => $left, '[w]' => 130, '[top]' => $top, '[val]' => $this->DateConvert($user_signature->doc_date), '[align]' => 'center');
 
 
 
-            
-            //End Item-List------------------------------------------------------------------------------------------------------------
-            
-    
-            $rangItem = 9;
-    
-            foreach( $this->Db_model->fetchAll($sql) as $parentKey => $child ){
-                
-                if(!isset($keep[$child->esId])){
-                    $page = 1;
-                }
-                
-                $keep[$child->esId][$page][] = $child;
-                
-                if(count($keep[$child->esId][$page]) == $rangItem ){
-                    $page += 1;
-                }
-                
+
+        //End Item-List------------------------------------------------------------------------------------------------------------
+
+
+        $rangItem = 9;
+
+        foreach ($this->Db_model->fetchAll($sql) as $parentKey => $child) {
+
+            if (!isset($keep[$child->esId])) {
+                $page = 1;
             }
-          
-            foreach( $keep as $kd => $kv ){
-                 
-                $i=1;
-                foreach( $kv as $kpage => $vpage ){
-                    $dbs = convertObJectToArray($vpage[0]);
-                    $dbs = array_merge($dbs,[
-                        'delivery_date' => $this->DateConvert($vpage[0]->delivery_date),
-                        'valid_until' => $this->DateConvert($vpage[0]->valid_until),
-                        'price_before_dis' => '<span class="label">ราคาก่อนหักส่วนลด</span>',
-                        'discount_name' => '<span class="label"><u>หัก</u> ส่วนลด</span>',
-                        'price_after_dis' => '<span class="label">ราคาหลังส่วนลด</span>',
-                        'vat_name' => '<span class="label">'.isset($cal_payment->tax_name) ? '<span class="label">'.$cal_payment->tax_name.'</span>' : "-".'</span>',
-                        'total_name' => '<span class="label">รวมเงินทั้งสิ้น</span>',
 
-                    ]);
-                    
-                    $divs = array(); 
-                    
-                    foreach ($marks[1] as $km => $vm) {
-                        $vm['[align]'] = isset($vm['[align]']) ? $vm['[align]'] : 'left';
-                        $vm['[val]'] = isset($dbs[$vm['key']]) ? $dbs[$vm['key']] : $vm['[val]'];
-                        $divs[] = str_replace(array_keys( $vm ), $vm, $template);
-                    } 
-                    $top = 326;
-                    $trs =array();
-                    
-                    foreach($vpage as $vkpage => $vvpage ){  
-                        
+            $keep[$child->esId][$page][] = $child;
 
-                        if($vvpage->esITitle){
-                            $trs[] = '
+            if (count($keep[$child->esId][$page]) == $rangItem) {
+                $page += 1;
+            }
+
+        }
+
+        foreach ($keep as $kd => $kv) {
+
+            $i = 1;
+            foreach ($kv as $kpage => $vpage) {
+                $dbs = convertObJectToArray($vpage[0]);
+                $dbs = array_merge($dbs, [
+                    'delivery_date' => $this->DateConvert($vpage[0]->delivery_date),
+                    'valid_until' => $this->DateConvert($vpage[0]->valid_until),
+                    'price_before_dis' => '<span class="label">ราคาก่อนหักส่วนลด</span>',
+                    'discount_name' => '<span class="label"><u>หัก</u> ส่วนลด</span>',
+                    'price_after_dis' => '<span class="label">ราคาหลังส่วนลด</span>',
+                    'vat_name' => '<span class="label">' . isset($cal_payment->tax_name) ? '<span class="label">' . $cal_payment->tax_name . '</span>' : "-" . '</span>',
+                    'total_name' => '<span class="label">รวมเงินทั้งสิ้น</span>',
+
+                ]);
+
+                $divs = array();
+
+                foreach ($marks[1] as $km => $vm) {
+                    $vm['[align]'] = isset($vm['[align]']) ? $vm['[align]'] : 'left';
+                    $vm['[val]'] = isset($dbs[$vm['key']]) ? $dbs[$vm['key']] : $vm['[val]'];
+                    $divs[] = str_replace(array_keys($vm), $vm, $template);
+                }
+                $top = 326;
+                $trs = array();
+
+                foreach ($vpage as $vkpage => $vvpage) {
+
+
+                    if ($vvpage->esITitle) {
+                        $trs[] = '
                             <tr>
-                                <td style="width: 5%; border-bottom: 1px solid #999; vertical-align: top;">'.$i++.'</td>
-                                <td style="text-align: left; width: 55%; border-bottom: 1px solid #999;">'.$vvpage->esITitle.'<br/>'.$vvpage->description.'</td>
-                                <td style=" width: 6%; border-bottom: 1px solid #999; text-align: center; vertical-align: top;">'.number_format($vvpage->quantity,0,'.',',').'</td>
-                                <td style=" width: 6%; border-bottom: 1px solid #999; text-align: center; vertical-align: top;">'.$vvpage->unit_type.'</td>                                
+                                <td style="width: 5%; border-bottom: 1px solid #999; vertical-align: top;">' . $i++ . '</td>
+                                <td style="text-align: left; width: 55%; border-bottom: 1px solid #999;">' . $vvpage->esITitle . '<br/>' . $vvpage->description . '</td>
+                                <td style=" width: 6%; border-bottom: 1px solid #999; text-align: center; vertical-align: top;">' . number_format($vvpage->quantity, 0, '.', ',') . '</td>
+                                <td style=" width: 6%; border-bottom: 1px solid #999; text-align: center; vertical-align: top;">' . $vvpage->unit_type . '</td>                                
                             </tr>
                             ';
-                        }else{
-                            $trs[] = '
+                    } else {
+                        $trs[] = '
                             <tr>
                                 <td style="width: 3%;"></td>
                                 <td style="width: 63%;"></td>
@@ -6442,73 +6435,73 @@ class Pdf_export extends CI_Controller {
 
                             </tr>
                             ';
-                        }
-                        
-                        
-                        $marks[2] = array(); //สร้าง array แยกแต่ละรายการ
-                        
-                        $dbs = convertObJectToArray( $vvpage );
-                      
-                        foreach ($marks[2] as $km => $vm) {
-                            $vm['[align]'] = isset($vm['[align]']) ? $vm['[align]'] : 'center';
-                            $vm['[val]'] = isset($dbs[$vm['key']]) ? $dbs[$vm['key']] : $vm['[val]'];
-                            $divs[] = str_replace(array_keys( $vm ), $vm, $template);
-                        }
-                        
                     }
 
-                    $footer = get_setting("rt_footer");
-                    $trs_note = array();
-                    // var_dump($vpage[0]);exit;
-                   
-                        $trs_note[] = '
+
+                    $marks[2] = array(); //สร้าง array แยกแต่ละรายการ
+
+                    $dbs = convertObJectToArray($vvpage);
+
+                    foreach ($marks[2] as $km => $vm) {
+                        $vm['[align]'] = isset($vm['[align]']) ? $vm['[align]'] : 'center';
+                        $vm['[val]'] = isset($dbs[$vm['key']]) ? $dbs[$vm['key']] : $vm['[val]'];
+                        $divs[] = str_replace(array_keys($vm), $vm, $template);
+                    }
+
+                }
+
+                $footer = get_setting("rt_footer");
+                $trs_note = array();
+                // var_dump($vpage[0]);exit;
+
+                $trs_note[] = '
                         <tr>
-                            <td colspan="4" style="text-align: left;"><br/>'.$footer.'</td>
+                            <td colspan="4" style="text-align: left;"><br/>' . $footer . '</td>
                         </tr>
-                    ';                    
+                    ';
 
 
-                    // $divTop =   110;
-                    // $divleft = 27;
-                    // $trs_client ='
-                    // <div style="position:absolute; top:'.$divTop.'px; left:'.$divleft.'px; width: 390px">
-                    //     <table style="width: 100%; ">
-                    //         <tr>
-                    //             <td style="text-align: left;">'.$company_name.'<br/>'.$company_address.'<br/>หมายเลขประจำตัวผู้เสียภาษี '.$company_vat_number.'<br/>'.$company_phone.'</td>
-                    //         </tr>
-                    //         <tr>
-                    //             <td style="text-align: left;"><span class="label"><br/>ลูกค้า</span></td>
-                    //         </tr>
-                    //         <tr>
-                    //             <td style="text-align: left;">'.$vpage[0]->company_name.'<br/>'.$vpage[0]->address.' '.$vpage[0]->city.' '.$vpage[0]->state.' '.$vpage[0]->zip.' '.$vpage[0]->country.'<br/>'.'เลขประจำตัวผู้เสียภาษี '.$vpage[0]->vat_number.'</td>
-                    //         </tr>
-                    //     </table>
-                    // </div>
-                    // ';
+                // $divTop =   110;
+                // $divleft = 27;
+                // $trs_client ='
+                // <div style="position:absolute; top:'.$divTop.'px; left:'.$divleft.'px; width: 390px">
+                //     <table style="width: 100%; ">
+                //         <tr>
+                //             <td style="text-align: left;">'.$company_name.'<br/>'.$company_address.'<br/>หมายเลขประจำตัวผู้เสียภาษี '.$company_vat_number.'<br/>'.$company_phone.'</td>
+                //         </tr>
+                //         <tr>
+                //             <td style="text-align: left;"><span class="label"><br/>ลูกค้า</span></td>
+                //         </tr>
+                //         <tr>
+                //             <td style="text-align: left;">'.$vpage[0]->company_name.'<br/>'.$vpage[0]->address.' '.$vpage[0]->city.' '.$vpage[0]->state.' '.$vpage[0]->zip.' '.$vpage[0]->country.'<br/>'.'เลขประจำตัวผู้เสียภาษี '.$vpage[0]->vat_number.'</td>
+                //         </tr>
+                //     </table>
+                // </div>
+                // ';
 
-                    $divTop =  110;
-                    $divleft = 30;
-                    $trs_client ='
-                    <div style="position:absolute; top:'.$divTop.'px; left:'.$divleft.'px; width: 370px">
+                $divTop = 110;
+                $divleft = 30;
+                $trs_client = '
+                    <div style="position:absolute; top:' . $divTop . 'px; left:' . $divleft . 'px; width: 370px">
                         <table style="width: 100%;">
                             <tr>
-                                <td style="text-align: left;">'.$company_name.'<br/>'.$company_address.'<br/>หมายเลขประจำตัวผู้เสียภาษี '.$company_vat_number.'<br/>'.$company_phone.'</td>
+                                <td style="text-align: left;">' . $company_name . '<br/>' . $company_address . '<br/>หมายเลขประจำตัวผู้เสียภาษี ' . $company_vat_number . '<br/>' . $company_phone . '</td>
                             </tr>
                             <tr>
                             
                                 <td style="text-align: left;"><span class="label"><br/>ผู้ส่งของ</span></td>
                             </tr>
                             <tr>
-                                <td style="text-align: left;">'.$buyer->first_name.' '.$buyer->last_name.'<br/> ตำแหน่ง : '.$buyer->job_title.'<br/> อีเมล : '.$buyer->email.'<br/> เบอร์โทร : '.$buyer->phone.'</td>
+                                <td style="text-align: left;">' . $buyer->first_name . ' ' . $buyer->last_name . '<br/> ตำแหน่ง : ' . $buyer->job_title . '<br/> อีเมล : ' . $buyer->email . '<br/> เบอร์โทร : ' . $buyer->phone . '</td>
                             </tr>
                         </table>
                     </div>
                     ';
 
-                    $divTop +=   210;
-                    $divleft = 27;
-                    $tabletemplate = '
-                    <div style="position:absolute; top:'.$divTop.'px; left:'.$divleft.'px; width: 1000px">
+                $divTop += 210;
+                $divleft = 27;
+                $tabletemplate = '
+                    <div style="position:absolute; top:' . $divTop . 'px; left:' . $divleft . 'px; width: 1000px">
                         <table>
                             <tr>
                                 <td class="thStyle">#</td>
@@ -6516,74 +6509,73 @@ class Pdf_export extends CI_Controller {
                                 <td class="thStyle">จำนวน</td>
                                 <td class="thStyle">หน่วยนับ</td>
                             </tr>
-                            '.implode("",$trs).'
-                            '.implode("",$trs_note).'
+                            ' . implode("", $trs) . '
+                            ' . implode("", $trs_note) . '
                         </table>
                     </div>';
-                    $info_contact = array();
+                $info_contact = array();
 
-                    $project_title = isset($vpage[0]->protitle) ? $vpage[0]->protitle : "-";
+                $project_title = isset($vpage[0]->protitle) ? $vpage[0]->protitle : "-";
 
-                    $info_contact[] = '
+                $info_contact[] = '
                          <tr>
                             <td style="text-align: left; padding-left: 5px;"><span class="label">ชื่องาน</span></td>
-                            <td style="text-align: left;"><span>'.$project_title.'</span></td>
+                            <td style="text-align: left;"><span>' . $project_title . '</span></td>
                             <td colspan="2"></td>
                         </tr>
                     ';
 
-                    
-                    if($vpage[0]->first_name){
-                        $info_contact[] = '
+
+                if ($vpage[0]->first_name) {
+                    $info_contact[] = '
                         
                         <tr>
                             <td style="text-align: left; padding-left: 5px;"><span class="label">ผู้ติดต่อ</span></td>
-                            <td style="text-align: left;"><span>'.$vpage[0]->first_name.' '.$vpage[0]->last_name.'</span></td>
+                            <td style="text-align: left;"><span>' . $vpage[0]->first_name . ' ' . $vpage[0]->last_name . '</span></td>
                             <td colspan="2"></td>
                         </tr>
                         <tr>
                             <td style="text-align: left; padding-left: 5px;"><span class="label">เบอร์โทร</span></td>
-                            <td style="text-align: left;"><span>'.$vpage[0]->phone.'</span></td>
+                            <td style="text-align: left;"><span>' . $vpage[0]->phone . '</span></td>
                             <td colspan="2"></td>
                         </tr>
                         <tr>
                             <td style="text-align: left; padding-left: 5px;"><span class="label">อีเมล</span></td>
-                            <td style="text-align: left;"><span>'.$vpage[0]->email.'</span></td>
+                            <td style="text-align: left;"><span>' . $vpage[0]->email . '</span></td>
                             <td colspan="2"></td>
                         </tr>';
-                    }
-                    
+                }
 
-                    // <tr>
-                    //                 <td style="text-align: left; width: 50px;"><span class="label">อ้างอิง</span></td>
-                    //                 <td style="text-align: left;"><span>(free text)</span></td>
-                    //             </tr>
-                    
-                    if($vpage[0]->credit != 0){
-                        $pay_c = $vpage[0]->credit ." วัน";
-                        if($vpage[0]->pay_type == "percentage"){
-                            $pay = $vpage[0]->pay_sp." %";
-                        }else{
-                            $pay = $vpage[0]->pay_sp." งวด";
-                        }
-                        $pay_detail = '
+
+                // <tr>
+                //                 <td style="text-align: left; width: 50px;"><span class="label">อ้างอิง</span></td>
+                //                 <td style="text-align: left;"><span>(free text)</span></td>
+                //             </tr>
+
+                if ($vpage[0]->credit != 0) {
+                    $pay_c = $vpage[0]->credit . " วัน";
+                    if ($vpage[0]->pay_type == "percentage") {
+                        $pay = $vpage[0]->pay_sp . " %";
+                    } else {
+                        $pay = $vpage[0]->pay_sp . " งวด";
+                    }
+                    $pay_detail = '
                         <td style="text-align: left; width: 50px; border-bottom: 1.5px solid #999;"><span class="label">การชำระ</span></td>
-                        <td style="text-align: left; border-bottom: 1.5px solid #999;">'.$pay.'</td>
+                        <td style="text-align: left; border-bottom: 1.5px solid #999;">' . $pay . '</td>
                         ';
-                    }
-                    else{          
-                        $pay_c = "จ่ายเป็นเงินสด";
-                        $pay_detail ='';
-                    }
+                } else {
+                    $pay_c = "จ่ายเป็นเงินสด";
+                    $pay_detail = '';
+                }
 
 
-                    // var_dump($pay);
-                    // var_dump($vpage[0]);exit;
+                // var_dump($pay);
+                // var_dump($vpage[0]);exit;
 
-                    $divTop =   50;
-                    $divleft = 420;
-                    $info_table = '
-                        <div style="position:absolute; top:'.$divTop.'px; left:'.$divleft.'px; width: 340px">
+                $divTop = 50;
+                $divleft = 420;
+                $info_table = '
+                        <div style="position:absolute; top:' . $divTop . 'px; left:' . $divleft . 'px; width: 340px">
                             <table style="width: 100%">
                                 <tr>
                                     <th colspan="4" style="text-align: center; border-bottom: 1.5px solid #999; font-size: 30px;"><span class="label">ใบส่งของ</span></th>
@@ -6591,14 +6583,14 @@ class Pdf_export extends CI_Controller {
                                 </tr>
                                 <tr>
                                     <td style="text-align: left; padding-left: 5px; width: 70px;"><span class="label" >เลขที่</span></td>
-                                    <td style="text-align: left;"><span>'.$vpage[0]->doc_no.'</span></td>
+                                    <td style="text-align: left;"><span>' . $vpage[0]->doc_no . '</span></td>
                                     <td colspan="2"></td>
                                 </tr>
                                 
                                 
                                 <tr>
                                     <td style="text-align: left; padding-left: 5px;"><span class="label">วันที่</span></td>
-                                    <td style="text-align: left;"><span>'.$this->DateConvert($vpage[0]->delivery_date).'</span></td>
+                                    <td style="text-align: left;"><span>' . $this->DateConvert($vpage[0]->delivery_date) . '</span></td>
                                     <td colspan="2"></td>
                                 </tr>
 
@@ -6606,18 +6598,18 @@ class Pdf_export extends CI_Controller {
                                     <td colspan="4" style="text-align: left; border-bottom: 1.5px solid #999;"></td>
                                 </tr>
                                 
-                                '.implode("",$info_contact).'
+                                ' . implode("", $info_contact) . '
                             </table>
                         </div>';
 
-                        // <tr>
-                        //             <td style="text-align: left; border-bottom: 1.5px solid #999; padding-left: 5px;"><span class="label">อ้างอิงใบสั่งซื้อ</span></td>
-                        //             <td style="text-align: left; border-bottom: 1.5px solid #999;"><span> - </span></td>
-                        //         </tr>
+                // <tr>
+                //             <td style="text-align: left; border-bottom: 1.5px solid #999; padding-left: 5px;"><span class="label">อ้างอิงใบสั่งซื้อ</span></td>
+                //             <td style="text-align: left; border-bottom: 1.5px solid #999;"><span> - </span></td>
+                //         </tr>
 
-                        $divTop =   990;
-                        $divleft = 27;
-                        $trs_approve = '<div style="position:absolute; top:'.$divTop.'px; left:'.$divleft.'px; width: 750px; ">
+                $divTop = 990;
+                $divleft = 27;
+                $trs_approve = '<div style="position:absolute; top:' . $divTop . 'px; left:' . $divleft . 'px; width: 750px; ">
                             <table>
                                 <tr>
                                     <td>___________________________<br/>ผู้ส่งของ</td>
@@ -6633,36 +6625,36 @@ class Pdf_export extends CI_Controller {
                         </div>';
 
 
-                    // $divTop =   990;
-                    // $divleft = 27;
-                    // $trs_approve = '<div style="position:absolute; top:'.$divTop.'px; left:'.$divleft.'px; width: 750px; ">
-                    //     <table>
-                    //         <tr>
-                    //             <td colspan="2">ในนาม '.$vpage[0]->company_name.'</td>
-                    //             <td></td>
-                    //             <td colspan="2">ในนาม '.$company_name.'</td>
-                    //         </tr>
-                    //         <tr>
-                    //             <td style="height: 100px;">___________________________<p>ผู้ขอยืม-คืนสินค้า</p></td>
-                    //             <td>___________________________<p>วันที่</p></td>
-                    //             <td style="width: 10%;"></td>
-                    //             <td>___________________________<p>ผู้อนุมัติ</p></td>
-                    //             <td>___________________________<p>วันที่</p></td>
-                    //         </tr>                            
-                    //     </table>
-                    // </div>';
+                // $divTop =   990;
+                // $divleft = 27;
+                // $trs_approve = '<div style="position:absolute; top:'.$divTop.'px; left:'.$divleft.'px; width: 750px; ">
+                //     <table>
+                //         <tr>
+                //             <td colspan="2">ในนาม '.$vpage[0]->company_name.'</td>
+                //             <td></td>
+                //             <td colspan="2">ในนาม '.$company_name.'</td>
+                //         </tr>
+                //         <tr>
+                //             <td style="height: 100px;">___________________________<p>ผู้ขอยืม-คืนสินค้า</p></td>
+                //             <td>___________________________<p>วันที่</p></td>
+                //             <td style="width: 10%;"></td>
+                //             <td>___________________________<p>ผู้อนุมัติ</p></td>
+                //             <td>___________________________<p>วันที่</p></td>
+                //         </tr>                            
+                //     </table>
+                // </div>';
 
-                    $divTop =   5;
-                    $divleft = -60;
-                    $delivery_logo = "delivery_logo";
-                    $logos = '<img src="'.get_file_from_setting($delivery_logo, get_setting('only_file_path')).'" style="width: 300px"/>';
+                $divTop = 5;
+                $divleft = -60;
+                $delivery_logo = "delivery_logo";
+                $logos = '<img src="' . get_file_from_setting($delivery_logo, get_setting('only_file_path')) . '" style="width: 300px"/>';
 
-                    $logo_es = '<div style="position:absolute; top:'.$divTop.'px; left:'.$divleft.'px; ">
-                        '.$logos.'
+                $logo_es = '<div style="position:absolute; top:' . $divTop . 'px; left:' . $divleft . 'px; ">
+                        ' . $logos . '
                     </div>';
-              
 
-                    $html = ' 
+
+                $html = ' 
                             <style>
                             div{
                                 font-size: 17px;
@@ -6703,29 +6695,424 @@ class Pdf_export extends CI_Controller {
                             }
                            
                             </style>
-                            '.$logo_es.'
-                            '.$trs_client.'
-                            '.$info_table.'
-                            '.$tabletemplate.'
-                            '.$trs_approve.'
-                            '. implode('', $divs) . '
+                            ' . $logo_es . '
+                            ' . $trs_client . '
+                            ' . $info_table . '
+                            ' . $tabletemplate . '
+                            ' . $trs_approve . '
+                            ' . implode('', $divs) . '
                         ';
-                        
-                        //  . implode('', $divs) . 
-                        $mpdf->SetTitle($vpage[0]->doc_no);
-                        $mpdf->AddPage('P');
-                        $pagecount = $mpdf->SetSourceFile('pdf_Template/template.pdf');
-                        $tplId = $mpdf->importPage(1);
-                        $mpdf->useTemplate($tplId);
-                        $mpdf->WriteHTML($html);   
-                }
-                
-                
-            } 
-                
-            $mpdf->Output();
-            // $mpdf->Output($vpage[0]->doc_no.'.pdf', \Mpdf\Output\Destination::DOWNLOAD);       
-       
+
+                //  . implode('', $divs) . 
+                $mpdf->SetTitle($vpage[0]->doc_no);
+                $mpdf->AddPage('P');
+                $pagecount = $mpdf->SetSourceFile('pdf_Template/template.pdf');
+                $tplId = $mpdf->importPage(1);
+                $mpdf->useTemplate($tplId);
+                $mpdf->WriteHTML($html);
+            }
+
+
         }
-            
+
+        $mpdf->Output();
+        // $mpdf->Output($vpage[0]->doc_no.'.pdf', \Mpdf\Output\Destination::DOWNLOAD);       
+
     }
+
+    public function productio_order_pdf($project_id = 0, $production_id = 0)
+    {
+        $data["project_info"] = $this->Projects_model->dev2_getProjectInfoByProjectId($project_id);
+        $data["production_bom_header"] = $this->Projects_model->dev2_getProductionOrderHeaderById($production_id);
+        $data["production_bom_detail"] = $this->Projects_model->dev2_getProductionOrderDetailByProjectHeaderId(
+            $project_id,
+            $production_id
+        );
+
+        // var_dump(arr($data));
+        // exit();
+
+        $defaultConfig = (new Mpdf\Config\ConfigVariables())->getDefaults();
+        $fontDirs = $defaultConfig['fontDir'];
+
+        $defaultFontConfig = (new Mpdf\Config\FontVariables())->getDefaults();
+        $fontData = $defaultFontConfig['fontdata'];
+
+        $mpdf = new \Mpdf\Mpdf([
+            'fontDir' => array_merge($fontDirs, [
+                __DIR__ . '/fonts',
+            ]),
+            'fontdata' => $fontData + [
+                'def' => [
+                    'R' => 'THSarabun_Bold.ttf'
+                ]
+            ],
+            'default_font' => 'def',
+            'tempDir' => '/tmp'
+        ]);
+        $mpdf->charset_in = 'UTF-8';
+        $mpdf->SetTitle('Production Order - ' . $project_id);
+
+        $html = '';
+
+        $html .= '
+        <div style="position: relative; width: 100%; height: 100%; border: 1px solid #000;">
+            <div style="position: absolute; top: 80px;">
+                <table>
+                    <thead>
+                        <tr>
+                            <td style="font-size: 120%;">โครงการ</td>
+                        </tr>
+                    </thead>
+                </table>
+            </div>
+        </div>
+        ';
+
+        $mpdf->AddPage('P');
+        $pagecount = $mpdf->SetSourceFile('pdf_Template/main_template.pdf');
+        $tplId = $mpdf->importPage(1);
+        $mpdf->useTemplate($tplId);
+        $mpdf->WriteHTML($html);
+        $mpdf->Output();
+    }
+
+    function production_pdf($project_id = 0, $production_id = 0)
+    {
+        $pdfCtl = &get_instance();
+        $view_data['can_read_price'] = true;
+        $view_data['label_column'] = "col-md-3";
+        $view_data['field_column'] = "col-md-9";
+        $view_data["view"] = $pdfCtl->input->post('view');
+        $view_data['model_info'] = $pdfCtl->Projects_model->get_one($project_id);
+        
+        $view_data['items'] = $pdfCtl->Items_model->get_items([])->result();
+        foreach ($view_data['items'] as $item) {
+            unset($item->files);
+            unset($item->description);
+        }
+
+        $view_data['item_mixings'] = $pdfCtl->Bom_item_mixing_groups_model->get_detail_items(['for_client_id' => $view_data['model_info']->client_id])->result();
+        $view_data['project_items'] = $pdfCtl->Bom_item_mixing_groups_model->get_project_items(['project_id' => $view_data['model_info']->id, 'id' => $production_id])->result();
+        $view_data['project_materials'] = $pdfCtl->Bom_item_mixing_groups_model->get_project_materials($view_data['project_items']);
+        // var_dump(arr($view_data["project_materials"])); exit();
+
+        $trs_materials = array();
+        $table_stock = '';
+        $keep = array();
+        $rangItem = 10;
+        $info = $view_data['model_info'];
+
+        $defaultConfig = (new Mpdf\Config\ConfigVariables())->getDefaults();
+        $fontDirs = $defaultConfig['fontDir'];
+        
+        $defaultFontConfig = (new Mpdf\Config\FontVariables())->getDefaults();
+        $fontData = $defaultFontConfig['fontdata'];
+
+        $mpdf = new \Mpdf\Mpdf([
+            'fontDir' => array_merge($fontDirs, [
+                __DIR__ . '/fonts',
+            ]),
+            'fontdata' => $fontData + [
+                'def' => [
+                    'R' => 'THSarabun_Bold.ttf'
+                ]
+            ],
+            'default_font' => 'def',
+            'tempDir' => '/tmp'
+        ]);
+        $mpdf->charset_in = 'UTF-8';
+        $mpdf->SetTitle('project-' . $project_id);
+        $html = '';
+
+        foreach ($view_data['project_materials'] as $parentKey => $child) {
+            if (!isset($keep[$child->project_id])) {
+                $page = 1;
+            }
+
+            $keep[$child->project_id][$page][] = $child;
+            if (count($keep[$child->project_id][$page]) == $rangItem) {
+                $page += 1;
+            }
+        }
+        // var_dump(arr($keep)); exit();
+
+        if ($keep) {
+            foreach ($keep as $kd => $kv) {
+                foreach ($kv as $kpage => $vpage) {
+                    $trs_materials = array();
+                    foreach ($vpage as $vkpage => $vvpage) {
+                        $mixing_name = isset($vvpage->mixing_name) ? $vvpage->mixing_name : '-';
+                        if (isset($vvpage->result)) {
+                            $trs_materials[] = '
+                            <tr>
+                                <td>' . $vvpage->title . '</td>
+                                <td>' . $mixing_name . '</td>
+                                <td>' . to_decimal_format2($vvpage->quantity) . ' ' . $vvpage->unit_type . '</td> 
+                            </tr>
+                            ';
+
+                            $trs_materials[] = '
+                            <tr>
+                                <td colspan="3">
+                                    <div class="toggle-container">
+                                        <table class="sub_mat" style="width: 100%">
+                                            <tr>
+                                                <th class="sub_thStyle" style="text-align: center;">' . lang('stock_material') . '</th>
+                                                <th class="sub_thStyle" style="text-align: center;">' . lang('stock_material_name') . '</th>
+                                                <th class="sub_thStyle" style="text-align: center;">' . lang('stock_restock_name') . '</th>
+                                                <th class="sub_thStyle" style="text-align: center;">' . lang('quantity') . '</th>
+                                                <th class="sub_thStyle" style="text-align: center;">' . lang('stock_calculator_value') . '</th>
+                                            </tr>   
+                            ';
+
+                            $total = 0;
+                            foreach ($vvpage->result as $rk) {
+                                $stock_name = isset($rk->stock_name) ? $rk->stock_name : '-';
+                                $rk->ratio = floatval($rk->ratio);
+                                $classer = 'red';
+                                if ($rk->ratio > 0) {
+                                    $classer = 'green';
+                                }
+
+                                if ($vvpage->id == $rk->bpim_Pid) {
+                                    $trs_materials[] = '                                    
+                                        <tr>                                            
+                                            <td>' . $rk->material_name . '</td>
+                                            <td>' . $rk->material_desc . '</td>
+                                            <td>' . $stock_name . '</td>
+                                            <td style="text-align: right; color:' . $classer . '">' . to_decimal_format2($rk->ratio) . ' ' . $rk->material_unit . '</td>
+                                                               
+                                    ';
+
+                                    if ($rk->value != 0) {
+                                        $total += $rk->value;
+                                        $trs_materials[] = '
+                                            <td style="text-align: right;">' . to_currency($total) . '</td>
+                                            </tr> 
+                                        ';
+                                    } else {
+                                        $trs_materials[] = '
+                                            <td style="text-align: right;">-</td>
+                                            </tr> 
+                                        ';
+                                    }
+                                }
+                            }
+
+                            $trs_materials[] = '
+                                            <tr>
+                                                <th colspan="3"></th>
+                                                <th style="text-align: right;">' . lang('total') . '</th>
+                                                <td style="text-align: right;">' . to_currency($total) . '</td>
+                                            </tr>
+                                        </table>
+                                    </div>
+                                </td>
+                            </tr>
+                            ';
+                        } else {
+                            $trs_materials[] = '
+                                <tr>
+                                    <td >' . $vvpage->title . '</td>
+                                    <td >' . $mixing_name . '</td>
+                                    <td >' . to_decimal_format2($vvpage->quantity) . ' ' . $vvpage->unit_type . '</td> 
+                                </tr>
+                            ';
+                        }
+                    }
+
+                    $titleLength = strlen($info->title);
+                    $divTop = 190;
+                    $divleft = 27;
+                    if ($titleLength > 100) {
+                        $divTop += 20;
+                    }
+                    if ($titleLength < 45) {
+                        $divTop -= 20;
+                    }
+                    $table_stock = '
+                    <div style="position:absolute; top:' . $divTop . 'px; left: ' . $divleft . 'px; width: 100%">
+                        <table>
+                            <tr>
+                                <th class="thStyle" style="text-align: center;">' . lang('item') . '</th>
+                                <th class="thStyle" style="text-align: center;">' . lang('item_mixing_name') . '</th>
+                                <th class="thStyle" style="text-align: center;">' . lang('quantity') . '</th>
+                            </tr>
+                            ' . implode(" ", $trs_materials) . '
+                        </table>
+                    </div>
+                    ';
+
+                    $divTop = 40;
+                    $divleft = 420;
+                    $table_info = '
+                        <div style="position:absolute; top:' . $divTop . 'px; left: ' . $divleft . 'px; width: 800px">
+                            <table style="width: 320px; border: none;">
+                                <tr>
+                                    <th colspan="2" style="text-align: center; border: none; border-bottom: 1.5px solid #999; font-size: 30px; "><span class="label" style="font-weight:bold;">โครงการ</span></th>
+                                </tr>
+                                <tr>
+                                    <td style="border: none; vertical-align: top; width: 66px;"> <span class="label">เลขที่</span></td>
+                                    <td style="border: none;">' . $info->id . ' / ' . $vvpage->id . '</td>
+                                </tr>
+                                <tr>
+                                    <td style="border: none; vertical-align: top;"><span class="label">ชื่อโครงการ</span></td>
+                                    <td style="border: none;">' . $info->title . '</td>
+                                </tr>
+                                <tr>
+                                    <td style="border: none; vertical-align: top;"><span class="label">วันที่</span></td>
+                                    <td style="border: none;">' . $this->DateConvert($info->created_date) . '</td>
+                                </tr>
+                            </table>
+                        </div>
+                    ';
+
+                    $html = '<style>
+                    div{
+                        font-size: 17px;
+                        // border: solid 1px #000;
+                        // font-weight:bold;
+                        text-align: center;
+                    }
+                    table {
+                        font-size: 18px;
+                        border: solid 1px #000;
+                        width: 735px; 
+                        border-collapse: collapse;
+                    }
+                    th,td{
+                        text-align: left;
+                        border: solid 1px #000;
+                    }
+                    .thStyle{
+                        background-color : #ccffcc;
+                        border-top: 2px solid #999;
+                        border-bottom: 2px solid #999;
+                        color: #5900b3;
+                    }
+                    .sub_thStyle{
+                        background-color : #ccffcc;
+                        border-top: 2px solid #999;
+                        border-bottom: 2px solid #999;
+                        color: #5900b3;
+                    }
+                    .sub_mat{
+                        margin: 10px;
+                        border: solid 1px #000;
+                    }
+                    .label{
+                        color: #5900b3;
+                    }
+                    .info_tb{
+                        // border: solid 1px #000;
+                    }
+                    </style>
+                    
+                    ' . $table_stock . '
+                    ' . $table_info . '
+                    ';
+
+                    $mpdf->AddPage('P');
+                    $pagecount = $mpdf->SetSourceFile('pdf_Template/main_template.pdf');
+                    $tplId = $mpdf->importPage(1);
+                    $mpdf->useTemplate($tplId);
+                    $mpdf->WriteHTML($html);
+
+                }
+                $mpdf->Output();
+            }
+        } else {
+            $divTop = 170;
+            $divleft = 27;
+            $table_stock = '
+            <div style="position:absolute; top:' . $divTop . 'px; left: ' . $divleft . 'px; width: 750px">
+                <table>
+                    <tr>
+                        <th class="thStyle" style="text-align: center;">' . lang('item') . '</th>
+                        <th class="thStyle" style="text-align: center;">' . lang('item_mixing_name') . '</th>
+                        <th class="thStyle" style="text-align: center;">' . lang('quantity') . '</th>
+                    </tr>
+                    <tr>
+                        <td colspan="3" style="text-align: center;">ไม่มีรายการวัตถุดิบ</td>
+                    </tr>
+                </table>
+            </div>
+            ';
+
+            $divTop = 40;
+            $divleft = 526;
+            $table_info = '
+                <div style="position:absolute; top:' . $divTop . 'px; left: ' . $divleft . 'px; width: 750px">
+                    <table style="width: 230px; border: none;">
+                        <tr>
+                            <th colspan="2" style="text-align: center; border: none; border-bottom: 1.5px solid #999; font-size: 30px; "><span class="label" style="font-weight:bold;">วัตถุดิบโครงการ</span></th>
+                        </tr>
+                        <tr>
+                            <td style="border: none;"> <span class="label">เลขที่</span></td>
+                            <td style="border: none;">' . $info->id . '</td>
+                        </tr>
+                        <tr>
+                            <td style="border: none;"><span class="label">ชื่อโครงการ</span></td>
+                            <td style="border: none;">' . $info->title . '</td>
+                        </tr>
+                        <tr>
+                            <td style="border: none;"><span class="label">วันที่</span></td>
+                            <td style="border: none;">' . $this->DateConvert($info->created_date) . '</td>
+                        </tr>
+                    </table>
+                </div>
+            ';
+
+            $html = '<style>
+                    div{
+                        font-size: 17px;
+                        // border: solid 1px #000;
+                        // font-weight:bold;
+                        text-align: center;
+                    }
+                    table {
+                        font-size: 18px;
+                        // border: solid 1px #000;
+                        width: 735px; 
+                        border-collapse: collapse;
+                    }
+                    th,td{
+                        text-align: left;
+                        border: solid 1px #000;
+                    }
+                    
+                    .thStyle{
+                        background-color : #ccffcc;
+                        color: #5900b3;
+                    }
+                    .sub_thStyle{
+                        background-color : #ccffcc;
+                        color: #5900b3;
+                    }
+                    .sub_mat{
+                        margin: 10px;
+                        border: solid 1px #000;
+                    }
+                    .label{
+                        color: #5900b3;
+                    }
+                    .info_tb{
+                        // border: solid 1px #000;
+                    }
+                    </style>
+                    
+                    ' . $table_stock . '
+                    ' . $table_info . '
+                    ';
+
+            $mpdf->AddPage('P');
+            $pagecount = $mpdf->SetSourceFile('pdf_Template/main_template.pdf');
+            $tplId = $mpdf->importPage(1);
+            $mpdf->useTemplate($tplId);
+            $mpdf->WriteHTML($html);
+            $mpdf->Output();
+        }
+    }
+
+}
