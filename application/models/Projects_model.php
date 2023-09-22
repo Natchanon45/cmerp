@@ -1219,31 +1219,49 @@ class Projects_model extends Crud_model {
     private function dev2_getStockActualTotalRemainingByMaterialId(int $id): float
     {
         $actual_remaining = 0;
+        $temp_actual = 0;
         $temp_remaining = 0;
+        $temp_awaiting = 0;
 
+        // get beginning stock
         $sqlBeginningString = "SELECT IFNULL(SUM(stock), 0) AS quantity FROM bom_stocks WHERE material_id = ? GROUP BY material_id";
         $beginningQuery = $this->db->query($sqlBeginningString, $id);
         $beginning = $beginningQuery->row();
 
+        // get remainning stock
         $sqlRemainingString = "SELECT IFNULL(SUM(remaining), 0) AS quantity FROM bom_stocks WHERE material_id = ? GROUP BY material_id";
         $remainingQuery = $this->db->query($sqlRemainingString, $id);
         $remaining = $remainingQuery->row();
         
+        // get using stock
         $sqlUsingString = "SELECT IFNULL(SUM(ratio), 0) AS quantity FROM bom_project_item_materials WHERE stock_id IS NOT NULL AND material_id = ? GROUP BY material_id";
         $usingQuery = $this->db->query($sqlUsingString, $id);
         $using = $usingQuery->row();
 
+        // get awaiting approval stock
         $sqlAwaitingString = "SELECT IFNULL(SUM(ratio), 0) AS quantity FROM bom_project_item_materials WHERE stock_id IS NOT NULL AND used_status = 0 AND material_id = ? GROUP BY material_id";
         $awaitingQuery = $this->db->query($sqlAwaitingString, $id);
         $awaiting = $awaitingQuery->row();
 
+        // begin - using = actual remain
         if (isset($beginning->quantity) && isset($using->quantity)) {
             if (!empty($beginning->quantity) && !empty($using->quantity)) {
-                $temp_remaining = $beginning->quantity - $using->quantity;
+                $temp_actual = $beginning->quantity - $using->quantity;
             }
         }
 
-        $actual_remaining = min($remaining->quantity, $temp_remaining) - $awaiting->quantity;
+        // current remain
+        if (isset($remaining->quantity) && !empty($remaining->quantity)) {
+            $temp_remaining = $remaining->quantity;
+        }
+
+        // curren awaiting approval
+        if (isset($awaiting->quantity) && !empty($awaiting->quantity)) {
+            $temp_awaiting = $awaiting->quantity;
+        }
+
+        // minimun of remain - awaiting = actually remaining
+        $actual_remaining = min($temp_remaining, $temp_actual) - $temp_awaiting;
         return (float) $actual_remaining;
     }
 
