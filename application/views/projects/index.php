@@ -94,11 +94,11 @@
 
 <style type="text/css">
 .w120 {
-    width:120px!important;
-    min-width:120px!important;
+    width: 120px !important;
+    min-width: 120px !important;
 }
     
 table#project-table > thead > tr > th:nth-child(2), table#project-table > tbody > tr > td:nth-child(2) {
-    display:table-cell!important;
+    display: table-cell !important;
 }
 </style>

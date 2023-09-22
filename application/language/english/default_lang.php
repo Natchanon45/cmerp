@@ -2205,3 +2205,4 @@ $lang["production_order_want_to_chage"] = "Would you like to update the order st
 $lang["production_order_all_of_order"] = " all of order?";
 $lang["production_order_mr_creation_all"] = "Would you like to create a material requisition for all of the items with stock?";
 $lang["production_order_delete_question"] = "Would you like to delete this production order?";
+$lang["production_order_bom_recalc"] = "RM Update";

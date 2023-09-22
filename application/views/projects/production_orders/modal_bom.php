@@ -68,6 +68,16 @@
     .color-danger {
         color: #dc3545;
     }
+
+    .color-warning {
+        color: #ffc107;
+    }
+
+    .stock-notice {
+        padding: 0 !important;
+        font-size: 120%;
+        color: #ffc107;
+    }
 </style>
 
 <div class="modal-body clearfix">
@@ -155,7 +165,22 @@
                         </td>
                         <td class="text-right font-bold">
                             <?php if (isset($detail->ratio) && !empty($detail->ratio)): ?>
-                                <span class="<?php echo $detail->ratio > 0 ? "color-success" : "color-danger"; ?>"><?php echo number_format($detail->ratio, 3) . " " . $detail->material_info->unit; ?></span>
+                                <span class="<?php echo $detail->ratio > 0 ? "color-success" : "color-danger"; ?>">
+                                    <?php echo number_format($detail->ratio, 3) . " " . $detail->material_info->unit; ?> 
+                                </span>
+                                <span>
+                                    <?php
+                                        if (isset($detail->actual_total_remain) && isset($detail->required_qty)): 
+                                            if (!empty($detail->actual_total_remain) && !empty($detail->required_qty)): 
+                                                if (($detail->actual_total_remain > $detail->required_qty)): 
+                                    ?>
+                                    <i class="fa fa-database stock-notice"></i>
+                                    <?php
+                                                endif;
+                                            endif;
+                                        endif;
+                                    ?>
+                                </span>
                             <?php endif; ?>
                         </td>
                         <?php if ($auth_read_cost): ?>
@@ -215,6 +240,11 @@
         <?php echo lang("close"); ?>
     </button>
 
+    <button type="button" class="btn btn-warning" id="btn-recalc" data-dismiss="modal">
+        <span class="fa fa-refresh"></span> 
+        <?php echo " " . lang("production_order_bom_recalc"); ?>
+    </button>
+
     <button type="button" class="btn btn-primary" id="btn-mr-creator" data-dismiss="modal">
         <span class="fa fa-book"></span> 
         <?php echo " " . lang("create_matreq"); ?>
@@ -222,12 +252,38 @@
 </div>
 
 <script type="text/javascript">
-async function mrCreation () {
-    let url = '<?php echo get_uri("projects/production_order_mr_creation"); ?>';
+const bomRecalcUrl = '<?php echo get_uri("projects/production_order_bom_recalc"); ?>';
+const mrCreationUrl = '<?php echo get_uri("projects/production_order_mr_creation"); ?>';
+
+const projectId = '<?php echo $project_info["id"]; ?>';
+const projectName = '<?php echo $project_info["title"]; ?>';
+const projectBomId = '<?php echo $production_bom_header->id; ?>';
+
+async function bomRecalc () {
+    let url = bomRecalcUrl;
     let req = {
-        projectId: '<?php echo $project_info["id"]; ?>',
-        projectName: '<?php echo $project_info["title"]; ?>',
-        projectBomId: '<?php echo $production_bom_header->id; ?>'
+        projectId: projectId,
+        projectName: projectName,
+        projectBomId: projectBomId
+    };
+
+    await axios.post(url, req).then(res => {
+        window.parent.loadProductionOrderList();
+
+        setTimeout(async () => {
+            await document.querySelector(`[data-post-reclick_id="${req.projectBomId}"]`).click();
+        }, 300);
+    }).catch(err => {
+        console.log(err);
+    });
+}
+
+async function mrCreation () {
+    let url = mrCreationUrl;
+    let req = {
+        projectId: projectId,
+        projectName: projectName,
+        projectBomId: projectBomId
     };
 
     await axios.post(url, req).then(res => {
@@ -235,24 +291,23 @@ async function mrCreation () {
 
         if (success) {
             window.open(target, "_blank");
-            window.parent.loadProductionOrderList();
-
-            setTimeout(async () => {
-                await document.querySelector(`[data-post-reclick_id="${req.projectBomId}"]`).click();
-            }, 300);
-        } else {
-            window.parent.loadProductionOrderList();
-
-            setTimeout(async () => {
-                await document.querySelector(`[data-post-reclick_id="${req.projectBomId}"]`).click();
-            }, 300);
         }
+        window.parent.loadProductionOrderList();
+
+        setTimeout(async () => {
+            await document.querySelector(`[data-post-reclick_id="${req.projectBomId}"]`).click();
+        }, 300);
     }).catch(err => {
         console.log(err);
     });
 }
 
 $(document).ready(function () {
+    $("#btn-recalc").on("click", async function (e) {
+        e.preventDefault();
+        await bomRecalc();
+    });
+
     $("#btn-mr-creator").on("click", async function (e) {
         e.preventDefault();
         await mrCreation();

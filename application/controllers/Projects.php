@@ -948,18 +948,18 @@ class Projects extends MY_Controller
                 );
             } // btn-edit-project
 
-            if ($this->Permission_m->access_material_request || $this->Permission_m->access_purchase_request) {
-                $optoins .= modal_anchor(
-                    get_uri("projects/modal_items"),
-                    "<i class='fa fa-shopping-bag'></i>",
-                    array(
-                        "class" => "edit bom-item-modal",
-                        "data-modal-lg" => true,
-                        "title" => lang('item') . ' - ' . $data->title,
-                        "data-post-id" => $data->id
-                    )
-                );
-            } // btn-bag-project
+            // if ($this->Permission_m->access_material_request || $this->Permission_m->access_purchase_request) {
+                // $optoins .= modal_anchor(
+                //     get_uri("projects/modal_items"),
+                //     "<i class='fa fa-shopping-bag'></i>",
+                //     array(
+                //         "class" => "edit bom-item-modal",
+                //         "data-modal-lg" => true,
+                //         "title" => lang('item') . ' - ' . $data->title,
+                //         "data-post-id" => $data->id
+                //     )
+                // );
+            // } // btn-bag-project
 
             if ($this->check_permission('can_delete_projects') && $dev2_canDeleteProject) {
                 $optoins .= js_anchor(
@@ -6030,6 +6030,18 @@ class Projects extends MY_Controller
             $post->productionId
         );
         echo json_encode($production_delete);
+    }
+
+    function production_order_bom_recalc()
+    {
+        $post = $this->json;
+
+        $bom_recalc = $this->Projects_model->dev2_postProductionBomRecalculation(
+            $post->projectId,
+            $post->projectName,
+            $post->projectBomId
+        );
+        echo json_encode($bom_recalc);
     }
 
     function production_order_mr_creation()

@@ -732,7 +732,7 @@ class Projects_model extends Crud_model {
                                 ORDER BY bsg.created_date ASC
                             ";
                             $stock_list = $this->db->query($stock_sql, [$mixing->material_id, $mixing->material_id])->result();
-
+                            
                             if (sizeof($stock_list)) {
                                 foreach ($stock_list as $stocking) {
                                     if ($total_ratio > 0) {
@@ -805,10 +805,16 @@ class Projects_model extends Crud_model {
         if (sizeof($get) && !empty($get)) {
             foreach ($get as $item) {
                 $item->material_info = $this->dev2_getRowInfoByRowId($item->material_id, "bom_materials");
+                if ($item->ratio < 0) {
+                    $item->required_qty = $item->ratio * -1;
+                    $item->actual_total_remain = $this->dev2_getStockActualTotalRemainingByMaterialId($item->material_id);
+                }
+
                 if (isset($item->stock_id) && !empty($item->stock_id)) {
                     $item->stock_info = $this->dev2_getRowInfoByRowId($item->stock_id, "bom_stocks");
                     $item->stock_info->group_info = $this->dev2_getRowInfoByRowId($item->stock_info->group_id, "bom_stock_groups");
                 }
+
                 if (isset($item->mr_id) && !empty($item->mr_id)) {
                     $item->mr_info = $this->dev2_getRowInfoByRowId($item->mr_id, "materialrequests");
                 }
@@ -992,6 +998,95 @@ class Projects_model extends Crud_model {
         return $info;
     }
 
+    public function dev2_postProductionBomRecalculation(int $project_id, string $project_name, int $project_item_id): array
+    {
+        $info = [
+            "process" => "failure",
+            "success" => false,
+            "have_stock_id" => null,
+            "pulling_stock" => null,
+            "bpim_info" => null,
+            "scrap_qty" => null
+        ];
+
+        $bomHaveStockString = "SELECT * FROM bom_project_item_materials WHERE stock_id IS NOT NULL AND project_id = ? AND `project_item_id` = ? ORDER BY material_id";
+        $bomHaveStockQuery = $this->db->query($bomHaveStockString, [$project_id, $project_item_id]);
+        $bomHaveStock = $bomHaveStockQuery->result();
+        
+        $haveStockId = [];
+        if (sizeof($bomHaveStock) && isset($bomHaveStock) && !empty($bomHaveStock)) {
+            foreach ($bomHaveStock as $bhs) {
+                array_push($haveStockId, $bhs->stock_id);
+            }
+        }
+        $info["have_stock_id"] = implode(",", $haveStockId);
+
+        $bomNoStockString = "SELECT * FROM bom_project_item_materials WHERE stock_id IS NULL AND project_id = ? AND `project_item_id` = ? ORDER BY material_id";
+        $bomNoStockQuery = $this->db->query($bomNoStockString, [$project_id, $project_item_id]);
+        $bomNoStock = $bomNoStockQuery->result();
+
+        if (sizeof($bomNoStock) && isset($bomNoStock) && !empty($bomHaveStock)) {
+            foreach ($bomNoStock as $bns) {
+                $pullingStockString = "
+                    SELECT bs.id, bs.group_id, bs.material_id, bs.stock, bs.remaining, 
+                    IFNULL(bpim.used, 0) AS used, bs.stock - IFNULL(bpim.used, 0) AS actual_remain 
+                    FROM bom_stocks bs 
+                    INNER JOIN bom_stock_groups bsg ON bsg.id = bs.group_id 
+                    LEFT JOIN (
+                        SELECT stock_id, SUM(ratio) AS used 
+                        FROM bom_project_item_materials 
+                        WHERE material_id = " . $bns->material_id . " 
+                        GROUP BY stock_id
+                    ) AS bpim ON bs.id = bpim.stock_id 
+                    WHERE bs.material_id = " . $bns->material_id . " AND bs.remaining > 0 AND bs.stock - IFNULL(bpim.used, 0) > 0 
+                    AND bs.id NOT IN(" . $info["have_stock_id"] . ") 
+                    ORDER BY bsg.created_date ASC
+                ";
+                $pullingStockQuery = $this->db->query($pullingStockString);
+                $pullingStock = $pullingStockQuery->result();
+
+                if (sizeof($pullingStock) && isset($pullingStock) && !empty($pullingStock)) {
+                    $info["pulling_stock"][] = $pullingStock;
+                    $total_ratio = $bns->ratio * -1;
+                    
+                    foreach ($pullingStock as $ps) {
+                        if ($total_ratio > 0) {
+                            $remaining = floatval(min($ps->remaining, $ps->actual_remain));
+                            $used = min($total_ratio, $remaining);
+                            $total_ratio -= $used;
+
+                            $this->db->insert("bom_project_item_materials", [
+                                "project_id" => $project_id,
+                                "project_item_id" => $project_item_id,
+                                "material_id" => $bns->material_id,
+                                "stock_id" => $ps->id,
+                                "ratio" => $used,
+                                "created_by" => $this->login_user->id
+                            ]);
+                            $bpim_id = $this->db->insert_id();
+                            $info["bpim_info"][] = $this->dev2_getRowInfoByRowId($bpim_id, "bom_project_item_materials");
+                        }
+                    }
+                    $info["scrap_qty"][] = $total_ratio;
+
+                    if ($total_ratio > 0) {
+                        $total_ratio = $total_ratio * -1;
+
+                        $this->db->where("id", $bns->id);
+                        $this->db->update("bom_project_item_materials", ["ratio" => $total_ratio]);
+                    } else {
+                        $this->db->delete("bom_project_item_materials", ["id" => $bns->id]);
+                    }
+                }
+            }
+
+            $info["process"] = "success";
+            $info["success"] = true;
+        }
+
+        return $info;
+    }
+
     public function dev2_postProductionMaterialRequestCreation(int $project_id, string $project_name, int $project_item_id): array
     {
         $info = [
@@ -1119,6 +1214,37 @@ class Projects_model extends Crud_model {
             $count = $get->rows_num;
         }
         return $count;
+    }
+
+    private function dev2_getStockActualTotalRemainingByMaterialId(int $id): float
+    {
+        $actual_remaining = 0;
+        $temp_remaining = 0;
+
+        $sqlBeginningString = "SELECT IFNULL(SUM(stock), 0) AS quantity FROM bom_stocks WHERE material_id = ? GROUP BY material_id";
+        $beginningQuery = $this->db->query($sqlBeginningString, $id);
+        $beginning = $beginningQuery->row();
+
+        $sqlRemainingString = "SELECT IFNULL(SUM(remaining), 0) AS quantity FROM bom_stocks WHERE material_id = ? GROUP BY material_id";
+        $remainingQuery = $this->db->query($sqlRemainingString, $id);
+        $remaining = $remainingQuery->row();
+        
+        $sqlUsingString = "SELECT IFNULL(SUM(ratio), 0) AS quantity FROM bom_project_item_materials WHERE stock_id IS NOT NULL AND material_id = ? GROUP BY material_id";
+        $usingQuery = $this->db->query($sqlUsingString, $id);
+        $using = $usingQuery->row();
+
+        $sqlAwaitingString = "SELECT IFNULL(SUM(ratio), 0) AS quantity FROM bom_project_item_materials WHERE stock_id IS NOT NULL AND used_status = 0 AND material_id = ? GROUP BY material_id";
+        $awaitingQuery = $this->db->query($sqlAwaitingString, $id);
+        $awaiting = $awaitingQuery->row();
+
+        if (isset($beginning->quantity) && isset($using->quantity)) {
+            if (!empty($beginning->quantity) && !empty($using->quantity)) {
+                $temp_remaining = $beginning->quantity - $using->quantity;
+            }
+        }
+
+        $actual_remaining = min($remaining->quantity, $temp_remaining) - $awaiting->quantity;
+        return (float) $actual_remaining;
     }
 
     private function dev2_patchMaterialRequestIdForBomItemByItemId(int $id, int $mr_id): void
