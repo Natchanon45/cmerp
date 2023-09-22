@@ -261,6 +261,28 @@ $view_data["buttonTop"] = implode( '', $buttonTop );
 
     //prepare a row of expnese list
     private function _make_row($data, $custom_fields) {
+        $labels = "";
+        $ltrows = $this->db->select("label_id")
+                            ->from("label_table")
+                            ->where("doc_id", $data->id)
+                            ->where("tbName", "expenses")
+                            ->get()->result();
+
+        if(!empty($ltrows)){
+            foreach($ltrows as $ltrow){
+                $label_id = $ltrow->label_id;
+
+                $lrow = $this->db->select("color, title")
+                                    ->from("labels")
+                                    ->where("id", $label_id)
+                                    ->where("deleted", 0)
+                                    ->get()->row();
+
+                if(!empty($lrow)){
+                    $labels .= "<span class='mt0 label clickable' style='background-color:$lrow->color;' title=" . lang("label") . ">" . $lrow->title . "</span> ";
+                }
+            }
+        }
 
         $description = $data->description;
         if ($data->linked_client_name) {
@@ -343,7 +365,7 @@ $view_data["buttonTop"] = implode( '', $buttonTop );
         $row_data = array(
             $data->expense_date,
             modal_anchor(get_uri("expenses/expense_details"), format_to_date($data->expense_date, false), array("title" => lang("expense_details"), "data-post-id" => $data->id)),
-            $data->category_title,
+            $data->category_title."<br>".$labels,
             $data->title,
             $description,
             $files_link,
