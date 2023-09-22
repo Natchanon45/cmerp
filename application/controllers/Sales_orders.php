@@ -134,12 +134,24 @@ class Sales_orders extends MY_Controller {
     function make_purchase_requisition(){
         if(isset($this->json->task)){
             if($this->json->task == "get_products") jout($this->Sales_orders_m->productsToPR($this->json->doc_id));
-            if($this->json->task == "do_make_purchase_requisition") jout($this->Sales_orders_m->makePurchaseRequisition());
+            if($this->json->task == "do_make_purchase_requisition") jout($this->Sales_orders_m->makePR());
             return;   
         }
 
         $data = $this->Sales_orders_m->getDoc($this->input->post("id"));
 
         $this->load->view('sales_orders/make_purchase_requisition', $data);
+    }
+
+    function make_material_request(){
+        if(isset($this->json->task)){
+            if($this->json->task == "get_products") jout($this->Sales_orders_m->productsToMR($this->json->doc_id));
+            if($this->json->task == "do_make_material_request") jout($this->Sales_orders_m->makeMR());
+            return;   
+        }
+
+        $data = $this->Sales_orders_m->getDoc($this->input->post("id"));
+
+        $this->load->view('sales_orders/make_material_request', $data);
     }
 }

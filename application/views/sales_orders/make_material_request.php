@@ -1,7 +1,7 @@
 <style type="text/css">
 .modal-dialog {
     width: 100%;
-    max-width: 1024px;
+    max-width: 1000px;
 }
 
 .popup .product {
@@ -45,23 +45,13 @@
 .popup .product td{
     line-break: anywhere;
     vertical-align: top;
-    padding: 10px;
+    padding: 12px 12px;
     text-align: left;
 }
 
 .popup .product td.product_name{
     padding-left: 8px;
-    width: 25%;
-}
-
-.popup .product td.product_supplier{
-    width: 25%;
-    padding-top: 8px;
-}
-
-.popup .product td.product_supplier .supplier_not_found{
-    display: inline-block;
-    margin-top: 2px;
+    width: 40%;
 }
 
 .popup .product td.product_supplier .supplier_name{
@@ -69,28 +59,18 @@
     margin-top: 2px;
 }
 
-.popup .product td.unit{
-    width: 9%;
-    text-align: left;
-}
-
 .popup .product td.instock{
-    width: 9%;
+    width: 20%;
     text-align: right;
 }
 
-.popup .product td.quantity{
-    width: 9%;
-    text-align: right;
-}
-
-.popup .product td.topurchase{
-    width: 9%;
+.popup .product td.total_submit{
+    width: 20%;
     text-align: right;
 }
 
 .popup .product td.reference_number{
-    width: 14%;
+    width: 20%;
     text-align: center;
 }
 
@@ -141,12 +121,9 @@
                 <thead>
                     <tr>
                         <td class="custom-bg product_name">สินค้า</td>
-                        <td class="custom-bg product_supplier">ผู้จัดจำหน่าย</td>
-                        <td class="custom-bg unit">หน่วย</td>
-                        <td class="custom-bg instock">คงคลัง</td>
-                        <td class="custom-bg quantity">ที่ใช้</td>
-                        <td class="custom-bg topurchase">ที่ขอซื้อ</td>
-                        <td class="custom-bg reference_number">ใบขอซื้อ</td>
+                        <td class="custom-bg instock">คงเหลือ</td>
+                        <td class="custom-bg total_submit">จำนวนที่เบิก</td>
+                        <td class="custom-bg reference_number">ใบขอเบิก</td>
                     </tr>
                 </thead>
                 <tbody></tbody>
@@ -155,7 +132,7 @@
     </div>
     <div class="footer">
         <button type="button" class="btn btn-default" data-dismiss="modal"><span class="fa fa-close"></span>ปิดหน้าต่าง</button>
-        <button type="button" id="btnSubmit" class="btn btn-primary"><span class="fa fa-check-circle"></span>สร้างใบขอซื้อ</button>
+        <button type="button" id="btnSubmit" class="btn btn-primary"><span class="fa fa-check-circle"></span>สร้างใบขอเบิก</button>
     </div>
 </div>
 <script type="text/javascript">
@@ -167,17 +144,9 @@ $(document).ready(function() {
     });
 
     $("#btnSubmit").click(function() {
-        sales_order_items = [];
-        $(".sales_order_items").each(function(i, obj) {
-            supplier_id = $(obj).find(".suppliers").val();
-            if(supplier_id === undefined) supplier_id = null;
-            sales_order_items.push({sales_order_item_id:$(obj).data("id"), supplier_id:supplier_id});
-        });
-
         axios.post('<?php echo current_url(); ?>', {
-            task: 'do_make_purchase_requisition',
-            sales_order_id: '<?php echo $doc_id; ?>',
-            sales_order_items: JSON.stringify(sales_order_items)
+            task: 'do_make_material_request',
+            sales_order_id: '<?php echo $doc_id; ?>'
         }).then(function (response) {
             data = response.data;
             alert(data.message);

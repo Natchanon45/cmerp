@@ -47,8 +47,8 @@ class Sales_orders_m extends MY_Model {
 
             if($sorow->purpose == "S"){
                 $doc_status .= "<option value='PR'>สร้างใบขอซื้อ</option>";
+                $doc_status .= "<option value='MR'>สร้างใบขอเบิก</option>";
             }
-
 
             $doc_status .= "<option value='V'>ยกเลิก</option>";
         }elseif($sorow->status == "V"){
@@ -650,6 +650,13 @@ class Sales_orders_m extends MY_Model {
             $this->data["task"] = "popup";
             $this->data["status"] = "success";
             return $this->data;
+        }elseif($updateStatusTo == "MR"){
+            $this->data["popup_doc_id"] = $sales_order_id;
+            $this->data["popup_title"] = "สร้างใบขอเบิก";
+            $this->data["popup_url"] = get_uri("sales-orders/make_material_request");
+            $this->data["task"] = "popup";
+            $this->data["status"] = "success";
+            return $this->data;
         }elseif($updateStatusTo == "V"){
             $db->where("id", $docId);
             $db->where("deleted", 0);
@@ -744,10 +751,8 @@ class Sales_orders_m extends MY_Model {
                         ->where("deleted", 0)
                         ->get()->row();
 
-        if(empty($sorow)){
-            return $this->data;
-        }
-
+        if(empty($sorow)) return $this->data;
+        
         $soirows = $db->select("*")
                         ->from("sales_order_items")
                         ->where("sales_order_id", $sales_order_id)
@@ -763,12 +768,11 @@ class Sales_orders_m extends MY_Model {
                 $product_remaining = 0;
 
                 if($soirow->pr_header_id == null){
-                    $product_remaining = $ci->Bom_item_m->getTotalRemaining($soirow->product_id);
-                    /*if(){
+                    $product_remaining = $ci->Bom_item_m->getTotalRemainingItems($soirow->product_id);
 
-                    }*/
-                    //$product_remaining - $soirow->quantity
-
+                    if($product_remaining >= $soirow->quantity){
+                        continue;
+                    }
                 }else{
                     $product_remaining = $soirow->product_remaining;
                 }
@@ -798,9 +802,10 @@ class Sales_orders_m extends MY_Model {
                         }
 
                     $html .= "</td>";
-                    $html .= "<td class='instock'>".($soirow->pr_header_id == null ? $product_remaining." ".$soirow->unit:'-')."</td>";
-                    $html .= "<td class='quantity'>".$soirow->quantity." ".$soirow->unit."</td>";
-                    $html .= "<td class='topurchase'>".abs($product_remaining - $soirow->quantity)." ".$soirow->unit."</td>";
+                    $html .= "<td class='unit'>".$soirow->unit."</td>";
+                    $html .= "<td class='instock'>".($soirow->pr_header_id == null ? $product_remaining:'-')."</td>";
+                    $html .= "<td class='quantity'>".$soirow->quantity."</td>";
+                    $html .= "<td class='topurchase'>".abs($product_remaining - $soirow->quantity)."</td>";
                     $html .= "<td class='reference_number'>";
 
                     if($soirow->pr_header_id != null){
@@ -819,13 +824,13 @@ class Sales_orders_m extends MY_Model {
         if($total_records >= 1){
             $this->data["html"] = $html;
         }else{
-            $this->data["html"] = "<tr class='norecord'><td colspan='2'>ไม่พบข้อมูลสินค้า</td></tr>";
+            $this->data["html"] = "<tr class='norecord'><td colspan='7'>ไม่พบข้อมูลสินค้า</td></tr>";
         }
 
         return $this->data;
     }
 
-    function makePurchaseRequisition(){
+    function makePR(){
         $db = $this->db;
         $ci = get_instance();
         $sales_order_id = $this->json->sales_order_id;
@@ -844,7 +849,7 @@ class Sales_orders_m extends MY_Model {
         if(!empty($sales_order_items)){
             foreach($sales_order_items as $soi){
                 if($soi->supplier_id == null) continue;
-                
+
                 $soirow = $db->select("*")
                                     ->from("sales_order_items")
                                     ->where("id", $soi->sales_order_item_id)
@@ -852,6 +857,7 @@ class Sales_orders_m extends MY_Model {
                                     ->where("pr_header_id IS NULL")
                                     ->get()->row();
 
+                //ถ้าไม่มีรายการ is null ก็แสดงว่ารายการนี้ถูกนำไปออก PR แล้ว
                 if(empty($soirow)) continue;
 
                 $biprow = $db->select("*")
@@ -860,6 +866,7 @@ class Sales_orders_m extends MY_Model {
                                     ->where("supplier_id", $soi->supplier_id)
                                     ->get()->row();
 
+                //รายการนี้มี supplier หรือไม่
                 if(empty($biprow)) continue;
 
                 $suppliers[$soi->supplier_id][] = [
@@ -913,7 +920,7 @@ class Sales_orders_m extends MY_Model {
                                                 "sort"=>++$sort,
                                             ]);
 
-                    $product_remaining = $ci->Bom_item_m->getTotalRemaining($p["product_id"]);
+                    $product_remaining = $ci->Bom_item_m->getTotalRemainingItems($p["product_id"]);
 
                     $db->where("id", $p["sales_order_items_id"]);
                     $db->update("sales_order_items", [
@@ -939,5 +946,172 @@ class Sales_orders_m extends MY_Model {
         return $this->data;
     }
 
+    function productsToMR($sales_order_id){
+        $db = $this->db;
+        $ci = get_instance();
 
+        $sorow = $db->select("*")
+                        ->from("sales_order")
+                        ->where("id", $sales_order_id)
+                        ->where("status", "A")
+                        ->where("deleted", 0)
+                        ->get()->row();
+
+        if(empty($sorow)) return $this->data;
+        
+        $soirows = $db->select("*")
+                        ->from("sales_order_items")
+                        ->where("sales_order_id", $sales_order_id)
+                        ->order_by("sort", "asc")
+                        ->get()->result();
+
+        $html = "";
+        $total_records = 0;
+        
+        if(!empty($soirows)){
+
+            foreach($soirows as $soirow){
+                $product_remaining = 0;
+                $total_submit_quantity = 0;
+
+                if($soirow->mr_header_id != null){
+                    $product_remaining = $soirow->product_remaining;
+                }else{
+                    $product_remaining = $ci->Bom_item_m->getTotalRemainingItems($soirow->product_id);
+
+                    if($product_remaining < $soirow->quantity){
+                        $total_submit_quantity = $product_remaining;
+                    }else{
+                        $total_submit_quantity = $soirow->quantity;
+                    }
+                }
+
+                $html .= "<tr class='sales_order_items' data-id='".$soirow->id."'>";
+                    $html .= "<td class='product_name'>".$soirow->product_name."</td>";
+                    $html .= "<td class='instock'>".($soirow->mr_header_id == null ? $product_remaining." ".$soirow->unit:'-')."</td>";
+                    $html .= "<td class='total_submit'>".$total_submit_quantity." ".$soirow->unit."</td>";
+                    $html .= "<td class='reference_number'>";
+
+                    if($soirow->mr_header_id != null){
+                        //$newDocNumber = $this->Db_model->genDocNo(["prefix" => "MR","LPAD" => 4,"column" => "doc_no","table" => "materialrequests"]);
+                        $reference_number = $ci->Materialrequest_m->getDocNumber($soirow->mr_header_id);
+                        if($reference_number != "") $html .= "<a href='".get_uri("materialrequests/view/".$soirow->mr_header_id)."'>".$reference_number."</a>";
+                    }else{
+                        $html .= "#";
+                    }
+
+                    $html .= "</td>";
+                $html .= "</tr>";
+                $total_records++;
+            }
+        }
+
+        if($total_records >= 1){
+            $this->data["html"] = $html;
+        }else{
+            $this->data["html"] = "<tr class='norecord'><td colspan='7'>ไม่พบข้อมูลสินค้า</td></tr>";
+        }
+
+        return $this->data;
+    }
+
+    function makeMR(){
+        $db = $this->db;
+        $ci = get_instance();
+        $sales_order_id = $this->json->sales_order_id;
+
+        $sorow = $db->select("*")
+                    ->from("sales_order")
+                    ->where("id", $sales_order_id)
+                    ->where("deleted", 0)
+                    ->get()->row();
+
+        if(empty($sorow)) return $this->data;
+
+        $mr_doc_id = null;
+        $mr_doc_number = null;
+        
+        $soirows = $db->select("*")
+                        ->from("sales_order_items")
+                        ->where("sales_order_id", $sales_order_id)
+                        ->order_by("sort", "asc")
+                        ->get()->result();
+
+        if(!empty($soirows)){
+            foreach($soirows as $soirow){
+                if($soirow->mr_header_id != null){
+                    $mr_doc_id = $soirow->mr_header_id;
+                    break;
+                }
+            }
+        }
+
+        $db->trans_begin();
+
+        if($mr_doc_id == null){
+            $mr_doc_number = $this->Db_model->genDocNo(["prefix" => "MR","LPAD" => 4,"column" => "doc_no","table" => "materialrequests"]);
+            $db->insert("materialrequests", [
+                                                "doc_no"=>$mr_doc_number,
+                                                "mr_type"=>"2",
+                                                "mr_date"=>date("Y-m-d"),
+                                                "status_id"=>1,
+                                                "discount_amount"=>0,
+                                                "discount_amount_type"=>"percentage",
+                                                "discount_type"=>"before_tax",
+                                                "created_by"=>$this->login_user->id,
+                                                "requester_id"=>$this->login_user->id
+                                            ]);
+
+            $mr_doc_id = $db->insert_id();
+        }
+
+        if(!empty($soirows)){
+            foreach($soirows as $soirow){
+                if($soirow->mr_header_id != null) continue;
+                $total_submit_quantity = 0;
+                $product_remaining = $ci->Bom_item_m->getTotalRemainingItems($soirow->product_id);
+
+                if($product_remaining < $soirow->quantity){
+                    $total_submit_quantity = $product_remaining;
+                }else{
+                    $total_submit_quantity = $soirow->quantity;
+                }
+
+                $db->insert("mr_items", [
+                                            "mr_id"=>$mr_doc_id,
+                                            "title"=>$soirow->product_name,
+                                            "description"=>$soirow->product_description,
+                                            "quantity"=>$soirow->quantity,
+                                            "unit_type"=>$soirow->unit,
+                                            "rate"=>$soirow->price,
+                                            "total"=>$soirow->total_price,
+                                            "created_by"=>$this->login_user->id,
+                                            "item_id"=>$soirow->product_id
+                                        ]);
+
+                $db->insert("bom_project_item_items", [
+                                                        "item_id"=>$soirow->product_id,
+                                                        "ratio"=>$total_submit_quantity,
+                                                        "mr_id"=>$mr_doc_id,
+                                                        "used_status"=>0,
+                                                        "note"=>0,
+                                                    ]);
+
+            }
+        }
+
+        $db->trans_rollback();
+        return $this->data;
+        
+        if ($db->trans_status() === FALSE){
+            $db->trans_rollback();
+            return $this->data;
+        }
+
+        $db->trans_commit();
+
+        $this->data["status"] = "success";
+        $this->data["message"] = "สร้างใบขอเบิกเรียบร้อย";
+        return $this->data;
+    }
 }

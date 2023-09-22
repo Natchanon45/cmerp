@@ -6,6 +6,16 @@ class Materialrequest_m extends CI_Model {
 		
     }
 
+    function getDocNumber($doc_id){
+        $mrhrow = $this->db->select("doc_no")
+                            ->from("materialrequests")
+                            ->where("id", $doc_id)
+                            ->get()->row();
+
+        if(empty($mrhrow)) return "";
+        return $mrhrow->doc_number;
+    }
+
     function row($mrid){
         $mrrow = $this->db->select("*")
                             ->from("materialrequests")
