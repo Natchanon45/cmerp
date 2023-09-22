@@ -5,15 +5,21 @@ class Bom_item_m extends MY_Model {
 		parent::__construct();
     }
 
-    function getTotalRemainingItems($item_id){
+    function getRatioByMaterialRequestId($material_id){
         $db = $this->db;
 
-        /*$total_remaining = $db->select("SUM(remaining) AS TOTAL_REMAINING")
-            ->from("bom_item_stocks")
-            ->where("item_id", $item_id)
-            ->get()->row()->TOTAL_REMAINING;
+        $bpiirow = $db->select("ratio")
+                        ->from("bom_project_item_items")
+                        ->where("mr_id", $material_id)
+                        ->get()->row();
 
-        if($total_remaining == null) return 0;*/
+        if(empty($bpiirow)) return 0;
+
+        return $bpiirow->ratio;
+    }
+
+    function getTotalRemainingItems($item_id){
+        $db = $this->db;
 
         $total_stock = $db->select("SUM(stock) AS TOTAL_STOCK")
                             ->from("bom_item_stocks")
@@ -44,9 +50,7 @@ class Bom_item_m extends MY_Model {
 
         if(empty($bimgrow)) return null;
 
-        return [
-                "name"=>$bimgrow->name
-                ];
+        return ["name"=>$bimgrow->name];
     }
 
 }

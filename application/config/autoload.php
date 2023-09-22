@@ -237,4 +237,5 @@ $autoload['model'] = array(
     'Credit_notes_m',
     'Debit_notes_m',
     'Purchase_request_m',
+    'Materialrequest_m'
 );

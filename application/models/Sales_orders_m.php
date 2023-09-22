@@ -976,8 +976,10 @@ class Sales_orders_m extends MY_Model {
 
                 if($soirow->mr_header_id != null){
                     $product_remaining = $soirow->product_remaining;
+                    $total_submit_quantity = $ci->Bom_item_m->getRatioByMaterialRequestId($soirow->mr_header_id);
                 }else{
                     $product_remaining = $ci->Bom_item_m->getTotalRemainingItems($soirow->product_id);
+                    if($product_remaining <= 0) continue;
 
                     if($product_remaining < $soirow->quantity){
                         $total_submit_quantity = $product_remaining;
@@ -993,7 +995,6 @@ class Sales_orders_m extends MY_Model {
                     $html .= "<td class='reference_number'>";
 
                     if($soirow->mr_header_id != null){
-                        //$newDocNumber = $this->Db_model->genDocNo(["prefix" => "MR","LPAD" => 4,"column" => "doc_no","table" => "materialrequests"]);
                         $reference_number = $ci->Materialrequest_m->getDocNumber($soirow->mr_header_id);
                         if($reference_number != "") $html .= "<a href='".get_uri("materialrequests/view/".$soirow->mr_header_id)."'>".$reference_number."</a>";
                     }else{
@@ -1094,14 +1095,17 @@ class Sales_orders_m extends MY_Model {
                                                         "ratio"=>$total_submit_quantity,
                                                         "mr_id"=>$mr_doc_id,
                                                         "used_status"=>0,
-                                                        "note"=>0,
+                                                        "note"=>$sorow->remark,
                                                     ]);
 
+                $db->where("id", $soirow->id);
+                $db->update("sales_order_items", [
+                                                    "mr_header_id"=>$mr_doc_id,
+                                                    "product_remaining"=>$product_remaining,
+                                                    "product_remaining_datetime"=>date("Y-m-d H:i:s")
+                                                ]);
             }
         }
-
-        $db->trans_rollback();
-        return $this->data;
         
         if ($db->trans_status() === FALSE){
             $db->trans_rollback();
