@@ -44,13 +44,11 @@ class Sales_orders_m extends MY_Model {
             $doc_status .= "<option value='V'>ยกเลิก</option>";
         }elseif($sorow->status == "A"){
             $doc_status .= "<option selected>อนุมัติ</option>";
-
             if($sorow->purpose == "S"){
-                $doc_status .= "<option value='PR'>สร้างใบขอซื้อ</option>";
-                $doc_status .= "<option value='MR'>สร้างใบขอเบิก</option>";
+                if($this->canViewPR($sorow->id)) $doc_status .= "<option value='PR'>จัดการใบขอซื้อ</option>";
+                if($this->canViewMR($sorow->id)) $doc_status .= "<option value='MR'>จัดการใบขอเบิก</option>";
             }
 
-            $doc_status .= "<option value='V'>ยกเลิก</option>";
         }elseif($sorow->status == "V"){
             $doc_status .= "<option selected>ยกเลิก</option>";
         }
@@ -178,8 +176,6 @@ class Sales_orders_m extends MY_Model {
         }
 
         $this->data["status"] = "success";
-
-
 
         return $this->data;
     }
@@ -619,16 +615,12 @@ class Sales_orders_m extends MY_Model {
 
         $this->data["dataset"] = $this->getIndexDataSetHTML($sorow);
 
-        if($sorow->status == $updateStatusTo){
-            return $this->data;
-        }
+        if($sorow->status == $updateStatusTo) return $this->data;
 
         $this->db->trans_begin();
 
-        if($updateStatusTo == "A"){//Approved
-            if($currentStatus == "V"){
-                return $this->data;
-            }
+        if($updateStatusTo == "A"){
+            if($currentStatus == "V") return $this->data;
 
             $db->where("sales_order_id", $sales_order_id);
             if($db->count_all_results("sales_order_items") < 1){
@@ -644,6 +636,7 @@ class Sales_orders_m extends MY_Model {
                                     ]);
 
         }elseif($updateStatusTo == "PR"){
+            if($currentStatus == "V") return $this->data;
             $this->data["popup_doc_id"] = $sales_order_id;
             $this->data["popup_title"] = "เลือกผู้จัดจำหน่ายสำหรับสร้างใบขอซื้อ";
             $this->data["popup_url"] = get_uri("sales-orders/make_purchase_requisition");
@@ -651,8 +644,9 @@ class Sales_orders_m extends MY_Model {
             $this->data["status"] = "success";
             return $this->data;
         }elseif($updateStatusTo == "MR"){
+            if($currentStatus == "V") return $this->data;
             $this->data["popup_doc_id"] = $sales_order_id;
-            $this->data["popup_title"] = "สร้างใบขอเบิก";
+            $this->data["popup_title"] = "สร้างใบขอเบิกอัตโนมัติ";
             $this->data["popup_url"] = get_uri("sales-orders/make_material_request");
             $this->data["task"] = "popup";
             $this->data["status"] = "success";
@@ -683,6 +677,7 @@ class Sales_orders_m extends MY_Model {
         $this->data["dataset"] = $this->getIndexDataSetHTML($sorow);
         $this->data["status"] = "success";
         $this->data["message"] = lang('record_saved');
+        
         return $this->data;
     }
 
@@ -769,10 +764,8 @@ class Sales_orders_m extends MY_Model {
 
                 if($soirow->pr_header_id == null){
                     $product_remaining = $ci->Bom_item_m->getTotalRemainingItems($soirow->product_id);
-
-                    if($product_remaining >= $soirow->quantity){
-                        continue;
-                    }
+                    if($product_remaining >= $soirow->quantity) continue;
+                    
                 }else{
                     $product_remaining = $soirow->product_remaining;
                 }
@@ -932,7 +925,6 @@ class Sales_orders_m extends MY_Model {
                 }
             }
         }
-
         
         if ($db->trans_status() === FALSE){
             $db->trans_rollback();
@@ -944,6 +936,40 @@ class Sales_orders_m extends MY_Model {
         $this->data["status"] = "success";
         $this->data["message"] = "สร้างใบขอซื้อเรียบร้อย";
         return $this->data;
+    }
+
+    function canMakePR($sales_order_id){
+        $db = $this->db;
+        $ci = get_instance();
+
+        $soirows = $db->select("*")
+                        ->from("sales_order_items")
+                        ->where("sales_order_id", $sales_order_id)
+                        ->where("pr_header_id IS NULL")
+                        ->get()->result();
+
+        if(empty($soirows)) return false;
+
+        foreach($soirows as $soirow){
+            $product_remaining = $ci->Bom_item_m->getTotalRemainingItems($soirow->product_id);
+            if($product_remaining >= $soirow->quantity) continue;
+            return true;
+        }
+
+        return false;
+    }
+
+    function canViewPR($sales_order_id){
+        $db = $this->db;
+        $ci = get_instance();
+
+        if($this->canMakePR($sales_order_id)) return true;
+
+        $db->where("sales_order_id", $sales_order_id);
+        $db->where("pr_header_id IS NOT NULL");
+        if($db->count_all_results("sales_order_items") > 0) return true;
+
+        return false;
     }
 
     function productsToMR($sales_order_id){
@@ -991,6 +1017,7 @@ class Sales_orders_m extends MY_Model {
                 $html .= "<tr class='sales_order_items' data-id='".$soirow->id."'>";
                     $html .= "<td class='product_name'>".$soirow->product_name."</td>";
                     $html .= "<td class='instock'>".($soirow->mr_header_id == null ? $product_remaining." ".$soirow->unit:'-')."</td>";
+                    $html .= "<td class='total_used'>".$soirow->quantity." ".$soirow->unit."</td>";
                     $html .= "<td class='total_submit'>".$total_submit_quantity." ".$soirow->unit."</td>";
                     $html .= "<td class='reference_number'>";
 
@@ -1078,25 +1105,43 @@ class Sales_orders_m extends MY_Model {
                     $total_submit_quantity = $soirow->quantity;
                 }
 
-                $db->insert("mr_items", [
-                                            "mr_id"=>$mr_doc_id,
-                                            "title"=>$soirow->product_name,
-                                            "description"=>$soirow->product_description,
-                                            "quantity"=>$soirow->quantity,
-                                            "unit_type"=>$soirow->unit,
-                                            "rate"=>$soirow->price,
-                                            "total"=>$soirow->total_price,
-                                            "created_by"=>$this->login_user->id,
-                                            "item_id"=>$soirow->product_id
-                                        ]);
+                $bisrows = $db->select("*")
+                                ->from("bom_item_stocks")
+                                ->where("item_id", $soirow->product_id)
+                                ->where("remaining >", 0)
+                                ->order_by("id", "asc")
+                                ->get()->result();
 
-                $db->insert("bom_project_item_items", [
+                foreach($bisrows as $bisrow){
+                    $in_stock = $bisrow->stock - $total_submit_quantity;
+
+                    $db->insert("bom_project_item_items", [
                                                         "item_id"=>$soirow->product_id,
-                                                        "ratio"=>$total_submit_quantity,
+                                                        "stock_id"=>$bisrow->id,
+                                                        "ratio"=>($in_stock < 0 ? $bisrow->stock : $total_submit_quantity),
                                                         "mr_id"=>$mr_doc_id,
                                                         "used_status"=>0,
                                                         "note"=>$sorow->remark,
                                                     ]);
+
+                    $bpim_id = $db->insert_id();
+
+                    $db->insert("mr_items", [
+                                            "mr_id"=>$mr_doc_id,
+                                            "title"=>$soirow->product_name,
+                                            "description"=>$soirow->product_description,
+                                            "quantity"=>($in_stock < 0 ? $bisrow->stock : $total_submit_quantity),
+                                            "unit_type"=>$soirow->unit,
+                                            "rate"=>$soirow->price,
+                                            "total"=>$soirow->total_price,
+                                            "created_by"=>$this->login_user->id,
+                                            "item_id"=>$soirow->product_id,
+                                            "bpim_id"=>$bpim_id,
+                                            "stock_id"=>$bisrow->id
+                                        ]);
+
+                    if($in_stock >= 0) break;
+                }
 
                 $db->where("id", $soirow->id);
                 $db->update("sales_order_items", [
@@ -1117,5 +1162,39 @@ class Sales_orders_m extends MY_Model {
         $this->data["status"] = "success";
         $this->data["message"] = "สร้างใบขอเบิกเรียบร้อย";
         return $this->data;
+    }
+
+    function canMakeMR($sales_order_id){
+        $db = $this->db;
+        $ci = get_instance();
+
+        $soirows = $db->select("*")
+                        ->from("sales_order_items")
+                        ->where("sales_order_id", $sales_order_id)
+                        ->where("mr_header_id IS NULL")
+                        ->get()->result();
+
+        if(empty($soirows)) return false;
+
+        foreach($soirows as $soirow){
+            $product_remaining = $ci->Bom_item_m->getTotalRemainingItems($soirow->product_id);
+            if($product_remaining <= 0) continue;
+            return true;
+        }
+
+        return false;
+    }
+
+    function canViewMR($sales_order_id){
+        $db = $this->db;
+        $ci = get_instance();
+
+        if($this->canMakeMR($sales_order_id)) return true;
+
+        $db->where("sales_order_id", $sales_order_id);
+        $db->where("mr_header_id IS NOT NULL");
+        if($db->count_all_results("sales_order_items") > 0) return true;
+
+        return false;
     }
 }

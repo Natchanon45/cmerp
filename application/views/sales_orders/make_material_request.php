@@ -51,7 +51,7 @@
 
 .popup .product td.product_name{
     padding-left: 8px;
-    width: 40%;
+    width: 38%;
 }
 
 .popup .product td.product_supplier .supplier_name{
@@ -60,12 +60,17 @@
 }
 
 .popup .product td.instock{
-    width: 20%;
+    width: 14%;
+    text-align: right;
+}
+
+.popup .product td.total_used{
+    width: 14%;
     text-align: right;
 }
 
 .popup .product td.total_submit{
-    width: 20%;
+    width: 14%;
     text-align: right;
 }
 
@@ -122,7 +127,8 @@
                     <tr>
                         <td class="custom-bg product_name">สินค้า</td>
                         <td class="custom-bg instock">คงเหลือ</td>
-                        <td class="custom-bg total_submit">จำนวนที่เบิก</td>
+                        <td class="custom-bg total_used">ต้องใช้</td>
+                        <td class="custom-bg total_submit">เบิกได้</td>
                         <td class="custom-bg reference_number">ใบขอเบิก</td>
                     </tr>
                 </thead>
@@ -132,7 +138,7 @@
     </div>
     <div class="footer">
         <button type="button" class="btn btn-default" data-dismiss="modal"><span class="fa fa-close"></span>ปิดหน้าต่าง</button>
-        <button type="button" id="btnSubmit" class="btn btn-primary"><span class="fa fa-check-circle"></span>สร้างใบขอเบิก</button>
+        <button type="button" id="btnSubmit" class="btn btn-primary" <?php if($can_make_mr != true) echo "disabled"; ?>><span class="fa fa-check-circle"></span>สร้างใบขอเบิก</button>
     </div>
 </div>
 <script type="text/javascript">

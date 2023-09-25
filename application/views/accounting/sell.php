@@ -318,7 +318,7 @@ function loadDataGrid(){
     $("#datagrid").appTable(datagrid_data);
 
     $("#datagrid").on("draw.dt", function () {
-        $(".dropdown_status").on( "change", function() {
+        $(".dropdown_status").off("change").on( "change", function() {
             var doc_id = $(this).data("doc_id");
             var doc_number = $(this).data("doc_number");
 

@@ -8,14 +8,14 @@ class Bom_item_m extends MY_Model {
     function getRatioByMaterialRequestId($material_id){
         $db = $this->db;
 
-        $bpiirow = $db->select("ratio")
+        $total_ratio = $db->select("SUM(ratio) AS TOTAL_RATIO")
                         ->from("bom_project_item_items")
                         ->where("mr_id", $material_id)
-                        ->get()->row();
+                        ->get()->row()->TOTAL_RATIO;
 
-        if(empty($bpiirow)) return 0;
+        if($total_ratio == null) return 0;
 
-        return $bpiirow->ratio;
+        return $total_ratio;
     }
 
     function getTotalRemainingItems($item_id){
@@ -32,7 +32,6 @@ class Bom_item_m extends MY_Model {
                             ->from("bom_project_item_items")
                             ->where("item_id", $item_id)
                             ->get()->row()->TOTAL_RATIO;
-
 
         if($total_used == null) $total_used = 0;
 
@@ -52,5 +51,4 @@ class Bom_item_m extends MY_Model {
 
         return ["name"=>$bimgrow->name];
     }
-
 }

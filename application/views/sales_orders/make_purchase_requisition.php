@@ -143,9 +143,9 @@
                         <td class="custom-bg product_name">สินค้า</td>
                         <td class="custom-bg product_supplier">ผู้จัดจำหน่าย</td>
                         <td class="custom-bg unit">หน่วย</td>
-                        <td class="custom-bg instock">คงคลัง</td>
-                        <td class="custom-bg quantity">ที่ใช้</td>
-                        <td class="custom-bg topurchase">ที่ขอซื้อ</td>
+                        <td class="custom-bg instock">คงเหลือ</td>
+                        <td class="custom-bg quantity">ต้องใช้</td>
+                        <td class="custom-bg topurchase">ต้องขอซื้อ</td>
                         <td class="custom-bg reference_number">ใบขอซื้อ</td>
                     </tr>
                 </thead>
@@ -155,7 +155,7 @@
     </div>
     <div class="footer">
         <button type="button" class="btn btn-default" data-dismiss="modal"><span class="fa fa-close"></span>ปิดหน้าต่าง</button>
-        <button type="button" id="btnSubmit" class="btn btn-primary"><span class="fa fa-check-circle"></span>สร้างใบขอซื้อ</button>
+        <button type="button" id="btnSubmit" class="btn btn-primary" <?php if($can_make_pr != true) echo "disabled"; ?>><span class="fa fa-check-circle"></span>สร้างใบขอซื้อ</button>
     </div>
 </div>
 <script type="text/javascript">
@@ -199,4 +199,7 @@ function getProducts(sales_order_id){
         $(".product table tbody").empty().append(data.html);
     }).catch(function (error) {});
 }
+
+
+
 </script>

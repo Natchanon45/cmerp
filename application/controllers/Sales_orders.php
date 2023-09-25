@@ -139,6 +139,7 @@ class Sales_orders extends MY_Controller {
         }
 
         $data = $this->Sales_orders_m->getDoc($this->input->post("id"));
+        $data["can_make_pr"] = $this->Sales_orders_m->canMakePR($this->input->post("id"));
 
         $this->load->view('sales_orders/make_purchase_requisition', $data);
     }
@@ -151,6 +152,7 @@ class Sales_orders extends MY_Controller {
         }
 
         $data = $this->Sales_orders_m->getDoc($this->input->post("id"));
+        $data["can_make_mr"] = $this->Sales_orders_m->canMakeMR($this->input->post("id"));
 
         $this->load->view('sales_orders/make_material_request', $data);
     }
