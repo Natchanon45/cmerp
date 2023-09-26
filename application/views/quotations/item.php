@@ -3,7 +3,7 @@
         <label for="product_name" class=" col-md-3"><?php echo lang('item'); ?></label>
         <div class="col-md-9">
             <input type="hidden" id="product_id" value="<?php echo $product_id; ?>">
-            <input type="text" id="product_name" value="<?php echo $product_name; ?>" placeholder="<?php echo lang('select_or_create_new_item'); ?>" class="form-control" >
+            <input type="text" id="product_name" value="<?php echo $product_name; ?>" placeholder="<?php echo lang('select_or_create_new_item'); ?>" class="form-control">
         </div>
     </div>
     <div class="form-group">
@@ -25,15 +25,19 @@
         </div>
     </div>
     <div class="form-group">
-        <label for="price" class=" col-md-3"><?php echo lang('rate'); ?></label>
+        <label for="price_before_discount" class=" col-md-3"><?php echo lang('rate'); ?></label>
         <div class="col-md-9">
-            <input type="text" id="price" value="<?php echo $price; ?>" placeholder="<?php echo lang('rate'); ?>" class="form-control numb">
+            <input type="text" id="price_before_discount" value="<?php echo $price; ?>" placeholder="<?php echo lang('rate'); ?>" class="form-control numb">
         </div>
     </div>
     <div class="form-group">
-        <label for="price" class=" col-md-3">ส่วนลด/</label>
+        <label for="price" class=" col-md-3">ส่วนลดต่อหน่วย</label>
         <div class="col-md-9">
-            <input type="text" id="price" value="<?php echo $price; ?>" placeholder="<?php echo lang('rate'); ?>" class="form-control numb">
+            <input type="text" id="discount_value" value="<?php echo $price; ?>" placeholder="ส่วนลดต่อหน่วย" class="form-control numb" style="width: calc(100% - 90px); float: left; margin-right: 8px;">
+            <select id="discount_type" class="form-control" style="width:82px;">
+                <option value="P">%</option>
+                <option value="F">฿</option>
+            </select>
         </div>
     </div>
     <div class="form-group">
@@ -124,20 +128,41 @@ $(document).ready(function () {
     $(".numb").blur(function(){
         calculatePrice();
     });
+
+    $("#discount_type").change(function(){
+        alert(1);
+        //calculatePrice();
+    });
 });
 
 function calculatePrice(){
     let quantity = tonum($("#quantity").val(), <?php echo $this->Settings_m->getDecimalPlacesNumber(); ?>);
-    let price = tonum($("#price").val(), <?php echo $this->Settings_m->getDecimalPlacesNumber(); ?>);
-    let total_price = 0.00;
+    let price_before_discount = tonum($("#price_before_discount").val(), <?php echo $this->Settings_m->getDecimalPlacesNumber(); ?>);
+    let price = price_before_discount;
+    let discount_type = $("#discount_type").val();
+    let discount_value = tonum($("#discount_value").val(), <?php echo $this->Settings_m->getDecimalPlacesNumber(); ?>);
+
+
+
+    if(discount_type == "P"){
+        if(discount_value < 0) discount_value = 0;
+        if(discount_value > 99.99) discount_value = 99.99;
+        discount_value = tonum((price_before_discount * discount_value)/100, <?php echo $this->Settings_m->getDecimalPlacesNumber(); ?>);
+        price = price_before_discount - discount_value;
+
+    }else{
+        if(discount_value < 0) discount_value = 0;
+        if(discount_value > price_before_discount) discount_value = price_before_discount;
+        price = price_before_discount - discount_value;
+    }
 
     if(quantity < 0 ) quantity = 0;
     if(price < 0 ) price = 0;
 
     total_price = price * quantity;
-
+    
     $("#quantity").val($.number(quantity, <?php echo $this->Settings_m->getDecimalPlacesNumber(); ?>));
-    $("#price").val($.number(price, 2));
+    $("#price_before_discount").val($.number(price_before_discount, 2));
     $("#total_price").val($.number(total_price, 2));
 }
 </script>
