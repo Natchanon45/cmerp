@@ -133,7 +133,7 @@ class Bom_stock_groups_model extends Crud_model {
         return $this->db->query($sql);
     }
     
-    function restock_save($group_id = 0, $restock_ids = [], $material_ids = [], $stocks = [], $prices = [], $serial_numbers = []) {
+    function restock_save($group_id = 0, $restock_ids = [], $material_ids = [], $expire_date = [], $stocks = [], $prices = [], $serial_numbers = []) {
         $except_ids = array_filter($restock_ids, function($var){ return !empty($var); });
         $where = "";
         if (sizeof($except_ids)) {
@@ -149,6 +149,7 @@ class Bom_stock_groups_model extends Crud_model {
                         $this->db->insert('bom_stocks', [
                             'group_id' => $group_id,
                             'material_id' => $d,
+                            'expiration_date' => $expire_date[$i],
                             'stock' => $stocks[$i],
                             'remaining' => $stocks[$i],
                             'serial_number' => $serial_numbers[$i] 
@@ -157,6 +158,7 @@ class Bom_stock_groups_model extends Crud_model {
                         $this->db->insert('bom_stocks', [
                             'group_id' => $group_id,
                             'material_id' => $d,
+                            'expiration_date' => $expire_date[$i],
                             'stock' => $stocks[$i],
                             'remaining' => $stocks[$i],
                             'price' => $prices[$i],
@@ -165,6 +167,7 @@ class Bom_stock_groups_model extends Crud_model {
                     }
                 } else {
                     $this->db->set("material_id", $d)
+                        ->set("expiration_date", $expire_date[$i])
                         ->set("stock", $stocks[$i])
                         ->set("price", $prices[$i])
                         ->set("serial_number", $serial_numbers[$i])

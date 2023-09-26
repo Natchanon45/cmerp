@@ -19,12 +19,6 @@
 				<a class="title-back" href="<?php echo_uri("stock"); ?>"><i class="fa fa-chevron-left" aria-hidden="true"></i></a>
 				<span><?php echo lang("stock_item_report"); ?></span>
 			</h1>
-
-			<?php // if ($add_pr_row): ?>
-				<!-- <button type="button" class="btn btn-warning pull-right" id="btn-pr-create">
-					<i class="fa fa-shopping-cart"></i> <?php // echo lang("request_low_item"); ?>
-				</button> -->
-			<?php // endif; ?>
 		</div>
 		<div class="table-responsive">
 			<table id="report-table" class="display" width="100%"></table>
@@ -43,21 +37,32 @@ const isZero = {
 	]
 };
 
+const dateCreated = [{
+	startDate: {
+		name: 'start_date',
+		value: '<?php echo date('Y-m-01'); ?>'
+	},
+	endDate: {
+		name: 'end_date',
+		value: '<?php echo date("Y-m-d", strtotime('last day of this month', time())); ?>'
+	}
+}];
+
 let columns = [
 	{ title: '<?php echo lang("id"); ?>', class: 'text-center w10' },
-	{ title: '<?php echo lang("stock_restock_item_name"); ?>' },
-	{ title: '<?php echo lang("items_fg"); ?>' },
-	{ title: '<?php echo lang("stock_item_description"); ?>' },
-	{ title: '<?php echo lang("created_date"); ?>', class: 'w10' },
-	{ title: '<?php echo lang("expiration_date"); ?>', class: 'w90' },
-	{ title: '<?php echo lang("stock_restock_quantity"); ?>', class: 'w10 text-right' },
-	{ title: '<?php echo lang("stock_item_remaining"); ?>', class: 'w10 text-right' },
-	{ title: '<?php echo lang("stock_item_unit"); ?>', class: 'w10 text-right' },
+	{ title: '<?php echo lang("stock_restock_item_name"); ?>', class: 'w150' },
+	{ title: '<?php echo lang("items_fg"); ?>', class: 'w200' },
+	{ title: '<?php echo lang("stock_item_description"); ?>', class: 'w150' },
+	{ title: '<?php echo lang("created_date"); ?>', class: 'w100' },
+	{ title: '<?php echo lang("expiration_date"); ?>', class: 'w100' },
+	{ title: '<?php echo lang("stock_restock_quantity"); ?>', class: 'w100 text-right' },
+	{ title: '<?php echo lang("stock_item_remaining"); ?>', class: 'w100 text-right' },
+	{ title: '<?php echo lang("stock_item_unit"); ?>', class: 'w10' },
 	<?php if ($can_read_price): ?>
 		{ title: '<?php echo lang("stock_restock_price"); ?>', class: 'w90 text-right' },
 		{ title: '<?php echo lang("rate"); ?>', class: 'w90 text-right' },
 		{ title: '<?php echo lang("stock_restock_remining_value"); ?>', class: 'w90 text-right' },
-		{ title: '<?php echo lang("currency"); ?>', class: 'w50 text-right' },
+		{ title: '<?php echo lang("currency"); ?>', class: 'w100 text-right' },
 	<?php endif; ?>
 ];
 
@@ -79,6 +84,7 @@ let summation = [
 async function loadReportTable() {
 	await $("#report-table").appTable({
 		source: source,
+		rangeDatepicker: dateCreated,
 		filterDropdown: [isZero],
 		columns: columns,
 		printColumns: printColumns,
@@ -87,7 +93,7 @@ async function loadReportTable() {
 	});
 };
 
-function testCasePromise() {
+const promiseTestCases = async () => {
 	console.log("Start");
 
 	setTimeout(() => {
@@ -109,9 +115,13 @@ function testCasePromise() {
 	});
 
 	console.log("End");
-}
+};
 
 $(document).ready(function () {
 	loadReportTable();
+
+	setTimeout(async () => {
+		await promiseTestCases();
+	}, 100);
 });
 </script>

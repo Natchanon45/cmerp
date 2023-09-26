@@ -2846,12 +2846,15 @@ class Stock extends MY_Controller
             $view_data['material_restocks'][$key]->can_delete = $this->dev2_canDeleteRestockRm($value->id);
         }
 
-        // var_dump(arr($view_data)); exit;
+        // var_dump(arr($view_data["material_restocks"])); exit;
         $this->load->view('stock/restock/modal', $view_data);
     }
 
     function restock_save()
     {
+        // echo json_encode(array("success" => true, "data" => $this->input->post(), 'message' => lang('no_permissions')));
+        // exit();
+
         $this->check_module_availability("module_stock");
         if (!$this->bom_can_access_restock()) {
             echo json_encode(array("success" => false, 'message' => lang('no_permissions')));
@@ -2892,6 +2895,7 @@ class Stock extends MY_Controller
         if ($save_id) {
             $restock_ids = $this->input->post('restock_id[]');
             $material_ids = $this->input->post('material_id[]');
+            $expire_date = $this->input->post('expired_date[]');
             $stocks = $this->input->post('stock[]');
             $prices = $this->input->post('price[]');
             $serial_numbers = $this->input->post('restock_serial[]');
@@ -2901,6 +2905,7 @@ class Stock extends MY_Controller
                     $save_id,
                     $restock_ids,
                     $material_ids,
+                    $expire_date,
                     $stocks,
                     $prices,
                     $serial_numbers
@@ -3587,7 +3592,7 @@ class Stock extends MY_Controller
             $wExcel->writeSheetRow('Sheet1', [
                 $item['material_name'],
                 !empty($item['stock_name']) ? $item['stock_name'] : '-',
-                !empty($item['stock']) ? to_decimal_format2($item['stock']) : '0.00',
+                !empty($item['stock']) ? to_decimal_format3($item['ratio']) : '0.00',
                 !empty($item['material_unit']) ? strtoupper($item['material_unit']) : '-',
                 !empty($item['value']) ? to_decimal_format3($item['value']) : '0.00',
                 !empty($item['currency']) ? lang($item['currency']) : lang('THB')
@@ -3778,6 +3783,7 @@ class Stock extends MY_Controller
         if ($save_id) {
             $restock_ids = $this->input->post('restock_id[]');
             $item_ids = $this->input->post('item_id[]');
+            $expire_date = $this->input->post('expired_date[]');
             $stocks = $this->input->post('stock[]');
             $prices = $this->input->post('price[]');
             $serns = $this->input->post('sern[]');
@@ -3786,6 +3792,7 @@ class Stock extends MY_Controller
                     $save_id,
                     $restock_ids,
                     $item_ids,
+                    $expire_date,
                     $stocks,
                     $prices,
                     $serns
@@ -5588,6 +5595,9 @@ class Stock extends MY_Controller
     function item_report_list()
     {
         $is_zero = $this->input->post("is_zero");
+        $startDate = $this->input->post("start_date");
+        $endDate = $this->input->post("end_date");
+
         $this->check_module_availability("module_stock");
         if (!$this->cop('view_row') || !$this->bom_can_access_material() || !$this->bom_can_access_restock()) {
             redirect("forbidden");
@@ -5596,6 +5606,11 @@ class Stock extends MY_Controller
         $options = array();
         if ($this->check_permission('bom_restock_read_self') && !$this->check_permission('bom_restock_read')) {
             $options['created_by'] = $this->login_user->id;
+        }
+
+        if ((isset($startDate) && !empty($startDate)) && (isset($endDate) && !empty($endDate))) {
+            $options["start_date"] = $startDate;
+            $options["end_date"] = $endDate;
         }
 
         if (isset($is_zero) && !empty($is_zero)) {
