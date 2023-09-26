@@ -1251,11 +1251,13 @@ class Invoices_m extends MY_Model {
         if(!empty($ivrows)){
             foreach($ivrows as $ivrow){
                 $invoice_item_total_price = $ivrow->total_price;
+                //$percent_of_item = ($invoice_item_total_price / $invoice_total) * 100;
+                //$price_of_item = round(($invoice_payment_amount * $percent_of_item)/100, 2);
                 $percent_of_item = ($invoice_item_total_price / $invoice_total) * 100;
-                $price_of_item = round(($invoice_payment_amount * $percent_of_item)/100, 2);
+                $price_of_item = ($invoice_payment_amount * $percent_of_item)/100;
 
                 $receipt_sub_total_before_discount = $price_of_item + $receipt_sub_total_before_discount;
-                
+                //"price"=>roundUp($price_of_item/$ivrow->quantity),
                 $db->insert("receipt_items", [
                                 "receipt_id"=>$receipt_id,
                                 "product_id"=>$ivrow->product_id,
@@ -1263,7 +1265,7 @@ class Invoices_m extends MY_Model {
                                 "product_description"=>$ivrow->product_description,
                                 "quantity"=>$ivrow->quantity,
                                 "unit"=>$ivrow->unit,
-                                "price"=>roundUp($price_of_item/$ivrow->quantity),
+                                "price"=>$price_of_item/$ivrow->quantity,
                                 "total_price"=>$price_of_item,
                                 "sort"=>$ivrow->sort
                             ]);
@@ -1282,7 +1284,8 @@ class Invoices_m extends MY_Model {
 
         $receipt_sub_total = $receipt_sub_total_before_discount - $receipt_discount_amount;
 
-        if($receipt_vat_inc == "Y") $receipt_vat_value = round(($receipt_sub_total * $receipt_vat_percent)/100, 2);
+        //if($receipt_vat_inc == "Y") $receipt_vat_value = round(($receipt_sub_total * $receipt_vat_percent)/100, 2);
+        if($receipt_vat_inc == "Y") $receipt_vat_value = ($receipt_sub_total * $receipt_vat_percent)/100;
 
         $db->where("id", $receipt_id);
         $db->update("receipt", [

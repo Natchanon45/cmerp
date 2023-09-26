@@ -137,6 +137,7 @@
 #printd .docitem{
     min-height: 600px;
     margin-top:12px;
+    padding-bottom: 100px;
 }
 
 #printd .docitem td.notfound{
@@ -429,19 +430,21 @@
     width: 45%;
 }
 
-#printd .docsignature .company_stamp{
-    text-align: center;
-    width: 100%;
-    height: 1px;
+#printd .docsignature .company_stamp {
+    margin: 0 auto;
+    width: 280px;
+    height: 160px;
+    position: relative;
 }
 
 #printd .docsignature .company_stamp img{
-    position: relative;
-    top: -60px;
-    display: inline-block;
-    max-height: 50px;
-    height: 50px;
-    width: auto;
+    position: absolute;
+    bottom: 30px;
+    object-fit: contain;
+    width: 100%;
+    max-width: 280px;
+    height: auto;
+    max-height: 120px;
 }
 
 #printd .docsignature .on_behalf_of{
