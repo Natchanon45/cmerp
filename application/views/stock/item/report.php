@@ -10,6 +10,10 @@
 #report-table {
 	font-size: small;
 }
+
+.mw250 {
+	min-width: 250px;
+}
 </style>
 
 <div id="page-content" class="p20 clearfix">
@@ -27,7 +31,7 @@
 </div>
 
 <script type="text/javascript">
-const source = '<?php echo_uri("stock/item_report_list") ?>';
+const source = '<?php echo_uri("stock/item_report_list"); ?>';
 const isZero = {
 	name: 'is_zero',
 	class: 'w150',
@@ -50,11 +54,11 @@ const dateCreated = [{
 
 let columns = [
 	{ title: '<?php echo lang("id"); ?>', class: 'text-center w10' },
-	{ title: '<?php echo lang("stock_restock_item_name"); ?>', class: 'w150' },
-	{ title: '<?php echo lang("items_fg"); ?>', class: 'w200' },
+	{ title: '<?php echo lang("stock_restock_name"); ?>', class: 'w150' },
+	{ title: '<?php echo lang("items_fg"); ?>', class: 'mw250' },
 	{ title: '<?php echo lang("stock_item_description"); ?>', class: 'w150' },
-	{ title: '<?php echo lang("created_date"); ?>', class: 'w100' },
-	{ title: '<?php echo lang("expiration_date"); ?>', class: 'w100' },
+	{ title: '<?php echo lang("stock_restock_date"); ?>', class: '' },
+	{ title: '<?php echo lang("expiration_date"); ?>', class: '' },
 	{ title: '<?php echo lang("stock_restock_quantity"); ?>', class: 'w100 text-right' },
 	{ title: '<?php echo lang("stock_item_remaining"); ?>', class: 'w100 text-right' },
 	{ title: '<?php echo lang("stock_item_unit"); ?>', class: 'w10' },
@@ -119,9 +123,5 @@ const promiseTestCases = async () => {
 
 $(document).ready(function () {
 	loadReportTable();
-
-	setTimeout(async () => {
-		await promiseTestCases();
-	}, 100);
 });
 </script>

@@ -42,7 +42,7 @@
             ],
             columns: [
                 { title: "<?php echo lang('id'); ?>", class: "text-center w50" },
-                { title: "<?php echo lang('stock_restock_item_name'); ?>", class: "w200" },
+                { title: "<?php echo lang('stock_restock_name'); ?>", class: "w200" },
                 { title: "<?php echo lang('serial_number'); ?>", class: "" },
                 { title: "<?php echo lang('items_fg'); ?>", class: "" },
                 { title: "<?php echo lang('stock_restock_quantity'); ?>", class: "text-right" },

@@ -2648,8 +2648,9 @@ class Stock extends MY_Controller
     {
         $is_zero = $this->input->post("is_zero");
         $warehouse_id = $this->input->post("warehouse_id");
+        $start_date = $this->input->post("start_date");
+        $end_date = $this->input->post("end_date");
 
-        // $this->check_module_availability("module_stock");
         if (!$this->cop('view_row') || !$this->bom_can_access_material() || !$this->bom_can_access_restock()) {
             redirect("forbidden");
         }
@@ -2657,6 +2658,11 @@ class Stock extends MY_Controller
         $options = array();
         if ($this->check_permission('bom_restock_read_self') && !$this->check_permission('bom_restock_read')) {
             $options['created_by'] = $this->login_user->id;
+        }
+
+        if ((isset($start_date) && !empty($start_date)) && (isset($end_date) && !empty($end_date))) {
+            $options["start_date"] = $start_date;
+            $options["end_date"] = $end_date;
         }
 
         if (isset($is_zero) && !empty($is_zero)) {
@@ -2669,6 +2675,7 @@ class Stock extends MY_Controller
 
         $list_data = $this->Bom_stock_groups_model->get_restocks2($options)->result();
         // var_dump(arr($list_data)); exit;
+        
         $result = array();
         foreach ($list_data as $data) {
             $result[] = $this->_material_report_make_row($data);
