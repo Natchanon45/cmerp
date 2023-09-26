@@ -14,8 +14,6 @@ class Invoices_m extends MY_Model {
 
     function getNewDocNumber(){
         //$company_setting = $this->Settings_m->getCompany();
-        
-        $this->db->where_in("status", ["W", "O", "P"]);
         $this->db->where("DATE_FORMAT(created_datetime,'%Y-%m')", date("Y-m"));
         $this->db->where("deleted", 0);
         $running_number = $this->db->get("invoice")->num_rows() + 1;
