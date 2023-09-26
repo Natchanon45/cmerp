@@ -31,6 +31,12 @@
         </div>
     </div>
     <div class="form-group">
+        <label for="price" class=" col-md-3">ส่วนลด/</label>
+        <div class="col-md-9">
+            <input type="text" id="price" value="<?php echo $price; ?>" placeholder="<?php echo lang('rate'); ?>" class="form-control numb">
+        </div>
+    </div>
+    <div class="form-group">
         <label for="total_price" class=" col-md-3">ราคารวม</label>
         <div class="col-md-9">
             <input type="text" id="total_price" value="<?php echo $total_price; ?>" placeholder="<?php echo lang('rate'); ?>" class="form-control numb" readonly>
