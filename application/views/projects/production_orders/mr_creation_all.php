@@ -33,6 +33,7 @@ async function mrCreationAll() {
 
     await axios.post(url, req).then(res => {
         const { success, target } = res.data;
+        // console.log(success);
         
         if (success) {
             window.open(target, "_blank");

@@ -2206,3 +2206,5 @@ $lang["production_order_all_of_order"] = " all of order?";
 $lang["production_order_mr_creation_all"] = "Would you like to create a material requisition for all of the items with stock?";
 $lang["production_order_delete_question"] = "Would you like to delete this production order?";
 $lang["production_order_bom_recalc"] = "RM Update";
+$lang["production_order_state_change"] = "Production order state change.";
+$lang["production_order_cannot_change_status"] = "Cannot change the order state, create and approve the material request document, please.";

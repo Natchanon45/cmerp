@@ -1,6 +1,7 @@
 <style type="text/css">
     .pointer-none {
         pointer-events: none;
+        appearance: none;
     }
 
     .pill {
@@ -15,8 +16,8 @@
         vertical-align: baseline;
         border: none;
         border-radius: .65rem;
-        appearance: none;
         width: 90%;
+        height: 30px;
     }
 
     .pill-primary {
@@ -108,7 +109,22 @@
     <div id="table-wrapper" class="table-responsive"></div>
 </div>
 
+<?php
+echo modal_anchor(
+    get_uri("projects/production_order_modal_error"),
+    "production_order_modal_error",
+    array(
+        "class" => "btn btn-default hide",
+        "title" => lang("production_order_state_change"),
+        "data-title" => lang("production_order_state_change"),
+        "data-post-message" => lang("production_order_cannot_change_status"),
+        "id" => "btn-failure"
+    )
+);
+?>
+
 <script type="text/javascript">
+const btnFailure = document.querySelector("#btn-failure");
 const authReadCostAmount = document.querySelector("#authReadCostAmount");
 const source = '<?php echo_uri("projects/production_order_list/" . $project_info["id"]); ?>';
 
@@ -203,12 +219,16 @@ async function produceStateChange (url = "", req = {}) {
         data: req,
         success: function (data, status) {
             let res = JSON.parse(data);
-            if (status === "success") {
-                $("#production-order-table").appTable({
-                    newData: res.data,
-                    dataId: res.info.id
-                });
+            // console.log(res);
+
+            if (res.status === 'failure') {
+                btnFailure.click();
             }
+
+            $("#production-order-table").appTable({
+                newData: res.data,
+                dataId: res.info.id
+            });
         },
         error: function (XMLHttpRequest, textStatus, errorThrown) {
             console.log(errorThrown);

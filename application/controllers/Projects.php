@@ -6008,6 +6008,8 @@ class Projects extends MY_Controller
             $data["project_post"]["id"]
         );
         $data["auth_read_cost"] = $this->check_permission("bom_restock_read_price");
+        $data["can_create_mr"] = $this->production_order_can_create_mr($data["project_post"]["id"]);
+        $data["can_recalc"] = $this->production_order_can_recalc($data["project_post"]["id"]);
         
         // var_dump(arr($data)); exit();
         $this->load->view("projects/production_orders/modal_bom", $data);
@@ -6114,6 +6116,14 @@ class Projects extends MY_Controller
         echo json_encode($completed_all);
     }
 
+    function production_order_modal_error()
+    {
+        $data = $this->input->post();
+
+        // var_dump(arr($data)); exit();
+        $this->load->view("projects/production_orders/modal_error", $data);
+    }
+
     private function production_order_count_no_mr($production_id) // Integration testing 
     {
         $this->db->trans_begin();
@@ -6134,6 +6144,14 @@ class Projects extends MY_Controller
     {
         $can_delete = true;
 
+        // verify auth to delete project
+        $auth_delete = $this->check_permission("can_delete_projects");
+        if (isset($auth_delete) && !empty($auth_delete)) {
+            if (!$auth_delete) {
+                $can_delete = false;
+            }
+        }
+
         // verify order status
         $order_status = $this->Projects_model->dev2_getProductionOrderStatusById($id);
         if (isset($order_status) && !empty($order_status)) {
@@ -6151,6 +6169,32 @@ class Projects extends MY_Controller
         }
 
         return $can_delete;
+    }
+
+    private function production_order_can_create_mr($id)
+    {
+        $can_create_mr = true;
+
+        // verify material requisition created
+        $count_no_mr = $this->Projects_model->dev2_getCountNoMrForProductionOrderById($id);
+        if ($count_no_mr == 0) {
+            $can_create_mr = false;
+        }
+
+        return $can_create_mr;
+    }
+
+    private function production_order_can_recalc($id)
+    {
+        $can_recalc = true;
+
+        // verify stock id for bom
+        $count_no_stock = $this->Projects_model->dev2_getCountNoStockForProductionOrderById($id);
+        if ($count_no_stock == 0) {
+            $can_recalc = false;
+        }
+        
+        return $can_recalc;
     }
 
     private function auth_bom_read_price() // finding authorization about ["bom_restock_read_price"]
@@ -6194,7 +6238,6 @@ class Projects extends MY_Controller
         }
 
         // prepare btn-delete-project
-        // if ($this->check_permission('can_delete_projects')) {
         if ($item->can_delete) {
             $buttons .= modal_anchor(
                 get_uri("projects/production_order_delete"),

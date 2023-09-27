@@ -240,15 +240,19 @@
         <?php echo lang("close"); ?>
     </button>
 
-    <button type="button" class="btn btn-warning" id="btn-recalc" data-dismiss="modal">
-        <span class="fa fa-refresh"></span> 
-        <?php echo " " . lang("production_order_bom_recalc"); ?>
-    </button>
+    <?php if ($can_recalc): ?>
+        <button type="button" class="btn btn-warning" id="btn-recalc" data-dismiss="modal">
+            <span class="fa fa-refresh"></span> 
+            <?php echo " " . lang("production_order_bom_recalc"); ?>
+        </button>
+    <?php endif; ?>
 
-    <button type="button" class="btn btn-primary" id="btn-mr-creator" data-dismiss="modal">
-        <span class="fa fa-book"></span> 
-        <?php echo " " . lang("create_matreq"); ?>
-    </button>
+    <?php if ($can_create_mr): ?>
+        <button type="button" class="btn btn-primary" id="btn-mr-creator" data-dismiss="modal">
+            <span class="fa fa-book"></span> 
+            <?php echo " " . lang("create_matreq"); ?>
+        </button>
+    <?php endif; ?>
 
     <?php if ($auth_read_cost): ?>
         <button type="button" class="btn btn-default" id="btn-pdf">

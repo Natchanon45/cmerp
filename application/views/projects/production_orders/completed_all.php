@@ -40,7 +40,22 @@
     </button>
 </div>
 
+<?php
+echo modal_anchor(
+    get_uri("projects/production_order_modal_error"),
+    "production_order_modal_error",
+    array(
+        "class" => "btn btn-default hide",
+        "title" => lang("production_order_state_change"),
+        "data-title" => lang("production_order_state_change"),
+        "data-post-message" => lang("production_order_cannot_change_status"),
+        "id" => "btn-failure"
+    )
+);
+?>
+
 <script type="text/javascript">
+const btnFailure = document.querySelector("#btn-failure");
 const projectId = document.querySelector("#project_id").value;
 const targetUrl = document.querySelector("#target_url").value;
 
@@ -51,7 +66,12 @@ async function producingAll() {
     };
 
     await axios.post(url, req).then(res => {
+        const { success } = res.data;
         // console.log(res);
+
+        if (!success) {
+            btnFailure.click();
+        }
         window.parent.loadProductionOrderList();
     }).catch(err => {
         console.log(err);
