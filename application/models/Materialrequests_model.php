@@ -400,6 +400,19 @@ class MaterialRequests_model extends Crud_model
 		return $query->row();
 	}
 
+	function getStockNameForPrintByStockGroupId($id, $mr_type)
+	{
+		if ($mr_type == 1) {
+			$query = $this->db->get_where("bom_stock_groups", ["id" => $id]);
+		}
+
+		if ($mr_type == 2) {
+			$query = $this->db->get_where("bom_item_groups", ["id" => $id]);
+		}
+		
+		return $query->row();
+	}
+
 	function dev2_getItemListByMaterialRequestId($mr_id, $mr_type)
 	{
 		$datas = array();
@@ -408,7 +421,7 @@ class MaterialRequests_model extends Crud_model
 			if (sizeof($datas)) {
 				foreach ($datas as $data) {
 					$data->names = (isset($data->code) && !empty($data->code)) ? $data->code . ' - ' . $data->title : $data->title;
-					$data->description = (isset($data->description) && !empty($data->description)) ? mb_strimwidth($data->description, 1, 50, '...') : '';
+					$data->description = (isset($data->description) && !empty($data->description)) ? mb_strimwidth($data->description, 1, 50, '...') : $data->title;
 					$data->quantity = number_format($data->quantity, $this->Settings_m->getDecimalPlacesNumber());
 					$data->stocks = $this->getStockNameByStockId($data->stock_id, $data->bpim_id, $mr_type);
 					$data->edit = modal_anchor(
@@ -422,6 +435,46 @@ class MaterialRequests_model extends Crud_model
 							'data-post-item_id' => $data->id
 						)
 					);
+				}
+			}
+		}
+
+		return $datas;
+	}
+
+	function dev2_getItemListForPrintByMaterialRequestId($mr_id, $mr_type)
+	{
+		$datas = array();
+		if (!empty($mr_id)) {
+			// RM
+			if ($mr_type == 1) {
+				$sql = "SELECT bsg.id, mi.material_id, SUM(mi.quantity) AS quantity FROM bom_stock_groups AS bsg LEFT JOIN bom_stocks AS bs ON bsg.id = bs.group_id LEFT JOIN mr_items AS mi ON bs.id = mi.stock_id WHERE mi.mr_id = ? GROUP BY bsg.id, mi.material_id ORDER BY mi.material_id";
+				$datas = $this->db->query($sql, $mr_id)->result();
+				if (sizeof($datas)) {
+					foreach ($datas as $data) {
+						$material_info = $this->db->get_where("bom_materials", ["id" => $data->material_id])->row();
+						$data->names = (isset($material_info->name) && !empty($material_info->name)) ? $material_info->name . " - " . $material_info->production_name : $material_info->production_name;
+						$data->unit_type = $material_info->unit;
+						$data->description = (isset($material_info->description) && !empty($material_info->description)) ? mb_strimwidth($material_info->description, 1, 50, "...") : $material_info->production_name;
+						$data->quantity = number_format($data->quantity, $this->Settings_m->getDecimalPlacesNumber());
+						$data->stocks = $this->getStockNameForPrintByStockGroupId($data->id, $mr_type);
+					}
+				}
+			}
+
+			// FG
+			if ($mr_type == 2) {
+				$sql = "SELECT bsg.id, mi.item_id, SUM(mi.quantity) AS quantity FROM bom_item_groups AS bsg LEFT JOIN bom_item_stocks AS bs ON bsg.id = bs.group_id LEFT JOIN mr_items AS mi ON bs.id = mi.stock_id WHERE mi.mr_id = ? GROUP BY bsg.id, mi.item_id ORDER BY mi.item_id ";
+				$datas = $this->db->query($sql, $mr_id)->result();
+				if (sizeof($datas)) {
+					foreach ($datas as $data) {
+						$material_info = $this->db->get_where("items", ["id" => $data->item_id])->row();
+						$data->names = (isset($material_info->item_code) && !empty($material_info->item_code)) ? $material_info->item_code . " - " . $material_info->title : $material_info->title;
+						$data->unit_type = $material_info->unit_type;
+						$data->description = (isset($material_info->description) && !empty($material_info->description)) ? mb_strimwidth($material_info->description, 1, 50, "...") : $material_info->title;
+						$data->quantity = number_format($data->quantity, $this->Settings_m->getDecimalPlacesNumber());
+						$data->stocks = $this->getStockNameForPrintByStockGroupId($data->id, $mr_type);
+					}
 				}
 			}
 		}

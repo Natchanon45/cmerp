@@ -106,24 +106,29 @@ class Bom_stock_groups_model extends Crud_model {
         if ($warehouse_id) {
             $where .= " AND bm.warehouse_id = $warehouse_id";
         }
+        $start_date = get_array_value($options, "start_date");
+        $end_date = get_array_value($options, "end_date");
+        if ((isset($start_date) && !empty($start_date)) && (isset($end_date) && !empty($end_date))) {
+            $where .= " AND bsg.created_date BETWEEN '$start_date' AND '$end_date'";
+        }
         $sql = "
             SELECT bs.*,
-            bm.name `material_name`, bm.unit `material_unit`, bm.noti_threshold, bm.production_name,
+            bm.name `material_name`, bm.unit `material_unit`, bm.noti_threshold, bm.production_name, 
             bsg.name `group_name`, bsg.created_date, 
-            IF(bmp.price IS NULL,'0',bmp.price) as bmpprice,
-            IF(sup.id IS NULL,0, sup.id) as supplier_id,
-            IF(sup.company_name IS NULL,'', sup.company_name) as supplier_name,
-            IF(sup.currency IS NULL,'THB',sup.currency) as currency,
-            IF(sup.currency_symbol IS NULL,'฿',sup.currency_symbol) as currency_symbol,
+            IF(bmp.price IS NULL,'0',bmp.price) as bmpprice, 
+            IF(sup.id IS NULL,0, sup.id) as supplier_id, 
+            IF(sup.company_name IS NULL,'', sup.company_name) as supplier_name, 
+            IF(sup.currency IS NULL,'THB',sup.currency) as currency, 
+            IF(sup.currency_symbol IS NULL,'฿',sup.currency_symbol) as currency_symbol, 
             u.id `user_id`, 
             u.first_name `user_first_name`, 
-            u.last_name `user_last_name`,
+            u.last_name `user_last_name`, 
             u.image `user_image` 
             FROM bom_stocks bs 
             INNER JOIN bom_materials bm ON bm.id = bs.material_id 
             INNER JOIN bom_stock_groups bsg ON bsg.id = bs.group_id 
-            LEFT JOIN bom_material_pricings as bmp ON bmp.material_id=bs.material_id
-            LEFT JOIN bom_suppliers as sup ON bmp.supplier_id=sup.id
+            LEFT JOIN bom_material_pricings as bmp ON bmp.material_id=bs.material_id 
+            LEFT JOIN bom_suppliers as sup ON bmp.supplier_id=sup.id 
             LEFT JOIN users u ON u.id = bsg.created_by 
             WHERE 1 $where 
             GROUP BY bs.id 
@@ -133,7 +138,7 @@ class Bom_stock_groups_model extends Crud_model {
         return $this->db->query($sql);
     }
     
-    function restock_save($group_id = 0, $restock_ids = [], $material_ids = [], $stocks = [], $prices = [], $serial_numbers = []) {
+    function restock_save($group_id = 0, $restock_ids = [], $material_ids = [], $expire_date = [], $stocks = [], $prices = [], $serial_numbers = []) {
         $except_ids = array_filter($restock_ids, function($var){ return !empty($var); });
         $where = "";
         if (sizeof($except_ids)) {
@@ -149,6 +154,7 @@ class Bom_stock_groups_model extends Crud_model {
                         $this->db->insert('bom_stocks', [
                             'group_id' => $group_id,
                             'material_id' => $d,
+                            'expiration_date' => $expire_date[$i],
                             'stock' => $stocks[$i],
                             'remaining' => $stocks[$i],
                             'serial_number' => $serial_numbers[$i] 
@@ -157,6 +163,7 @@ class Bom_stock_groups_model extends Crud_model {
                         $this->db->insert('bom_stocks', [
                             'group_id' => $group_id,
                             'material_id' => $d,
+                            'expiration_date' => $expire_date[$i],
                             'stock' => $stocks[$i],
                             'remaining' => $stocks[$i],
                             'price' => $prices[$i],
@@ -165,6 +172,7 @@ class Bom_stock_groups_model extends Crud_model {
                     }
                 } else {
                     $this->db->set("material_id", $d)
+                        ->set("expiration_date", $expire_date[$i])
                         ->set("stock", $stocks[$i])
                         ->set("price", $prices[$i])
                         ->set("serial_number", $serial_numbers[$i])

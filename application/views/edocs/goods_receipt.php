@@ -43,6 +43,7 @@
 
 		.payment_info {
 			position: absolute;
+			width: 100%;
 			bottom: 0px;
 			padding-top: 1rem;
 			padding-bottom: 1rem;
