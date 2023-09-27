@@ -27,7 +27,7 @@
       source: '<?php echo_uri("stock/restock_item_view_list/" . $restock_id) ?>',
       columns: [
         { title: '<?php echo lang('id') ?>', class: 'text-center w50' },
-        { title: '<?php echo lang('stock_restock_item'); ?>' },
+        { title: '<?php echo lang('items_fg'); ?>' },
         { title: '<?php echo lang('serial_number'); ?>' },
         { title: '<?php echo lang('files'); ?>', class: 'w125' },
         { title: '<?php echo lang('expiration_date'); ?>', class: 'w125' },

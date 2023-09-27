@@ -106,6 +106,11 @@ class Bom_item_groups_model extends Crud_model {
         if ($is_zero == 0) {
             $where .= " AND bs.remaining > 0";
         }
+        $start_date = get_array_value($options, "start_date");
+        $end_date = get_array_value($options, "end_date");
+        if (is_date_exists($start_date) && is_date_exists($end_date)) {
+            $where .= " AND bsg.created_date BETWEEN '$start_date' AND '$end_date'";
+        }
         $sql = "
             SELECT bs.*, 
             bm.title `item_name`, bm.description `item_desc`, bm.unit_type `item_unit`, bm.noti_threshold, 
@@ -132,7 +137,7 @@ class Bom_item_groups_model extends Crud_model {
         return $this->db->query($sql);
     }
     
-    function restock_item_save($group_id = 0, $restock_ids = [], $item_ids = [], $stocks = [], $prices = [], $serns = []) {
+    function restock_item_save($group_id = 0, $restock_ids = [], $item_ids = [], $expire_date = [], $stocks = [], $prices = [], $serns = []) {
         $except_ids = array_filter($restock_ids, function($var){ return !empty($var); });
         $where = "";
         if (sizeof($except_ids)) {
@@ -146,6 +151,7 @@ class Bom_item_groups_model extends Crud_model {
                         $this->db->insert($this->table2, [
                             'group_id' => $group_id,
                             'item_id' => $d,
+                            'expiration_date' => $expire_date[$i],
                             'stock' => $stocks[$i],
                             'remaining' => $stocks[$i],
                             'serial_number' => $serns[$i]
@@ -154,6 +160,7 @@ class Bom_item_groups_model extends Crud_model {
                         $this->db->insert($this->table2, [
                             'group_id' => $group_id,
                             'item_id' => $d,
+                            'expiration_date' => $expire_date[$i],
                             'stock' => $stocks[$i],
                             'remaining' => $stocks[$i],
                             'price' => $prices[$i],
@@ -161,7 +168,7 @@ class Bom_item_groups_model extends Crud_model {
                         ]);
                     }
                 } else {
-                    $this->db->query("UPDATE {$this->table2} SET item_id = '$d', stock = '$stocks[$i]', price = '$prices[$i]', serial_number = '$serns[$i]' WHERE id = '$restock_ids[$i]'");
+                    $this->db->query("UPDATE {$this->table2} SET item_id = '$d', expiration_date = '$expire_date[$i]', stock = '$stocks[$i]', price = '$prices[$i]', serial_number = '$serns[$i]' WHERE id = '$restock_ids[$i]'");
                 }
             }
         }
@@ -174,7 +181,7 @@ class Bom_item_groups_model extends Crud_model {
             $where_create_by = "AND `big`.`created_by` = " . $post;
         }
 
-        $sql = "SELECT bis.id AS id, big.id AS group_id, big.name AS group_name, bis.serial_number AS sern, i.id AS item_id, i.title AS item_name, i.item_code AS item_code, bis.stock AS stock_qty, bis.remaining AS remain_qty, i.unit_type AS item_unit, big.created_by AS create_by, big.created_date AS create_date 
+        $sql = "SELECT bis.id AS id, big.id AS group_id, big.name AS group_name, bis.serial_number AS sern, bis.mixing_group_id, i.id AS item_id, i.title AS item_name, i.item_code AS item_code, bis.stock AS stock_qty, bis.remaining AS remain_qty, i.unit_type AS item_unit, big.created_by AS create_by, big.created_date AS create_date 
         FROM bom_item_stocks bis 
         LEFT JOIN bom_item_groups big ON bis.group_id = big.id 
         INNER JOIN items i ON bis.item_id = i.id 
@@ -187,6 +194,18 @@ class Bom_item_groups_model extends Crud_model {
     function dev2_deleteRestockingItemById($id)
     {
         $this->db->delete('bom_item_stocks', array('id' => $id));
+    }
+
+    public function dev2_getMixingNameByMixingGroupId(int $id) : string
+    {
+        $name = "";
+        $get = $this->db->get_where("bom_item_mixing_groups", ["id" => $id])->row();
+
+        if (isset($get) && !empty($get)) {
+            $name = $get->name;
+        }
+
+        return (string) $name;
     }
 
 }
