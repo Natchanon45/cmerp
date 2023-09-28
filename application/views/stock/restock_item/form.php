@@ -122,26 +122,29 @@
         <table class="display dataTable no-footer" cellspacing="0" width="100%" role="grid" aria-describedby="supplier-table_info">
                 <thead id="table-header">
                     <tr role="row">
-                        <th style="width: 20%;">
+                        <th style="">
                             <?php echo lang('serial_number'); ?>
                         </th>
-                        <th style="width: 30%;">
+                        <th style="">
                             <?php echo lang('stock_item'); ?>
                         </th>
-                        <th style="width: 15%;">
+                        <th>
+                            <?php echo lang('expiration_date'); ?>
+                        </th>
+                        <th style="">
                             <?php echo lang('stock_restock_quantity'); ?>
                         </th>
 
                         <?php if ($can_read_price) { ?>
-                            <th style="width: 15%;">
+                            <th style="">
                                 <?php echo lang('stock_restock_price'); ?>
                             </th>
-                            <th style="width: 15%;">
+                            <th style="">
                                 <?php echo lang('rate'); ?>
                             </th>
                         <?php } ?>
             
-                        <th style="width: 5%; text-align: center;">
+                        <th style="width: 70px; text-align: center;">
                             <?php if (!$readonly) { ?>
                                 <?php if ($can_create): ?>
                                     <a href="javascript:void();" id="btn-add-material" class="btn btn-primary w100p">
@@ -177,6 +180,12 @@
                                 }
                                 ?>
                             </select>
+                        </td>
+                        <td>
+                            <input 
+                                type="text" name="expired_date[]" class="form-control expired_date" autocomplete="off" placeholder="DD/MM/YYYY"
+                                value="<?php echo is_date_exists($k->expiration_date) ? convertDate($k->expiration_date, true) : ""; ?>" 
+                            />
                         </td>
                         <td>
                             <div class="input-suffix">
@@ -230,6 +239,7 @@
         <?php endif; ?>
 
         setDatePicker("#created_date");
+        setDatePicker(".expired_date");
 
         <?php if (isset($item_restocks)) { ?>
             var typeContainer = $('#type-container');
@@ -251,6 +261,9 @@
                             }
                             ?>
                         </select>
+                    </td>
+                    <td>
+                        <input type="text" name="expired_date[]" class="form-control expired_date" autocomplete="off" placeholder="DD/MM/YYYY" />
                     </td>
                     <td>
                     <div class="input-suffix">
@@ -295,6 +308,11 @@
                     e.preventDefault();
                     $(this).closest('tr').remove();
                     processBinding();
+                });
+
+                let expired_date = document.querySelectorAll(".expired_date");
+                expired_date.forEach(() => {
+                    setDatePicker('.expired_date');
                 });
 
                 typeContainer.find('.stock-calc').unbind();

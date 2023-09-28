@@ -150,7 +150,7 @@
 											<td>
 												<span class="product_name"><?php echo $item->names; ?></span>
 												<?php if (trim($item->description) != ""): ?>
-													<span class="product_description"><?php echo trim($item->description); ?></span>
+													<span class="product_description"><?php echo $item->description ? trim($item->description) : "-"; ?></span>
 												<?php endif; ?>
 											</td>
 											<td class="text-left w220px" colspan="2"><?php echo $item->stocks->name; ?></td>

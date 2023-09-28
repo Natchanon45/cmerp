@@ -283,6 +283,7 @@ class Receipts_m extends MY_Model {
 
     function updateDoc($docId = null){
         $db = $this->db;
+        $rerow = null;
 
         $discount_type = "P";
         $discount_percent = 0;
@@ -343,63 +344,67 @@ class Receipts_m extends MY_Model {
             if($vat_inc == "Y") $vat_percent = $rerow->vat_percent;
             if($wht_inc == "Y") $wht_percent = $rerow->wht_percent;
         }
-        
-        $sub_total_before_discount = $db->select("SUM(total_price) AS SUB_TOTAL")
-                                        ->from("receipt_items")
-                                        ->where("receipt_id", $docId)
-                                        ->get()->row()->SUB_TOTAL;
 
-        if($sub_total_before_discount == null) $sub_total_before_discount = 0;
-        if($discount_type == "P"){
-            if($discount_percent > 0){
-                $discount_amount = ($sub_total_before_discount * $discount_percent)/100;
+        if($rerow->invoice_payment_id == null && $rerow->status == "W"){log_message("error", "Hello");
+            $sub_total_before_discount = $db->select("SUM(total_price) AS SUB_TOTAL")
+                                            ->from("receipt_items")
+                                            ->where("receipt_id", $docId)
+                                            ->get()->row()->SUB_TOTAL;
+
+            if($sub_total_before_discount == null) $sub_total_before_discount = 0;
+            if($discount_type == "P"){
+                if($discount_percent > 0){
+                    $discount_amount = ($sub_total_before_discount * $discount_percent)/100;
+                }
+            }else{
+                if($discount_amount > $sub_total_before_discount) $discount_amount = $sub_total_before_discount;
+                if($discount_amount < 0) $discount_amount = 0;
             }
-        }else{
-            if($discount_amount > $sub_total_before_discount) $discount_amount = $sub_total_before_discount;
-            if($discount_amount < 0) $discount_amount = 0;
+
+            $sub_total = $sub_total_before_discount - $discount_amount;
+
+            if($vat_inc == "Y") $vat_value = ($sub_total * $vat_percent) / 100;
+            $total = $sub_total + $vat_value;
+
+            if($wht_inc == "Y") $wht_value = ($sub_total * $wht_percent) / 100;
+            $payment_amount = $total - $wht_value;
+        
+            $db->where("id", $docId);
+            $db->update("receipt", [
+                                        "sub_total_before_discount"=>$sub_total_before_discount,
+                                        "discount_type"=>$discount_type,
+                                        "discount_percent"=>$discount_percent,
+                                        "discount_amount"=>$discount_amount,
+                                        "sub_total"=>$sub_total,
+                                        "vat_inc"=>$vat_inc,
+                                        "vat_percent"=>$vat_percent,
+                                        "vat_value"=>$vat_value,
+                                        "total"=>$total,
+                                        "wht_inc"=>$wht_inc,
+                                        "wht_percent"=>$wht_percent,
+                                        "wht_value"=>$wht_value,
+                                        "payment_amount"=>$payment_amount
+                                    ]);
+
+            $rerow = $db->select("*")->from("receipt")
+                        ->where("id", $docId)
+                        ->get()->row();
         }
 
-
-
-        $sub_total = $sub_total_before_discount - $discount_amount;
-
-        if($vat_inc == "Y") $vat_value = ($sub_total * $vat_percent)/100;
-        $total = $sub_total + $vat_value;
-
-        if($wht_inc == "Y") $wht_value = ($sub_total * $wht_percent) / 100;
-        $payment_amount = $total - $wht_value;
-
-        $db->where("id", $docId);
-        $db->update("receipt", [
-                                    "sub_total_before_discount"=>$sub_total_before_discount,
-                                    "discount_type"=>$discount_type,
-                                    "discount_percent"=>$discount_percent,
-                                    "discount_amount"=>$discount_amount,
-                                    "sub_total"=>$sub_total,
-                                    "vat_inc"=>$vat_inc,
-                                    "vat_percent"=>$vat_percent,
-                                    "vat_value"=>$vat_value,
-                                    "total"=>$total,
-                                    "wht_inc"=>$wht_inc,
-                                    "wht_percent"=>$wht_percent,
-                                    "wht_value"=>$wht_value,
-                                    "payment_amount"=>$payment_amount
-                                ]);
-
-        $this->data["sub_total_before_discount"] = number_format($sub_total_before_discount, 2);
-        $this->data["discount_type"] = $discount_type;
-        $this->data["discount_percent"] = number_format($discount_percent, 2);
-        $this->data["discount_amount"] = number_format($discount_amount, 2);
-        $this->data["sub_total"] = number_format($sub_total, 2);
-        $this->data["vat_inc"] = $vat_inc;
-        $this->data["vat_percent"] = number_format_drop_zero_decimals($vat_percent, 2);
-        $this->data["vat_value"] = number_format($vat_value, 2);
-        $this->data["total"] = number_format($total, 2);
-        $this->data["total_in_text"] = numberToText($total);
+        $this->data["sub_total_before_discount"] = number_format($rerow->sub_total_before_discount, 2);
+        $this->data["discount_type"] = $rerow->discount_type;
+        $this->data["discount_percent"] = number_format($rerow->discount_percent, 2);
+        $this->data["discount_amount"] = number_format($rerow->discount_amount, 2);
+        $this->data["sub_total"] = number_format($rerow->sub_total, 2);
+        $this->data["vat_inc"] = $rerow->vat_inc;
+        $this->data["vat_percent"] = number_format_drop_zero_decimals($rerow->vat_percent, 2);
+        $this->data["vat_value"] = number_format($rerow->vat_value, 2);
+        $this->data["total"] = number_format($rerow->total, 2);
+        $this->data["total_in_text"] = numberToText($rerow->total);
         $this->data["wht_inc"] = $wht_inc;
-        $this->data["wht_percent"] = number_format_drop_zero_decimals($wht_percent, 2);
-        $this->data["wht_value"] = number_format($wht_value, 2);
-        $this->data["payment_amount"] = number_format($payment_amount, 2);
+        $this->data["wht_percent"] = number_format_drop_zero_decimals($rerow->wht_percent, 2);
+        $this->data["wht_value"] = number_format($rerow->wht_value, 2);
+        $this->data["payment_amount"] = number_format($rerow->payment_amount, 2);
         $this->data["status"] = "success";
         $this->data["message"] = lang("record_saved");
 

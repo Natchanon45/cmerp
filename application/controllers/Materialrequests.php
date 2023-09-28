@@ -2448,7 +2448,7 @@ class Materialrequests extends MY_Controller
 	function print($id)
 	{
 		$this->data['mat_req_info'] = $this->Materialrequests_model->get_materialrequest_by_id($id);
-		$this->data['mat_item_info'] = $this->Materialrequests_model->dev2_getItemListByMaterialRequestId($id, $this->data['mat_req_info']->mr_type);
+		$this->data['mat_item_info'] = $this->Materialrequests_model->dev2_getItemListForPrintByMaterialRequestId($id, $this->data['mat_req_info']->mr_type);
 		$this->data['mat_requester_info'] = $this->Users_m->get_user_by_id($this->data['mat_req_info']->requester_id);
 		$this->data['mat_project_info'] = $this->Projects_model->get_project_by_id($this->data['mat_req_info']->project_id);
 		$this->data["docmode"] = "private_print";

@@ -1,4 +1,5 @@
 <?php
+use Monolog\Handler\PushoverHandler;
 
 class Projects_model extends Crud_model {
 
@@ -434,7 +435,8 @@ class Projects_model extends Crud_model {
         $result = array();
         $this->db->where('deleted', 0);
         if (!$this->login_user->is_admin) {
-            $this->db->where('created_by', $this->login_user->id);
+            // $this->db->where('created_by', $this->login_user->id);
+            // temporary stop to verify is_admin
         }
 
         $query = $this->db->get('projects')->result();
@@ -470,6 +472,909 @@ class Projects_model extends Crud_model {
 
         if (empty($query->id)) return null;
         return $query->id;
+    }
+
+    // dev2:start multiple production orders
+    public function dev2_getProjectInfoByProjectId(int $id): array
+    {
+        $info = array();
+        $get = $this->db->get_where("projects", ["id" => $id])->result();
+
+        if (sizeof($get) && !empty($get)) {
+            $info = (array) $get[0];
+        }
+        return $info;
+    }
+
+    public function dev2_getProductionOrderListByProjectId(int $id): array
+    {
+        $info = array();
+        $this->db->select("*")->from("bom_project_items");
+        $this->db->where("project_id", $id);
+
+        $produce_status = $this->input->post("produce_status");
+        if (isset($produce_status) && !empty($produce_status)) {
+            $this->db->where("produce_status", $produce_status);
+        }
+
+        $mr_status = $this->input->post("mr_status");
+        if (isset($mr_status) && !empty($mr_status)) {
+            $this->db->where("mr_status", $mr_status);
+        }
+
+        $get = $this->db->get()->result();
+
+        if (sizeof($get) && !empty($get)) {
+            foreach ($get as $item) {
+                $item->item_info = $this->dev2_getProductInfoByProductId($item->item_id);
+                $item->mixing_group_info = $this->dev2_getMixingGroupInfoByMixingGroupId($item->mixing_group_id);
+            }
+
+            $info = $get;
+        }
+        return $info;
+    }
+
+    public function dev2_getProductInfoByProductId(int $id): stdClass
+    {
+        $info = new stdClass();
+        $get = $this->db->get_where("items", ["id" => $id])->row();
+
+        if (!empty($get)) {
+            $info = $get;
+        }
+        return $info;
+    }
+
+    public function dev2_getMixingGroupInfoByMixingGroupId(int $id): stdClass
+    {
+        $info = new stdClass();
+        $get = $this->db->get_where("bom_item_mixing_groups", ["id" => $id])->row();
+
+        if (!empty($get)) {
+            $info = $get;
+        }
+        return $info;
+    }
+
+    public function dev2_getRawMatCostOfProductionOrderByProductionOrderId(int $id, float $quantity): float
+    {
+        $cost = array();
+        $getRmUsageList = $this->db->get_where("bom_project_item_materials", ["project_item_id" => $id])->result();
+
+        if (sizeof($getRmUsageList) && !empty($getRmUsageList)) {
+            foreach ($getRmUsageList as $item) {
+                if (isset($item->stock_id) && !empty($item->stock_id)) {
+                    $item->stock_info = $this->dev2_getRowInfoByRowId($item->stock_id, "bom_stocks");
+                }
+                $item->cost = 0;
+
+                if (isset($item->stock_info->price) && $item->stock_info->price != 0) {
+                    $item->cost = ($item->stock_info->price / $item->stock_info->stock) * $item->ratio;
+                }
+                array_push($cost, $item->cost);
+            }
+        }
+
+        return array_sum($cost);
+    }
+
+    public function dev2_postProduceStateById(int $id, $status): array
+    {
+        $info = $this->dev2_getRowInfoByRowId($id, "bom_project_items");
+        $result = array();
+
+        if (!empty($info)) {
+            // update to producing
+            if ($status == "2") {
+                if ($info->produce_status == "1" && $info->mr_status == "3") {
+                    $this->db->where("id", $id);
+                    $this->db->update("bom_project_items", ["produce_status" => $status]);
+
+                    $result["status"] = "success";
+                } else {
+                    $result["status"] = "failure";
+                }
+
+                $result["info"] = $this->dev2_getRowInfoByRowId($id, "bom_project_items");
+                $result["info"]->item_info = $this->dev2_getProductInfoByProductId($result["info"]->item_id);
+                $result["info"]->mixing_group_info = $this->dev2_getMixingGroupInfoByMixingGroupId($result["info"]->mixing_group_id);
+            }
+
+            // update to produced completed
+            if ($status == "3") {
+                if ($info->produce_status == "2" && $info->mr_status == "3") {
+                    // verify stock group id by project id from bom_item_groups
+                    $stock_info = $this->dev2_getStockGroupByProjectId($info->project_id);
+                    $item_info = $this->dev2_getRowInfoByRowId($info->item_id, "items");
+
+                    // calc instock price
+                    $instcok_price = 0;
+                    if (isset($item_info->rate) && !empty($item_info->rate)) {
+                        if ($item_info->rate > 0) {
+                            $instcok_price = $item_info->rate * $info->quantity;
+                        }
+                    }
+
+                    if (isset($stock_info->id) && !empty($stock_info->id)) {
+                        // add an item to bom_item_stocks only
+                        $item_data = [
+                            "group_id" => $stock_info->id,
+                            "item_id" => $info->item_id,
+                            "production_id" => $info->id,
+                            "mixing_group_id" => $info->mixing_group_id,
+                            "stock" => $info->quantity,
+                            "remaining" => $info->quantity,
+                            "price" => $instcok_price
+                        ];
+
+                        if ($info->produce_in) {
+                            $this->db->insert("bom_item_stocks", $item_data);
+                        }
+                    } else {
+                        $project_info = $this->dev2_getRowInfoByRowId($info->project_id, "projects");
+
+                        // create a fg stock header to bom_item_groups
+                        $header_data = [
+                            "project_id" => $project_info->id,
+                            "name" => $project_info->title,
+                            "po_no" => 0,
+                            "created_by" => $this->login_user->id,
+                            "created_date" => date("Y-m-d")
+                        ];
+                        
+                        $this->db->insert("bom_item_groups", $header_data);
+                        $header_id = $this->db->insert_id();
+
+                        // add an item to bom_item_stocks only
+                        $item_data = [
+                            "group_id" => $header_id,
+                            "item_id" => $info->item_id,
+                            "production_id" => $info->id,
+                            "mixing_group_id" => $info->mixing_group_id,
+                            "stock" => $info->quantity,
+                            "remaining" => $info->quantity,
+                            "price" => $instcok_price
+                        ];
+
+                        if ($info->produce_in) {
+                            $this->db->insert("bom_item_stocks", $item_data);
+                        }
+                    }
+
+                    $this->db->where("id", $id);
+                    $this->db->update("bom_project_items", ["produce_status" => $status]);
+
+                    $result["status"] = "success";
+                } else {
+                    $result["status"] = "failure";
+                }
+
+                $result["info"] = $this->dev2_getRowInfoByRowId($id, "bom_project_items");
+                $result["info"]->item_info = $this->dev2_getProductInfoByProductId($result["info"]->item_id);
+                $result["info"]->mixing_group_info = $this->dev2_getMixingGroupInfoByMixingGroupId($result["info"]->mixing_group_id);
+            }
+        }
+
+        return $result;
+    }
+
+    public function dev2_getFinishedGoodsDropdown(): array
+    {
+        $dropdown = [];
+        $get = $this->db->get_where("items", ["deleted" => 0])->result();
+
+        if (sizeof($get) && !empty($get)) {
+            foreach ($get as $item) {
+                $text = "";
+                if (empty($item->item_code) || $item->item_code == null) {
+                    $text = $item->title;
+                } else {
+                    $text = $item->item_code . ' - ' . $item->title;
+                }
+
+                $dropdown[] = [
+                    "id" => $item->id,
+                    "text" => $text,
+                    "description" => $item->description,
+                    "unit" => $item->unit_type
+                ];
+            }
+        }
+        return $dropdown;
+    }
+
+    public function dev2_getMixingGroupDropdown(): array
+    {
+        $dropdown = [];
+        $get = $this->db->get("bom_item_mixing_groups")->result();
+
+        if (sizeof($get) && !empty($get)) {
+            foreach ($get as $item) {
+                $dropdown[] = [
+                    "id" => $item->id,
+                    "item_id" => $item->item_id,
+                    "name" => $item->name
+                ];
+            }
+        }
+        return $dropdown;
+    }
+
+    public function dev2_postProductionBomDataProcessing(array $data): array
+    {
+        $result = array();
+
+        if (sizeof($data)) {
+            foreach ($data as $item) {
+                // insert header data to bom_project_items
+                $this->db->insert("bom_project_items", [
+                    "project_id" => $item["project_id"],
+                    "item_id" => $item["item_id"],
+                    "mixing_group_id" => $item["item_mixing"],
+                    "quantity" => $item["quantity"],
+                    "produce_in" => $item["produce_in"],
+                    "created_by" => $this->login_user->id
+                ]);
+                $bpi_id = $this->db->insert_id();
+                $item["bpi_id"] = $bpi_id;
+
+                // get bom data detail from bom_item_mixings
+                $bim_list = array();
+                if (!empty($item["item_mixing"]) && $item["item_mixing"] != 0) {
+                    $bim_sql = "SELECT `material_id`, SUM(`ratio`) AS `ratio` FROM `bom_item_mixings` WHERE `group_id` = ? GROUP BY `material_id` ORDER BY `material_id`";
+                    $bim_list = $this->db->query($bim_sql, $item["item_mixing"])->result();
+
+                    if (sizeof($bim_list)) {
+                        foreach ($bim_list as $mixing) {
+                            $mixing->total_ratio = $mixing->ratio * floatval($item["quantity"]);
+                            $total_ratio = $mixing->total_ratio;
+
+                            // get stock remaining each bom data detail from bom_stocks
+                            $stock_sql = "
+                                SELECT bs.id, bs.group_id, bs.material_id, bs.stock, bs.remaining, 
+                                IFNULL(bpim.used, 0) AS used, bs.stock - IFNULL(bpim.used, 0) AS actual_remain 
+                                FROM bom_stocks bs 
+                                INNER JOIN bom_stock_groups bsg ON bsg.id = bs.group_id 
+                                LEFT JOIN(
+                                    SELECT stock_id, SUM(ratio) AS used 
+                                    FROM bom_project_item_materials 
+                                    WHERE material_id = ? 
+                                    GROUP BY stock_id
+                                ) AS bpim ON bs.id = bpim.stock_id 
+                                WHERE bs.material_id = ? AND bs.remaining > 0 AND bs.stock - IFNULL(bpim.used, 0) > 0 
+                                ORDER BY bsg.created_date ASC
+                            ";
+                            $stock_list = $this->db->query($stock_sql, [$mixing->material_id, $mixing->material_id])->result();
+                            
+                            if (sizeof($stock_list)) {
+                                foreach ($stock_list as $stocking) {
+                                    if ($total_ratio > 0) {
+                                        $remaining = floatval(min($stocking->remaining, $stocking->actual_remain));
+                                        $used = min($total_ratio, $remaining);
+                                        $total_ratio -= $used;
+
+                                        $this->db->insert("bom_project_item_materials", [
+                                            "project_id" => $item["project_id"],
+                                            "project_item_id" => $bpi_id,
+                                            "material_id" => $mixing->material_id,
+                                            "stock_id" => $stocking->id,
+                                            "ratio" => $used,
+                                            "created_by" => $this->login_user->id
+                                        ]);
+                                        $bpim_id = $this->db->insert_id();
+                                        $mixing->bpim[] = $this->dev2_getRowInfoByRowId($bpim_id, "bom_project_item_materials");
+                                    }
+                                }
+                            }
+
+                            if ($total_ratio > 0) {
+                                $this->db->insert("bom_project_item_materials", [
+                                    "project_id" => $item["project_id"],
+                                    "project_item_id" => $bpi_id,
+                                    "material_id" => $mixing->material_id,
+                                    "ratio" => $total_ratio * -1,
+                                    "created_by" => $this->login_user->id
+                                ]);
+                                $bpim_id = $this->db->insert_id();
+                                $mixing->bpim[] = $this->dev2_getRowInfoByRowId($bpim_id, "bom_project_item_materials");
+                            }
+                        }
+                    }
+                }
+                $item["bim_list"] = $bim_list;
+                $result[] = $item;
+            }
+        }
+
+        return $result;
+    }
+
+    public function dev2_getProductionOrderHeaderById(int $id): stdClass
+    {
+        $info = new stdClass();
+        $get = $this->db->get_where("bom_project_items", ["id" => $id])->row();
+
+        if (!empty($get)) {
+            $get->item_info = $this->dev2_getRowInfoByRowId($get->item_id, "items");
+            $get->mixing_group = $this->dev2_getRowInfoByRowId($get->mixing_group_id, "bom_item_mixing_groups");
+            $info = $get;
+        }
+        return $info;
+    }
+
+    public function dev2_getProductionOrderDetailByProjectHeaderId(int $project_id, int $project_item_id): stdClass
+    {
+        $info = new stdClass();
+        
+        $get = $this->db->select("*")
+        ->from("bom_project_item_materials")
+        ->where("project_id", $project_id)
+        ->where("project_item_id", $project_item_id)
+        ->order_by("material_id", "ASC")
+        ->order_by("stock_id", "ASC")
+        ->get()
+        ->result();
+
+        if (sizeof($get) && !empty($get)) {
+            foreach ($get as $item) {
+                $item->material_info = $this->dev2_getRowInfoByRowId($item->material_id, "bom_materials");
+                if ($item->ratio < 0) {
+                    $item->required_qty = $item->ratio * -1;
+                    $item->actual_total_remain = $this->dev2_getStockActualTotalRemainingByMaterialId($item->material_id);
+                }
+
+                if (isset($item->stock_id) && !empty($item->stock_id)) {
+                    $item->stock_info = $this->dev2_getRowInfoByRowId($item->stock_id, "bom_stocks");
+                    $item->stock_info->group_info = $this->dev2_getRowInfoByRowId($item->stock_info->group_id, "bom_stock_groups");
+                }
+
+                if (isset($item->mr_id) && !empty($item->mr_id)) {
+                    $item->mr_info = $this->dev2_getRowInfoByRowId($item->mr_id, "materialrequests");
+                }
+            }
+            $info = $get;
+        }
+        return (object) $info;
+    }
+
+    public function dev2_postProductionSetProducingStateAll(int $project_id): array
+    {
+        $info = [
+            "result" => [],
+            "process" => "failure",
+            "success" => false
+        ];
+
+        $get = $this->db->get_where("bom_project_items", ["project_id" => $project_id, "produce_status" => 1, "mr_status" => 3])->result();
+        if (sizeof($get) && !empty($get)) {
+            foreach ($get as $item) {
+                $this->db->where("id", $item->id);
+                $this->db->update("bom_project_items", ["produce_status" => 2]);
+            }
+
+            $info["result"] = $get;
+            $info["process"] = "success";
+            $info["success"] = true;
+        }
+
+        return $info;
+    }
+
+    public function dev2_postProductionSetCompletedStateAll(int $project_id): array
+    {
+        $info = [
+            "result" => [],
+            "process" => "failure",
+            "success" => false
+        ];
+
+        $project_info = $this->dev2_getRowInfoByRowId($project_id, "projects");
+
+        $get = $this->db->get_where("bom_project_items", ["project_id" => $project_id, "produce_status" => 2, "mr_status" => 3])->result();
+        if (sizeof($get) && !empty($get)) {
+            // verify stock group id by project id from bom_item_groups
+            $stock_info = $this->dev2_getStockGroupByProjectId($project_id);
+
+            $header_id = 0;
+            if (isset($stock_info->id) && !empty($stock_info->id)) {
+                // get the fg stock header from bom_item_groups
+                $header_data = (array) $this->dev2_getRowInfoByRowId($stock_info->id, "bom_item_groups");
+                $header_id = $stock_info->id;
+            } else {
+                // create a fg stock header to bom_item_groups
+                $header_data = [
+                    "project_id" => $project_info->id,
+                    "name" => $project_info->title,
+                    "po_no" => 0,
+                    "created_by" => $this->login_user->id,
+                    "created_date" => date("Y-m-d")
+                ];
+
+                $this->db->insert("bom_item_groups", $header_data);
+                $header_id = $this->db->insert_id();
+            }
+
+            $info["result"]["header_id"] = $header_id;
+            $info["result"]["header_data"] = $header_data;
+
+            foreach ($get as $item) {
+                $item_info = $this->dev2_getRowInfoByRowId($item->item_id, "items");
+                // calc instock price
+                $instock_price = 0;
+                if (isset($item_info->rate) && !empty($item_info->rate)) {
+                    if ($item_info->rate > 0) {
+                        $instock_price = $item_info->rate * $item->quantity;
+                    }
+                }
+
+                // add some production order in stock item to bom_item_stocks
+                $item_data = [
+                    "group_id" => $header_id,
+                    "item_id" => $item->item_id,
+                    "production_id" => $item->id,
+                    "mixing_group_id" => $item->mixing_group_id,
+                    "stock" => $item->quantity,
+                    "remaining" => $item->quantity,
+                    "price" => $instock_price
+                ];
+
+                // if need stock after produced put item data into bom_item_stocks
+                if ($item->produce_in) {
+                    $this->db->insert("bom_item_stocks", $item_data);
+                    $item_id = $this->db->insert_id();
+                    $item_data["id"] = $item_id;
+
+                    $info["result"]["items"][] = $item_data;
+                }
+
+                $this->db->where("id", $item->id);
+                $this->db->update("bom_project_items", ["produce_status" => 3]);
+            }
+
+            $info["process"] = "success";
+            $info["success"] = true;
+        }
+
+        return $info;
+    }
+
+    public function dev2_postProductionMaterialRequestCreationAll(int $project_id, string $project_name): array
+    {
+        $info = [
+            "mr_id" => null,
+            "mr_info" => null,
+            "mr_items_info" => null,
+            "process" => "failure",
+            "success" => false,
+            "target" => null
+        ];
+
+        $sql = "SELECT * FROM bom_project_item_materials WHERE project_id = ? AND ratio > 0 AND mr_id IS NULL AND used_status = 0 AND entry_flag = 0 ORDER BY material_id, stock_id";
+        $get = $this->db->query($sql, $project_id)->result();
+
+        $param_docno = [
+            "prefix" => "MR",
+            "LPAD" => 4,
+            "column" => "doc_no",
+            "table" => "materialrequests"
+        ];
+
+        if (sizeof($get) && !empty($get)) {
+            // create a material request document
+            $header_data = [
+                "doc_no" => $this->Db_model->genDocNo($param_docno),
+                "mr_type" => 1,
+                "project_name" => $project_name,
+                "project_id" => $project_id,
+                "mr_date" => date("Y-m-d"),
+                "status_id" => 1,
+                "created_by" => $this->login_user->id,
+                "requester_id" => $this->login_user->id
+            ];
+
+            $this->db->insert("materialrequests", $header_data);
+            $header_id = $this->db->insert_id();
+
+            $project_item_ids = array();
+            $mr_items_info = array();
+            foreach ($get as $item) {
+                // add some material items to material request document
+                $material_info = $this->dev2_getRowInfoByRowId($item->material_id, "bom_materials");
+                $item_data = [
+                    "mr_id" => $header_id,
+                    "project_id" => $project_id,
+                    "project_name" => $project_name,
+                    "code" => $material_info->name,
+                    "title" => $material_info->production_name,
+                    "description" => $material_info->description,
+                    "quantity" => $item->ratio,
+                    "unit_type" => $material_info->unit,
+                    "material_id" => $item->material_id,
+                    "bpim_id" => $item->id,
+                    "stock_id" => $item->stock_id
+                ];
+                
+                $this->db->insert("mr_items", $item_data);
+                $item_id = $this->db->insert_id();
+                $mr_items_info[$item_id] = $item_data;
+
+                // patch mr id to bom project item material
+                $this->dev2_patchMaterialRequestIdForBomItemByItemId($item->id, $header_id);
+
+                array_push($project_item_ids, $item->project_item_id);
+            }
+
+            // patch material request status for production order
+            $project_item_id = array_unique($project_item_ids);
+            foreach ($project_item_id as $id) {
+                $this->dev2_patchProductionMaterialRequestStatus($id);
+            }
+
+            $info = [
+                "mr_id" => $header_id,
+                "mr_info" => $header_data,
+                "mr_items_info" => $mr_items_info,
+                "process" => "success",
+                "success" => true,
+                "target" => get_uri("materialrequests/view/" . $header_id)
+            ];
+        }
+
+        return $info;
+    }
+
+    public function dev2_postProductionBomRecalculation(int $project_id, string $project_name, int $project_item_id): array
+    {
+        $info = [
+            "process" => "failure",
+            "success" => false,
+            "have_stock_id" => null,
+            "pulling_stock" => null,
+            "bpim_info" => null,
+            "scrap_qty" => null
+        ];
+
+        $bomHaveStockString = "SELECT * FROM bom_project_item_materials WHERE stock_id IS NOT NULL AND project_id = ? AND `project_item_id` = ? ORDER BY material_id";
+        $bomHaveStockQuery = $this->db->query($bomHaveStockString, [$project_id, $project_item_id]);
+        $bomHaveStock = $bomHaveStockQuery->result();
+        
+        $haveStockId = [];
+        if (sizeof($bomHaveStock) && isset($bomHaveStock) && !empty($bomHaveStock)) {
+            foreach ($bomHaveStock as $bhs) {
+                array_push($haveStockId, $bhs->stock_id);
+            }
+        }
+        $info["have_stock_id"] = implode(",", $haveStockId);
+
+        $bomNoStockString = "SELECT * FROM bom_project_item_materials WHERE stock_id IS NULL AND project_id = ? AND `project_item_id` = ? ORDER BY material_id";
+        $bomNoStockQuery = $this->db->query($bomNoStockString, [$project_id, $project_item_id]);
+        $bomNoStock = $bomNoStockQuery->result();
+
+        if (sizeof($bomNoStock) && isset($bomNoStock) && !empty($bomHaveStock)) {
+            foreach ($bomNoStock as $bns) {
+                $pullingStockString = "
+                    SELECT bs.id, bs.group_id, bs.material_id, bs.stock, bs.remaining, 
+                    IFNULL(bpim.used, 0) AS used, bs.stock - IFNULL(bpim.used, 0) AS actual_remain 
+                    FROM bom_stocks bs 
+                    INNER JOIN bom_stock_groups bsg ON bsg.id = bs.group_id 
+                    LEFT JOIN (
+                        SELECT stock_id, SUM(ratio) AS used 
+                        FROM bom_project_item_materials 
+                        WHERE material_id = " . $bns->material_id . " 
+                        GROUP BY stock_id
+                    ) AS bpim ON bs.id = bpim.stock_id 
+                    WHERE bs.material_id = " . $bns->material_id . " AND bs.remaining > 0 AND bs.stock - IFNULL(bpim.used, 0) > 0 
+                    AND bs.id NOT IN(" . $info["have_stock_id"] . ") 
+                    ORDER BY bsg.created_date ASC
+                ";
+                $pullingStockQuery = $this->db->query($pullingStockString);
+                $pullingStock = $pullingStockQuery->result();
+
+                if (sizeof($pullingStock) && isset($pullingStock) && !empty($pullingStock)) {
+                    $info["pulling_stock"][] = $pullingStock;
+                    $total_ratio = $bns->ratio * -1;
+                    
+                    foreach ($pullingStock as $ps) {
+                        if ($total_ratio > 0) {
+                            $remaining = floatval(min($ps->remaining, $ps->actual_remain));
+                            $used = min($total_ratio, $remaining);
+                            $total_ratio -= $used;
+
+                            $this->db->insert("bom_project_item_materials", [
+                                "project_id" => $project_id,
+                                "project_item_id" => $project_item_id,
+                                "material_id" => $bns->material_id,
+                                "stock_id" => $ps->id,
+                                "ratio" => $used,
+                                "created_by" => $this->login_user->id
+                            ]);
+                            $bpim_id = $this->db->insert_id();
+                            $info["bpim_info"][] = $this->dev2_getRowInfoByRowId($bpim_id, "bom_project_item_materials");
+                        }
+                    }
+                    $info["scrap_qty"][] = $total_ratio;
+
+                    if ($total_ratio > 0) {
+                        $total_ratio = $total_ratio * -1;
+
+                        $this->db->where("id", $bns->id);
+                        $this->db->update("bom_project_item_materials", ["ratio" => $total_ratio]);
+                    } else {
+                        $this->db->delete("bom_project_item_materials", ["id" => $bns->id]);
+                    }
+                }
+            }
+
+            $info["process"] = "success";
+            $info["success"] = true;
+        }
+
+        return $info;
+    }
+
+    public function dev2_postProductionMaterialRequestCreation(int $project_id, string $project_name, int $project_item_id): array
+    {
+        $info = [
+            "mr_id" => null,
+            "mr_info" => null,
+            "mr_items_info" => null,
+            "process" => "failure",
+            "success" => false,
+            "target" => null
+        ];
+
+        $sql = "SELECT * FROM bom_project_item_materials WHERE project_id = ? AND project_item_id = ? AND ratio > 0 AND mr_id IS NULL AND used_status = 0 AND entry_flag = 0 ORDER BY material_id, stock_id";
+        $get = $this->db->query($sql, [$project_id, $project_item_id])->result();
+
+        $param_docno = [
+            "prefix" => "MR",
+            "LPAD" => 4,
+            "column" => "doc_no",
+            "table" => "materialrequests"
+        ];
+
+        if (sizeof($get) && !empty($get)) {
+            // create a material request document
+            $header_data = [
+                "doc_no" => $this->Db_model->genDocNo($param_docno),
+                "mr_type" => 1,
+                "project_name" => $project_name,
+                "project_id" => $project_id,
+                "mr_date" => date("Y-m-d"),
+                "status_id" => 1,
+                "created_by" => $this->login_user->id,
+                "requester_id" => $this->login_user->id
+            ];
+
+            $this->db->insert("materialrequests", $header_data);
+            $header_id = $this->db->insert_id();
+
+            $mr_items_info = array();
+            foreach ($get as $item) {
+                // add some material items to material request document
+                $material_info = $this->dev2_getRowInfoByRowId($item->material_id, "bom_materials");
+                $item_data = [
+                    "mr_id" => $header_id,
+                    "project_id" => $project_id,
+                    "project_name" => $project_name,
+                    "code" => $material_info->name,
+                    "title" => $material_info->production_name,
+                    "description" => $material_info->description,
+                    "quantity" => $item->ratio,
+                    "unit_type" => $material_info->unit,
+                    "material_id" => $item->material_id,
+                    "bpim_id" => $item->id,
+                    "stock_id" => $item->stock_id
+                ];
+                
+                $this->db->insert("mr_items", $item_data);
+                $item_id = $this->db->insert_id();
+                $mr_items_info[$item_id] = $item_data;
+
+                // patch mr id to bom project item material
+                $this->dev2_patchMaterialRequestIdForBomItemByItemId($item->id, $header_id);
+            }
+
+            // patch material request status for production order
+            $this->dev2_patchProductionMaterialRequestStatus($project_item_id);
+
+            // prepare info to return
+            $info = [
+                "mr_id" => $header_id,
+                "mr_info" => $header_data,
+                "mr_items_info" => $mr_items_info,
+                "process" => "success",
+                "success" => true,
+                "target" => get_uri("materialrequests/view/" . $header_id)
+            ];
+        }
+
+        return $info;
+    }
+
+    public function dev2_postProductionOrderDeleteByOrderId(int $project_id, int $production_id): array
+    {
+        $info = [
+            "success" => false,
+            "header" => null,
+            "items" => null
+        ];
+
+        // get production order info
+        $header_data = $this->dev2_getRowInfoByRowId($production_id, "bom_project_items");
+        $items_data = $this->dev2_getItemListByRowHeaderId($production_id, "bom_project_item_materials", "project_item_id");
+
+        if (isset($header_data) && !empty($header_data)) {
+            if (isset($items_data) && !empty($items_data)) {
+                $this->db->delete("bom_project_item_materials", ["project_item_id" => $production_id]);
+                $info["items"] = $items_data;
+            }
+
+            $this->db->delete("bom_project_items", ["id" => $production_id]);
+            $info["header"] = $header_data;
+            $info["success"] = true;
+        }
+
+        return $info;
+    }
+
+    public function dev2_getProductionOrderStatusById(int $id): int
+    {
+        $status = 0;
+        $get = $this->dev2_getRowInfoByRowId($id, "bom_project_items");
+
+        if (isset($get->produce_status) && !empty($get->produce_status)) {
+            $status = $get->produce_status;
+        }
+        return $status;
+    }
+
+    public function dev2_getCountMrForProductionOrderById(int $id): int
+    {
+        $count = 0;
+        $sql = "SELECT COUNT(id) AS rows_num FROM bom_project_item_materials WHERE mr_id IS NOT NULL AND project_item_id = ?";
+        $get = $this->db->query($sql, $id)->row();
+
+        if (isset($get->rows_num) && !empty($get->rows_num)) {
+            $count = $get->rows_num;
+        }
+        return $count;
+    }
+
+    public function dev2_getCountNoMrForProductionOrderById(int $id): int
+    {
+        $count = 0;
+        $sql = "SELECT COUNT(id) AS rows_num FROM bom_project_item_materials WHERE mr_id IS NULL AND project_item_id = ?";
+        $get = $this->db->query($sql, $id)->row();
+
+        if (isset($get->rows_num) && !empty($get->rows_num)) {
+            $count = $get->rows_num;
+        }
+        return $count;
+    }
+
+    public function dev2_getCountNoStockForProductionOrderById(int $id): int
+    {
+        $count = 0;
+        $sql = "SELECT COUNT(id) AS rows_num FROM bom_project_item_materials WHERE stock_id IS NULL AND project_item_id = ?";
+        $get = $this->db->query($sql, $id)->row();
+
+        if (isset($get->rows_num) && !empty($get->rows_num)) {
+            $count = $get->rows_num;
+        }
+        return $count;
+    }
+
+    private function dev2_getStockActualTotalRemainingByMaterialId(int $id): float
+    {
+        $actual_remaining = 0;
+        $temp_actual = 0;
+        $temp_remaining = 0;
+        $temp_awaiting = 0;
+
+        // get beginning stock
+        $sqlBeginningString = "SELECT IFNULL(SUM(stock), 0) AS quantity FROM bom_stocks WHERE material_id = ? GROUP BY material_id";
+        $beginningQuery = $this->db->query($sqlBeginningString, $id);
+        $beginning = $beginningQuery->row();
+
+        // get remainning stock
+        $sqlRemainingString = "SELECT IFNULL(SUM(remaining), 0) AS quantity FROM bom_stocks WHERE material_id = ? GROUP BY material_id";
+        $remainingQuery = $this->db->query($sqlRemainingString, $id);
+        $remaining = $remainingQuery->row();
+        
+        // get using stock
+        $sqlUsingString = "SELECT IFNULL(SUM(ratio), 0) AS quantity FROM bom_project_item_materials WHERE stock_id IS NOT NULL AND material_id = ? GROUP BY material_id";
+        $usingQuery = $this->db->query($sqlUsingString, $id);
+        $using = $usingQuery->row();
+
+        // get awaiting approval stock
+        $sqlAwaitingString = "SELECT IFNULL(SUM(ratio), 0) AS quantity FROM bom_project_item_materials WHERE stock_id IS NOT NULL AND used_status = 0 AND material_id = ? GROUP BY material_id";
+        $awaitingQuery = $this->db->query($sqlAwaitingString, $id);
+        $awaiting = $awaitingQuery->row();
+
+        // begin - using = actual remain
+        if (isset($beginning->quantity) && isset($using->quantity)) {
+            if (!empty($beginning->quantity) && !empty($using->quantity)) {
+                $temp_actual = $beginning->quantity - $using->quantity;
+            }
+        }
+
+        // current remain
+        if (isset($remaining->quantity) && !empty($remaining->quantity)) {
+            $temp_remaining = $remaining->quantity;
+        }
+
+        // curren awaiting approval
+        if (isset($awaiting->quantity) && !empty($awaiting->quantity)) {
+            $temp_awaiting = $awaiting->quantity;
+        }
+
+        // minimun of remain - awaiting = actually remaining
+        $actual_remaining = min($temp_remaining, $temp_actual) - $temp_awaiting;
+        return (float) $actual_remaining;
+    }
+
+    private function dev2_patchMaterialRequestIdForBomItemByItemId(int $id, int $mr_id): void
+    {
+        $this->db->where("id", $id);
+        $this->db->update("bom_project_item_materials", [
+            "mr_id" => $mr_id
+        ]);
+    }
+
+    private function dev2_patchProductionMaterialRequestStatus(int $production_id): void
+    {
+        $sql = "SELECT IFNULL(COUNT(id), 0) AS row_count FROM bom_project_item_materials WHERE mr_id IS NULL AND project_item_id = ?";
+        $query = $this->db->query($sql, $production_id)->row();
+        $mr_status = $query->row_count ? 2 : 3;
+
+        $this->db->where("id", $production_id);
+        $this->db->update("bom_project_items", ["mr_status" => $mr_status]);
+    }
+
+    private function dev2_getStockGroupByProjectId(int $project_id): stdClass
+    {
+        $info = new stdClass();
+        $get = $this->db->get_where("bom_item_groups", ["project_id" => $project_id])->row();
+
+        if (!empty($get)) {
+            $info = $get;
+        }
+        return $info;
+    }
+
+    private function dev2_getRowInfoByRowId(int $id, string $table): stdClass
+    {
+        $info = new stdClass();
+        $get = $this->db->get_where($table, ["id" => $id])->row();
+
+        if (!empty($get)) {
+            $info = $get;
+        }
+        return $info;
+    }
+
+    private function dev2_getItemListByRowHeaderId(int $id, string $table, string $column): array
+    {
+        $list = array();
+        $get = $this->db->get_where($table, [$column => $id])->result();
+
+        if (sizeof($get) && !empty($get)) {
+            $list = $get;
+        }
+        return $list;
+    }
+
+    private function dev2_getListByTableName(string $table): array
+    {
+        $list = array();
+        $get = $this->db->get($table)->result();
+
+        if (sizeof($get) || !empty($get)) {
+            $list = $get;
+        }
+        return $list;
     }
 
 }
