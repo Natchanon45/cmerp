@@ -1,4 +1,30 @@
 <link rel="stylesheet" href="/assets/css/printd.css?t=<?php echo time();?>">
+<style>
+#printd .docitem td:nth-child(2){
+    max-width: calc(100% - 520px);
+}
+
+#printd .docitem td:nth-child(3){
+    width: 70px;
+}
+
+#printd .docitem td:nth-child(4){
+    width: 70px;
+}
+
+#printd .docitem td:nth-child(5){
+    width: 110px;
+}
+
+#printd .docitem td:nth-child(6){
+    width: 110px;
+}
+
+#printd .docitem td:nth-child(7){
+    width: 110px;
+    text-align: right;
+}
+</style>
 <div id="dcontroller" class="clearfix">
     <div class="page-title clearfix mt15 clear">
         <h1>ใบเสนอราคา <?php echo $doc_number;?></h1>
@@ -115,16 +141,17 @@
                     <td>รายละเอียด</td>
                     <td>จำนวน</td>
                     <td>หน่วย</td>
-                    <td>ราคาต่อหน่วย</td>
+                    <td>ราคา/หน่วย</td>
+                    <td>ส่วนลด/หน่วย</td>
                     <td>ยอดรวม</td>
                     <td></td>
                 </tr>
             </thead>
             <tbody></tbody>
             <tfoot>
-                <tr><td colspan="7">&nbsp;</td></tr>
+                <tr><td colspan="8">&nbsp;</td></tr>
                 <tr>
-                    <td colspan="3">
+                    <td colspan="4">
                         <?php if($doc_status == "W"): ?>
                             <p><?php echo modal_anchor(get_uri("quotations/item"), "<i class='fa fa-plus-circle'></i> " . lang('add_item_product'), array("id"=>"add_item_button", "class" => "btn btn-default", "title" => lang('add_item_product'), "data-post-doc_id" => $doc_id)); ?></p>
                         <?php endif; ?>
@@ -282,6 +309,7 @@ function loadItems(){
                     tbody += "<td>"+items[i]["quantity"]+"</td>"; 
                     tbody += "<td>"+items[i]["unit"]+"</td>"; 
                     tbody += "<td>"+items[i]["price"]+"</td>";
+                    tbody += "<td>"+items[i]["discount_per_unit"]+"</td>";
                     tbody += "<td>"+items[i]["total_price"]+"</td>";
                     tbody += "<td class='edititem'>";
                         if(data.doc_status == "W"){
