@@ -18,6 +18,10 @@
 		padding: 6px 8px;
 		font-size: 15px;
 	}
+	
+	.modal-body {
+		overflow-x: auto;
+	}
 </style>
 
 <p class="dev2-alert">
@@ -44,7 +48,7 @@
 	<style type="text/css">
 		@media (min-width: 999px) {
 			.modal-dialog {
-				width: 1080px;
+				width: 90%;
 			}
 		}
 	</style>

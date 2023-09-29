@@ -218,6 +218,7 @@
     </div><!--.docitem-->
     <div class="docsignature clear">
         <div class="customer">
+            <div class="company_stamp"></div>
             <div class="on_behalf_of">ในนาม <?php echo $client["company_name"] ?></div>
             <div class="clear">
                 <div class="name">

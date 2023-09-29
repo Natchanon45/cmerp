@@ -948,18 +948,18 @@ class Projects extends MY_Controller
                 );
             } // btn-edit-project
 
-            if ($this->Permission_m->access_material_request || $this->Permission_m->access_purchase_request) {
-                $optoins .= modal_anchor(
-                    get_uri("projects/modal_items"),
-                    "<i class='fa fa-shopping-bag'></i>",
-                    array(
-                        "class" => "edit bom-item-modal",
-                        "data-modal-lg" => true,
-                        "title" => lang('item') . ' - ' . $data->title,
-                        "data-post-id" => $data->id
-                    )
-                );
-            } // btn-bag-project
+            // if ($this->Permission_m->access_material_request || $this->Permission_m->access_purchase_request) {
+                // $optoins .= modal_anchor(
+                //     get_uri("projects/modal_items"),
+                //     "<i class='fa fa-shopping-bag'></i>",
+                //     array(
+                //         "class" => "edit bom-item-modal",
+                //         "data-modal-lg" => true,
+                //         "title" => lang('item') . ' - ' . $data->title,
+                //         "data-post-id" => $data->id
+                //     )
+                // );
+            // } // btn-bag-project
 
             if ($this->check_permission('can_delete_projects') && $dev2_canDeleteProject) {
                 $optoins .= js_anchor(
@@ -5379,7 +5379,7 @@ class Projects extends MY_Controller
         $view_data['can_edit_timesheet_settings'] = $this->can_edit_timesheet_settings($project_id);
         $view_data['can_edit_slack_settings'] = $this->can_edit_slack_settings();
 
-        // var_dump($view_data); exit;
+        // var_dump(arr($view_data)); exit();
         $this->template->rander("projects/details_view", $view_data);
     }
 
@@ -5874,8 +5874,6 @@ class Projects extends MY_Controller
         return $can_recalc;
     }
 
-
-
     function dev2_mrprove($project_id)
     {
         $result = $this->Materialrequests_model->dev2_getMrStatusByProjectId($project_id);
@@ -5891,6 +5889,432 @@ class Projects extends MY_Controller
         } else {
             return false;
         }
+    }
+
+    public function production_order($project_id)
+    {
+        $data = array();
+
+        // get a project info by project id
+        $data["project_info"] = $this->Projects_model->dev2_getProjectInfoByProjectId($project_id);
+        $data["project_bom_info"] = $this->Projects_model->dev2_getProductionOrderListByProjectId($project_id);
+        $data["auth_read_cost"] = $this->check_permission("bom_restock_read_price");
+        
+        // var_dump(arr($data)); exit();
+        $this->load->view("projects/production_orders/index", $data);
+    }
+
+    public function production_order_list($project_id)
+    {
+        $data = array();
+
+        // get all project bag by project id
+        $items = $this->Projects_model->dev2_getProductionOrderListByProjectId($project_id);
+
+        if (sizeof($items)) {
+            foreach ($items as $item) {
+                $data[] = $this->production_order_prepare_data($item);
+            }
+        }
+
+        // var_dump(arr($items)); exit();
+        echo json_encode(array("data" => $data));
+    }
+
+    public function production_order_state_change($project_id)
+    {
+        $post = (object) $_POST;
+        $post->project_id = $project_id;
+
+        $this->db->trans_begin();
+
+        $result = $this->Projects_model->dev2_postProduceStateById($post->id, $post->state);
+        $result["data"] = $this->production_order_prepare_data($result["info"]);
+
+        if ($this->db->trans_status() === FALSE) {
+            $this->db->trans_rollback();
+        } else {
+            $this->db->trans_commit();
+        }
+
+        echo json_encode($result);
+    }
+
+    public function production_order_modal_form()
+    {
+        $post = (object) $this->input->post();
+
+        if (!isset($post->project_id) || empty($post->project_id)) {
+            // have no a project id
+            return;
+        }
+
+        $data["info"] = $this->Projects_model->dev2_getProjectInfoByProjectId($post->project_id);
+        $data["items_dropdown"] = $this->Projects_model->dev2_getFinishedGoodsDropdown();
+        $data["items_mixing_dropdown"] = $this->Projects_model->dev2_getMixingGroupDropdown();
+
+        // var_dump(arr($data)); exit();
+        $this->load->view("projects/production_orders/modal_add", $data);
+    }
+
+    function production_order_modal_form_save()
+    {
+        $post = $this->input->post();
+        $data = array();
+        
+        if (isset($post["item_id"]) && !empty($post["item_id"])) {
+            for ($i = 0; $i < count($post["item_id"]); $i++) {
+                if ($post["item_id"][$i] == "") {
+                    echo json_encode(array("success" => false, "post" => $post, "message" => "กรุณาระบุข้อมูลให้ครบถ้วน"));
+                    return;
+                }
+
+                if ($post["item_mixing"][$i] == "") {
+                    echo json_encode(array("success" => false, "post" => $post, "message" => "กรุณาระบุข้อมูลให้ครบถ้วน"));
+                    return;
+                }
+
+                if ($post["quantity"][$i] == "" || $post["quantity"][$i] <= 0 || $post["quantity"][$i] == "0") {
+                    echo json_encode(array("success" => false, "post" => $post, "message" => "กรุณาระบุจำนวนให้ถูกต้อง"));
+                    return;
+                }
+
+                $data[] = [
+                    "project_id" => $post["project_id"],
+                    "item_id" => $post["item_id"][$i],
+                    "item_mixing" => $post["item_mixing"][$i],
+                    "quantity" => $post["quantity"][$i],
+                    "produce_in" => $post["produce_in"][$i]
+                ];
+            }
+
+            // data processing
+            if (sizeof($data)) {
+                $dataProcessing = $this->Projects_model->dev2_postProductionBomDataProcessing($data);
+            }
+        }
+
+        echo json_encode(array("success" => true, "post" => $post, "data" => $data, "process" => $dataProcessing));
+    }
+
+    // BOM in project
+    function production_order_modal_items()
+    {
+        $data["project_post"] = $this->input->post();
+        $data["project_info"] = $this->Projects_model->dev2_getProjectInfoByProjectId($data["project_post"]["project_id"]);
+        $data["production_bom_header"] = $this->Projects_model->dev2_getProductionOrderHeaderById($data["project_post"]["id"]);
+        $data["production_bom_detail"] = $this->Projects_model->dev2_getProductionOrderDetailByProjectHeaderId(
+            $data["project_post"]["project_id"],
+            $data["project_post"]["id"]
+        );
+        $data["auth_read_cost"] = $this->check_permission("bom_restock_read_price");
+        $data["can_create_mr"] = $this->production_order_can_create_mr($data["project_post"]["id"]);
+        $data["can_recalc"] = $this->production_order_can_recalc($data["project_post"]["id"]);
+        
+        // var_dump(arr($data)); exit();
+        $this->load->view("projects/production_orders/modal_bom", $data);
+    }
+
+    function production_order_delete()
+    {
+        $data = $this->input->post();
+
+        // var_dump(arr($data)); exit();
+        $this->load->view("projects/production_orders/delete_order", $data);
+    }
+
+    function production_order_delete_post()
+    {
+        $post = $this->json;
+
+        $production_delete = $this->Projects_model->dev2_postProductionOrderDeleteByOrderId(
+            $post->projectId,
+            $post->productionId
+        );
+        echo json_encode($production_delete);
+    }
+
+    function production_order_bom_recalc()
+    {
+        $post = $this->json;
+
+        $bom_recalc = $this->Projects_model->dev2_postProductionBomRecalculation(
+            $post->projectId,
+            $post->projectName,
+            $post->projectBomId
+        );
+        echo json_encode($bom_recalc);
+    }
+
+    function production_order_mr_creation()
+    {
+        $post = $this->json;
+
+        $mr_creation = $this->Projects_model->dev2_postProductionMaterialRequestCreation(
+            $post->projectId,
+            $post->projectName, 
+            $post->projectBomId
+        );
+        echo json_encode($mr_creation);
+    }
+
+    function production_order_mr_creation_all()
+    {
+        $data = $this->input->post();
+        
+        // var_dump(arr($data)); exit();
+        $this->load->view("projects/production_orders/mr_creation_all", $data);
+    }
+
+    function production_order_mr_creation_all_post()
+    {
+        $post = $this->json;
+
+        // var_dump(arr($post)); exit();
+        $mr_creation_all = $this->Projects_model->dev2_postProductionMaterialRequestCreationAll(
+            $post->projectId,
+            $post->projectName
+        );
+        echo json_encode($mr_creation_all);
+    }
+
+    function production_order_change_to_producing_all()
+    {
+        $data = $this->input->post();
+
+        // var_dump(arr($data)); exit();
+        $this->load->view("projects/production_orders/producing_all", $data);
+    }
+
+    function production_order_change_to_producing_all_post()
+    {
+        $post = $this->json;
+
+        // var_dump(arr($post)); exit();
+        $producing_all = $this->Projects_model->dev2_postProductionSetProducingStateAll(
+            $post->projectId
+        );
+        echo json_encode($producing_all);
+    }
+
+    function production_order_change_to_completed_all()
+    {
+        $data = $this->input->post();
+
+        // var_dump(arr($data)); exit();
+        $this->load->view("projects/production_orders/completed_all", $data);
+    }
+
+    function production_order_change_to_completed_all_post()
+    {
+        $post = $this->json;
+
+        // var_dump(arr($post)); exit();
+        $completed_all = $this->Projects_model->dev2_postProductionSetCompletedStateAll(
+            $post->projectId
+        );
+        echo json_encode($completed_all);
+    }
+
+    function production_order_modal_error()
+    {
+        $data = $this->input->post();
+
+        // var_dump(arr($data)); exit();
+        $this->load->view("projects/production_orders/modal_error", $data);
+    }
+
+    private function production_order_count_no_mr($production_id) // Integration testing 
+    {
+        $this->db->trans_begin();
+        $this->Projects_model->dev2_patchProductionMaterialRequestStatus($production_id);
+
+        if ($this->db->trans_status() === FALSE) {
+            $this->db->trans_rollback();
+            $result = 0;
+        } else {
+            $this->db->trans_commit();
+            $result = 1;
+        }
+
+        var_dump(arr($result));
+    }
+
+    private function production_order_can_delete($id)
+    {
+        $can_delete = true;
+
+        // verify auth to delete project
+        $auth_delete = $this->check_permission("can_delete_projects");
+        if (isset($auth_delete) && !empty($auth_delete)) {
+            if (!$auth_delete) {
+                $can_delete = false;
+            }
+        }
+
+        // verify order status
+        $order_status = $this->Projects_model->dev2_getProductionOrderStatusById($id);
+        if (isset($order_status) && !empty($order_status)) {
+            if ($order_status !== 1) {
+                $can_delete = false;
+            }
+        }
+
+        // verify material requisition created
+        $count_mr = $this->Projects_model->dev2_getCountMrForProductionOrderById($id);
+        if (isset($count_mr) && !empty($count_mr)) {
+            if ($count_mr > 0) {
+                $can_delete = false;
+            }
+        }
+
+        return $can_delete;
+    }
+
+    private function production_order_can_create_mr($id)
+    {
+        $can_create_mr = true;
+
+        // verify material requisition created
+        $count_no_mr = $this->Projects_model->dev2_getCountNoMrForProductionOrderById($id);
+        if ($count_no_mr == 0) {
+            $can_create_mr = false;
+        }
+
+        return $can_create_mr;
+    }
+
+    private function production_order_can_recalc($id)
+    {
+        $can_recalc = true;
+
+        // verify stock id for bom
+        $count_no_stock = $this->Projects_model->dev2_getCountNoStockForProductionOrderById($id);
+        if ($count_no_stock == 0) {
+            $can_recalc = false;
+        }
+        
+        return $can_recalc;
+    }
+
+    private function auth_bom_read_price() // finding authorization about ["bom_restock_read_price"]
+    {
+        $login_user = $this->login_user;
+        var_dump(arr($login_user->role_id));
+
+        $auth = $this->db->get_where("roles", ["id" => $login_user->role_id, "deleted" => 0])->row();
+        var_dump(arr($auth));
+
+        $permissions = unserialize($auth->permissions);
+        var_dump(arr($permissions));
+
+        $bom_restock_read_price = $this->check_permission("bom_restock_read_price");
+        var_dump(arr($bom_restock_read_price));
+    }
+
+    private function production_order_prepare_data($item)
+    {
+        $buttons = "";
+
+        // get cost of each production order
+        $item->costs = $this->Projects_model->dev2_getRawMatCostOfProductionOrderByProductionOrderId($item->id, $item->quantity);
+        $item->can_delete = $this->production_order_can_delete($item->id);
+        $item->auth_cost = $this->check_permission("bom_restock_read_price");
+
+        // prepare btn-bag-project
+        if ($this->Permission_m->access_material_request || $this->Permission_m->access_purchase_request) {
+            $buttons .= modal_anchor(
+                get_uri("projects/production_order_modal_items"),
+                "<i class='fa fa-shopping-bag'></i>",
+                array(
+                    "class" => "edit bom-item-modal",
+                    "data-modal-lg" => true,
+                    "title" => lang('production_order_bom_list'),
+                    "data-post-id" => $item->id,
+                    "data-post-project_id" => $item->project_id,
+                    "data-post-reclick_id" =>$item->id
+                )
+            );
+        }
+
+        // prepare btn-delete-project
+        if ($item->can_delete) {
+            $buttons .= modal_anchor(
+                get_uri("projects/production_order_delete"),
+                "<i class='fa fa-times fa-fw'></i>",
+                array(
+                    "class" => "delete",
+                    "data-modal-sm" => true,
+                    "title" => lang('production_order_delete'),
+                    "data-post-id" => $item->id,
+                    "data-post-project_id" => $item->project_id
+                )
+            );
+        }
+
+        // prepare produce state
+        $produce = "";
+        if ($item->produce_status == 1) {
+            $produce = '<select class="pill pill-danger produce-status" data-id="' . $item->id . '">
+            <option value="1" selected>' . lang("production_order_not_yet_produce") . '</option>
+            <option value="2">' . lang("production_order_producing") . '</option>
+            </select>';
+        } elseif ($item->produce_status == 2) {
+            $produce = '<select class="pill pill-warning produce-status" data-id="' . $item->id . '">
+            <option value="2" selected>' . lang("production_order_producing") . '</option>
+            <option value="3">' . lang("production_order_produced_completed") . '</option>
+            </select>';
+        } elseif ($item->produce_status == 3) {
+            $produce = '<select class="pill pill-success produce-status pointer-none" data-id="' . $item->id . '">
+            <option value="3" selected>' . lang("production_order_produced_completed") . '</option>
+            </select>';
+        }
+
+        // prepare material request status
+        $mr = "";
+        if ($item->mr_status == 1) {
+            $mr = '<select class="pill pill-danger pointer-none">
+            <option>' . lang("production_order_not_yet_withdrawn") . '</option>
+            </select>';
+        } elseif ($item->mr_status == 2) {
+            $mr = '<select class="pill pill-warning pointer-none">
+            <option>' . lang("production_order_partially_withdrawn") . '</option>
+            </select>';
+        } elseif ($item->mr_status == 3) {
+            $mr = '<select class="pill pill-success pointer-none">
+            <option>' . lang("production_order_completed_withdrawal") . '</option>
+            </select>';
+        }
+
+        if ($item->auth_cost) {
+            $result = [
+                $item->id,
+                $item->item_info->title,
+                $item->mixing_group_info->name,
+                number_format($item->quantity, 2),
+                strtoupper($item->item_info->unit_type),
+                to_decimal_format3($item->costs),
+                lang("THB"),
+                $item->produce_in ? lang("yes") : lang("no"),
+                $produce,
+                $mr,
+                $buttons
+            ];
+        } else {
+            $result = [
+                $item->id,
+                $item->item_info->title,
+                $item->mixing_group_info->name,
+                number_format($item->quantity, 2),
+                strtoupper($item->item_info->unit_type),
+                $item->produce_in ? lang("yes") : lang("no"),
+                $produce,
+                $mr,
+                $buttons
+            ];
+        }
+
+        return $result;
     }
 
 }

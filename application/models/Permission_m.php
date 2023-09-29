@@ -49,7 +49,7 @@ class Permission_m extends MY_Model {
 						        			->where("id", $urow->role_id)
 						        			->where("deleted", 0)
 						        			->get()->row();
-						        			
+
 			if(!empty($prow)) $this->setPermission(json_decode(json_encode(unserialize($prow->permissions))));
 		}
 	}

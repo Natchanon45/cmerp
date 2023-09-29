@@ -119,9 +119,11 @@ $(document).ready(function () {
                                             });
     <?php endif; ?>
 
-    $(".numb").blur(function(){
-        calculatePrice();
-    });
+    <?php if($quotation_id == null): ?>
+        $(".numb").blur(function(){
+            calculatePrice();
+        });
+    <?php endif; ?>
 });
 
 function calculatePrice(){
