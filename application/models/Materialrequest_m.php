@@ -1,9 +1,14 @@
 <?php
-class Materialrequest_m extends CI_Model {
+class Materialrequest_m extends MY_Model{
 
+    function getDocNumber($doc_id){
+        $mrhrow = $this->db->select("doc_no")
+                            ->from("materialrequests")
+                            ->where("id", $doc_id)
+                            ->get()->row();
 
-    function __construct() {
-		
+        if(empty($mrhrow)) return "";
+        return $mrhrow->doc_no;
     }
 
     function row($mrid){

@@ -14,6 +14,7 @@ class Permission_m extends MY_Model {
 	public $access_expense = false;
 
 	public $accounting = [
+							"sales_order"=>["access"=>false],
 							"quotation"=>["access"=>false],
 							"invoice"=>["access"=>false],
 							"tax_invoice"=>["access"=>false],
@@ -69,6 +70,7 @@ class Permission_m extends MY_Model {
 		$permissions["access_expense"] = $this->access_expense = "all";
 
 		$permissions["accounting"] = $this->accounting = [
+													"sales_order"=>["access"=>true],
 													"quotation"=>["access"=>true],
 													"invoice"=>["access"=>true],
 													"tax_invoice"=>["access"=>true],
@@ -109,6 +111,7 @@ class Permission_m extends MY_Model {
 		if(isset($permissions->access_expenses)) $this->access_expenses = $permissions->access_expenses;
 
 		//Accounting
+		if(isset($permissions->accounting->sales_order->access)) $this->accounting["sales_order"]["access"] = $permissions->accounting->sales_order->access;
 		if(isset($permissions->accounting->quotation->access)) $this->accounting["quotation"]["access"] = $permissions->accounting->quotation->access;
 		if(isset($permissions->accounting->invoice->access)) $this->accounting["invoice"]["access"] = $permissions->accounting->invoice->access;
 		if(isset($permissions->accounting->tax_invoice->access)) $this->accounting["tax_invoice"]["access"] = $permissions->accounting->tax_invoice->access;
@@ -168,6 +171,7 @@ class Permission_m extends MY_Model {
 	}
 
 	function canAccessAccounting(){
+		if($this->accounting["sales_order"]["access"] == true) return true;
 		if($this->accounting["quotation"]["access"] == true) return true;
 		if($this->accounting["invoice"]["access"] == true) return true;
 		if($this->accounting["tax_invoice"]["access"] == true) return true;

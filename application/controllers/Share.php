@@ -8,6 +8,15 @@ class Share extends PublicController
         parent::__construct();
     }
 
+    function sales_order()
+    {
+        $this->data["doc"] = $doc = $this->Sales_orders_m->getEdoc(null, $this->uri->segment(5));
+        $this->data["og_title"] = get_setting("company_name") . " - " . $doc["doc_number"];
+
+        if ($doc["status"] != "success") redirect("forbidden");
+        $this->load->view('edocs/sales_order', $this->data);
+    }
+
     function quotation()
     {
         $this->data["doc"] = $doc = $this->Quotations_m->getEdoc(null, $this->uri->segment(5));

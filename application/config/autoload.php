@@ -214,6 +214,7 @@ $autoload['model'] = array(
     'Items_model',
     'Bom_item_model',
     'Bom_item_files_model',
+    'Bom_item_m',
     'Notes_m',
     'Labels_m',
     'Settings_m',
@@ -225,6 +226,7 @@ $autoload['model'] = array(
     'Permission_m',
     'Projects_m',
     'Products_m',
+    'Sales_orders_m',
     'Quotations_m',
     'Billing_notes_m',
     'Invoices_m',
@@ -233,5 +235,7 @@ $autoload['model'] = array(
     'Suppliers_m',
     'Payment_voucher_m',
     'Credit_notes_m',
-    'Debit_notes_m'
+    'Debit_notes_m',
+    'Purchase_request_m',
+    'Materialrequest_m'
 );

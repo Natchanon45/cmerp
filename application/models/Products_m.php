@@ -28,4 +28,26 @@ class Products_m extends MY_Model {
 
         return $db->get()->result();
     }
+
+    function getFomulasByItemId($item_id){
+        $db = $this->db;
+
+        $bimgrows = $db->select("*")
+                        ->from("bom_item_mixing_groups")
+                        ->where("item_id", $item_id)
+                        ->get()->result();
+
+        $formulas = [];
+
+        if(!empty($bimgrows)){
+            foreach($bimgrows as $bimgrow){
+                $f = [];
+                $f["id"] = $bimgrow->id;
+                $f["name"] = $bimgrow->name;
+                $formulas[] = $f;
+            }
+        }
+
+        return $formulas;
+    }
 }
