@@ -292,6 +292,21 @@
                     </div>
                 </li>
                 <li>
+                    <h5>สามารถเข้าถึงค่าใช้จ่าย:</h5>
+                    <div>
+                        <input type="radio" name="access_expenses" value="" <?php if($access_expenses == false) echo "checked"; ?> >
+                        <label for="access_expenses">ไม่ใช่</label>
+                    </div>
+                    <div>
+                        <input type="radio" name="access_expenses" value="own" <?php if($access_expenses == "own") echo "checked"; ?> >
+                        <label for="access_expenses"> ใช่ ค่าใช้จ่ายของตัวเองเท่านัน</label>
+                    </div>
+                    <div>
+                        <input type="radio" name="access_expenses" value="all" <?php if($access_expenses == "all") echo "checked"; ?> >
+                        <label for="access_expenses"> ใช่ ค่าใช้จ่ายทั้งหมด</label>
+                    </div>
+                </li>
+                <li>
                     <h5><?php echo lang("set_event_permissions"); ?>:</h5>
                     <div>
                         <?php
@@ -724,9 +739,22 @@
                 <li>
                     <h5>ตั้งค่าสิทธิ์การเข้าถึงรายการสินค้า:</h5>
                     <div>
+                        <input type="radio" name="access_product_item" value="" <?php if($access_product_item == false) echo "checked"; ?> >
+                        <label for="access_product_item">ไม่ใช่</label>
+                    </div>
+                    <div>
+                        <input type="radio" name="access_product_item" value="own" <?php if($access_product_item == "own") echo "checked"; ?> >
+                        <label for="access_product_item">ใช่เฉพาะรายการสินค้าของตัวเองเท่านัน</label>
+                    </div>
+                    <div>
+                        <input type="radio" name="access_product_item" value="all" <?php if($access_product_item == "all") echo "checked"; ?> >
+                        <label for="access_product_item">ใช่รายการสินค้าทั้งหมด</label>
+                    </div>
+                    <div>
                         <input type="checkbox" name="access_product_item_formula" value="Y" <?php if($access_product_item_formula == true) echo "checked"; ?> >
                         <label for="access_product_item_formula">สามารถเห็นส่วนประกอบสินค้า</label>
                     </div>
+
                     <div>
                         <input type="checkbox" name="create_product_item" value="Y" <?php if($create_product_item == true) echo "checked"; ?> >
                         <label for="create_product_item">สามารถเพิ่มรายการสินค้า</label>

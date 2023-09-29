@@ -591,6 +591,7 @@ class Quotations_m extends MY_Model {
             $item["quantity"] = $qirow->quantity;
             $item["unit"] = $qirow->unit;
             $item["price"] = number_format($qirow->price, 2);
+            $item["discount_per_unit"] = number_format($qirow->discount_amount, 2);
             $item["total_price"] = number_format($qirow->total_price, 2);
 
             $items[] = $item;
@@ -623,6 +624,8 @@ class Quotations_m extends MY_Model {
         $this->data["quantity"] = number_format(1, $this->Settings_m->getDecimalPlacesNumber());
         $this->data["unit"] = "";
         $this->data["price"] = number_format(0, 2);
+        $this->data["discount_type"] = "P";
+        $this->data["discount_value"] = number_format(0, 2);
         $this->data["total_price"] = number_format(0, 2);
 
         if(!empty($itemId)){
@@ -641,6 +644,8 @@ class Quotations_m extends MY_Model {
             $this->data["quantity"] = number_format($qirow->quantity, $this->Settings_m->getDecimalPlacesNumber());
             $this->data["unit"] = $qirow->unit;
             $this->data["price"] = number_format($qirow->price, 2);
+            $this->data["discount_type"] = $qirow->discount_type;
+            $this->data["discount_value"] = number_format(($qirow->discount_type == "P" ? $qirow->discount_percent:$qirow->discount_amount), 2);
             $this->data["total_price"] = number_format($qirow->total_price, 2);
         }
 
@@ -688,8 +693,27 @@ class Quotations_m extends MY_Model {
         $product_description = $this->json->product_description;
         $quantity = round(getNumber($this->json->quantity), $this->Settings_m->getDecimalPlacesNumber());
         $unit = $this->json->unit;
-        $price = round(getNumber($this->json->price), 2);
-        $total_price = round($price * $quantity, 2);
+        $price_after_discount = $price = getNumber($this->json->price);
+        $discount_type = $this->json->discount_type;
+        $discount_value = getNumber($this->json->discount_value);
+        $discount_percent = null;
+        $discount_amount = 0;
+
+        if($discount_type == "P"){
+            if($discount_value < 0) $discount_value = 0;
+            if($discount_value > 99.99) $discount_value = 99.99;
+            $discount_percent = $discount_value;
+            $discount_amount = ($price * $discount_percent)/100;
+            $price_after_discount = $price - $discount_amount;
+            
+        }else{
+            if($discount_value < 0) $discount_value = 0;
+            if($discount_value > $price) $discount_value = $price;
+            $discount_amount = $discount_value;
+            $price_after_discount = $price - $discount_value;
+        }
+
+        $total_price = $price_after_discount * $quantity;
 
         $fdata = [
                     "quotation_id"=>$docId,
@@ -699,7 +723,10 @@ class Quotations_m extends MY_Model {
                     "quantity"=>$quantity,
                     "unit"=>$unit,
                     "price"=>$price,
-                    "total_price"=>$total_price,
+                    "discount_type"=>$discount_type,
+                    "discount_percent"=>$discount_percent,
+                    "discount_amount"=>$discount_amount,
+                    "total_price"=>round($total_price, 2),
                 ];
 
         $db->trans_begin();
@@ -886,7 +913,7 @@ class Quotations_m extends MY_Model {
                             "product_description"=>$qirow->product_description,
                             "quantity"=>$qirow->quantity,
                             "unit"=>$qirow->unit,
-                            "price"=>$qirow->price,
+                            "price"=>$qirow->price - $qirow->discount_amount,
                             "total_price"=>$qirow->total_price,
                             "sort"=>$qirow->sort
                         ];

@@ -317,8 +317,10 @@ class roles extends MY_Controller {
         $access_note_specific = null;
         $add_note = false;
         $update_note = false;
+        $access_product_item = false;
         $access_product_item_formula = false;
         $create_product_item = false;
+        $access_expenses = false;
 
         $access_material_request = false;
         $create_material_request = false;
@@ -336,8 +338,11 @@ class roles extends MY_Controller {
         if($this->input->post('add_note') == "Y") $add_note = true;
         if($this->input->post('update_note') == "Y") $update_note = true;
 
+        if($this->input->post('access_product_item') != "") $access_product_item = $this->input->post('access_product_item');
         if($this->input->post('access_product_item_formula') == "Y") $access_product_item_formula = true;
         if($this->input->post('create_product_item') == "Y") $create_product_item = true;
+
+        if($this->input->post('access_expenses') != "") $access_expenses = $this->input->post('access_expenses');
 
         $accounting_quotation_access = $this->input->post('accounting_quotation_access') == "Y" ? true : false;
         $accounting_invoice_access = $this->input->post('accounting_invoice_access') == "Y" ? true : false;
@@ -442,8 +447,10 @@ class roles extends MY_Controller {
             "access_note_specific"=>$access_note_specific,
             "add_note"=>$add_note,
             "update_note"=>$update_note,
+            "access_product_item"=>$access_product_item,
         	"access_product_item_formula"=>$access_product_item_formula,
         	"create_product_item"=>$create_product_item,
+            "access_expenses"=>$access_expenses,
             "accounting"=>[
                 "quotation"=>["access"=>$accounting_quotation_access],
                 "invoice"=>["access"=>$accounting_invoice_access],
@@ -674,8 +681,11 @@ class roles extends MY_Controller {
             $view_data['add_note'] = get_array_value($permissions, "add_note");
             $view_data['update_note'] = get_array_value($permissions, "update_note");
 
+            $view_data['access_product_item'] = get_array_value($permissions, "access_product_item");
             $view_data['access_product_item_formula'] = get_array_value($permissions, "access_product_item_formula");
             $view_data['create_product_item'] = get_array_value($permissions, "create_product_item");
+
+            $view_data['access_expenses'] = get_array_value($permissions, "access_expenses");
 
             $view_data['accounting']['quotation']['access'] = !isset($permissions["accounting"]["quotation"]) ? false : $permissions["accounting"]["quotation"]["access"];
             $view_data['accounting']['invoice']['access'] = !isset($permissions["accounting"]["invoice"]) ? false : $permissions["accounting"]["invoice"]["access"];

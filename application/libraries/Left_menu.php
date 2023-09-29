@@ -99,18 +99,89 @@ class Left_menu {
         // $available_items = $this->get_available_items();
         $sortable_items = $this->get_sortable_items_array();
 		$liss = array();
-
         $permissions = $this->ci->login_user->permissions;
+		
 		foreach ( $sortable_items as $ka => $main_menu ) {
-
 			if($this->ci->login_user->is_admin != 1){
 				if(!in_array($main_menu['id'], $allowed_menus)) continue;
+
+				if($main_menu['name'] == "notes"){
+					if(!isset($permissions["access_note"])) continue;
+					if($permissions["access_note"] == "" || $permissions["access_note"] == false) continue;
+				}
+
+				if($main_menu['name'] == "expenses"){
+					if(!isset($permissions["access_expenses"])) continue;
+					if($permissions["access_expenses"] == "" || $permissions["access_expenses"] == false) continue;
+				}
+
+				if($main_menu['name'] == "team_members"){
+					if(!isset($permissions["team_member_update_permission"])) continue;
+					if($permissions["team_member_update_permission"] == "" || $permissions["team_member_update_permission"] == false) continue;
+				}
+
+				if($main_menu['name'] == "tickets"){
+					if(!isset($permissions["ticket"])) continue;
+					if($permissions["ticket"] == "" || $permissions["ticket"] == false) continue;
+				}
+
+				if($main_menu['name'] == "clients"){
+					if(!isset($permissions["client"])) continue;
+					if($permissions["client"] == "" || $permissions["client"] == false) continue;
+				}
+
 				if($main_menu['name'] == "leads"){
 					if(!isset($permissions["lead"])) continue;
 					if($permissions["lead"] == null) continue;
 				}
+
+				if($main_menu['name'] == "items"){
+					if(!isset($permissions["access_product_item"])) continue;
+					if($permissions["access_product_item"] == false) continue;
+				}
+
 				if($main_menu['name'] == "settings") if(!isset($permissions["can_setting"])) continue;
 				if($main_menu['name'] == "accounting") if($this->ci->Permission_m->canAccessAccounting() != true) continue;
+
+				if($main_menu['name'] == "stock"){
+					if($permissions["bom_supplier_read_self"] == null &&
+						$permissions["bom_supplier_read"] == null &&
+						$permissions["bom_supplier_create"] == null &&
+						$permissions["bom_supplier_update"] == null &&
+						$permissions["bom_supplier_delete"] == null &&
+						$permissions["bom_material_read"] == null &&
+						$permissions["bom_material_read_production_name"] == null &&
+						$permissions["bom_material_update"] == null &&
+						$permissions["bom_material_delete"] == null &&
+						$permissions["bom_restock_read_self"] == null &&
+						$permissions["bom_restock_read"] == null &&
+						$permissions["bom_restock_read_price"] == null &&
+						$permissions["bom_restock_create"] == null &&
+						$permissions["bom_restock_update"] == null &&
+						$permissions["bom_restock_delete"] == null){
+						continue;
+					}
+				}
+
+				if($main_menu['name'] == "projects"){
+					if($permissions["can_manage_all_projects"] == null &&
+						$permissions["can_create_projects"] == null &&
+						$permissions["can_edit_projects"] == null &&
+						$permissions["can_delete_projects"] == null &&
+						$permissions["can_add_remove_project_members"] == null &&
+						$permissions["can_create_tasks"] == null &&
+						$permissions["can_edit_tasks"] == null &&
+						$permissions["can_delete_tasks"] == null &&
+						$permissions["can_comment_on_tasks"] == null &&
+						$permissions["show_assigned_tasks_only"] == null &&
+						$permissions["can_update_only_assigned_tasks_status"] == null &&
+						$permissions["can_create_milestones"] == null &&
+						$permissions["can_edit_milestones"] == null &&
+						$permissions["can_delete_milestones"] == null &&
+						$permissions["can_delete_files"] == null){
+						continue;
+					}
+				}
 			}
 			
             $value = get_setting('module_'.$main_menu['name']);

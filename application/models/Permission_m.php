@@ -7,8 +7,11 @@ class Permission_m extends MY_Model {
 	public $add_note = false;
 	public $update_note = false;
 
+	public $access_product_item = false;
 	public $access_product_item_formula = false;
 	public $create_product_item = false;
+
+	public $access_expense = false;
 
 	public $accounting = [
 							"quotation"=>["access"=>false],
@@ -59,8 +62,11 @@ class Permission_m extends MY_Model {
 		$permissions["add_note"] = $this->add_note = true;
 		$permissions["update_note"] = $this->update_note = true;
 
+		$permissions["access_product_item"] = $this->access_product_item = "all";
 		$permissions["access_product_item_formula"] = $this->access_product_item_formula = true;
 		$permissions["create_product_item"] = $this->create_product_item = true;
+
+		$permissions["access_expense"] = $this->access_expense = "all";
 
 		$permissions["accounting"] = $this->accounting = [
 													"quotation"=>["access"=>true],
@@ -95,8 +101,12 @@ class Permission_m extends MY_Model {
 		if(isset($permissions->update_note)) $this->update_note = $permissions->update_note;
 
 		//Product Item
+		if(isset($permissions->access_product_item)) $this->access_product_item = $permissions->access_product_item;
 		if(isset($permissions->access_product_item_formula)) $this->access_product_item_formula = $permissions->access_product_item_formula;
 		if(isset($permissions->create_product_item)) $this->create_product_item = $permissions->create_product_item;
+
+		//Expenses
+		if(isset($permissions->access_expenses)) $this->access_expenses = $permissions->access_expenses;
 
 		//Accounting
 		if(isset($permissions->accounting->quotation->access)) $this->accounting["quotation"]["access"] = $permissions->accounting->quotation->access;

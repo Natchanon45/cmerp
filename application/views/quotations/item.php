@@ -3,7 +3,7 @@
         <label for="product_name" class=" col-md-3"><?php echo lang('item'); ?></label>
         <div class="col-md-9">
             <input type="hidden" id="product_id" value="<?php echo $product_id; ?>">
-            <input type="text" id="product_name" value="<?php echo $product_name; ?>" placeholder="<?php echo lang('select_or_create_new_item'); ?>" class="form-control" >
+            <input type="text" id="product_name" value="<?php echo $product_name; ?>" placeholder="<?php echo lang('select_or_create_new_item'); ?>" class="form-control">
         </div>
     </div>
     <div class="form-group">
@@ -31,18 +31,29 @@
         </div>
     </div>
     <div class="form-group">
+        <label for="item_discount_value" class=" col-md-3">ส่วนลดต่อหน่วย</label>
+        <div class="col-md-9">
+            <input type="text" id="item_discount_value" value="<?php echo $discount_value; ?>" placeholder="ส่วนลดต่อหน่วย" class="form-control numb" style="width: calc(100% - 90px); float: left; margin-right: 8px;">
+            <select id="item_discount_type" class="form-control" style="width:82px;">
+                <option value="P" <?php if($discount_type == "P") echo "selected"; ?>>%</option>
+                <option value="F" <?php if($discount_type == "F") echo "selected"; ?>>฿</option>
+            </select>
+        </div>
+    </div>
+    <div class="form-group">
         <label for="total_price" class=" col-md-3">ราคารวม</label>
         <div class="col-md-9">
-            <input type="text" id="total_price" value="<?php echo $total_price; ?>" placeholder="<?php echo lang('rate'); ?>" class="form-control numb" readonly>
+            <input type="text" id="total_price" value="<?php echo $total_price; ?>" class="form-control numb" readonly>
         </div>
     </div>
 </div>
 <div class="modal-footer">
-    <button type="button" id="x" class="btn btn-default" data-dismiss="modal"><span class="fa fa-close"></span> <?php echo lang('close'); ?></button>
+    <button type="button" class="btn btn-default" data-dismiss="modal"><span class="fa fa-close"></span> <?php echo lang('close'); ?></button>
     <button type="button" id="btnSubmit" class="btn btn-primary"><span class="fa fa-check-circle"></span> <?php echo lang('save'); ?></button>
 </div>
 <script type="text/javascript">
 $(document).ready(function () {
+
     $("#btnSubmit").click(function() {
         axios.post('<?php echo current_url(); ?>', {
             task: 'save',
@@ -53,7 +64,10 @@ $(document).ready(function () {
             product_description: $("#product_description").val(),
             quantity: $("#quantity").val(),
             unit: $("#unit").val(),
-            price: $("#price").val()
+            price: $("#price").val(),
+            discount_type: $("#item_discount_type").val(),
+            discount_value: $("#item_discount_value").val()
+
         }).then(function (response) {
             data = response.data;
             $(".fnotvalid").remove();
@@ -118,20 +132,37 @@ $(document).ready(function () {
     $(".numb").blur(function(){
         calculatePrice();
     });
+
+    $("#item_discount_type").change(function(){
+        calculatePrice();
+    }); 
 });
 
 function calculatePrice(){
     let quantity = tonum($("#quantity").val(), <?php echo $this->Settings_m->getDecimalPlacesNumber(); ?>);
-    let price = tonum($("#price").val(), <?php echo $this->Settings_m->getDecimalPlacesNumber(); ?>);
-    let total_price = 0.00;
+    let price = tonum($("#price").val(), 2);
+    let price_after_discount = price;
+    let discount_type = $("#item_discount_type").val();
+    let discount_value = tonum($("#item_discount_value").val(), 2);
+
+    if(discount_type == "P"){
+        if(discount_value < 0) discount_value = 0;
+        if(discount_value > 99.99) discount_value = 99.99;
+        price_after_discount = price - tonum((price * discount_value)/100, 2);
+
+    }else{
+        if(discount_value < 0) discount_value = 0;
+        if(discount_value > price) discount_value = price;
+        price_after_discount = price - discount_value;
+    }
 
     if(quantity < 0 ) quantity = 0;
-    if(price < 0 ) price = 0;
-
-    total_price = price * quantity;
-
+    if(price_after_discount < 0 ) price_after_discount = 0;
+    let total_price = price_after_discount * quantity;
+    
     $("#quantity").val($.number(quantity, <?php echo $this->Settings_m->getDecimalPlacesNumber(); ?>));
     $("#price").val($.number(price, 2));
+    $("#item_discount_value").val($.number(discount_value, 2));
     $("#total_price").val($.number(total_price, 2));
 }
 </script>

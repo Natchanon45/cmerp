@@ -10,27 +10,32 @@
 }
 
 .body .items table td:nth-child(2){
-	max-width: calc(100% - 510px);
+	max-width: calc(100% - 500px);
     text-align: left;
 }
 
 .body .items table td:nth-child(3){
-	width: 120px;
+	width: 80px;
     text-align: right;
 }
 
 .body .items table td:nth-child(4){
-	width: 120px;
+	width: 80px;
     text-align: right;
 }
 
 .body .items table td:nth-child(5){
-	width: 120px;
+	width: 110px;
     text-align: right;
 }
 
 .body .items table td:nth-child(6){
-	width: 120px;
+	width: 110px;
+    text-align: right;
+}
+
+.body .items table td:nth-child(7){
+	width: 110px;
     text-align: right;
 }
 </style>
@@ -148,7 +153,8 @@
 		                    <td>รายละเอียด</td>
 		                    <td>จำนวน</td>
 		                    <td>หน่วย</td>
-		                    <td>ราคาต่อหน่วย</td>
+		                    <td>ราคา/หน่วย</td>
+		                    <td>ส่วนลด/หน่วย</td>
 		                    <td>ยอดรวม</td>
 		                </tr>
 		            </thead>
@@ -167,6 +173,7 @@
 				                    <td><?php echo $item->quantity; ?></td>
 				                    <td><?php echo $item->unit; ?></td>
 				                    <td><?php echo number_format($item->price, 2); ?></td>
+				                    <td><?php echo number_format($item->discount_amount, 2); ?></td>
 				                    <td><?php echo number_format($item->total_price, 2); ?></td>
 				                </tr>
 			            	<?php endforeach; ?>
@@ -236,7 +243,7 @@
 			</div>
 			<div class="c2">
 				<div class="company_stamp">
-	                <?php if($doc["company_stamp"] != null): ?>
+	                <?php if(isset($doc["company_stamp"])): ?>
 	                    <img src="<?php echo base_url($doc["company_stamp"]);?>">
 	                <?php endif;?>
 	            </div>
