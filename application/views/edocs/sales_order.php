@@ -10,32 +10,27 @@
 }
 
 .body .items table td:nth-child(2){
-	max-width: calc(100% - 500px);
+	max-width: calc(100% - 510px);
     text-align: left;
 }
 
 .body .items table td:nth-child(3){
-	width: 80px;
+	width: 120px;
     text-align: right;
 }
 
 .body .items table td:nth-child(4){
-	width: 80px;
+	width: 120px;
     text-align: right;
 }
 
 .body .items table td:nth-child(5){
-	width: 110px;
+	width: 120px;
     text-align: right;
 }
 
 .body .items table td:nth-child(6){
-	width: 110px;
-    text-align: right;
-}
-
-.body .items table td:nth-child(7){
-	width: 110px;
+	width: 120px;
     text-align: right;
 }
 </style>
@@ -95,7 +90,7 @@
 				</div>
 			</div>
 			<div class="right">
-				<div class="docname custom-color">ใบเสนอราคา</div>
+				<div class="docname custom-color">ใบสั่งขาย</div>
 				<div class="docinfo">
 					<table>
 	                    <tr>
@@ -103,16 +98,8 @@
 	                        <td><?php echo $doc["doc_number"]; ?></td>
 	                    </tr>
 	                    <tr>
-	                        <td class="custom-color">ออก ณ วันที่</td>
+	                        <td class="custom-color">วันที่</td>
 	                        <td><?php echo convertDate($doc["doc_date"], true); ?></td>
-	                    </tr>
-	                    <tr>
-	                        <td class="custom-color">ยืนราคาถึง</td>
-	                        <td><?php echo convertDate($doc["doc_valid_until_date"], true); ?></td>
-	                    </tr>
-	                    <tr>
-	                        <td class="custom-color">เครดิต</td>
-	                        <td><?php echo $doc["credit"]; ?> วัน</td>
 	                    </tr>
 	                    <tr>
 	                        <td class="custom-color">ผู้ขาย</td>
@@ -153,8 +140,7 @@
 		                    <td>รายละเอียด</td>
 		                    <td>จำนวน</td>
 		                    <td>หน่วย</td>
-		                    <td>ราคา/หน่วย</td>
-		                    <td>ส่วนลด/หน่วย</td>
+		                    <td>ราคาต่อหน่วย</td>
 		                    <td>ยอดรวม</td>
 		                </tr>
 		            </thead>
@@ -169,11 +155,13 @@
 				                    	<?php if(trim($item->product_description) != ""): ?>
 				                    		<span class="product_description"><?php echo trim($item->product_description); ?></span>
 				                    	<?php endif;?>
+				                    	<?php if(trim($item->item_mixing_groups_id) != ""): ?>
+				                    		<span class="product_description"><?php echo $this->Bom_item_m->getMixingGroupsInfoById($item->item_mixing_groups_id)["name"]; ?></span>
+				                    	<?php endif;?>
 				                    </td>
 				                    <td><?php echo $item->quantity; ?></td>
 				                    <td><?php echo $item->unit; ?></td>
 				                    <td><?php echo number_format($item->price, 2); ?></td>
-				                    <td><?php echo number_format($item->discount_amount, 2); ?></td>
 				                    <td><?php echo number_format($item->total_price, 2); ?></td>
 				                </tr>
 			            	<?php endforeach; ?>
@@ -182,43 +170,8 @@
 				</table>
 			</div>
 			<div class="summary clear">
-				<div class="total_in_text"><span><?php echo "(".$doc["total_in_text"].")"; ?></span></div>
-				<div class="total_all">
-					<div class="row">
-						<div class="c1 custom-color">รวมเป็นเงิน</div>
-						<div class="c2"><span><?php echo number_format($doc["sub_total_before_discount"], 2); ?></span><span><?php echo lang("THB");?></span></div>
-					</div>
-					<?php if($doc["discount_amount"] > 0): ?>
-						<div class="row">
-							<div class="c1 custom-color">ส่วนลด <?php if($doc["discount_type"] == "P") echo number_format_drop_zero_decimals($doc["discount_percent"], 2)."%"; ?></div>
-							<div class="c2"><span><?php echo number_format($doc["discount_amount"], 2); ?></span><span><?php echo lang("THB");?></span></div>
-						</div>
-						<div class="row">
-							<div class="c1 custom-color">จำนวนหลังหักส่วนลด</div>
-							<div class="c2"><span><?php echo number_format($doc["sub_total"], 2); ?></span><span><?php echo lang("THB");?></span></div>
-						</div>
-					<?php endif; ?>
-					<?php if($doc["vat_inc"] == "Y"): ?>
-						<div class="row">
-							<div class="c1 custom-color">ภาษีมูลค่าเพิ่ม <?php echo number_format_drop_zero_decimals($doc["vat_percent"], 2)."%";?></div>
-							<div class="c2"><span><?php echo number_format($doc["vat_value"], 2); ?></span><span><?php echo lang("THB");?></span></div>
-						</div>
-					<?php endif; ?>
-					<div class="row">
-						<div class="c1 custom-color">จำนวนเงินรวมทั้งสิน</div>
-						<div class="c2"><span><?php echo number_format($doc["total"], 2); ?></span><span><?php echo lang("THB");?></span></div>
-					</div>
-					<?php if($doc["wht_inc"] == "Y"): ?>
-						<div class="row wht">
-							<div class="c1 custom-color">หักภาษี ณ ที่จ่าย <?php echo number_format_drop_zero_decimals($doc["wht_percent"], 2)."%";?></div>
-							<div class="c2"><span><?php echo number_format($doc["wht_value"], 2); ?></span><span><?php echo lang("THB");?></span></div>
-						</div>
-						<div class="row">
-							<div class="c1 custom-color">ยอดชำระ</div>
-							<div class="c2"><span><?php echo number_format($doc["payment_amount"], 2); ?></span><span><?php echo lang("THB");?></span></div>
-						</div>
-					<?php endif;?>
-				</div>
+				<div class="total_in_text"><span></span></div>
+				<div class="total_all"></div>
 			</div>
 			<?php if(trim($doc["remark"]) != ""): ?>
 				<div class="remark clear">
@@ -242,23 +195,19 @@
 				</div>
 			</div>
 			<div class="c2">
-				<div class="company_stamp">
-	                <?php if(isset($doc["company_stamp"])): ?>
-	                    <img src="<?php echo base_url($doc["company_stamp"]);?>">
-	                <?php endif;?>
-	            </div>
+				<div class="company_stamp"></div>
 				<div class="on_behalf_of">ในนาม <?php echo get_setting("company_name"); ?></div>
 				<div class="signature clear">
 					<div class="name">
 	                    <span class="l1">
-                    		<?php if(null != $signature = $this->Users_m->getSignature($doc["created_by"])): ?>
+                    		<?php if(null != $signature = $this->Users_m->getSignature($doc["approved_by"])): ?>
                             	<img src='<?php echo "/".$signature; ?>'>
                         	<?php endif; ?>
 	                    </span>
-	                    <span class="l2">ผู้ออก</span>
+	                    <span class="l2">ผู้อนุมัติ</span>
 	                </div>
 	                <div class="date">
-	                    <span class="l1"><span class="approved_date"><?php echo convertDate($doc["created_datetime"], true); ?></span></span>
+	                    <span class="l1"><span class="approved_date"><?php echo convertDate($doc["approved_datetime"], true); ?></span></span>
 	                    <span class="l2">วันที่</span>
 	                </div>
 				</div>

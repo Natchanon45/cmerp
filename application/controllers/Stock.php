@@ -5831,7 +5831,7 @@ class Stock extends MY_Controller
             $display_item,
             to_decimal_format3($item->stock_qty),
             to_decimal_format3($item->remain_qty),
-            strtoupper($item->item_unit),
+            mb_strtoupper($item->item_unit),
             $item->create_by ? anchor(get_uri('team_members/view/' . $item->create_by), $this->Account_category_model->created_by($item->create_by)) : '',
             format_to_date($item->create_date),
             $button

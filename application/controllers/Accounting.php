@@ -25,7 +25,9 @@ class Accounting extends MY_Controller {
 
     //บัญชีขาย
     function sell(){
-        if($this->Permission_m->accounting["quotation"]["access"] == true){
+        if($this->Permission_m->accounting["sales_order"]["access"] == true){
+            $this->data["module"] = "sales-orders";
+        }elseif($this->Permission_m->accounting["quotation"]["access"] == true){
             $this->data["module"] = "quotations";
         }elseif($this->Permission_m->accounting["invoice"]["access"] == true){
             $this->data["module"] = "invoices";
@@ -43,7 +45,18 @@ class Accounting extends MY_Controller {
             return;
         }
 
-        if($this->uri->segment(3) != null) $this->data["module"] = $this->uri->segment(3);
+        if($this->uri->segment(3) != null){
+            $this->data["module"] = $this->uri->segment(3);
+        }else{
+            if($this->Permission_m->accounting["sales_order"]["access"] == true) $this->data["module"] = "sales-orders";
+            elseif($this->Permission_m->accounting["quotation"]["access"] == true) $this->data["module"] = "quotations";
+            elseif($this->Permission_m->accounting["invoice"]["access"] == true) $this->data["module"] = "invoices";
+            elseif($this->Permission_m->accounting["tax_invoice"]["access"] == true) $this->data["module"] = "tax-invoices";
+            elseif($this->Permission_m->accounting["billing_note"]["access"] == true) $this->data["module"] = "billing-notes";
+            elseif($this->Permission_m->accounting["receipt"]["access"] == true) $this->data["module"] = "receipts";
+            elseif($this->Permission_m->accounting["credit_note"]["access"] == true) $this->data["module"] = "credit-notes";
+        }
+        
 
         $cusrows = $this->Customers_m->getRows(["id", "company_name"]);
         $client_ids[] = ["id"=>"", "text"=>"-- ลูกค้า --"];
