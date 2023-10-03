@@ -750,16 +750,7 @@ class roles extends MY_Controller {
 				/*if( $vg->class_name == 'items' ) {
 					continue;
 				}*/
-				if($vg->class_name == 'notes') continue;
-
-				if( $vg->class_name == 'leaves' ) {
-
-					continue;
-				}
-				if( $vg->class_name == 'help_articles' ) {
-
-					continue;
-				}
+				
 				if( $vg->class_name == 'tickets' ) {
  
 					if( !empty( $vg->read_only ) ) {
@@ -769,24 +760,18 @@ class roles extends MY_Controller {
 					}
 					continue;
 				}
-				if( $vg->class_name == 'announcements' ) {
 
-					continue;
-				}
-				if( $vg->class_name == 'stock' ) {
-
-					continue;
-				}
-				if( $vg->class_name == 'events' ) {
-
-					continue;
-				}
-				if( $vg->class_name == 'clients' ) {
-
-					continue;
-				}
-
-
+                if( $vg->class_name == 'help_articles' )continue;
+                if( $vg->class_name == 'leaves' )continue;
+                if($vg->class_name == 'notes') continue;
+				if( $vg->class_name == 'announcements' )continue;
+				if( $vg->class_name == 'stock' )continue;
+				if( $vg->class_name == 'events' )continue;
+				if( $vg->class_name == 'clients' )continue;
+                if($vg->class_name == "leads") continue;
+                if($vg->class_name == "estimates") continue;
+                if($vg->class_name == "invoices") continue;
+                if($vg->class_name == "invoice_payments") continue;
 
 				$lis = array();
 				foreach( $config->columns as $kc => $vc ) {
@@ -800,8 +785,6 @@ class roles extends MY_Controller {
 					else if( $kc == 'role_id' ) {
 						continue;
 					}
-
-
 
 					$arr = array();
 
