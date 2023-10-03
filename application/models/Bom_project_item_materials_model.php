@@ -244,6 +244,20 @@ class Bom_project_item_materials_model extends Crud_model {
         return $query->result();
     }
 
+    function dev2_getProductionOrderIdByMaterialRequestId($mr_id = 0)
+    {
+        $prod_ids = array();
+
+        $sql = "SELECT DISTINCT project_item_id FROM bom_project_item_materials WHERE mr_id = ?";
+        $query = $this->db->query($sql, $mr_id);
+        $result = $query->result();
+
+        if (sizeof($result)) {
+            $prod_ids = $result;
+        }
+        return $prod_ids;
+    }
+
     function dev2_updatePrIdByMaterialId($pr_id, $material_id)
     {
         $this->db->where('material_id', $material_id);

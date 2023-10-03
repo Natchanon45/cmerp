@@ -95,6 +95,7 @@ class Materialrequests extends MY_Controller
 
 		// Get material request detail
 		$items = $this->Mr_items_model->get_materialrequest_item_by_id($mr_id);
+		$prod_ids = $this->Bom_project_item_materials_model->dev2_getProductionOrderIdByMaterialRequestId($mr_id);
 		if (sizeof($items) == 0) {
 			redirect("materialrequests/view/" . $mr_id . "/nodata");
 			return;
@@ -106,8 +107,6 @@ class Materialrequests extends MY_Controller
 				$this->Bom_project_item_items_model->dev2_rejectMaterialRequestById($item->bpim_id);
 			}
 		} else {
-			$prod_id = [];
-
 			foreach ($items as $item) {
 				$this->Bom_project_item_materials_model->dev2_rejectMaterialRequestById($item->bpim_id);
 				
@@ -116,7 +115,7 @@ class Materialrequests extends MY_Controller
 				}
 			}
 
-			$prod_id = array_unique($prod_id);
+			$prod_id = array_unique($prod_ids);
 			if (sizeof($prod_id)) {
 				foreach ($prod_id as $id) {
 					// release the material request status
