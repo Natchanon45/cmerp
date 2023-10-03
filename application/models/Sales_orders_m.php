@@ -552,11 +552,18 @@ class Sales_orders_m extends MY_Model {
         
         if(empty($itemId)){
             $db->where("sales_order_id", $docId);
+            $db->where("product_id", $product_id);
+            if($db->count_all_results("sales_order_items") > 0){
+                $this->data["message"] = $product_name." มีอยู่ในรายการแล้ว.";
+                return $this->data;
+            }
+
+
+            $db->where("sales_order_id", $docId);
             $total_items = $db->count_all_results("sales_order_items");
             $fdata["sales_order_id"] = $docId;
             $fdata["sort"] = $total_items + 1;
             $db->insert("sales_order_items", $fdata);
-
         }else{
             $db->where("id", $itemId);
             $db->where("sales_order_id", $docId);
@@ -850,7 +857,7 @@ class Sales_orders_m extends MY_Model {
                                     ->where("pr_header_id IS NULL")
                                     ->get()->row();
 
-                //ถ้าไม่มีรายการ is null ก็แสดงว่ารายการนี้ถูกนำไปออก PR แล้ว
+                //ถ้าไม่มีรายการ is null ก็แสดงว่ารายการนี้ถูกนำไปออก PR หมดแล้ว
                 if(empty($soirow)) continue;
 
                 $biprow = $db->select("*")
@@ -953,6 +960,7 @@ class Sales_orders_m extends MY_Model {
         foreach($soirows as $soirow){
             $product_remaining = $ci->Bom_item_m->getTotalRemainingItems($soirow->product_id);
             if($product_remaining >= $soirow->quantity) continue;
+
             return true;
         }
 
@@ -1159,6 +1167,7 @@ class Sales_orders_m extends MY_Model {
 
         $db->trans_commit();
 
+        $this->data["can_make_mr"] = $this->canMakeMR($sales_order_id);
         $this->data["status"] = "success";
         $this->data["message"] = "สร้างใบขอเบิกเรียบร้อย";
         return $this->data;
