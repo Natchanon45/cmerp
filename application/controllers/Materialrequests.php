@@ -115,11 +115,10 @@ class Materialrequests extends MY_Controller
 				}
 			}
 
-			$prod_id = array_unique($prod_ids);
-			if (sizeof($prod_id)) {
-				foreach ($prod_id as $id) {
+			if (sizeof($prod_ids)) {
+				foreach ($prod_ids as $item) {
 					// release the material request status
-					$this->Bom_project_item_materials_model->dev2_patchProductionMaterialRequestStatus($id);
+					$this->Bom_project_item_materials_model->dev2_patchProductionMaterialRequestStatus($item->project_item_id);
 				}
 			}
 		}
