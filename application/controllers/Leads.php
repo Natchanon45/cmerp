@@ -5,20 +5,26 @@ if (!defined('BASEPATH'))
 
 class Leads extends MY_Controller
 {
+	public $view_lead = "";
 
 	function __construct()
 	{
 		parent::__construct();
+        if($this->login_user->is_admin == 1){
+        	$this->view_lead = "all";
+        }else{
+        	if(json_decode(json_encode($this->login_user->permissions))->lead == "all") $this->view_lead = "all";
+        	if(json_decode(json_encode($this->login_user->permissions))->lead == "own") $this->view_lead = "own";
+        }
 
-		// check permission to access this module
-		$this->init_permission_checker("lead");
+        if($this->view_lead == "") redirect("/");
 	}
 
 	/* load leads list view */
 
 	function index()
 	{
-		$this->access_only_allowed_members();
+		//$this->access_only_allowed_members();
 		$this->check_module_availability("module_lead");
 
         if($this->input->post("datatable") == true){
@@ -42,7 +48,7 @@ class Leads extends MY_Controller
 	{
 		$request = $this->input->post();
 
-		if (empty($request["id"])) {
+		/*if (empty($request["id"])) {
 			if (empty($this->getRolePermission["add_row"])) {
 				echo permissionBlock();
 				return;
@@ -52,10 +58,10 @@ class Leads extends MY_Controller
 				echo permissionBlock();
 				return;
 			}
-		}
+		}*/
 
 		$lead_id = $this->input->post("id");
-		$this->can_access_this_lead($lead_id);
+		//$this->can_access_this_lead($lead_id);
 		$view_data = $this->make_lead_modal_form_data($lead_id);
 
 		$this->load->view('leads/modal_form', $view_data);
@@ -63,7 +69,7 @@ class Leads extends MY_Controller
 
 	private function make_lead_modal_form_data($lead_id = 0)
 	{
-		$this->access_only_allowed_members();
+		//$this->access_only_allowed_members();
 
 		validate_submitted_data(
 			array(
@@ -99,15 +105,20 @@ class Leads extends MY_Controller
 	// owner will be team member
 	private function _get_owners_dropdown($view_type = "")
 	{
-		$team_members = $this->Users_model->get_all_where(array("user_type" => "staff", "deleted" => 0, "status" => "active"))->result();
 		$team_members_dropdown = array();
 
 		if ($view_type == "filter") {
 			$team_members_dropdown = array(array("id" => "", "text" => "- " . lang("owner") . " -"));
 		}
 
-		foreach ($team_members as $member) {
-			$team_members_dropdown[] = array("id" => $member->id, "text" => $member->first_name . " " . $member->last_name);
+		if($this->view_lead == "all"){
+			$team_members = $this->Users_model->get_all_where(array("user_type" => "staff", "deleted" => 0, "status" => "active"))->result();
+
+			foreach ($team_members as $member) {
+				$team_members_dropdown[] = array("id" => $member->id, "text" => $member->first_name . " " . $member->last_name);
+			}
+		}else{
+			$team_members_dropdown[] = array("id" => $this->login_user->id, "text" => $this->login_user->first_name . " " . $this->login_user->last_name);
 		}
 
 		return $team_members_dropdown;
@@ -124,7 +135,7 @@ class Leads extends MY_Controller
         //$id = $this->input->post('id');
         $view = $this->input->post('view');
         //$this->can_access_this_lead($id);
-        $this->access_only_allowed_members();
+        //$this->access_only_allowed_members();
 
         $data = $this->Leads_m->saveRow();
 
@@ -139,11 +150,10 @@ class Leads extends MY_Controller
     /* delete or undo a lead */
 
     function delete() {
-		if( empty( $this->getRolePermission['delete_row'] ) ) {
-			echo json_encode(array("success" => false, 'message' => 'คุณไม่มีสิทธิ์ในการลบข้อมูล' ));
-			exit;
+		if($this->login_user->is_admin != 1){
+			jout(["success" => false, "message" => "คุณไม่มีสิทธิ์ในการลบข้อมูล"]);
+			return;
 		}
-		// $this->access_only_allowed_members();
 
 		validate_submitted_data(
 			array(
@@ -152,7 +162,6 @@ class Leads extends MY_Controller
 		);
 
 		$id = $this->input->post("id");
-		// $this->can_access_this_lead($id);
 
         if ($this->Leads_m->deleteRow($id)) {
             echo json_encode(array("success" => true, 'message' => lang('record_deleted')));
@@ -181,7 +190,7 @@ class Leads extends MY_Controller
 
 	function list_data()
 	{
-		$this->access_only_allowed_members();
+		//$this->access_only_allowed_members();
 		$custom_fields = $this->Custom_fields_model->get_available_fields_for_table("leads", $this->login_user->is_admin, $this->login_user->user_type);
 
 		$show_own_leads_only_user_id = $this->show_own_leads_only_user_id();

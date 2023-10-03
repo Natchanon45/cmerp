@@ -1,8 +1,18 @@
 <?php
 class Leads_m extends MY_Model {
+    private $view_lead = "";
 
     function __construct() {
         parent::__construct();
+    }
+
+    function initPermission(){
+        if($this->login_user->is_admin == 1){
+            $this->view_lead = "all";
+        }else{
+            if(json_decode(json_encode($this->login_user->permissions))->lead == "all") $this->view_lead = "all";
+            if(json_decode(json_encode($this->login_user->permissions))->lead == "own") $this->view_lead = "own";
+        }
     }
 
     function indexHeader(){
@@ -26,6 +36,8 @@ class Leads_m extends MY_Model {
     }
 
     function indexDataSet($id = null){
+        $this->initPermission();
+
     	$status_ids = $status_info = [];
 
         $lsrows = $this->db->select("id, title, color")
@@ -45,6 +57,8 @@ class Leads_m extends MY_Model {
                     ->where("is_lead", 1)
                     ->where("deleted", 0)
                     ->where_in("lead_status_id", $status_ids);
+
+        if($this->view_lead == "own") $this->db->where("owner_id", $this->login_user->id);
 
         if($id != null){
             $this->db->where("id", $id);
@@ -108,7 +122,13 @@ class Leads_m extends MY_Model {
                 }
             }
 
-            $data[] = "<a class='edit' title='แก้ไขโอกาสในการขาย' data-post-id='".$lrow->id."' data-act='ajax-modal' data-title='แก้ไขโอกาสในการขาย' data-action-url='".get_uri("leads/modal_form")."'><i class='fa fa-pencil'></i></a><a title='ลบโอกาสในการขาย' class='delete' data-id='".$lrow->id."' data-action-url='".get_uri("leads/delete")."' data-action='delete-confirmation'><i class='fa fa-times fa-fw'></i></a>";
+            $buttons = "<a class='edit' title='แก้ไขโอกาสในการขาย' data-post-id='".$lrow->id."' data-act='ajax-modal' data-title='แก้ไขโอกาสในการขาย' data-action-url='".get_uri("leads/modal_form")."'><i class='fa fa-pencil'></i></a>";
+
+            if($this->login_user->is_admin == 1){
+                $buttons .= "<a title='ลบโอกาสในการขาย' class='delete' data-id='".$lrow->id."' data-action-url='".get_uri("leads/delete")."' data-action='delete-confirmation'><i class='fa fa-times fa-fw'></i></a>";
+            }
+
+            $data[] = $buttons;
 
             $dataset[] = $data;
         }

@@ -69,7 +69,6 @@
                     "value" => isset($model_info->owner_id)?$model_info->owner_id:$this->login_user->id,
                     "class" => "form-control",
                     "placeholder" => lang('owner')
-
                 ));
             ?>
         </div>

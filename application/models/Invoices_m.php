@@ -1214,6 +1214,7 @@ class Invoices_m extends MY_Model {
         $invoice_number = $ivrow->doc_number;
         $receipt_number = $this->Receipts_m->getNewDocNumber();
         $invoice_total = $ivrow->total;
+        $invoice_payment_payment_date = $iprow->payment_date;
         $invoice_payment_amount = $iprow->payment_amount;
         $invoice_payment_money_payment_receive = $iprow->money_payment_receive;
 
@@ -1236,7 +1237,7 @@ class Invoices_m extends MY_Model {
                                 "invoice_id"=>$invoice_id,
                                 "invoice_payment_id"=>$payment_id,
                                 "doc_number"=>$receipt_number,
-                                "doc_date"=>date("Y-m-d"),
+                                "doc_date"=>$invoice_payment_payment_date,
                                 "reference_number"=>$invoice_number,
                                 "project_id"=>$ivrow->project_id,
                                 "client_id"=>$ivrow->client_id,
