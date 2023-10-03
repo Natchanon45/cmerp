@@ -180,7 +180,7 @@ $(document).ready(function () {
                 <td>
                     <select name="produce_in[]" class="form-control select-produce-in">
                         <option value="1"><?php echo lang("yes"); ?></option>
-                        <option value="2"><?php echo lang("no"); ?></option>
+                        <option value="0"><?php echo lang("no"); ?></option>
                     </select>
                 </td>
                 <td>
