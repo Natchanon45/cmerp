@@ -32,12 +32,12 @@ async function mrCreationAll() {
     };
 
     await axios.post(url, req).then(res => {
-        const { success } = res.data;
+        const { success, message } = res.data;
         
         if (success) {
-            appAlert.success("Order has been deleted.", { duration: 3001 });
+            appAlert.success(message, { duration: 3001 });
         } else {
-            appAlert.error("Something went wrong!", { duration: 3001 });
+            appAlert.error(message, { duration: 3001 });
         }
         window.parent.loadProductionOrderList();
     }).catch(err => {
