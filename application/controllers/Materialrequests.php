@@ -106,8 +106,22 @@ class Materialrequests extends MY_Controller
 				$this->Bom_project_item_items_model->dev2_rejectMaterialRequestById($item->bpim_id);
 			}
 		} else {
+			$prod_id = [];
+
 			foreach ($items as $item) {
 				$this->Bom_project_item_materials_model->dev2_rejectMaterialRequestById($item->bpim_id);
+				
+				if (isset($item->project_item_id) && !empty($item->project_item_id)) {
+					array_push($prod_id, $item->project_item_id);
+				}
+			}
+
+			$prod_id = array_unique($prod_id);
+			if (sizeof($prod_id)) {
+				foreach ($prod_id as $id) {
+					// release the material request status
+					$this->Bom_project_item_materials_model->dev2_patchProductionMaterialRequestStatus($id);
+				}
 			}
 		}
 
