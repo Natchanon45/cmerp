@@ -89,11 +89,16 @@ class Leaves extends MY_Controller {
     /* save: apply leave */
 
     function apply_leave() {
+        $target_path = get_setting("timeline_file_path");
+        $files_data = move_files_from_temp_dir_to_permanent_dir($target_path, "leave");
+        $new_files = unserialize($files_data);
+
         $leave_data = $this->_prepare_leave_form_data();
         $leave_data['applicant_id'] = $this->login_user->id;
         $leave_data['created_by'] = 0;
         $leave_data['checked_at'] = "0000:00:00";
         $leave_data['status'] = "pending";
+        $leave_data["files"] = serialize($new_files);
 
         $leave_data = clean_data($leave_data);
 
@@ -273,12 +278,25 @@ class Leaves extends MY_Controller {
             $actions .= js_anchor("<i class='fa fa-times fa-fw'></i>", array('title' => lang('delete'), "class" => "delete", "data-id" => $data->id, "data-action-url" => get_uri("leaves/delete"), "data-action" => "delete-confirmation"));
         }
 
+        $files_link = "";
+        if ($data->files) {
+            $files = unserialize($data->files);
+            if (count($files)) {
+                foreach ($files as $key => $value) {
+                    $file_name = get_array_value($value, "file_name");
+                    $link = " fa fa-" . get_file_icon(strtolower(pathinfo($file_name, PATHINFO_EXTENSION)));
+                    $files_link .= js_anchor(" ", array('title' => "", "data-toggle" => "app-modal", "data-sidebar" => "0", "class" => "pull-left font-22 mr10 $link", "title" => remove_file_prefix($file_name), "data-url" => get_uri("leaves/file_preview/" . $data->id . "/" . $key)));
+                }
+            }
+        }
+
         return array(
             get_team_member_profile_link($data->applicant_id, $meta_info->applicant_meta),
             $meta_info->leave_type_meta,
             $meta_info->created_date,
             $meta_info->date_meta,
             $meta_info->duration_meta,
+            $files_link,
             $meta_info->status_meta,
             $actions
         );
@@ -500,6 +518,42 @@ class Leaves extends MY_Controller {
             $leave_type_dropdown[] = array("id" => $id, "text" => $name);
         }
         return $leave_type_dropdown;
+    }
+
+
+    function file_preview($id = "", $key = "") {
+        if ($id) {
+            //$note_info = $this->Notes_model->get_one($id);
+            $leave_info = $this->Leave_applications_model->get_one($id);
+            $files = unserialize($leave_info->files);
+            $file = get_array_value($files, $key);
+
+            $file_name = get_array_value($file, "file_name");
+            $file_id = get_array_value($file, "file_id");
+            $service_type = get_array_value($file, "service_type");
+
+            $view_data["file_url"] = get_source_url_of_file($file, get_setting("timeline_file_path"));
+            $view_data["is_image_file"] = is_image_file($file_name);
+            $view_data["is_google_preview_available"] = is_google_preview_available($file_name);
+            $view_data["is_viewable_video_file"] = is_viewable_video_file($file_name);
+            $view_data["is_google_drive_file"] = ($file_id && $service_type == "google") ? true : false;
+
+            $this->load->view("leaves/file_preview", $view_data);
+        } else {
+            show_404();
+        }
+    }
+
+    /* upload a file */
+
+    function upload_file() {
+        upload_file_to_temp();
+    }
+
+    /* check valid file for notes */
+
+    function validate_notes_file() {
+        return validate_post_file($this->input->post("file_name"));
     }
 
 }
