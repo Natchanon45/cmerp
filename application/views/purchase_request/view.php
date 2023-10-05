@@ -72,9 +72,6 @@
                             echo $supplier_address;
                         ?>
                     </p>
-                    <?php if (trim($supplier["country"]) != ""): ?>
-                        <p><?php // echo $supplier["country"]; ?></p>
-                    <?php endif; ?>
                     <?php if (trim($supplier["vat_number"]) != ""): ?>
                         <p><?php echo lang("vat_number") . ": " . $supplier["vat_number"]; ?></p>
                     <?php endif; ?>
@@ -95,11 +92,6 @@
                         <td><?php echo convertDate($doc_date, true); ?></td>
                     </tr>
 
-                    <!-- <tr>
-                        <td class="custom-color">เครดิต</td>
-                        <td><?php // echo $credit; ?> วัน</td>
-                    </tr> -->
-
                     <tr>
                         <td class="custom-color top-vertical"><?php echo lang('request_by'); ?></td>
                         <td><?php if ($created != null) echo $created["first_name"] . " " . $created["last_name"]; ?></td>
@@ -110,13 +102,6 @@
                             <?php echo (isset($project_info->title) && !empty($project_info->title)) ? $project_info->title : '-'; ?>
                         </td>
                     </tr>
-
-                    <!-- <tr>
-                        <td class="custom-color top-vertical"><?php // echo lang('reference_number'); ?></td>
-                        <td>
-                            <?php // echo (isset($reference_number) && !empty($reference_number) && trim($reference_number) != "") ? $reference_number : '-'; ?>
-                        </td>
-                    </tr> -->
 
                 </table>
             </div>
@@ -166,9 +151,19 @@
                         <?php if ($doc_status == "W"): ?>
                             <p>
                                 <?php
+                                    $btn_text = lang("btn_add_raw_material");
+                                    
+                                    if ($pr_type == 3) {
+                                        $btn_text = lang("btn_add_finished_goods");
+                                    }
+
+                                    if ($pr_type == 5) {
+                                        $btn_text = lang("btn_add_expense");
+                                    }
+
                                     echo modal_anchor(
                                         get_uri("purchase_request/item"),
-                                        "<i class='fa fa-plus-circle'></i> " . lang('add_item_product'),
+                                        "<i class='fa fa-plus-circle'></i> " . $btn_text,
                                         array(
                                             "id" => "add_item_button",
                                             "class" => "btn btn-default",
@@ -188,24 +183,6 @@
                             <span class="c2"><input type="text" id="sub_total_before_discount" readonly></span>
                             <span class="c3"><span class="currency"><?php echo lang('THB'); ?></span></span>
                         </p>
-
-                        <!-- <p id="s-discount">
-                            <span class="c1 custom-color">
-                                ส่วนลด&nbsp;<input type="number" id="discount_percent" value="<?php // echo $discount_percent; ?>" <?php // if ($doc_status != "W") echo "disabled"; ?>>
-                                <select id="discount_type" <?php // if ($doc_status != "W") echo "disabled"; ?>>
-                                    <option value="P" <?php // if ($discount_type == "P") echo "selected"; ?>>%</option>
-                                    <option value="F" <?php // if ($discount_type == "F") echo "selected"; ?>>฿</option>
-                                </select>
-                            </span>
-                            <span class="c2"><input type="text" id="discount_amount" value="<?php // echo $discount_amount; ?>" readonly></span>
-                            <span class="c3"><span class="currency">บาท</span></span>
-                        </p> -->
-
-                        <!-- <p id="s-sub-total">
-                            <span class="c1"><i class="custom-color t1">ราคาหลังหักส่วนลด</i><i class="custom-color t2">รวมเป็นเงิน</i></span>
-                            <span class="c2"><input type="text" id="sub_total" readonly></span>
-                            <span class="c3"><span class="currency">บาท</span></span>
-                        </p> -->
 
                         <p id="s-vat">
                             <span class="c1 custom-color">
@@ -265,9 +242,7 @@
 
     <div class="docsignature clear">
         <div class="customer">
-            <div class="on_behalf_of">
-                <?php // echo "ในนาม" . $client["company_name"]; ?>
-            </div>
+            <div class="on_behalf_of"></div>
             <div class="clear">
                 <div class="name">
                     <span class="l1">
@@ -290,9 +265,7 @@
             </div>
         </div><!--.customer -->
         <div class="company">
-            <div class="on_behalf_of">
-                <?php // echo "ในนาม" . get_setting("company_name"); ?>
-            </div>
+            <div class="on_behalf_of"></div>
             <div class="clear">
                 <div class="name">
                     <span class="l1">
@@ -330,10 +303,6 @@
     $(document).ready(function () {
         loadItems();
 
-        // $("#discount_percent, #discount_amount").blur(function () {
-        //     loadSummary();
-        // });
-
         $("#vat_inc, #wht_inc, #wht_percent").change(function () {
             loadSummary();
         });
@@ -349,8 +318,6 @@
             task: 'load_items',
             doc_id: '<?php echo $doc_id; ?>'
         }).then(function (response) {
-            // console.log(response);
-
             let data = response.data;
             if (data.status == "notfound") {
                 let notfound = `
@@ -360,8 +327,6 @@
                 `;
                 $(".docitem tbody").empty().append(notfound);
             } else if (data.status == "success") {
-                // console.log(data.items);
-
                 let tbody = '';
                 let items = data.items;
                 for (let i = 0; i < items.length; i++) {
@@ -397,16 +362,6 @@
     }
 
     function loadSummary() {
-        // let discount_type = $("#discount_type").val();
-        // let discount_percent = 0;
-        // let discount_value = 0;
-
-        // if (discount_type == "P") {
-        //     discount_percent = tonum($("#discount_percent").val());
-        // } else {
-        //     discount_value = tonum($("#discount_amount").val());
-        // }
-
         axios.post('<?php echo current_url(); ?>', {
             task: 'update_doc',
             doc_id: '<?php echo $doc_id; ?>',
@@ -417,8 +372,6 @@
             wht_inc: $("#wht_inc").is(":checked"),
             wht_percent: $("#wht_percent").val()
         }).then(function (response) {
-            // console.log(response);
-
             let data = response.data;
 
             $("#sub_total_before_discount").val(data.sub_total_before_discount);
@@ -430,31 +383,6 @@
             $("#total").val(data.total);
             $("#total_in_text").val("(" + data.total_in_text + ")");
             $("#payment_amount").val(data.payment_amount);
-
-            // if (data.discount_type == "P") {
-            //     $("#discount_type").val("P");
-            //     $("#discount_percent").removeClass("h").addClass("v");
-            //     $("#discount_amount").removeClass("f").addClass("p");
-            //     $("#discount_amount").prop("readonly", true);
-            //     discount_value = $("#discount_percent").val();
-            // } else {
-            //     $("#discount_type").val("F");
-            //     $("#discount_percent").removeClass("v").addClass("h");
-            //     $("#discount_amount").removeClass("p").addClass("f");
-            //     $("#discount_amount").prop("readonly", false);
-            //     discount_value = $("#discount_amount").val();
-            // }
-
-            // if (discount_value > 0) {
-            //     $("#s-sub-total-before-discount, #s-discount").removeClass("h").addClass("v");
-            //     $("#s-sub-total .t1").removeClass("h").addClass("v");
-            //     $("#s-sub-total .t2").removeClass("v").addClass("h");
-
-            // } else {
-            //     $("#s-sub-total-before-discount, #s-discount").removeClass("v").addClass("h");
-            //     $("#s-sub-total .t1").removeClass("v").addClass("h");
-            //     $("#s-sub-total .t2").removeClass("h").addClass("v");
-            // }
 
             if (data.vat_inc == "Y") {
                 $("#vat_inc").prop("checked", true);
@@ -485,10 +413,8 @@
             doc_id: '<?php echo $doc_id; ?>',
             item_id: item_id
         };
-        // console.log(url, request);
 
         axios.post(url, request).then((response) => {
-            // console.log(response);
             loadItems();
         });
     }
@@ -500,10 +426,8 @@
             doc_id: '<?php echo $doc_id; ?>',
             update_status_to: 'A'
         };
-        // console.log(url, req);
 
         axios.post(url, request).then((response) => {
-            // console.log(response);
             let data = response.data;
 
             if (data.status == "success") {
@@ -514,8 +438,6 @@
                 appAlert.error(data.message, { duration: 3001 });
             }
         }).catch((error) => {
-            // console.log(error);
-
             appAlert.error("500 Internal Server Error.", { duration: 3001 });
         });
     }

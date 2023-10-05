@@ -2112,6 +2112,14 @@ $lang["payments_waiting"] = "Awaiting payment";
 $lang["payments_partial"] = "Partial payment";
 $lang["payments_completed"] = "Completed payment";
 
+$lang["btn_add_raw_material"] = "Add material";
+$lang["btn_add_finished_goods"] = "Add finished goods";
+$lang["btn_add_expense"] = "Add expense";
+
+$lang["label_raw_material"] = "Raw Material";
+$lang["label_finished_goods"] = "Finished Goods";
+$lang["label_expense"] = "Expense";
+
 $lang["purchase_request"] = "Purchase Requisition";
 $lang["purchase_request_add"] = "Create new PR";
 $lang["request_date"] = "Request Date";

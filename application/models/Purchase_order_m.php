@@ -171,6 +171,7 @@ class Purchase_order_m extends MY_Model
     {
         $db = $this->db;
 
+        $this->data["pr_id"] = null;
         $this->data["doc_date"] = date("Y-m-d");
         $this->data["doc_type"] = null;
         $this->data["credit"] = "0";
@@ -201,6 +202,7 @@ class Purchase_order_m extends MY_Model
             if (empty($qrow)) return $this->data;
 
             $this->data["doc_id"] = $docId;
+            $this->data["pr_id"] = $qrow->pr_id;
             $this->data["doc_number"] = $qrow->doc_number;
             $this->data["share_link"] = $qrow->sharekey != null ? get_uri($this->shareHtmlAddress . "th/" . $qrow->sharekey) : null;
             $this->data["doc_date"] = $qrow->doc_date;

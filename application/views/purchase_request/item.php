@@ -1,6 +1,20 @@
+<?php
+$label_text = lang("btn_add_raw_material");
+
+if (isset($doc_type) && !empty($doc_type)) {
+    if ($doc_type == 3) {
+        $label_text = lang("btn_add_finished_goods");
+    }
+
+    if ($doc_type == 5) {
+        $label_text = lang("btn_add_expense");
+    }
+}
+?>
+
 <div class="general-form modal-body clearfix">
     <div class="form-group">
-        <label for="product_name" class=" col-md-3"><?php echo lang('item'); ?></label>
+        <label for="product_name" class=" col-md-3"><?php echo $label_text; ?></label>
         <div class="col-md-9">
             <input type="hidden" id="product_id" value="<?php echo $product_id; ?>">
             <input type="text" id="product_name" value="<?php echo $product_name; ?>" placeholder="<?php echo lang('select_or_create_new_item'); ?>" class="form-control" <?php if (isset($product_id) && !empty($product_id)) echo 'style="pointer-events: none;"'; ?>>

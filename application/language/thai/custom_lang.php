@@ -2513,6 +2513,14 @@ $lang["payments_waiting"] = "รอชำระ";
 $lang["payments_partial"] = "ชำระบางส่วน";
 $lang["payments_completed"] = "ชำระครบถ้วน";
 
+$lang["btn_add_raw_material"] = "เพิ่มรายการวัตถุดิบ";
+$lang["btn_add_finished_goods"] = "เพิ่มรายการสินค้า";
+$lang["btn_add_expense"] = "เพิ่มรายการค่าใช้จ่าย";
+
+$lang["label_raw_material"] = "รายการวัตถุดิบ";
+$lang["label_finished_goods"] = "รายการสินค้า";
+$lang["label_expense"] = "รายการค่าใช้จ่าย";
+
 $lang["purchase_request"] = "ใบขอซื้อ (PR)";
 $lang["purchase_request_add"] = "เพิ่มใบขอซื้อ";
 $lang["request_date"] = "วันที่ขอซื้อ";
