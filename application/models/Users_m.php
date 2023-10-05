@@ -4,6 +4,19 @@ class Users_m extends CI_Model {
 
     function __construct() {}
 
+    function getRows($field_names = null, $user_type = "staff"){
+        $db = $this->db;
+        
+        if(!is_array($field_names)) $field_names = "*";
+
+        return $db->select($field_names)
+                    ->from("users")
+                    ->where("user_type", $user_type)
+                    ->where("status", "active")
+                    ->where("deleted", 0)
+                    ->get()->result();
+    }
+
     function getInfo($user_id){
         $db = $this->db;
         

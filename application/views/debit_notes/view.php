@@ -76,10 +76,6 @@
                         <td class="custom-color">ครบกำหนด</td>
                         <td><?php echo convertDate($due_date, true); ?></td>
                     </tr>
-                    <tr>
-                        <td class="custom-color">ผู้ขาย</td>
-                        <td><?php if($created != null) echo $created["first_name"]." ".$created["last_name"]; ?></td>
-                    </tr>
                     <?php if(trim($reference_number) != ""): ?>
                         <tr>
                             <td class="custom-color">เลขที่อ้างอิง</td>

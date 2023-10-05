@@ -158,6 +158,7 @@ $(document).ready(function() {
             alert(data.message);
             
             if(data.status == "success"){
+                if(data.can_make_mr != true) $("#btnSubmit").prop("disabled", "disabled");
                 getProducts("<?php echo $doc_id; ?>");
             }
             

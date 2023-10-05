@@ -107,6 +107,7 @@ class Quotations_m extends MY_Model {
 
     function getDoc($docId){
         $db = $this->db;
+        $ci = get_instance();
         $company_setting = $this->Settings_m->getCompany();
 
         $this->data["doc_id"] = null;
@@ -122,6 +123,7 @@ class Quotations_m extends MY_Model {
         $this->data["wht_inc"] = "N";
         $this->data["project_id"] = null;
         $this->data["customer_id"] = null;
+        $this->data["seller_id"] = null;
         $this->data["client_id"] = null;
         $this->data["lead_id"] = null;
         $this->data["remark"] = null;
@@ -167,11 +169,17 @@ class Quotations_m extends MY_Model {
             $this->data["vat_percent"] = number_format_drop_zero_decimals($qrow->vat_percent, 2)."%";
             $this->data["wht_inc"] = $qrow->wht_inc;
             $this->data["project_id"] = $qrow->project_id;
+            if($qrow->seller_id != null) $this->data["seller"] = $ci->Users_m->getInfo($qrow->seller_id);
+            $this->data["seller_id"] = $qrow->seller_id;
             $this->data["client_id"] = $client_id;
             $this->data["lead_id"] = $lead_id;
             $this->data["remark"] = $qrow->remark;
+
+            $this->data["created"] = $this->Users_m->getInfo($qrow->created_by);
             $this->data["created_by"] = $qrow->created_by;
             $this->data["created_datetime"] = $qrow->created_datetime;
+
+            if($qrow->approved_by != null) $this->data["approved"] = $ci->Users_m->getInfo($qrow->approved_by);
             $this->data["approved_by"] = $qrow->approved_by;
             $this->data["approved_datetime"] = $qrow->approved_datetime;
             if(file_exists($_SERVER['DOCUMENT_ROOT']."/".$company_setting["company_stamp"])) $this->data["company_stamp"] = $company_setting["company_stamp"];
@@ -219,7 +227,7 @@ class Quotations_m extends MY_Model {
         $client_id = $qrow->client_id;
         $created_by = $qrow->created_by;
 
-        $this->data["seller"] = $ci->Users_m->getInfo($created_by);
+        if($qrow->seller_id != null) $this->data["seller"] = $ci->Users_m->getInfo($qrow->seller_id);
 
         $this->data["buyer"] = $ci->Customers_m->getInfo($client_id);
         $this->data["buyer_contact"] = $ci->Customers_m->getContactInfo($client_id);
@@ -251,6 +259,7 @@ class Quotations_m extends MY_Model {
 
         $this->data["sharekey_by"] = $qrow->sharekey_by;
 
+        $this->data["created"] = $ci->Users_m->getInfo($created_by);
         $this->data["created_by"] = $qrow->created_by;
         $this->data["created_datetime"] = $qrow->created_datetime;
         $this->data["approved_by"] = $qrow->approved_by;
@@ -428,6 +437,7 @@ class Quotations_m extends MY_Model {
         $credit = intval($this->json->credit) < 0 ? 0:intval($this->json->credit);
         $doc_valid_until_date = convertDate($this->json->doc_valid_until_date);
         $reference_number = $this->json->reference_number;
+        $seller_id = $this->json->seller_id;
         $client_id = $this->json->client_id;
         $lead_id = $this->json->lead_id;
         $project_id = $this->json->project_id;
@@ -470,6 +480,7 @@ class Quotations_m extends MY_Model {
                                         "credit"=>$credit,
                                         "doc_valid_until_date"=>$doc_valid_until_date,
                                         "reference_number"=>$reference_number,
+                                        "seller_id"=>$seller_id,
                                         "client_id"=>$customer_id,
                                         "project_id"=>($project_id != null ? $project:null),
                                         "remark"=>$remark
@@ -485,6 +496,7 @@ class Quotations_m extends MY_Model {
                                         "doc_valid_until_date"=>$doc_valid_until_date,
                                         "reference_number"=>$reference_number,
                                         "vat_inc"=>$company_setting["company_vat_registered"],
+                                        "seller_id"=>$seller_id,
                                         "client_id"=>$customer_id,
                                         "project_id"=>($project_id != null ? $project:null),
                                         "remark"=>$remark,

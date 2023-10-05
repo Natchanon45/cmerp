@@ -1198,7 +1198,8 @@ class Projects_model extends Crud_model {
         $info = [
             "success" => false,
             "header" => null,
-            "items" => null
+            "items" => null,
+            "message" => null
         ];
 
         // get production order info
@@ -1214,6 +1215,9 @@ class Projects_model extends Crud_model {
             $this->db->delete("bom_project_items", ["id" => $production_id]);
             $info["header"] = $header_data;
             $info["success"] = true;
+            $info["message"] = lang("production_order_delete_success");
+        } else {
+            $info["message"] = lang("production_order_delete_failure");
         }
 
         return $info;

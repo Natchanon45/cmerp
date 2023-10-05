@@ -24,6 +24,19 @@
     </div>
 
     <div class="form-group">
+        <label for="seller_id" class="col-md-3">ผู้ขาย</label>
+        <div class="col-md-9">
+            <?php $srows = $this->Users_m->getRows(["id", "first_name", "last_name"]); ?>
+            <select id="seller_id" class="form-control" <?php if($doc_status != "W" && isset($doc_id)) echo "disabled";?>>
+                <option value="">-</option>
+                <?php foreach($srows as $srow): ?>
+                    <option value="<?php echo $srow->id; ?>" <?php if($seller_id == $srow->id) echo "selected"?>><?php echo $srow->first_name." ".$srow->last_name; ?></option>
+                <?php endforeach; ?>
+            </select>
+        </div>
+    </div>
+
+    <div class="form-group">
         <label for="client_id" class=" col-md-3"><?php echo lang('client'); ?></label>
         <div class="col-md-9">
             <?php $crows = $this->Clients_m->getRows(); ?>
@@ -96,6 +109,7 @@ $(document).ready(function() {
                 credit: $("#credit").val(),
                 doc_valid_until_date: $("#doc_valid_until_date").val(),
                 reference_number: $("#reference_number").val(),
+                seller_id: $("#seller_id").val(),
                 client_id: $("#client_id").val(),
                 lead_id: $("#lead_id").val(),
                 project_id: $("#project_id").val(),
