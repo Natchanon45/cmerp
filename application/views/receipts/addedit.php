@@ -8,14 +8,27 @@
 
     <div class="form-group">
         <label for="reference_number" class=" col-md-3">เลขที่อ้างอิง</label>
-        <div class="col-md-9"><input type="text" id="reference_number" value="<?php echo $reference_number; ?>" placeholder="#" class="form-control"></div>
+        <div class="col-md-9"><input type="text" id="reference_number" value="<?php echo $reference_number; ?>" placeholder="#" class="form-control" <?php if($doc_status != "W" && isset($doc_id)) echo "readonly";?>></div>
     </div>
 
     <div class="form-group">
-        <label for="client_id" class=" col-md-3"><?php echo lang('client'); ?></label>
+        <label for="seller_id" class="col-md-3">ผู้ขาย</label>
+        <div class="col-md-9">
+            <?php $srows = $this->Users_m->getRows(["id", "first_name", "last_name"]); ?>
+            <select id="seller_id" class="form-control" <?php if($doc_status != "W" && isset($doc_id)) echo "disabled";?>>
+                <option value="">-</option>
+                <?php foreach($srows as $srow): ?>
+                    <option value="<?php echo $srow->id; ?>" <?php if($seller_id == $srow->id) echo "selected"?>><?php echo $srow->first_name." ".$srow->last_name; ?></option>
+                <?php endforeach; ?>
+            </select>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label for="client_id" class="col-md-3"><?php echo lang('client'); ?></label>
         <div class="col-md-9">
             <?php $crows = $this->Clients_m->getRows(); ?>
-            <select id="client_id" class="form-control">
+            <select id="client_id" class="form-control" <?php if($doc_status != "W" && isset($doc_id)) echo "disabled";?>>
                 <option value="">-</option>
                 <?php foreach($crows as $crow): ?>
                     <option value="<?php echo $crow->id; ?>" <?php if($client_id == $crow->id) echo "selected"?>><?php echo $crow->company_name; ?></option>
@@ -28,7 +41,7 @@
         <label for="lead_id" class=" col-md-3">ลูกค้าผู้มุ่งหวัง</label>
         <div class="col-md-9">
             <?php $lrows = $this->Leads_m->getRows(); ?>
-            <select id="lead_id" class="form-control">
+            <select id="lead_id" class="form-control" <?php if($doc_status != "W" && isset($doc_id)) echo "disabled";?>>
                 <option value="">-</option>
                 <?php foreach($lrows as $lrow): ?>
                     <option value="<?php echo $lrow->id; ?>" <?php if($lead_id == $lrow->id) echo "selected"?>><?php echo $lrow->company_name; ?></option>
@@ -41,7 +54,7 @@
         <label for="project_id" class=" col-md-3"><?php echo lang('project'); ?></label>
         <div class="col-md-9">
             <?php $prows = $this->Projects_m->getRows(); ?>
-            <select id="project_id" class="form-control">
+            <select id="project_id" class="form-control" <?php if($doc_status != "W" && isset($doc_id)) echo "disabled";?>>
                 <option value="">-</option>
                 <?php foreach($prows as $prow): ?>
                     <option value="<?php echo $prow->id; ?>" <?php if($project_id == $prow->id) echo "selected"?>><?php echo $prow->title; ?></option>
@@ -52,7 +65,7 @@
     <div class="form-group">
         <label for="remark" class=" col-md-3">หมายเหตุ</label>
         <div class=" col-md-9">
-            <textarea id="remark" name="remark" placeholder="หมายเหตุ" class="form-control"><?php echo $remark; ?></textarea>
+            <textarea id="remark" name="remark" placeholder="หมายเหตุ" class="form-control" <?php if($doc_status != "W" && isset($doc_id)) echo "disabled";?>><?php echo $remark; ?></textarea>
         </div>
     </div>
 </div>
@@ -82,6 +95,7 @@ $(document).ready(function() {
                 doc_id : "<?php if(isset($doc_id)) echo $doc_id; ?>",
                 doc_date:$("#doc_date").val(),
                 reference_number: $("#reference_number").val(),
+                seller_id: $("#seller_id").val(),
                 client_id: $("#client_id").val(),
                 lead_id: $("#lead_id").val(),
                 project_id: $("#project_id").val(),

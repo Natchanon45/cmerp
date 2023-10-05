@@ -95,10 +95,12 @@
                         <td class="custom-color">ครบกำหนด</td>
                         <td><?php echo convertDate($due_date, true); ?></td>
                     </tr>
-                    <tr>
-                        <td class="custom-color">ผู้ขาย</td>
-                        <td><?php if($created != null) echo $created["first_name"]." ".$created["last_name"]; ?></td>
-                    </tr>
+                    <?php if(isset($seller)): ?>
+                        <tr>
+                            <td class="custom-color">ผู้ขาย</td>
+                            <td><?php if($seller != null) echo $seller["first_name"]." ".$seller["last_name"]; ?></td>
+                        </tr>
+                    <?php endif; ?>
                     <?php if(trim($reference_number) != ""): ?>
                         <tr>
                             <td class="custom-color">เลขที่อ้างอิง</td>
@@ -223,7 +225,8 @@
             <div class="clear">
                 <div class="name">
                     <span class="l1"></span>
-                    <span class="l2">ผู้รับสินค้า / บริการ</span>
+                    <span class="l2">(<?php echo $client["company_name"] ?>)</span>
+                    <span class="l3">ผู้รับสินค้า / บริการ</span>
                 </div>
                 <div class="date">
                     <span class="l1"></span>
@@ -249,7 +252,8 @@
                             <?php endif; ?>
                         </span>
                     </span>
-                    <span class="l2">ผู้อนุมัติ</span>
+                    <span class="l2"><?php if(isset($approved)) echo "(".$approved["first_name"]." ".$approved["last_name"].")"; ?></span>
+                    <span class="l3">ผู้อนุมัติ</span>
                 </div>
                 <div class="date">
                     <span class="l1">

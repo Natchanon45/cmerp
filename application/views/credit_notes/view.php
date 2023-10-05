@@ -76,10 +76,6 @@
                         <td class="custom-color">ครบกำหนด</td>
                         <td><?php echo convertDate($due_date, true); ?></td>
                     </tr>
-                    <tr>
-                        <td class="custom-color">ผู้ขาย</td>
-                        <td><?php if($created != null) echo $created["first_name"]." ".$created["last_name"]; ?></td>
-                    </tr>
                     <?php if(trim($reference_number) != ""): ?>
                         <tr>
                             <td class="custom-color">เลขที่อ้างอิง</td>
@@ -106,22 +102,6 @@
             </div>
         </div>
     </div><!--.docheader-->
-    <!--<div class="moreinfo">
-        <p class="remark">
-            <label class="custom-color">สาเหตุ</label>
-            <select>
-                <option disabled="disabled">---ซื้อ-ขายสินค้า---</option>
-                <option value="101">ได้รับคืนสินค้า - เนื่องจากผิดจากชำรุดเสียหาย ไม่ครบ ไม่ตรงตามตัวอย่าง หรือไม่ตรงตามคำบรรยาย</option>
-                <option value="102">จ่ายเงินชดเชย -  ให้แก่ผู้ซื้อสินค้า หรือผู้รับบริการตามข้อผูกพัน/ข้อตกลงกัน</option>
-                <option value="103">จ่ายเงินคืนเงินล่วงหน้า เงินมัดจำ เงินประกัน เงินจอง - ให้แก่ผู้ซื้อสินค้า หรือผู้รับบริการตามข้อผูกพัน/ข้อตกลงกัน</option>
-                <option value="104">ได้รับคืนสินค้า หรือแลกเปลี่ยนสินค้า - ระหว่างผู้ประกอบการ VAT ด้วยกัน</option>
-                <option value="105">ได้รับคืนสินค้า หรือแลกเปลี่ยนสินค้า - ระหว่างผู้ขายกับลูกค้า (เฉพาะภายในเวลาอันเหมาะสม)</option>
-                <option value="106">บอกเลิกบริการ - เนื่องจากผิดจากที่ตกลงกัน</option>
-                <option value="107">บอกเลิกบริการ - เนื่องจากไม่ได้มีการให้บริการตามสัญญา</option>
-                <option value="108">อื่นๆ</option>
-            </select>
-        </p>
-    </div>-->
     <div class="docitem">
         <table>
             <thead>

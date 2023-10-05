@@ -89,6 +89,7 @@ class Billing_notes_m extends MY_Model {
 
     function getDoc($docId){
         $db = $this->db;
+        $ci = get_instance();
         $company_setting = $this->Settings_m->getCompany();
 
         $this->data["doc_id"] = null;
@@ -147,6 +148,7 @@ class Billing_notes_m extends MY_Model {
             $this->data["remark"] = $bnrow->remark;
             $this->data["created_by"] = $bnrow->created_by;
             $this->data["created_datetime"] = $bnrow->created_datetime;
+            if($bnrow->approved_by != null) $this->data["approved"] = $ci->Users_m->getInfo($bnrow->approved_by);
             $this->data["approved_by"] = $bnrow->approved_by;
             $this->data["approved_datetime"] = $bnrow->approved_datetime;
             if($bnrow->approved_by != null) if(file_exists($_SERVER['DOCUMENT_ROOT']."/".$company_setting["company_stamp"])) $this->data["company_stamp"] = $company_setting["company_stamp"];
@@ -214,8 +216,15 @@ class Billing_notes_m extends MY_Model {
         $this->data["payment_amount"] = $bnrow->payment_amount;
 
         $this->data["sharekey_by"] = $bnrow->sharekey_by;
+
+        if($bnrow->approved_by != null) $this->data["approved"] = $ci->Users_m->getInfo($bnrow->approved_by);
         $this->data["approved_by"] = $bnrow->approved_by;
         $this->data["approved_datetime"] = $bnrow->approved_datetime;
+
+        if($bnrow->approved_by != null && file_exists($_SERVER['DOCUMENT_ROOT']."/".$company_setting["company_stamp"])){
+            $this->data["company_stamp"] = $company_setting["company_stamp"];
+        }
+        
         $this->data["doc_status"] = $bnrow->status;
 
         $this->data["doc"] = $bnrow;

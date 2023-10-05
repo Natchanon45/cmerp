@@ -198,8 +198,6 @@ class Credit_notes_m extends MY_Model {
         $client_id = $cnrow->client_id;
         $created_by = $cnrow->created_by;
 
-        $this->data["seller"] = $ci->Users_m->getInfo($created_by);
-
         $this->data["buyer"] = $ci->Customers_m->getInfo($client_id);
         $this->data["buyer_contact"] = $ci->Customers_m->getContactInfo($client_id);
 

@@ -90,7 +90,7 @@
 				</div>
 			</div>
 			<div class="right">
-				<div class="docname custom-color">ใบสั่งขาย</div>
+				<div class="docname custom-color"><?php echo $doc["purpose"] == "P"?"ใบสั่งผลิต":"ใบสั่งขาย";?></div>
 				<div class="docinfo">
 					<table>
 	                    <tr>
@@ -182,21 +182,27 @@
 		</div><!--.body-->
 		<div class="footer clear">
 			<div class="c1">
-				<div class="on_behalf_of">ในนาม <?php echo $doc["buyer"]["company_name"] ?></div>
+				<div class="company_stamp"></div>
+				<div class="on_behalf_of"></div>
 				<div class="signature clear">
 					<div class="name">
-	                    <span class="l1"></span>
-	                    <span class="l2">ผู้สั่งซื้อสินค้า</span>
+	                    <span class="l1">
+	                    	<?php if(null != $signature = $this->Users_m->getSignature($doc["created_by"])): ?>
+                            	<img src='<?php echo "/".$signature; ?>'>
+                        	<?php endif; ?>
+	                    </span>
+	                    <span class="l2">(<?php echo $doc["created"]["first_name"]." ".$doc["created"]["last_name"]; ?></span>
+	                    <span class="l3">ผู้ออกเอกสาร</span>
 	                </div>
 	                <div class="date">
-	                    <span class="l1"></span>
+	                    <span class="l1"><span class="created_date"><?php echo convertDate($doc["created_datetime"], true); ?></span></span>
 	                    <span class="l2">วันที่</span>
 	                </div>
 				</div>
 			</div>
 			<div class="c2">
 				<div class="company_stamp"></div>
-				<div class="on_behalf_of">ในนาม <?php echo get_setting("company_name"); ?></div>
+				<div class="on_behalf_of"></div>
 				<div class="signature clear">
 					<div class="name">
 	                    <span class="l1">
@@ -204,7 +210,8 @@
                             	<img src='<?php echo "/".$signature; ?>'>
                         	<?php endif; ?>
 	                    </span>
-	                    <span class="l2">ผู้อนุมัติ</span>
+	                    <span class="l2"><?php if(isset($doc["approved"])) echo "(".$doc["approved"]["first_name"]." ".$doc["approved"]["last_name"].")"; ?></span>
+	                    <span class="l3">ผู้อนุมัติ</span>
 	                </div>
 	                <div class="date">
 	                    <span class="l1"><span class="approved_date"><?php echo convertDate($doc["approved_datetime"], true); ?></span></span>
