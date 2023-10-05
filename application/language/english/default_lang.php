@@ -2145,9 +2145,11 @@ $lang["goods_receipt_add"] = "Create new GR";
 $lang["receive_date"] = "Receive date";
 $lang["record_of_receipt"] = "Record of Goods receipt";
 $lang["record_of_expenses"] = "Record of Expenses";
+$lang["record_of_goods_receipt"] = "Record of Goods receipt";
 
 $lang["payment_voucher"] = "Payment Voucher";
 $lang["payment_voucher_add"] = "Create new PV";
+$lang["record_of_payment_voucher"] = "Record of Payment voucher";
 
 $lang["material_request_type"] = "Request type";
 $lang["project_refer"] = "Project reference";

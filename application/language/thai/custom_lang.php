@@ -2546,9 +2546,11 @@ $lang["goods_receipt_add"] = "เพิ่มใบรับสินค้า";
 $lang["receive_date"] = "วันที่รับสินค้า";
 $lang["record_of_receipt"] = "บันทึกซื้อสินค้า";
 $lang["record_of_expenses"] = "บันทึกค่าใช้จ่าย";
+$lang["record_of_goods_receipt"] = "ออกใบรับสินค้า";
 
 $lang["payment_voucher"] = "ใบสำคัญจ่าย (PV)";
 $lang["payment_voucher_add"] = "เพิ่มใบสำคัญจ่าย";
+$lang["record_of_payment_voucher"] = "ออกใบสำคัญจ่าย";
 
 $lang["material_request_type"] = "ประเภทการเบิก";
 $lang["project_refer"] = "โปรเจคอ้างอิง";

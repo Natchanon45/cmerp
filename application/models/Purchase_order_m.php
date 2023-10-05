@@ -74,36 +74,17 @@ class Purchase_order_m extends MY_Model
             ';
             $button = '<a data-post-id="' . $qrow->id . '" data-title="' . $this->modal_header() . '" data-action-url="' . get_uri('purchase_order/addedit') . '" data-act="ajax-modal" class="edit"><i class="fa fa-pencil"></i></a>';
         } elseif ($qrow->status == "A") {
-            if ($qrow->receipt_status == "C") {
+            $doc_status .= '<option value="A" selected>' . lang('pr_approved') . '</option>';
+
+            if ($qrow->receipt_status == "P" || $qrow->receipt_status == "W") {
                 $doc_status .= '
-                    <option value="A" selected>' . lang('pr_approved') . '</option>
+                    <option value="PV">' . lang('record_of_payment_voucher') . '</option>
+                    <option value="GR">' . lang('record_of_goods_receipt') . '</option>
                 ';
-            } elseif ($qrow->receipt_status == "P") {
-                if ($qrow->po_type == 5) {
-                    $doc_status .= '
-                        <option value="A" selected>' . lang('pr_approved') . '</option>
-                        <option value="GR">' . lang('record_expenses') . '</option>
-                    ';
-                } else {
-                    $doc_status .= '
-                        <option value="A" selected>' . lang('pr_approved') . '</option>
-                        <option value="GR">' . lang('record_products') . '</option>
-                    ';
-                }
-            } elseif ($qrow->receipt_status == "W") {
-                if ($qrow->po_type == 5) {
-                    $doc_status .= '
-                        <option value="A" selected>' . lang('pr_approved') . '</option>
-                        <option value="GR">' . lang('record_expenses') . '</option>
-                        <option value="X">' . lang('cancel') . '</option>
-                    ';
-                } else {
-                    $doc_status .= '
-                        <option value="A" selected>' . lang('pr_approved') . '</option>
-                        <option value="GR">' . lang('record_products') . '</option>
-                        <option value="X">' . lang('cancel') . '</option>
-                    ';
-                }
+            }
+
+            if ($qrow->receipt_status == "W") {
+                $doc_status .= '<option value="X">' . lang('cancel') . '</option>';
             }
             
             $button = '<a data-post-id="' . $qrow->id . '" data-title="' . $this->modal_header() . '" data-action-url="' . get_uri('purchase_order/addedit') . '" data-act="ajax-modal" class="edit"><i class="fa fa-eye"></i></a>';

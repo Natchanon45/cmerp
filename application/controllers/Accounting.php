@@ -9,8 +9,8 @@ class Accounting extends MY_Controller {
             $this->session->set_flashdata('notice_error', lang('no_permissions'));
             redirect("/");
         }*/
+        
         $this->load->model('Purchaserequest_m');
-
         $this->data["company_setting"] = $this->Settings_m->getCompany();
     }
 

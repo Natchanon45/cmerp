@@ -110,16 +110,16 @@
                     <?php endif; ?>
 
                     <?php if ($permissions['access_purchase_request']): $number_of_enable_module++; ?>
+                        <li data-module="payment_voucher" class="<?php if($module == "payment_voucher") echo 'active custom-bg01'; ?>">
+                            <a class="<?php if($module == "payment_voucher") echo 'custom-color'; ?>"><?php echo lang('payment_voucher'); ?></a>
+                        </li>
+                    <?php endif; ?>
+
+                    <?php if ($permissions['access_purchase_request']): $number_of_enable_module++; ?>
                         <li data-module="goods_receipt" class="<?php if ($module == "goods_receipt") echo 'active custom-bg01'; ?>">
                             <a class="<?php if ($module == "goods_receipt") echo 'custom-color'; ?>"><?php echo lang('goods_receipt'); ?></a>
                         </li>
                     <?php endif; ?>
-
-                    <!-- <?php // if ($permissions['access_purchase_request']): $number_of_enable_module++; ?>
-                        <li data-module="payment_voucher" class="<?php // if($module == "payment_voucher") echo 'active custom-bg01'; ?>">
-                            <a class="<?php // if($module == "payment_voucher") echo 'custom-color'; ?>"><?php // echo lang('payment_voucher'); ?></a>
-                        </li>
-                    <?php // endif; ?> -->
                 </ul>
 
                 <ul class="buttons">
@@ -207,11 +207,44 @@
                 { column: 5, dataType: 'currency' }
             ];
         } else if (active_module == 'purchase_order') {
-            $(".buttons").addClass('hide');
+            $(".buttons").removeClass('hide');
             $(".buttons li.add a").attr('data-action-url', '<?php echo get_uri('purchase_order/addedit'); ?>');
             $(".buttons li.add span").append('<?php echo lang('purchase_order_add'); ?>');
 
             status_dropdown = '<?php echo $po_status_dropdown; ?>';
+            supplier_dropdown = '<?php echo $supplier_dropdown; ?>';
+            type_dropdown = '<?php echo $type_dropdown; ?>';
+
+            grid_filters = [
+                { name: 'status', class: 'w150', options: JSON.parse(status_dropdown) },
+                { name: 'po_type', class: 'w200', options: JSON.parse(type_dropdown) },
+                { name: 'supplier_id', class: 'w250', options: JSON.parse(supplier_dropdown) }
+            ];
+
+            grid_columns = [
+                { title: '<?php echo lang('request_date'); ?>', class: 'w10p' },
+                { title: '<?php echo lang('pr_number'); ?>', class: 'w10p' },
+                { title: '<?php echo lang('reference_number'); ?>', class: 'w10p' },
+                { title: '<?php echo lang('pr_type'); ?>', class: 'w10p' },
+                { title: '<?php echo lang('supplier_name'); ?>', class: 'w20p' },
+                { title: '<?php echo lang('request_by'); ?>', class: 'w10p' },
+                { title: '<?php echo lang('total_amount'); ?>', class: 'text-right w10p' },
+                { title: '<?php echo lang('status'); ?>', class: 'w10p' },
+                { title: '<i class="fa fa-bars"></i>', class: 'text-center option w5p' }
+            ];
+
+            grid_print = combineCustomFieldsColumns([0, 1, 2, 3, 4, 5, 6]);
+            grid_excel = combineCustomFieldsColumns([0, 1, 2, 3, 4, 5, 6]);
+
+            grid_summation = [
+                { column: 6, dataType: 'currency' }
+            ];
+        } else if (active_module == 'payment_voucher') {
+            $(".buttons").removeClass('hide');
+            $(".buttons li.add a").attr('data-action-url', '<?php echo get_uri('payment_voucher/addedit'); ?>');
+            $(".buttons li.add span").append('<?php echo lang('payment_voucher_add'); ?>');
+
+            status_dropdown = '<?php echo $gr_status_dropdown; ?>';
             supplier_dropdown = '<?php echo $supplier_dropdown; ?>';
             type_dropdown = '<?php echo $type_dropdown; ?>';
 
