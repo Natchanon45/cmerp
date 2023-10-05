@@ -105,6 +105,7 @@ class Invoices_m extends MY_Model {
 
     function getDoc($docId){
         $db = $this->db;
+        $ci = get_instance();
         $company_setting = $this->Settings_m->getCompany();
 
         $this->data["doc_id"] = null;
@@ -125,6 +126,7 @@ class Invoices_m extends MY_Model {
         $this->data["total"] = 0;//ยอดรวม VAT
         $this->data["total_payment_amount"] = 0;//ชำระไปแล้ว
         $this->data["project_id"] = null;
+        $this->data["seller_id"] = null;
         $this->data["client_id"] = null;
         $this->data["lead_id"] = null;
         $this->data["remark"] = null;
@@ -201,9 +203,11 @@ class Invoices_m extends MY_Model {
             $this->data["total_payment_amount"] = $total_payment_amount;
             $this->data["net_receivable_await_payment_amount"] = $ivrow->total - $total_payment_amount;
             $this->data["project_id"] = $ivrow->project_id;
+            if($ivrow->seller_id != null) $this->data["seller"] = $ci->Users_m->getInfo($ivrow->seller_id);
             $this->data["client_id"] = $client_id;
             $this->data["lead_id"] = $lead_id;
             $this->data["remark"] = $ivrow->remark;
+            if($ivrow->approved_by != null) $this->data["approved"] = $ci->Users_m->getInfo($ivrow->approved_by);
             $this->data["created_by"] = $ivrow->created_by;
             $this->data["created_datetime"] = $ivrow->created_datetime;
             $this->data["approved_by"] = $ivrow->approved_by;
@@ -252,7 +256,7 @@ class Invoices_m extends MY_Model {
         $client_id = $ivrow->client_id;
         $created_by = $ivrow->created_by;
 
-        $this->data["seller"] = $ci->Users_m->getInfo($created_by);
+        if($ivrow->seller_id != null) $this->data["seller"] = $ci->Users_m->getInfo($ivrow->seller_id);
 
         $this->data["buyer"] = $ci->Customers_m->getInfo($client_id);
         $this->data["buyer_contact"] = $ci->Customers_m->getContactInfo($client_id);
@@ -283,6 +287,8 @@ class Invoices_m extends MY_Model {
         $this->data["payment_amount"] = $ivrow->payment_amount;
 
         $this->data["sharekey_by"] = $ivrow->sharekey_by;
+
+        if($ivrow->approved_by != null) $this->data["approved"] = $ci->Users_m->getInfo($ivrow->approved_by);
         $this->data["approved_by"] = $ivrow->approved_by;
         $this->data["approved_datetime"] = $ivrow->approved_datetime;
 
@@ -465,6 +471,7 @@ class Invoices_m extends MY_Model {
         $credit = $this->json->credit;
         $due_date = date('Y-m-d', strtotime($doc_date." + ".$credit." days"));
         $reference_number = $this->json->reference_number;
+        $seller_id = $this->json->seller_id;
         $client_id = $this->json->client_id;
         $lead_id = $this->json->lead_id;
         $project_id = $this->json->project_id;
@@ -507,6 +514,7 @@ class Invoices_m extends MY_Model {
                                         "credit"=>$credit,
                                         "due_date"=>$due_date,
                                         "reference_number"=>$reference_number,
+                                        "seller_id"=>$seller_id,
                                         "client_id"=>$customer_id,
                                         "project_id"=>($project_id != null ? $project_id:null),
                                         "remark"=>$remark
@@ -522,6 +530,7 @@ class Invoices_m extends MY_Model {
                                         "due_date"=>$due_date,
                                         "reference_number"=>$reference_number,
                                         "vat_inc"=>$company_setting["company_vat_registered"],
+                                        "seller_id"=>$seller_id,
                                         "client_id"=>$customer_id,
                                         "project_id"=>($project_id != null ? $project_id:null),
                                         "remark"=>$remark,
@@ -1240,6 +1249,7 @@ class Invoices_m extends MY_Model {
                                 "doc_date"=>$invoice_payment_payment_date,
                                 "reference_number"=>$invoice_number,
                                 "project_id"=>$ivrow->project_id,
+                                "seller_id"=>$ivrow->seller_id,
                                 "client_id"=>$ivrow->client_id,
                                 "created_by"=>$this->login_user->id,
                                 "created_datetime"=>date("Y-m-d H:i:s"),

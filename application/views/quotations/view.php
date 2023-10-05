@@ -102,10 +102,12 @@
                         <td class="custom-color">เครดิต</td>
                         <td><?php echo $credit; ?> วัน</td>
                     </tr>
-                    <tr>
-                        <td class="custom-color">ผู้ขาย</td>
-                        <td><?php if($created != null) echo $created["first_name"]." ".$created["last_name"]; ?></td>
-                    </tr>
+                    <?php if(isset($seller)): ?>
+                        <tr>
+                            <td class="custom-color">ผู้ขาย</td>
+                            <td><?php echo $seller["first_name"]." ".$seller["last_name"]; ?></td>
+                        </tr>
+                    <?php endif; ?>
                     <?php if(trim($reference_number) != ""): ?>
                         <tr>
                             <td class="custom-color">เลขที่อ้างอิง</td>
@@ -232,7 +234,8 @@
             <div class="clear">
                 <div class="name">
                     <span class="l1"></span>
-                    <span class="l2">ผู้สั่งซื้อสินค้า</span>
+                    <span class="l2">(<?php echo $client["company_name"] ?>)</span>
+                    <span class="l3">ผู้สั่งซื้อสินค้า</span>
                 </div>
                 <div class="date">
                     <span class="l1"></span>
@@ -256,7 +259,8 @@
                             <?php endif; ?>
                         </span>
                     </span>
-                    <span class="l2">ผู้ออก</span>
+                    <span class="l2">(<?php echo $created["first_name"]." ".$created["last_name"]; ?>)</span>
+                    <span class="l3">ผู้ออกเอกสาร</span>
                 </div>
                 <div class="date">
                     <span class="l1"><span class="approved_date"><?php echo convertDate($created_datetime, true); ?></span></span>
@@ -294,7 +298,7 @@ function loadItems(){
     }).then(function (response) {
         data = response.data;
         if(data.status == "notfound"){
-            $(".docitem tbody").empty().append("<tr><td colspan='7' class='notfound'>"+data.message+"</td></tr>");
+            $(".docitem tbody").empty().append("<tr><td colspan='8' class='notfound'>"+data.message+"</td></tr>");
         }else if(data.status == "success"){
             tbody = "";
             items = data.items;

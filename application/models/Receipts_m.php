@@ -124,6 +124,7 @@ class Receipts_m extends MY_Model {
 
     function getDoc($docId){
         $db = $this->db;
+        $ci = get_instance();
         $company_setting = $this->Settings_m->getCompany();
 
         $this->data["billing_type"] = "";
@@ -136,6 +137,7 @@ class Receipts_m extends MY_Model {
         $this->data["vat_inc"] = "N";
         $this->data["wht_inc"] = "N";
         $this->data["project_id"] = null;
+        $this->data["seller_id"] = null;
         $this->data["client_id"] = null;
         $this->data["lead_id"] = null;
         $this->data["remark"] = null;
@@ -180,6 +182,7 @@ class Receipts_m extends MY_Model {
             $this->data["vat_percent"] = number_format_drop_zero_decimals($rerow->vat_percent, 2)."%";
             $this->data["wht_inc"] = $rerow->wht_inc;
             $this->data["project_id"] = $rerow->project_id;
+            if($rerow->seller_id != null) $this->data["seller"] = $ci->Users_m->getInfo($rerow->seller_id);
             $this->data["client_id"] = $client_id;
             $this->data["lead_id"] = $lead_id;
             $this->data["remark"] = $rerow->remark;
@@ -231,7 +234,7 @@ class Receipts_m extends MY_Model {
         $client_id = $rerow->client_id;
         $created_by = $rerow->created_by;
 
-        $this->data["seller"] = $ci->Users_m->getInfo($created_by);
+        if($rerow->seller_id != null) $this->data["seller"] = $ci->Users_m->getInfo($rerow->seller_id);
 
         $this->data["buyer"] = $ci->Customers_m->getInfo($client_id);
         $this->data["buyer_contact"] = $ci->Customers_m->getContactInfo($client_id);
@@ -261,8 +264,11 @@ class Receipts_m extends MY_Model {
 
         $this->data["sharekey_by"] = $rerow->sharekey_by;
 
+        if($rerow->created_by != null) $this->data["created"] = $ci->Users_m->getInfo($rerow->created_by);
         $this->data["created_by"] = $rerow->created_by;
         $this->data["created_datetime"] = $rerow->created_datetime;
+
+        if($rerow->approved_by != null) $this->data["approved"] = $ci->Users_m->getInfo($rerow->approved_by);
         $this->data["approved_by"] = $rerow->approved_by;
         $this->data["approved_datetime"] = $rerow->approved_datetime;
 
@@ -438,6 +444,7 @@ class Receipts_m extends MY_Model {
         $docId = $this->json->doc_id;
         $doc_date = convertDate($this->json->doc_date);
         $reference_number = $this->json->reference_number;
+        $seller_id = $this->json->seller_id;
         $client_id = $this->json->client_id;
         $lead_id = $this->json->lead_id;
         $project_id = $this->json->project_id;
@@ -478,6 +485,7 @@ class Receipts_m extends MY_Model {
             $db->update("receipt", [
                                         "doc_date"=>$doc_date,
                                         "reference_number"=>$reference_number,
+                                        "seller_id"=>$seller_id,
                                         "client_id"=>$customer_id,
                                         "project_id"=>$project_id,
                                         "remark"=>$remark
@@ -491,6 +499,7 @@ class Receipts_m extends MY_Model {
                                         "doc_date"=>$doc_date,
                                         "reference_number"=>$reference_number,
                                         "vat_inc"=>$company_setting["company_vat_registered"],
+                                        "seller_id"=>$seller_id,
                                         "client_id"=>$customer_id,
                                         "project_id"=>$project_id,
                                         "remark"=>$remark,

@@ -107,6 +107,7 @@ class Sales_orders_m extends MY_Model {
 
     function getDoc($docId){
         $db = $this->db;
+        $ci = get_instance();
         $company_setting = $this->Settings_m->getCompany();
 
         $this->data["doc_id"] = null;
@@ -166,8 +167,12 @@ class Sales_orders_m extends MY_Model {
             $this->data["project_price"] = $sorow->project_price;
             
             $this->data["remark"] = $sorow->remark;
+
+            if($sorow->created_by != null) $this->data["created"] = $ci->Users_m->getInfo($sorow->created_by);
             $this->data["created_by"] = $sorow->created_by;
             $this->data["created_datetime"] = $sorow->created_datetime;
+
+            if($sorow->approved_by != null) $this->data["approved"] = $ci->Users_m->getInfo($sorow->approved_by);
             $this->data["approved_by"] = $sorow->approved_by;
             $this->data["approved_datetime"] = $sorow->approved_datetime;
             if($sorow->approved_by != null) if(file_exists($_SERVER['DOCUMENT_ROOT']."/".$company_setting["company_stamp"])) $this->data["company_stamp"] = $company_setting["company_stamp"];
@@ -219,6 +224,7 @@ class Sales_orders_m extends MY_Model {
         $this->data["buyer"] = $ci->Customers_m->getInfo($client_id);
         $this->data["buyer_contact"] = $ci->Customers_m->getContactInfo($client_id);
 
+        $this->data["purpose"] = $sorow->purpose;
         $this->data["doc_number"] = $sorow->doc_number;
         $this->data["doc_date"] = $sorow->doc_date;
         $this->data["reference_number"] = $sorow->reference_number;
@@ -226,10 +232,14 @@ class Sales_orders_m extends MY_Model {
 
         $this->data["sharekey_by"] = $sorow->sharekey_by;
 
+        $this->data["created"] = $ci->Users_m->getInfo($created_by);
         $this->data["created_by"] = $sorow->created_by;
         $this->data["created_datetime"] = $sorow->created_datetime;
+
+        if($sorow->approved_by != null) $this->data["approved"] = $ci->Users_m->getInfo($sorow->approved_by);
         $this->data["approved_by"] = $sorow->approved_by;
         $this->data["approved_datetime"] = $sorow->approved_datetime;
+        
         if($sorow->approved_by != null) if(file_exists($_SERVER['DOCUMENT_ROOT']."/".$company_setting["company_stamp"])) $this->data["company_stamp"] = $company_setting["company_stamp"];
         $this->data["doc_status"] = $sorow->status;
 

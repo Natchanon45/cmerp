@@ -114,10 +114,12 @@
 	                        <td class="custom-color">เครดิต</td>
 	                        <td><?php echo $doc["credit"]; ?> วัน</td>
 	                    </tr>
-	                    <tr>
-	                        <td class="custom-color">ผู้ขาย</td>
-	                        <td><?php if($doc["seller"] != null) echo $doc["seller"]["first_name"]." ".$doc["seller"]["last_name"]; ?></td>
-	                    </tr>
+	                    <?php if(isset($doc["seller"])): ?>
+		                    <tr>
+		                        <td class="custom-color">ผู้ขาย</td>
+		                        <td><?php echo $doc["seller"]["first_name"]." ".$doc["seller"]["last_name"]; ?></td>
+		                    </tr>
+	                	<?php endif; ?>
 	                    <?php if(trim($doc["reference_number"]) != ""): ?>
 	                        <tr>
 	                            <td class="custom-color">เลขที่อ้างอิง</td>
@@ -233,7 +235,8 @@
 				<div class="signature clear">
 					<div class="name">
 	                    <span class="l1"></span>
-	                    <span class="l2">ผู้สั่งซื้อสินค้า</span>
+	                    <span class="l2"></span>
+	                    <span class="l3">ผู้สั่งซื้อสินค้า</span>
 	                </div>
 	                <div class="date">
 	                    <span class="l1"></span>
@@ -255,7 +258,8 @@
                             	<img src='<?php echo "/".$signature; ?>'>
                         	<?php endif; ?>
 	                    </span>
-	                    <span class="l2">ผู้ออก</span>
+	                    <span class="l2">(<?php echo $doc["created"]["first_name"]." ".$doc["created"]["last_name"]; ?>)</span>
+	                    <span class="l3">ผู้ออกเอกสาร</span>
 	                </div>
 	                <div class="date">
 	                    <span class="l1"><span class="approved_date"><?php echo convertDate($doc["created_datetime"], true); ?></span></span>

@@ -109,10 +109,6 @@
 	                        <td class="custom-color">ครบกำหนด</td>
 	                        <td><?php echo convertDate($doc["due_date"], true); ?></td>
 	                    </tr>
-	                    <tr>
-	                        <td class="custom-color">ผู้ขาย</td>
-	                        <td><?php if($doc["seller"] != null) echo $doc["seller"]["first_name"]." ".$doc["seller"]["last_name"]; ?></td>
-	                    </tr>
 	                    <?php if(trim($doc["reference_number"]) != ""): ?>
 	                        <tr>
 	                            <td class="custom-color">เลขที่อ้างอิง</td>
@@ -232,7 +228,7 @@
 				</div>
 			<?php endif; ?>
 		</div><!--.body-->
-		<div class="footer clear">
+		<!--<div class="footer clear">
 			<div class="c1">
 				<div class="on_behalf_of">ในนาม <?php echo $doc["buyer"]["company_name"] ?></div>
 				<div class="signature clear">
@@ -270,7 +266,7 @@
 	                </div>
 				</div>
 			</div>
-		</div><!--.footer-->	
+		</div>--><!--.footer-->	
 	</div><!--.paper-->
 </div><!--.container-->
 <?php if($print_mode == "public"): ?>

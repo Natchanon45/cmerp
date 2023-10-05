@@ -110,10 +110,6 @@
 	                        <td class="custom-color">ครบกำหนด</td>
 	                        <td><?php echo convertDate($doc["due_date"], true); ?></td>
 	                    </tr>
-	                    <tr>
-	                        <td class="custom-color">ผู้ขาย</td>
-	                        <td><?php if($doc["seller"] != null) echo $doc["seller"]["first_name"]." ".$doc["seller"]["last_name"]; ?></td>
-	                    </tr>
 	                    <?php if(trim($doc["reference_number"]) != ""): ?>
 	                        <tr>
 	                            <td class="custom-color">เลขที่อ้างอิง</td>
@@ -223,6 +219,11 @@
 				</div>
 			</div>
 			<div class="c2">
+				<div class="company_stamp">
+	                <?php if(isset($doc["company_stamp"])): ?>
+	                    <img src="<?php echo base_url($doc["company_stamp"]);?>">
+	                <?php endif;?>
+	            </div>
 				<div class="on_behalf_of">ในนาม <?php echo get_setting("company_name"); ?></div>
 				<div class="signature clear">
 					<div class="name">
@@ -233,11 +234,18 @@
 	                        	<?php endif; ?>
 	                        <?php endif; ?>
 	                    </span>
-	                    <span class="l2">ผู้วางบิล</span>
+	                    <span class="l2">
+	                    	<?php
+	                    		if(isset($doc["approved"])){
+	                    			echo "(".$doc["approved"]["first_name"]." ".$doc["approved"]["last_name"].")";
+	                    		}
+	                    	?>
+	                    </span>
+	                    <span class="l3">ผู้วางบิล</span>
 	                </div>
 	                <div class="date">
 	                    <span class="l1">
-	                    	<?php if($doc["doc_status"] == "A"): ?>
+	                    	<?php if($doc["approved_by"] != null): ?>
 	                            <span class="approved_date"><?php echo convertDate($doc["approved_datetime"], true); ?></span>
 	                        <?php endif; ?>
 	                    </span>

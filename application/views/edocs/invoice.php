@@ -117,10 +117,12 @@
 	                        <td class="custom-color">ครบกำหนด</td>
 	                        <td><?php echo convertDate($doc["due_date"], true); ?></td>
 	                    </tr>
-	                    <tr>
-	                        <td class="custom-color">ผู้ขาย</td>
-	                        <td><?php if($doc["seller"] != null) echo $doc["seller"]["first_name"]." ".$doc["seller"]["last_name"]; ?></td>
-	                    </tr>
+	                    <?php if(isset($doc["seller"])): ?>
+		                    <tr>
+		                        <td class="custom-color">ผู้ขาย</td>
+		                        <td><?php echo $doc["seller"]["first_name"]." ".$doc["seller"]["last_name"]; ?></td>
+		                    </tr>
+	                	<?php endif; ?>
 	                    <?php if(trim($doc["reference_number"]) != ""): ?>
 	                        <tr>
 	                            <td class="custom-color">เลขที่อ้างอิง</td>
@@ -258,7 +260,8 @@
 	                        	<?php endif; ?>
 	                        <?php endif; ?>
 	                    </span>
-	                    <span class="l2">ผู้อนุมัติ</span>
+	                    <span class="l2"><?php if(isset($doc["approved"])) echo "(".$doc["approved"]["first_name"]." ".$doc["approved"]["last_name"].")"; ?></span>
+	                    <span class="l3">ผู้อนุมัติ</span>
 	                </div>
 	                <div class="date">
 	                    <span class="l1">

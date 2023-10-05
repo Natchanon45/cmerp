@@ -113,10 +113,12 @@
 	                        <td class="custom-color">วันที่</td>
 	                        <td><?php echo convertDate($doc["doc_date"], true); ?></td>
 	                    </tr>
-	                    <tr>
-	                        <td class="custom-color">ผู้ขาย</td>
-	                        <td><?php if($doc["seller"] != null) echo $doc["seller"]["first_name"]." ".$doc["seller"]["last_name"]; ?></td>
-	                    </tr>
+	                    <?php if(isset($doc["seller"])): ?>
+		                    <tr>
+		                        <td class="custom-color">ผู้ขาย</td>
+		                        <td><?php echo $doc["seller"]["first_name"]." ".$doc["seller"]["last_name"]; ?></td>
+		                    </tr>
+	                	<?php endif; ?>
 	                    <?php if(trim($doc["reference_number"]) != ""): ?>
 	                        <tr>
 	                            <td class="custom-color">เลขที่อ้างอิง</td>
@@ -236,7 +238,8 @@
 	                        	<?php endif; ?>
 	                        <?php endif; ?>
 	                    </span>
-	                    <span class="l2">ผู้ออกเอกสาร</span>
+	                    <span class="l2"><?php if(isset($doc["created"])) echo "(".$doc["created"]["first_name"]." ".$doc["created"]["last_name"].")"; ?></span>
+	                    <span class="l3">ผู้ออกเอกสาร</span>
 	                </div>
 	                <div class="date">
 	                    <span class="l1">
@@ -250,7 +253,7 @@
 			</div>
 			<div class="c2">
 				<div class="company_stamp">
-	                <?php if($doc["company_stamp"] != null): ?>
+	                <?php if(isset($doc["company_stamp"])): ?>
 	                    <img src="<?php echo base_url($doc["company_stamp"]);?>">
 	                <?php endif;?>
 	            </div>
@@ -264,7 +267,8 @@
 	                        	<?php endif; ?>
 	                        <?php endif; ?>
 	                    </span>
-	                    <span class="l2">ผู้รับเงิน</span>
+	                    <span class="l2"><?php if(isset($doc["approved"])) echo "(".$doc["approved"]["first_name"]." ".$doc["approved"]["last_name"].")"; ?></span>
+	                    <span class="l3">ผู้รับเงิน</span>
 	                </div>
 	                <div class="date">
 	                    <span class="l1">

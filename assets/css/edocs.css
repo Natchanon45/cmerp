@@ -310,13 +310,13 @@ header .button i{
 }
 
 .paper .footer .c1{
-    width: 45%;
+    width: 46%;
     float: left;
     text-align: center;
 }
 
 .paper .footer .c2{
-    width: 45%;
+    width: 46%;
     float: right;
     text-align: center;
 }
@@ -343,61 +343,58 @@ header .button i{
     overflow-wrap: break-word; 
     line-height: 20px;
     position: relative;
-    top: 15px;
+    top: 0px;
     height: 1px;
 }
 
-.signature{
-    position: relative;
-    top: 30px;
-}
-
 .paper .footer .name{
-    position: relative;
+    width: 46%;
     float: left;
-    width: 48%;
-    text-align: center;
-    height: 80px;
+    display: flex;
+    flex-direction:column;
+    align-items: flex-end;
+    align-content:flex-end;
 }
 
 .paper .footer .date{
-    position: relative;
+    width: 46%;
     float: right;
-    width: 48%;
-    text-align: center;
-    height: 80px;
-}
-
-.paper .footer .l1,
-.paper .footer .l2{
-    display: block;
-    margin: 0 auto;
+    display: flex;
+    flex-direction:column;
+    align-items: flex-end;
+    align-content:flex-end;
 }
 
 .paper .footer .l1{
-    display: block;
-    position: absolute;
-    bottom: 0;
     width: 100%;
+    height: 120px;
     border-bottom: 1px solid #cecece;
+    display: flex;
+    align-items: flex-end;
+    align-content:flex-end;
+    justify-content: center;
 }
 
 .paper .footer .l1 img{
-    position: relative;
-    top: -2px;
+    display: inline-block;
     max-width: 110px;
     height: auto;
 }
 
 .paper .footer .l1 .created_date,
 .paper .footer .l1 .approved_date{
-    position: relative;
-    top: -8px;
+    line-height: 20px;
 }
 
 .paper .footer .l2{
-    position: absolute;
-    bottom: -14px;
+    padding-top: 4px;
+    line-height: 14px;
+    width: 100%;
+}
+
+.paper .footer .l3{
+    padding-top: 4px;
+    line-height: 14px;
     width: 100%;
 }
 
