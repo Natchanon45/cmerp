@@ -43,10 +43,19 @@ class Sales_orders_m extends MY_Model {
             $doc_status .= "<option value='A'>อนุมัติ</option>";
             $doc_status .= "<option value='V'>ยกเลิก</option>";
         }elseif($sorow->status == "A"){
-            $doc_status .= "<option selected>อนุมัติ</option>";
             if($sorow->purpose == "S"){
+                $doc_status .= "<option selected>อนุมัติ</option>";
                 if($this->canViewPR($sorow->id)) $doc_status .= "<option value='PR'>จัดการใบขอซื้อ</option>";
                 if($this->canViewMR($sorow->id)) $doc_status .= "<option value='MR'>จัดการใบขอเบิก</option>";
+            }
+
+            if($sorow->purpose == "P"){
+                if($sorow->project_id == null){
+                    $doc_status .= "<option selected>อนุมัติ</option>";
+                    $doc_status .= "<option value='PROJECT'>สร้างโปรเจค</option>";
+                }else{
+                    $doc_status .= "<option selected>ดำเนินการแล้ว</option>";
+                }
             }
 
         }elseif($sorow->status == "V"){
@@ -668,6 +677,12 @@ class Sales_orders_m extends MY_Model {
             $this->data["task"] = "popup";
             $this->data["status"] = "success";
             return $this->data;
+        }elseif($updateStatusTo == "PROJECT"){
+            if($currentStatus == "V") return $this->data;
+            $this->createProject($sorow);
+            $this->data["message"] = "สร้างโปรเจค '".$sorow->project_title."' เรียบร้อย";
+            $this->data["status"] = "success";
+
         }elseif($updateStatusTo == "V"){
             $db->where("id", $docId);
             $db->where("deleted", 0);
@@ -1215,5 +1230,52 @@ class Sales_orders_m extends MY_Model {
         if($db->count_all_results("sales_order_items") > 0) return true;
 
         return false;
+    }
+
+    function createProject($sorow){
+        $db = $this->db;
+        $ci = get_instance();
+        
+        $db->insert("projects", [
+                                    "title"=>$sorow->project_title,
+                                    "description"=>$sorow->project_description,
+                                    "start_date"=>$sorow->project_start_date,
+                                    "deadline"=>$sorow->project_deadline,
+                                    "client_id"=>$sorow->client_id,
+                                    "client_type"=>$this->Customers_m->isLead($sorow->client_id) == true ? 1:0,
+                                    "created_date"=>date("Y-m-d"),
+                                    "created_by"=>$this->login_user->id,
+                                    "status"=>"open",
+                                    "price"=>$sorow->project_price,
+                                    "starred_by"=>"",
+                                    "estimate_id"=>0,
+                                ]);
+
+        $project_id = $db->insert_id();
+
+        $soirows = $db->select("*")
+                        ->from("sales_order_items")
+                        ->where("sales_order_id", $sorow->id)
+                        ->order_by("sort", "asc")
+                        ->get()->result();
+        
+        if(!empty($soirows)){
+            $production_bom_data = [];
+
+            foreach($soirows as $soirow){
+                $production_bom_data[] = [
+                                            "project_id"=>$project_id,
+                                            "item_id"=>$soirow->id,
+                                            "item_mixing"=>$soirow->item_mixing_groups_id,
+                                            "quantity" =>$soirow->quantity,
+                                            "produce_in"=>1
+                                        ];
+            }
+
+            $ci->Projects_model->dev2_postProductionBomDataProcessing($production_bom_data);
+        }
+        
+        $db->where("id", $sorow->id);
+        $db->update("sales_order", ["project_id"=>$project_id]);
     }
 }

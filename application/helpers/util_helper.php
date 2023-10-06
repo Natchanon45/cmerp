@@ -8,7 +8,7 @@ if (!function_exists('jout')){
 
 if (!function_exists('convertDate')){
     function convertDate($date, $cm_format = false){
-        if($date == "" || $date == null) return "";
+        if($date == "" || $date == null) return null;
 
         if($cm_format == false){
             list($dd, $mm, $yy) = explode("/", $date);

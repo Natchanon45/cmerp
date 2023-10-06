@@ -15,7 +15,7 @@
     <?php if($item_mixing_groups_id != null): ?>
         <?php if(!empty($product_formulas)): ?>
             <div id="product_formula_section" class="form-group">
-                <label for="product_formula" class="col-md-3">ส่วนประกอบ</label>
+                <label for="product_formula" class="col-md-3">สูตรผสม</label>
                 <div class=" col-md-9">
                     <select id="product_formula" class="form-control">
                         <?php foreach($product_formulas as $pf): ?>
