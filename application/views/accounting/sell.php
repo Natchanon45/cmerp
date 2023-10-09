@@ -206,7 +206,7 @@ function loadDataGrid(){
     $(".buttons li.add").css("display", "block");
 
     if(active_module == "sales-orders"){
-        $(".buttons li.add a").attr("data-title", "สร้างใบสั่งขาย");
+        $(".buttons li.add a").attr("data-title", "สร้างใบสั่งงาน");
         $(".buttons li.add a").attr("data-action-url", "<?php echo get_uri("sales-orders/addedit"); ?>");
         $(".buttons li.add span").append("สร้างใบสั่งงาน");
         doc_status = [{id:"", text:"-- <?php echo lang("status"); ?> --"}, {id:"W", text:"รออนุมัติ"}, {id:"A", text:"อนุมัติ"}, {id:"R", text:"ยกเลิก"}];

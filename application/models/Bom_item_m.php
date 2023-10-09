@@ -36,7 +36,6 @@ class Bom_item_m extends MY_Model {
         if($total_used == null) $total_used = 0;
 
         return $total_stock - $total_used;
-        
     }
 
     function getMixingGroupsInfoById($mixing_groups_id){

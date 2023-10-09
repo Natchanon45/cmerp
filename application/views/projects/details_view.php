@@ -154,8 +154,8 @@ if (!function_exists("make_project_tabs_data")) {
                     }
 
                     if ($show_invoice_info) {
-                        $project_tabs["invoices"] = "projects/invoices/" . $project_info->id;
-                        $project_tabs["payments"] = "projects/payments/" . $project_info->id;
+                        //$project_tabs["invoices"] = "projects/invoices/" . $project_info->id;
+                        //$project_tabs["payments"] = "projects/payments/" . $project_info->id;
                     }
 
                     if ($show_expense_info) {

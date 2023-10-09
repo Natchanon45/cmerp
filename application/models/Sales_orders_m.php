@@ -965,6 +965,7 @@ class Sales_orders_m extends MY_Model {
 
         $db->trans_commit();
 
+        $this->data["can_make_pr"] = $this->canMakePR($sales_order_id);
         $this->data["status"] = "success";
         $this->data["message"] = "สร้างใบขอซื้อเรียบร้อย";
         return $this->data;
@@ -985,6 +986,8 @@ class Sales_orders_m extends MY_Model {
         foreach($soirows as $soirow){
             $product_remaining = $ci->Bom_item_m->getTotalRemainingItems($soirow->product_id);
             if($product_remaining >= $soirow->quantity) continue;
+            $db->where("item_id", $soirow->product_id);
+            if($db->count_all_results("bom_item_pricings") < 1) continue;
 
             return true;
         }

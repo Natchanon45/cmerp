@@ -183,6 +183,7 @@ $(document).ready(function() {
             alert(data.message);
             
             if(data.status == "success"){
+                if(data.can_make_pr != true) $("#btnSubmit").prop("disabled", "disabled");
                 getProducts("<?php echo $doc_id; ?>");
             }
             
@@ -199,7 +200,4 @@ function getProducts(sales_order_id){
         $(".product table tbody").empty().append(data.html);
     }).catch(function (error) {});
 }
-
-
-
 </script>

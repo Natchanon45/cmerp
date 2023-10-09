@@ -5778,11 +5778,11 @@ class Stock extends MY_Controller
             anchor(get_uri('stock/restock_view/' . $item->group_id), $item->stock_name),
             $item->serial_number ? $item->serial_number : '-',
             $this->dev2_canReadMaterialName()
-            ? anchor(get_uri('stock/material_view/' . $item->material_id), strtoupper($item->material_code) . ' - ' . ucwords(strtolower($item->material_name)))
-            : anchor(get_uri('stock/material_view/' . $item->material_id), strtoupper($item->material_code)),
+            ? anchor(get_uri('stock/material_view/' . $item->material_id), mb_strtoupper($item->material_code) . ' - ' . mb_convert_case(mb_strtolower($item->material_name), MB_CASE_TITLE, 'UTF-8'))
+            : anchor(get_uri('stock/material_view/' . $item->material_id), mb_strtoupper($item->material_code)),
             to_decimal_format3($item->stock_qty),
             to_decimal_format3($item->stock_remain),
-            strtoupper($item->material_unit),
+            mb_strtoupper($item->material_unit),
             $item->create_by ? anchor(get_uri('team_members/view/' . $item->create_by), $this->Account_category_model->created_by($item->create_by)) : '',
             format_to_date($item->create_date),
             $button
