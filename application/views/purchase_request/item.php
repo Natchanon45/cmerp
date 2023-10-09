@@ -1,13 +1,13 @@
 <?php
-$label_text = lang("btn_add_raw_material");
+$label_text = lang("label_raw_material");
 
 if (isset($doc_type) && !empty($doc_type)) {
     if ($doc_type == 3) {
-        $label_text = lang("btn_add_finished_goods");
+        $label_text = lang("label_finished_goods");
     }
 
     if ($doc_type == 5) {
-        $label_text = lang("btn_add_expense");
+        $label_text = lang("label_expense");
     }
 }
 ?>
@@ -35,7 +35,7 @@ if (isset($doc_type) && !empty($doc_type)) {
     <div class="form-group">
         <label for="unit" class=" col-md-3"><?php echo lang('unit_type'); ?></label>
         <div class="col-md-9">
-            <input type="text" id="unit" value="<?php echo $unit; ?>" placeholder="<?php echo lang('stock_material_unit'); ?>" class="form-control">
+            <input type="text" id="unit" value="<?php echo $unit; ?>" placeholder="<?php echo lang('stock_material_unit'); ?>" class="form-control" <?php if ($doc_type == 5) echo 'readonly'; ?>>
         </div>
     </div>
     <div class="form-group">
@@ -82,9 +82,7 @@ if (isset($doc_type) && !empty($doc_type)) {
                 unit: $("#unit").val(),
                 price: $("#price").val()
             }).then(function (response) {
-                // console.log(response);
                 data = response.data;
-
                 $(".fnotvalid").remove();
 
                 if (data.status == "validate") {

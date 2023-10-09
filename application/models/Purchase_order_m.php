@@ -76,15 +76,22 @@ class Purchase_order_m extends MY_Model
         } elseif ($qrow->status == "A") {
             $doc_status .= '<option value="A" selected>' . lang('pr_approved') . '</option>';
 
-            if ($qrow->receipt_status == "P" || $qrow->receipt_status == "W") {
+            if ($qrow->payment_status == "P" || $qrow->payment_status == "W") {
                 $doc_status .= '
                     <option value="PV">' . lang('record_of_payment_voucher') . '</option>
+                ';
+            }
+
+            if ($qrow->receipt_status == "P" || $qrow->receipt_status == "W") {
+                $doc_status .= '
                     <option value="GR">' . lang('record_of_goods_receipt') . '</option>
                 ';
             }
 
-            if ($qrow->receipt_status == "W") {
-                $doc_status .= '<option value="X">' . lang('cancel') . '</option>';
+            if ($qrow->payment_status == "W" || $qrow->receipt_status == "W") {
+                if ($qrow->status == "W") {
+                    $doc_status .= '<option value="X">' . lang('cancel') . '</option>';
+                }
             }
             
             $button = '<a data-post-id="' . $qrow->id . '" data-title="' . $this->modal_header() . '" data-action-url="' . get_uri('purchase_order/addedit') . '" data-act="ajax-modal" class="edit"><i class="fa fa-eye"></i></a>';
@@ -845,7 +852,82 @@ class Purchase_order_m extends MY_Model
             $this->data['status'] = 'success';
             $this->data['message'] = lang('record_saved');
             $this->data['url'] = get_uri('purchase_order/view/' . $po_id);
-        } elseif ($updateStatusTo == 'GR') {
+        } elseif ($updateStatusTo == 'PV') { // Payment Voucher
+            // If current status not equal to approved
+            if ($currentStatus != 'A') {
+                $this->data['dataset'] = $this->getIndexDataSetHTML($qrow);
+                return $this->data;
+            }
+
+            // Prepare docuemnt number
+            $pv_doc_number = $this->Goods_receipt_m->getNewDocNumber('PV');
+            $pv_doc_date = date("Y-m-d");
+            $pv_credit_day = $qrow->credit;
+            $pv_due_date = date("Y-m-d", strtotime($pv_doc_date . " + " . $pv_credit_day . " days"));
+
+            $db->insert("pv_header", [
+                "po_id" => $qrow->id,
+                "doc_number" => $pv_doc_number,
+                "po_type" => $qrow->po_type,
+                "doc_date" => $pv_doc_date,
+                "credit" => $pv_credit_day,
+                "due_date" => $pv_due_date,
+                "reference_number" => $qrow->doc_number,
+                "project_id" => $qrow->project_id,
+                "supplier_id" => $qrow->supplier_id,
+                "sub_total_before_discount" => $qrow->sub_total_before_discount,
+                "discount_type" => $qrow->discount_type,
+                "discount_percent" => $qrow->discount_percent,
+                "discount_amount" => $qrow->discount_amount,
+                "sub_total" => $qrow->sub_total,
+                "vat_inc" => $qrow->vat_inc,
+                "vat_percent" => $qrow->vat_percent,
+                "vat_value" => $qrow->vat_value,
+                "total" => $qrow->total,
+                "wht_inc" => $qrow->wht_inc,
+                "wht_percent" => $qrow->wht_percent,
+                "wht_value" => $qrow->wht_value,
+                "payment_amount" => $qrow->payment_amount,
+                "remark" => $qrow->remark,
+                "created_by" => $this->login_user->id,
+                "created_datetime" => date("Y-m-d H:i:s")
+            ]);
+
+            $pv_id = $db->insert_id();
+            $qirows = $db->select('*')->from('po_detail')->where('po_id', $po_id)->order_by('sort', 'ASC')->get()->result();
+
+            $sort = 1;
+            if (!empty($qirows)) {
+                foreach ($qirows as $qirow) {
+                    $db->insert('pv_detail', array(
+                        'pv_id' => $pv_id,
+                        'po_id' => $po_id,
+                        'po_item_id' => $qirow->id,
+                        'product_id' => $qirow->product_id,
+                        'product_name' => $qirow->product_name,
+                        'product_description' => $qirow->product_description,
+                        'quantity' => $qirow->quantity,
+                        'unit' => $qirow->unit,
+                        'price' => $qirow->price,
+                        'total_price' => $qirow->total_price,
+                        'sort' => $sort
+                    ));
+                    $sort++;
+
+                    $db->where('id', $qirow->id);
+                    $db->update('po_detail', array('payment' => $qirow->quantity));
+                }
+            }
+
+            $db->where('id', $qrow->id);
+            $db->update('po_header', array('payment_status' => 'C'));
+
+            $this->data['pv_id'] = $pv_id;
+            $this->data['task'] = 'create_payment_voucher';
+            $this->data['status'] = 'success';
+            $this->data['message'] = lang('record_saved');
+            $this->data['url'] = get_uri('payment_voucher/view/' . $pv_id);
+        } elseif ($updateStatusTo == 'GR') { // Goods Receipt
             // If current status not equal to approved
             if ($currentStatus != 'A') {
                 $this->data['dataset'] = $this->getIndexDataSetHTML($qrow);
@@ -892,9 +974,7 @@ class Purchase_order_m extends MY_Model
                 'payment_amount' => $qrow->payment_amount,
                 'remark' => $qrow->remark,
                 'created_by' => $qrow->created_by,
-                'created_datetime' => date("Y-m-d H:i:s"),
-                'status' => 'W',
-                'deleted' => 0
+                'created_datetime' => date("Y-m-d H:i:s")
             ));
 
             $pv_id = $db->insert_id();

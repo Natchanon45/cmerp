@@ -352,6 +352,11 @@
                                 return;
                             }
 
+                            if (data.task === 'create_payment_voucher') {
+                                window.location.href = data.url;
+                                return;
+                            }
+
                             if (data.task === 'create_goods_receipt') {
                                 window.location.href = data.url;
                                 return;
