@@ -7,7 +7,7 @@ class Payment_voucher_m extends MY_Model
 
     private $table_detail = "pv_detail";
 
-    private $shareHtmlAddress = "share/payment-voucher/html/";
+    private $shareHtmlAddress = "share/payment_voucher/html/";
 
     function __construct()
     {
@@ -65,12 +65,12 @@ class Payment_voucher_m extends MY_Model
         $doc_status .= "</select>";
 
         $data = [
-            "<a href='" . get_uri("payment-voucher/view/" . $pvrow->id) . "'>" . convertDate($pvrow->doc_date, true) . "</a>",
-            "<a href='" . get_uri("payment-voucher/view/" . $pvrow->id) . "'>" . $pvrow->doc_number . "</a>",
+            "<a href='" . get_uri("payment_voucher/view/" . $pvrow->id) . "'>" . convertDate($pvrow->doc_date, true) . "</a>",
+            "<a href='" . get_uri("payment_voucher/view/" . $pvrow->id) . "'>" . $pvrow->doc_number . "</a>",
             "<a href='" . get_uri("clients/view/" . $pvrow->supplier_id) . "'>" . $this->Clients_m->getCompanyName($pvrow->supplier_id) . "</a>",
             number_format($pvrow->total, 2),
             $doc_status,
-            "<a data-post-id='" . $pvrow->id . "' data-action-url='" . get_uri("payment-voucher/addedit") . "' data-act='ajax-modal' class='edit'><i class='fa fa-pencil'></i></a>"
+            "<a data-post-id='" . $pvrow->id . "' data-action-url='" . get_uri("payment_voucher/addedit") . "' data-act='ajax-modal' class='edit'><i class='fa fa-pencil'></i></a>"
         ];
 
         return $data;
@@ -441,7 +441,7 @@ class Payment_voucher_m extends MY_Model
             $docId = $db->insert_id();
         }
 
-        $this->data["target"] = get_uri("payment-voucher/view/" . $docId);
+        $this->data["target"] = get_uri("payment_voucher/view/" . $docId);
         $this->data["status"] = "success";
 
         return $this->data;
@@ -638,7 +638,7 @@ class Payment_voucher_m extends MY_Model
 
         $this->updateDoc($docId);
 
-        $this->data["target"] = get_uri("payment-voucher/view/" . $docId);
+        $this->data["target"] = get_uri("payment_voucher/view/" . $docId);
         $this->data["status"] = "success";
 
         return $this->data;

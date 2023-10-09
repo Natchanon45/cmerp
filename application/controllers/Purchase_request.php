@@ -26,7 +26,7 @@ class Purchase_request extends MY_Controller
             return;
         }
 
-        redirect("/accounting/buy/purchase_request");
+        redirect("accounting/buy/purchase_request");
     }
 
     function dev2_IndexDataSet()

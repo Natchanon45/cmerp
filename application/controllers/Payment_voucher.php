@@ -30,7 +30,7 @@ class Payment_voucher extends MY_Controller
             return;
         }
 
-        redirect("/accounting/buy/payment-voucher");
+        redirect("accounting/buy/payment_voucher");
     }
 
     function test()
@@ -80,20 +80,20 @@ class Payment_voucher extends MY_Controller
         }
 
         if (empty($this->uri->segment(3))) {
-            redirect(get_uri("/accounting/buy"));
+            redirect(get_uri("accounting/buy"));
             return;
         }
 
         $data = $this->Payment_voucher_m->getDoc($this->uri->segment(3));
         if ($data["status"] != "success") {
-            redirect(get_uri("/accounting/buy"));
+            redirect(get_uri("accounting/buy"));
             return;
         }
 
         $data["created"] = $this->Users_m->getInfo($data["created_by"]);
         $data["supplier"] = $this->Suppliers_m->getInfo($data["supplier_id"]);
         $data["supplier_contact"] = $this->Suppliers_m->getContactInfo($data["supplier_id"]);
-        $data["print_url"] = get_uri("payment-voucher/print/" . str_replace("=", "", base64_encode($data['doc_id'] . ':' . $data['doc_number'])));
+        $data["print_url"] = get_uri("payment_voucher/print/" . str_replace("=", "", base64_encode($data['doc_id'] . ':' . $data['doc_number'])));
 
         // var_dump(arr($data)); exit();
         $this->template->rander("payment_voucher/view", $data);
