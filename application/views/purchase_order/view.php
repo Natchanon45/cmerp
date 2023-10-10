@@ -172,11 +172,11 @@
                                 <?php
                                     $btn_text = lang("btn_add_raw_material");
 
-                                    if ($doc_type) {
+                                    if ($doc_type == 3) {
                                         $btn_text = lang("btn_add_finished_goods");
                                     }
 
-                                    if ($doc_type) {
+                                    if ($doc_type == 5) {
                                         $btn_text = lang("btn_add_expense");
                                     }
                                 ?>
@@ -188,7 +188,7 @@
                                             array(
                                                 "id" => "add_item_button", 
                                                 "class" => "btn btn-default", 
-                                                "title" => lang('add_item_product'), 
+                                                "title" => $btn_text, 
                                                 "data-title" => $btn_text, 
                                                 "data-post-doc_id" => $doc_id
                                             )

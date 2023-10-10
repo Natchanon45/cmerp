@@ -20,7 +20,6 @@ class Payment_voucher extends MY_Controller
 
     function index()
     {
-
         if ($this->input->post("datatable") == true) {
             jout(["data" => $this->Payment_voucher_m->indexDataSet()]);
             return;

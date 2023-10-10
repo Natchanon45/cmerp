@@ -808,10 +808,13 @@ class Purchase_order_m extends MY_Model
 
         $this->db->trans_begin();
 
-        if ($updateStatusTo == 'R') { // Rejected
+        if ($updateStatusTo == 'R') // Rejected
+        {
             $db->where('id', $po_id);
             $db->update('po_header', ['status' => 'R']);
-        } elseif ($updateStatusTo == 'X') { // Cancelled
+        } 
+        elseif ($updateStatusTo == 'X') // Cancelled
+        { 
             $cancel = $db->select('*')->from('po_header')->where('id', $po_id)->where('deleted', 0)->get()->row();
 
             $db->where('id', $cancel->pr_id);
@@ -823,7 +826,9 @@ class Purchase_order_m extends MY_Model
             $this->data['task'] = 'cancelled_purchase_order';
             $this->data['status'] = 'success';
             $this->data['message'] = lang('record_canceled');
-        } elseif ($updateStatusTo == 'A') { // Approved
+        } 
+        elseif ($updateStatusTo == 'A') // Approved
+        { 
             // If current status is rejected
             if ($currentStatus == 'R') {
                 $this->data['dataset'] = $this->getIndexDataSetHTML($qrow);
@@ -852,7 +857,9 @@ class Purchase_order_m extends MY_Model
             $this->data['status'] = 'success';
             $this->data['message'] = lang('record_saved');
             $this->data['url'] = get_uri('purchase_order/view/' . $po_id);
-        } elseif ($updateStatusTo == 'PV') { // Payment Voucher
+        } 
+        elseif ($updateStatusTo == 'PV') // Payment Voucher
+        { 
             // If current status not equal to approved
             if ($currentStatus != 'A') {
                 $this->data['dataset'] = $this->getIndexDataSetHTML($qrow);
@@ -860,7 +867,14 @@ class Purchase_order_m extends MY_Model
             }
 
             // Prepare docuemnt number
-            $pv_doc_number = $this->Goods_receipt_m->getNewDocNumber('PV');
+            $param_docno = [
+                "prefix" => "PV",
+                "LPAD" => 4,
+                "column" => "doc_number",
+                "table" => "pv_header"
+            ];
+
+            $pv_doc_number = $this->Db_model->genDocNo($param_docno);
             $pv_doc_date = date("Y-m-d");
             $pv_credit_day = $qrow->credit;
             $pv_due_date = date("Y-m-d", strtotime($pv_doc_date . " + " . $pv_credit_day . " days"));
@@ -927,7 +941,9 @@ class Purchase_order_m extends MY_Model
             $this->data['status'] = 'success';
             $this->data['message'] = lang('record_saved');
             $this->data['url'] = get_uri('payment_voucher/view/' . $pv_id);
-        } elseif ($updateStatusTo == 'GR') { // Goods Receipt
+        } 
+        elseif ($updateStatusTo == 'GR') // Goods Receipt
+        { 
             // If current status not equal to approved
             if ($currentStatus != 'A') {
                 $this->data['dataset'] = $this->getIndexDataSetHTML($qrow);
@@ -935,12 +951,7 @@ class Purchase_order_m extends MY_Model
             }
 
             // Prepare document number
-            $ex_doc_number = '';
-            if ($qrow->po_type == 5) {
-                $ex_doc_number = $this->Goods_receipt_m->getNewDocNumber('EX');
-            } else {
-                $ex_doc_number = $this->Goods_receipt_m->getNewDocNumber('GR');
-            }
+            $ex_doc_number = $this->Goods_receipt_m->getNewDocNumber('GR');
 
             // Prepare goods receipt info
             $pv_doc_number = $this->Goods_receipt_m->getNewDocNumber('PV');
@@ -1015,6 +1026,7 @@ class Purchase_order_m extends MY_Model
 
         if ($db->trans_status() === FALSE) {
             $db->trans_rollback();
+
             $this->data['dataset'] = $this->getIndexDataSetHTML($qrow);
             return $this->data;
         }

@@ -23,7 +23,7 @@ if (isset($doc_type) && !empty($doc_type)) {
     <div class="form-group">
         <label for="product_description" class="col-md-3"><?php echo lang('description'); ?></label>
         <div class=" col-md-9">
-            <textarea id="product_description" class="form-control" readonly><?php echo $product_description; ?></textarea>
+            <textarea id="product_description" class="form-control" <?php if ($doc_type != 5) echo "readonly"; ?>><?php echo $product_description; ?></textarea>
         </div>
     </div>
     <div class="form-group">
@@ -35,7 +35,7 @@ if (isset($doc_type) && !empty($doc_type)) {
     <div class="form-group">
         <label for="unit" class=" col-md-3"><?php echo lang('unit_type'); ?></label>
         <div class="col-md-9">
-            <input type="text" id="unit" value="<?php echo $unit; ?>" placeholder="<?php echo lang('stock_material_unit'); ?>" class="form-control" <?php if ($doc_type == 5) echo 'readonly'; ?>>
+            <input type="text" id="unit" value="<?php echo $unit; ?>" placeholder="<?php echo lang('stock_material_unit'); ?>" class="form-control" <?php if ($doc_type != 5) echo "readonly"; ?>>
         </div>
     </div>
     <div class="form-group">

@@ -37,40 +37,56 @@ class Payment_voucher_m extends MY_Model
         }
     }
 
-    function getIndexDataSetHTML($pvrow)
+    function getIndexDataSetHTML($item)
     {
-        $doc_status = "<select class='dropdown_status' data-doc_id='" . $pvrow->id . "'>";
+        $doc_status = '<select class="dropdown_status select-status" data-doc_id="' . $item->id . '">';
 
-        if ($pvrow->status == "W") {
-            $doc_status .= "<option selected>รออนุมัติ</option>";
-            $doc_status .= "<option value='A'>อนุมัติ</option>";
-            $doc_status .= "<option value='B'>สร้างใบวางบิล</option>";
-            $doc_status .= "<option value='P'>แบ่งจ่ายใบวางบิล</option>";
-            $doc_status .= "<option value='R'>ไม่อนุมัติ</option>";
-        } elseif ($pvrow->status == "A") {
-            $doc_status .= "<option selected>อนุมัติ</option>";
-            $doc_status .= "<option value='I'>ดำเนินการแล้ว</option>";
-            $doc_status .= "<option value='B'>สร้างใบวางบิล</option>";
-            $doc_status .= "<option value='P'>แบ่งจ่ายใบวางบิล</option>";
-            $doc_status .= "<option value='R'>ไม่อนุมัติ</option>";
-        } elseif ($pvrow->status == "R") {
-            $doc_status .= "<option selected>ไม่อนุมัติ</option>";
-        } elseif ($pvrow->status == "P") {
-            $doc_status .= "<option selected>แบ่งจ่าย</option>";
-            $doc_status .= "<option value='P'>แบ่งจ่ายใบวางบิล</option>";
-        } elseif ($pvrow->status == "I") {
-            $doc_status .= "<option selected>ดำเนินการแล้ว</option>";
+        if ($item->status == "W") {
+            $doc_status .= '
+                <option value="W" selected>' . lang('pr_pending') . '</option>
+                <option value="A">' . lang('pr_approved') . '</option>
+                <option value="X">' . lang('cancel') . '</option>
+            ';
+        }
+        
+        if ($item->status == "A") {
+            $doc_status .= '
+                <option value="A" selected>' . lang('pr_approved') . '</option>
+                <option value="X">' . lang('cancel') . '</option>
+            ';
+        }
+        
+        if ($item->status == "R") {
+            $doc_status .= '
+                <option value="R" selected>' . lang('pr_rejected') . '</option>
+            ';
         }
 
-        $doc_status .= "</select>";
+        $doc_status .= '</select>';
+
+        $request_by = '-';
+        if ($item->created_by) {
+            $user = $this->Users_model->getUserById($item->created_by);
+            $url = get_avatar($user->image);
+            $span = '<span class="avatar avatar-xs mr10"><img src="' . $url . '" alt=""></span>' . $user->first_name . ' ' . $user->last_name;
+            $request_by = get_team_member_profile_link($user->id, $span);
+        }
+
+        $supplier_name = '-';
+        if ($item->supplier_id) {
+            $supplier = $this->Bom_suppliers_model->dev2_getSupplierNameById($item->supplier_id);
+            $supplier_name = "<a href='" . get_uri('stock/supplier_view/' . $item->supplier_id) . "'>" . mb_strimwidth($supplier, 0, 55, '...') . "</a>";
+        }
 
         $data = [
-            "<a href='" . get_uri("payment_voucher/view/" . $pvrow->id) . "'>" . convertDate($pvrow->doc_date, true) . "</a>",
-            "<a href='" . get_uri("payment_voucher/view/" . $pvrow->id) . "'>" . $pvrow->doc_number . "</a>",
-            "<a href='" . get_uri("clients/view/" . $pvrow->supplier_id) . "'>" . $this->Clients_m->getCompanyName($pvrow->supplier_id) . "</a>",
-            number_format($pvrow->total, 2),
+            "<a href='" . get_uri('payment_voucher/view/' . $item->id) . "'>" . convertDate($item->doc_date, true) . "</a>",
+            "<a href='" . get_uri('payment_voucher/view/' . $item->id) . "'>" . $item->doc_number . "</a>",
+            $item->reference_number,
+            $supplier_name,
+            $request_by,
+            number_format($item->total, 2),
             $doc_status,
-            "<a data-post-id='" . $pvrow->id . "' data-action-url='" . get_uri("payment_voucher/addedit") . "' data-act='ajax-modal' class='edit'><i class='fa fa-pencil'></i></a>"
+            "<a data-post-id='" . $item->id . "' data-action-url='" . get_uri("payment_voucher/addedit") . "' data-act='ajax-modal' class='edit'><i class='fa fa-pencil'></i></a>"
         ];
 
         return $data;
@@ -503,7 +519,8 @@ class Payment_voucher_m extends MY_Model
 
         if (empty($qirows)) {
             $this->data["status"] = "notfound";
-            $this->data["message"] = "ไม่พบข้อมูล";
+            $this->data["message"] = lang("no_data_available");
+            
             return $this->data;
         }
 
@@ -517,7 +534,6 @@ class Payment_voucher_m extends MY_Model
             $item["unit"] = $qirow->unit;
             $item["price"] = number_format($qirow->price, 2);
             $item["total_price"] = number_format($qirow->total_price, 2);
-
             $items[] = $item;
         }
 

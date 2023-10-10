@@ -255,14 +255,13 @@
             ];
 
             grid_columns = [
-                { title: '<?php echo lang('request_date'); ?>', class: 'w10p' },
-                { title: '<?php echo lang('pr_number'); ?>', class: 'w10p' },
-                { title: '<?php echo lang('reference_number'); ?>', class: 'w10p' },
-                { title: '<?php echo lang('pr_type'); ?>', class: 'w10p' },
-                { title: '<?php echo lang('supplier_name'); ?>', class: 'w20p' },
-                { title: '<?php echo lang('request_by'); ?>', class: 'w10p' },
-                { title: '<?php echo lang('total_amount'); ?>', class: 'text-right w10p' },
-                { title: '<?php echo lang('status'); ?>', class: 'w10p' },
+                { title: '<?php echo lang("date_of_document"); ?>', class: 'w10p' },
+                { title: '<?php echo lang("number_of_document"); ?>', class: 'w10p' },
+                { title: '<?php echo lang("reference_number"); ?>', class: 'w10p' },
+                { title: '<?php echo lang("supplier_name"); ?>', class: 'w20p' },
+                { title: '<?php echo lang("issuer_of_document"); ?>', class: 'w10p' },
+                { title: '<?php echo lang("total_payment_amount"); ?>', class: 'text-right w10p' },
+                { title: '<?php echo lang("status"); ?>', class: 'w10p' },
                 { title: '<i class="fa fa-bars"></i>', class: 'text-center option w5p' }
             ];
 
@@ -270,7 +269,7 @@
             grid_excel = combineCustomFieldsColumns([0, 1, 2, 3, 4, 5, 6]);
 
             grid_summation = [
-                { column: 6, dataType: 'currency' }
+                { column: 5, dataType: 'currency' }
             ];
         } else if (active_module == 'goods_receipt') {
             $(".buttons").addClass('hide');

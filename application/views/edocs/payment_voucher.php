@@ -116,7 +116,7 @@
 						</div>
 						<div class="seller">
 							<p class="custom-color">
-								<?php echo "ผู้ซื้อ"; ?>
+								<?php echo lang("payment_voucher_payer"); ?>
 							</p>
 							<p class="name">
 								<?php echo get_setting("company_name"); ?>
@@ -142,7 +142,7 @@
 						</div>
 						<div class="buyer">
 							<p class="custom-color">
-								<?php echo "ผู้ขาย"; ?>
+								<?php echo lang("payment_voucher_payee"); ?>
 							</p>
 							<?php if ($doc["seller"] != null): ?>
 								<p class="customer_name">
@@ -186,51 +186,29 @@
 						<div class="docinfo">
 							<table>
 								<tr>
-									<td class="custom-color" <?php echo $additional_style; ?>><?php echo lang('document_number'); ?></td>
+									<td class="custom-color" <?php echo $additional_style; ?>><?php echo lang('number_of_document'); ?></td>
 									<td>
 										<?php echo $doc["pv_number"]; ?>
 									</td>
 								</tr>
 								<tr>
 									<td class="custom-color">
-										<?php echo lang('document_date'); ?>
+										<?php echo lang("document_date"); ?>
 									</td>
 									<td>
 										<?php echo convertDate($doc["doc_date"], true); ?>
 									</td>
 								</tr>
-								<!-- <tr>
-									<td class="custom-color"><?php // echo lang('credit'); ?></td>
-									<td>
-										<?php // echo $doc["credit"] . ' ' . lang('day'); ?>
-									</td>
-								</tr> -->
-								<!-- <tr>
-									<td class="custom-color">
-										<?php // echo lang('purchase_by'); ?>
-									</td>
-									<td>
-										<?php // if ($doc["buyer"] != null) echo $doc["buyer"]["first_name"] . " " . $doc["buyer"]["last_name"]; ?>
-									</td>
-								</tr> -->
 								<?php if (trim($doc["reference_number"]) != ""): ?>
 									<tr>
 										<td class="custom-color">
-											<?php echo lang('reference_number'); ?>
+											<?php echo lang('refer_of_document'); ?>
 										</td>
 										<td>
 											<?php echo $doc["reference_number"]; ?>
 										</td>
 									</tr>
 								<?php endif; ?>
-								<!-- <tr>
-									<td class="custom-color">
-										<?php // echo lang('delivery_schedule'); ?>
-									</td>
-									<td>
-										<?php // echo convertDate($doc["due_date"], true); ?>
-									</td>
-								</tr> -->
 							</table>
 						</div>
 						<div class="buyercontact">
@@ -418,7 +396,7 @@
 					<?php endif; ?>
 
 					<div class="payment_info clear" id="paymentInfo">
-						<p class="custom-color">ข้อมูลการชำระเงิน</p>
+						<p class="custom-color"><?php echo lang("payment_information"); ?></p>
 						<div id="paymentItems">
 							<?php if (isset($doc['payments']) && !empty($doc['payments'])): ?>
 								<?php foreach ($doc['payments'] as $key => $item): ?>
@@ -473,7 +451,7 @@
 									<?php endif; ?>
 								</span>
 								<span class="l2">
-									<?php echo "ผู้ออกเอกสาร"; ?>
+									<?php echo lang("issuer_of_document"); ?>
 								</span>
 							</div>
 							<div class="date">
@@ -485,7 +463,7 @@
 									<?php endif; ?>
 								</span>
 								<span class="l2">
-									<?php echo lang('date'); ?>
+									<?php echo lang("date_of_issued"); ?>
 								</span>
 							</div>
 						</div>

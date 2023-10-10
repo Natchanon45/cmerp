@@ -2370,16 +2370,11 @@ $lang["namebank"] = "ชื่อธนาคาร";
 $lang["runnumber"] = "เลขบัญชี";
 $lang["detailpayment"] = "รายละเอียด";
 
-
-
 $lang["resources"] = "จัดการทรัพยากร";
 $lang["add_category"] = "เพิ่มหมวดหมู่";
 $lang["select_category"] = "- เลือกหมวดหมู่ -";
 $lang["select_material"] = "- เลือกวัตถุดิบ -";
-
-
 $lang["create_material_request_document"] = "เบิกวัตถุดิบ";
-
 
 $lang["add_delivery"] = "เพื่มใบรับส่งของภายใน (DL)"; 
 $lang["delivery_date"] = "วันที่รับส่งของภายใน (DL)";
@@ -2559,6 +2554,15 @@ $lang["record_of_goods_receipt"] = "ออกใบรับสินค้า";
 $lang["payment_voucher"] = "ใบสำคัญจ่าย (PV)";
 $lang["payment_voucher_add"] = "เพิ่มใบสำคัญจ่าย";
 $lang["record_of_payment_voucher"] = "ออกใบสำคัญจ่าย";
+$lang["date_of_document"] = "วันที่ออกเอกสาร";
+$lang["number_of_document"] = "เลขที่เอกสาร";
+$lang["refer_of_document"] = "เลขที่อ้างอิง";
+$lang["issuer_of_document"] = "ผู้ออกเอกสาร";
+$lang["date_of_issued"] = "วันที่ออกเอกสาร";
+$lang["total_payment_amount"] = "ยอดรวมชำระ";
+$lang["payment_voucher_payer"] = "ผู้ซื้อ";
+$lang["payment_voucher_payee"] = "ผู้ขาย";
+$lang["payment_information"] = "ข้อมูลการชำระเงิน";
 
 $lang["material_request_type"] = "ประเภทการเบิก";
 $lang["project_refer"] = "โปรเจคอ้างอิง";

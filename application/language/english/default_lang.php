@@ -2158,6 +2158,15 @@ $lang["record_of_goods_receipt"] = "Record of Goods receipt";
 $lang["payment_voucher"] = "Payment Voucher";
 $lang["payment_voucher_add"] = "Create new PV";
 $lang["record_of_payment_voucher"] = "Record of Payment voucher";
+$lang["date_of_document"] = "Date of Document";
+$lang["number_of_document"] = "Doc. No.";
+$lang["refer_of_document"] = "Ref. No.";
+$lang["issuer_of_document"] = "Document Issuer";
+$lang["date_of_issued"] = "Issued Date";
+$lang["total_payment_amount"] = "Total Payment";
+$lang["payment_voucher_payer"] = "Payer Info.";
+$lang["payment_voucher_payee"] = "Payee Info.";
+$lang["payment_information"] = "Payment Info.";
 
 $lang["material_request_type"] = "Request type";
 $lang["project_refer"] = "Project reference";
