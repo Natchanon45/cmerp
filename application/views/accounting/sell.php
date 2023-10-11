@@ -186,6 +186,7 @@ $(document).ready(function () {
 });
 
 function loadDataGrid(){
+    $(".modal-content").css("height", "auto");
     $("#datagrid_wrapper").empty();
     $("#accounting_navs .buttons li.add span").empty();
     $("<table id='datagrid' class='display' cellspacing='0' width='100%''></table>").insertAfter("#accounting_navs");
@@ -257,6 +258,7 @@ function loadDataGrid(){
         doc_status = [{id:"", text:"-- <?php echo lang("status"); ?> --"}, {id:"W", text:"รออนุมัติ"}, {id:"A", text:"อนุมัติ"}, {id:"V", text:"ยกเลิก"}];
 
     }else if(active_module == "receipts"){
+        $(".buttons li.add a").attr("data-title", "สร้างใบเสร็จรับเงิน");
         $(".buttons li.add a").attr("data-action-url", "<?php echo get_uri("receipts/addedit"); ?>");
         $(".buttons li.add span").append("สร้างใบเสร็จรับเงิน");
         doc_status = [{id:"", text:"-- <?php echo lang("status"); ?> --"}, {id:"W", text:"รอดำเนินการ"}, {id:"P", text:"เก็บเงินแล้ว"}, {id:"V", text:"ยกเลิก"}];

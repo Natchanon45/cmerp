@@ -14,6 +14,25 @@
             </div>
         <?php endif; ?>
 
+
+        <div class="form-group">
+            <label for="item_code" class="col-md-3"><?php echo lang('stock_item_code'); ?></label>
+            <div class="col-md-9">
+                <?php
+                    echo form_input(array(
+                        "id" => "item_code",
+                        "name" => "item_code",
+                        "value" => $model_info->item_code,
+                        "class" => "form-control",
+                        "placeholder" => lang('stock_item_code'),
+                        "autofocus" => true,
+                        "data-rule-required" => true,
+                        "data-msg-required" => lang("field_required"),
+                    ));
+                ?>
+            </div>
+        </div>
+
         <div class="form-group">
             <label for="title" class=" col-md-3">
                 <?php echo lang('title'); ?>

@@ -4512,7 +4512,7 @@ class Stock extends MY_Controller
                 $data->category ? $data->category : '-',
                 $data->description ? trim($data->description) : '-',
                 $data->remaining ? to_decimal_format2($data->remaining) : to_decimal_format2(0),
-                $data->unit_type ? strtoupper($data->unit_type) : '-'
+                $data->unit_type ? mb_strtoupper($data->unit_type) : '-'
             );
         } else {
             $row_data = array(
@@ -4525,7 +4525,7 @@ class Stock extends MY_Controller
                 $data->category ? $data->category : '-',
                 $data->description ? trim($data->description) : '-',
                 $data->remaining ? to_decimal_format2($data->remaining) : to_decimal_format2(0),
-                $data->unit_type ? strtoupper($data->unit_type) : '-'
+                $data->unit_type ? mb_strtoupper($data->unit_type) : '-'
             );
         }
 

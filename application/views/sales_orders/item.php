@@ -130,7 +130,7 @@ $(document).ready(function () {
 
             if(product_formulas.length >= 1){
                 pf = '<div id="product_formula_section" class="form-group">';
-                    pf += '<label for="product_formula" class="col-md-3">ส่วนประกอบ</label>';
+                    pf += '<label for="product_formula" class="col-md-3">สูตรผสม</label>';
                     pf += '<div class=" col-md-9">';
                         pf += '<select id="product_formula" class="form-control">';
                             for(i = 0; i < product_formulas.length; i++){

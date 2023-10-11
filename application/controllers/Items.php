@@ -91,6 +91,7 @@ class Items extends MY_Controller
 		$account_id = $this->input->post('account_id');
 
 		$item_data = array(
+			"item_code" => $this->input->post('item_code'),
 			"title" => $this->input->post('title'),
 			"description" => $this->input->post('description'),
 			"category_id" => $this->input->post('category_id'),
@@ -256,6 +257,7 @@ class Items extends MY_Controller
 		return array(
 			anchor(get_uri('' . $this->className . '/detail/' . $data->id), $data->id),
 			$preview,
+			($data->item_code != "" ? $data->item_code:"-"),
 			anchor(get_uri('' . $this->className . '/detail/' . $data->id), $data->title),
 			nl2br($data->description),
 			$data->category_title ? "$data->category_title" : "-",
@@ -1353,15 +1355,15 @@ class Items extends MY_Controller
 
 		$result = array();
 
-		$fs = $this->getRolePermission["filters"]["WHERE"];
+		//$fs = $this->getRolePermission["filters"]["WHERE"];
 
 		//$this->db->select("*, title AS category_title")->from("items");
 		$this->db->select("items.*, item_categories.title AS category_title")
 					->from("items")
-					->join("item_categories", "items.category_id = item_categories.id");
+					->join("item_categories", "items.category_id = item_categories.id", "left")
+					->where("items.deleted", "0");
 
 		if($category_id)$this->db->where("items.category_id", $category_id);
-		
 
 		if(!empty($fs)){
 			foreach($fs as $f){
