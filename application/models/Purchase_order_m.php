@@ -61,49 +61,84 @@ class Purchase_order_m extends MY_Model
         return lang($type[$id]);
     }
 
-    function getIndexDataSetHTML($qrow) // MARK
+    function getIndexDataSetHTML($qrow)
     {
         $button = '';
         $doc_status = '<select class="dropdown_status select-status" data-doc_id="' . $qrow->id . '">';
 
-        if ($qrow->status == "W") {
+        if ($qrow->status == "W") // Status is awaiting approval.
+        {
+            // The status can be appoved or canceled.
             $doc_status .= '
                 <option value="W" selected>' . lang('pr_pending') . '</option>
                 <option value="A">' . lang('pr_approved') . '</option>
                 <option value="X">' . lang('cancel') . '</option>
             ';
-            $button = '<a data-post-id="' . $qrow->id . '" data-title="' . $this->modal_header() . '" data-action-url="' . get_uri('purchase_order/addedit') . '" data-act="ajax-modal" class="edit"><i class="fa fa-pencil"></i></a>';
-        } elseif ($qrow->status == "A") {
+
+            // The edit button can be used.
+            $button = modal_anchor(
+                get_uri('purchase_order/addedit'),
+                '<i class="fa fa-pencil"></i>',
+                array(
+                    "data-post-id" => $qrow->id,
+                    "data-title" => lang("purchase_order_edit"),
+                    "data-act" => "ajax-modal",
+                    "title" => lang("purchase_order_edit"),
+                    "class" => "edit"
+                )
+            );
+        } 
+        elseif ($qrow->status == "A") // Status is approved.
+        {
+            // Start at approved.
             $doc_status .= '<option value="A" selected>' . lang('pr_approved') . '</option>';
 
-            if ($qrow->payment_status == "P" || $qrow->payment_status == "W") {
+            // The payment status is awaiting, it can create a payment voucher.
+            if ($qrow->payment_status == "W") {
                 $doc_status .= '
                     <option value="PV">' . lang('record_of_payment_voucher') . '</option>
                 ';
             }
-
-            if ($qrow->receipt_status == "P" || $qrow->receipt_status == "W") {
+            // The receipt status is awaiting, it can create a goods receipt.
+            if ($qrow->receipt_status == "W") {
                 $doc_status .= '
                     <option value="GR">' . lang('record_of_goods_receipt') . '</option>
                 ';
             }
-
-            if ($qrow->payment_status == "W" || $qrow->receipt_status == "W") {
-                if ($qrow->status == "W") {
-                    $doc_status .= '<option value="X">' . lang('cancel') . '</option>';
-                }
+            // The payment status and receipt status is awaiting, it can be canceled.
+            if ($qrow->receipt_status == "W" && $qrow->payment_status == "W") {
+                $doc_status .= '
+                    <option value="X">' . lang('cancel') . '</option>
+                ';
             }
             
-            $button = '<a data-post-id="' . $qrow->id . '" data-title="' . $this->modal_header() . '" data-action-url="' . get_uri('purchase_order/addedit') . '" data-act="ajax-modal" class="edit"><i class="fa fa-eye"></i></a>';
-        } elseif ($qrow->status == "R") {
+            // The edit button was disabled.
+            $button = modal_anchor(
+                get_uri('purchase_order/addedit'),
+                '<i class="fa fa-eye"></i>',
+                array(
+                    "data-post-id" => $qrow->id,
+                    "data-title" => lang("purchase_order"),
+                    "data-act" => "ajax-modal",
+                    "title" => lang("purchase_order"),
+                    "class" => "edit"
+                )
+            );
+        } 
+        elseif ($qrow->status == "R") // Status is rejected.
+        {
             $doc_status .= '
                 <option value="R" selected>' . lang('pr_rejected') . '</option>
             ';
+            
             $button = '';
-        } elseif ($qrow->status == "X") {
+        } 
+        elseif ($qrow->status == "X") // Status is canceled.
+        {
             $doc_status .= '
                 <option value="X" selected>' . lang('cancel') . '</option>
             ';
+            
             $button = '';
         }
 
@@ -198,6 +233,7 @@ class Purchase_order_m extends MY_Model
         $this->data["approved_datetime"] = null;
         $this->data["doc_status"] = null;
         $this->data["doc_receipt_status"] = null;
+        $this->data["doc_payment_status"] = null;
 
         if (!empty($docId)) {
             $qrow = $db->select("*")
@@ -233,6 +269,7 @@ class Purchase_order_m extends MY_Model
             $this->data["approved_datetime"] = $qrow->approved_datetime;
             $this->data["doc_status"] = $qrow->status;
             $this->data["doc_receipt_status"] = $qrow->receipt_status;
+            $this->data["doc_payment_status"] = $qrow->payment_status;
         }
 
         $this->data["status"] = "success";
@@ -727,10 +764,10 @@ class Purchase_order_m extends MY_Model
         $product_id = $this->json->product_id == "" ? null : $this->json->product_id;
         $product_name = $this->json->product_name;
         $product_description = $this->json->product_description;
-        $quantity = round(getNumber($this->json->quantity), $this->Settings_m->getDecimalPlacesNumber());
+        $quantity = round(getNumber($this->json->quantity), 2);
         $unit = $this->json->unit;
-        $price = round(getNumber($this->json->price), 2);
-        $total_price = round($price * $quantity, 2);
+        $price = round(getNumber($this->json->price), 4);
+        $total_price = round(getNumber($this->json->total_price), 4);
 
         $fdata = [
             "po_id" => $docId,

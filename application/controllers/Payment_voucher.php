@@ -69,12 +69,17 @@ class Payment_voucher extends MY_Controller
     function view()
     {
         if (isset($this->json->task)) {
-            if ($this->json->task == "load_items")
+            if ($this->json->task == "load_items") {
                 jout($this->Payment_voucher_m->items());
-            if ($this->json->task == "update_doc")
+            }
+                
+            if ($this->json->task == "update_doc") {
                 jout($this->Payment_voucher_m->updateDoc());
-            if ($this->json->task == "delete_item")
+            }
+                
+            if ($this->json->task == "delete_item") {
                 jout($this->Payment_voucher_m->deleteItem());
+            }
             return;
         }
 

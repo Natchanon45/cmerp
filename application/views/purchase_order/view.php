@@ -25,25 +25,45 @@
                     <?php echo lang('share'); ?>
                 </a>
                 <a onclick="window.open('<?php echo $print_url; ?>', '' ,'width=980,height=720');" class="btn btn-default">
-                    <?php echo lang('print'); ?>
+                    <?php echo lang("print"); ?>
                 </a>
             <?php endif; ?>
+
             <?php if ($doc_status == "W"): ?>
                 <a href="javascript:void(0);" id="btn-approval" class="btn btn-info">
-                    <?php echo lang('approve'); ?>
+                    <i class="fa fa-check-square-o"></i>
+                    <?php echo str_repeat("&nbsp;", 1) . lang('purchase_order_approve'); ?>
                 </a>
             <?php endif; ?>
 
             <?php if ($doc_status == "A"): ?>
-                <?php if ($doc_receipt_status != 'C'): ?>
-                    <a href="javascript:void(0);" id="btn-payment" class="btn btn-info">
-                        <i class="fa fa-file-text-o"></i> 
-                        <?php echo lang('record_of_payment_voucher'); ?>
-                    </a>
-                    <a href="javascript:void(0);" id="btn-receipt" class="btn btn-info">
-                        <i class="fa fa-file-text-o"></i> 
-                        <?php echo lang('record_of_goods_receipt'); ?>
-                    </a>
+                <?php if ($doc_receipt_status == "W" || $doc_payment_status == "W"): ?>
+                    <span class="dropdown inline-block">
+                        <button class="btn btn-warning dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <i class="fa fa-info-circle"></i>
+                            <?php echo str_repeat("&nbsp;", 1) . lang("operation"); ?>
+                        </button>
+                        <ul class="dropdown-menu dropdown-left rounded" role="menu" aria-labelledby="dropdownMenuButton">
+                            
+                            <?php if($doc_payment_status == "W"): ?>
+                                <li role="presentation">
+                                    <a href="javascript:void(0);" id="btn-payment" class="dropdown-item">
+                                        <i class="fa fa-file" aria-hidden="true"></i>
+                                        <?php echo str_repeat("&nbsp;", 1) . lang("record_of_payment_voucher"); ?>
+                                    </a>
+                                </li>
+                            <?php endif; ?>
+
+                            <?php if ($doc_receipt_status == "W"): ?>
+                                <li role="presentation">
+                                    <a href="javascript:void(0);" id="btn-receipt" class="dropdown-item">
+                                        <i class="fa fa-file-o" aria-hidden="true"></i> 
+                                        <?php echo str_repeat("&nbsp;", 1) . lang("record_of_goods_receipt"); ?>
+                                    </a>
+                                </li>
+                            <?php endif; ?>
+                        </ul>
+                    </span>
                 <?php endif; ?>
             <?php endif; ?>
         </div>
@@ -170,26 +190,29 @@
                         <?php if ($doc_status == "W"): ?>
                             <?php if ($pr_id == null || $pr_id == ''): ?>
                                 <?php
-                                    $btn_text = lang("btn_add_raw_material");
+                                    $btn_add = lang("btn_add_raw_material");
+                                    $btn_edit = lang("btn_edit_raw_material");
 
                                     if ($doc_type == 3) {
-                                        $btn_text = lang("btn_add_finished_goods");
+                                        $btn_add = lang("btn_add_finished_goods");
+                                        $btn_edit = lang("btn_edit_finished_goods");
                                     }
 
                                     if ($doc_type == 5) {
-                                        $btn_text = lang("btn_add_expense");
+                                        $btn_add = lang("btn_add_expense");
+                                        $btn_edit = lang("btn_edit_expense");
                                     }
                                 ?>
                                 <p>
                                     <?php
                                         echo modal_anchor(
                                             get_uri("purchase_order/item"), 
-                                            "<i class='fa fa-plus-circle'></i> " . $btn_text, 
+                                            "<i class='fa fa-plus-circle'></i> " . $btn_add, 
                                             array(
                                                 "id" => "add_item_button", 
                                                 "class" => "btn btn-default", 
-                                                "title" => $btn_text, 
-                                                "data-title" => $btn_text, 
+                                                "title" => $btn_add, 
+                                                "data-title" => $btn_add, 
                                                 "data-post-doc_id" => $doc_id
                                             )
                                         );
@@ -345,6 +368,8 @@
 </div><!--#printd-->
 
 <script type="text/javascript">
+    const requestId = '<?php echo $pr_id; ?>';
+
     window.addEventListener('keydown', (e) => {
         if (e.keyCode === 80 && (e.ctrlKey || e.metaKey) && !e.altKey && (!e.shiftKey || window.chrome || window.opera)) {
             e.preventDefault();
@@ -410,13 +435,19 @@
                     tbody += `<td>${items[i]['total_price']}</td>`;
                     tbody += `<td class="edititem">`;
                     if (data.doc_status == 'W') {
-                        tbody += `<a class="edit" data-post-doc_id="<?php echo $doc_id; ?>" data-title="<?php echo $modal_header; ?>" data-post-item_id="${items[i]['id']}" data-act="ajax-modal" data-action-url="<?php echo_uri('purchase_order/item'); ?>"><i class="fa fa-pencil"></i></a>`;
+                        tbody += `<a class="edit" data-post-doc_id="<?php echo $doc_id; ?>" data-title="<?php echo $btn_edit; ?>" data-post-item_id="${items[i]['id']}" data-act="ajax-modal" data-action-url="<?php echo_uri("purchase_order/item"); ?>"><i class="fa fa-pencil"></i></a>`;
+                        if (!requestId) {
+                            tbody += `<a class="delete" data-item_id="${items[i]['id']}"><i class="fa fa-times fa-fw"></i></a>`;
+                        }
                     }
                     tbody += `</td>`;
                     tbody += `</tr>`;
                 }
 
                 $(".docitem tbody").empty().append(tbody);
+                $(".edititem .delete").click(function () {
+                    deletion($(this).data("item_id"));
+                });
             }
 
             loadSummary();

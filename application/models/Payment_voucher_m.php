@@ -182,6 +182,7 @@ class Payment_voucher_m extends MY_Model
             $this->data["vat_inc"] = $pvrow->vat_inc;
             $this->data["vat_percent"] = number_format_drop_zero_decimals($pvrow->vat_percent, 2) . "%";
             $this->data["wht_inc"] = $pvrow->wht_inc;
+            $this->data["wht_percent"] = $pvrow->wht_percent;
             $this->data["project_id"] = $pvrow->project_id;
             $this->data["supplier_id"] = $pvrow->supplier_id;
             $this->data["remark"] = $pvrow->remark;
@@ -365,7 +366,7 @@ class Payment_voucher_m extends MY_Model
         $this->data["total"] = number_format($total, 2);
         $this->data["total_in_text"] = numberToText($total);
         $this->data["wht_inc"] = $wht_inc;
-        $this->data["wht_percent"] = number_format_drop_zero_decimals($wht_percent, 2);
+        $this->data["wht_percent"] = number_format_drop_zero_decimals($wht_percent, 0);
         $this->data["wht_value"] = number_format($wht_value, 2);
         $this->data["payment_amount"] = number_format($payment_amount, 2);
 

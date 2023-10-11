@@ -265,20 +265,23 @@
 
                         <p id="s-wht">
                             <span class="c1 custom-color">
-                                <input type="checkbox" id="wht_inc" <?php if ($wht_inc == "Y") { echo "checked"; } ?>>
+                                <input type="checkbox" id="wht_inc" <?php if ($wht_inc == "Y") { echo "checked"; } ?> disabled>
                                 <span>
                                     <?php echo lang('with_holding_tax'); ?>
                                 </span>
-                                <?php // var_dump(arr($wht_percent)); ?>
-                                <select id="wht_percent" class="wht custom-color <?php echo $wht_inc == "Y" ? "v" : "h"; ?>">
-                                <option value="<?php echo $wht_percent; ?>" selected>
-                                            <?php echo $wht_percent . '%'; ?>
-                                        </option>
-                                    <?php if ($wht_inc == "Y" && isset($wht_percent) && !empty($wht_percent)): ?>
-                                        <option value="<?php echo $wht_percent; ?>" selected>
-                                            <?php echo $wht_percent . '%'; ?>
-                                        </option>
+                                <select id="wht_percent" class="wht custom-color <?php echo $wht_inc == "Y" ? "v" : "h"; ?>" disabled>
+                                    <?php if ($wht_inc == 'Y' && isset($wht_percent) && !empty($wht_percent)): ?>
+                                        <option value="<?php echo $wht_percent; ?>" selected><?php echo $wht_percent . '%'; ?></option>
                                     <?php endif; ?>
+                                    <option value="3">3%</option>
+                                    <option value="5">5%</option>
+                                    <option value="0.50">0.5%</option>
+                                    <option value="0.75">0.75%</option>
+                                    <option value="1">1%</option>
+                                    <option value="1.50">1.5%</option>
+                                    <option value="2">2%</option>
+                                    <option value="10">10%</option>
+                                    <option value="15">15%</option>
                                 </select>
                             </span>
                             <span class="c2 wht <?php echo $wht_inc == "Y" ? "v" : "h"; ?>">
@@ -327,11 +330,9 @@
                 <div class="name">
                     <span class="l1">
                         <span class="signature">
-                            <?php if ($doc_status != 'R' && $doc_status != 'X'):
-                                if ($created_by != null):
-                                    if (null != $requester_sign = $this->Users_m->getSignature($created_by)): ?>
-                                        <img src="<?php echo '/' . $requester_sign; ?>">
-                                    <?php endif; endif; endif; ?>
+                            <?php if ($doc_status != "R" && $doc_status != "X"): if ($created_by != null): if (null != $requester_sign = $this->Users_m->getSignature($created_by)): ?>
+                                <img src="<?php echo '/' . $requester_sign; ?>">
+                            <?php endif; endif; endif; ?>
                         </span>
                     </span>
                     <span class="l2">
@@ -340,7 +341,7 @@
                 </div>
                 <div class="date">
                     <span class="l1">
-                        <?php if ($doc_date != null && $doc_status != 'R' && $doc_status != 'X'): ?>
+                        <?php if ($doc_date != null && $doc_status != "R" && $doc_status != "X"): ?>
                             <span class="approved_date">
                                 <?php echo convertDate($doc_date, true); ?>
                             </span>
@@ -352,13 +353,14 @@
                 </div>
             </div>
         </div><!--.customer -->
+
         <div class="company">
             <div class="on_behalf_of"></div>
             <div class="clear">
                 <div class="name">
                     <span class="l1">
                         <span class="signature">
-                            <?php if ($approved_by != null && $doc_status == 'A'):
+                            <?php if ($approved_by != null && $doc_status == "A"):
                                 if (null != $signature = $this->Users_m->getSignature($approved_by)): ?>
                                     <img src="<?php echo '/' . $signature; ?>">
                                 <?php endif; endif; ?>
@@ -370,7 +372,7 @@
                 </div>
                 <div class="date">
                     <span class="l1">
-                        <?php if ($approved_datetime != null && $doc_status == 'A'): ?>
+                        <?php if ($approved_datetime != null && $doc_status == "A"): ?>
                             <span class="approved_date">
                                 <?php echo convertDate($approved_datetime, true); ?>
                             </span>
@@ -431,7 +433,6 @@
         };
 
         await axios.post(url, request).then((response) => {
-            // console.log(response.data);
             const { items, status, message } = response.data;
 
             if (status == "notfound") {
@@ -481,7 +482,6 @@
         };
 
         await axios.post(url, request).then((response) => {
-            // console.log(response.data);
             const {
                 discount_amount, discount_percent, discount_type,
                 status, message, payment_amount,

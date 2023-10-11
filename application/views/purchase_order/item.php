@@ -29,54 +29,55 @@ if (isset($doc_type) && !empty($doc_type)) {
     <div class="form-group">
         <label for="quantity" class=" col-md-3"><?php echo lang('quantity'); ?></label>
         <div class="col-md-9">
-            <input type="text" id="quantity" value="<?php echo $quantity; ?>" placeholder="<?php echo lang('quantity'); ?>" class="form-control numb">
+            <input type="text" id="quantity" value="<?php echo $quantity; ?>" placeholder="<?php echo lang('quantity'); ?>" class="form-control">
         </div>
     </div>
     <div class="form-group">
         <label for="unit" class=" col-md-3"><?php echo lang('unit_type'); ?></label>
         <div class="col-md-9">
-            <input type="text" id="unit" value="<?php echo $unit; ?>" placeholder="<?php echo lang('stock_material_unit'); ?>" class="form-control" <?php if ($doc_type != 5) echo "readonly"; ?>>
+            <input type="text" id="unit" value="<?php echo $unit; ?>" placeholder="<?php echo lang('stock_material_unit'); ?>" class="form-control" <?php if ($doc_type != 5) { echo "readonly"; } ?>>
         </div>
     </div>
     <div class="form-group">
         <label for="price" class=" col-md-3"><?php echo lang('rate'); ?></label>
         <div class="col-md-9">
-            <input type="text" id="price" value="<?php echo $price; ?>" placeholder="<?php echo lang('rate'); ?>" class="form-control numb">
+            <input type="text" id="price" value="<?php echo $price; ?>" class="form-control">
         </div>
     </div>
     <div class="form-group">
         <label for="total_price" class=" col-md-3"><?php echo lang('total_price'); ?></label>
         <div class="col-md-9">
-            <input type="text" id="total_price" value="<?php echo $total_price; ?>" placeholder="<?php echo lang('rate'); ?>" class="form-control numb" readonly>
+            <input type="text" id="total_price" value="<?php echo $total_price; ?>" class="form-control">
         </div>
     </div>
 </div>
+
 <div class="modal-footer">
     <button type="button" id="x" class="btn btn-default" data-dismiss="modal">
         <span class="fa fa-close"></span>
-        <?php echo lang('close'); ?>
+        <?php echo lang("close"); ?>
     </button>
     <button type="button" id="btnSubmit" class="btn btn-primary">
         <span class="fa fa-check-circle"></span>
-        <?php echo lang('save'); ?>
+        <?php echo lang("save"); ?>
     </button>
 </div>
+
 <script type="text/javascript">
     $(document).ready(function () {
-        calculatePrice();
-
         $("#btnSubmit").click(function () {
             let url = '<?php echo current_url(); ?>';
             let request = {
                 task: 'save',
                 doc_id: '<?php echo $doc_id; ?>',
-                item_id: '<?php if (isset($item_id) && !empty(isset($item_id))) echo $item_id; ?>',
+                item_id: '<?php if (isset($item_id) && !empty(isset($item_id))) { echo $item_id; } ?>',
                 product_id: $("#product_id").val(),
                 product_name: $("#product_name").val(),
                 product_description: $("#product_description").val(),
                 quantity: $("#quantity").val(),
                 unit: $("#unit").val(),
-                price: $("#price").val()
+                price: $("#price").val(),
+                total_price: $("#total_price").val(),
             }
 
             axios.post(url, request).then(function (response) {
@@ -128,8 +129,6 @@ if (isset($doc_type) && !empty($doc_type)) {
                 $("#quantity").val("1");
                 $("#unit").val(e.added.unit);
                 $("#price").val(e.added.price);
-
-                calculatePrice();
             }
         });
         
@@ -139,28 +138,43 @@ if (isset($doc_type) && !empty($doc_type)) {
                 text: "<?php echo $product_name; ?>"
             });
         <?php endif; ?>
-        
-        $(".numb").blur(function () {
-            calculatePrice();
-        });
 
-        $("#quantity, #price").on('click', function (e) {
+        $("#quantity, #price, #total_price").on('click', function (e) {
             e.target.select();
         });
+
+        $("#price").on('blur', function (e) {
+            e.preventDefault();
+
+            let quantity = tonum($("#quantity").val(), 2);
+            let price = tonum($("#price").val(), 4);
+            let total = 0;
+
+            if (quantity < 0) { quantity = 0; }
+            if (price < 0) { price = 0; }
+            total = quantity * price;
+            
+            $("#quantity").val($.number(quantity, 2));
+            $("#price").val($.number(price, 4));
+            $("#total_price").val($.number(total, 4));
+        });
+
+        $("#total_price").on('blur', function (e) {
+            e.preventDefault();
+
+            let quantity = tonum($("#quantity").val(), 2);
+            let total = tonum($("#total_price").val(), 4);
+            let price = 0;
+
+            if (quantity < 0) { quantity = 0; }
+            if (total < 0) { total = 0; }
+            price = total / quantity;
+            
+            $("#quantity").val($.number(quantity, 2));
+            $("#price").val($.number(price, 4));
+            $("#total_price").val($.number(total, 4));
+        });
     });
-
-    function calculatePrice() {
-        let quantity = tonum($("#quantity").val(), <?php echo $this->Settings_m->getDecimalPlacesNumber(); ?>);
-        let price = tonum($("#price").val(), <?php echo $this->Settings_m->getDecimalPlacesNumber(); ?>);
-        let total_price = 0.00;
-
-        if (quantity < 0) quantity = 0;
-        if (price < 0) price = 0;
-
-        total_price = price * quantity;
-
-        $("#quantity").val($.number(quantity, <?php echo $this->Settings_m->getDecimalPlacesNumber(); ?>));
-        $("#price").val($.number(price, 2));
-        $("#total_price").val($.number(total_price, 2));
-    }
 </script>
+
+<?php // echo $this->Settings_m->getDecimalPlacesNumber(); ?>

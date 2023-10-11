@@ -2112,9 +2112,13 @@ $lang["payments_waiting"] = "Awaiting payment";
 $lang["payments_partial"] = "Partial payment";
 $lang["payments_completed"] = "Completed payment";
 
-$lang["btn_add_raw_material"] = "Add material";
-$lang["btn_add_finished_goods"] = "Add finished goods";
-$lang["btn_add_expense"] = "Add expense";
+$lang["btn_add_raw_material"] = "Add Material";
+$lang["btn_add_finished_goods"] = "Add Finished Goods";
+$lang["btn_add_expense"] = "Add Expense";
+
+$lang["btn_edit_raw_material"] = "Edit Material";
+$lang["btn_edit_finished_goods"] = "Edit Finished Goods";
+$lang["btn_edit_expense"] = "Edit Expense";
 
 $lang["label_raw_material"] = "Raw Material";
 $lang["label_finished_goods"] = "Finished Goods";
@@ -2142,11 +2146,14 @@ $lang["mixed_purchase"] = "Raw Material/Finished Goods";
 
 $lang["purchase_order"] = "Purchase Order";
 $lang["purchase_order_add"] = "Create new PO";
+$lang["purchase_order_edit"] = "Purchase Order Edit";
+$lang["purchase_order_approve"] = "Approve (PO)";
 $lang["purchase_by"] = "Purchased by";
 $lang["po_no"] = "PO Number";
 $lang["po_type"] = "PO Type";
 $lang["record_expenses"] = "Record expense";
 $lang["record_products"] = "Record product";
+$lang["operation"] = "Operations";
 
 $lang["goods_receipt"] = "Goods Receipt";
 $lang["goods_receipt_add"] = "Create new GR";
