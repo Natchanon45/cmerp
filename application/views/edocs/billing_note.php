@@ -210,7 +210,8 @@
 				<div class="signature clear">
 					<div class="name">
 	                    <span class="l1"></span>
-	                    <span class="l2">ผู้รับวางบิล</span>
+	                    <span class="l2"><?php echo $doc["buyer"]["company_name"] ?></span>
+	                    <span class="l3">ผู้รับวางบิล</span>
 	                </div>
 	                <div class="date">
 	                    <span class="l1"></span>

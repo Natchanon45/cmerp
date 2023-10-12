@@ -56,11 +56,22 @@ class Tax_invoices_m extends MY_Model {
         $reference_number_column = $tivrow->reference_number;
         if($tivrow->invoice_id != null) $reference_number_column = "<a href='".get_uri("invoices/view/".$tivrow->invoice_id)."'>".$tivrow->reference_number."</a>";
 
+        $customer_group_names = "";
+        $customer_groups = $this->Customers_m->getGroupTitlesByCustomerId($tivrow->client_id);
+        if(!empty($customer_groups)){
+            foreach($customer_groups as $cgname){
+                $customer_group_names .= $cgname.", ";
+            }
+
+            $customer_group_names = substr($customer_group_names, 0, -2);
+        }
+
         $data = [
                     "<a href='".get_uri($module."/view/".$tivrow->id)."'>".convertDate($tivrow->doc_date, 2)."</a>",
                     "<a href='".get_uri($module."/view/".$tivrow->id)."'>".$tivrow->doc_number."</a>",
                     $reference_number_column,
                     "<a href='".get_uri("clients/view/".$tivrow->client_id)."'>".$this->Clients_m->getCompanyName($tivrow->client_id)."</a>",
+                    $customer_group_names,
                     convertDate($tivrow->due_date, true), number_format($tivrow->total, 2), $doc_status,
                     $doc_buttons
                 ];
@@ -72,8 +83,11 @@ class Tax_invoices_m extends MY_Model {
         $db = $this->db;
         $company_setting = $this->Settings_m->getCompany();
 
-        $db->select("*")->from("tax_invoice");
-        $db->where("billing_type", $company_setting["company_billing_type"]);
+        $db->select("tax_invoice.*, clients.group_ids")
+            ->from("tax_invoice")
+            ->join("clients", "tax_invoice.client_id = clients.id")
+            ->where("billing_type", $company_setting["company_billing_type"])
+            ->where("tax_invoice.deleted", 0);
 
         if($this->input->post("status") != null){
             $db->where("status", $this->input->post("status"));
@@ -88,7 +102,9 @@ class Tax_invoices_m extends MY_Model {
             $db->where("client_id", $this->input->post("client_id"));
         }
 
-        $db->where("deleted", 0);
+        if($this->input->post("client_group_id") != null){
+            $db->where("find_in_set('".$this->input->post('client_group_id')."', group_ids)");
+        }
 
         $ivrows = $db->order_by("doc_number", "desc")->get()->result();
 
@@ -103,6 +119,7 @@ class Tax_invoices_m extends MY_Model {
 
     function getDoc($docId){
         $db = $this->db;
+        $ci = get_instance();
         $company_setting = $this->Settings_m->getCompany();
 
         $this->data["doc_id"] = null;
@@ -121,6 +138,7 @@ class Tax_invoices_m extends MY_Model {
         $this->data["sub_total"] = 0;//ยอด ไม่รวม VAT
         $this->data["total"] = 0;//ยอดรวม VAT
         $this->data["project_id"] = null;
+        $this->data["seller_id"] = null;
         $this->data["client_id"] = null;
         $this->data["lead_id"] = null;
         $this->data["remark"] = null;
@@ -169,9 +187,11 @@ class Tax_invoices_m extends MY_Model {
             $this->data["sub_total"] = $tivrow->sub_total;
             $this->data["total"] = $tivrow->total;
             $this->data["project_id"] = $tivrow->project_id;
+            if($tivrow->seller_id != null) $this->data["seller"] = $ci->Users_m->getInfo($tivrow->seller_id);
             $this->data["client_id"] = $client_id;
             $this->data["lead_id"] = $lead_id;
             $this->data["remark"] = $tivrow->remark;
+            if($tivrow->approved_by != null) $this->data["approved"] = $ci->Users_m->getInfo($tivrow->approved_by);
             $this->data["created_by"] = $tivrow->created_by;
             $this->data["created_datetime"] = $tivrow->created_datetime;
             $this->data["approved_by"] = $tivrow->approved_by;
@@ -220,7 +240,7 @@ class Tax_invoices_m extends MY_Model {
         $client_id = $tivrow->client_id;
         $created_by = $tivrow->created_by;
 
-        $this->data["seller"] = $ci->Users_m->getInfo($created_by);
+        if($tivrow->seller_id != null) $this->data["seller"] = $ci->Users_m->getInfo($tivrow->seller_id);
 
         $this->data["buyer"] = $ci->Customers_m->getInfo($client_id);
         $this->data["buyer_contact"] = $ci->Customers_m->getContactInfo($client_id);
@@ -251,6 +271,8 @@ class Tax_invoices_m extends MY_Model {
         $this->data["payment_amount"] = $tivrow->payment_amount;
 
         $this->data["sharekey_by"] = $tivrow->sharekey_by;
+        
+        if($tivrow->approved_by != null) $this->data["approved"] = $ci->Users_m->getInfo($tivrow->approved_by);
         $this->data["approved_by"] = $tivrow->approved_by;
         $this->data["approved_datetime"] = $tivrow->approved_datetime;
 

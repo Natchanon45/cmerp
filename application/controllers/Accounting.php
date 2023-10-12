@@ -66,15 +66,16 @@ class Accounting extends MY_Controller {
             }
         }
 
-        /*$pmrows = $this->Payments_m->getRows();
-        $payment_method_ids[] = ["id"=>"", "text"=>"-- การชำระเงิน --"];
-        if(!empty($pmrows)){
-            foreach($pmrows as $pmrow){
-                $payment_method_ids[] = ["id"=>$pmrow->id, "text"=>$pmrow->title];
+        $cusgrows = $this->Customers_m->getGroupRows();
+        $client_group_ids[] = ["id"=>"", "text"=>"-- กลุ่มลูกค้า --"];
+        if(!empty($cusgrows)){
+            foreach($cusgrows as $cusgrow){
+                $client_group_ids[] = ["id"=>"$cusgrow->id", "text"=>$cusgrow->title];
             }
-        }*/
+        }
 
         $this->data["client_ids"] = json_encode($client_ids);
+        $this->data["client_group_ids"] = json_encode($client_group_ids);
         $this->data["billing_type"] = $this->data["company_setting"]["company_billing_type"];
 
         $this->template->rander("accounting/sell", $this->data);

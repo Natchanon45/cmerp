@@ -78,4 +78,51 @@ class Customers_m extends MY_Model {
 
         return $cusrows;
     }
+
+    function getGroupRows($isDeleted = 0){
+        $db = $this->db;
+
+        $q = $db->select("*")->from("client_groups");
+
+        if($isDeleted != "all"){
+            $q->where("deleted", $isDeleted);
+        }
+
+        $cusgrows = $q->get()->result();
+
+        return $cusgrows;
+    }
+
+    function getGroupTitle($customer_group_id){
+        $cgrow = $this->db->select("title")
+                            ->from("client_groups")
+                            ->where("id", $customer_group_id)
+                            ->get()->row();
+
+        if(empty($cgrow)) return "";
+
+        return $cgrow->title;
+    }
+
+    function getGroupTitlesByCustomerId($customer_id){
+        $crow = $this->db->select("group_ids")
+                        ->from("clients")
+                        ->where("id", $customer_id)
+                        ->get()->row();
+
+        if(empty($crow)) return [];
+        if($crow->group_ids == "") return [];
+
+        $cgids = explode(",", $crow->group_ids);
+
+        if(empty($cgids)) return [];
+
+        $cgtitles = [];
+
+        foreach($cgids as $cgid){
+            $cgtitles[] = $this->getGroupTitle($cgid);
+        }
+
+        return $cgtitles;
+    }
 }

@@ -44,10 +44,21 @@ class Billing_notes_m extends MY_Model {
 
         $doc_status .= "</select>";
 
+        $customer_group_names = "";
+        $customer_groups = $this->Customers_m->getGroupTitlesByCustomerId($bnrow->client_id);
+        if(!empty($customer_groups)){
+            foreach($customer_groups as $cgname){
+                $customer_group_names .= $cgname.", ";
+            }
+
+            $customer_group_names = substr($customer_group_names, 0, -2);
+        }
+
         $data = [
                     "<a href='".get_uri("billing-notes/view/".$bnrow->id)."'>".convertDate($bnrow->doc_date, 2)."</a>",
                     "<a href='".get_uri("billing-notes/view/".$bnrow->id)."'>".$bnrow->doc_number."</a>",
                     "<a href='".get_uri("clients/view/".$bnrow->client_id)."'>".$this->Clients_m->getCompanyName($bnrow->client_id)."</a>",
+                    $customer_group_names,
                     convertDate($bnrow->due_date, true), number_format($bnrow->total, 2), $doc_status
                 ];
 
@@ -58,8 +69,11 @@ class Billing_notes_m extends MY_Model {
         $db = $this->db;
         $company_setting = $this->Settings_m->getCompany();
 
-        $db->select("*")->from("billing_note");
-        $db->where("billing_type", $company_setting["company_billing_type"]);
+        $db->select("billing_note.*, clients.group_ids")
+            ->from("billing_note")
+            ->join("clients", "billing_note.client_id = clients.id")
+            ->where("billing_type", $company_setting["company_billing_type"])
+            ->where("billing_note.deleted", 0);
 
         if($this->input->post("status") != null){
             $db->where("status", $this->input->post("status"));
@@ -74,7 +88,9 @@ class Billing_notes_m extends MY_Model {
             $db->where("client_id", $this->input->post("client_id"));
         }
 
-        $db->where("deleted", 0);
+        if($this->input->post("client_group_id") != null){
+            $db->where("find_in_set('".$this->input->post('client_group_id')."', group_ids)");
+        }
 
         $bnrows = $db->order_by("doc_number", "desc")->get()->result();
 

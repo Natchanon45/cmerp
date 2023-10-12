@@ -46,11 +46,22 @@ class Debit_notes_m extends MY_Model {
             $reference_number_column = "<a href='".get_uri("invoices/view/".$dnrow->invoice_id)."'>".$dnrow->reference_number."</a>";
         }
 
+        $customer_group_names = "";
+        $customer_groups = $this->Customers_m->getGroupTitlesByCustomerId($dnrow->client_id);
+        if(!empty($customer_groups)){
+            foreach($customer_groups as $cgname){
+                $customer_group_names .= $cgname.", ";
+            }
+
+            $customer_group_names = substr($customer_group_names, 0, -2);
+        }
+
         $data = [
                     "<a href='".get_uri("debit-notes/view/".$dnrow->id)."'>".convertDate($dnrow->doc_date, 2)."</a>",
                     "<a href='".get_uri("debit-notes/view/".$dnrow->id)."'>".$dnrow->doc_number."</a>",
                     $reference_number_column,
                     "<a href='".get_uri("clients/view/".$dnrow->client_id)."'>".$this->Clients_m->getCompanyName($dnrow->client_id)."</a>",
+                    $customer_group_names,
                     convertDate($dnrow->due_date, true), number_format($dnrow->total, 2), $doc_status,""
                 ];
 
@@ -59,8 +70,13 @@ class Debit_notes_m extends MY_Model {
 
     function indexDataSet() {
         $db = $this->db;
+        $company_setting = $this->Settings_m->getCompany();
 
-        $db->select("*")->from("debit_note");
+        $db->select("debit_note.*, clients.group_ids")
+            ->from("debit_note")
+            ->join("clients", "debit_note.client_id = clients.id")
+            ->where("billing_type", $company_setting["company_billing_type"])
+            ->where("debit_note.deleted", 0);
 
         if($this->input->post("status") != null){
             $db->where("status", $this->input->post("status"));
@@ -75,7 +91,9 @@ class Debit_notes_m extends MY_Model {
             $db->where("client_id", $this->input->post("client_id"));
         }
 
-        $db->where("deleted", 0);
+        if($this->input->post("client_group_id") != null){
+            $db->where("find_in_set('".$this->input->post('client_group_id')."', group_ids)");
+        }
 
         $dnrows = $db->order_by("doc_number", "desc")->get()->result();
 
@@ -90,6 +108,8 @@ class Debit_notes_m extends MY_Model {
 
     function getDoc($docId = NULL){
         $db = $this->db;
+        $ci = get_instance();
+        $company_setting = $this->Settings_m->getCompany();
         if($docId == null) return $this->data;
 
         $this->data["doc_date"] = date("Y-m-d");
@@ -115,6 +135,7 @@ class Debit_notes_m extends MY_Model {
             $dnrow = $db->select("*")
                         ->from("debit_note")
                         ->where("id", $docId)
+                        ->where("billing_type", $company_setting["company_billing_type"])
                         ->where("deleted", 0)
                         ->get()->row();
 
@@ -246,6 +267,7 @@ class Debit_notes_m extends MY_Model {
 
     function createDocByInvoiceId($invoice_id){
         $db = $this->db;
+        $company_setting = $this->Settings_m->getCompany();
 
         $invrow = $db->select("*")
                         ->from("invoice")
@@ -296,6 +318,7 @@ class Debit_notes_m extends MY_Model {
         $db->trans_begin();
         
         $db->insert("debit_note", [
+                                    "billing_type"=>$invrow->billing_type,
                                     "invoice_id"=>$invoice_id,
                                     "doc_number"=>$doc_number,
                                     "doc_date"=>$doc_date,
@@ -824,12 +847,14 @@ class Debit_notes_m extends MY_Model {
 
     function updateStatus(){
         $db = $this->db;
+        $company_setting = $this->Settings_m->getCompany();
         $docId = $this->json->doc_id;
         $updateStatusTo = $this->json->update_status_to;
 
         $dnrow = $db->select("*")
                     ->from("debit_note")
                     ->where("id",$docId)
+                    ->where("billing_type", $company_setting["company_billing_type"])
                     ->where("deleted", 0)
                     ->get()->row();
 
@@ -858,10 +883,6 @@ class Debit_notes_m extends MY_Model {
                                         "approved_datetime"=>date("Y-m-d H:i:s"),
                                         "status"=>"P"
                                     ]);
-
-            
-            $this->data["status"] = "success";
-            
 
         }elseif($updateStatusTo == "V"){
             $db->where("id", $docId);

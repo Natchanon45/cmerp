@@ -12,7 +12,7 @@
     </div>
 
     <div class="form-group">
-        <label for="seller_id" class="col-md-3">ผู้ขาย</label>
+        <label for="seller_id" class="col-md-3">ผู้ขาย<?php echo $seller_id; ?></label>
         <div class="col-md-9">
             <?php $srows = $this->Users_m->getRows(["id", "first_name", "last_name"]); ?>
             <select id="seller_id" class="form-control" <?php if($doc_status != "W" && isset($doc_id)) echo "disabled";?>>

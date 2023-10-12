@@ -261,7 +261,9 @@
                             <?php endif; ?>
                         </span>
                     </span>
-                    <span class="l2"><?php if(isset($approved)) echo "(".$approved["first_name"]." ".$approved["last_name"].")"; ?></span>
+                    <?php if(isset($approved)): ?>
+                        <span class="l2"><?php echo "(".$approved["first_name"]." ".$approved["last_name"].")"; ?></span>
+                    <?php endif; ?>
                     <span class="l3">ผู้อนุมัติ</span>
                 </div>
                 <div class="date">

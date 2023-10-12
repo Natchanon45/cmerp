@@ -64,10 +64,21 @@ class Sales_orders_m extends MY_Model {
 
         $doc_status .= "</select>";
 
+        $customer_group_names = "";
+        $customer_groups = $this->Customers_m->getGroupTitlesByCustomerId($sorow->client_id);
+        if(!empty($customer_groups)){
+            foreach($customer_groups as $cgname){
+                $customer_group_names .= $cgname.", ";
+            }
+
+            $customer_group_names = substr($customer_group_names, 0, -2);
+        }
+
         $data = [
                     "<a href='".get_uri("sales-orders/view/".$sorow->id)."'>".convertDate($sorow->doc_date, true)."</a>",
                     "<a href='".get_uri("sales-orders/view/".$sorow->id)."'>".$sorow->doc_number."</a>",
                     $sorow->reference_number, $this->getPurposeInfo($sorow->purpose),
+                    $customer_group_names,
                     $this->Clients_m->getCompanyName($sorow->client_id), $doc_status,
                     "<a data-post-id='".$sorow->id."' data-action-url='".get_uri("sales-orders/addedit")."' data-act='ajax-modal' class='edit'><i class='fa fa-pencil'></i></a>"
                 ];
@@ -76,39 +87,36 @@ class Sales_orders_m extends MY_Model {
     }
 
     function indexDataSet($doc_id = null) {
-        $db = $this->db;
+        $db = $this->db;        
+
+        $db->select("sales_order.*, clients.group_ids")
+            ->from("sales_order")
+            ->join("clients", "sales_order.client_id = clients.id")
+            ->where("sales_order.deleted", 0);
+
+        if($this->input->post("status") != null){
+            $db->where("status", $this->input->post("status"));
+        }
+
+        if($this->input->post("start_date") != null && $this->input->post("end_date")){
+            $db->where("doc_date >=", $this->input->post("start_date"));
+            $db->where("doc_date <=", $this->input->post("end_date"));
+        }
+
+        if($this->input->post("client_id") != null){
+            $db->where("client_id", $this->input->post("client_id"));
+        }
+
+        if($this->input->post("client_group_id") != null){
+            $db->where("find_in_set('".$this->input->post('client_group_id')."', group_ids)");
+        }
+
+        $sorows = $db->order_by("id", "DESC")->get()->result();
+
         $dataset = [];
 
-        $db->select("*")->from("sales_order");
-
-        if($doc_id != null){
-            $sorow = $db->where("id", $doc_id)->get()->row();
-            if(!empty($sorow)){
-                $this->data["status"] = "success";
-                $this->data["doc_id"] = $doc_id;
-                $this->data["dataset"] = $this->getIndexDataSetHTML($sorow);
-                return $this->data;
-            }
-
-            return $this->data;
-            
-        }else{
-            if($this->input->post("status") != null) $db->where("status", $this->input->post("status"));
-
-            if($this->input->post("start_date") != null && $this->input->post("end_date")){
-                $db->where("doc_date >=", $this->input->post("start_date"));
-                $db->where("doc_date <=", $this->input->post("end_date"));
-            }
-
-            if($this->input->post("client_id") != null) $db->where("client_id", $this->input->post("client_id"));
-
-            $db->where("deleted", 0);
-
-            $sorows = $db->order_by("doc_number", "desc")->get()->result();
-
-            foreach($sorows as $sorow){
-                $dataset[] = $this->getIndexDataSetHTML($sorow);
-            }    
+        foreach($sorows as $sorow){
+            $dataset[] = $this->getIndexDataSetHTML($sorow);
         }
 
         return $dataset;
@@ -1116,6 +1124,8 @@ class Sales_orders_m extends MY_Model {
             $mr_doc_number = $this->Db_model->genDocNo(["prefix" => "MR","LPAD" => 4,"column" => "doc_no","table" => "materialrequests"]);
             $db->insert("materialrequests", [
                                                 "doc_no"=>$mr_doc_number,
+                                                "sale_order_id"=>$sorow->id,
+                                                "sale_order_no"=>$sorow->doc_number,
                                                 "mr_type"=>"2",
                                                 "mr_date"=>date("Y-m-d"),
                                                 "status_id"=>1,
@@ -1268,9 +1278,9 @@ class Sales_orders_m extends MY_Model {
             foreach($soirows as $soirow){
                 $production_bom_data[] = [
                                             "project_id"=>$project_id,
-                                            "item_id"=>$soirow->id,
+                                            "item_id"=>$soirow->product_id,
                                             "item_mixing"=>$soirow->item_mixing_groups_id,
-                                            "quantity" =>$soirow->quantity,
+                                            "quantity" =>$soirows->quantity,
                                             "produce_in"=>1
                                         ];
             }

@@ -196,14 +196,15 @@ function loadDataGrid(){
                             {title: "วันที่", "class":"w10p"},
                             {title: "เลขที่เอกสาร", "class":"w10p"},
                             {title: "เลขที่อ้างอิง", "class":"w10p"},
-                            {title: "ลูกค้า", "class":"w25p"},
+                            {title: "ลูกค้า", "class":"w20p"},
+                            {title: "กลุ่มลูกค้า", "class":"w10p"},
                             {title: "ครบกำหนด", "class":"text-left w10p"},
                             {title: "ยอดรวมสุทธิ", "class":"text-right w10p"},
-                            {title: "สถานะ", "class":"text-left w15p"},
+                            {title: "สถานะ", "class":"text-left w10p"},
                             {title: "<i class='fa fa-bars'></i>", "class":"text-center option w10p"}
                         ];
 
-    var summation_column = 5;
+    var summation_column = 6;
     $(".buttons li.add").css("display", "block");
 
     if(active_module == "sales-orders"){
@@ -215,10 +216,11 @@ function loadDataGrid(){
         grid_columns = [
                             {title: "วันที่", "class":"w10p"},
                             {title: "เลขที่เอกสาร", "class":"w15p"},
-                            {title: "เลขที่อ้างอิง", "class":"w15p"},
-                            {title: "วัตถุประสงค์", "class":"w15p"},
+                            {title: "เลขที่อ้างอิง", "class":"w1-p"},
+                            {title: "วัตถุประสงค์", "class":"w10p"},
                             {title: "ลูกค้า", "class":"w20p"},
-                            {title: "สถานะ", "class":"text-left w15p"},
+                            {title: "กลุ่มลูกค้า", "class":"w15p"},
+                            {title: "สถานะ", "class":"text-left w10p"},
                             {title: "<i class='fa fa-bars'></i>", "class":"text-center option w10p"}
                         ];
 
@@ -243,13 +245,14 @@ function loadDataGrid(){
         grid_columns = [
                             {title: "วันที่", "class":"w10p"},
                             {title: "เลขที่เอกสาร", "class":"w15p"},
-                            {title: "ลูกค้า", "class":"w30p"},
-                            {title: "กำหนดรับชำระ", "class":"w15p"},
+                            {title: "ลูกค้า", "class":"w20p"},
+                            {title: "กลุ่มลูกค้า", "class":"w10p"},
+                            {title: "กำหนดรับชำระ", "class":"w10p"},
                             {title: "มูลค่าสุทธิ", "class":"text-right w15p"},
-                            {title: "สถานะ", "class":"text-left w15p"}
+                            {title: "สถานะ", "class":"text-left w10p"}
                         ];
 
-        summation_column = 4;
+        summation_column = 5;
     }else if(active_module == "tax-invoices"){
         $(".buttons li.add a").attr("data-title", "สร้างใบกำกับภาษีขายจากรายการใบแจ้งหนี้");
         $(".buttons li.add a").attr("data-action-url", "<?php echo get_uri("tax-invoices/addedit"); ?>");
@@ -267,8 +270,9 @@ function loadDataGrid(){
                             {title: "วันที่", "class":"w10p"},
                             {title: "เลขที่เอกสาร", "class":"w10p"},
                             {title: "เลขที่อ้างอิง", "class":"w10p"},
-                            {title: "ช่องทางชำระ", "class":"w15p"},
-                            {title: "ลูกค้า", "class":"w20p"},
+                            {title: "ช่องทางชำระ", "class":"w10p"},
+                            {title: "ลูกค้า", "class":"w15p"},
+                            {title: "กลุ่มลูกค้า", "class":"w10p"},
                             {title: "ยอดรวมสุทธิ", "class":"text-right w15p"},
                             {title: "สถานะ", "class":"text-left w10p"},
                             {title: "<i class='fa fa-bars'></i>", "class":"text-center option w10p"}
@@ -298,7 +302,7 @@ function loadDataGrid(){
                     ];
     }
 
-    filterDropdown = [{name: "client_id", class: "w120", options: <?php echo $client_ids; ?>}, {name: "status", class: "w120", options: doc_status}];
+    filterDropdown = [{name: "client_group_id", class: "w120", options: <?php echo $client_group_ids; ?>}, {name: "client_id", class: "w120", options: <?php echo $client_ids; ?>}, {name: "status", class: "w120", options: doc_status}];
 
     datagrid_data = {
         source: "<?php echo_uri(); ?>"+active_module,
@@ -325,6 +329,27 @@ function loadDataGrid(){
             var doc_number = $(this).data("doc_number");
 
             updateStatus($(this).data("doc_id"), $(this).val());
+        });
+
+        $(".copy").click(function(){
+            let doc_id = $(this).data("doc_id");
+            let doc_name = $(this).data("doc_name");
+            let doc_number = $(this).data("doc_number");
+
+            if(confirm("ยืนยันการคัดลอก"+doc_name+"จาก "+doc_number)){
+                axios.post("<?php echo_uri(); ?>"+active_module, {
+                    task: 'copy_doc',
+                    doc_id: doc_id
+                }).then(function (response) {
+                    data = response.data;
+                    if(data.status != "success"){
+                        alert(data.message);
+                        return;
+                    }
+
+                    location.href = data.target;
+                }).catch(function (error) {});
+            }
         });
     });
 }

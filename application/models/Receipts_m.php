@@ -73,18 +73,28 @@ class Receipts_m extends MY_Model {
             $reference_number_column = "<a href='".get_uri("quotations/view/".$rerow->quotation_id)."'>".$rerow->reference_number."</a>";
         }
 
+        $customer_group_names = "";
+        $customer_groups = $this->Customers_m->getGroupTitlesByCustomerId($rerow->client_id);
+        if(!empty($customer_groups)){
+            foreach($customer_groups as $cgname){
+                $customer_group_names .= $cgname.", ";
+            }
+
+            $customer_group_names = substr($customer_group_names, 0, -2);
+        }
+
         $payment_method_name = $this->Invoices_m->getPaymentMethodName($rerow->invoice_payment_id);
+
+        $buttons = "<a data-post-id='".$rerow->id."' data-action-url='".get_uri("receipts/addedit")."' data-act='ajax-modal' class='edit'><i class='fa fa-pencil'></i></a><a class='copy' data-doc_id='".$rerow->id."' data-doc_number='".$rerow->doc_number."' data-doc_name='ใบเสร็จรับเงิน'><i class='fa fa-clone' aria-hidden='true'></i></a>";
 
         $data = [
                     "<a href='".get_uri("receipts/view/".$rerow->id)."'>".convertDate($rerow->doc_date, 2)."</a>",
                     "<a href='".get_uri("receipts/view/".$rerow->id)."'>".$rerow->doc_number."</a>",
                     $reference_number_column, $payment_method_name,
                     "<a href='".get_uri("clients/view/".$rerow->client_id)."'>".$this->Clients_m->getCompanyName($rerow->client_id)."</a>",
-                    number_format($rerow->total, 2), $doc_status,
-                    "<a data-post-id='".$rerow->id."' data-action-url='".get_uri("receipts/addedit")."' data-act='ajax-modal' class='edit'><i class='fa fa-pencil'></i></a>"
+                    $customer_group_names,
+                    number_format($rerow->total, 2), $doc_status, $buttons
                 ];
-
-        //<a data-id='".$rerow->id."' data-action-url='".get_uri("receipts/delete_doc")."' data-action='delete' class='delete'><i class='fa fa-times fa-fw'></i></a>
 
         return $data;
     }
@@ -93,8 +103,11 @@ class Receipts_m extends MY_Model {
         $db = $this->db;
         $company_setting = $this->Settings_m->getCompany();
 
-        $db->select("*")->from("receipt");
-        $db->where("billing_type", $company_setting["company_billing_type"]);
+        $db->select("receipt.*, clients.group_ids")
+            ->from("receipt")
+            ->join("clients", "receipt.client_id = clients.id")
+            ->where("billing_type", $company_setting["company_billing_type"])
+            ->where("receipt.deleted", 0);
 
         if($this->input->post("status") != null){
             $db->where("status", $this->input->post("status"));
@@ -109,7 +122,9 @@ class Receipts_m extends MY_Model {
             $db->where("client_id", $this->input->post("client_id"));
         }
 
-        $db->where("deleted", 0);
+        if($this->input->post("client_group_id") != null){
+            $db->where("find_in_set('".$this->input->post('client_group_id')."', group_ids)");
+        }
 
         $rerows = $db->order_by("doc_number", "desc")->get()->result();
 
@@ -183,6 +198,7 @@ class Receipts_m extends MY_Model {
             $this->data["wht_inc"] = $rerow->wht_inc;
             $this->data["project_id"] = $rerow->project_id;
             if($rerow->seller_id != null) $this->data["seller"] = $ci->Users_m->getInfo($rerow->seller_id);
+            $this->data["seller_id"] = $rerow->seller_id;
             $this->data["client_id"] = $client_id;
             $this->data["lead_id"] = $lead_id;
             $this->data["remark"] = $rerow->remark;
@@ -514,6 +530,90 @@ class Receipts_m extends MY_Model {
         $this->data["target"] = get_uri("receipts/view/". $docId);
         $this->data["status"] = "success";
 
+        return $this->data;
+    }
+
+    function copyDoc(){
+        $db = $this->db;
+        $docId = $this->json->doc_id;
+
+        $rerow = $db->select("*")
+                    ->from("receipt")
+                    ->where("id", $docId)
+                    ->where("deleted", 0)
+                    ->get()->row();
+
+        if(empty($rerow)) return $this->data;        
+
+        $reirows = $db->select("*")
+                        ->from("receipt_items")
+                        ->where("receipt_id", $docId)
+                        ->get()->result();
+
+        $db->trans_begin();
+
+        $doc_number = $this->getNewDocNumber();
+
+        $db->insert("receipt", [
+                                    "billing_type"=>$rerow->billing_type,
+                                    "doc_number"=>$doc_number,
+                                    "invoice_id"=>$rerow->invoice_id,
+                                    "invoice_payment_id"=>$rerow->invoice_payment_id,
+                                    "doc_date"=>$rerow->doc_date,
+                                    "project_id"=>$rerow->project_id,
+                                    "seller_id"=>$rerow->seller_id,
+                                    "client_id"=>$rerow->client_id,
+                                    "sub_total_before_discount"=>$rerow->sub_total_before_discount,
+                                    "discount_type"=>$rerow->discount_type,
+                                    "discount_percent"=>$rerow->discount_percent,
+                                    "discount_amount"=>$rerow->discount_amount,
+                                    "sub_total"=>$rerow->sub_total,
+                                    "vat_inc"=>$rerow->vat_inc,
+                                    "vat_percent"=>$rerow->vat_percent,
+                                    "vat_value"=>$rerow->vat_value,
+                                    "total"=>$rerow->total,
+                                    "actual_total"=>$rerow->actual_total,
+                                    "wht_inc"=>$rerow->wht_inc,
+                                    "wht_percent"=>$rerow->wht_percent,
+                                    "wht_value"=>$rerow->wht_value,
+                                    "payment_amount"=>$rerow->payment_amount,
+                                    "actual_payment_amount"=>$rerow->actual_payment_amount,
+                                    "remark"=>$rerow->remark,
+                                    "created_by"=>$this->login_user->id,
+                                    "created_datetime"=>date("Y-m-d H:i:s"),
+                                    "stock_updated"=>"N",
+                                    "status"=>"W",
+                                    "deleted"=>0,
+                                    
+                                ]);
+
+        $newDocId = $db->insert_id();
+
+        if(!empty($reirows)){
+            foreach($reirows as $reirow){
+                $db->insert("receipt_items", [
+                                                    "receipt_id"=>$newDocId,
+                                                    "product_id"=>$reirow->product_id,
+                                                    "product_name"=>$reirow->product_name,
+                                                    "product_description"=>$reirow->product_description,
+                                                    "quantity"=>$reirow->quantity,
+                                                    "unit"=>$reirow->unit,
+                                                    "price"=>$reirow->price,
+                                                    "total_price"=>$reirow->total_price,
+                                                    "sort"=>$reirow->sort
+                                                ]);
+            }
+        }
+
+        if ($db->trans_status() === FALSE){
+            $db->trans_rollback();
+            return $this->data;
+        }
+
+        $db->trans_commit();
+        $this->data["target"] = get_uri("receipts/view/".$newDocId);
+        $this->data["status"] = "success";
+        $this->data["message"] = lang("record_saved");
         return $this->data;
     }
 
@@ -865,7 +965,7 @@ class Receipts_m extends MY_Model {
             $this->data["dataset"] = $this->getIndexDataSetHTML($rerow);
             return $this->data;
         }
-//log_message("error", json_encode($rerow));
+
         if($rerow->invoice_id != null) $this->Invoices_m->adjustDocStatus($rerow->invoice_id);
 
         $db->trans_commit();

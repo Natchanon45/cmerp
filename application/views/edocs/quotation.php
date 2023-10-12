@@ -235,7 +235,7 @@
 				<div class="signature clear">
 					<div class="name">
 	                    <span class="l1"></span>
-	                    <span class="l2"></span>
+	                    <span class="l2"><?php echo $doc["buyer"]["company_name"] ?></span>
 	                    <span class="l3">ผู้สั่งซื้อสินค้า</span>
 	                </div>
 	                <div class="date">

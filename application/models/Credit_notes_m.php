@@ -46,11 +46,22 @@ class Credit_notes_m extends MY_Model {
             $reference_number_column = "<a href='".get_uri("invoices/view/".$cnrow->invoice_id)."'>".$cnrow->reference_number."</a>";
         }
 
+        $customer_group_names = "";
+        $customer_groups = $this->Customers_m->getGroupTitlesByCustomerId($cnrow->client_id);
+        if(!empty($customer_groups)){
+            foreach($customer_groups as $cgname){
+                $customer_group_names .= $cgname.", ";
+            }
+
+            $customer_group_names = substr($customer_group_names, 0, -2);
+        }
+
         $data = [
                     "<a href='".get_uri("credit-notes/view/".$cnrow->id)."'>".convertDate($cnrow->doc_date, 2)."</a>",
                     "<a href='".get_uri("credit-notes/view/".$cnrow->id)."'>".$cnrow->doc_number."</a>",
                     $reference_number_column,
                     "<a href='".get_uri("clients/view/".$cnrow->client_id)."'>".$this->Clients_m->getCompanyName($cnrow->client_id)."</a>",
+                    $customer_group_names,
                     convertDate($cnrow->due_date, true), number_format($cnrow->total, 2), $doc_status,""
                 ];
 
@@ -59,8 +70,13 @@ class Credit_notes_m extends MY_Model {
 
     function indexDataSet() {
         $db = $this->db;
+        $company_setting = $this->Settings_m->getCompany();
 
-        $db->select("*")->from("credit_note");
+        $db->select("credit_note.*, clients.group_ids")
+            ->from("credit_note")
+            ->join("clients", "credit_note.client_id = clients.id")
+            ->where("billing_type", $company_setting["company_billing_type"])
+            ->where("credit_note.deleted", 0);
 
         if($this->input->post("status") != null){
             $db->where("status", $this->input->post("status"));
@@ -75,7 +91,9 @@ class Credit_notes_m extends MY_Model {
             $db->where("client_id", $this->input->post("client_id"));
         }
 
-        $db->where("deleted", 0);
+        if($this->input->post("client_group_id") != null){
+            $db->where("find_in_set('".$this->input->post('client_group_id')."', group_ids)");
+        }
 
         $cnrows = $db->order_by("doc_number", "desc")->get()->result();
 
@@ -90,6 +108,8 @@ class Credit_notes_m extends MY_Model {
 
     function getDoc($docId = NULL){
         $db = $this->db;
+        $ci = get_instance();
+        $company_setting = $this->Settings_m->getCompany();
         if($docId == null) return $this->data;
 
         $this->data["doc_date"] = date("Y-m-d");
@@ -115,6 +135,7 @@ class Credit_notes_m extends MY_Model {
             $cnrow = $db->select("*")
                         ->from("credit_note")
                         ->where("id", $docId)
+                        ->where("billing_type", $company_setting["company_billing_type"])
                         ->where("deleted", 0)
                         ->get()->row();
 
@@ -246,6 +267,7 @@ class Credit_notes_m extends MY_Model {
 
     function createDocByInvoiceId($invoice_id){
         $db = $this->db;
+        $company_setting = $this->Settings_m->getCompany();
 
         $invrow = $db->select("*")
                         ->from("invoice")
@@ -296,6 +318,7 @@ class Credit_notes_m extends MY_Model {
         $db->trans_begin();
         
         $db->insert("credit_note", [
+                                    "billing_type"=>$invrow->billing_type,
                                     "invoice_id"=>$invoice_id,
                                     "doc_number"=>$doc_number,
                                     "doc_date"=>$doc_date,
@@ -509,6 +532,7 @@ class Credit_notes_m extends MY_Model {
 
     function saveDoc(){
         $db = $this->db;
+        $company_setting = $this->Settings_m->getCompany();
 
         //$this->validateDoc();
         //if($this->data["status"] == "validate") return $this->data;
@@ -824,12 +848,14 @@ class Credit_notes_m extends MY_Model {
 
     function updateStatus(){
         $db = $this->db;
+        $company_setting = $this->Settings_m->getCompany();
         $docId = $this->json->doc_id;
         $updateStatusTo = $this->json->update_status_to;
 
         $cnrow = $db->select("*")
                     ->from("credit_note")
                     ->where("id",$docId)
+                    ->where("billing_type", $company_setting["company_billing_type"])
                     ->where("deleted", 0)
                     ->get()->row();
 
@@ -858,10 +884,6 @@ class Credit_notes_m extends MY_Model {
                                         "approved_datetime"=>date("Y-m-d H:i:s"),
                                         "status"=>"R"
                                     ]);
-
-            
-            $this->data["status"] = "success";
-            
 
         }elseif($updateStatusTo == "V"){
             $db->where("id", $docId);

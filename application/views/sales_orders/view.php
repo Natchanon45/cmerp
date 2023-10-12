@@ -169,11 +169,11 @@
                             <?php endif; ?>
                         </span>
                     </span>
-                    <span class="l2">
-                        <?php if($approved != null): ?>
+                    <?php if($approved != null): ?>
+                        <span class="l2">
                             (<?php echo $approved["first_name"]." ".$approved["last_name"]; ?>)
-                        <?php endif;?>
-                    </span>
+                        </span>
+                    <?php endif;?>
                     <span class="l3">ผู้อนุมัติ</span>
                 </div>
                 <div class="date">

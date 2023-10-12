@@ -58,11 +58,22 @@ class Invoices_m extends MY_Model {
             $reference_number_column = "<a href='".get_uri("quotations/view/".$ivrow->quotation_id)."'>".$ivrow->reference_number."</a>";
         }
 
+        $customer_group_names = "";
+        $customer_groups = $this->Customers_m->getGroupTitlesByCustomerId($ivrow->client_id);
+        if(!empty($customer_groups)){
+            foreach($customer_groups as $cgname){
+                $customer_group_names .= $cgname.", ";
+            }
+
+            $customer_group_names = substr($customer_group_names, 0, -2);
+        }
+
         $data = [
                     "<a href='".get_uri("invoices/view/".$ivrow->id)."'>".convertDate($ivrow->doc_date, 2)."</a>",
                     "<a href='".get_uri("invoices/view/".$ivrow->id)."'>".$ivrow->doc_number."</a>",
                     $reference_number_column,
                     "<a href='".get_uri("clients/view/".$ivrow->client_id)."'>".$this->Clients_m->getCompanyName($ivrow->client_id)."</a>",
+                    $customer_group_names,
                     convertDate($ivrow->due_date, true), number_format($ivrow->total, 2), $doc_status,
                     "<a data-post-id='".$ivrow->id."' data-action-url='".get_uri("invoices/addedit")."' data-act='ajax-modal' class='edit'><i class='fa fa-pencil'></i></a>"
                 ];
@@ -74,8 +85,11 @@ class Invoices_m extends MY_Model {
         $db = $this->db;
         $company_setting = $this->Settings_m->getCompany();
 
-        $db->select("*")->from("invoice");
-        $db->where("billing_type", $company_setting["company_billing_type"]);
+        $db->select("invoice.*, clients.group_ids")
+            ->from("invoice")
+            ->join("clients", "invoice.client_id = clients.id")
+            ->where("billing_type", $company_setting["company_billing_type"])
+            ->where("invoice.deleted", 0);
 
         if($this->input->post("status") != null){
             $db->where("status", $this->input->post("status"));
@@ -90,7 +104,9 @@ class Invoices_m extends MY_Model {
             $db->where("client_id", $this->input->post("client_id"));
         }
 
-        $db->where("deleted", 0);
+        if($this->input->post("client_group_id") != null){
+            $db->where("find_in_set('".$this->input->post('client_group_id')."', group_ids)");
+        }
 
         $ivrows = $db->order_by("id", "DESC")->get()->result();
 

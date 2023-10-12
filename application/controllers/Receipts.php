@@ -19,6 +19,7 @@ class Receipts extends MY_Controller {
             return;
         }elseif(isset($this->json->task)){
             if($this->json->task == "update_doc_status") jout($this->Receipts_m->updateStatus());
+            if($this->json->task == "copy_doc") jout($this->Receipts_m->copyDoc());
             return;    
         }
 
