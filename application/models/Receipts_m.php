@@ -674,13 +674,13 @@ class Receipts_m extends MY_Model {
 
         if(empty($rerow)) return $this->data;
 
-        $invirows = $db->select("*")
+        $reirows = $db->select("*")
                         ->from("receipt_items")
                         ->where("receipt_id", $this->json->doc_id)
                         ->order_by("id", "asc")
                         ->get()->result();
 
-        if(empty($invirows)){
+        if(empty($reirows)){
             $this->data["status"] = "notfound";
             $this->data["message"] = "ไม่พบข้อมูล";
             return $this->data;
@@ -688,14 +688,21 @@ class Receipts_m extends MY_Model {
 
         $items = [];
 
-        foreach($invirows as $invirow){
-            $item["id"] = $invirow->id;
-            $item["product_name"] = $invirow->product_name;
-            $item["product_description"] = $invirow->product_description;
-            $item["quantity"] = $invirow->quantity;
-            $item["unit"] = $invirow->unit;
-            $item["price"] = number_format($invirow->price, 2);
-            $item["total_price"] = number_format($invirow->total_price, 2);
+        foreach($reirows as $reirow){
+            $item["id"] = $reirow->id;
+            $item["product_name"] = $reirow->product_name;
+            $item["product_description"] = $reirow->product_description;
+            $item["quantity"] = $reirow->quantity;
+            $item["unit"] = $reirow->unit;
+            
+            if($reirow->invoice_items_id != null){
+                $ivirow = $this->Invoices_m->itemById($reirow->invoice_items_id, ["price"]);
+                $item["price"] = number_format(!empty($ivirow) ? $ivirow["price"]:$reirow->price, 2);
+            }else{
+                $item["price"] = number_format($reirow->price, 2);
+            }
+
+            $item["total_price"] = number_format($reirow->total_price, 2);
 
             $items[] = $item;
         }

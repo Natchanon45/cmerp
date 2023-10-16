@@ -700,6 +700,21 @@ class Invoices_m extends MY_Model {
         return $this->data;
     }
 
+    function itemById($invoice_item_id, array $fields = []):array{
+        $db = $this->db;
+
+        if(count($fields) < 1) $fields = "*";
+
+        $ivirow = $db->select($fields)
+                        ->from("invoice_items")
+                        ->where("id", $invoice_item_id)
+                        ->get()->row_array();
+
+        if(empty($ivirow)) return [];
+
+        return $ivirow;
+    }
+
     function validateItem(){
         $_POST = json_decode(file_get_contents('php://input'), true);
 
@@ -1216,20 +1231,20 @@ class Invoices_m extends MY_Model {
 
         if(empty($ivrow)) return $this->data;
 
-        $ivrows = $db->select("*")
+        $ivirows = $db->select("*")
                         ->from("invoice_items")
                         ->where("invoice_id", $invoice_id)
                         ->get()->result();
         
-        $iprow = $db->select("*")
+        $ivprow = $db->select("*")
                     ->from("invoice_payment")
                     ->where("id", $payment_id)
                     ->where("invoice_id", $invoice_id)
                     ->get()->row();
 
-        if(empty($iprow)) return $this->data;
+        if(empty($ivprow)) return $this->data;
 
-        if($iprow->receipt_id != null){
+        if($ivprow->receipt_id != null){
             $this->data["message"] = "ไม่สามารถออกใบเสร็จได้ เนื่องจากรายการรับชำระนี้ ถูกออกใบเสร็จไปแล้ว.";
             return $this->data;
         }
@@ -1239,16 +1254,16 @@ class Invoices_m extends MY_Model {
         $invoice_number = $ivrow->doc_number;
         $receipt_number = $this->Receipts_m->getNewDocNumber();
         $invoice_total = $ivrow->total;
-        $invoice_payment_payment_date = $iprow->payment_date;
-        $invoice_payment_amount = $iprow->payment_amount;
-        $invoice_payment_money_payment_receive = $iprow->money_payment_receive;
+        $invoice_payment_payment_date = $ivprow->payment_date;
+        $invoice_payment_amount = $ivprow->payment_amount;
+        $invoice_payment_money_payment_receive = $ivprow->money_payment_receive;
 
         $receipt_vat_inc = $ivrow->vat_inc;
         $receipt_vat_percent = $ivrow->vat_percent;
         $receipt_vat_value = 0;
-        $receipt_wht_inc = $iprow->wht_inc;
-        $receipt_wht_percent = $iprow->wht_percent;
-        $receipt_wht_value = $iprow->wht_value;
+        $receipt_wht_inc = $ivprow->wht_inc;
+        $receipt_wht_percent = $ivprow->wht_percent;
+        $receipt_wht_value = $ivprow->wht_value;
 
         $receipt_discount_type = $ivrow->discount_type;
         $receipt_discount_percent = $ivrow->discount_percent;
@@ -1275,23 +1290,24 @@ class Invoices_m extends MY_Model {
 
         $receipt_id = $db->insert_id();
 
-        if(!empty($ivrows)){
-            foreach($ivrows as $ivrow){
-                $invoice_item_total_price = $ivrow->total_price;
+        if(!empty($ivirows)){
+            foreach($ivirows as $ivirow){
+                $invoice_item_total_price = $ivirow->total_price;
                 $percent_of_item = ($invoice_item_total_price / $invoice_total) * 100;
                 $price_of_item = ($invoice_payment_amount * $percent_of_item)/100;
                 $receipt_sub_total_before_discount = $price_of_item + $receipt_sub_total_before_discount;
                 
                 $db->insert("receipt_items", [
                                 "receipt_id"=>$receipt_id,
-                                "product_id"=>$ivrow->product_id,
-                                "product_name"=>$ivrow->product_name,
-                                "product_description"=>$ivrow->product_description,
-                                "quantity"=>$ivrow->quantity,
-                                "unit"=>$ivrow->unit,
-                                "price"=>$price_of_item/$ivrow->quantity,
+                                "invoice_items_id"=>$ivirow->id,
+                                "product_id"=>$ivirow->product_id,
+                                "product_name"=>$ivirow->product_name,
+                                "product_description"=>$ivirow->product_description,
+                                "quantity"=>$ivirow->quantity,
+                                "unit"=>$ivirow->unit,
+                                "price"=>$price_of_item/$ivirow->quantity,
                                 "total_price"=>$price_of_item,
-                                "sort"=>$ivrow->sort
+                                "sort"=>$ivirow->sort
                             ]);
             }
         }
@@ -1330,7 +1346,7 @@ class Invoices_m extends MY_Model {
                                 "wht_value"=>$receipt_wht_value,
                                 "payment_amount"=>$invoice_payment_money_payment_receive,
                                 "actual_payment_amount"=>$receipt_actual_payment_amount,
-                                "remark"=>$iprow->remark,
+                                "remark"=>$ivprow->remark,
                             ]);
 
         $db->where("id", $payment_id);

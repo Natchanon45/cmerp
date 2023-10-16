@@ -64,6 +64,7 @@ class Receipts extends MY_Controller {
         $data["print_url"] = get_uri("receipts/print/".str_replace("=", "", base64_encode($data['doc_id'].':'.$data['doc_number'])));
 
         $this->template->rander("receipts/view", $data);
+
     }
 
     function print(){
