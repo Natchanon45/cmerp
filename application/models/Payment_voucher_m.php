@@ -220,11 +220,16 @@ class Payment_voucher_m extends MY_Model
         if (empty($pvrow)) return $this->data;
 
         $docId = $pvrow->id;
-        $qirows = $db->select("*")
-            ->from($this->table_detail)
-            ->where("pv_id", $docId)
-            ->order_by("sort", "asc")
-            ->get()->result();
+        $qirows = $db->select("*")->from($this->table_detail)->where("pv_id", $docId)->order_by("sort", "asc")->get()->result();
+        $pay_qirows = $db->select("*")->from("goods_receipt_payment")->where("pv_id", $docId)->where('receipt_flag', 1)->order_by("id", "asc")->get()->result();
+
+        if (sizeof($pay_qirows)) {
+            foreach ($pay_qirows as $item) {
+                $item->date_output = convertDate($item->date, true);
+                $item->number_format = number_format($item->amount, 2);
+                $item->currency_format = to_currency($item->amount);
+            }
+        }
 
         $supplier_id = $pvrow->supplier_id;
 
@@ -253,11 +258,14 @@ class Payment_voucher_m extends MY_Model
         $this->data["wht_value"] = $pvrow->wht_value;
         $this->data["payment_amount"] = $pvrow->payment_amount;
         $this->data["sharekey_by"] = $pvrow->sharekey_by;
-        $this->data["approved_by"] = $pvrow->approved_by;
+        $this->data["created_by"] = $ci->Users_m->getInfo($pvrow->created_by);
+        $this->data["created_datetime"] = $pvrow->approved_datetime;
+        $this->data["approved_by"] = $ci->Users_m->getInfo($pvrow->approved_by);
         $this->data["approved_datetime"] = $pvrow->approved_datetime;
         $this->data["doc_status"] = $pvrow->status;
         $this->data["doc"] = $pvrow;
         $this->data["items"] = $qirows;
+        $this->data["payments"] = $pay_qirows;
         $this->data["status"] = "success";
         $this->data["message"] = "ok";
 
@@ -689,27 +697,7 @@ class Payment_voucher_m extends MY_Model
         if (empty($pvrow)) return $this->data;
 
         $payment_voucher_id = $this->data["doc_id"] = $docId;
-        $payment_voucher_number = $pvrow->doc_number;
         $currentStatus = $pvrow->status;
-
-        $payment_voucher_sub_total_before_discount = $pvrow->sub_total_before_discount;
-
-        $payment_voucher_discount_type = $pvrow->discount_type;
-        $payment_voucher_discount_percent = $pvrow->discount_percent;
-        $payment_voucher_discount_amount = $pvrow->discount_amount;
-
-        $payment_voucher_sub_total = $pvrow->sub_total;
-
-        $payment_voucher_vat_inc = $pvrow->vat_inc;
-        $payment_voucher_vat_percent = $pvrow->vat_percent;
-        $payment_voucher_vat_value = $pvrow->vat_value;
-
-        $payment_voucher_wht_inc = $pvrow->wht_inc;
-        $payment_voucher_wht_percent = $pvrow->wht_percent;
-        $payment_voucher_wht_value = $pvrow->wht_value;
-
-        $payment_voucher_total = $pvrow->total;
-        $payment_voucher_payment_amount = $pvrow->payment_amount;
 
         if ($pvrow->status == $updateStatusTo && $updateStatusTo != "P") {
             $this->data["dataset"] = $this->getIndexDataSetHTML($pvrow);
@@ -733,7 +721,6 @@ class Payment_voucher_m extends MY_Model
         } elseif ($updateStatusTo == "R") { // Rejected
             $db->where("id", $payment_voucher_id);
             $db->update("payment_voucher", ["status" => "R"]);
-
         }
 
         if ($db->trans_status() === FALSE) {
@@ -781,6 +768,130 @@ class Payment_voucher_m extends MY_Model
         $db->update($this->table_header, ["sharekey" => $sharekey, "sharekey_by" => $sharekey_by]);
 
         return $this->data;
+    }
+
+    public function dev2_getPaymentVoucherHeaderById(int $id) : stdClass
+    {
+        $info = new stdClass();
+
+        $query = $this->db->get_where("pv_header", ["id" => $id])->row();
+        if (isset($query) && !empty($query)) {
+            $info = $query;
+        }
+        return $info;
+    }
+
+    public function dev2_getPaymentVoucherDetailByHeaderId(int $id) : array
+    {
+        $info = [];
+
+        $query = $this->db->get_where("pv_detail", ["pv_id" => $id])->result();
+        if (isset($query) && !empty($query)) {
+            if (sizeof($query)) {
+                $info = $query;
+            }
+        }
+        return $info;
+    }
+
+    public function dev2_getPaymentMethodItemsById(int $id) : array
+    {
+        $result = array();
+
+        $data = $this->db->select('*')
+        ->from('goods_receipt_payment')
+        ->where('pv_id', $id)
+        ->order_by('id', 'asc')
+        ->get()
+        ->result();
+        
+        if (sizeof($data)) {
+            foreach ($data as $item) {
+                $item->date_output = convertDate($item->date, true);
+                $item->number_format = number_format($item->amount, 2);
+                $item->currency_format = to_currency($item->amount);
+            }
+            $result = $data;
+        }
+        return $result;
+    }
+
+    public function postPaymentForPaymentVoucher(array $data) : int
+    {
+        $this->db->insert('goods_receipt_payment', $data);
+        return $this->db->insert_id();
+    }
+
+    public function postPayAmountForPaymentVoucherHeader(int $id, float $amount) : void
+    {
+        $pay_status = 'N';
+
+        $pay = $this->db->select('SUM(amount) AS amount')
+        ->from('goods_receipt_payment')
+        ->where('pv_id', $id)
+        ->get()->row();
+
+        $info = $this->db->select('*')
+        ->from('pv_header')
+        ->where('id', $id)
+        ->get()->row();
+
+        if ($pay->amount == 0) {
+            $pay_status = 'N';
+        } elseif ($pay->amount < $info->payment_amount) {
+            $pay_status = 'P';
+        } elseif ($pay->amount == $info->payment_amount) {
+            $pay_status = 'C';
+        } else {
+            $pay_status = 'O';
+        }
+
+        $this->db->where('id', $id);
+        $this->db->update('pv_header', array(
+            'pay_amount' => $pay->amount, 
+            'pay_status' => $pay_status
+        ));
+    }
+
+    public function gotConfirmedPaymentReceipt(int $id) : array
+    {
+        $result = array();
+
+        $data = $this->db->select('*')
+        ->from('goods_receipt_payment')
+        ->where('id', $id)
+        ->get()->row();
+
+        if (!empty($data)) {
+            $this->db->where('id', $id);
+            $this->db->update('goods_receipt_payment', array('receipt_flag' => 1));
+
+            $result['status'] = 'success';
+            $result['info'] = $data;
+        }
+        return $result;
+    }
+
+    public function deleteRecordPaymentReceipt(int $id) : array
+    {
+        $result = array();
+
+        $data = $this->db->select('*')
+        ->from('goods_receipt_payment')
+        ->where('id', $id)
+        ->get()->row();
+
+        if (!empty($data)) {
+            $this->db->where('id', $id);
+            $this->db->delete('goods_receipt_payment');
+
+            $result['status'] = 'success';
+            $result['info'] = $data;
+
+            $this->postPayAmountForPaymentVoucherHeader($data->pv_id, $data->amount);
+        }
+
+        return $result;
     }
 
 }

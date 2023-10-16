@@ -9,24 +9,68 @@
         border: none;
         resize: none;
     }
+
+    .payment_info {
+        padding-top: 1rem;
+        padding-bottom: 1rem;
+    }
+
+    .payment_info p {
+        font-weight: bolder;
+    }
+
+    .payment_info table {
+        margin: 1rem 1rem 0 1rem;
+        width: calc(100% - 2rem);
+        border-top: 1px solid #e7e7e7;
+        border-bottom: 1px solid #e7e7e7;
+    }
+
+    .payment_number {
+        padding: 0 .8rem;
+        font-weight: bolder;
+    }
+
+    .payment_key {
+        padding: .2rem 1rem .1rem 2rem;
+        font-weight: bolder;
+        vertical-align: text-top;
+    }
+
+    .payment_value {
+        padding: 0 1rem;
+        text-align: right;
+        vertical-align: text-top;
+    }
+
+    .payment_type {
+        width: 40%;
+        padding-left: 1.8rem;
+    }
+
+    .font-weight-bold {
+        font-weight: bold;
+    }
+
+    .font-size-bigger {
+        font-size: 120%;
+    }
 </style>
 
 <div id="dcontroller" class="clearfix">
     <div class="page-title clearfix mt15 clear">
         <h1>
-            <?php echo (isset($doc_number) && !empty($doc_number)) ? lang('payment_voucher') . ' ' . $doc_number : ''; ?>
+            <?php echo (isset($pv_info->doc_number) && !empty($pv_info->doc_number)) ? lang('payment_voucher') . " " . $pv_info->doc_number : ""; ?>
         </h1>
-
         <div class="title-button-group">
-            <a style="margin-left: 15px;" class="btn btn-default mt0 mb0 back-to-index-btn"
-                href="<?php echo get_uri("accounting/buy/payment_voucher"); ?>">
+            <a style="margin-left: 15px;" class="btn btn-default mt0 mb0 back-to-index-btn" href="<?php echo get_uri("accounting/buy/payment_voucher"); ?>">
                 <i class="fa fa-hand-o-left" aria-hidden="true"></i>
                 <?php echo lang('back_to_table'); ?>
             </a>
 
-            <?php if ($doc_status != "R" && $doc_status != "X"): ?>
-                <a id="add_item_button" class="btn btn-default" data-post-doc_id="<?php echo $doc_id; ?>" 
-                    data-act="ajax-modal" data-title="<?php echo lang("share_doc") . " " . $doc_number; ?>" 
+            <?php if ($pv_info->status != "R" && $pv_info->status != "X"): ?>
+                <a id="add_item_button" class="btn btn-default" data-post-doc_id="<?php echo $pv_info->id; ?>" 
+                    data-act="ajax-modal" data-title="<?php echo lang("share_doc") . " " . $pv_info->doc_number; ?>" 
                     data-action-url="<?php echo get_uri("payment_voucher/share"); ?>"> <?php echo lang("share"); ?>
                 </a>
                 <a onclick="window.open('<?php echo $print_url; ?>', '' ,'width=980,height=720');" class="btn btn-default">
@@ -34,10 +78,34 @@
                 </a>
             <?php endif; ?>
 
-            <?php if ($doc_status == "W"): ?>
-                <a href="javascript:void(0);" id="btn-approval" class="btn btn-info">
-                    <?php echo lang('approve'); ?>
+            <?php if ($pv_info->status == "W"): ?>
+                <a href="javascript:void(0);" id="btn-approval" class="btn btn-primary">
+                    <i class="fa fa-check" aria-hidden="true"></i> 
+                    <?php echo lang('payment_voucher_approve'); ?>
                 </a>
+            <?php endif; ?>
+
+            <?php
+                if ($pv_info->pay_status != "C") {
+                    if ($pv_info->pay_status != "O") {
+                        echo modal_anchor(
+                            get_uri("payment_voucher/record_payment"),
+                            '<i class="fa fa-money" aria-hidden="true"></i> ' . lang("payment_information_add"),
+                            array(
+                                "data-post-doc_id" => $pv_info->id,
+                                "data-act" => "ajax-modal",
+                                "data-title" => lang("payment_information_add"),
+                                "title" => lang("payment_information_add"),
+                                "class" => "btn btn-info"
+                            )
+                        );
+                    }
+                }
+            ?>
+            <?php if ($pv_info->pay_status != "C"): ?>
+                <?php if ($pv_info->pay_status != "O"): ?>
+                    
+                <?php endif; ?>
             <?php endif; ?>
         </div>
     </div>
@@ -132,7 +200,7 @@
                             <?php echo lang("number_of_document"); ?>
                         </td>
                         <td>
-                            <?php echo $doc_number; ?>
+                            <?php echo $pv_info->doc_number; ?>
                         </td>
                     </tr>
                     <tr>
@@ -140,16 +208,16 @@
                             <?php echo lang("document_date"); ?>
                         </td>
                         <td>
-                            <?php echo convertDate($doc_date, true); ?>
+                            <?php echo convertDate($pv_info->doc_date, true); ?>
                         </td>
                     </tr>
-                    <?php if (isset($reference_number) && !empty($reference_number) && trim($reference_number) != ""): ?>
+                    <?php if (isset($pv_info->reference_number) && !empty($pv_info->reference_number) && trim($pv_info->reference_number) != ""): ?>
                         <tr>
                             <td class="custom-color">
                                 <?php echo lang("reference_number"); ?>
                             </td>
                             <td>
-                                <?php echo trim($reference_number); ?>
+                                <?php echo trim($pv_info->reference_number); ?>
                             </td>
                         </tr>
                     <?php endif; ?>
@@ -210,14 +278,31 @@
                     <td></td>
                 </tr>
             </thead>
-            <tbody></tbody>
+            <tbody>
+                <?php if (sizeof($pv_detail)): ?>
+                    <?php foreach ($pv_detail as $key => $item): ?>
+                        <tr>
+                            <td><?php echo $key + 1; ?></td>
+                            <td>
+                                <p class="desc1"><?php echo $item->product_name; ?></p>
+                                <p class="desc2"><?php echo $item->product_description; ?></p>
+                            </td>
+                            <td><?php echo number_format($item->quantity, 2); ?></td>
+                            <td><?php echo mb_strtoupper($item->unit); ?></td>
+                            <td><?php echo number_format($item->price, 2); ?></td>
+                            <td><?php echo number_format($item->total_price, 2); ?></td>
+                            <td></td>
+                        </tr>
+                    <?php endforeach; ?>
+                <?php endif; ?>
+            </tbody>
             <tfoot>
                 <tr>
                     <td colspan="7">&nbsp;</td>
                 </tr>
                 <tr>
                     <td colspan="3">
-                        <p><textarea name="total_in_text" id="total_in_text" rows="4" readonly></textarea></p>
+                        <p><textarea name="total_in_text" id="total_in_text" rows="4" readonly><?php echo $pv_info->total_in_text; ?></textarea></p>
                     </td>
                     <td colspan="4" class="summary">
                         <p id="s-sub-total-before-discount">
@@ -225,22 +310,20 @@
                                 <?php echo lang('total_all_item'); ?>
                             </span>
                             <span class="c2">
-                                <input type="text" id="sub_total_before_discount" readonly>
+                                <input type="text" id="sub_total_before_discount" value="<?php echo number_format($pv_info->sub_total, 2); ?>" readonly>
                             </span>
                             <span class="c3">
                                 <span class="currency">
-                                    <?php echo lang('THB'); ?>
+                                    <?php echo lang("THB"); ?>
                                 </span>
                             </span>
                         </p>
                         <p id="s-vat">
                             <span class="c1 custom-color">
-                                <input type="checkbox" id="vat_inc" <?php if ($vat_inc == "Y") { echo "checked"; } ?> disabled>
-                                <?php echo lang('value_add_tax'); ?>
-                                <?php echo $this->Taxes_m->getVatPercent() . "%"; ?>
+                                <?php echo lang("value_add_tax") . " " . $this->Taxes_m->getVatPercent() . "%"; ?>
                             </span>
                             <span class="c2">
-                                <input type="text" id="vat_value" readonly>
+                                <input type="text" id="vat_value" value="<?php echo number_format($pv_info->vat_value, 2); ?>" readonly>
                             </span>
                             <span class="c3">
                                 <span class="currency">
@@ -248,60 +331,44 @@
                                 </span>
                             </span>
                         </p>
-
                         <p id="s-total">
                             <span class="c1 custom-color">
-                                <?php echo lang('grand_total_price'); ?>
+                                <?php echo lang("grand_total_price"); ?>
                             </span>
                             <span class="c2">
-                                <input type="text" id="total" readonly>
+                                <input type="text" id="total" value="<?php echo number_format($pv_info->total, 2); ?>" readonly>
                             </span>
                             <span class="c3">
                                 <span class="currency">
-                                    <?php echo lang('THB'); ?>>
+                                    <?php echo lang("THB"); ?>>
                                 </span>
                             </span>
                         </p>
 
                         <p id="s-wht">
-                            <span class="c1 custom-color">
-                                <input type="checkbox" id="wht_inc" <?php if ($wht_inc == "Y") { echo "checked"; } ?> disabled>
+                            <span class="c1 custom-color <?php echo $pv_info->wht_inc == "Y" ? "v" : "h"; ?>">
                                 <span>
-                                    <?php echo lang('with_holding_tax'); ?>
+                                    <?php echo lang("with_holding_tax") . " " . number_format($pv_info->wht_percent, 0) . "%"; ?>
                                 </span>
-                                <select id="wht_percent" class="wht custom-color <?php echo $wht_inc == "Y" ? "v" : "h"; ?>" disabled>
-                                    <?php if ($wht_inc == 'Y' && isset($wht_percent) && !empty($wht_percent)): ?>
-                                        <option value="<?php echo $wht_percent; ?>" selected><?php echo $wht_percent . '%'; ?></option>
-                                    <?php endif; ?>
-                                    <option value="3">3%</option>
-                                    <option value="5">5%</option>
-                                    <option value="0.50">0.5%</option>
-                                    <option value="0.75">0.75%</option>
-                                    <option value="1">1%</option>
-                                    <option value="1.50">1.5%</option>
-                                    <option value="2">2%</option>
-                                    <option value="10">10%</option>
-                                    <option value="15">15%</option>
-                                </select>
                             </span>
-                            <span class="c2 wht <?php echo $wht_inc == "Y" ? "v" : "h"; ?>">
-                                <input type="text" id="wht_value" readonly>
+                            <span class="c2 wht <?php echo $pv_info->wht_inc == "Y" ? "v" : "h"; ?>">
+                                <input type="text" id="wht_value" value="<?php echo number_format($pv_info->wht_value, 2); ?>" readonly>
                             </span>
-                            <span class="c3 wht <?php echo $wht_inc == "Y" ? "v" : "h"; ?>">
+                            <span class="c3 wht <?php echo $pv_info->wht_inc == "Y" ? "v" : "h"; ?>">
                                 <span class="currency">
-                                    <?php echo lang('THB'); ?>
+                                    <?php echo lang("THB"); ?>
                                 </span>
                             </span>
                         </p>
 
                         <p id="s-payment-amount">
-                            <span class="c1 custom-color wht <?php echo $wht_inc == "Y" ? "v" : "h"; ?>">
+                            <span class="c1 custom-color wht <?php echo $pv_info->wht_inc == "Y" ? "v" : "h"; ?>">
                                 <?php echo lang('payment_amount'); ?>
                             </span>
-                            <span class="c2 wht <?php echo $wht_inc == "Y" ? "v" : "h"; ?>">
-                                <input type="text" id="payment_amount" readonly>
+                            <span class="c2 wht <?php echo $pv_info->wht_inc == "Y" ? "v" : "h"; ?>">
+                                <input type="text" id="payment_amount" value="<?php echo number_format($pv_info->payment_amount, 2); ?>" readonly>
                             </span>
-                            <span class="c3 wht <?php echo $wht_inc == "Y" ? "v" : "h"; ?>">
+                            <span class="c3 wht <?php echo $pv_info->wht_inc == "Y" ? "v" : "h"; ?>">
                                 <span class="currency">
                                     <?php echo lang('THB'); ?>
                                 </span>
@@ -311,17 +378,60 @@
                 </tr>
             </tfoot>
         </table>
-        <?php if (trim($remark) != ""): ?>
+        <?php if (trim($pv_info->remark) != ""): ?>
             <div class="remark clear">
                 <p class="custom-color">
                     <?php echo lang('remark') . ' / ' . lang('payment_condition'); ?>
                 </p>
                 <p>
-                    <?php echo nl2br($remark); ?>
+                    <?php echo nl2br($pv_info->remark); ?>
                 </p>
             </div>
         <?php endif; ?>
     </div><!--.docitem-->
+
+    <div class="payment_info clear" id="paymentInfo">
+        <?php if (isset($pv_method) && !empty($pv_method)): ?>
+            <p class="custom-color"><?php echo lang("payment_information"); ?></p>
+            <?php
+                if (sizeof($pv_method)):
+                    $index = 1;
+                    foreach ($pv_method as $item):
+                        ?>
+                            <div id="paymentItems">
+                                <table>
+                                    <tr>
+                                        <td rowspan="2" class="payment_number" width="5%">#<?php echo $index; ?></td>
+                                        <td class="payment_key" width="15%"><?php echo lang("payments_date"); ?>: </td>
+                                        <td class="payment_value" width="15%"><?php echo $item->date_output; ?></td>
+                                        <td class="payment_type">
+                                            <div>
+                                                <span class="font-weight-bold"><?php echo lang("payment_method"); ?>: </span>
+                                                <span style="margin-left: 1rem;"><?php echo $item->type_name; ?></span>
+                                            </div>
+                                        </td>
+                                        <td rowspan="2" width="15%" class="text-center font-size-bigger font-weight-bold"><?php echo $item->currency_format; ?></td>
+                                        <td rowspan="2" class="text-center option opx">
+                                            <?php if ($item->receipt_flag == 0): ?>
+                                                <a class="edit" data-item_id="<?php echo $item->id; ?>"><i class="fa fa-check"></i></a>
+                                                <a class="delete" data-item_id="<?php echo $item->id; ?>"><i class="fa fa-times"></i></a>
+                                            <?php endif; ?>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="payment_key"><?php echo lang("payments_amount"); ?>: </td>
+                                        <td class="payment_value"><?php echo $item->number_format; ?></td>
+                                        <td class="payment_type"><?php echo $item->type_description?></td>
+                                    </tr>
+                                </table>
+                            </div>
+                        <?php
+                        $index++;
+                    endforeach;
+                endif;
+            ?>
+        <?php endif; ?>
+    </div>
 
     <div class="docsignature clear">
         <div class="customer">
@@ -330,20 +440,29 @@
                 <div class="name">
                     <span class="l1">
                         <span class="signature">
-                            <?php if ($doc_status != "R" && $doc_status != "X"): if ($created_by != null): if (null != $requester_sign = $this->Users_m->getSignature($created_by)): ?>
+                            <?php if ($pv_info->status != "R" && $pv_info->status != "X"): if ($pv_info->created_by != null): if (null != $requester_sign = $this->Users_m->getSignature($pv_info->created_by)): ?>
                                 <img src="<?php echo '/' . $requester_sign; ?>">
                             <?php endif; endif; endif; ?>
                         </span>
                     </span>
                     <span class="l2">
+                        <?php
+                            $issuer_name = "( " . str_repeat("_", 18) . " )";
+                            if ($created_by["last_name"] == "") {
+                                $issuer_name = "( " . $created_by["first_name"] . " )";
+                            } else {
+                                $issuer_name = "( " . $created_by["first_name"] . " " . $created_by["last_name"] . " )";
+                            }
+                        ?>
+                        <p><?php echo $issuer_name; ?></p>
                         <?php echo lang('issuer_of_document'); ?>
                     </span>
                 </div>
                 <div class="date">
                     <span class="l1">
-                        <?php if ($doc_date != null && $doc_status != "R" && $doc_status != "X"): ?>
+                        <?php if ($pv_info->doc_date != null && $pv_info->status != "R" && $pv_info->status != "X"): ?>
                             <span class="approved_date">
-                                <?php echo convertDate($doc_date, true); ?>
+                                <?php echo convertDate($pv_info->doc_date, true); ?>
                             </span>
                         <?php endif; ?>
                     </span>
@@ -360,21 +479,33 @@
                 <div class="name">
                     <span class="l1">
                         <span class="signature">
-                            <?php if ($approved_by != null && $doc_status == "A"):
-                                if (null != $signature = $this->Users_m->getSignature($approved_by)): ?>
+                            <?php if ($pv_info->approved_by != null && $pv_info->status == "A"): ?>
+                                <?php if (null != $signature = $this->Users_m->getSignature($pv_info->approved_by)): ?>
                                     <img src="<?php echo '/' . $signature; ?>">
-                                <?php endif; endif; ?>
+                                <?php endif; ?>
+                            <?php endif; ?>
                         </span>
                     </span>
                     <span class="l2">
+                        <?php
+                            $approver_name = "( " . str_repeat("_", 18) . " )";
+                            if ($pv_info->status == "A") {
+                                if ($approved_by["last_name"] == "") {
+                                    $approver_name = "( " . $approved_by["first_name"] . " )";
+                                } else {
+                                    $approver_name = "( " . $approved_by["first_name"] . " " . $approved_by["last_name"] . " )";
+                                }
+                            }
+                        ?>
+                        <p><?php echo $approver_name; ?></p>
                         <?php echo lang('approver'); ?>
                     </span>
                 </div>
                 <div class="date">
                     <span class="l1">
-                        <?php if ($approved_datetime != null && $doc_status == "A"): ?>
+                        <?php if ($pv_info->approved_datetime != null && $pv_info->status == "A"): ?>
                             <span class="approved_date">
-                                <?php echo convertDate($approved_datetime, true); ?>
+                                <?php echo convertDate($pv_info->approved_datetime, true); ?>
                             </span>
                         <?php endif; ?>
                     </span>
@@ -388,138 +519,89 @@
 </div><!--#printd-->
 
 <script type="text/javascript">
-    window.addEventListener('keydown', (e) => {
-        if (e.keyCode === 80 && (e.ctrlKey || e.metaKey) && !e.altKey && (!e.shiftKey || window.chrome || window.opera)) {
-            e.preventDefault();
-
-            if (e.stopImmediatePropagation) {
-                e.stopImmediatePropagation();
-            } else {
-                e.stopPropagation();
-            }
-
-            return;
-        }
-    }, true);
-
     $(document).ready(function () {
-        loadItems();
-
-        $("#vat_inc, #wht_inc, #wht_percent").change(function () {
-            loadSummary();
-        });
-
         $("#btn-approval").on('click', function (e) {
             e.preventDefault();
-            approval();
+            approveDocumentInfo();
         });
 
-        $("#btn-receipt").on('click', function (e) {
+        $(".opx .edit").on("click", function (e) {
             e.preventDefault();
-            receipt();
+            saveItemGotReceipt($(this).data("item_id"));
         });
 
-        $("#btn-payment").on('click', function (e) {
+        $(".opx .delete").on("click", function (e) {
             e.preventDefault();
-            payment();
+            saveItemDeleted($(this).data("item_id"));
         });
     });
 
-    async function loadItems() {
-        let url = '<?php echo current_url(); ?>';
+    async function approveDocumentInfo () {
+        let url = '<?php echo_uri($active_module); ?>';
         let request = {
-            task: 'load_items',
-            doc_id: '<?php echo $doc_id; ?>'
+            taskName: 'update_doc_status',
+            doc_id: '<?php echo $pv_info->id; ?>',
+            update_status_to: 'A'
         };
 
-        await axios.post(url, request).then((response) => {
-            const { items, status, message } = response.data;
+        await axios.post(url, request).then(response => {
+            const { data } = response;
 
-            if (status == "notfound") {
-                let notfound = `<tr><td colspan="7" class="notfound">${message}</td></tr>`;
-                $(".docitem tbody").empty().append(notfound);
+            if (data.status == 'success') {
+                window.location.reload();
+            } else {
+                appAlert.error(data.message, {
+                    duration: 3001
+                });
             }
-
-            if (status == "success") {
-                let tbody = '';
-
-                for (let i = 0; i < items.length; i++) {
-                    tbody += `<tr>`;
-                    tbody += `<td>${i + 1}</td>`;
-                    tbody += `<td>`;
-                    tbody += `<p class="desc1">${items[i]['product_name']}</p>`;
-                    tbody += `<p class="desc2">${items[i]['product_description']}</p>`;
-                    tbody += `</td>`;
-                    tbody += `<td>${items[i]['quantity']}</td>`;
-                    tbody += `<td>${items[i]['unit']}</td>`;
-                    tbody += `<td>${items[i]['price']}</td>`;
-                    tbody += `<td>${items[i]['total_price']}</td>`;
-                    tbody += `<td class="edititem">`;
-                    tbody += `</td>`;
-                    tbody += `</tr>`;
-                }
-
-                $(".docitem tbody").empty().append(tbody);
-            }
-
-            loadSummary();
-        }).catch((error) => {
+        }).catch(error => {
             console.log(error);
         });
     }
 
-    async function loadSummary() {
-        let url = '<?php echo current_url(); ?>';
+    async function saveItemGotReceipt (id) {
+        let url = '<?php echo_uri($active_module); ?>';
         let request = {
-            task: 'update_doc',
-            doc_id: '<?php echo $doc_id; ?>',
-            discount_type: 'P',
-            discount_percent: 0,
-            discount_value: 0,
-            vat_inc: $("#vat_inc").is(":checked"),
-            wht_inc: $("#wht_inc").is(":checked"),
-            wht_percent: $("#wht_percent").val()
+            taskName: 'got_a_receipt',
+            id: id
         };
 
-        await axios.post(url, request).then((response) => {
-            const {
-                discount_amount, discount_percent, discount_type,
-                status, message, payment_amount,
-                sub_total, sub_total_before_discount,
-                total, total_in_text,
-                vat_inc, vat_percent, vat_value,
-                wht_inc, wht_percent, wht_value
-            } = response.data;
+        await axios.post(url, request).then(response => {
+            const { data } = response;
 
-            $("#sub_total_before_discount").val(sub_total_before_discount);
-            $("#discount_percent").val(discount_percent);
-            $("#discount_amount").val(discount_amount);
-            $("#sub_total").val(sub_total);
-            $("#wht_percent").val(wht_percent);
-            $("#wht_value").val(wht_value);
-            $("#total").val(total);
-            $("#total_in_text").val(`(${total_in_text})`);
-            $("#payment_amount").val(payment_amount);
-
-            if (vat_inc == "Y") {
-                $("#vat_inc").prop("checked", true);
-                $("#vat_value").val(vat_value);
+            if (data.status == 'success') {
+                window.location.reload();
             } else {
-                $("#vat_inc").prop("checked", false);
-                $("#vat_value").val(vat_value);
+                appAlert.error('500 Internal server error.', { duration: 3001 });
             }
-
-            if (wht_inc == "Y") {
-                $("#wht_inc").prop("checked", true);
-                $("#s-wht").removeClass("h").addClass("v");
-                $(".wht").removeClass("h").addClass("v");
-            } else {
-                $("#wht_inc").prop("checked", false);
-                $("#s-wht").removeClass("v").addClass("h");
-                $(".wht").removeClass("v").addClass("h");
-            }
-        }).catch((error) => {
+        }).catch(error => {
             console.log(error);
+            appAlert.error('500 Internal server error.', { duration: 3001 });
+        });
+    }
+
+    async function saveItemDeleted (id) {
+        let url = '<?php echo_uri($active_module); ?>';
+        let request = {
+            taskName: 'item_deleted',
+            id: id
+        };
+
+        console.log(url, request);
+
+        await axios.post(url, request).then(response => {
+            console.log(response);
+
+            const { data } = response;
+
+            if (data.status == 'success') {
+                window.location.reload();
+            } else {
+                appAlert.error('500 Internal server error.', { duration: 3001 });
+            }
+        }).catch(error => {
+            console.log(error);
+            appAlert.error('500 Internal server error.', { duration: 3001 });
         });
     }
 </script>

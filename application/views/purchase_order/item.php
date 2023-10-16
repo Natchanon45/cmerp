@@ -176,5 +176,3 @@ if (isset($doc_type) && !empty($doc_type)) {
         });
     });
 </script>
-
-<?php // echo $this->Settings_m->getDecimalPlacesNumber(); ?>

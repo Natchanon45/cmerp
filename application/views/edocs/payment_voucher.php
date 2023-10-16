@@ -188,7 +188,7 @@
 								<tr>
 									<td class="custom-color" <?php echo $additional_style; ?>><?php echo lang('number_of_document'); ?></td>
 									<td>
-										<?php echo $doc["pv_number"]; ?>
+										<?php echo $doc["doc_number"]; ?>
 									</td>
 								</tr>
 								<tr>
@@ -475,7 +475,7 @@
 						<div class="signature clear">
 							<div class="name">
 								<span class="l1">
-									<?php $signature = $this->Users_m->getSignature($doc["approved_by"]); ?>
+									<?php $signature = $this->Users_m->getSignature($doc["approved_by"]["id"]); ?>
 									<?php if ($doc["doc_status"] == "A" && $signature != null): ?>
 										<img src='<?php echo str_replace("./", "/", $signature); ?>'>
 									<?php endif; ?>

@@ -60,7 +60,7 @@
 <div id="dcontroller" class="clearfix">
     <div class="page-title clearfix mt15 clear">
         <h1>
-            <?php echo ($po_type == '5') ? lang('record_of_expenses') : lang('record_of_receipt'); ?>
+            <?php echo lang("goods_receipt") . " " . $doc_number; ?>
         </h1>
         <div class="title-button-group">
             <a style="margin-left: 15px;" class="btn btn-default mt0 mb0 back-to-index-btn" href="<?php echo get_uri("accounting/buy/goods_receipt"); ?>">
@@ -86,13 +86,6 @@
                 <a href="#" class="btn btn-primary" id="btn-approval-info">
                     <i class="fa fa-check" aria-hidden="true"></i> 
                     <?php echo "อนุมัติออกเอกสาร"; ?>
-                </a>
-            <?php endif; ?>
-            
-            <?php if ($pay_status != 'C' && $pay_status != 'O'): ?>
-                <a class="btn btn-info" id="btn-add-payment" data-post-doc_id="<?php echo $doc_id; ?>" data-act="ajax-modal" data-title="<?php echo "บันทึกข้อมูลการชำระเงิน"; ?>" data-action-url="<?php echo get_uri('goods_receipt/record_payment'); ?>">
-                    <i class="fa fa-money" aria-hidden="true"></i> 
-                    <?php echo "บันทึกข้อมูลการชำระเงิน"; ?>
                 </a>
             <?php endif; ?>
 
@@ -191,7 +184,7 @@
 
         <div class="r">
             <h1 class="document_name custom-color">
-                <?php echo ($po_type == '5') ? lang('record_of_expenses') : lang('record_of_receipt'); ?>
+                <?php echo lang("goods_receipt"); ?>
             </h1>
             <div class="about_company">
                 <table>
@@ -695,8 +688,9 @@
         };
 
         await axios.post(url, request).then(response => {
+            // console.log(response);
+
             const { data } = response;
-            console.log(response);
 
             if (data.status == 'success') {
                 window.location.reload();

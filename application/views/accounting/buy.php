@@ -247,7 +247,7 @@
         } 
         else if (active_module == 'payment_voucher') 
         {
-            $(".buttons").removeClass('hide');
+            $(".buttons").addClass('hide');
             $(".buttons li.add a").attr('data-action-url', '<?php echo get_uri("payment_voucher/addedit"); ?>');
             $(".buttons li.add a").attr('data-title', '<?php echo lang("payment_voucher_add"); ?>');
             $(".buttons li.add span").append('<?php echo lang("payment_voucher_add"); ?>');
@@ -282,7 +282,7 @@
         } 
         else if (active_module == 'goods_receipt') 
         {
-            $(".buttons").removeClass('hide');
+            $(".buttons").addClass('hide');
             $(".buttons li.add a").attr('data-action-url', '<?php echo get_uri("goods_receipt/addedit"); ?>');
             $(".buttons li.add a").attr('data-title', '<?php echo lang("goods_receipt_add"); ?>');
             $(".buttons li.add span").append('<?php echo lang("goods_receipt_add"); ?>');
@@ -346,8 +346,8 @@
                     doc_id: $(this).data("doc_id"),
                     update_status_to: $(this).val()
                 };
-                console.log(url, request);
 
+                console.log(url, request);
                 axios.post(url, request).then((response) => {
                     console.log(response);
                     

@@ -2156,7 +2156,8 @@ $lang["record_products"] = "Record product";
 $lang["operation"] = "Operations";
 
 $lang["goods_receipt"] = "Goods Receipt";
-$lang["goods_receipt_add"] = "Create new GR";
+$lang["goods_receipt_add"] = "Create (GR)";
+$lang["goods_receipt_approve"] = "App";
 $lang["receive_date"] = "Receive date";
 $lang["record_of_receipt"] = "Record of Goods receipt";
 $lang["record_of_expenses"] = "Record of Expenses";
@@ -2164,6 +2165,7 @@ $lang["record_of_goods_receipt"] = "Record of Goods receipt";
 
 $lang["payment_voucher"] = "Payment Voucher";
 $lang["payment_voucher_add"] = "Create new PV";
+$lang["payment_voucher_approve"] = "Approve (PV)";
 $lang["record_of_payment_voucher"] = "Record of Payment voucher";
 $lang["date_of_document"] = "Date of Document";
 $lang["number_of_document"] = "Doc. No.";
@@ -2174,6 +2176,11 @@ $lang["total_payment_amount"] = "Total Payment";
 $lang["payment_voucher_payer"] = "Payer Info.";
 $lang["payment_voucher_payee"] = "Payee Info.";
 $lang["payment_information"] = "Payment Info.";
+$lang["payment_information_add"] = "Add payment Info.";
+$lang["pv_incorrect_amt"] = "Incorrect Amount, please check.";
+$lang["pv_pay_amt_exceed_total"] = "Pay amount exceeded the total amount, please check.";
+$lang["pv_no_select_pay_method"] = "Not selected the payment method yet.";
+$lang["pv_no_specify_description"] = "No description or payment details";
 
 $lang["material_request_type"] = "Request type";
 $lang["project_refer"] = "Project reference";

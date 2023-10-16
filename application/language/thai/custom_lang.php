@@ -2554,6 +2554,7 @@ $lang["operation"] = "ดำเนินการ";
 
 $lang["goods_receipt"] = "ใบรับสินค้า (GR)";
 $lang["goods_receipt_add"] = "เพิ่มใบรับสินค้า (GR)";
+$lang["goods_receipt_approve"] = "อนุมัติใบรับสินค้าและนำเข้าคลัง";
 $lang["receive_date"] = "วันที่รับสินค้า";
 $lang["record_of_receipt"] = "บันทึกซื้อสินค้า";
 $lang["record_of_expenses"] = "บันทึกค่าใช้จ่าย";
@@ -2561,6 +2562,7 @@ $lang["record_of_goods_receipt"] = "ออกใบรับสินค้า";
 
 $lang["payment_voucher"] = "ใบสำคัญจ่าย (PV)";
 $lang["payment_voucher_add"] = "เพิ่มใบสำคัญจ่าย (PV)";
+$lang["payment_voucher_approve"] = "อนุมัติใบสำคัญจ่าย";
 $lang["record_of_payment_voucher"] = "ออกใบสำคัญจ่าย";
 $lang["date_of_document"] = "วันที่ออกเอกสาร";
 $lang["number_of_document"] = "เลขที่เอกสาร";
@@ -2571,6 +2573,11 @@ $lang["total_payment_amount"] = "ยอดรวมชำระ";
 $lang["payment_voucher_payer"] = "ผู้ซื้อ";
 $lang["payment_voucher_payee"] = "ผู้ขาย";
 $lang["payment_information"] = "ข้อมูลการชำระเงิน";
+$lang["payment_information_add"] = "บันทึกการชำระเงิน";
+$lang["pv_incorrect_amt"] = "ระบุจำนวนเงินรวมชำระไม่ถูกต้อง";
+$lang["pv_pay_amt_exceed_total"] = "จำนวนเงินรวมชำระเกินยอดชำระเต็มจำนวน";
+$lang["pv_no_select_pay_method"] = "ยังไม่ได้เลือกวิธีการชำระเงิน";
+$lang["pv_no_specify_description"] = "ยังไม่ได้ระบุคำบรรยายหรือรายละเอียดการชำระ";
 
 $lang["material_request_type"] = "ประเภทการเบิก";
 $lang["project_refer"] = "โปรเจคอ้างอิง";
