@@ -1051,7 +1051,7 @@ class Projects_model extends Crud_model {
         $bomNoStockQuery = $this->db->query($bomNoStockString, [$project_id, $project_item_id]);
         $bomNoStock = $bomNoStockQuery->result();
 
-        if (sizeof($bomNoStock) && isset($bomNoStock) && !empty($bomHaveStock)) {
+        if (sizeof($bomNoStock) && isset($bomNoStock) && !empty($bomNoStock)) {
             foreach ($bomNoStock as $bns) {
                 $pullingStockString = "
                     SELECT bs.id, bs.group_id, bs.material_id, bs.stock, bs.remaining, 
@@ -1068,6 +1068,23 @@ class Projects_model extends Crud_model {
                     AND bs.id NOT IN(" . $info["have_stock_id"] . ") 
                     ORDER BY bsg.created_date ASC
                 ";
+
+                if ($info["have_stock_id"] == null) {
+                    $pullingStockString = "
+                        SELECT bs.id, bs.group_id, bs.material_id, bs.stock, bs.remaining, 
+                        IFNULL(bpim.used, 0) AS used, bs.stock - IFNULL(bpim.used, 0) AS actual_remain 
+                        FROM bom_stocks bs 
+                        INNER JOIN bom_stock_groups bsg ON bsg.id = bs.group_id 
+                        LEFT JOIN (
+                            SELECT stock_id, SUM(ratio) AS used 
+                            FROM bom_project_item_materials 
+                            WHERE material_id = " . $bns->material_id . " 
+                            GROUP BY stock_id
+                        ) AS bpim ON bs.id = bpim.stock_id 
+                        WHERE bs.material_id = " . $bns->material_id . " AND bs.remaining > 0 AND bs.stock - IFNULL(bpim.used, 0) > 0 
+                        ORDER BY bsg.created_date ASC
+                    ";
+                }
                 $pullingStockQuery = $this->db->query($pullingStockString);
                 $pullingStock = $pullingStockQuery->result();
 

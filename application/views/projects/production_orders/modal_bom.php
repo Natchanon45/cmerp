@@ -279,6 +279,7 @@ async function bomRecalc () {
     };
 
     await axios.post(url, req).then(res => {
+        console.log(res);
         window.parent.loadProductionOrderList();
 
         setTimeout(async () => {
