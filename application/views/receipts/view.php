@@ -148,9 +148,9 @@
                         <p><input type="text" id="total_in_text" readonly></p>
                     </td>
                     <td colspan="4" class="summary">
-                        <p id="s-sub-total-before-discount">
+                        <p id="s-full-amount-sub-total-before-discount">
                             <span class="c1 custom-color">รวมเป็นเงิน</span>
-                            <span class="c2"><input type="text" id="sub_total_before_discount" readonly></span>
+                            <span class="c2"><input type="text" id="full_amount_sub_total_before_discount" readonly></span>
                             <span class="c3"><span class="currency">บาท</span></span>
                         </p>
                         <p id="s-sub-total-before-discount">
@@ -369,6 +369,7 @@ function loadSummary(){
     }).then(function(response) {
         data = response.data;
 
+        $("#full_amount_sub_total_before_discount").val(data.full_amount_sub_total_before_discount);
         $("#sub_total_before_discount").val(data.sub_total_before_discount);
         $("#discount_percent").val(data.discount_percent);
         $("#discount_amount").val(data.discount_amount);
