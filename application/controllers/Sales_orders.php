@@ -107,6 +107,7 @@ class Sales_orders extends MY_Controller {
                 $sprows = $this->Products_m->getRows();
                 if(!empty($sprows)){
                     foreach($sprows as $sprow){
+                        if(count($this->Products_m->getFomulasByItemId($sprow->id)) < 1) continue;
                         $suggestion[] = ["id" => $sprow->id, "text" => $sprow->title, "description"=>$sprow->description, "unit"=>$sprow->unit_type, "price"=>$sprow->rate];
                     }
                 }

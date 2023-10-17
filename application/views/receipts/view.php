@@ -153,6 +153,11 @@
                             <span class="c2"><input type="text" id="sub_total_before_discount" readonly></span>
                             <span class="c3"><span class="currency">บาท</span></span>
                         </p>
+                        <p id="s-sub-total-before-discount">
+                            <span class="c1 custom-color">ยอดชำระ</span>
+                            <span class="c2"><input type="text" id="sub_total_before_discount" readonly></span>
+                            <span class="c3"><span class="currency">บาท</span></span>
+                        </p>
                         <p id="s-discount">
                             <span class="c1 custom-color">
                                 ส่วนลด&nbsp;<input type="number" id="discount_percent" value="<?php echo $discount_percent; ?>" <?php echo $invoice_id == null && $doc_status == "W"?"":"disabled"; ?>>

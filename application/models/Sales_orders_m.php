@@ -580,8 +580,15 @@ class Sales_orders_m extends MY_Model {
         if(empty($itemId)){
             $db->where("sales_order_id", $docId);
             $db->where("product_id", $product_id);
+            $db->where("item_mixing_groups_id", $item_mixing_groups_id);
             if($db->count_all_results("sales_order_items") > 0){
-                $this->data["message"] = $product_name." มีอยู่ในรายการแล้ว.";
+                $bimgrow = $db->select("name")
+                                ->from("bom_item_mixing_groups")
+                                ->where("id", $item_mixing_groups_id)
+                                ->get()->row();
+
+                if(empty($bimgrow)) return $this->data;
+                $this->data["message"] = "ไม่สามารถเพิ่มข้อมูลได้ เนื่องจาก ".$product_name." : ".$bimgrow->name." มีอยู่ในรายการแล้ว.";
                 return $this->data;
             }
 
@@ -687,7 +694,11 @@ class Sales_orders_m extends MY_Model {
             return $this->data;
         }elseif($updateStatusTo == "PROJECT"){
             if($currentStatus == "V") return $this->data;
-            $this->createProject($sorow);
+            if($this->createProject($sorow) != true){
+                $db->trans_rollback();
+                $this->data["message"] = "ไม่สามารถสร้างโปรเจคได้ เนื่องจากมีรายการสินค้าที่ยังไม่ผูกสูตรอยู่ในรายการ";
+                return $this->data;
+            }
             $this->data["message"] = "สร้างโปรเจค '".$sorow->project_title."' เรียบร้อย";
             $this->data["status"] = "success";
 
@@ -1276,13 +1287,14 @@ class Sales_orders_m extends MY_Model {
             $production_bom_data = [];
 
             foreach($soirows as $soirow){
+                if($soirow->item_mixing_groups_id == null) return false;
                 $production_bom_data[] = [
-                                            "project_id"=>$project_id,
-                                            "item_id"=>$soirow->product_id,
-                                            "item_mixing"=>$soirow->item_mixing_groups_id,
-                                            "quantity" =>$soirows->quantity,
-                                            "produce_in"=>1
-                                        ];
+                                        "project_id"=>$project_id,
+                                        "item_id"=>$soirow->product_id,
+                                        "item_mixing"=>$soirow->item_mixing_groups_id,
+                                        "quantity" =>$soirow->quantity,
+                                        "produce_in"=>1
+                                    ];
             }
 
             $ci->Projects_model->dev2_postProductionBomDataProcessing($production_bom_data);
@@ -1290,5 +1302,7 @@ class Sales_orders_m extends MY_Model {
         
         $db->where("id", $sorow->id);
         $db->update("sales_order", ["project_id"=>$project_id]);
+
+        return true;
     }
 }

@@ -829,8 +829,8 @@ class Leads extends MY_Controller
 	/* list of contacts, prepared for datatable  */
 	function contacts_list_data($client_id = 0)
 	{
-		$this->access_only_allowed_members();
-		$this->can_access_this_lead($client_id);
+		//$this->access_only_allowed_members();
+		//$this->can_access_this_lead($client_id);
 
 		$custom_fields = $this->Custom_fields_model->get_available_fields_for_table("lead_contacts", $this->login_user->is_admin, $this->login_user->user_type);
 		$options = array("user_type" => "lead", "client_id" => $client_id, "custom_fields" => $custom_fields);

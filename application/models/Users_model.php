@@ -339,11 +339,7 @@ class Users_model extends Crud_model {
 			if( empty( $this->getRolePermission['admin'] ) ) {
 				$filters = array();
 				$filters['WHERE'][] = " 1 " . $where;
-				///arr($this->getRolePermission);
-				/* if( isset( $this->getRolePermission['filters'] ) ) {
-					$filters = $this->getRolePermission['filters'];
-				} */
-
+				
                 $user_id = @$_SESSION['user_id'];
 				$keep = array( $_SESSION['user_id'] );
                 $dao = getDb();
@@ -359,13 +355,15 @@ class Users_model extends Crud_model {
 						$keep = array_merge( $keep, $userIds );
 					}
 				}
-                if($this->getRolePermission['p']['team_member_update_permission']=='all') {
+
+                /*if($this->getRolePermission['p']['team_member_update_permission']=='all') {
                     $filters['WHERE'][] = " 1 ";
                 }elseif($this->getRolePermission['p']['team_member_update_permission']=='specific') {
                     $filters['WHERE'][] = " ($users_table.`created_by`='$user_id' OR $users_table.`id` IN ( ". implode( ', ', $keep ) ." ) ) ";
                 }else{
                     $filters['WHERE'][] = " 0 ";
-                }
+                }*/
+
 				$filters['WHERE'][] = " `users`.`deleted` = 0 ";
 
 				$sql = gencond_( $sql, $filters );
@@ -383,6 +381,8 @@ class Users_model extends Crud_model {
 				$sql = str_replace( 'team_members.', 'users.', $sql );
 			}
 		}
+
+        log_message("error", $sql);
         // arr( $sql );
         return $this->db->query($sql);
     }
