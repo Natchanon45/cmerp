@@ -172,7 +172,7 @@
                                     <?php
                                         if (isset($detail->actual_total_remain) && isset($detail->required_qty)): 
                                             if (!empty($detail->actual_total_remain) && !empty($detail->required_qty)): 
-                                                if (($detail->actual_total_remain > $detail->required_qty)): 
+                                                if ($detail->required_qty <= $detail->actual_total_remain): 
                                     ?>
                                     <i class="fa fa-database stock-notice"></i>
                                     <?php
