@@ -426,46 +426,46 @@
 						</div>
 					<?php endif; ?>
 
-					<div class="payment_info clear" id="paymentInfo">
+					<!-- <div class="payment_info clear" id="paymentInfo">
 						<p class="custom-color">ข้อมูลการชำระเงิน</p>
 						<div id="paymentItems">
-							<?php if (isset($doc['payments']) && !empty($doc['payments'])): ?>
-								<?php foreach ($doc['payments'] as $key => $item): ?>
+							<?php // if (isset($doc['payments']) && !empty($doc['payments'])): ?>
+								<?php // foreach ($doc['payments'] as $key => $item): ?>
 									<table>
 										<tr>
 											<td rowspan="2" class="payment_number" width="5%">
-												<?php echo "#" . $key + 1; ?>
+												<?php // echo "#" . $key + 1; ?>
 											</td>
 											<td class="payment_key" width="15%">วันที่ชำระเงิน: </td>
 											<td class="payment_value" width="15%">
-												<?php echo $item->date_output; ?>
+												<?php // echo $item->date_output; ?>
 											</td>
 											<td class="payment_type">
 												<div>
 													<span class="font-weight-bold">วิธีการชำระ: </span>
 													<span style="margin-left: 1rem;">
-														<?php echo $item->type_name; ?>
+														<?php // echo $item->type_name; ?>
 													</span>
 												</div>
 											</td>
 											<td rowspan="2" width="15%" class="text-center font-size-bigger font-weight-bold">
-												<?php echo $item->currency_format; ?>
+												<?php // echo $item->currency_format; ?>
 											</td>
 										</tr>
 										<tr>
 											<td class="payment_key">จำนวนเงินรวม: </td>
 											<td class="payment_value">
-												<?php echo $item->number_format; ?>
+												<?php // echo $item->number_format; ?>
 											</td>
 											<td class="payment_type">
-												<?php echo $item->type_description; ?>
+												<?php // echo $item->type_description; ?>
 											</td>
 										</tr>
 									</table>
-								<?php endforeach; ?>
-							<?php endif; ?>
+								<?php // endforeach; ?>
+							<?php // endif; ?>
 						</div>
-					</div>
+					</div> -->
 				</div><!--.body-->
 
 				<div class="footer clear">

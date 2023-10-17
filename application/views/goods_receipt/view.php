@@ -90,23 +90,10 @@
             <?php endif; ?>
 
             <?php if ($doc_status != 'X'): ?>
-                <span class="dropdown inline-block">
-                    <button class="btn btn-warning dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                        <i class="fa fa-print"></i> <?php echo lang('print'); ?>
-                    </button>
-                    <ul class="dropdown-menu dropdown-left rounded" role="menu" aria-labelledby="dropdownMenuButton">
-                        <li role="presentation">
-                            <a class="dropdown-item" href="#" onclick="window.open('<?php echo $print_gr_url; ?>', '_blank');">
-                                <i class="fa fa-book" aria-hidden="true"></i> <?php echo "พิมพ์ใบรับสินค้า"; ?>
-                            </a>
-                        </li>
-                        <li role="presentation">
-                            <a class="dropdown-item" href="#" onclick="window.open('<?php echo $print_pv_url; ?>', '_blank');">
-                                <i class="fa fa-file-text-o" aria-hidden="true"></i> <?php echo "พิมพ์ใบสำคัญจ่าย"; ?>
-                            </a>
-                        </li>
-                    </ul>
-                </span>
+                <a href="#" class="btn btn-warning" onclick="window.open('<?php echo $print_gr_url; ?>', '_blank');">
+                    <i class="fa fa-print" aria-hidden="true"></i> 
+                    <?php echo lang("goods_receipt_print"); ?>
+                </a>
             <?php endif; ?>
 
         </div>
@@ -362,7 +349,7 @@
     </div><!--.docitem-->
 
     <div class="payment_info clear" id="paymentInfo">
-        <p class="custom-color">ข้อมูลการชำระเงิน</p>
+        <p class="custom-color"></p>
         <div id="paymentItems"></div>
     </div>
 
@@ -494,7 +481,6 @@
 
     $(document).ready(function () {
         loadItems();
-        loadPaymentItems();
 
         $("#vat_inc, #wht_inc, #wht_percent").change(function () {
             loadSummary();

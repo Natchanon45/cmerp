@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
 	<?php $this->load->view("edocs/include/head"); ?>
 	<title>
@@ -88,15 +87,12 @@
 	</style>
 </head>
 <?php if ($print_mode == "private"): ?>
-
 	<!-- <body onload="window.print()" onfocus="window.close()"> -->
-
 	<body>
 		<header>
 			<?php $this->load->view("edocs/include/header"); ?>
 		</header>
 	<?php else: ?>
-
 		<body>
 			<header>
 				<?php $this->load->view("edocs/include/header"); ?>
@@ -108,8 +104,7 @@
 					<div class="left">
 						<div class="logo">
 							<?php if (file_exists($_SERVER['DOCUMENT_ROOT'] . get_file_from_setting("estimate_logo", true)) != false): ?>
-								<img
-									src="<?php echo get_file_from_setting("estimate_logo", get_setting('only_file_path')); ?>" />
+								<img src="<?php echo get_file_from_setting("estimate_logo", get_setting('only_file_path')); ?>" />
 							<?php else: ?>
 								<span class="nologo">&nbsp;</span>
 							<?php endif; ?>
@@ -154,16 +149,21 @@
 								</p>
 								<p>
 									<?php
-									$client_address = $doc["seller"]["city"];
-									if ($client_address != "" && $doc["seller"]["state"] != "")
-										$client_address .= ", " . $doc["seller"]["state"];
-									elseif ($client_address == "" && $doc["seller"]["state"] != "")
-										$client_address .= $doc["seller"]["state"];
-									if ($client_address != "" && $doc["seller"]["zip"] != "")
-										$client_address .= " " . $doc["seller"]["zip"];
-									elseif ($client_address == "" && $doc["seller"]["zip"] != "")
-										$client_address .= $doc["seller"]["zip"];
-									echo $client_address;
+										$client_address = $doc["seller"]["city"];
+										
+										if ($client_address != "" && $doc["seller"]["state"] != "") {
+											$client_address .= ", " . $doc["seller"]["state"];
+										} elseif ($client_address == "" && $doc["seller"]["state"] != "") {
+											$client_address .= $doc["seller"]["state"];
+										}
+											
+										if ($client_address != "" && $doc["seller"]["zip"] != "") {
+											$client_address .= " " . $doc["seller"]["zip"];
+										} elseif ($client_address == "" && $doc["seller"]["zip"] != "") {
+											$client_address .= $doc["seller"]["zip"];
+										}
+										
+										echo $client_address;
 									?>
 								</p>
 								<?php if (trim($doc["seller"]["country"]) != ""): ?>
@@ -181,12 +181,12 @@
 					</div>
 					<div class="right">
 						<div class="docname custom-color">
-							<?php echo lang('payment_voucher'); ?>
+							<?php echo lang("payment_voucher"); ?>
 						</div>
 						<div class="docinfo">
 							<table>
 								<tr>
-									<td class="custom-color" <?php echo $additional_style; ?>><?php echo lang('number_of_document'); ?></td>
+									<td class="custom-color" <?php echo $additional_style; ?>><?php echo lang("number_of_document"); ?></td>
 									<td>
 										<?php echo $doc["doc_number"]; ?>
 									</td>
@@ -202,7 +202,7 @@
 								<?php if (trim($doc["reference_number"]) != ""): ?>
 									<tr>
 										<td class="custom-color">
-											<?php echo lang('refer_of_document'); ?>
+											<?php echo lang("refer_of_document"); ?>
 										</td>
 										<td>
 											<?php echo $doc["reference_number"]; ?>
@@ -214,25 +214,43 @@
 						<div class="buyercontact">
 							<table>
 								<tr>
-									<td class="custom-color" <?php echo $additional_style; ?>><?php echo lang('contact_name'); ?></td>
+									<td class="custom-color" <?php echo $additional_style; ?>><?php echo lang("contact_name"); ?></td>
 									<td>
-										<?php echo (isset($doc["seller_contact"]) && !empty($doc["seller_contact"])) ? $doc["seller_contact"]["first_name"] . " " . $doc["seller_contact"]["last_name"] : '-'; ?>
+										<?php
+											if (isset($doc["seller_contact"]) && !empty($doc["seller_contact"])) {
+												echo $doc["seller_contact"]["first_name"] . " " . $doc["seller_contact"]["last_name"];
+											} else {
+												echo "-";
+											}
+										?>
 									</td>
 								</tr>
 								<tr>
 									<td class="custom-color">
-										<?php echo lang('phone'); ?>
+										<?php echo lang("phone"); ?>
 									</td>
 									<td>
-										<?php echo (isset($doc["seller_contact"]) && !empty($doc["seller_contact"])) ? $doc["seller_contact"]["phone"] : '-'; ?>
+										<?php 
+											if (isset($doc["seller_contact"]) && !empty($doc["seller_contact"])) {
+												echo $doc["seller_contact"]["phone"];
+											} else {
+												echo "-";
+											}
+										?>
 									</td>
 								</tr>
 								<tr>
 									<td class="custom-color">
-										<?php echo lang('email'); ?>
+										<?php echo lang("email"); ?>
 									</td>
 									<td>
-										<?php echo (isset($doc["seller_contact"]) && !empty($doc["seller_contact"])) ? $doc["seller_contact"]["email"] : '-'; ?>
+										<?php 
+											if (isset($doc["seller_contact"]) && !empty($doc["seller_contact"])) {
+												echo $doc["seller_contact"]["email"];
+											} else {
+												echo "-";
+											}
+										?>
 									</td>
 								</tr>
 							</table>
@@ -246,19 +264,19 @@
 								<tr>
 									<td>#</td>
 									<td>
-										<?php echo lang('details'); ?>
+										<?php echo lang("details"); ?>
 									</td>
 									<td>
-										<?php echo lang('quantity'); ?>
+										<?php echo lang("quantity"); ?>
 									</td>
 									<td>
-										<?php echo lang('stock_material_unit'); ?>
+										<?php echo lang("stock_material_unit"); ?>
 									</td>
 									<td>
-										<?php echo lang('rate'); ?>
+										<?php echo lang("rate"); ?>
 									</td>
 									<td>
-										<?php echo lang('total_item'); ?>
+										<?php echo lang("total_item"); ?>
 									</td>
 								</tr>
 							</thead>
@@ -274,11 +292,13 @@
 												<span class="product_name">
 													<?php echo $item->product_name; ?>
 												</span>
-												<?php if (trim($item->product_description) != ""): ?>
-													<span class="product_description">
-														<?php echo trim($item->product_description); ?>
-													</span>
-												<?php endif; ?>
+												<span class="product_description">
+													<?php
+														if (trim($item->product_description) != ""):
+															echo trim($item->product_description);
+														endif;
+													?>
+												</span>
 											</td>
 											<td>
 												<?php echo $item->quantity; ?>
@@ -299,59 +319,81 @@
 						</table>
 					</div>
 					<div class="summary clear">
-						<div class="total_in_text"><span>
+						<div class="total_in_text">
+							<span>
 								<?php echo "(" . $doc["total_in_text"] . ")"; ?>
-							</span></div>
+							</span>
+						</div>
 						<div class="total_all">
 							<div class="row">
 								<div class="c1 custom-color">
-									<?php echo lang('total_all_item'); ?>
+									<?php echo lang("total_all_item"); ?>
 								</div>
-								<div class="c2"><span>
+								<div class="c2">
+									<span>
 										<?php echo number_format($doc["sub_total_before_discount"], 2); ?>
-									</span><span>
+									</span>
+									<span>
 										<?php echo lang("THB"); ?>
-									</span></div>
+									</span>
+								</div>
 							</div>
 
 							<?php if ($doc["discount_amount"] > 0): ?>
 								<div class="row">
-									<div class="c1 custom-color">ส่วนลด
-										<?php if ($doc["discount_type"] == "P")
-											echo number_format_drop_zero_decimals($doc["discount_percent"], 2) . "%"; ?>
+									<div class="c1 custom-color">
+										<span>
+											<?php echo lang("discount_amount"); ?>
+										</span>
+										<span>
+											<?php
+												if (isset($doc["discount_type"]) && $doc["discount_type"] == "P") {
+													echo number_format_drop_zero_decimals($doc["discount_percent"], 2) . "%";
+												}
+											?>
+										</span>
 									</div>
-									<div class="c2"><span>
+									<div class="c2">
+										<span>
 											<?php echo number_format($doc["discount_amount"], 2); ?>
-										</span><span>
+										</span>
+										<span>
 											<?php echo lang("THB"); ?>
-										</span></div>
+										</span>
+									</div>
 								</div>
 								<div class="row">
-									<div class="c1 custom-color">จำนวนหลังหักส่วนลด</div>
-									<div class="c2"><span>
+									<div class="c1 custom-color"><?php echo lang("amount_after_discount"); ?></div>
+									<div class="c2">
+										<span>
 											<?php echo number_format($doc["sub_total"], 2); ?>
-										</span><span>
+										</span>
+										<span>
 											<?php echo lang("THB"); ?>
-										</span></div>
+										</span>
+									</div>
 								</div>
 							<?php endif; ?>
 
 							<?php if ($doc["vat_inc"] == "Y"): ?>
 								<div class="row">
 									<div class="c1 custom-color">
-										<?php echo lang('value_add_tax'); ?>
+										<?php echo lang("value_add_tax"); ?>
 										<?php echo number_format_drop_zero_decimals($doc["vat_percent"], 2) . "%"; ?>
 									</div>
-									<div class="c2"><span>
+									<div class="c2">
+										<span>
 											<?php echo number_format($doc["vat_value"], 2); ?>
-										</span><span>
+										</span>
+										<span>
 											<?php echo lang("THB"); ?>
-										</span></div>
+										</span>
+									</div>
 								</div>
 							<?php endif; ?>
 							<div class="row">
 								<div class="c1 custom-color">
-									<?php echo lang('grand_total_price'); ?>
+									<?php echo lang("grand_total_price"); ?>
 								</div>
 								<div class="c2"><span>
 										<?php echo number_format($doc["total"], 2); ?>
@@ -362,7 +404,7 @@
 							<?php if ($doc["wht_inc"] == "Y"): ?>
 								<div class="row wht">
 									<div class="c1 custom-color">
-										<?php echo lang('with_holding_tax'); ?>
+										<?php echo lang("with_holding_tax"); ?>
 										<?php echo number_format_drop_zero_decimals($doc["wht_percent"], 2) . "%"; ?>
 									</div>
 									<div class="c2"><span>
@@ -373,7 +415,7 @@
 								</div>
 								<div class="row">
 									<div class="c1 custom-color">
-										<?php echo lang('payment_amount'); ?>
+										<?php echo lang("payment_amount"); ?>
 									</div>
 									<div class="c2"><span>
 											<?php echo number_format($doc["payment_amount"], 2); ?>
@@ -387,7 +429,7 @@
 					<?php if (trim($doc["remark"]) != ""): ?>
 						<div class="remark clear">
 							<div class="l1 custom-color">
-								<?php echo lang('remark') . ' / ' . lang('payment_condition'); ?>
+								<?php echo lang("remark") . ' / ' . lang("payment_condition"); ?>
 							</div>
 							<div class="l2 clear">
 								<?php echo nl2br($doc["remark"]); ?>
@@ -396,22 +438,22 @@
 					<?php endif; ?>
 
 					<div class="payment_info clear" id="paymentInfo">
-						<p class="custom-color"><?php echo lang("payment_information"); ?></p>
-						<div id="paymentItems">
-							<?php if (isset($doc['payments']) && !empty($doc['payments'])): ?>
-								<?php foreach ($doc['payments'] as $key => $item): ?>
+						<?php if (isset($doc["payments"]) && !empty($doc["payments"])): ?>
+							<p class="custom-color"><?php echo lang("payment_information"); ?></p>
+							<div id="paymentItems">
+								<?php foreach ($doc["payments"] as $key => $item): ?>
 									<table>
 										<tr>
 											<td rowspan="2" class="payment_number" width="5%">
 												<?php echo "#" . $key + 1; ?>
 											</td>
-											<td class="payment_key" width="15%">วันที่ชำระเงิน: </td>
-											<td class="payment_value" width="15%">
+											<td class="payment_key" width="16%"><?php echo lang("pv_pay_date"); ?>: </td>
+											<td class="payment_value" width="14%">
 												<?php echo $item->date_output; ?>
 											</td>
 											<td class="payment_type">
 												<div>
-													<span class="font-weight-bold">วิธีการชำระ: </span>
+													<span class="font-weight-bold"><?php echo lang("pv_pay_method"); ?>: </span>
 													<span style="margin-left: 1rem;">
 														<?php echo $item->type_name; ?>
 													</span>
@@ -422,7 +464,7 @@
 											</td>
 										</tr>
 										<tr>
-											<td class="payment_key">จำนวนเงินรวม: </td>
+											<td class="payment_key"><?php echo lang("pv_pay_amount"); ?>: </td>
 											<td class="payment_value">
 												<?php echo $item->number_format; ?>
 											</td>
@@ -432,8 +474,8 @@
 										</tr>
 									</table>
 								<?php endforeach; ?>
-							<?php endif; ?>
-						</div>
+							</div>
+						<?php endif; ?>
 					</div>
 				</div><!--.body-->
 
@@ -445,9 +487,15 @@
 						<div class="signature clear">
 							<div class="name">
 								<span class="l1">
-									<?php $requester_sign = $this->Users_m->getSignature($doc["buyer"]["id"]); ?>
-									<?php if ($doc["doc_status"] != "R" && $requester_sign != null): ?>
-										<img src='<?php echo str_replace("./", "/", $requester_sign); ?>'>
+									<?php
+									$requester_sign = null;
+									if (isset($doc["buyer"]["id"]) && !empty($doc["buyer"]["id"])) {
+										$requester_sign = $this->Users_m->getSignature($doc["buyer"]["id"]);
+									}
+
+									if ($doc["doc_status"] != "R" && $requester_sign != null):
+									?>
+										<img src="<?php echo str_replace("./", "/", $requester_sign); ?>">
 									<?php endif; ?>
 								</span>
 								<span class="l2">
@@ -456,7 +504,7 @@
 							</div>
 							<div class="date">
 								<span class="l1">
-									<?php if ($doc["doc_date"] != null && $doc["doc_status"] != 'R'): ?>
+									<?php if ($doc["doc_date"] != null && $doc["doc_status"] != "R"): ?>
 										<span class="approved_date">
 											<?php echo convertDate($doc["doc_date"], true); ?>
 										</span>
@@ -475,13 +523,19 @@
 						<div class="signature clear">
 							<div class="name">
 								<span class="l1">
-									<?php $signature = $this->Users_m->getSignature($doc["approved_by"]["id"]); ?>
-									<?php if ($doc["doc_status"] == "A" && $signature != null): ?>
-										<img src='<?php echo str_replace("./", "/", $signature); ?>'>
+									<?php
+									$signature = null;
+									if (isset($doc["approved_by"]["id"]) && !empty($doc["approved_by"]["id"])) {
+										$signature = $this->Users_m->getSignature($doc["approved_by"]["id"]);
+									}
+									
+									if ($doc["doc_status"] == "A" && $signature != null): 
+									?>
+										<img src="<?php echo str_replace("./", "/", $signature); ?>">
 									<?php endif; ?>
 								</span>
 								<span class="l2">
-									<?php echo lang('approver'); ?>
+									<?php echo lang("approver"); ?>
 								</span>
 							</div>
 							<div class="date">
@@ -493,7 +547,7 @@
 									<?php endif; ?>
 								</span>
 								<span class="l2">
-									<?php echo lang('day_of_approved'); ?>
+									<?php echo lang("day_of_approved"); ?>
 								</span>
 							</div>
 						</div>
@@ -507,5 +561,4 @@
 			</footer>
 		<?php endif; ?>
 	</body>
-
 </html>

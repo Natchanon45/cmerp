@@ -151,13 +151,14 @@ class Payment_voucher extends MY_Controller
     function share()
     {
         if (isset($this->json->task)) {
-            if ($this->json->task == "gen_sharekey")
-                jout($this->Payment_voucher_m->genShareKey());
+            if ($this->json->task == "gen_sharekey") jout($this->Payment_voucher_m->genShareKey());
             return;
         }
 
         $data = $this->Payment_voucher_m->getDoc($this->input->post("doc_id"));
-        $this->load->view('payment_voucher/share', $data);
+
+        // var_dump(arr($data)); exit();
+        $this->load->view("payment_voucher/share", $data);
     }
 
     function record_payment()

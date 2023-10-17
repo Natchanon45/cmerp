@@ -342,12 +342,13 @@
             $(".dropdown_status").on("change", function () {
                 let url = '<?php echo_uri(); ?>' + active_module;
                 let request = {
+                    taskName: 'update_doc_status',
                     task: 'update_doc_status',
                     doc_id: $(this).data("doc_id"),
                     update_status_to: $(this).val()
                 };
+                // console.log(url, request);
 
-                console.log(url, request);
                 axios.post(url, request).then((response) => {
                     console.log(response);
                     
@@ -359,22 +360,18 @@
                                 window.location.reload();
                                 return;
                             }
-
                             if (data.task === 'create_purchase_order') {
                                 window.location.href = data.url;
                                 return
                             }
-
                             if (data.task === 'approved_purchase_order') {
                                 window.location.href = data.url;
                                 return;
                             }
-
                             if (data.task === 'create_payment_voucher') {
                                 window.location.href = data.url;
                                 return;
                             }
-
                             if (data.task === 'create_goods_receipt') {
                                 window.location.href = data.url;
                                 return;

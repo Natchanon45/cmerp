@@ -34,7 +34,7 @@
             <?php echo lang('payments_amount'); ?>
         </label>
         <div class="col-md-9 input-suffix">
-            <input type="text" name="payments_amount" id="payments_amount" class="form-control" value="<?php echo $header_info->remain_amount; ?>" autocomplete="off">
+            <input type="text" name="payments_amount" id="payments_amount" class="form-control" value="<?php echo number_format($header_info->remain_amount, 2); ?>" autocomplete="off">
             <div class="input-tag-2"><?php echo lang('THB'); ?></div>
         </div>
     </div>
@@ -72,7 +72,7 @@
 
 <script type="text/javascript">
 const payments_dropdown = <?php echo json_encode($payments_dropdown); ?>;
-const maximum_amount = '<?php echo $header_info->remain_amount; ?>';
+const maximum_amount = '<?php echo number_format($header_info->remain_amount, 2); ?>';
 
 const alertController = (message) => {
     let tag = document.createElement('p');

@@ -82,26 +82,40 @@
         top: 1px;
     }
 </style>
+
 <div class="popup">
     <div class="container">
         <ul class="tabs clear">
-            <li class="active custom-bg01"><a class="custom-color"><?php echo lang('share_doc'); ?></a></li>
+            <li class="active custom-bg01">
+                <a class="custom-color">
+                    <?php echo lang("share_doc"); ?>
+                </a>
+            </li>
         </ul>
         <div class="link">
-            <label><?php echo lang('doc_link'); ?> :</label>
+            <label>
+                <?php echo lang("doc_link"); ?> :
+            </label>
             <input type="text" id="share_link" class="custom-color-input" value="<?php echo $share_link; ?>" readonly>
-            <div class='buttons clear'>
+            <div class="buttons clear">
                 <span id="generate_link">
-                    <input type="checkbox" <?php if ($share_link != null) echo "checked"; ?>>
-                    <i><?php echo lang('create_copy_link'); ?></i>
+                    <input type="checkbox" <?php if ($share_link != null) { echo "checked"; } ?>>
+                    <i>
+                        <?php echo lang("create_copy_link"); ?>
+                    </i>
                 </span>
-                <span id="copy_button"><a class="custom-color-button"><?php echo lang('copy_link'); ?></a></span>
+                <span id="copy_button">
+                    <a class="custom-color-button">
+                        <?php echo lang("copy_link"); ?>
+                    </a>
+                </span>
             </div>
         </div>
     </div>
     <div class="footer">
         <button type="button" class="btn btn-default" data-dismiss="modal">
-            <span class="fa fa-close"></span><?php echo lang('close'); ?>
+            <span class="fa fa-close"></span>
+            <?php echo lang("close"); ?>
         </button>
     </div>
 </div>
@@ -111,11 +125,11 @@
         $("#generate_link input").change(function () {
             axios.post("<?php echo current_url(); ?>", {
                 task: "gen_sharekey",
-                doc_id: "<?php if (isset($doc_id) && !empty($doc_id)) echo $doc_id; ?>",
+                doc_id: "<?php if (isset($doc_id) && !empty($doc_id)) { echo $doc_id; } ?>",
                 gen_key: this.checked
             }).then(function (response) {
                 data = response.data;
-                
+
                 if (typeof data.sharelink != "undefined") {
                     $("#share_link").val(data.sharelink);
                 } else {

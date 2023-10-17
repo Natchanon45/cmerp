@@ -50,10 +50,11 @@ class Payment_voucher_m extends MY_Model
         }
         
         if ($item->status == "A") {
-            $doc_status .= '
-                <option value="A" selected>' . lang('pr_approved') . '</option>
-                <option value="X">' . lang('cancel') . '</option>
-            ';
+            $doc_status .= '<option value="A" selected>' . lang('pr_approved') . '</option>';
+
+            if ($item->pay_status == "N") {
+                $doc_status .= '<option value="X">' . lang('cancel') . '</option>';
+            }
         }
         
         if ($item->status == "R") {
@@ -689,20 +690,15 @@ class Payment_voucher_m extends MY_Model
     function updateStatus()
     {
         $db = $this->db;
+        
         $docId = $this->json->doc_id;
         $updateStatusTo = $this->json->update_status_to;
 
         $pvrow = $db->select("*")->from($this->table_header)->where("id", $docId)->where("deleted", 0)->get()->row();
-
         if (empty($pvrow)) return $this->data;
 
         $payment_voucher_id = $this->data["doc_id"] = $docId;
         $currentStatus = $pvrow->status;
-
-        if ($pvrow->status == $updateStatusTo && $updateStatusTo != "P") {
-            $this->data["dataset"] = $this->getIndexDataSetHTML($pvrow);
-            return $this->data;
-        }
 
         $this->db->trans_begin();
 
@@ -711,6 +707,11 @@ class Payment_voucher_m extends MY_Model
                 $this->data["dataset"] = $this->getIndexDataSetHTML($pvrow);
                 return $this->data;
             }
+
+            $db->where("pv_id", $payment_voucher_id);
+            $db->update("goods_receipt_payment", [
+                "receipt_flag" => 1
+            ]);
 
             $db->where("id", $payment_voucher_id);
             $db->update($this->table_header, [
@@ -738,7 +739,7 @@ class Payment_voucher_m extends MY_Model
 
         $this->data["dataset"] = $this->getIndexDataSetHTML($pvrow);
         $this->data["status"] = "success";
-        $this->data["message"] = lang('record_saved');
+        $this->data["message"] = lang("record_saved");
         return $this->data;
     }
 

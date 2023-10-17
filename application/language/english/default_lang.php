@@ -2157,7 +2157,8 @@ $lang["operation"] = "Operations";
 
 $lang["goods_receipt"] = "Goods Receipt";
 $lang["goods_receipt_add"] = "Create (GR)";
-$lang["goods_receipt_approve"] = "App";
+$lang["goods_receipt_approve"] = "Approve and add stock";
+$lang["goods_receipt_print"] = "Print (GR)";
 $lang["receive_date"] = "Receive date";
 $lang["record_of_receipt"] = "Record of Goods receipt";
 $lang["record_of_expenses"] = "Record of Expenses";
@@ -2165,7 +2166,8 @@ $lang["record_of_goods_receipt"] = "Record of Goods receipt";
 
 $lang["payment_voucher"] = "Payment Voucher";
 $lang["payment_voucher_add"] = "Create new PV";
-$lang["payment_voucher_approve"] = "Approve (PV)";
+$lang["payment_voucher_approve"] = "Payment approve";
+$lang["payment_voucher_print"] = "Print (PV)";
 $lang["record_of_payment_voucher"] = "Record of Payment voucher";
 $lang["date_of_document"] = "Date of Document";
 $lang["number_of_document"] = "Doc. No.";
@@ -2177,6 +2179,10 @@ $lang["payment_voucher_payer"] = "Payer Info.";
 $lang["payment_voucher_payee"] = "Payee Info.";
 $lang["payment_information"] = "Payment Info.";
 $lang["payment_information_add"] = "Add payment Info.";
+
+$lang["pv_pay_date"] = "Pay Date";
+$lang["pv_pay_amount"] = "Pay Amount";
+$lang["pv_pay_method"] = "Payment Method";
 $lang["pv_incorrect_amt"] = "Incorrect Amount, please check.";
 $lang["pv_pay_amt_exceed_total"] = "Pay amount exceeded the total amount, please check.";
 $lang["pv_no_select_pay_method"] = "Not selected the payment method yet.";
@@ -2208,6 +2214,8 @@ $lang["grand_total_price"] = "Grand total";
 $lang["payment_amount"] = "Payment amount";
 $lang["payment_condition"] = "Payment condition";
 $lang["record_canceled"] = "The record has been canceled.";
+$lang["discount_amount"] = "Discount amount";
+$lang["amount_after_discount"] = "Amount after discount";
 
 $lang["buy_account"] = "Buy Account";
 $lang["sell_account"] = "Sell Account";

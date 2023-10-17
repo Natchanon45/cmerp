@@ -73,15 +73,17 @@
                     data-act="ajax-modal" data-title="<?php echo lang("share_doc") . " " . $pv_info->doc_number; ?>" 
                     data-action-url="<?php echo get_uri("payment_voucher/share"); ?>"> <?php echo lang("share"); ?>
                 </a>
-                <a onclick="window.open('<?php echo $print_url; ?>', '' ,'width=980,height=720');" class="btn btn-default">
-                    <?php echo lang("print"); ?>
+
+                <a href="javascript:void(0);" class="btn btn-warning" onclick="window.open('<?php echo $print_url; ?>', '_blank');">
+                    <i class="fa fa-print" aria-hidden="true"></i> 
+                    <?php echo lang("payment_voucher_print"); ?>
                 </a>
             <?php endif; ?>
 
-            <?php if ($pv_info->status == "W"): ?>
+            <?php if ($pv_info->status == "W" && $pv_info->pay_status == "C"): ?>
                 <a href="javascript:void(0);" id="btn-approval" class="btn btn-primary">
                     <i class="fa fa-check" aria-hidden="true"></i> 
-                    <?php echo lang('payment_voucher_approve'); ?>
+                    <?php echo lang("payment_voucher_approve"); ?>
                 </a>
             <?php endif; ?>
 
@@ -102,11 +104,6 @@
                     }
                 }
             ?>
-            <?php if ($pv_info->pay_status != "C"): ?>
-                <?php if ($pv_info->pay_status != "O"): ?>
-                    
-                <?php endif; ?>
-            <?php endif; ?>
         </div>
     </div>
 </div><!--#dcontroller-->
@@ -543,6 +540,7 @@
             doc_id: '<?php echo $pv_info->id; ?>',
             update_status_to: 'A'
         };
+        // console.log(url, request);
 
         await axios.post(url, request).then(response => {
             const { data } = response;
