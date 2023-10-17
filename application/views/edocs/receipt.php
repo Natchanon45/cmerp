@@ -172,8 +172,15 @@
 				                    </td>
 				                    <td><?php echo $item->quantity; ?></td>
 				                    <td><?php echo $item->unit; ?></td>
-				                    <td><?php echo number_format($item->price, 2); ?></td>
-				                    <td><?php echo number_format($item->total_price, 2); ?></td>
+
+				                    <?php if($item->invoice_items_id != null): ?>
+				                    	<?php $ivirow = $this->Invoices_m->itemById($item->invoice_items_id, ["price", "total_price"]); ?>
+				                    	<td><?php echo number_format($ivirow["price"], 2); ?></td>
+				                    	<td><?php echo number_format($ivirow["total_price"], 2); ?></td>
+				                    <?php else: ?>
+				                    	<td><?php echo number_format($item->price, 2); ?></td>
+				                    	<td><?php echo number_format($item->total_price, 2); ?></td>
+				                    <?php endif;?>
 				                </tr>
 			            	<?php endforeach; ?>
 		            	<?php endif; ?>
@@ -185,6 +192,10 @@
 				<div class="total_all">
 					<div class="row">
 						<div class="c1 custom-color">รวมเป็นเงิน</div>
+						<div class="c2"><span><?php echo number_format($doc["full_amount_sub_total_before_discount"], 2); ?></span><span><?php echo lang("THB");?></span></div>
+					</div>
+					<div class="row">
+						<div class="c1 custom-color">ยอดชำระ</div>
 						<div class="c2"><span><?php echo number_format($doc["sub_total_before_discount"], 2); ?></span><span><?php echo lang("THB");?></span></div>
 					</div>
 					<?php if($doc["discount_amount"] > 0): ?>

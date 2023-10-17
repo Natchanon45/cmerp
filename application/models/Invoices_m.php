@@ -970,6 +970,17 @@ class Invoices_m extends MY_Model {
         return $this->data;
     }
 
+    function getRowById($invoice_id, $fields = []){
+        $ivrow = $this->db->select("*")
+                            ->from("invoice")
+                            ->where("id", $invoice_id)
+                            ->get()->row();
+
+        if(empty($ivrow)) return null;
+
+        return $ivrow;
+    }
+
     function genShareKey(){
         $db = $this->db;
         $docId = $this->json->doc_id;

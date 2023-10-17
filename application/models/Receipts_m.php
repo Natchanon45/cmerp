@@ -260,6 +260,12 @@ class Receipts_m extends MY_Model {
         $this->data["reference_number"] = $rerow->reference_number;
         $this->data["remark"] = $rerow->remark;
 
+        $this->data["full_amount_sub_total_before_discount"] = number_format($rerow->sub_total_before_discount, 2);
+        if($rerow->invoice_id != null){
+            $ivrow = $this->Invoices_m->getRowById($rerow->invoice_id);
+            if($ivrow != null) $this->data["full_amount_sub_total_before_discount"] = $ivrow->sub_total_before_discount;
+        }
+        
         $this->data["sub_total_before_discount"] = $rerow->sub_total_before_discount;
 
         $this->data["discount_type"] = $rerow->discount_type;
@@ -411,6 +417,12 @@ class Receipts_m extends MY_Model {
             $rerow = $db->select("*")->from("receipt")
                         ->where("id", $docId)
                         ->get()->row();
+        }
+
+        $this->data["full_amount_sub_total_before_discount"] = number_format($rerow->sub_total_before_discount, 2);
+        if($rerow->invoice_id != null){
+            $ivrow = $this->Invoices_m->getRowById($rerow->invoice_id);
+            if($ivrow != null) $this->data["full_amount_sub_total_before_discount"] = $ivrow->sub_total_before_discount;
         }
 
         $this->data["sub_total_before_discount"] = number_format($rerow->sub_total_before_discount, 2);
@@ -694,22 +706,21 @@ class Receipts_m extends MY_Model {
             $item["product_description"] = $reirow->product_description;
             $item["quantity"] = $reirow->quantity;
             $item["unit"] = $reirow->unit;
+            $item["price"] = number_format($reirow->price, 2);
+            $item["total_price"] = number_format($reirow->total_price, 2);
             
             if($reirow->invoice_items_id != null){
-                $ivirow = $this->Invoices_m->itemById($reirow->invoice_items_id, ["price"]);
-                $item["price"] = number_format(!empty($ivirow) ? $ivirow["price"]:$reirow->price, 2);
-            }else{
-                $item["price"] = number_format($reirow->price, 2);
+                $ivirow = $this->Invoices_m->itemById($reirow->invoice_items_id, ["price", "total_price"]);
+                if(!empty($ivirow)){
+                    $item["price"] = number_format($ivirow["price"], 2);
+                    $item["total_price"] = number_format($ivirow["total_price"], 2);
+                }   
             }
-
-            $item["total_price"] = number_format($reirow->total_price, 2);
 
             $items[] = $item;
         }
 
-        if($rerow->invoice_id == null && $rerow->status == "W"){
-            $this->data["edit"] = true;
-        }
+        if($rerow->invoice_id == null && $rerow->status == "W") $this->data["edit"] = true;
 
         $this->data["items"] = $items;
         $this->data["status"] = "success";
