@@ -5,9 +5,5 @@ class Stock_m extends CI_Model {
 		
     }
 
-    function test(){
-        log_message("error","Hello");
-    }
-
     
 }

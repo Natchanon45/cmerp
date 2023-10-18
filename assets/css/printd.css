@@ -543,7 +543,7 @@
 }
 
 #payment_header .docnumber .docstaus.outstanding i{
-    background: #3297ff;
+    background: #ff0000;
 }
 
 #payment_header .docnumber .docstaus.paid i{
@@ -551,7 +551,7 @@
 }
 
 #payment_header .docnumber .docstaus.outstanding{
-    color: #3297ff;
+    color: #ff0000;
 }
 
 #payment_header .docnumber .docstaus.paid{
@@ -609,8 +609,10 @@
 #payment_header .payment_receive_amount{
     border-radius: 8px;
     position: relative;
-    background: #ececff;
-    color: #6c6df2;
+    /*background: #ececff;*/
+    background: rgba(255, 0, 0, .1);
+    /*color: #6c6df2;*/
+    color: #ff0000;
     display: block;
     width: 100%;
     text-align: right;
