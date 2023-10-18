@@ -260,7 +260,7 @@ class Receipts_m extends MY_Model {
         $this->data["reference_number"] = $rerow->reference_number;
         $this->data["remark"] = $rerow->remark;
 
-        $this->data["full_amount_sub_total_before_discount"] = number_format($rerow->sub_total_before_discount, 2);
+        $this->data["full_amount_sub_total_before_discount"] = $rerow->sub_total_before_discount;
         if($rerow->invoice_id != null){
             $ivrow = $this->Invoices_m->getRowById($rerow->invoice_id);
             if($ivrow != null) $this->data["full_amount_sub_total_before_discount"] = $ivrow->sub_total_before_discount;

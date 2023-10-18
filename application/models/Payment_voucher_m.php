@@ -436,8 +436,6 @@ class Payment_voucher_m extends MY_Model {
                                         "status"=>"W"
                                     ]);
 
-            log_message("error", "Hello->".$db->last_query());
-
             $docId = $db->insert_id();
         }
         

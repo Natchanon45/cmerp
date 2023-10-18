@@ -90,24 +90,24 @@
 				</div>
 			</div>
 			<div class="right">
-				<div class="docname custom-color"><?php echo $doc["purpose"] == "P"?"ใบสั่งผลิต":"ใบสั่งขาย";?></div>
+				<div class="docname custom-color"><?php echo $doc["purpose"] == "P"?lang("account_docname_work_order"):lang("account_docname_sales_order");?></div>
 				<div class="docinfo">
 					<table>
 	                    <tr>
-	                        <td class="custom-color">เลขที่</td>
+	                        <td class="custom-color"><?php echo lang("account_short_document_no"); ?></td>
 	                        <td><?php echo $doc["doc_number"]; ?></td>
 	                    </tr>
 	                    <tr>
-	                        <td class="custom-color">วันที่</td>
+	                        <td class="custom-color"><?php echo lang("account_date"); ?></td>
 	                        <td><?php echo convertDate($doc["doc_date"], true); ?></td>
 	                    </tr>
 	                    <tr>
-	                        <td class="custom-color">ผู้ขาย</td>
+	                        <td class="custom-color"><?php echo lang("account_seller"); ?></td>
 	                        <td><?php if($doc["seller"] != null) echo $doc["seller"]["first_name"]." ".$doc["seller"]["last_name"]; ?></td>
 	                    </tr>
 	                    <?php if(trim($doc["reference_number"]) != ""): ?>
 	                        <tr>
-	                            <td class="custom-color">เลขที่อ้างอิง</td>
+	                            <td class="custom-color"><?php echo lang("account_refernce_no"); ?></td>
 	                            <td><?php echo $doc["reference_number"]; ?></td>
 	                        </tr>
 	                    <?php endif; ?>
@@ -116,15 +116,15 @@
 				<div class="buyercontact">
 					<table>
 	                    <tr>
-	                        <td class="custom-color">ผู้ติดต่อ</td>
+	                        <td class="custom-color"><?php echo lang("account_contact"); ?></td>
 	                        <td><?php if(isset($doc["buyer_contact"])) echo $doc["buyer_contact"]["first_name"]." ".$doc["buyer_contact"]["last_name"]; ?></td>
 	                    </tr>
 	                    <tr>
-	                        <td class="custom-color">เบอร์โทร</td>
+	                        <td class="custom-color"><?php echo lang("account_phone"); ?></td>
 	                        <td><?php if(isset($doc["buyer_contact"])) echo $doc["buyer_contact"]["phone"]; ?></td>
 	                    </tr>
 	                    <tr>
-	                        <td class="custom-color">อีเมล์</td>
+	                        <td class="custom-color"><?php echo lang("account_email"); ?></td>
 	                        <td><?php if(isset($doc["buyer_contact"])) echo $doc["buyer_contact"]["email"]; ?></td>
 	                    </tr>
 	                </table>
@@ -137,11 +137,11 @@
 					<thead>
 		                <tr>
 		                    <td>#</td>
-		                    <td>รายละเอียด</td>
-		                    <td>จำนวน</td>
-		                    <td>หน่วย</td>
-		                    <td>ราคาต่อหน่วย</td>
-		                    <td>ยอดรวม</td>
+		                    <td><?php echo lang("account_item_description"); ?></td>
+		                    <td><?php echo lang("account_item_quantity"); ?></td>
+		                    <td><?php echo lang("account_item_unit"); ?></td>
+		                    <td><?php echo lang("account_item_unit_price"); ?></td>
+		                    <td><?php echo lang("account_item_total"); ?></td>
 		                </tr>
 		            </thead>
 		            <tbody>
@@ -175,7 +175,7 @@
 			</div>
 			<?php if(trim($doc["remark"]) != ""): ?>
 				<div class="remark clear">
-					<div class="l1 custom-color">หมายเหตุ</div>
+					<div class="l1 custom-color"><?php echo lang("account_remarks"); ?></div>
 	            	<div class="l2 clear"><?php echo nl2br($doc["remark"]); ?></div>
 				</div>
 			<?php endif; ?>
@@ -192,11 +192,11 @@
                         	<?php endif; ?>
 	                    </span>
 	                    <span class="l2">(<?php echo $doc["created"]["first_name"]." ".$doc["created"]["last_name"]; ?></span>
-	                    <span class="l3">ผู้ออกเอกสาร</span>
+	                    <span class="l3"><?php echo lang("account_created_by"); ?></span>
 	                </div>
 	                <div class="date">
 	                    <span class="l1"><span class="created_date"><?php echo convertDate($doc["created_datetime"], true); ?></span></span>
-	                    <span class="l2">วันที่</span>
+	                    <span class="l2"><?php echo lang("account_date"); ?></span>
 	                </div>
 				</div>
 			</div>
@@ -211,11 +211,11 @@
                         	<?php endif; ?>
 	                    </span>
 	                    <span class="l2"><?php if(isset($doc["approved"])) echo "(".$doc["approved"]["first_name"]." ".$doc["approved"]["last_name"].")"; ?></span>
-	                    <span class="l3">ผู้อนุมัติ</span>
+	                    <span class="l3"><?php echo lang("account_approved_by"); ?></span>
 	                </div>
 	                <div class="date">
 	                    <span class="l1"><span class="approved_date"><?php echo convertDate($doc["approved_datetime"], true); ?></span></span>
-	                    <span class="l2">วันที่</span>
+	                    <span class="l2"><?php echo lang("account_date"); ?></span>
 	                </div>
 				</div>
 			</div>

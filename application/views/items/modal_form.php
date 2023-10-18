@@ -35,7 +35,7 @@
 
         <div class="form-group">
             <label for="title" class=" col-md-3">
-                <?php echo lang('title'); ?>
+                <?php echo lang('stock_item_name'); ?>
             </label>
             <div class="col-md-9">
                 <?php

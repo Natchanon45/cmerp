@@ -1,11 +1,11 @@
 <link rel="stylesheet" href="/assets/css/printd.css?t=<?php echo time();?>">
 <div id="dcontroller" class="clearfix">
     <div class="page-title clearfix mt15 clear">
-        <h1><?php echo $purpose == "P"?"ใบสั่งผลิต":"ใบสั่งขาย";?> <?php echo $doc_number;?></h1>
+        <h1><?php echo $purpose == "P"?lang("account_docname_work_order"):lang("account_docname_sales_order");?> <?php echo $doc_number;?></h1>
         <div class="title-button-group">
-            <a style="margin-left: 15px;" class="btn btn-default mt0 mb0 back-to-index-btn" href="<?php echo get_uri("accounting/sell/sales-orders");?>" ><i class="fa fa-hand-o-left" aria-hidden="true"></i> ย้อนกลับไปตารางรายการ</a>
-            <a id="add_item_button" class="btn btn-default" data-post-doc_id="<?php echo $doc_id; ?>" data-act="ajax-modal" data-title="แชร์เอกสาร <?php echo $doc_number; ?>" data-action-url="<?php echo get_uri("/sales-orders/share"); ?>">แชร์</a>
-            <a onclick="window.open('<?php echo $print_url;?>', '' ,'width=980,height=720');" class="btn btn-default">พิมพ์</a>
+            <a style="margin-left: 15px;" class="btn btn-default mt0 mb0 back-to-index-btn" href="<?php echo get_uri("accounting/sell/sales-orders");?>" ><i class="fa fa-hand-o-left" aria-hidden="true"></i> <?php echo lang("account_button_back"); ?></a>
+            <a id="add_item_button" class="btn btn-default" data-post-doc_id="<?php echo $doc_id; ?>" data-act="ajax-modal" data-title="<?php echo lang("account_button_share"); ?> <?php echo $doc_number; ?>" data-action-url="<?php echo get_uri("/sales-orders/share"); ?>"><?php echo lang("account_button_share"); ?></a>
+            <a onclick="window.open('<?php echo $print_url;?>', '' ,'width=980,height=720');" class="btn btn-default"><?php echo lang("account_button_print"); ?></a>
         </div>
     </div>
 </div><!--#dcontroller-->
@@ -57,24 +57,24 @@
             </div><!-- .company -->
         </div><!--.l-->
         <div class="r">
-            <h1 class="document_name custom-color"><?php echo $purpose == "P"?"ใบสั่งผลิต":"ใบสั่งขาย";?></h1>
+            <h1 class="document_name custom-color"><?php echo $purpose == "P"?lang("account_docname_work_order"):lang("account_docname_sales_order");?></h1>
             <div class="about_company">
                 <table>
                     <tr>
-                        <td class="custom-color">เลขที่</td>
+                        <td class="custom-color"><?php echo lang("account_short_document_no"); ?></td>
                         <td><?php echo $doc_number; ?></td>
                     </tr>
                     <tr>
-                        <td class="custom-color">วันที่</td>
+                        <td class="custom-color"><?php echo lang("account_date"); ?></td>
                         <td><?php echo convertDate($doc_date, true); ?></td>
                     </tr>
                     <tr>
-                        <td class="custom-color">ผู้ขาย</td>
+                        <td class="custom-color"><?php echo lang("account_seller"); ?></td>
                         <td><?php if($created != null) echo $created["first_name"]." ".$created["last_name"]; ?></td>
                     </tr>
                     <?php if(trim($reference_number) != ""): ?>
                         <tr>
-                            <td class="custom-color">เลขที่อ้างอิง</td>
+                            <td class="custom-color"><?php echo lang("account_refernce_no"); ?></td>
                             <td><?php echo $reference_number; ?></td>
                         </tr>
                     <?php endif; ?>
@@ -84,15 +84,15 @@
                 
                 <table>
                     <tr>
-                        <td class="custom-color">ผู้ติดต่อ</td>
+                        <td class="custom-color"><?php echo lang("account_contact"); ?></td>
                         <td><?php if(isset($client_contact)) echo $client_contact["first_name"]." ".$client_contact["last_name"]; ?></td>
                     </tr>
                     <tr>
-                        <td class="custom-color">เบอร์โทร</td>
+                        <td class="custom-color"><?php echo lang("account_phone"); ?></td>
                         <td><?php if(isset($client_contact)) echo $client_contact["phone"]; ?></td>
                     </tr>
                     <tr>
-                        <td class="custom-color">อีเมล์</td>
+                        <td class="custom-color"><?php echo lang("account_email"); ?></td>
                         <td><?php if(isset($client_contact)) echo $client_contact["email"]; ?></td>
                     </tr>
                 </table>
@@ -104,11 +104,11 @@
             <thead>
                 <tr>
                     <td>#</td>
-                    <td>รายละเอียด</td>
-                    <td>จำนวน</td>
-                    <td>หน่วย</td>
-                    <td>ราคาต่อหน่วย</td>
-                    <td>ยอดรวม</td>
+                    <td><?php echo lang("account_item_description"); ?></td>
+                    <td><?php echo lang("account_item_quantity"); ?></td>
+                    <td><?php echo lang("account_item_unit"); ?></td>
+                    <td><?php echo lang("account_item_unit_price"); ?></td>
+                    <td><?php echo lang("account_item_total"); ?></td>
                     <td></td>
                 </tr>
             </thead>
@@ -118,7 +118,7 @@
                 <tr>
                     <td colspan="3">
                         <?php if($doc_status == "W"): ?>
-                            <p><?php echo modal_anchor(get_uri("sales-orders/item"), "<i class='fa fa-plus-circle'></i> " . lang('add_item_product'), array("id"=>"add_item_button", "class" => "btn btn-default", "title" => lang('add_item_product'), "data-post-doc_id" => $doc_id)); ?></p>
+                            <p><?php echo modal_anchor(get_uri("sales-orders/item"), "<i class='fa fa-plus-circle'></i> " .lang('add_item_product'), array("id"=>"add_item_button", "class" => "btn btn-default", "title" => lang('add_item_product'), "data-post-doc_id" => $doc_id)); ?></p>
                         <?php endif; ?>
                         <p><input type="text" id="total_in_text" readonly></p>
                     </td>
@@ -128,7 +128,7 @@
         </table>
         <?php if(trim($remark) != ""): ?>
             <div class="remark clear">
-                <p class="custom-color">หมายเหตุ</p>
+                <p class="custom-color"><?php echo lang("account_remarks"); ?></p>
                 <p><?php echo nl2br($remark); ?></p>
             </div>
         <?php endif; ?>
@@ -149,11 +149,11 @@
                         </span>
                     </span>
                     <span class="l2">(<?php echo $created["first_name"]." ".$created["last_name"]; ?>)</span>
-                    <span class="l3">ผู้ออกเอกสาร</span>
+                    <span class="l3"><?php echo lang("account_created_by"); ?></span>
                 </div>
                 <div class="date">
                     <span class="l1"><span class="created_date"><?php echo convertDate($created_datetime, true); ?></span></span>
-                    <span class="l2">วันที่</span>
+                    <span class="l2"><?php echo lang("account_date"); ?></span>
                 </div>
             </div>
         </div><!--.customer -->
@@ -174,11 +174,11 @@
                             (<?php echo $approved["first_name"]." ".$approved["last_name"]; ?>)
                         </span>
                     <?php endif;?>
-                    <span class="l3">ผู้อนุมัติ</span>
+                    <span class="l3"><?php echo lang("account_approved_by"); ?></span>
                 </div>
                 <div class="date">
                     <span class="l1"><span class="approved_date"><?php echo convertDate($approved_datetime, true); ?></span></span>
-                    <span class="l2">วันที่</span>
+                    <span class="l2"><?php echo lang("account_date"); ?></span>
                 </div>
             </div>
         </div><!--.company-->

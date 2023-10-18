@@ -77,8 +77,8 @@
 <div id="page-content" class="p20 clearfix">
     <ul class="nav nav-tabs bg-white title" role="tablist">
         <!--<li><a href="#">ผังบัญชี</a></li>-->
-        <li class="active"><a>บัญชีขาย</a></li>
-        <li><a href="<?php echo get_uri("accounting/buy"); ?>">บัญชีซื้อ</a></li>
+        <li class="active"><a><?php echo lang('sell_account'); ?></a></li>
+        <li><a href="<?php echo get_uri("accounting/buy"); ?>"><?php echo lang('buy_account'); ?></a></li>
     </ul>
     <div class="panel panel-default">
         <div class="table-responsive pb50">
@@ -88,13 +88,13 @@
                     <?php if($this->Permission_m->accounting["sales_order"]["access"] == true): ?>
                         <?php $number_of_enable_module++; ?>
                         <li data-module="sales-orders" class="<?php if($module == "sales-orders") echo 'active custom-bg01'; ?>">
-                            <a class="<?php if($module == "sales-orders") echo 'custom-color'; ?>">ใบสั่งงาน</a>
+                            <a class="<?php if($module == "sales-orders") echo 'custom-color'; ?>"><?php echo lang('account_docname_sales_order'); ?></a>
                         </li>
                     <?php endif; ?>
                     <?php if($this->Permission_m->accounting["quotation"]["access"] == true): ?>
                         <?php $number_of_enable_module++; ?>
                         <li data-module="quotations" class="<?php if($module == "quotations") echo 'active custom-bg01'; ?>">
-                            <a class="<?php if($module == "quotations") echo 'custom-color'; ?>">ใบเสนอราคา</a>
+                            <a class="<?php if($module == "quotations") echo 'custom-color'; ?>"><?php echo lang('account_docname_quotation'); ?></a>
                         </li>
                     <?php endif; ?>
                     <?php if($this->Permission_m->accounting["invoice"]["access"] == true): ?>
@@ -103,9 +103,9 @@
                             <li data-module="invoices" class="<?php if($module == "invoices") echo 'active custom-bg01'; ?>">
                                 <a class="<?php if($module == "invoices") echo 'custom-color'; ?>">
                                     <?php
-                                        if($billing_type== "2") echo "ใบแจ้งหนี้/ใบวางบิล";
-                                        elseif($billing_type == "5") echo "ใบแจ้งหนี้/ใบวางบิล";
-                                        else echo "ใบแจ้งหนี้";
+                                        if($billing_type== "2") echo lang('account_docname_invoice')."/".lang('account_docname_billing_note');
+                                        elseif($billing_type == "5") echo lang('account_docname_invoice')."/".lang('account_docname_billing_note');
+                                        else echo lang('account_docname_invoice');
                                     ?>
                                 </a>
                             </li>
@@ -115,7 +115,7 @@
                         <?php if($billing_type == 1 || $billing_type == 4): ?>
                             <?php $number_of_enable_module++; ?>
                             <li data-module="billing-notes" class="<?php if($module == "billing-notes") echo 'active custom-bg01'; ?>">
-                                <a class="<?php if($module == "billing-notes") echo 'custom-color'; ?>">ใบวางบิล</a>
+                                <a class="<?php if($module == "billing-notes") echo 'custom-color'; ?>"><?php echo lang('account_docname_billing_note'); ?></a>
                             </li>
                         <?php endif; ?>
                     <?php endif; ?>
@@ -123,7 +123,7 @@
                         <?php if($billing_type == 1): ?>
                             <?php $number_of_enable_module++; ?>
                             <li data-module="tax-invoices" class="<?php if($module == "tax-invoices") echo 'active custom-bg01'; ?>">
-                                <a class="<?php if($module == "tax-invoices") echo 'custom-color'; ?>">ใบกำกับภาษี</a>
+                                <a class="<?php if($module == "tax-invoices") echo 'custom-color'; ?>"><?php echo lang('account_docname_sales_tax_invoice'); ?></a>
                             </li>
                         <?php endif; ?>
                     <?php endif; ?>
@@ -132,10 +132,10 @@
                         <li data-module="receipts" class="<?php if($module == "receipts") echo 'active custom-bg01'; ?>">
                             <a class="<?php if($module == "receipts") echo 'custom-color'; ?>">
                                 <?php
-                                    if($billing_type == "2") echo "ใบกำกับภาษี/ใบเสร็จรับเงิน";
-                                    elseif($billing_type == "3") echo "ใบแจ้งหนี้/ใบวางบิล/ใบกำกับภาษี/ใบเสร็จรับเงิน/ใบส่งของ";
-                                    elseif($billing_type == "6") echo "ใบแจ้งหนี้/ใบวางบิล/ใบเสร็จรับเงิน/ใบส่งของ";
-                                    else echo "ใบเสร็จรับเงิน";
+                                    if($billing_type == "2") echo lang('account_docname_sales_tax_invoice')."/".lang('account_docname_receipt');
+                                    elseif($billing_type == "3") echo lang('account_docname_invoice')."/".lang('account_docname_billing_note')."/".lang('account_docname_sales_tax_invoice')."/".lang('account_docname_receipt')."/".lang('account_docname_delivery_note');
+                                    elseif($billing_type == "6") echo lang('account_docname_invoice')."/".lang('account_docname_billing_note')."/".lang('account_docname_receipt')."/".lang('account_docname_delivery_note');
+                                    else echo lang('account_docname_receipt');
                                 ?>
                             </a>
                         </li>
@@ -143,13 +143,13 @@
                     <?php if($this->Permission_m->accounting["credit_note"]["access"] == true): ?>
                         <?php $number_of_enable_module++; ?>
                         <li data-module="credit-notes" class="<?php if($module == "credit-notes") echo 'active custom-bg01'; ?>">
-                            <a class="<?php if($module == "credit_notes") echo 'custom-color'; ?>">ใบลดหนี้</a>
+                            <a class="<?php if($module == "credit_notes") echo 'custom-color'; ?>"><?php echo lang('account_docname_credit_note'); ?></a>
                         </li>
                     <?php endif; ?>
                     <?php if($this->Permission_m->accounting["debit_note"]["access"] == true): ?>
                         <?php $number_of_enable_module++; ?>
                         <li data-module="debit-notes" class="<?php if($module == "debit-notes") echo 'active custom-bg01'; ?>">
-                            <a class="<?php if($module == "debit_notes") echo 'custom-color'; ?>">ใบเพิ่มหนี้</a>
+                            <a class="<?php if($module == "debit_notes") echo 'custom-color'; ?>"><?php echo lang('account_docname_debit_note'); ?></a>
                         </li>
                     <?php endif; ?>
                 </ul>
@@ -193,14 +193,14 @@ function loadDataGrid(){
     var doc_status = null;
     var extension_filters = null;
     var grid_columns = [
-                            {title: "วันที่", "class":"w10p"},
-                            {title: "เลขที่เอกสาร", "class":"w10p"},
-                            {title: "เลขที่อ้างอิง", "class":"w10p"},
-                            {title: "ลูกค้า", "class":"w20p"},
-                            {title: "กลุ่มลูกค้า", "class":"w10p"},
-                            {title: "ครบกำหนด", "class":"text-left w10p"},
-                            {title: "ยอดรวมสุทธิ", "class":"text-right w10p"},
-                            {title: "สถานะ", "class":"text-left w10p"},
+                            {title: "<?php echo lang('account_issue_date'); ?>", "class":"w10p"},
+                            {title: "<?php echo lang('account_short_document_no'); ?>", "class":"w10p"},
+                            {title: "<?php echo lang('account_refernce_no'); ?>", "class":"w10p"},
+                            {title: "<?php echo lang('account_customer'); ?>", "class":"w20p"},
+                            {title: "<?php echo lang('account_customer_group'); ?>", "class":"w10p"},
+                            {title: "<?php echo lang('account_due_date'); ?>", "class":"text-left w10p"},
+                            {title: "<?php echo lang('account_net_total'); ?>", "class":"text-right w10p"},
+                            {title: "<?php echo lang('account_status'); ?>", "class":"text-left w10p"},
                             {title: "<i class='fa fa-bars'></i>", "class":"text-center option w10p"}
                         ];
 
@@ -208,82 +208,81 @@ function loadDataGrid(){
     $(".buttons li.add").css("display", "block");
 
     if(active_module == "sales-orders"){
-        $(".buttons li.add a").attr("data-title", "สร้างใบสั่งงาน");
+        $(".buttons li.add a").attr("data-title", "<?php echo lang('account_button_create_sales_order'); ?>");
         $(".buttons li.add a").attr("data-action-url", "<?php echo get_uri("sales-orders/addedit"); ?>");
-        $(".buttons li.add span").append("สร้างใบสั่งงาน");
-        doc_status = [{id:"", text:"-- <?php echo lang("status"); ?> --"}, {id:"W", text:"รออนุมัติ"}, {id:"A", text:"อนุมัติ"}, {id:"R", text:"ยกเลิก"}];
+        $(".buttons li.add span").append("<?php echo lang('account_button_create_sales_order'); ?>");
+        doc_status = [{id:"", text:"-- <?php echo lang("status"); ?> --"}, {id:"W", text:"<?php echo lang('account_status_awaiting'); ?>"}, {id:"A", text:"<?php echo lang('account_status_approved'); ?>"}, {id:"R", text:"<?php echo lang('account_status_rejected'); ?>"}];
 
         grid_columns = [
-                            {title: "วันที่", "class":"w10p"},
-                            {title: "เลขที่เอกสาร", "class":"w15p"},
-                            {title: "เลขที่อ้างอิง", "class":"w1-p"},
-                            {title: "วัตถุประสงค์", "class":"w10p"},
-                            {title: "ลูกค้า", "class":"w20p"},
-                            {title: "กลุ่มลูกค้า", "class":"w15p"},
-                            {title: "สถานะ", "class":"text-left w10p"},
+                            {title: "<?php echo lang('account_issue_date'); ?>", "class":"w10p"},
+                            {title: "<?php echo lang('account_short_document_no'); ?>", "class":"w15p"},
+                            {title: "<?php echo lang('account_refernce_no'); ?>", "class":"w10p"},
+                            {title: "<?php echo lang('account_purpose'); ?>", "class":"w10p"},
+                            {title: "<?php echo lang('account_customer'); ?>", "class":"w20p"},
+                            {title: "<?php echo lang('account_customer_group'); ?>", "class":"w15p"},
+                            {title: "<?php echo lang('account_status'); ?>", "class":"text-left w10p"},
                             {title: "<i class='fa fa-bars'></i>", "class":"text-center option w10p"}
                         ];
 
         summation_column = null;
 
     }else if(active_module == "quotations"){
-        $(".buttons li.add a").attr("data-title", "สร้างใบเสนอราคา");
+        $(".buttons li.add a").attr("data-title", "<?php echo lang('account_button_create_quotation'); ?>");
         $(".buttons li.add a").attr("data-action-url", "<?php echo get_uri("quotations/addedit"); ?>");
-        $(".buttons li.add span").append("สร้างใบเสนอราคา");
+        $(".buttons li.add span").append("<?php echo lang('account_button_create_quotation'); ?>");
         doc_status = [{id:"", text:"-- <?php echo lang("status"); ?> --"}, {id:"W", text:"รออนุมัติ"}, {id:"A", text:"อนุมัติ"}, {id:"I", text:"ดำเนินการแล้ว"}, {id:"R", text:"ไม่อนุมัติ"}];
     }else if(active_module == "invoices"){
-        $(".buttons li.add a").attr("data-title", "สร้างใบแจ้งหนี้");
+        $(".buttons li.add a").attr("data-title", "<?php echo lang('account_button_create_invoice'); ?>");
         $(".buttons li.add a").attr("data-action-url", "<?php echo get_uri("invoices/addedit"); ?>");
-        $(".buttons li.add span").append("สร้างใบแจ้งหนี้");
+        $(".buttons li.add span").append("<?php echo lang('account_button_create_invoice'); ?>");
         doc_status = [{id:"", text:"-- <?php echo lang("status"); ?> --"}, {id:"W", text:"รออนุมัติ"}, {id:"O", text:"รอรับชำระ"}, {id:"P", text:"ชำระเงินแล้ว"}, {id:"V", text:"ยกเลิก"}];
     }else if(active_module == "billing-notes"){
-        $(".buttons li.add a").attr("data-title", "เลือกเอกสารสร้างใบวางบิล");
+        $(".buttons li.add a").attr("data-title", "<?php echo lang('account_button_create_biling_note'); ?>");
         $(".buttons li.add a").attr("data-action-url", "<?php echo get_uri("billing-notes/addedit"); ?>");
-        $(".buttons li.add span").append("สร้างใบวางบิล");
+        $(".buttons li.add span").append("<?php echo lang('account_button_create_biling_note'); ?>");
         doc_status = [{id:"", text:"-- <?php echo lang("status"); ?> --"}, {id:"W", text:"รออนุมัติ"}, {id:"A", text:"อนุมัติ"}, {id:"V", text:"ยกเลิก"}];
 
         grid_columns = [
-                            {title: "วันที่", "class":"w10p"},
-                            {title: "เลขที่เอกสาร", "class":"w15p"},
-                            {title: "ลูกค้า", "class":"w20p"},
-                            {title: "กลุ่มลูกค้า", "class":"w10p"},
-                            {title: "กำหนดรับชำระ", "class":"w10p"},
-                            {title: "มูลค่าสุทธิ", "class":"text-right w15p"},
-                            {title: "สถานะ", "class":"text-left w10p"}
+                            {title: "<?php echo lang('account_issue_date'); ?>", "class":"w10p"},
+                            {title: "<?php echo lang('account_short_document_no'); ?>", "class":"w15p"},
+                            {title: "<?php echo lang('account_customer'); ?>", "class":"w20p"},
+                            {title: "<?php echo lang('account_customer_group'); ?>", "class":"w10p"},
+                            {title: "<?php echo lang('account_due_date'); ?>", "class":"w10p"},
+                            {title: "<?php echo lang('account_net_total'); ?>", "class":"text-right w15p"},
+                            {title: "<?php echo lang('account_status'); ?>", "class":"text-left w10p"}
                         ];
 
         summation_column = 5;
     }else if(active_module == "tax-invoices"){
-        $(".buttons li.add a").attr("data-title", "สร้างใบกำกับภาษีขายจากรายการใบแจ้งหนี้");
+        $(".buttons li.add a").attr("data-title", "<?php echo lang('account_button_create_sales_tax_invoice'); ?>");
         $(".buttons li.add a").attr("data-action-url", "<?php echo get_uri("tax-invoices/addedit"); ?>");
-        $(".buttons li.add span").append("สร้างใบกำกับภาษีขาย");
+        $(".buttons li.add span").append("<?php echo lang('account_button_create_sales_tax_invoice'); ?>");
 
         doc_status = [{id:"", text:"-- <?php echo lang("status"); ?> --"}, {id:"W", text:"รออนุมัติ"}, {id:"A", text:"อนุมัติ"}, {id:"V", text:"ยกเลิก"}];
 
     }else if(active_module == "receipts"){
-        $(".buttons li.add a").attr("data-title", "สร้างใบเสร็จรับเงิน");
+        $(".buttons li.add a").attr("data-title", "<?php echo lang('account_button_create_receipt'); ?>");
         $(".buttons li.add a").attr("data-action-url", "<?php echo get_uri("receipts/addedit"); ?>");
-        $(".buttons li.add span").append("สร้างใบเสร็จรับเงิน");
+        $(".buttons li.add span").append("<?php echo lang('account_button_create_receipt'); ?>");
         doc_status = [{id:"", text:"-- <?php echo lang("status"); ?> --"}, {id:"W", text:"รอดำเนินการ"}, {id:"P", text:"เก็บเงินแล้ว"}, {id:"V", text:"ยกเลิก"}];
 
         grid_columns = [
-                            {title: "วันที่", "class":"w10p"},
-                            {title: "เลขที่เอกสาร", "class":"w10p"},
-                            {title: "เลขที่อ้างอิง", "class":"w10p"},
-                            {title: "ช่องทางชำระ", "class":"w10p"},
-                            {title: "ลูกค้า", "class":"w15p"},
-                            {title: "กลุ่มลูกค้า", "class":"w10p"},
-                            {title: "ยอดรวมสุทธิ", "class":"text-right w15p"},
-                            {title: "สถานะ", "class":"text-left w10p"},
+                            {title: "<?php echo lang('account_issue_date'); ?>", "class":"w10p"},
+                            {title: "<?php echo lang('account_short_document_no'); ?>", "class":"w10p"},
+                            {title: "<?php echo lang('account_refernce_no'); ?>", "class":"w10p"},
+                            {title: "<?php echo lang('account_payment_receive_method'); ?>", "class":"w10p"},
+                            {title: "<?php echo lang('account_customer'); ?>", "class":"w15p"},
+                            {title: "<?php echo lang('account_customer_group'); ?>", "class":"w10p"},
+                            {title: "<?php echo lang('account_net_total'); ?>", "class":"text-right w15p"},
+                            {title: "<?php echo lang('account_status'); ?>", "class":"text-left w10p"},
                             {title: "<i class='fa fa-bars'></i>", "class":"text-center option w10p"}
                         ];
 
     }else if(active_module == "credit-notes"){
         $(".buttons li.add").css("display", "block");
-        $(".buttons li.add a").attr("data-title", "เลือกเอกสารที่เกี่ยวข้อง");
+        $(".buttons li.add a").attr("data-title", "<?php echo lang('account_button_create_credit_note'); ?>");
         $(".buttons li.add a").attr("data-action-url", "<?php echo get_uri("credit-notes/addedit"); ?>");
-
-        $(".buttons li.add span").append("เพิ่มใบลดหนี้");
+        $(".buttons li.add span").append("<?php echo lang('account_button_create_credit_note'); ?>");
         doc_status = [
                         {id:"", text:"-- <?php echo lang("status"); ?> --"},
                         {id:"P", text:"รอดำเนินการ"},
@@ -291,10 +290,10 @@ function loadDataGrid(){
                     ];
     }else if(active_module == "debit-notes"){
         $(".buttons li.add").css("display", "block");
-        $(".buttons li.add a").attr("data-title", "เลือกเอกสารที่เกี่ยวข้อง");
+        $(".buttons li.add a").attr("data-title", "<?php echo lang('account_button_create_debit_note'); ?>");
         $(".buttons li.add a").attr("data-action-url", "<?php echo get_uri("debit-notes/addedit"); ?>");
 
-        $(".buttons li.add span").append("เพิ่มใบเพิ่มหนี้");
+        $(".buttons li.add span").append("<?php echo lang('account_button_create_debit_note'); ?>");
         doc_status = [
                         {id:"", text:"-- <?php echo lang("status"); ?> --"},
                         {id:"W", text:"รอดำเนินการ"},

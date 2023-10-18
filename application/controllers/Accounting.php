@@ -59,7 +59,7 @@ class Accounting extends MY_Controller {
         
 
         $cusrows = $this->Customers_m->getRows(["id", "company_name"]);
-        $client_ids[] = ["id"=>"", "text"=>"-- ลูกค้า --"];
+        $client_ids[] = ["id"=>"", "text"=>"-- ".lang("account_customer")." --"];
         if(!empty($cusrows)){
             foreach($cusrows as $cusrow){
                 $client_ids[] = ["id"=>$cusrow->id, "text"=>$cusrow->company_name];
@@ -67,7 +67,7 @@ class Accounting extends MY_Controller {
         }
 
         $cusgrows = $this->Customers_m->getGroupRows();
-        $client_group_ids[] = ["id"=>"", "text"=>"-- กลุ่มลูกค้า --"];
+        $client_group_ids[] = ["id"=>"", "text"=>"-- ".lang("account_customer_group")." --"];
         if(!empty($cusgrows)){
             foreach($cusgrows as $cusgrow){
                 $client_group_ids[] = ["id"=>"$cusgrow->id", "text"=>$cusgrow->title];
