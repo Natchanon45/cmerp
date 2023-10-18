@@ -23,13 +23,13 @@ class Sales_orders_m extends MY_Model {
 
     function getStatusName($status_code){
         if($status_code == "W"){
-            return "รออนุมัติ";
+            return lang("account_status_awaiting");
         }
     }
 
     function getPurposeInfo($purpose_code){
-        if($purpose_code == "P") return "ใบสั่งผลิต";
-        elseif($purpose_code == "S") return "ใบสั่งขาย";
+        if($purpose_code == "P") return lang("account_docname_work_order");
+        elseif($purpose_code == "S") return lang("account_docname_sales_order");
         return "";
     }
 
@@ -39,27 +39,27 @@ class Sales_orders_m extends MY_Model {
         $doc_status = "<select class='dropdown_status' data-doc_id='".$sorow->id."'>";
 
         if($sorow->status == "W"){
-            $doc_status .= "<option selected>รออนุมัติ</option>";
-            $doc_status .= "<option value='A'>อนุมัติ</option>";
-            $doc_status .= "<option value='V'>ยกเลิก</option>";
+            $doc_status .= "<option selected>".lang("account_status_awaiting")."</option>";
+            $doc_status .= "<option value='A'>".lang("account_status_approved")."</option>";
+            $doc_status .= "<option value='V'>".lang("account_status_rejected")."</option>";
         }elseif($sorow->status == "A"){
             if($sorow->purpose == "S"){
-                $doc_status .= "<option selected>อนุมัติ</option>";
-                if($this->canViewPR($sorow->id)) $doc_status .= "<option value='PR'>จัดการใบขอซื้อ</option>";
-                if($this->canViewMR($sorow->id)) $doc_status .= "<option value='MR'>จัดการใบขอเบิก</option>";
+                $doc_status .= "<option selected>".lang("account_status_approved")."</option>";
+                if($this->canViewPR($sorow->id)) $doc_status .= "<option value='PR'>".lang("account_so_view_po")."</option>";
+                if($this->canViewMR($sorow->id)) $doc_status .= "<option value='MR'>".lang("account_so_view_mr")."</option>";
             }
 
             if($sorow->purpose == "P"){
                 if($sorow->project_id == null){
-                    $doc_status .= "<option selected>อนุมัติ</option>";
-                    $doc_status .= "<option value='PROJECT'>สร้างโปรเจค</option>";
+                    $doc_status .= "<option selected>".lang("account_status_approved")."</option>";
+                    $doc_status .= "<option value='PROJECT'>".lang("account_so_create_project")."</option>";
                 }else{
-                    $doc_status .= "<option selected>ดำเนินการแล้ว</option>";
+                    $doc_status .= "<option selected>".lang("account_status_issued")."</option>";
                 }
             }
 
         }elseif($sorow->status == "V"){
-            $doc_status .= "<option selected>ยกเลิก</option>";
+            $doc_status .= "<option selected>".lang("account_status_rejected")."</option>";
         }
 
         $doc_status .= "</select>";
@@ -665,7 +665,7 @@ class Sales_orders_m extends MY_Model {
 
             $db->where("sales_order_id", $sales_order_id);
             if($db->count_all_results("sales_order_items") < 1){
-                $this->data["message"] = "ไม่พบรายการสำหรับอนุมัติ";
+                $this->data["message"] = lang("account_so_message_product_not_found");
                 return $this->data;
             }
 
@@ -679,7 +679,7 @@ class Sales_orders_m extends MY_Model {
         }elseif($updateStatusTo == "PR"){
             if($currentStatus == "V") return $this->data;
             $this->data["popup_doc_id"] = $sales_order_id;
-            $this->data["popup_title"] = "เลือกผู้จัดจำหน่ายสำหรับสร้างใบขอซื้อ";
+            $this->data["popup_title"] = lang("account_so_title_create_purchase_requisition");
             $this->data["popup_url"] = get_uri("sales-orders/make_purchase_requisition");
             $this->data["task"] = "popup";
             $this->data["status"] = "success";
@@ -687,7 +687,7 @@ class Sales_orders_m extends MY_Model {
         }elseif($updateStatusTo == "MR"){
             if($currentStatus == "V") return $this->data;
             $this->data["popup_doc_id"] = $sales_order_id;
-            $this->data["popup_title"] = "สร้างใบขอเบิกอัตโนมัติ";
+            $this->data["popup_title"] = lang("account_so_title_automatically_generate_material_requests");
             $this->data["popup_url"] = get_uri("sales-orders/make_material_request");
             $this->data["task"] = "popup";
             $this->data["status"] = "success";
@@ -696,10 +696,10 @@ class Sales_orders_m extends MY_Model {
             if($currentStatus == "V") return $this->data;
             if($this->createProject($sorow) != true){
                 $db->trans_rollback();
-                $this->data["message"] = "ไม่สามารถสร้างโปรเจคได้ เนื่องจากมีรายการสินค้าที่ยังไม่ผูกสูตรอยู่ในรายการ";
+                $this->data["message"] = lang("account_so_message_component_required");
                 return $this->data;
             }
-            $this->data["message"] = "สร้างโปรเจค '".$sorow->project_title."' เรียบร้อย";
+            $this->data["message"] = sprintf(lang("account_so_message_project_was_created"), $sorow->project_title);
             $this->data["status"] = "success";
 
         }elseif($updateStatusTo == "V"){

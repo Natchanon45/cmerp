@@ -140,13 +140,13 @@
             <table>
                 <thead>
                     <tr>
-                        <td class="custom-bg product_name">สินค้า</td>
-                        <td class="custom-bg product_supplier">ผู้จัดจำหน่าย</td>
-                        <td class="custom-bg unit">หน่วย</td>
-                        <td class="custom-bg instock">คงเหลือ</td>
-                        <td class="custom-bg quantity">ต้องใช้</td>
-                        <td class="custom-bg topurchase">ต้องขอซื้อ</td>
-                        <td class="custom-bg reference_number">ใบขอซื้อ</td>
+                        <td class="custom-bg product_name"><?php echo lang("account_so_product"); ?></td>
+                        <td class="custom-bg product_supplier"><?php echo lang("account_so_supplier"); ?></td>
+                        <td class="custom-bg unit"><?php echo lang("account_so_unit"); ?></td>
+                        <td class="custom-bg instock"><?php echo lang("account_so_in_stock"); ?></td>
+                        <td class="custom-bg quantity"><?php echo lang("account_so_order_qty"); ?></td>
+                        <td class="custom-bg topurchase"><?php echo lang("account_so_pr_qty"); ?></td>
+                        <td class="custom-bg reference_number"><?php echo lang("account_so_pr_no"); ?></td>
                     </tr>
                 </thead>
                 <tbody></tbody>
@@ -154,8 +154,8 @@
         </div>
     </div>
     <div class="footer">
-        <button type="button" class="btn btn-default" data-dismiss="modal"><span class="fa fa-close"></span>ปิดหน้าต่าง</button>
-        <button type="button" id="btnSubmit" class="btn btn-primary" <?php if($can_make_pr != true) echo "disabled"; ?>><span class="fa fa-check-circle"></span>สร้างใบขอซื้อ</button>
+        <button type="button" class="btn btn-default" data-dismiss="modal"><span class="fa fa-close"></span><?php echo lang("account_button_close"); ?></button>
+        <button type="button" id="btnSubmit" class="btn btn-primary" <?php if($can_make_pr != true) echo "disabled"; ?>><span class="fa fa-check-circle"></span><?php echo lang("account_button_create_pr"); ?></button>
     </div>
 </div>
 <script type="text/javascript">

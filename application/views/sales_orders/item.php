@@ -15,7 +15,7 @@
     <?php if($item_mixing_groups_id != null): ?>
         <?php if(!empty($product_formulas)): ?>
             <div id="product_formula_section" class="form-group">
-                <label for="product_formula" class="col-md-3">สูตรผสม</label>
+                <label for="product_formula" class="col-md-3"><?php echo lang('account_so_component'); ?></label>
                 <div class=" col-md-9">
                     <select id="product_formula" class="form-control">
                         <?php foreach($product_formulas as $pf): ?>
@@ -35,19 +35,19 @@
     <div class="form-group">
         <label for="unit" class=" col-md-3"><?php echo lang('unit_type'); ?></label>
         <div class="col-md-9">
-            <input type="text" id="unit" value="<?php echo $unit; ?>" placeholder="หน่วย" class="form-control">
+            <input type="text" id="unit" value="<?php echo $unit; ?>" placeholder="<?php echo lang('unit_type'); ?>" class="form-control">
         </div>
     </div>
     <div class="form-group">
-        <label for="price" class=" col-md-3"><?php echo lang('rate'); ?></label>
+        <label for="price" class=" col-md-3"><?php echo lang('account_item_unit_price'); ?></label>
         <div class="col-md-9">
-            <input type="text" id="price" value="<?php echo $price; ?>" placeholder="<?php echo lang('rate'); ?>" class="form-control numb">
+            <input type="text" id="price" value="<?php echo $price; ?>" placeholder="<?php echo lang('account_item_unit_price'); ?>" class="form-control numb">
         </div>
     </div>
     <div class="form-group">
-        <label for="total_price" class=" col-md-3">ราคารวม</label>
+        <label for="total_price" class=" col-md-3"><?php echo lang('account_item_total'); ?></label>
         <div class="col-md-9">
-            <input type="text" id="total_price" value="<?php echo $total_price; ?>" placeholder="<?php echo lang('rate'); ?>" class="form-control numb" readonly>
+            <input type="text" id="total_price" value="<?php echo $total_price; ?>" placeholder="<?php echo lang('account_item_total'); ?>" class="form-control numb" readonly>
         </div>
     </div>
 </div>

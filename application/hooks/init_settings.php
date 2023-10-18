@@ -14,4 +14,5 @@ function init_settings() {
 
     $ci->lang->load('default', $language);
     $ci->lang->load('custom', $language); //load custom after loading the default. because custom will overwrite the default file.
+    $ci->lang->load('account', $language);
 }

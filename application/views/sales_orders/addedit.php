@@ -1,33 +1,33 @@
 <div class="general-form modal-body clearfix">
     <div class="form-group">
-        <label for="doc_date" class=" col-md-3">วันที่</label>
+        <label for="doc_date" class=" col-md-3"><?php echo lang('account_issue_date'); ?></label>
         <div class="col-md-9">
             <input type="text" id="doc_date" class="form-control" autocomplete="off" readonly>
         </div>
     </div>
 
     <div class="form-group">
-        <label for="reference_number" class=" col-md-3">เลขที่อ้างอิง</label>
+        <label for="reference_number" class=" col-md-3"><?php echo lang('account_refernce_no'); ?></label>
         <div class="col-md-9"><input type="text" id="reference_number" value="<?php echo $reference_number; ?>" placeholder="#" class="form-control" <?php if($doc_status != "W" && isset($doc_id)) echo "disabled";?>></div>
     </div>
 
     <div class="form-group">
-        <label for="purpose" class=" col-md-3">วัตถุประสงค์</label>
+        <label for="purpose" class=" col-md-3"><?php echo lang('account_purpose'); ?></label>
         <div class="col-md-9">
             <select id="purpose" class="form-control" <?php if($doc_status != "W" && isset($doc_id)) echo "disabled";?>>
-                <option value="P" <?php if($purpose == "P") echo "selected"; ?>>ใบสั่งผลิต</option>
-                <option value="S" <?php if($purpose == "S") echo "selected"; ?>>ใบสั่งขาย</option>
+                <option value="P" <?php if($purpose == "P") echo "selected"; ?>><?php echo lang('account_docname_work_order'); ?></option>
+                <option value="S" <?php if($purpose == "S") echo "selected"; ?>><?php echo lang('account_docname_sales_order'); ?></option>
             </select>
         </div>
     </div>
 
     <div class="form-group objective project">
-        <label for="project_title" class=" col-md-3">หัวเรื่อง</label>
-        <div class="col-md-9"><input type="text" id="project_title" value="<?php echo $project_title; ?>" placeholder="หัวเรื่อง" class="form-control" <?php if($doc_status != "W" && isset($doc_id)) echo "disabled";?>></div>
+        <label for="project_title" class=" col-md-3"><?php echo lang('title'); ?></label>
+        <div class="col-md-9"><input type="text" id="project_title" value="<?php echo $project_title; ?>" placeholder="<?php echo lang('title'); ?>" class="form-control" <?php if($doc_status != "W" && isset($doc_id)) echo "disabled";?>></div>
     </div>
 
     <div class="form-group">
-        <label for="client_id" class=" col-md-3"><?php echo lang('client'); ?></label>
+        <label for="client_id" class=" col-md-3"><?php echo lang('account_client'); ?></label>
         <div class="col-md-9">
             <?php $crows = $this->Clients_m->getRows(); ?>
             <select id="client_id" class="form-control" <?php if($doc_status != "W" && isset($doc_id)) echo "disabled";?>>
@@ -40,7 +40,7 @@
     </div>
 
     <div class="form-group">
-        <label for="lead_id" class=" col-md-3">ลูกค้าผู้มุ่งหวัง</label>
+        <label for="lead_id" class=" col-md-3"><?php echo lang('account_lead'); ?></label>
         <div class="col-md-9">
             <?php $lrows = $this->Leads_m->getRows(); ?>
             <select id="lead_id" class="form-control" <?php if($doc_status != "W" && isset($doc_id)) echo "disabled";?>>
@@ -53,37 +53,37 @@
     </div>
 
     <div class="form-group objective project">
-        <label for="project_description" class=" col-md-3">คำบรรยาย</label>
+        <label for="project_description" class=" col-md-3"><?php echo lang('description'); ?></label>
         <div class=" col-md-9">
-            <textarea id="project_description" placeholder="คำบรรยาย" class="form-control" <?php if($doc_status != "W" && isset($doc_id)) echo "disabled";?>><?php echo $project_description; ?></textarea>
+            <textarea id="project_description" placeholder="<?php echo lang('description'); ?>" class="form-control" <?php if($doc_status != "W" && isset($doc_id)) echo "disabled";?>><?php echo $project_description; ?></textarea>
         </div>
     </div>
 
     <div class="form-group objective project">
-        <label for="project_start_date" class=" col-md-3">วันที่เริ่ม</label>
+        <label for="project_start_date" class=" col-md-3"><?php echo lang('start_date'); ?></label>
         <div class="col-md-9">
-            <input type="text" id="project_start_date" class="form-control" placeholder="วันที่เริ่ม" autocomplete="off" readonly>
+            <input type="text" id="project_start_date" class="form-control" placeholder="<?php echo lang('start_date'); ?>" autocomplete="off" readonly>
         </div>
     </div>
 
     <div class="form-group objective project">
-        <label for="project_deadline" class=" col-md-3">วันกำหนดส่ง</label>
+        <label for="project_deadline" class=" col-md-3"><?php echo lang('deadline'); ?></label>
         <div class="col-md-9">
-            <input type="text" id="project_deadline" class="form-control" placeholder="วันกำหนดส่ง" autocomplete="off" readonly>
+            <input type="text" id="project_deadline" class="form-control" placeholder="<?php echo lang('deadline'); ?>" autocomplete="off" readonly>
         </div>
     </div>
 
     <div class="form-group objective project">
-        <label for="project_price" class=" col-md-3">ราคา</label>
+        <label for="project_price" class=" col-md-3"><?php echo lang('price'); ?></label>
         <div class="col-md-9">
             <input type="number" id="project_price" value="<?php echo number_format($project_price, 2); ?>" class="form-control numb" autocomplete="off" <?php if($doc_status != "W" && isset($doc_id)) echo "disabled";?>>
         </div>
     </div>
 
     <div class="form-group">
-        <label for="remark" class=" col-md-3">หมายเหตุ</label>
+        <label for="remark" class=" col-md-3"><?php echo lang('account_remarks'); ?></label>
         <div class=" col-md-9">
-            <textarea id="remark" placeholder="หมายเหตุ" class="form-control" <?php if($doc_status != "W" && isset($doc_id)) echo "disabled";?>><?php echo $remark; ?></textarea>
+            <textarea id="remark" placeholder="<?php echo lang('account_remarks'); ?>" class="form-control" <?php if($doc_status != "W" && isset($doc_id)) echo "disabled";?>><?php echo $remark; ?></textarea>
         </div>
     </div>
 </div>

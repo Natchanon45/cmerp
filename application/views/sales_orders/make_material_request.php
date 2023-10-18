@@ -125,11 +125,11 @@
             <table>
                 <thead>
                     <tr>
-                        <td class="custom-bg product_name">สินค้า</td>
-                        <td class="custom-bg instock">คงเหลือ</td>
-                        <td class="custom-bg total_used">ต้องใช้</td>
-                        <td class="custom-bg total_submit">เบิกได้</td>
-                        <td class="custom-bg reference_number">ใบขอเบิก</td>
+                        <td class="custom-bg product_name"><?php echo lang("account_so_product"); ?></td>
+                        <td class="custom-bg instock"><?php echo lang("account_so_in_stock"); ?></td>
+                        <td class="custom-bg total_used"><?php echo lang("account_so_order_qty"); ?></td>
+                        <td class="custom-bg total_submit"><?php echo lang("account_so_mr_qty"); ?></td>
+                        <td class="custom-bg reference_number"><?php echo lang("account_so_mr_no"); ?></td>
                     </tr>
                 </thead>
                 <tbody></tbody>
@@ -137,8 +137,8 @@
         </div>
     </div>
     <div class="footer">
-        <button type="button" class="btn btn-default" data-dismiss="modal"><span class="fa fa-close"></span>ปิดหน้าต่าง</button>
-        <button type="button" id="btnSubmit" class="btn btn-primary" <?php if($can_make_mr != true) echo "disabled"; ?>><span class="fa fa-check-circle"></span>สร้างใบขอเบิก</button>
+        <button type="button" class="btn btn-default" data-dismiss="modal"><span class="fa fa-close"></span><?php echo lang("account_button_close"); ?></button>
+        <button type="button" id="btnSubmit" class="btn btn-primary" <?php if($can_make_mr != true) echo "disabled"; ?>><span class="fa fa-check-circle"></span><?php echo lang("account_button_create_mr"); ?></button>
     </div>
 </div>
 <script type="text/javascript">
