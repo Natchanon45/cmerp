@@ -164,51 +164,50 @@ class Clients extends MY_Controller {
     /* load client details view */
 
     function view($client_id = 0, $tab = "") {
-       // $this->access_only_allowed_members();
+        //$this->access_only_allowed_members();
         //$this->can_access_this_client($client_id);
-        if ( $client_id ) {
-			
-            //$options = array("id" => $client_id);
-            //$client_info = $this->Clients_model->get_details($options)->row();
-            $client_info = $this->Clients_m->getRow($client_id);
-            
-            //if ($client_info && !$client_info->is_lead) {
-            if ($client_info) {
-                $access_info = $this->get_access_info("invoice");
-                $view_data["show_invoice_info"] = (get_setting("module_invoice") && $this->can_view_invoices()) ? true : false;
+        
+        //$options = array("id" => $client_id);
+        //$client_info = $this->Clients_model->get_details($options)->row();
+        $view_data["crow"] = $crow = $this->Clients_m->getRow($client_id);
+        if(empty($crow)) redirect(get_uri('clients'));
 
-                $access_info = $this->get_access_info("estimate");
-                $view_data["show_estimate_info"] = (get_setting("module_estimate") && $access_info->access_type == "all") ? true : false;
+        $view_data["summary"]["total_projects"] = $this->Clients_m->getTotalProjects($client_id);
+        $view_data["summary"]["total_invoice_amounts"] = $this->Clients_m->getTotalInvoiceAmounts($client_id);
+        $view_data["summary"]["total_payment_receives"] = $this->Clients_m->getTotalPaymentReceives($client_id);
+        $view_data["summary"]["total_due_date_invoice_amount"] = $this->Clients_m->getTotalInvoiceAmounts($client_id, date("Y-m-d"));
+        
+        /*$access_info = $this->get_access_info("invoice");
+        $view_data["show_invoice_info"] = (get_setting("module_invoice") && $this->can_view_invoices()) ? true : false;*/
 
-                $access_info = $this->get_access_info("order");
-                $view_data["show_order_info"] = (get_setting("module_order") && $access_info->access_type == "all") ? true : false;
+        $access_info = $this->get_access_info("estimate");
+        $view_data["show_estimate_info"] = (get_setting("module_estimate") && $access_info->access_type == "all") ? true : false;
 
-                $access_info = $this->get_access_info("estimate_request");
-                $view_data["show_estimate_request_info"] = (get_setting("module_estimate_request") && $access_info->access_type == "all") ? true : false;
+        $access_info = $this->get_access_info("order");
+        $view_data["show_order_info"] = (get_setting("module_order") && $access_info->access_type == "all") ? true : false;
 
-                $access_info = $this->get_access_info("ticket");
-                $view_data["show_ticket_info"] = (get_setting("module_ticket") && $access_info->access_type == "all") ? true : false;
+        $access_info = $this->get_access_info("estimate_request");
+        $view_data["show_estimate_request_info"] = (get_setting("module_estimate_request") && $access_info->access_type == "all") ? true : false;
 
-                $view_data["show_note_info"] = (get_setting("module_note")) ? true : false;
-                $view_data["show_event_info"] = (get_setting("module_event")) ? true : false;
+        $access_info = $this->get_access_info("ticket");
+        $view_data["show_ticket_info"] = (get_setting("module_ticket") && $access_info->access_type == "all") ? true : false;
 
-                $access_info = $this->get_access_info("expense");
-                $view_data["show_expense_info"] = (get_setting("module_expense") && $access_info->access_type == "all") ? true : false;
+        $view_data["show_note_info"] = (get_setting("module_note")) ? true : false;
+        $view_data["show_event_info"] = (get_setting("module_event")) ? true : false;
 
-                $view_data['client_info'] = $client_info;
+        $access_info = $this->get_access_info("expense");
+        $view_data["show_expense_info"] = (get_setting("module_expense") && $access_info->access_type == "all") ? true : false;
 
-                $view_data["is_starred"] = strpos($client_info->starred_by, ":" . $this->login_user->id . ":") ? true : false;
+        $view_data["is_starred"] = false;
 
-                $view_data["tab"] = $tab;
+        $view_data["tab"] = $tab;
 
-                $view_data["view_type"] = "";
+        $view_data["view_type"] = "";
 
-                //even it's hidden, admin can view all information of client
-                $view_data['hidden_menu'] = array("");
+        //even it's hidden, admin can view all information of client
+        $view_data['hidden_menu'] = array("");
 
-                $this->template->rander("clients/view", $view_data);
-            } 
-        } 
+        $this->template->rander("clients/view", $view_data);
     }
 
     /* add-remove start mark from client */
@@ -674,8 +673,8 @@ class Clients extends MY_Controller {
     /* load contacts tab  */
 
     function contacts($client_id = 0) {
-        $this->access_only_allowed_members();
-        $this->can_access_this_client($client_id);
+        //$this->access_only_allowed_members();
+        //$this->can_access_this_client($client_id);
 
         if ($client_id) {
             $view_data["client_id"] = $client_id;
@@ -686,7 +685,8 @@ class Clients extends MY_Controller {
         }
         $view_data["custom_field_headers"] = $this->Custom_fields_model->get_custom_field_headers_for_table("client_contacts", $this->login_user->is_admin, $this->login_user->user_type);
 
-        $view_data['can_edit_clients'] = $this->can_edit_clients();
+        //$view_data['can_edit_clients'] = $this->can_edit_clients();
+        $view_data['can_edit_clients'] = true;
 
         $this->load->view("clients/contacts/index", $view_data);
     }
@@ -1046,8 +1046,8 @@ class Clients extends MY_Controller {
 
     function contacts_list_data( $client_id = 0 ) {
 
-        $this->access_only_allowed_members_or_client_contact($client_id);
-        $this->can_access_this_client($client_id);
+        //$this->access_only_allowed_members_or_client_contact($client_id);
+        //$this->can_access_this_client($client_id);
 
         $custom_fields = $this->Custom_fields_model->get_available_fields_for_table("client_contacts", $this->login_user->is_admin, $this->login_user->user_type);
 

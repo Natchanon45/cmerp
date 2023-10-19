@@ -3,7 +3,7 @@
 if (!defined('BASEPATH'))
     exit('No direct script access allowed');
 
-class roles extends MY_Controller {
+class Roles extends MY_Controller {
 
     function __construct() {
 

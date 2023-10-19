@@ -1,62 +1,113 @@
 <div class="page-title clearfix no-border bg-off-white">
     <h1>
-        <?php echo lang('client_details') . " - " . $client_info->company_name ?>
+        <?php echo lang('client_details') . " - " . $crow->company_name ?>
         <span id="star-mark">
             <?php
-            if ($is_starred) {
-                $this->load->view('clients/star/starred', array("client_id" => $client_info->id));
+            /*if ($is_starred) {
+                $this->load->view('clients/star/starred', array("client_id" => $crow->id));
             } else {
-                $this->load->view('clients/star/not_starred', array("client_id" => $client_info->id));
-            }
+                $this->load->view('clients/star/not_starred', array("client_id" => $crow->id));
+            }*/
             ?>
         </span>
     </h1>
 </div>
 
 <div id="page-content" class="clearfix">
-
-    <?php
-    if ($client_info->lead_status_id) {
-        $this->load->view("clients/lead_information");
-    }
-    ?>
-
-    <div class="mt15">
-        <?php $this->load->view("clients/info_widgets/index"); ?>
-    </div>
+    <div class="mt15 clearfix">
+        <div class="col-md-3 col-sm-6 widget-container">
+            <div class="panel panel-sky">
+                <a href="<?php echo get_uri('projects/index'); ?>" class="white-link">
+                    <div class="panel-body ">
+                        <div class="widget-icon">
+                            <i class="fa fa-th-large"></i>
+                        </div>
+                        <div class="widget-details">
+                            <h1><?php echo to_decimal_format($summary["total_projects"]); ?></h1>
+                            <?php echo lang("projects"); ?>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6 widget-container">
+            <div class="panel panel-primary">
+                <a href="<?php echo get_uri('invoices/index'); ?>" class="white-link">
+                    <div class="panel-body ">
+                        <div class="widget-icon">
+                            <i class="fa fa-file-text"></i>
+                        </div>
+                        <div class="widget-details">
+                            <h1><?php echo to_currency($summary["total_invoice_amounts"]); ?></h1>
+                            <?php echo lang("invoice_value"); ?>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6 widget-container">
+            <div class="panel panel-success">
+                <a href="<?php echo get_uri('invoice_payments/index'); ?>" class="white-link">
+                    <div class="panel-body ">
+                        <div class="widget-icon">
+                            <i class="fa fa-check-square"></i>
+                        </div>
+                        <div class="widget-details">
+                            <h1><?php echo to_currency($summary["total_payment_receives"]); ?></h1>
+                            <?php echo lang("payments"); ?>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6 widget-container">
+            <div class="panel panel-coral">
+                <a href="<?php echo get_uri('invoices/index'); ?>" class="white-link">
+                    <div class="panel-body ">
+                        <div class="widget-icon">
+                            <i class="fa fa-money"></i>
+                        </div>
+                        <div class="widget-details">
+                            <h1><?php echo to_currency($summary["total_due_date_invoice_amount"]); ?></h1>
+                            <?php echo lang("due"); ?>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </div><!--.mt15-->
 
     <ul id="client-tabs" data-toggle="ajax-tab" class="nav nav-tabs" role="tablist">
-        <li><a  role="presentation" href="<?php echo_uri("clients/contacts/" . $client_info->id); ?>" data-target="#client-contacts"> <?php echo lang('contacts'); ?></a></li>
-        <li><a  role="presentation" href="<?php echo_uri("clients/company_info_tab/" . $client_info->id); ?>" data-target="#client-info"> <?php echo lang('client_info'); ?></a></li>
-        <li><a  role="presentation" href="<?php echo_uri("clients/projects/" . $client_info->id); ?>" data-target="#client-projects"><?php echo lang('projects'); ?></a></li>
-
-        <?php if ($show_invoice_info) { ?>
-            <!--<li><a  role="presentation" href="<?php echo_uri("clients/invoices/" . $client_info->id); ?>" data-target="#client-invoices"> <?php echo lang('invoices'); ?></a></li>
-            <li><a  role="presentation" href="<?php echo_uri("clients/payments/" . $client_info->id); ?>" data-target="#client-payments"> <?php echo lang('payments'); ?></a></li>-->
-        <?php } ?>
+        <li><a  role="presentation" href="<?php echo_uri("clients/contacts/" . $crow->id); ?>" data-target="#client-contacts"> <?php echo lang('contacts'); ?></a></li>
+        <li><a  role="presentation" href="<?php echo_uri("clients/company_info_tab/" . $crow->id); ?>" data-target="#client-info"> <?php echo lang('client_info'); ?></a></li>
+        <li><a  role="presentation" href="<?php echo_uri("clients/projects/" . $crow->id); ?>" data-target="#client-projects"><?php echo lang('projects'); ?></a></li>
+        
+        <!--<li><a  role="presentation" href="<?php echo_uri("clients/invoices/" . $crow->id); ?>" data-target="#client-invoices"> <?php echo lang('invoices'); ?></a></li>
+        <li><a  role="presentation" href="<?php echo_uri("clients/payments/" . $crow->id); ?>" data-target="#client-payments"> <?php echo lang('payments'); ?></a></li>-->
+        
         <?php if ($show_estimate_info) { ?>
-            <!--<li><a  role="presentation" href="<?php echo_uri("clients/estimates/" . $client_info->id); ?>" data-target="#client-estimates"> <?php echo lang('estimates'); ?></a></li>-->
+            <!--<li><a  role="presentation" href="<?php echo_uri("clients/estimates/" . $crow->id); ?>" data-target="#client-estimates"> <?php echo lang('estimates'); ?></a></li>-->
         <?php } ?>
         <?php if ($show_order_info) { ?>
-            <li><a  role="presentation" href="<?php echo_uri("clients/orders/" . $client_info->id); ?>" data-target="#client-orders"> <?php echo lang('orders'); ?></a></li>
+            <li><a  role="presentation" href="<?php echo_uri("clients/orders/" . $crow->id); ?>" data-target="#client-orders"> <?php echo lang('orders'); ?></a></li>
         <?php } ?>
         <?php if ($show_estimate_request_info) { ?>
-            <!--<li><a  role="presentation" href="<?php echo_uri("clients/estimate_requests/" . $client_info->id); ?>" data-target="#client-estimate-requests"> <?php echo lang('estimate_requests'); ?></a></li>-->
+            <!--<li><a  role="presentation" href="<?php echo_uri("clients/estimate_requests/" . $crow->id); ?>" data-target="#client-estimate-requests"> <?php echo lang('estimate_requests'); ?></a></li>-->
         <?php } ?>
         <?php if ($show_ticket_info) { ?>
-            <li><a  role="presentation" href="<?php echo_uri("clients/tickets/" . $client_info->id); ?>" data-target="#client-tickets"> <?php echo lang('tickets'); ?></a></li>
+            <li><a  role="presentation" href="<?php echo_uri("clients/tickets/" . $crow->id); ?>" data-target="#client-tickets"> <?php echo lang('tickets'); ?></a></li>
         <?php } ?>
         <?php if ($show_note_info) { ?>
-            <li><a  role="presentation" href="<?php echo_uri("clients/notes/" . $client_info->id); ?>" data-target="#client-notes"> <?php echo lang('notes'); ?></a></li>
+            <li><a  role="presentation" href="<?php echo_uri("clients/notes/" . $crow->id); ?>" data-target="#client-notes"> <?php echo lang('notes'); ?></a></li>
         <?php } ?>
-        <li><a  role="presentation" href="<?php echo_uri("clients/files/" . $client_info->id); ?>" data-target="#client-files"><?php echo lang('files'); ?></a></li>
+        <li><a  role="presentation" href="<?php echo_uri("clients/files/" . $crow->id); ?>" data-target="#client-files"><?php echo lang('files'); ?></a></li>
 
         <?php if ($show_event_info) { ?>
-            <li><a  role="presentation" href="<?php echo_uri("clients/events/" . $client_info->id); ?>" data-target="#client-events"> <?php echo lang('events'); ?></a></li>
+            <li><a  role="presentation" href="<?php echo_uri("clients/events/" . $crow->id); ?>" data-target="#client-events"> <?php echo lang('events'); ?></a></li>
         <?php } ?>
 
         <?php if ($show_expense_info) { ?>
-            <li><a  role="presentation" href="<?php echo_uri("clients/expenses/" . $client_info->id); ?>" data-target="#client-expenses"> <?php echo lang('expenses'); ?></a></li>
+            <!--<li><a  role="presentation" href="<?php echo_uri("clients/expenses/" . $crow->id); ?>" data-target="#client-expenses"> <?php echo lang('expenses'); ?></a></li>-->
         <?php } ?>
         
     </ul>

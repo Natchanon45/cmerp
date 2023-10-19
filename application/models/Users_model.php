@@ -382,7 +382,6 @@ class Users_model extends Crud_model {
 			}
 		}
 
-        log_message("error", $sql);
         // arr( $sql );
         return $this->db->query($sql);
     }
