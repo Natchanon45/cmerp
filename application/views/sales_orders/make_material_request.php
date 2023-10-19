@@ -138,7 +138,7 @@
     </div>
     <div class="footer">
         <button type="button" class="btn btn-default" data-dismiss="modal"><span class="fa fa-close"></span><?php echo lang("account_button_close"); ?></button>
-        <button type="button" id="btnSubmit" class="btn btn-primary" <?php if($can_make_mr != true) echo "disabled"; ?>><span class="fa fa-check-circle"></span><?php echo lang("account_button_create_mr"); ?></button>
+        <button type="button" id="btnSubmit" class="btn btn-primary" style="display: <?php echo $can_make_mr == true ? 'inline-block':'none'; ?>;"><span class="fa fa-check-circle"></span><?php echo lang("account_button_create_mr"); ?></button>
     </div>
 </div>
 <script type="text/javascript">
@@ -158,7 +158,8 @@ $(document).ready(function() {
             alert(data.message);
             
             if(data.status == "success"){
-                if(data.can_make_mr != true) $("#btnSubmit").prop("disabled", "disabled");
+                if(data.can_make_mr == true) $("#btnSubmit").css("display", "inline-block");
+                else $("#btnSubmit").css("display", "none");
                 getProducts("<?php echo $doc_id; ?>");
             }
             
