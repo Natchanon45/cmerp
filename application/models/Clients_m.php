@@ -119,7 +119,7 @@ class Clients_m extends MY_Model {
                     "<a href='".get_uri("clients/view/" . $crow->id)."'>".$crow->company_name."</a>",
                     $this->getPrimaryContactName($crow->id),
                     $group_list,
-                    $this->getTotalProject($crow->id),
+                    $this->getTotalProjects($crow->id),
                     "0.00",
                     "0.00",
                     "0.00",
@@ -258,12 +258,6 @@ class Clients_m extends MY_Model {
         return $cfrows;
     }
 
-    function getTotalProject($client_id){
-        $this->db->where("deleted", 0);
-        $this->db->where("client_id", $client_id);
-        return $this->db->count_all_results("projects");
-    }
-
     function getPrimaryContactName($client_id){
         $pcnrow = $this->db->select("first_name, last_name")
                             ->from("users")
@@ -290,5 +284,41 @@ class Clients_m extends MY_Model {
         if(empty($crow)) return null;
 
         return $crow->company_name;
+    }
+
+    function getTotalProjects($client_id){
+        $this->db->where("deleted", 0);
+        $this->db->where("client_id", $client_id);
+        return $this->db->count_all_results("projects");
+    }
+
+    function getTotalInvoiceAmounts($client_id, $due_date = null){
+        $this->db->select("SUM(total) AS TOTAL_INVOICE_AMOUNTS")
+                                            ->from("invoice")
+                                            ->where("deleted", 0)
+                                            ->where("client_id", $client_id)
+                                            ->where_in("status", ["O", "P"]);
+
+        if($due_date != null) $this->db->where("due_date <=", $due_date);
+
+        $total_invoice_amounts = $this->db->get()->row()->TOTAL_INVOICE_AMOUNTS;
+
+        if($total_invoice_amounts == null) $total_invoice_amounts = 0;
+
+        return $total_invoice_amounts;
+    }
+
+    function getTotalPaymentReceives($client_id){
+        $total_payment_receives = $this->db->select("SUM(money_payment_receive) AS TOTAL_PAYMENT_RECEIVES")
+                                            ->from("invoice")
+                                            ->join("invoice_payment", "invoice.id = invoice_payment.invoice_id")
+                                            ->where("deleted", 0)
+                                            ->where("client_id", $client_id)
+                                            ->where_in("status", ["O", "P"])
+                                            ->get()->row()->TOTAL_PAYMENT_RECEIVES;
+
+        if($total_payment_receives == null) $total_payment_receives = 0;
+
+        return $total_payment_receives;
     }
 }
