@@ -45,8 +45,8 @@ class Sales_orders_m extends MY_Model {
         }elseif($sorow->status == "A"){
             if($sorow->purpose == "S"){
                 $doc_status .= "<option selected>".lang("account_status_approved")."</option>";
-                if($this->canViewPR($sorow->id)) $doc_status .= "<option value='PR'>".lang("account_so_view_po")."</option>";
-                if($this->canViewMR($sorow->id)) $doc_status .= "<option value='MR'>".lang("account_so_view_mr")."</option>";
+                $doc_status .= "<option value='PR'>".lang("account_so_view_po")."</option>";
+                $doc_status .= "<option value='MR'>".lang("account_so_view_mr")."</option>";
             }
 
             if($sorow->purpose == "P"){
@@ -892,7 +892,10 @@ class Sales_orders_m extends MY_Model {
 
         if(!empty($sales_order_items)){
             foreach($sales_order_items as $soi){
-                if($soi->supplier_id == null) continue;
+                if($soi->supplier_id == null){
+                    $this->data["message"] = "กรุณาสร้างผู้จัดจำหน่ายในรายการสินค้าที่ยังไม่มีผู้จัดจำหน่าย";
+                    return $this->data;
+                }
 
                 $soirow = $db->select("*")
                                     ->from("sales_order_items")

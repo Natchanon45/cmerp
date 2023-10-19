@@ -299,7 +299,7 @@ class Clients_m extends MY_Model {
                                             ->where("client_id", $client_id)
                                             ->where_in("status", ["O", "P"]);
 
-        if($due_date != null) $this->db->where("due_date <=", $due_date);
+        if($due_date != null) $this->db->where("DATE(due_date) <=", $due_date);
 
         $total_invoice_amounts = $this->db->get()->row()->TOTAL_INVOICE_AMOUNTS;
 

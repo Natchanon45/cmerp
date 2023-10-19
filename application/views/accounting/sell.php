@@ -379,14 +379,13 @@ function updateStatus(docId, updateStatusTo){
                     $("#popup").attr("data-title", data.popup_title);
                     $("#popup").attr("data-action-url", data.popup_url);
                     $("#popup").trigger("click");
-
                 }else{
                     location.href = data.url;
                 }
-                return;
+            }else{
+                appAlert.success(data.message, {duration: 6000});    
             }
 
-            appAlert.success(data.message, {duration: 6000});
             $("#datagrid").appTable({newData: data.dataset, dataId: data.doc_id});
         }else if(data.status == "notchange"){
             $("#datagrid").appTable({newData: data.dataset, dataId: data.doc_id});
