@@ -2,7 +2,7 @@
 
 //Doc Name
 $lang["account_docname_sales_order"] = "ใบสั่งขาย";
-$lang["account_docname_work_order"] = "ใบสั่งงาน";
+$lang["account_docname_work_order"] = "ใบสั่งผลิต";
 $lang["account_docname_quotation"] = "ใบเสนอราคา";
 $lang["account_docname_invoice"] = "ใบแจ้งหนี้";
 $lang["account_docname_sales_tax_invoice"] = "ใบกำกับภาษีขาย";
