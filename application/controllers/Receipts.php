@@ -28,11 +28,12 @@ class Receipts extends MY_Controller {
 
     function addedit(){
         if(isset($this->json->task)){
-            if($this->json->task == "save_doc") jout($this->Receipts_m->saveDoc());
+            jout($this->Receipts_m->saveDoc());
             return;   
         }
 
         $data = $this->Receipts_m->getDoc($this->input->post("id"));
+        $data["task"] = $this->input->post("task") == "copy_doc" ? "copy_doc":"save_doc";
 
         $this->load->view( 'receipts/addedit', $data);
     }

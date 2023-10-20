@@ -19,7 +19,6 @@ class Quotations extends MY_Controller {
             return;
         }elseif(isset($this->json->task)){
             if($this->json->task == "update_doc_status") jout($this->Quotations_m->updateStatus());
-            if($this->json->task == "copy_doc") jout($this->Quotations_m->copyDoc());
             return;    
         }
 
@@ -28,11 +27,12 @@ class Quotations extends MY_Controller {
 
     function addedit(){
         if(isset($this->json->task)){
-            if($this->json->task == "save_doc") jout($this->Quotations_m->saveDoc());
+            jout($this->Quotations_m->saveDoc());
             return;   
         }
 
         $data = $this->Quotations_m->getDoc($this->input->post("id"));
+        $data["task"] = $this->input->post("task") == "copy_doc" ? "copy_doc":"save_doc";
 
         $this->load->view( 'quotations/addedit', $data);
     }

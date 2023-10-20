@@ -474,7 +474,7 @@ class Sales_orders_m extends MY_Model {
         $docId = $this->input->post("doc_id");
         $itemId = $this->input->post("item_id");
 
-        $sorow = $db->select("id")
+        $sorow = $db->select("id, purpose")
                         ->from("sales_order")
                         ->where("id", $docId)
                         ->where("deleted", 0)
@@ -483,9 +483,11 @@ class Sales_orders_m extends MY_Model {
         if(empty($sorow)) return $this->data;
 
         $this->data["doc_id"] = $docId;
+        $this->data["purpose"] = $sorow->purpose;
         $this->data["product_id"] = "";
         $this->data["product_formulas"] = [];
         $this->data["item_mixing_groups_id"] = null;
+        $this->data["add_stock"] = "Y";
         $this->data["product_name"] = "";
         $this->data["product_description"] = "";
         $this->data["quantity"] = number_format(1, $this->Settings_m->getDecimalPlacesNumber());
@@ -506,6 +508,7 @@ class Sales_orders_m extends MY_Model {
             $this->data["product_id"] = $soirow->product_id;
             $this->data["product_formulas"] = $ci->Products_m->getFomulasByItemId($soirow->product_id);
             $this->data["item_mixing_groups_id"] = $soirow->item_mixing_groups_id;
+            $this->data["add_stock"] = $soirow->add_stock;
             $this->data["product_name"] = $soirow->product_name;
             $this->data["product_description"] = $soirow->product_description;
             $this->data["quantity"] = number_format($soirow->quantity, $this->Settings_m->getDecimalPlacesNumber());
@@ -556,6 +559,7 @@ class Sales_orders_m extends MY_Model {
         $itemId = $this->json->item_id;
         $product_id = $this->json->product_id == ""?null:$this->json->product_id;
         $item_mixing_groups_id = $this->json->product_formula_id == "none"?null:$this->json->product_formula_id;
+        $add_stock = $this->json->add_stock == "none"?null:$this->json->add_stock;
         $product_name = $this->json->product_name;
         $product_description = $this->json->product_description;
         $quantity = round(getNumber($this->json->quantity), $this->Settings_m->getDecimalPlacesNumber());
@@ -567,6 +571,7 @@ class Sales_orders_m extends MY_Model {
                     "sales_order_id"=>$docId,
                     "product_id"=>$product_id,
                     "item_mixing_groups_id"=>$item_mixing_groups_id,
+                    "add_stock"=>$add_stock,
                     "product_name"=>$product_name,
                     "product_description"=>$product_description,
                     "quantity"=>$quantity,
@@ -1296,7 +1301,7 @@ class Sales_orders_m extends MY_Model {
                                         "item_id"=>$soirow->product_id,
                                         "item_mixing"=>$soirow->item_mixing_groups_id,
                                         "quantity" =>$soirow->quantity,
-                                        "produce_in"=>1
+                                        "produce_in"=>$soirow->add_stock == "Y" ? 1 : 0,
                                     ];
             }
 
