@@ -43,6 +43,7 @@ $lang["account_item_total"] = "Total";
 
 //so
 $lang["account_so_component"] = "Component";
+$lang["account_so_add_stock"] = "Produuce In";
 $lang["account_so_create_project"] = "Create Project";
 $lang["account_so_view_po"] = "View PO";
 $lang["account_so_view_mr"] = "view MR";
@@ -60,6 +61,7 @@ $lang["account_so_order_qty"] = "Order Qty";
 $lang["account_so_pr_qty"] = "PR Qty";
 $lang["account_so_pr_no"] = "PR No.";
 $lang["account_so_mr_qty"] = "MR Qty";
+$lang["account_so_mr_no"] = "MR No.";
 
 //general
 $lang["account_date"] = "Date";
@@ -84,5 +86,5 @@ $lang["account_remarks"] = "Remarks";
 $lang["account_status"] = "Status";
 $lang["account_created_by"] = "Created By";
 $lang["account_approved_by"] = "Approved By";
-
-
+$lang["account_yes"] = "Yes";
+$lang["account_no"] = "No";

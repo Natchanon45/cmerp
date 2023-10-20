@@ -83,14 +83,14 @@
 </div>
 <div class="modal-footer">
     <button type="button" class="btn btn-default" data-dismiss="modal"><span class="fa fa-close"></span> <?php echo lang('close'); ?></button>
-    <?php if($doc_status == "W" || !isset($doc_id)): ?>
-        <button type="button" id="btnSubmit" class="btn btn-primary"><span class="fa fa-check-circle"></span> <?php echo lang('save'); ?></button>
+    <?php if(($doc_status == "W" || !isset($doc_id)) || (isset($doc_id) && $task == "copy_doc")): ?>
+        <button type="button" id="btnSubmit" class="btn btn-primary"><span class="fa fa-check-circle"></span> <?php echo lang($task == "copy_doc"?"copy":"save"); ?></button>
     <?php endif; ?>
 </div>
 
 <script type="text/javascript">
 $(document).ready(function() {
-    <?php if($doc_status == "W" || !isset($doc_id)): ?>
+    <?php if(($doc_status == "W" || !isset($doc_id)) || (isset($doc_id) && $task == "copy_doc")): ?>
         $('#project_id').select2();
 
         $("#client_id").select2().on("change", function (e) {
@@ -103,7 +103,7 @@ $(document).ready(function() {
 
         $("#btnSubmit").click(function() {
             axios.post('<?php echo current_url(); ?>', {
-                task: 'save_doc',
+                task: "<?php echo $task; ?>",
                 doc_id : "<?php if(isset($doc_id)) echo $doc_id; ?>",
                 doc_date:$("#doc_date").val(),
                 credit: $("#credit").val(),

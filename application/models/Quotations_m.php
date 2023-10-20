@@ -56,7 +56,7 @@ class Quotations_m extends MY_Model {
 
         $doc_status .= "</select>";
 
-        $buttons = "<a data-post-id='".$qrow->id."' data-action-url='".get_uri("quotations/addedit")."' data-act='ajax-modal' class='edit'><i class='fa fa-pencil'></i></a><a class='copy' data-doc_id='".$qrow->id."' data-doc_number='".$qrow->doc_number."' data-doc_name='ใบเสนอราคา'><i class='fa fa-clone' aria-hidden='true'></i></a>";
+        $buttons = "<a data-post-id='".$qrow->id."' data-post-task='save_doc' data-title='แก้ไขใบเสนอราคา ".$qrow->doc_number."' data-action-url='".get_uri("quotations/addedit")."' data-act='ajax-modal' class='edit'><i class='fa fa-pencil'></i></a><a data-post-id='".$qrow->id."' data-post-task='copy_doc' data-title='คัดลอกใบเสนอราคาจาก ".$qrow->doc_number."' data-action-url='".get_uri("quotations/addedit")."' data-act='ajax-modal' class='copy'><i class='fa fa-clone' aria-hidden='true'></i></a>";
 
         $customer_group_names = "";
         $customer_groups = $this->Customers_m->getGroupTitlesByCustomerId($qrow->client_id);
@@ -449,6 +449,7 @@ class Quotations_m extends MY_Model {
         $this->validateDoc();
         if($this->data["status"] == "validate") return $this->data;
 
+        $task = $this->json->task;
         $docId = $this->json->doc_id;
         $doc_date = convertDate($this->json->doc_date);
         $credit = intval($this->json->credit) < 0 ? 0:intval($this->json->credit);
@@ -470,7 +471,7 @@ class Quotations_m extends MY_Model {
         if($client_id != "") $customer_id = $client_id;
         if($lead_id != "") $customer_id = $lead_id;
 
-        if($docId != ""){
+        if($docId != "" && $task == "save_doc"){
             $qrow = $db->select("status")
                         ->from("quotation")
                         ->where("id", $docId)
@@ -499,9 +500,81 @@ class Quotations_m extends MY_Model {
                                         "reference_number"=>$reference_number,
                                         "seller_id"=>$seller_id,
                                         "client_id"=>$customer_id,
-                                        "project_id"=>($project_id != null ? $project:null),
+                                        "project_id"=>$project_id,
                                         "remark"=>$remark
                                     ]);
+        }elseif($docId != "" && $task == "copy_doc"){
+            $qrow = $db->select("*")
+                        ->from("quotation")
+                        ->where("id", $docId)
+                        ->where("deleted", 0)
+                        ->get()->row();
+
+            if(empty($qrow)){
+                $this->data["success"] = false;
+                $this->data["message"] = "ขออภัย เกิดข้อผิดพลาดระหว่างดำเนินการ! โปรดลองใหม่อีกครั้งในภายหลัง";
+                return $this->data;
+            }
+
+            $doc_number = $this->getNewDocNumber();
+        
+            $db->insert("quotation", [
+                                        "billing_type"=>$qrow->billing_type,
+                                        "doc_number"=>$doc_number,
+                                        "doc_date"=>$doc_date,
+                                        "credit"=>$credit,
+                                        "doc_valid_until_date"=>$doc_valid_until_date,
+                                        "reference_number"=>$reference_number,
+                                        "project_id"=>$project_id,
+                                        "seller_id"=>$seller_id,
+                                        "client_id"=>$customer_id,
+                                        "sub_total_before_discount"=>$qrow->sub_total_before_discount,
+                                        "discount_type"=>$qrow->discount_type,
+                                        "discount_percent"=>$qrow->discount_percent,
+                                        "discount_amount"=>$qrow->discount_amount,
+                                        "sub_total"=>$qrow->sub_total,
+                                        "vat_inc"=>$qrow->vat_inc,
+                                        "vat_percent"=>$qrow->vat_percent,
+                                        "vat_value"=>$qrow->vat_value,
+                                        "total"=>$qrow->total,
+                                        "wht_inc"=>$qrow->wht_inc,
+                                        "wht_percent"=>$qrow->wht_percent,
+                                        "wht_value"=>$qrow->wht_value,
+                                        "payment_amount"=>$qrow->payment_amount,
+                                        "remark"=>$remark,
+                                        "created_by"=>$this->login_user->id,
+                                        "created_datetime"=>date("Y-m-d H:i:s"),
+                                        "status"=>"W"
+                                    ]);
+
+            $newDocId = $db->insert_id();
+
+            $qirows = $db->select("*")
+                        ->from("quotation_items")
+                        ->where("quotation_id", $docId)
+                        ->get()->result();
+
+            if(!empty($qirows)){
+                foreach($qirows as $qirow){
+                    $db->insert("quotation_items", [
+                                                        "quotation_id"=>$newDocId,
+                                                        "product_id"=>$qirow->product_id,
+                                                        "product_name"=>$qirow->product_name,
+                                                        "product_description"=>$qirow->product_description,
+                                                        "quantity"=>$qirow->quantity,
+                                                        "unit"=>$qirow->unit,
+                                                        "price"=>$qirow->price,
+                                                        "discount_type"=>$qirow->discount_type,
+                                                        "discount_percent"=>$qirow->discount_percent,
+                                                        "discount_amount"=>$qirow->discount_amount,
+                                                        "total_price"=>$qirow->total_price,
+                                                        "sort"=>$qirow->sort
+                                                    ]);
+                }
+            }
+
+            $docId = $newDocId;
+
         }else{
             $doc_number = $this->getNewDocNumber();
         
@@ -528,89 +601,6 @@ class Quotations_m extends MY_Model {
         $this->data["target"] = get_uri("quotations/view/". $docId);
         $this->data["status"] = "success";
 
-        return $this->data;
-    }
-
-    function copyDoc(){
-        $db = $this->db;
-        $docId = $this->json->doc_id;
-
-        $qrow = $db->select("*")
-                    ->from("quotation")
-                    ->where("id", $docId)
-                    ->where("deleted", 0)
-                    ->get()->row();
-
-        if(empty($qrow)) return $this->data;        
-
-        $qirows = $db->select("*")
-                        ->from("quotation_items")
-                        ->where("quotation_id", $docId)
-                        ->get()->result();
-
-        $db->trans_begin();
-
-        $doc_number = $this->getNewDocNumber();
-
-        $db->insert("quotation", [
-                                    "billing_type"=>$qrow->billing_type,
-                                    "doc_number"=>$doc_number,
-                                    "doc_date"=>date("Y-m-d"),
-                                    "credit"=>$qrow->credit,
-                                    "doc_valid_until_date"=>$qrow->doc_valid_until_date,
-                                    "project_id"=>$qrow->project_id,
-                                    "seller_id"=>$qrow->seller_id,
-                                    "client_id"=>$qrow->client_id,
-                                    "sub_total_before_discount"=>$qrow->sub_total_before_discount,
-                                    "discount_type"=>$qrow->discount_type,
-                                    "discount_percent"=>$qrow->discount_percent,
-                                    "discount_amount"=>$qrow->discount_amount,
-                                    "sub_total"=>$qrow->sub_total,
-                                    "vat_inc"=>$qrow->vat_inc,
-                                    "vat_percent"=>$qrow->vat_percent,
-                                    "vat_value"=>$qrow->vat_value,
-                                    "total"=>$qrow->total,
-                                    "wht_inc"=>$qrow->wht_inc,
-                                    "wht_percent"=>$qrow->wht_percent,
-                                    "wht_value"=>$qrow->wht_value,
-                                    "payment_amount"=>$qrow->payment_amount,
-                                    "remark"=>$qrow->remark,
-                                    "created_by"=>$this->login_user->id,
-                                    "created_datetime"=>date("Y-m-d H:i:s"),
-                                    "status"=>"W",
-                                    "deleted"=>0
-                                ]);
-
-        $newDocId = $db->insert_id();
-
-        if(!empty($qirows)){
-            foreach($qirows as $qirow){
-                $db->insert("quotation_items", [
-                                                    "quotation_id"=>$newDocId,
-                                                    "product_id"=>$qirow->product_id,
-                                                    "product_name"=>$qirow->product_name,
-                                                    "product_description"=>$qirow->product_description,
-                                                    "quantity"=>$qirow->quantity,
-                                                    "unit"=>$qirow->unit,
-                                                    "price"=>$qirow->price,
-                                                    "discount_type"=>$qirow->discount_type,
-                                                    "discount_percent"=>$qirow->discount_percent,
-                                                    "discount_amount"=>$qirow->discount_amount,
-                                                    "total_price"=>$qirow->total_price,
-                                                    "sort"=>$qirow->sort
-                                                ]);
-            }
-        }
-
-        if ($db->trans_status() === FALSE){
-            $db->trans_rollback();
-            return $this->data;
-        }
-
-        $db->trans_commit();
-        $this->data["target"] = get_uri("quotations/view/".$newDocId);
-        $this->data["status"] = "success";
-        $this->data["message"] = lang("record_saved");
         return $this->data;
     }
 
@@ -813,7 +803,9 @@ class Quotations_m extends MY_Model {
 
         if($discount_type == "P"){
             if($discount_value < 0) $discount_value = 0;
-            if($discount_value > 99.99) $discount_value = 99.99;
+            if($discount_value >= 100){
+                $discount_value = 100;
+            }
             $discount_percent = $discount_value;
             $discount_amount = ($price * $discount_percent)/100;
             $price_after_discount = $price - $discount_amount;
