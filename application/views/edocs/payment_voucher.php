@@ -375,11 +375,11 @@
 								</div>
 							<?php endif; ?>
 
-							<?php if ($doc["vat_inc"] == "Y"): ?>
+							<?php if ($doc["vat_value"] == 0): ?>
 								<div class="row">
 									<div class="c1 custom-color">
 										<?php echo lang("value_add_tax"); ?>
-										<?php echo number_format_drop_zero_decimals($doc["vat_percent"], 2) . "%"; ?>
+										<?php // echo number_format_drop_zero_decimals($this->Taxes_m->getVatPercent(), 2) . "%"; ?>
 									</div>
 									<div class="c2">
 										<span>
@@ -391,37 +391,47 @@
 									</div>
 								</div>
 							<?php endif; ?>
+
 							<div class="row">
 								<div class="c1 custom-color">
 									<?php echo lang("grand_total_price"); ?>
 								</div>
-								<div class="c2"><span>
+								<div class="c2">
+									<span>
 										<?php echo number_format($doc["total"], 2); ?>
-									</span><span>
+									</span>
+									<span>
 										<?php echo lang("THB"); ?>
-									</span></div>
+									</span>
+								</div>
 							</div>
-							<?php if ($doc["wht_inc"] == "Y"): ?>
+							<?php if ($doc["wht_value"] > 0): ?>
 								<div class="row wht">
 									<div class="c1 custom-color">
 										<?php echo lang("with_holding_tax"); ?>
-										<?php echo number_format_drop_zero_decimals($doc["wht_percent"], 2) . "%"; ?>
+										<?php // echo number_format_drop_zero_decimals($doc["wht_percent"], 2) . "%"; ?>
 									</div>
-									<div class="c2"><span>
+									<div class="c2">
+										<span>
 											<?php echo number_format($doc["wht_value"], 2); ?>
-										</span><span>
+										</span>
+										<span>
 											<?php echo lang("THB"); ?>
-										</span></div>
+										</span>
+									</div>
 								</div>
 								<div class="row">
 									<div class="c1 custom-color">
 										<?php echo lang("payment_amount"); ?>
 									</div>
-									<div class="c2"><span>
+									<div class="c2">
+										<span>
 											<?php echo number_format($doc["payment_amount"], 2); ?>
-										</span><span>
+										</span>
+										<span>
 											<?php echo lang("THB"); ?>
-										</span></div>
+										</span>
+									</div>
 								</div>
 							<?php endif; ?>
 						</div>

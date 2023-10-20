@@ -247,8 +247,8 @@
         } 
         else if (active_module == 'payment_voucher') 
         {
-            $(".buttons").addClass('hide');
-            $(".buttons li.add a").attr('data-action-url', '<?php echo get_uri("payment_voucher/addedit"); ?>');
+            $(".buttons").removeClass('hide');
+            $(".buttons li.add a").attr('data-action-url', '<?php echo get_uri("payment_voucher/addnew"); ?>');
             $(".buttons li.add a").attr('data-title', '<?php echo lang("payment_voucher_add"); ?>');
             $(".buttons li.add span").append('<?php echo lang("payment_voucher_add"); ?>');
 

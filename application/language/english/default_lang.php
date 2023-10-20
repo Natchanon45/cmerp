@@ -2188,6 +2188,12 @@ $lang["pv_pay_amt_exceed_total"] = "Pay amount exceeded the total amount, please
 $lang["pv_no_select_pay_method"] = "Not selected the payment method yet.";
 $lang["pv_no_specify_description"] = "No description or payment details";
 
+$lang["pv_save_succeed"] = "Payment voucher have been created.";
+$lang["pv_item_duplicated"] = "Found duplicate items.";
+$lang["pv_no_item_select"] = "No items selected.";
+$lang["pv_incomplete_info"] = "Incomplete information.";
+$lang["pv_incorrect_qty"] = "Incorrect quantity specified.";
+
 $lang["material_request_type"] = "Request type";
 $lang["project_refer"] = "Project reference";
 $lang["material_request_no"] = "Request No.";

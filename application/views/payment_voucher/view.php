@@ -218,6 +218,16 @@
                             </td>
                         </tr>
                     <?php endif; ?>
+                    <?php if (isset($pv_info->references) && !empty($pv_info->references)): ?>
+                        <tr>
+                            <td class="custom-color">
+                                <?php echo lang("reference_number"); ?>
+                            </td>
+                            <td>
+                                <?php echo trim($pv_info->references); ?>
+                            </td>
+                        </tr>
+                    <?php endif; ?>
                 </table>
             </div>
 
@@ -315,6 +325,7 @@
                                 </span>
                             </span>
                         </p>
+
                         <p id="s-vat">
                             <span class="c1 custom-color">
                                 <?php echo lang("value_add_tax") . " " . $this->Taxes_m->getVatPercent() . "%"; ?>
@@ -324,10 +335,11 @@
                             </span>
                             <span class="c3">
                                 <span class="currency">
-                                    <?php echo lang('THB'); ?>
+                                    <?php echo lang("THB"); ?>
                                 </span>
                             </span>
                         </p>
+
                         <p id="s-total">
                             <span class="c1 custom-color">
                                 <?php echo lang("grand_total_price"); ?>
@@ -342,35 +354,34 @@
                             </span>
                         </p>
 
-                        <p id="s-wht">
-                            <span class="c1 custom-color <?php echo $pv_info->wht_inc == "Y" ? "v" : "h"; ?>">
-                                <span>
-                                    <?php echo lang("with_holding_tax") . " " . number_format($pv_info->wht_percent, 0) . "%"; ?>
+                        <?php if (isset($pv_info->wht_value) && $pv_info->wht_value > 0): ?>
+                            <p id="s-wht">
+                                <span class="c1 custom-color">
+                                    <?php echo lang("with_holding_tax"); ?>
                                 </span>
-                            </span>
-                            <span class="c2 wht <?php echo $pv_info->wht_inc == "Y" ? "v" : "h"; ?>">
-                                <input type="text" id="wht_value" value="<?php echo number_format($pv_info->wht_value, 2); ?>" readonly>
-                            </span>
-                            <span class="c3 wht <?php echo $pv_info->wht_inc == "Y" ? "v" : "h"; ?>">
-                                <span class="currency">
-                                    <?php echo lang("THB"); ?>
+                                <span class="c2 wht">
+                                    <input type="text" id="wht_value" value="<?php echo number_format($pv_info->wht_value, 2); ?>" readonly>
                                 </span>
-                            </span>
-                        </p>
-
-                        <p id="s-payment-amount">
-                            <span class="c1 custom-color wht <?php echo $pv_info->wht_inc == "Y" ? "v" : "h"; ?>">
-                                <?php echo lang('payment_amount'); ?>
-                            </span>
-                            <span class="c2 wht <?php echo $pv_info->wht_inc == "Y" ? "v" : "h"; ?>">
-                                <input type="text" id="payment_amount" value="<?php echo number_format($pv_info->payment_amount, 2); ?>" readonly>
-                            </span>
-                            <span class="c3 wht <?php echo $pv_info->wht_inc == "Y" ? "v" : "h"; ?>">
-                                <span class="currency">
-                                    <?php echo lang('THB'); ?>
+                                <span class="c3 wht">
+                                    <span class="currency">
+                                        <?php echo lang("THB"); ?>
+                                    </span>
                                 </span>
-                            </span>
-                        </p>
+                            </p>
+                            <p id="s-payment-amount">
+                                <span class="c1 custom-color wht">
+                                    <?php echo lang("payment_amount"); ?>
+                                </span>
+                                <span class="c2 wht">
+                                    <input type="text" id="payment_amount" value="<?php echo number_format($pv_info->payment_amount, 2); ?>" readonly>
+                                </span>
+                                <span class="c3 wht">
+                                    <span class="currency">
+                                        <?php echo lang("THB"); ?>
+                                    </span>
+                                </span>
+                            </p>
+                        <?php endif; ?>
                     </td>
                 </tr>
             </tfoot>
@@ -585,7 +596,7 @@
             id: id
         };
 
-        console.log(url, request);
+        // console.log(url, request);
 
         await axios.post(url, request).then(response => {
             console.log(response);

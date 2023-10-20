@@ -80,6 +80,10 @@ class Payment_voucher extends MY_Controller
         $data["pv_id"] = $id;
         $data["pv_info"] = $this->Payment_voucher_m->dev2_getPaymentVoucherHeaderById($data["pv_id"]);
         $data["pv_info"]->total_in_text = "(" . numberToText($data["pv_info"]->total) . ")";
+        if (!empty($data["pv_info"]->reference_list)) {
+            $data["pv_info"]->references = implode(", ", (array) json_decode($data["pv_info"]->reference_list));
+        }
+        
         $data["pv_detail"] = $this->Payment_voucher_m->dev2_getPaymentVoucherDetailByHeaderId($data["pv_id"]);
         $data["pv_method"] = $this->Payment_voucher_m->dev2_getPaymentMethodItemsById($data["pv_id"]);
         $data["created_by"] = $this->Users_m->getInfo($data["pv_info"]->created_by);
@@ -199,6 +203,100 @@ class Payment_voucher extends MY_Controller
             "data" => $data
         ];
         
+        echo json_encode($result);
+    }
+
+    function addnew()
+    {
+        $view_data = [];
+
+        $view_data["supplier_dropdown"] = $this->Payment_voucher_m->dev2_getSupplieHavePurchaseOrderApproved();
+        $view_data["project_dropdown"] = $this->Payment_voucher_m->dev2_getProjectReferByProjectOpen();
+
+        // var_dump(arr($view_data)); exit();
+        $this->load->view("payment_voucher/addnew", $view_data);
+    }
+
+    function addnew_save()
+    {
+        $post = $this->input->post();
+        $result = [
+            "success" => true,
+            "data" => $post,
+            "message" => lang("pv_save_succeed")
+        ];
+
+        // verify po_item_id
+        if (empty($post["po_item_id"])) {
+            $result["success"] = false;
+            $result["message"] = lang("pv_no_item_select");
+            echo json_encode($result);
+
+            return;
+        }
+
+        foreach ($post["po_item_id"] as $item) {
+            if ($item == "") {
+                $result["success"] = false;
+                $result["message"] = lang("pv_incomplete_info");
+                echo json_encode($result);
+
+                return;
+            }
+        }
+
+        $origin_po_item_id = $post["po_item_id"];
+        $unique_po_item_id = array_unique($origin_po_item_id);
+
+        if (sizeof($origin_po_item_id) !== sizeof($unique_po_item_id)) {
+            $result["success"] = false;
+            $result["message"] = lang("pv_item_duplicated");
+            echo json_encode($result);
+
+            return;
+        }
+
+        // verify status_qty
+        if (sizeof($post["status_qty"])) {
+            foreach ($post["status_qty"] as $item) {
+                if ($item == "N") {
+                    $result["success"] = false;
+                    $result["message"] = lang("pv_incorrect_qty");
+                    echo json_encode($result);
+
+                    return;
+                }
+            }
+        }
+
+        $post["doc-date"] = $this->DateCaseConvert($post["doc-date"]);
+        $result["post_result"] = $this->Payment_voucher_m->dev2_postPaymentVoucherByCreateForm($post);
+
+        echo json_encode($result);
+    }
+
+    function purchase_order_list()
+    {
+        $json = $this->json;
+        $result = [
+            "success" => false,
+            "data" => null,
+            "length" => 0,
+            "supplier_id" => $json->supplier_id
+        ];
+
+        $data = $this->Payment_voucher_m->dev2_getPurchaseOrderListBySupplierId($json->supplier_id);
+        if (isset($data) && !empty($data)) {
+            if (sizeof($data)) {
+                $result = [
+                    "success" => true,
+                    "data" => $data,
+                    "length" => sizeof($data),
+                    "supplier_id" => $json->supplier_id
+                ];
+            }
+        }
+
         echo json_encode($result);
     }
 

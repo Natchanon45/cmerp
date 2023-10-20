@@ -895,4 +895,277 @@ class Payment_voucher_m extends MY_Model
         return $result;
     }
 
+    public function dev2_getSupplieHavePurchaseOrderApproved() : array
+    {
+        $result = array();
+
+        $query = $this->db->select('supplier_id')->from('po_header')->where('payment_status !=', 'C')->where('status', 'A')->get();
+        $data = $query->result();
+
+        $supplier_ids = array();
+        if (!empty($data)) {
+            foreach ($data as $item) {
+                array_push($supplier_ids, $item->supplier_id);
+            }
+
+            $supplier_ids = array_unique($supplier_ids);
+            $supplier_dropdown = array();
+            foreach ($supplier_ids as $supplier_id) {
+                $supplier_dropdown[] = array(
+                    "supplier_id" => $supplier_id,
+                    "supplier_name" => $this->Bom_suppliers_model->dev2_getSupplierNameById($supplier_id)
+                );
+            }
+        }
+
+        $result = $supplier_dropdown;
+        return $result;
+    }
+
+    public function dev2_getProjectReferByProjectOpen() : array
+    {
+        $result = array();
+
+        $query = $this->db->select('id, title')->from('projects')->where('status', 'open')->get();
+        $data = $query->result();
+
+        $project_dropdown = array();
+        if (!empty($data)) {
+            foreach ($data as $item) {
+                $project_dropdown[] = array(
+                    "project_id" => $item->id,
+                    "project_name" => $item->title
+                );
+            }
+        }
+
+        $result = $project_dropdown;
+        return $result;
+    }
+
+    public function dev2_getPurchaseOrderListBySupplierId(int $supplier_id) : array
+    {
+        $result = array();
+
+        $query = $this->db->select('*')->from('po_header')->where('supplier_id', $supplier_id)->where('payment_status !=', 'C')->where('status', 'A')->get();
+        $data = $query->result();
+
+        $po_list = array();
+        $po_header_dropdown = array();
+        if (!empty($data)) {
+            foreach ($data as $item) {
+                array_push($po_list, $item->id);
+                
+                $po_header_dropdown[] = array(
+                    "po_id" => $item->id,
+                    "po_number" => $item->doc_number
+                );
+            }
+        }
+        $po_list = implode(',', $po_list);
+
+        $sql = "SELECT * FROM `po_detail` WHERE `po_id` IN (" . $po_list . ") AND `payment` < `quantity`";
+        $query = $this->db->query($sql);
+        $data = $query->result();
+
+        $po_detail_dropdown = array();
+        if (!empty($data)) {
+            foreach ($data as $item) {
+                $pending = $item->quantity - $item->payment;
+                $po_detail_dropdown[] = array(
+                    "po_item_id" => $item->id,
+                    "po_id" => $item->po_id,
+                    "product_name" => $item->product_name,
+                    "quantity" => $pending,
+                    "unit" => $item->unit
+                );
+            }
+        }
+
+        $result["orders"] = $po_header_dropdown;
+        $result["items"] = $po_detail_dropdown;
+
+        return $result;
+    }
+
+    public function dev2_postPaymentVoucherByCreateForm($data)
+    {
+        $this->db->trans_start();
+
+        // prepare document number
+        $param_docno = [
+            "prefix" => "PV",
+            "LPAD" => 4,
+            "column" => "doc_number",
+            "table" => "pv_header"
+        ];
+        $pv_doc_number = $this->Db_model->genDocNo($param_docno);
+
+        // prepare pv header
+        $header_data = array(
+            "po_id" => "0",
+            "doc_number" => $pv_doc_number,
+            "po_type" => "0",
+            "doc_date" => $data["doc-date"],
+            "credit" => "0",
+            "due_date" => $data["doc-date"],
+            "project_id" => $data["project-id"],
+            "supplier_id" => $data["supplier-id"],
+            "created_by" => $this->login_user->id,
+            "created_datetime" => date("Y-m-d H:i:s")
+        );
+        
+        // create a pv header
+        $this->db->insert("pv_header", $header_data);
+        $header_data["id"] = $this->db->insert_id();
+
+        // prepare pv detail
+        $detail_data = array();
+        $refer_list = array();
+        $sub_total = 0;
+        $vat_total = 0;
+        $wht_total = 0;
+        $sort = 1;
+        if (sizeof($data["po_item_id"])) {
+            foreach ($data["po_item_id"] as $key => $item) {
+                $po_item_info = $this->dev2_getPurchaseOrderItemByItemId($item);
+                $po_info = $this->dev2_getPurchaseOrderById($data["po_id"][$key]);
+                array_push($refer_list, $po_info->doc_number);
+
+                $total_price = $po_item_info->price * $data["quantity"][$key];
+                $detail_data[$key] = array(
+                    "pv_id" => $header_data["id"],
+                    "po_id" => $po_item_info->po_id,
+                    "po_item_id" => $po_item_info->id,
+                    "product_id" => $po_item_info->product_id,
+                    "product_name" => $po_item_info->product_name,
+                    "product_description" => $po_item_info->product_description,
+                    "quantity" => $data["quantity"][$key],
+                    "unit" => $po_item_info->unit,
+                    "price" => $po_item_info->price,
+                    "total_price" => $total_price,
+                    "sort" => $sort
+                );
+
+                // create a pv detail
+                $this->db->insert("pv_detail", $detail_data[$key]);
+                $detail_data[$key]["id"] = $this->db->insert_id();
+
+                // calc vat
+                $vat = 0;
+                if ($po_info->vat_inc == "Y") {
+                    $vat = ($total_price * $po_info->vat_percent) / 100;
+                }
+
+                // calc wht
+                $wht = 0;
+                if ($po_info->wht_inc == "Y") {
+                    $wht = ($total_price * $po_info->vat_percent) / 100;
+                }
+
+                $sub_total += $total_price;
+                $vat_total += $vat;
+                $wht_total += $wht;
+                $sort++;
+
+                // patch po detail & po header
+                $this->dev2_patchPurchaseOrderItemPaymentById($po_item_info->id);
+                $this->dev2_patchPurchaseOrderHeaderPaymentById($po_info->id);
+            }
+
+            $header_data["reference_list"] = array_unique($refer_list);
+            $header_data["sub_total_before_discount"] = $sub_total;
+            $header_data["sub_total"] = $sub_total;
+            $header_data["vat_value"] = $vat_total;
+            $header_data["total"] = $sub_total + $vat_total;
+            $header_data["wht_value"] = $wht_total;
+            $header_data["payment_amount"] = $header_data["total"] - $header_data["wht_value"];
+
+            $this->db->where("id", $header_data["id"]);
+            $this->db->update("pv_header", array(
+                "reference_list" => json_encode($header_data["reference_list"]),
+                "sub_total_before_discount" => $header_data["sub_total_before_discount"],
+                "sub_total" => $header_data["sub_total"],
+                "vat_value" => $header_data["vat_value"],
+                "total" => $header_data["total"],
+                "wht_value" => $header_data["wht_value"],
+                "payment_amount" => $header_data["payment_amount"]
+            ));
+        }
+
+        $trans_message = null;
+        if ($this->db->trans_status() === FALSE) {
+            $this->db->trans_rollback();
+            $trans_message = "F";
+        } else {
+            $this->db->trans_commit();
+            $trans_message = "T";
+        }
+
+        return array(
+            $header_data,
+            $detail_data,
+            "trans_status" => $trans_message,
+            "reload_url" => get_uri("accounting/buy/payment_voucher"),
+            "target_url" => get_uri("payment_voucher/view/" . $header_data["id"])
+        );
+    }
+
+    private function dev2_getPurchaseOrderItemByItemId($id)
+    {
+        $info = new stdClass();
+
+        $query = $this->db->get_where("po_detail", array("id" => $id))->row();
+        if (isset($query) && !empty($query)) {
+            $info = $query;
+        }
+        return $info;
+    }
+
+    private function dev2_getPurchaseOrderById($id)
+    {
+        $info = new stdClass();
+
+        $query = $this->db->get_where("po_header", array("id" => $id))->row();
+        if (isset($query) && !empty($query)) {
+            $info = $query;
+        }
+        return $info;
+    }
+
+    private function dev2_patchPurchaseOrderItemPaymentById(int $id) : void
+    {
+        $sql = "SELECT SUM(quantity) AS quantity FROM pv_detail WHERE po_item_id = ?";
+        $item = $this->db->query($sql, $id)->row();
+
+        if (isset($item->quantity) && $item->quantity > 0) {
+            $this->db->where("id", $id);
+            $this->db->update("po_detail", array("payment" => $item->quantity));
+        }
+    }
+
+    private function dev2_patchPurchaseOrderHeaderPaymentById(int $id) : void
+    {
+        $query = $this->db->get_where("po_detail", array("po_id" => $id))->result();
+        $payment_status = "W";
+
+        $pending = 0;
+        if (sizeof($query)) {
+            foreach ($query as $row) {
+                if ($row->payment < $row->quantity) {
+                    $pending++;
+                }
+            }
+        }
+
+        if ($pending > 0) {
+            $payment_status = "P";
+        } else {
+            $payment_status = "C";
+        }
+
+        $this->db->where("id", $id);
+        $this->db->update("po_header", array("payment_status" => $payment_status));
+    }
+
 }
