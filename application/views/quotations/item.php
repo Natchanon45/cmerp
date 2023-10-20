@@ -147,8 +147,12 @@ function calculatePrice(){
 
     if(discount_type == "P"){
         if(discount_value < 0) discount_value = 0;
-        if(discount_value > 99.99) discount_value = 99.99;
+        if(discount_value >= 100) discount_value = 100;
         price_after_discount = price - tonum((price * discount_value)/100, 2);
+        /*if(discount_value >= 100){
+            discount_value = 100;
+            price_after_discount = 0;
+        }*/
 
     }else{
         if(discount_value < 0) discount_value = 0;

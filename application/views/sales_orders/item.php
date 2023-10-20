@@ -26,6 +26,19 @@
             </div>
         <?php endif; ?>
     <?php endif;?>
+
+    <?php if($purpose == "P"): ?>
+        <div class="form-group">
+            <label for="add_stock" class=" col-md-3"><?php echo lang('account_so_add_stock'); ?></label>
+            <div class="col-md-9">
+                <select id="add_stock" class="form-control">
+                    <option value="Y" <?php if($add_stock == "Y") echo "selected"; ?>><?php echo lang('account_yes'); ?></option>
+                    <option value="N" <?php if($add_stock == "N") echo "selected"; ?>><?php echo lang('account_no'); ?></option>
+                </select>
+            </div>
+        </div>
+    <?php endif; ?>
+
     <div class="form-group">
         <label for="quantity" class=" col-md-3"><?php echo lang('quantity'); ?></label>
         <div class="col-md-9">
@@ -59,12 +72,17 @@
 $(document).ready(function () {
     $("#btnSubmit").click(function() {
         product_formula_id = "none";
+        add_stock = "none";
+
         if($("#product_formula").val() != undefined) product_formula_id = $("#product_formula").val();
+        if($("#add_stock").val() != undefined) add_stock = $("#add_stock").val();
+
         axios.post('<?php echo current_url(); ?>', {
             task: 'save',
             doc_id : "<?php echo $doc_id; ?>",
             item_id : "<?php if(isset($item_id)) echo $item_id; ?>",
             product_id:$("#product_id").val(),
+            add_stock:add_stock,
             product_formula_id:product_formula_id,
             product_name:$("#product_name").val(),
             product_description:$("#product_description").val(),

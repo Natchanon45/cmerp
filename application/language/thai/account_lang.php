@@ -43,6 +43,7 @@ $lang["account_item_total"] = "ยอดรวม";
 
 //so
 $lang["account_so_component"] = "สูตรผสม";
+$lang["account_so_add_stock"] = "นำเข้าสต๊อคเมื่อผลิตเสร็จ";
 $lang["account_so_create_project"] = "สร้างโปรเจค";
 $lang["account_so_view_po"] = "จัดการใบขอซื้อ";
 $lang["account_so_view_mr"] = "จัดการใบขอเบิก";
@@ -85,3 +86,5 @@ $lang["account_remarks"] = "หมายเหตุ";
 $lang["account_status"] = "สถานะ";
 $lang["account_created_by"] = "ผู้ออกเอกสาร";
 $lang["account_approved_by"] = "ผู้อนุมัติ";
+$lang["account_yes"] = "ใช่";
+$lang["account_no"] = "ไม่ใช่";

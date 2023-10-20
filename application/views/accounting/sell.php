@@ -330,7 +330,7 @@ function loadDataGrid(){
             updateStatus($(this).data("doc_id"), $(this).val());
         });
 
-        $(".copy").click(function(){
+        /*$(".copy").click(function(){
             let doc_id = $(this).data("doc_id");
             let doc_name = $(this).data("doc_name");
             let doc_number = $(this).data("doc_number");
@@ -349,7 +349,7 @@ function loadDataGrid(){
                     location.href = data.target;
                 }).catch(function (error) {});
             }
-        });
+        });*/
     });
 }
 
