@@ -217,6 +217,35 @@ class Payment_voucher extends MY_Controller
         $this->load->view("payment_voucher/addnew", $view_data);
     }
 
+    function editnew()
+    {
+        $post = $this->input->post();
+        $view_data = [];
+
+        if (!$post["id"]) {
+            $view_data["status"] = "success";
+            $view_data["message"] = "500 Internal server error.";
+            
+            $this->load->view("payment_voucher/editnew", $view_data);
+            return;
+        }
+
+        $view_data["header_data"] = $this->Payment_voucher_m->dev2_getPaymentVoucherHeaderByPvId($post["id"]);
+        if ($view_data["header_data"]->project_id != 0) {
+            $view_data["header_data"]->project_name = $this->Payment_voucher_m->dev2_getProjectNameByProjectId($view_data["header_data"]->project_id);
+        }
+        if ($view_data["header_data"]->supplier_id != 0) {
+            $view_data["header_data"]->supplier_name = $this->Payment_voucher_m->dev2_getSupplierNameBySupplierId($view_data["header_data"]->supplier_id);
+        }
+
+        $view_data["detail_data"] = $this->Payment_voucher_m->dev2_getPaymentVoucherDetailByPvId($post["id"]);
+        $view_data["supplier_dropdown"] = $this->Payment_voucher_m->dev2_getSupplieHavePurchaseOrderApproved();
+        $view_data["project_dropdown"] = $this->Payment_voucher_m->dev2_getProjectReferByProjectOpen();
+
+        // var_dump(arr($view_data)); exit();
+        $this->load->view("payment_voucher/editnew", $view_data);
+    }
+
     function addnew_save()
     {
         $post = $this->input->post();
@@ -273,6 +302,11 @@ class Payment_voucher extends MY_Controller
         $result["post_result"] = $this->Payment_voucher_m->dev2_postPaymentVoucherByCreateForm($post);
 
         echo json_encode($result);
+    }
+
+    function editnew_save()
+    {
+        // 
     }
 
     function purchase_order_list()

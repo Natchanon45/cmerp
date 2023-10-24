@@ -52,7 +52,7 @@
 
 <?php
 echo form_open(
-    get_uri("payment_voucher/addnew_save"),
+    get_uri("payment_voucher/editnew_save"),
     array(
         "id" => "addnew-form",
         "class" => "general-form",
@@ -67,7 +67,8 @@ echo form_open(
             <?php echo lang("document_date"); ?>
         </label>
         <div class="col-md-9">
-            <input type="text" id="doc-date" name="doc-date" class="form-control" autocomplete="off" readonly>
+            <input type="hidden" id="doc-id" name="doc-id" value="<?php echo $header_data->id; ?>">
+            <input type="text" id="doc-date" name="doc-date" class="form-control <?php if ($header_data->status == "A") { echo "pointer-none"; } ?>" autocomplete="off" readonly>
         </div>
     </div>
 
@@ -76,8 +77,13 @@ echo form_open(
             <?php echo lang("project_refer"); ?>
         </label>
         <div class="col-md-9">
-            <select name="project-id" id="project-id" class="form-control select-project" required>
-                <option value="0"><?php echo "-- " . lang("project_refer") . " --"; ?></option>
+            <select name="project-id" id="project-id" class="form-control select-project <?php if ($header_data->status == "A") { echo "pointer-none"; } ?>" required>
+                <?php if (isset($header_data->project_id) && $header_data->project_id != 0): ?>
+                    <option value="<?php echo $header_data->project_id; ?>"><?php echo $header_data->project_name; ?></option>
+                <?php else: ?>
+                    <option value="0"><?php echo "-- " . lang("project_refer") . " --"; ?></option>
+                <?php endif; ?>
+                
                 <?php if (sizeof($project_dropdown)): ?>
                     <?php foreach ($project_dropdown as $project): ?>
                         <option value="<?php echo $project["project_id"]; ?>"><?php echo $project["project_name"]; ?></option>
@@ -92,11 +98,9 @@ echo form_open(
             <?php echo lang("suppliers"); ?>
         </label>
         <div class="col-md-9">
-            <select id="supplier-id" name="supplier-id" class="form-control select-supplier" required>
-                <?php if (sizeof($supplier_dropdown)): ?>
-                    <?php foreach ($supplier_dropdown as $supplier): ?>
-                        <option value="<?php echo $supplier["supplier_id"]; ?>"><?php echo $supplier["supplier_name"]; ?></option>
-                    <?php endforeach; ?>
+            <select id="supplier-id" name="supplier-id" class="form-control select-supplier pointer-none" required>
+                <?php if (isset($header_data->supplier_id) && $header_data->supplier_id != 0): ?>
+                    <option value="<?php echo $header_data->supplier_id; ?>"><?php echo $header_data->supplier_name; ?></option>
                 <?php endif; ?>
             </select>
         </div>
@@ -110,16 +114,52 @@ echo form_open(
                     <th width="38%"><?php echo lang("details"); ?></th>
                     <th width="17%"><?php echo lang("quantity"); ?></th>
                     <th width="10%"><?php echo lang("stock_material_unit"); ?></th>
-                    <th>
-                        <button id="btn-add-item" class="btn btn-primary right-control">
-                            <span class="fa fa-plus-circle"></span> 
-                            <?php echo lang("add"); ?>
-                        </button>
-                    </th>
+                    
+                    <?php if ($header_data->status == "W"): ?>
+                        <th>
+                            <button id="btn-add-item" class="btn btn-primary right-control hide">
+                                <span class="fa fa-plus-circle"></span> 
+                                <?php  echo lang("add"); ?>
+                            </button>
+                        </th>
+                    <?php endif; ?>
                 </tr>
             </thead>
 
-            <tbody id="tbody-po-select"></tbody>
+            <tbody id="tbody-po-select">
+                <?php if (sizeof($detail_data)): ?>
+                    <?php foreach ($detail_data as $item): ?>
+                        <tr>
+                            <td>
+                                <select name="po_id[]" class="form-control select-order pointer-none" required>
+                                    <option value="<?php echo $item->po_info->id; ?>"><?php echo $item->po_info->doc_number; ?></option>
+                                </select>
+                            </td>
+                            <td>
+                                <select name="po_item_id[]" class="form-control select-item pointer-none">
+                                    <option value="<?php echo $item->po_item_info->id; ?>"><?php echo $item->po_item_info->product_name; ?></option>
+                                </select>
+                            </td>
+                            <td>
+                                <input name="quantity[]" class="form-control select-quantity" value="<?php echo $item->quantity; ?>" readonly required>
+                                <input name="status_qty[]" type="hidden" class="select-status_qty" value="Y">
+                            </td>
+                            <td>
+                                <input name="unit[]" class="form-control select-unit" value="<?php echo $item->unit; ?>" readonly>
+                            </td>
+
+                            <?php if ($header_data->status == "W"): ?>
+                                <td>
+                                    <button class="btn btn-danger button-delete right-control">
+                                        <span class="fa fa-trash"></span> 
+                                        <?php echo lang("delete"); ?>
+                                    </button>
+                                </td>
+                            <?php endif; ?>
+                        </tr>
+                    <?php endforeach; ?>
+                <?php endif; ?>
+            </tbody>
         </table>
     </div>
 </div>
@@ -128,9 +168,12 @@ echo form_open(
     <button type="button" class="btn btn-default" data-dismiss="modal"><span class="fa fa-close"></span>
         <?php echo lang("close"); ?>
     </button>
-    <button type="submit" id="btn-submit" class="btn btn-primary"><span class="fa fa-check-circle"></span>
-        <?php echo lang("save"); ?>
-    </button>
+
+    <?php if ($header_data->status == "W"): ?>
+        <button type="submit" id="btn-submit" class="btn btn-primary hide"><span class="fa fa-check-circle"></span>
+            <?php echo lang("save"); ?>
+        </button>
+    <?php endif; ?>
 </div>
 
 <?php echo form_close(); ?>
@@ -156,7 +199,6 @@ echo form_open(
     async function toggleButtonAdd () {
         let trCount = await tableBody.find("tr").length;
         let itemCount = await purchaseItemList.length;
-
         // console.log(trCount, itemCount);
 
         if (trCount === itemCount) {
@@ -285,8 +327,7 @@ echo form_open(
             $(this).closest("tr").remove();
             processBinding();
         });
-
-        toggleSupplierId();
+        
         toggleButtonAdd();
     }
 
@@ -297,7 +338,7 @@ echo form_open(
         });
 
         $("#doc-date").datepicker(
-            "setDate", "<?php echo date("d/m/Y"); ?>"
+            "setDate", "<?php echo date("d/m/Y", strtotime($header_data->doc_date)); ?>"
         );
 
         $("#project-id").select2();
@@ -313,6 +354,11 @@ echo form_open(
 
         $("#btn-add-item").on("click", async function (e) {
             e.preventDefault();
+
+            // console.log(purchaseOrderList.length);
+            if (purchaseOrderList.length === 0) {
+                return;
+            }
             
             await tableBody.append(`
                 <tr>
@@ -347,6 +393,8 @@ echo form_open(
 
             await processBinding();
         });
+
+        processBinding();
 
         addNewForm.appForm({
             onSuccess: function (result) {

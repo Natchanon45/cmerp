@@ -2565,6 +2565,7 @@ $lang["payment_voucher"] = "ใบสำคัญจ่าย (PV)";
 $lang["payment_voucher_add"] = "เพิ่มใบสำคัญจ่าย (PV)";
 $lang["payment_voucher_approve"] = "อนุมัติจ่าย";
 $lang["payment_voucher_print"] = "พิมพ์ใบสำคัญจ่าย";
+$lang["payment_voucher_edit"] = "แก้ไขใบสำคัญจ่าย (PV)";
 $lang["record_of_payment_voucher"] = "ออกใบสำคัญจ่าย";
 $lang["date_of_document"] = "วันที่ออกเอกสาร";
 $lang["number_of_document"] = "เลขที่เอกสาร";

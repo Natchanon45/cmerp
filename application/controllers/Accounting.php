@@ -105,6 +105,7 @@ class Accounting extends MY_Controller {
         $this->data['supplier_dropdown'] = json_encode($this->Bom_suppliers_model->dev2_getSupplierDropdownWithCode());
         $this->data['pr_status_dropdown'] = json_encode($this->Purchaserequest_m->dev2_getPrStatusDropdown());
         $this->data['po_status_dropdown'] = json_encode($this->Purchaserequest_m->dev2_getPoStatusDropdown());
+        $this->data['pv_status_dropdown'] = json_encode($this->Purchaserequest_m->dev2_getPvStatusDropdown());
         $this->data['gr_status_dropdown'] = json_encode($this->Purchaserequest_m->dev2_getGrStatusDropdown());
         $this->data['type_dropdown'] = json_encode($this->Purchaserequest_m->dev2_getPrTypeDropdown());
 

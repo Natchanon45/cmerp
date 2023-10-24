@@ -252,13 +252,11 @@
             $(".buttons li.add a").attr('data-title', '<?php echo lang("payment_voucher_add"); ?>');
             $(".buttons li.add span").append('<?php echo lang("payment_voucher_add"); ?>');
 
-            status_dropdown = '<?php echo $gr_status_dropdown; ?>';
+            status_dropdown = '<?php echo $pv_status_dropdown; ?>';
             supplier_dropdown = '<?php echo $supplier_dropdown; ?>';
-            type_dropdown = '<?php echo $type_dropdown; ?>';
 
             grid_filters = [
                 { name: 'status', class: 'w150', options: JSON.parse(status_dropdown) },
-                { name: 'po_type', class: 'w200', options: JSON.parse(type_dropdown) },
                 { name: 'supplier_id', class: 'w250', options: JSON.parse(supplier_dropdown) }
             ];
 

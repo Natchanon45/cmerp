@@ -2168,6 +2168,7 @@ $lang["payment_voucher"] = "Payment Voucher";
 $lang["payment_voucher_add"] = "Create new PV";
 $lang["payment_voucher_approve"] = "Payment approve";
 $lang["payment_voucher_print"] = "Print (PV)";
+$lang["payment_voucher_edit"] = "Edit (PV)";
 $lang["record_of_payment_voucher"] = "Record of Payment voucher";
 $lang["date_of_document"] = "Date of Document";
 $lang["number_of_document"] = "Doc. No.";

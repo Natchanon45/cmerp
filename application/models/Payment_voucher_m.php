@@ -39,28 +39,17 @@ class Payment_voucher_m extends MY_Model
 
     function getIndexDataSetHTML($item)
     {
-        $doc_status = '<select class="dropdown_status select-status" data-doc_id="' . $item->id . '">';
+        $doc_status = '<select class="dropdown_status pointer-none select-status" data-doc_id="' . $item->id . '">';
+        $btn_control = '';
 
         if ($item->status == "W") {
-            $doc_status .= '
-                <option value="W" selected>' . lang('pr_pending') . '</option>
-                <option value="A">' . lang('pr_approved') . '</option>
-                <option value="X">' . lang('cancel') . '</option>
-            ';
+            $doc_status .= '<option value="W" selected>' . lang('pr_pending') . '</option>';
+            $btn_control = "<a data-post-id='" . $item->id . "' data-title='" . lang("payment_voucher_edit") . "' data-action-url='" . get_uri("payment_voucher/editnew") . "' data-act='ajax-modal' class='edit'><i class='fa fa-pencil'></i></a>";
         }
         
         if ($item->status == "A") {
             $doc_status .= '<option value="A" selected>' . lang('pr_approved') . '</option>';
-
-            if ($item->pay_status == "N") {
-                $doc_status .= '<option value="X">' . lang('cancel') . '</option>';
-            }
-        }
-        
-        if ($item->status == "R") {
-            $doc_status .= '
-                <option value="R" selected>' . lang('pr_rejected') . '</option>
-            ';
+            $btn_control = "<a data-post-id='" . $item->id . "' data-title='" . lang("payment_voucher_edit") . "' data-action-url='" . get_uri("payment_voucher/editnew") . "' data-act='ajax-modal' class='edit'><i class='fa fa-eye'></i></a>";
         }
 
         $doc_status .= '</select>';
@@ -79,15 +68,28 @@ class Payment_voucher_m extends MY_Model
             $supplier_name = "<a href='" . get_uri('stock/supplier_view/' . $item->supplier_id) . "'>" . mb_strimwidth($supplier, 0, 55, '...') . "</a>";
         }
 
+        $extract_refer = '-';
+        if (isset($item->reference_number) && !empty($item->reference_number)) {
+            $extract_refer = $item->reference_number;
+        } else {
+            $temp = (array) json_decode($item->reference_list);
+            if (sizeof($temp)) {
+                $extract_refer = '';
+                foreach ($temp as $i) {
+                    $extract_refer .= $i . "<br>";
+                }
+            }
+        }
+
         $data = [
             "<a href='" . get_uri('payment_voucher/view/' . $item->id) . "'>" . convertDate($item->doc_date, true) . "</a>",
             "<a href='" . get_uri('payment_voucher/view/' . $item->id) . "'>" . $item->doc_number . "</a>",
-            $item->reference_number,
+            $extract_refer,
             $supplier_name,
             $request_by,
             number_format($item->total, 2),
             $doc_status,
-            "<a data-post-id='" . $item->id . "' data-action-url='" . get_uri("payment_voucher/addedit") . "' data-act='ajax-modal' class='edit'><i class='fa fa-pencil'></i></a>"
+            $btn_control
         ];
 
         return $data;
@@ -1109,6 +1111,55 @@ class Payment_voucher_m extends MY_Model
             "reload_url" => get_uri("accounting/buy/payment_voucher"),
             "target_url" => get_uri("payment_voucher/view/" . $header_data["id"])
         );
+    }
+
+    public function dev2_getPaymentVoucherHeaderByPvId(int $id) : stdClass
+    {
+        $info = new stdClass();
+
+        $query = $this->db->get_where("pv_header", ["id" => $id])->row();
+        if (!empty($query)) {
+            $info = $query;
+        }
+        return $info;
+    }
+
+    public function dev2_getPaymentVoucherDetailByPvId(int $pv_id) : array
+    {
+        $info = array();
+
+        $query = $this->db->get_where("pv_detail", ["pv_id" => $pv_id])->result();
+        if (sizeof($query)) {
+            foreach ($query as $row) {
+                $row->po_info = $this->dev2_getPurchaseOrderById($row->po_id);
+                $row->po_item_info = $this->dev2_getPurchaseOrderItemByItemId($row->po_item_id);
+            }
+
+            $info = $query;
+        }
+        return $info;
+    }
+
+    public function dev2_getProjectNameByProjectId(int $project_id) : string
+    {
+        $name = "-";
+
+        $query = $this->db->get_where("projects", ["id" => $project_id])->row();
+        if (!empty($query)) {
+            $name = $query->title;
+        }
+        return $name;
+    }
+
+    public function dev2_getSupplierNameBySupplierId(int $supplier_id) : string
+    {
+        $name = "-";
+
+        $query = $this->db->get_where("bom_suppliers", ["id"=> $supplier_id])->row();
+        if (!empty($query)) {
+            $name = $query->company_name;
+        }
+        return $name;
     }
 
     private function dev2_getPurchaseOrderItemByItemId($id)
