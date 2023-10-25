@@ -174,8 +174,8 @@ class Clients extends MY_Controller {
 
         $view_data["summary"]["total_projects"] = $this->Clients_m->getTotalProjects($client_id);
         $view_data["summary"]["total_invoice_amounts"] = $this->Clients_m->getTotalInvoiceAmounts($client_id);
-        $view_data["summary"]["total_payment_receives"] = $this->Clients_m->getTotalPaymentReceives($client_id);
-        $view_data["summary"]["total_due_date_invoice_amount"] = $this->Clients_m->getTotalInvoiceAmounts($client_id, date("Y-m-d"));
+        $view_data["summary"]["total_payment_receives"] = $this->Clients_m->getTotalPaymentReceives($client_id, true);
+        $view_data["summary"]["total_due_date_invoice_amount"] = $this->Clients_m->getTotalInvoiceAmounts($client_id, true);
         
         /*$access_info = $this->get_access_info("invoice");
         $view_data["show_invoice_info"] = (get_setting("module_invoice") && $this->can_view_invoices()) ? true : false;*/
