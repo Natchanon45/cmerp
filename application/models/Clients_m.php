@@ -292,33 +292,47 @@ class Clients_m extends MY_Model {
         return $this->db->count_all_results("projects");
     }
 
-    function getTotalInvoiceAmounts($client_id, $due_date = null){
+    function getTotalInvoiceAmounts($client_id, $overdue_checking = false){
         $this->db->select("SUM(total) AS TOTAL_INVOICE_AMOUNTS")
                                             ->from("invoice")
                                             ->where("deleted", 0)
                                             ->where("client_id", $client_id)
                                             ->where_in("status", ["O", "P"]);
 
-        if($due_date != null) $this->db->where("DATE(due_date) <=", $due_date);
+        if($overdue_checking == true) $this->db->where("DATE(due_date) <", date("Y-m-d"));
 
         $total_invoice_amounts = $this->db->get()->row()->TOTAL_INVOICE_AMOUNTS;
 
         if($total_invoice_amounts == null) $total_invoice_amounts = 0;
 
-        return $total_invoice_amounts;
+        return $total_invoice_amounts - $this->getTotalPaymentReceives($client_id, false, true);
     }
 
-    function getTotalPaymentReceives($client_id){
-        $total_payment_receives = $this->db->select("SUM(money_payment_receive) AS TOTAL_PAYMENT_RECEIVES")
-                                            ->from("invoice")
-                                            ->join("invoice_payment", "invoice.id = invoice_payment.invoice_id")
-                                            ->where("deleted", 0)
-                                            ->where("client_id", $client_id)
-                                            ->where_in("status", ["O", "P"])
-                                            ->get()->row()->TOTAL_PAYMENT_RECEIVES;
+    function getTotalPaymentReceives($client_id, $include_on_cash = false, $overdue_checking = false){
+        $total_payment_amount = 0;
+
+        $this->db->select("SUM(money_payment_receive) AS TOTAL_PAYMENT_RECEIVES")
+                    ->from("invoice")
+                    ->join("invoice_payment", "invoice.id = invoice_payment.invoice_id")
+                    ->where("deleted", 0)
+                    ->where("client_id", $client_id);
+
+        if($overdue_checking == true) $this->db->where("DATE(due_date) <", date("Y-m-d"));
+        $total_payment_receives = $this->db->get()->row()->TOTAL_PAYMENT_RECEIVES;
 
         if($total_payment_receives == null) $total_payment_receives = 0;
 
-        return $total_payment_receives;
+        if($include_on_cash == true){
+            $total_payment_amount = $this->db->select("SUM(payment_amount) AS TOTAL_PAYMENT_AMOUNT")
+                                            ->from("receipt")
+                                            ->where("deleted", 0)
+                                            ->where("client_id", $client_id)
+                                            ->where("invoice_payment_id IS NULL")
+                                            ->get()->row()->TOTAL_PAYMENT_AMOUNT;
+
+            if($total_payment_amount == null) $total_payment_amount = 0;
+        }
+
+        return $total_payment_receives + $total_payment_amount;
     }
 }
