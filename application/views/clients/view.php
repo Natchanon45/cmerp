@@ -1,3 +1,12 @@
+<style type="text/css">
+.widget-icon{
+    font-size: 52px;
+}
+
+.widget-details h1{
+    font-size: 28px;
+}
+</style>
 <div class="page-title clearfix no-border bg-off-white">
     <h1>
         <?php echo lang('client_details') . " - " . $crow->company_name ?>
@@ -15,7 +24,7 @@
 
 <div id="page-content" class="clearfix">
     <div class="mt15 clearfix">
-        <div class="col-md-3 col-sm-6 widget-container">
+        <div class="col-md-6  widget-container">
             <div class="panel panel-sky">
                 <a href="<?php echo get_uri('projects/index'); ?>" class="white-link">
                     <div class="panel-body ">
@@ -30,7 +39,7 @@
                 </a>
             </div>
         </div>
-        <div class="col-md-3 col-sm-6 widget-container">
+        <div class="col-md-6  widget-container">
             <div class="panel panel-primary">
                 <a href="<?php echo get_uri('invoices/index'); ?>" class="white-link">
                     <div class="panel-body ">
@@ -45,7 +54,7 @@
                 </a>
             </div>
         </div>
-        <div class="col-md-3 col-sm-6 widget-container">
+        <div class="col-md-6  widget-container">
             <div class="panel panel-success">
                 <a href="<?php echo get_uri('invoice_payments/index'); ?>" class="white-link">
                     <div class="panel-body ">
@@ -60,7 +69,7 @@
                 </a>
             </div>
         </div>
-        <div class="col-md-3 col-sm-6 widget-container">
+        <div class="col-md-6  widget-container">
             <div class="panel panel-coral">
                 <a href="<?php echo get_uri('invoices/index'); ?>" class="white-link">
                     <div class="panel-body ">
