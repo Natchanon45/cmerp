@@ -67,8 +67,8 @@ echo form_open(
             <?php echo lang("document_date"); ?>
         </label>
         <div class="col-md-9">
-            <input type="hidden" id="doc-id" name="doc-id" value="<?php echo $header_data->id; ?>">
-            <input type="text" id="doc-date" name="doc-date" class="form-control <?php if ($header_data->status == "A") { echo "pointer-none"; } ?>" autocomplete="off" readonly>
+            <input type="hidden" id="document-id" name="document-id" value="<?php echo $header_data->id; ?>">
+            <input type="text" id="doc-date" name="doc-date" class="form-control <?php if ($header_data->status == "A") { echo "pointer-none"; } ?> <?php if ($header_data->po_id != 0) { echo "pointer-none"; } ?>" autocomplete="off" readonly>
         </div>
     </div>
 
@@ -77,7 +77,7 @@ echo form_open(
             <?php echo lang("project_refer"); ?>
         </label>
         <div class="col-md-9">
-            <select name="project-id" id="project-id" class="form-control select-project <?php if ($header_data->status == "A") { echo "pointer-none"; } ?>" required>
+            <select name="project-id" id="project-id" class="form-control select-project <?php if ($header_data->status == "A") { echo "pointer-none"; } ?> <?php if ($header_data->po_id != 0) { echo "pointer-none"; } ?>" required>
                 <?php if (isset($header_data->project_id) && $header_data->project_id != 0): ?>
                     <option value="<?php echo $header_data->project_id; ?>"><?php echo $header_data->project_name; ?></option>
                 <?php else: ?>
@@ -115,7 +115,7 @@ echo form_open(
                     <th width="17%"><?php echo lang("quantity"); ?></th>
                     <th width="10%"><?php echo lang("stock_material_unit"); ?></th>
                     
-                    <?php if ($header_data->status == "W"): ?>
+                    <?php if ($header_data->status == "W" && $header_data->po_id == 0): ?>
                         <th>
                             <button id="btn-add-item" class="btn btn-primary right-control hide">
                                 <span class="fa fa-plus-circle"></span> 
@@ -148,9 +148,9 @@ echo form_open(
                                 <input name="unit[]" class="form-control select-unit" value="<?php echo $item->unit; ?>" readonly>
                             </td>
 
-                            <?php if ($header_data->status == "W"): ?>
+                            <?php if ($header_data->status == "W" && $header_data->po_id == 0): ?>
                                 <td>
-                                    <button class="btn btn-danger button-delete right-control">
+                                    <button class="btn btn-danger button-delete-edit right-control" data-item_id="<?php echo $item->id; ?>">
                                         <span class="fa fa-trash"></span> 
                                         <?php echo lang("delete"); ?>
                                     </button>
@@ -169,8 +169,8 @@ echo form_open(
         <?php echo lang("close"); ?>
     </button>
 
-    <?php if ($header_data->status == "W"): ?>
-        <button type="submit" id="btn-submit" class="btn btn-primary hide"><span class="fa fa-check-circle"></span>
+    <?php if ($header_data->status == "W" && $header_data->po_id == 0): ?>
+        <button type="submit" id="btn-submit" class="btn btn-primary"><span class="fa fa-check-circle"></span>
             <?php echo lang("save"); ?>
         </button>
     <?php endif; ?>
@@ -201,7 +201,7 @@ echo form_open(
         let itemCount = await purchaseItemList.length;
         // console.log(trCount, itemCount);
 
-        if (trCount === itemCount) {
+        if (itemCount === 0 || trCount === itemCount) {
             $("#btn-add-item").addClass('hide');
         } else {
             $("#btn-add-item").removeClass('hide');
@@ -213,6 +213,7 @@ echo form_open(
         let req = {
             supplier_id: $("#supplier-id").val()
         };
+        // console.log(url, req);
 
         purchaseOrderList = [];
         purchaseItemList = [];
@@ -224,6 +225,34 @@ echo form_open(
                 purchaseOrderList = data.orders;
                 purchaseItemList = data.items;
             }
+        }).catch(err => {
+            console.log(err);
+        });
+    }
+
+    async function getPurchaseOrderListEdit () {
+        let url = '<?php echo get_uri('payment_voucher/purchase_order_list_edit'); ?>';
+        let req = {
+            supplier_id: $("#supplier-id").val(),
+            document_id: $("#document-id").val()
+        };
+        // console.log(url, req);
+
+        purchaseOrderList = [];
+        purchaseItemList = [];
+
+        await axios.post(url, req).then(res => {
+            const { success, data } = res.data;
+            // console.log(data);
+            
+            if (success) {
+                let poIdSet = new Set(data.items.map(item => item.po_id));
+                let filteredOrders = data.orders.filter(order => poIdSet.has(order.po_id));
+
+                purchaseOrderList = filteredOrders;
+                purchaseItemList = data.items;
+            }
+            // console.log(purchaseOrderList, purchaseItemList);
         }).catch(err => {
             console.log(err);
         });
@@ -328,7 +357,8 @@ echo form_open(
             processBinding();
         });
         
-        toggleButtonAdd();
+        await getPurchaseOrderListEdit();
+        await toggleButtonAdd();
     }
 
     $(document).ready(function () {
@@ -344,12 +374,16 @@ echo form_open(
         $("#project-id").select2();
 
         $("#supplier-id").select2();
-        
-        getPurchaseOrderList();
 
         $("#supplier-id").on("click", function (e) {
             e.preventDefault();
-            getPurchaseOrderList();
+        });
+
+        $(".button-delete-edit").on("click", function (e) {
+            e.preventDefault();
+
+            $(this).closest("tr").remove();
+            processBinding();
         });
 
         $("#btn-add-item").on("click", async function (e) {

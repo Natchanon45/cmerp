@@ -156,7 +156,6 @@ echo form_open(
     async function toggleButtonAdd () {
         let trCount = await tableBody.find("tr").length;
         let itemCount = await purchaseItemList.length;
-
         // console.log(trCount, itemCount);
 
         if (trCount === itemCount) {
@@ -171,6 +170,7 @@ echo form_open(
         let req = {
             supplier_id: $("#supplier-id").val()
         };
+        // console.log(url, req);
 
         purchaseOrderList = [];
         purchaseItemList = [];
