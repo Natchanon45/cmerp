@@ -209,7 +209,9 @@ class Custom_fields extends MY_Controller
 		$result = array();
 		foreach ($list_data as $data) {
 			$result[] = $this->_make_field_row($data);
+
 		}
+		
 		echo json_encode(array("data" => $result));
 	}
 
