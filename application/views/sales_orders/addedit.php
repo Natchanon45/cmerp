@@ -14,8 +14,8 @@
     <div class="form-group">
         <label for="purpose" class=" col-md-3"><?php echo lang('account_purpose'); ?></label>
         <div class="col-md-9">
-            <select id="purpose" class="form-control" <?php if($doc_status != "W" && isset($doc_id)) echo "disabled";?>>
-                <option value="P" <?php if($purpose == "P") echo "selected"; ?>><?php echo lang('account_docname_work_order'); ?></option>
+            <select id="purpose" class="form-control" <?php if(isset($doc_id)) echo "disabled";?>>
+                <option value="P" <?php if($purpose == "P") echo "selected"; ?>><?php echo lang('account_docname_production_order'); ?></option>
                 <option value="S" <?php if($purpose == "S") echo "selected"; ?>><?php echo lang('account_docname_sales_order'); ?></option>
             </select>
         </div>
@@ -191,8 +191,12 @@ $(document).ready(function() {
 
     <?php else: ?>
         $("#doc_date").val("<?php echo date('d/m/Y', strtotime($doc_date)); ?>");
-        $("#project_start_date").val("<?php echo date('d/m/Y', strtotime($project_start_date)); ?>");
+        <?php if($project_start_date != null): ?>
+            $("#project_start_date").val("<?php echo date('d/m/Y', strtotime($project_start_date)); ?>");
+        <?php endif;?>
+        <?php if($project_deadline != null): ?>
         $("#project_deadline").val("<?php echo date('d/m/Y', strtotime($project_deadline)); ?>");
+        <?php endif;?>
     <?php endif; ?>
 
     $(".numb").blur(function(){

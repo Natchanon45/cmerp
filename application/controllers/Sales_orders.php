@@ -107,7 +107,7 @@ class Sales_orders extends MY_Controller {
                 $sprows = $this->Products_m->getRows();
                 if(!empty($sprows)){
                     foreach($sprows as $sprow){
-                        if(count($this->Products_m->getFomulasByItemId($sprow->id)) < 1) continue;
+                        if($this->input->get("purpose") == "P") if(count($this->Products_m->getFomulasByItemId($sprow->id)) < 1) continue;
                         $suggestion[] = ["id" => $sprow->id, "text" => $sprow->title, "description"=>$sprow->description, "unit"=>$sprow->unit_type, "price"=>$sprow->rate];
                     }
                 }
@@ -157,5 +157,18 @@ class Sales_orders extends MY_Controller {
         $data["can_make_mr"] = $this->Sales_orders_m->canMakeMR($this->input->post("id"));
 
         $this->load->view('sales_orders/make_material_request', $data);
+    }
+
+    function make_production_order(){
+        if(isset($this->json->task)){
+            if($this->json->task == "get_products") jout($this->Sales_orders_m->productsToProject($this->json->doc_id));
+            if($this->json->task == "do_make_project") jout($this->Sales_orders_m->makeProject());
+            return;   
+        }
+
+        $data = $this->Sales_orders_m->getDoc($this->input->post("id"));
+        $data["can_make_project"] = $this->Sales_orders_m->canMakeProject($this->input->post("id"));
+
+        $this->load->view('sales_orders/make_production_order', $data);
     }
 }

@@ -3,8 +3,7 @@ if (!defined('BASEPATH')) exit('No direct script access allowed');
 
 class Accounting extends MY_Controller {
     function __construct() {
-        parent::__construct();
-        
+        parent::__construct();        
         /*if($this->Permission_m->canAccessAccounting() != true){
             $this->session->set_flashdata('notice_error', lang('no_permissions'));
             redirect("/");

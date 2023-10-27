@@ -90,7 +90,7 @@
 				</div>
 			</div>
 			<div class="right">
-				<div class="docname custom-color"><?php echo $doc["purpose"] == "P"?lang("account_docname_work_order"):lang("account_docname_sales_order");?></div>
+				<div class="docname custom-color"><?php echo $doc["purpose"] == "P"?lang("account_docname_production_order"):lang("account_docname_sales_order");?></div>
 				<div class="docinfo">
 					<table>
 	                    <tr>

@@ -1,8 +1,9 @@
 <?php
 
 //Doc Name
+$lang["account_docname_work_order"] = "ใบสั่งงาน";
 $lang["account_docname_sales_order"] = "ใบสั่งขาย";
-$lang["account_docname_work_order"] = "ใบสั่งผลิต";
+$lang["account_docname_production_order"] = "ใบสั่งผลิต";
 $lang["account_docname_quotation"] = "ใบเสนอราคา";
 $lang["account_docname_invoice"] = "ใบแจ้งหนี้";
 $lang["account_docname_sales_tax_invoice"] = "ใบกำกับภาษีขาย";
@@ -25,6 +26,7 @@ $lang["account_button_share"] = "แชร์";
 $lang["account_button_print"] = "พิมพ์";
 $lang["account_button_back"] = "ย้อนกลับไปตารางรายการ";
 $lang["account_button_close"] = "ปิดหน้าต่าง";
+$lang["account_button_create_project"] = "สร้างโปรเจค";
 $lang["account_button_create_pr"] = "สร้างใบขอซื้อ";
 $lang["account_button_create_mr"] = "สร้างใบขอเบิก";
 
@@ -44,11 +46,12 @@ $lang["account_item_total"] = "ยอดรวม";
 //so
 $lang["account_so_component"] = "สูตรผสม";
 $lang["account_so_add_stock"] = "นำเข้าสต๊อคเมื่อผลิตเสร็จ";
-$lang["account_so_create_project"] = "สร้างโปรเจค";
+$lang["account_so_view_project"] = "จัดการโปรเจค";
 $lang["account_so_view_po"] = "จัดการใบขอซื้อ";
 $lang["account_so_view_mr"] = "จัดการใบขอเบิก";
 $lang["account_so_title_create_purchase_requisition"] = "เลือกผู้จัดจำหน่ายสำหรับสร้างใบขอซื้อ";
 $lang["account_so_title_automatically_generate_material_requests"] = "สร้างใบขอเบิกอัตโนมัติ";
+$lang["account_so_title_automatically_create_project"] = "สร้างโปรเจคอัตโนมัต";
 $lang["account_so_message_product_not_found"] = "ไม่พบรายการสำหรับอนุมัติ";
 $lang["account_so_message_component_required"] = "ไม่สามารถสร้างโปรเจคได้ เนื่องจากมีรายการสินค้าที่ยังไม่ผูกสูตรอยู่ในรายการ";
 $lang["account_so_message_project_was_created"] = "สร้างโปรเจค '%s' เรียบร้อย";
@@ -69,15 +72,15 @@ $lang["account_issue_date"] = "วันที่ออก";
 $lang["account_due_date"] = "กำหนดรับชำระ";
 $lang["account_document_no"] = "เลขที่เอกสาร";
 $lang["account_short_document_no"] = "เลขที่";
-$lang["account_customer"] = "ลูกค้า";
+$lang["account_customer"] = "ลูกค้า";;
 $lang["account_customer_group"] = "กลุ่มลูกค้า";
+$lang["account_made_to_order"] = "สั่งผลิต";
 $lang["account_refernce_no"] = "อ้างอิง";
 $lang["account_contact"] = "ผู้ติดต่อ";
 $lang["account_phone"] = "เบอร์โทร";
 $lang["account_email"] = "อีเมล์";
 $lang["account_lead"] = "ลูกค้าผู้มุ่งหวัง";
 $lang["account_client"] = "ลูกค้า";
-$lang["account_customer"] = "ลูกค้า";
 $lang["account_seller"] = "ผู้ขาย";
 $lang["account_purpose"] = "วัตถุประสงค์";
 $lang["account_payment_receive_method"] = "รับเงินโดย";
