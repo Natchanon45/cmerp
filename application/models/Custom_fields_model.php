@@ -51,6 +51,7 @@ class Custom_fields_model extends Crud_model
         FROM $custom_fields_table
         WHERE $custom_fields_table.deleted=0 $where 
         ORDER by $custom_fields_table.sort ASC";
+
 		return $this->db->query($sql);
 	}
 

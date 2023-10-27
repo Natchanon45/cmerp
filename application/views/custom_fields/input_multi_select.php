@@ -3,8 +3,12 @@ $uid = "_" . uniqid(rand());
 //$options = $field_info->options ? $field_info->options : "";
 //$options_array = explode(",", $options);
 
-$options = $field_info->options ? json_decode($field_info->options, TRUE) : [];
+//$options = $field_info->options ? json_decode($field_info->options, TRUE) : [];
+$options = explode (",", $field_info->options);
+
 $options_array = $options;
+
+
 
 $options_dropdown = array();
 if ($options && count($options_array)) {
@@ -30,6 +34,7 @@ echo form_input(array(
 <script type="text/javascript">
     
     $(document).ready(function () {
+        
         $("#custom_field_<?php echo $field_info->id . $uid; ?>").select2({data:<?php echo json_encode($options_dropdown); ?>, tags: true});
         //$("#custom_field_<?php echo $field_info->id . $uid; ?>").select2({data:[{"aa","bb"}], tags: true});
     });
