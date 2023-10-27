@@ -46,7 +46,7 @@ $lang["account_item_total"] = "ยอดรวม";
 //so
 $lang["account_so_component"] = "สูตรผสม";
 $lang["account_so_add_stock"] = "นำเข้าสต๊อคเมื่อผลิตเสร็จ";
-$lang["account_so_create_project"] = "สร้างโปรเจค";
+$lang["account_so_view_project"] = "จัดการโปรเจค";
 $lang["account_so_view_po"] = "จัดการใบขอซื้อ";
 $lang["account_so_view_mr"] = "จัดการใบขอเบิก";
 $lang["account_so_title_create_purchase_requisition"] = "เลือกผู้จัดจำหน่ายสำหรับสร้างใบขอซื้อ";

@@ -46,7 +46,7 @@ $lang["account_item_total"] = "Total";
 //so
 $lang["account_so_component"] = "Component";
 $lang["account_so_add_stock"] = "Produuce In";
-$lang["account_so_create_project"] = "Create Project";
+$lang["account_so_view_project"] = "View Project";
 $lang["account_so_view_po"] = "View PO";
 $lang["account_so_view_mr"] = "view MR";
 $lang["account_so_title_create_purchase_requisition"] = "Create purechase requisition from a Supplier's catalogue";

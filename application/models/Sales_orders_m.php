@@ -50,12 +50,8 @@ class Sales_orders_m extends MY_Model {
             }
 
             if($sorow->purpose == "P"){
-                if($sorow->project_id == null){
-                    $doc_status .= "<option selected>".lang("account_status_approved")."</option>";
-                    $doc_status .= "<option value='PROJECT'>".lang("account_so_create_project")."</option>";
-                }else{
-                    $doc_status .= "<option selected>".lang("account_status_issued")."</option>";
-                }
+                $doc_status .= "<option selected>".lang("account_status_approved")."</option>";
+                $doc_status .= "<option value='PROJECT'>".lang("account_so_view_project")."</option>";
             }
 
         }elseif($sorow->status == "V"){
@@ -1439,9 +1435,9 @@ class Sales_orders_m extends MY_Model {
                         ->get()->row();
 
         if(empty($sorow)) return false;
+        if($sorow->project_id == null) return true;
 
-        if($sorow->project_id != null) return false;
-        return true;
+        return false;
     }
 
     function canViewProject($sales_order_id){
