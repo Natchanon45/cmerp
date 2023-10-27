@@ -120,7 +120,8 @@ $(document).ready(function () {
             data: function (keyword, page) {
                 return {
                     keyword: keyword,
-                    task: "suggest_products"
+                    task: "suggest_products",
+                    purpose: "<?php echo $purpose; ?>",
                 };
             },
             results: function (data, page) {
@@ -177,8 +178,8 @@ $(document).ready(function () {
 });
 
 function calculatePrice(){
-    let quantity = tonum($("#quantity").val(), <?php echo $this->Settings_m->getDecimalPlacesNumber(); ?>);
-    let price = tonum($("#price").val(), <?php echo $this->Settings_m->getDecimalPlacesNumber(); ?>);
+    let quantity = tonum($("#quantity").val(), <?php echo DEC; ?>);
+    let price = tonum($("#price").val(), <?php echo DEC; ?>);
     let total_price = 0.00;
 
     if(quantity < 0 ) quantity = 0;
@@ -186,7 +187,7 @@ function calculatePrice(){
 
     total_price = price * quantity;
 
-    $("#quantity").val($.number(quantity, <?php echo $this->Settings_m->getDecimalPlacesNumber(); ?>));
+    $("#quantity").val($.number(quantity, <?php echo DEC; ?>));
     $("#price").val($.number(price, 2));
     $("#total_price").val($.number(total_price, 2));
 }

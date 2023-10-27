@@ -1,7 +1,7 @@
 <link rel="stylesheet" href="/assets/css/printd.css?t=<?php echo time();?>">
 <div id="dcontroller" class="clearfix">
     <div class="page-title clearfix mt15 clear">
-        <h1><?php echo $purpose == "P"?lang("account_docname_work_order"):lang("account_docname_sales_order");?> <?php echo $doc_number;?></h1>
+        <h1><?php echo $purpose == "P"?lang("account_docname_production_order"):lang("account_docname_sales_order");?> <?php echo $doc_number;?></h1>
         <div class="title-button-group">
             <a style="margin-left: 15px;" class="btn btn-default mt0 mb0 back-to-index-btn" href="<?php echo get_uri("accounting/sell/sales-orders");?>" ><i class="fa fa-hand-o-left" aria-hidden="true"></i> <?php echo lang("account_button_back"); ?></a>
             <a id="add_item_button" class="btn btn-default" data-post-doc_id="<?php echo $doc_id; ?>" data-act="ajax-modal" data-title="<?php echo lang("account_button_share"); ?> <?php echo $doc_number; ?>" data-action-url="<?php echo get_uri("/sales-orders/share"); ?>"><?php echo lang("account_button_share"); ?></a>
@@ -57,7 +57,7 @@
             </div><!-- .company -->
         </div><!--.l-->
         <div class="r">
-            <h1 class="document_name custom-color"><?php echo $purpose == "P"?lang("account_docname_work_order"):lang("account_docname_sales_order");?></h1>
+            <h1 class="document_name custom-color"><?php echo $purpose == "P"?lang("account_docname_production_order"):lang("account_docname_sales_order");?></h1>
             <div class="about_company">
                 <table>
                     <tr>
@@ -81,7 +81,6 @@
                 </table>
             </div>
             <div class="about_customer">
-                
                 <table>
                     <tr>
                         <td class="custom-color"><?php echo lang("account_contact"); ?></td>
