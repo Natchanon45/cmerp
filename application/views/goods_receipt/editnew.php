@@ -1,6 +1,6 @@
 <style type="text/css">
     .modal-dialog {
-        width: min(73%, 1024px);
+        width: min(70%, 1024px);
     }
 
     .pointer-none {
@@ -48,15 +48,11 @@
     .quantity-done {
         color: #00b900;
     }
-
-    #remark-text {
-        resize: none;
-    }
 </style>
 
 <?php
 echo form_open(
-    get_uri("payment_voucher/addnew_save"),
+    get_uri("goods_receipt/editnew_save"),
     array(
         "id" => "addnew-form",
         "class" => "general-form",
@@ -67,11 +63,21 @@ echo form_open(
 
 <div class="modal-body clearfix">
     <div class="form-group">
-        <label for="doc-date" class=" col-md-3">
+        <label for="doc-number" class="col-md-3">
+            <?php echo lang("number_of_document"); ?>
+        </label>
+        <div class="col-md-9">
+            <input type="text" value="<?php echo $header_data->doc_number; ?>" class="form-control pointer-none" readonly>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label for="doc-date" class="col-md-3">
             <?php echo lang("document_date"); ?>
         </label>
         <div class="col-md-9">
-            <input type="text" id="doc-date" name="doc-date" class="form-control" autocomplete="off" readonly>
+            <input type="hidden" id="document-id" name="document-id" value="<?php echo $header_data->id; ?>">
+            <input type="text" id="doc-date" name="doc-date" class="form-control <?php if ($header_data->status == "A") { echo "pointer-none"; } ?> <?php if ($header_data->po_id != 0) { echo "pointer-none"; } ?>" autocomplete="off" readonly>
         </div>
     </div>
 
@@ -80,15 +86,16 @@ echo form_open(
             <?php echo lang("project_refer"); ?>
         </label>
         <div class="col-md-9">
-            <select name="project-id" id="project-id" class="form-control select-project" required>
-                <option value="0">
-                    <?php echo "-- " . lang("project_refer") . " --"; ?>
-                </option>
+            <select name="project-id" id="project-id" class="form-control select-project <?php if ($header_data->status == "A") { echo "pointer-none"; } ?> <?php if ($header_data->po_id != 0) { echo "pointer-none"; } ?>" required>
+                <?php if (isset($header_data->project_id) && $header_data->project_id != 0): ?>
+                    <option value="<?php echo $header_data->project_id; ?>"><?php echo $header_data->project_name; ?></option>
+                <?php else: ?>
+                    <option value="0"><?php echo "-- " . lang("project_refer") . " --"; ?></option>
+                <?php endif; ?>
+                
                 <?php if (sizeof($project_dropdown)): ?>
                     <?php foreach ($project_dropdown as $project): ?>
-                        <option value="<?php echo $project["project_id"]; ?>">
-                            <?php echo $project["project_name"]; ?>
-                        </option>
+                        <option value="<?php echo $project["project_id"]; ?>"><?php echo $project["project_name"]; ?></option>
                     <?php endforeach; ?>
                 <?php endif; ?>
             </select>
@@ -100,24 +107,20 @@ echo form_open(
             <?php echo lang("suppliers"); ?>
         </label>
         <div class="col-md-9">
-            <select id="supplier-id" name="supplier-id" class="form-control select-supplier" required>
-                <?php if (sizeof($supplier_dropdown)): ?>
-                    <?php foreach ($supplier_dropdown as $supplier): ?>
-                        <option value="<?php echo $supplier["supplier_id"]; ?>">
-                            <?php echo $supplier["supplier_name"]; ?>
-                        </option>
-                    <?php endforeach; ?>
+            <select id="supplier-id" name="supplier-id" class="form-control select-supplier pointer-none" required>
+                <?php if (isset($header_data->supplier_id) && $header_data->supplier_id != 0): ?>
+                    <option value="<?php echo $header_data->supplier_id; ?>"><?php echo $header_data->supplier_name; ?></option>
                 <?php endif; ?>
             </select>
         </div>
     </div>
 
     <div class="form-group">
-        <label for="invoice-refer" class="col-md-3">
-            <?php echo lang("pv_invoice_refer"); ?>
+        <label for="delivery-refer" class="col-md-3">
+            <?php echo lang("gr_delivery_refer"); ?>
         </label>
         <div class="col-md-9">
-            <input type="text" name="invoice-refer" id="invoice-refer" class="form-control select-invoice-refer" placeholder="<?php echo lang("pv_invoice_refer_placeholder"); ?>" maxlength="40" required>
+            <input <?php if (isset($header_data->supplier_invoice) && !empty($header_data->supplier_invoice)) { echo 'value="' . $header_data->supplier_invoice . '"'; } ?> type="text" name="delivery-refer" id="delivery-refer" class="form-control select-delivery-refer <?php if ($header_data->status == "A") { echo "pointer-none"; } ?>" placeholder="<?php echo lang("gr_delivery_refer_placeholder"); ?>" maxlength="40" required>
         </div>
     </div>
 
@@ -126,7 +129,7 @@ echo form_open(
             <?php echo lang("remark"); ?>
         </label>
         <div class="col-md-9">
-            <textarea name="remark-text" id="remark-text" class="form-control" cols="30" rows="10" placeholder="<?php echo lang("pv_remark_placeholder"); ?>"></textarea>
+            <textarea name="remark-text" id="remark-text" class="form-control <?php if ($header_data->status == "A") { echo "pointer-none"; } ?>" cols="30" rows="10" placeholder="<?php echo lang("gr_remark_placeholder"); ?>"><?php if (isset($header_data->remark) && !empty($header_data->remark)) { echo $header_data->remark; } ?></textarea>
         </div>
     </div>
 
@@ -134,28 +137,56 @@ echo form_open(
         <table>
             <thead>
                 <tr>
-                    <th width="25%">
-                        <?php echo lang("purchase_order"); ?>
-                    </th>
-                    <th width="38%">
-                        <?php echo lang("details"); ?>
-                    </th>
-                    <th width="17%">
-                        <?php echo lang("quantity"); ?>
-                    </th>
-                    <th width="10%">
-                        <?php echo lang("stock_material_unit"); ?>
-                    </th>
-                    <th>
-                        <button id="btn-add-item" class="btn btn-primary right-control">
-                            <span class="fa fa-plus-circle"></span>
-                            <?php echo lang("add"); ?>
-                        </button>
-                    </th>
+                    <th width="25%"><?php echo lang("purchase_order"); ?></th>
+                    <th width="38%"><?php echo lang("details"); ?></th>
+                    <th width="17%"><?php echo lang("quantity"); ?></th>
+                    <th width="10%"><?php echo lang("stock_material_unit"); ?></th>
+                    
+                    <?php if ($header_data->status == "W" && $header_data->po_id == 0): ?>
+                        <th>
+                            <button id="btn-add-item" class="btn btn-primary right-control hide">
+                                <span class="fa fa-plus-circle"></span> 
+                                <?php  echo lang("add"); ?>
+                            </button>
+                        </th>
+                    <?php endif; ?>
                 </tr>
             </thead>
 
-            <tbody id="tbody-po-select"></tbody>
+            <tbody id="tbody-po-select">
+                <?php if (sizeof($detail_data)): ?>
+                    <?php foreach ($detail_data as $item): ?>
+                        <tr>
+                            <td>
+                                <select name="po_id[]" class="form-control select-order pointer-none" required>
+                                    <option value="<?php echo $item->po_info->id; ?>"><?php echo $item->po_info->doc_number; ?></option>
+                                </select>
+                            </td>
+                            <td>
+                                <select name="po_item_id[]" class="form-control select-item pointer-none">
+                                    <option value="<?php echo $item->po_item_info->id; ?>"><?php echo $item->po_item_info->product_name; ?></option>
+                                </select>
+                            </td>
+                            <td>
+                                <input name="quantity[]" class="form-control select-quantity" value="<?php echo $item->quantity; ?>" readonly required>
+                                <input name="status_qty[]" type="hidden" class="select-status_qty" value="Y">
+                            </td>
+                            <td>
+                                <input name="unit[]" class="form-control select-unit" value="<?php echo $item->unit; ?>" readonly>
+                            </td>
+
+                            <?php if ($header_data->status == "W" && $header_data->po_id == 0): ?>
+                                <td>
+                                    <button class="btn btn-danger button-delete-edit right-control" data-item_id="<?php echo $item->id; ?>">
+                                        <span class="fa fa-trash"></span> 
+                                        <?php echo lang("delete"); ?>
+                                    </button>
+                                </td>
+                            <?php endif; ?>
+                        </tr>
+                    <?php endforeach; ?>
+                <?php endif; ?>
+            </tbody>
         </table>
     </div>
 </div>
@@ -164,9 +195,12 @@ echo form_open(
     <button type="button" class="btn btn-default" data-dismiss="modal"><span class="fa fa-close"></span>
         <?php echo lang("close"); ?>
     </button>
-    <button type="submit" id="btn-submit" class="btn btn-primary"><span class="fa fa-check-circle"></span>
-        <?php echo lang("save"); ?>
-    </button>
+
+    <?php if ($header_data->status == "W"): ?>
+        <button type="submit" id="btn-submit" class="btn btn-primary"><span class="fa fa-check-circle"></span>
+            <?php echo lang("save"); ?>
+        </button>
+    <?php endif; ?>
 </div>
 
 <?php echo form_close(); ?>
@@ -179,7 +213,7 @@ echo form_open(
     let purchaseOrderList = [];
     let purchaseItemList = [];
 
-    async function toggleSupplierId() {
+    async function toggleSupplierId () {
         let trCount = await tableBody.find("tr").length;
 
         if (trCount) {
@@ -189,29 +223,31 @@ echo form_open(
         }
     }
 
-    async function toggleButtonAdd() {
+    async function toggleButtonAdd () {
         let trCount = await tableBody.find("tr").length;
         let itemCount = await purchaseItemList.length;
+        // console.log(trCount, itemCount);
 
-        if (trCount === itemCount) {
+        if (itemCount === 0 || trCount === itemCount) {
             $("#btn-add-item").addClass('hide');
         } else {
             $("#btn-add-item").removeClass('hide');
         }
     }
 
-    async function getPurchaseOrderList() {
-        let url = '<?php echo get_uri('payment_voucher/purchase_order_list'); ?>';
+    async function getPurchaseOrderList () {
+        let url = '<?php echo get_uri('goods_receipt/purchase_order_list'); ?>';
         let req = {
             supplier_id: $("#supplier-id").val()
         };
+        // console.log(url, req);
 
         purchaseOrderList = [];
         purchaseItemList = [];
 
         await axios.post(url, req).then(res => {
             const { success, data } = res.data;
-
+            
             if (success) {
                 purchaseOrderList = data.orders;
                 purchaseItemList = data.items;
@@ -221,7 +257,35 @@ echo form_open(
         });
     }
 
-    async function processBinding() {
+    async function getPurchaseOrderListEdit () {
+        let url = '<?php echo get_uri('goods_receipt/purchase_order_list_edit'); ?>';
+        let req = {
+            supplier_id: $("#supplier-id").val(),
+            document_id: $("#document-id").val()
+        };
+        // console.log(url, req);
+
+        purchaseOrderList = [];
+        purchaseItemList = [];
+
+        await axios.post(url, req).then(res => {
+            const { success, data } = res.data;
+            // console.log(data);
+            
+            if (success) {
+                let poIdSet = new Set(data.items.map(item => item.po_id));
+                let filteredOrders = data.orders.filter(order => poIdSet.has(order.po_id));
+
+                purchaseOrderList = filteredOrders;
+                purchaseItemList = data.items;
+            }
+            // console.log(purchaseOrderList, purchaseItemList);
+        }).catch(err => {
+            console.log(err);
+        });
+    }
+
+    async function processBinding () {
         $(".select-order").select2("destroy");
         $(".select-order").select2();
 
@@ -240,7 +304,7 @@ echo form_open(
                 optionItems.map((i) => {
                     selectItems.append(`<option value="${i.po_item_id}">${i.product_name}</option>`);
                 });
-
+                
                 selectItems.removeClass('pointer-none hide');
                 selectItems.select2();
             } else {
@@ -298,7 +362,7 @@ echo form_open(
 
             let thisVal = parseFloat(self.val());
             let thisMax = parseFloat(self.data("maximum"));
-
+            
             if (thisVal < 0 || thisVal > thisMax) {
                 self.removeClass("quantity-done");
                 self.addClass("quantity-over");
@@ -319,9 +383,9 @@ echo form_open(
             $(this).closest("tr").remove();
             processBinding();
         });
-
-        toggleSupplierId();
-        toggleButtonAdd();
+        
+        await getPurchaseOrderListEdit();
+        await toggleButtonAdd();
     }
 
     $(document).ready(function () {
@@ -331,23 +395,32 @@ echo form_open(
         });
 
         $("#doc-date").datepicker(
-            "setDate", "<?php echo date("d/m/Y"); ?>"
+            "setDate", "<?php echo date("d/m/Y", strtotime($header_data->doc_date)); ?>"
         );
 
         $("#project-id").select2();
 
         $("#supplier-id").select2();
 
-        getPurchaseOrderList();
-
         $("#supplier-id").on("click", function (e) {
             e.preventDefault();
-            getPurchaseOrderList();
+        });
+
+        $(".button-delete-edit").on("click", function (e) {
+            e.preventDefault();
+
+            $(this).closest("tr").remove();
+            processBinding();
         });
 
         $("#btn-add-item").on("click", async function (e) {
             e.preventDefault();
 
+            // console.log(purchaseOrderList.length);
+            if (purchaseOrderList.length === 0) {
+                return;
+            }
+            
             await tableBody.append(`
                 <tr>
                     <td>
@@ -382,8 +455,11 @@ echo form_open(
             await processBinding();
         });
 
+        processBinding();
+
         addNewForm.appForm({
             onSuccess: function (result) {
+                // console.log(result);
                 const { post_result } = result;
 
                 if (post_result.trans_status == "T") {

@@ -280,18 +280,16 @@
         } 
         else if (active_module == 'goods_receipt') 
         {
-            $(".buttons").addClass('hide');
-            $(".buttons li.add a").attr('data-action-url', '<?php echo get_uri("goods_receipt/addedit"); ?>');
+            $(".buttons").removeClass('hide');
+            $(".buttons li.add a").attr('data-action-url', '<?php echo get_uri("goods_receipt/addnew"); ?>');
             $(".buttons li.add a").attr('data-title', '<?php echo lang("goods_receipt_add"); ?>');
             $(".buttons li.add span").append('<?php echo lang("goods_receipt_add"); ?>');
 
             status_dropdown = '<?php echo $gr_status_dropdown; ?>';
             supplier_dropdown = '<?php echo $supplier_dropdown; ?>';
-            type_dropdown = '<?php echo $type_dropdown; ?>';
 
             grid_filters = [
                 { name: 'status', class: 'w150', options: JSON.parse(status_dropdown) },
-                { name: 'po_type', class: 'w200', options: JSON.parse(type_dropdown) },
                 { name: 'supplier_id', class: 'w250', options: JSON.parse(supplier_dropdown) }
             ];
 
@@ -299,7 +297,6 @@
                 { title: '<?php echo lang('request_date'); ?>', class: 'w10p' },
                 { title: '<?php echo lang('pr_number'); ?>', class: 'w10p' },
                 { title: '<?php echo lang('reference_number'); ?>', class: 'w10p' },
-                { title: '<?php echo lang('pr_type'); ?>', class: 'w10p' },
                 { title: '<?php echo lang('supplier_name'); ?>', class: 'w20p' },
                 { title: '<?php echo lang('request_by'); ?>', class: 'w10p' },
                 { title: '<?php echo lang('total_amount'); ?>', class: 'text-right w10p' },
@@ -311,7 +308,7 @@
             grid_excel = combineCustomFieldsColumns([0, 1, 2, 3, 4, 5, 6]);
 
             grid_summation = [
-                { column: 6, dataType: 'currency' }
+                { column: 5, dataType: 'currency' }
             ];
         }
 
@@ -352,8 +349,8 @@
                     
                     const { data } = response;
 
-                    if (data.status == "success") {
-                        if (typeof data.task !== "undefined") {
+                    if (data.status == 'success') {
+                        if (typeof data.task !== 'undefined') {
                             if (data.task === 'cancelled_purchase_order') {
                                 window.location.reload();
                                 return;

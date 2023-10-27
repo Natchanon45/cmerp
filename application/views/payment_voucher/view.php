@@ -60,49 +60,53 @@
 <div id="dcontroller" class="clearfix">
     <div class="page-title clearfix mt15 clear">
         <h1>
-            <?php echo (isset($pv_info->doc_number) && !empty($pv_info->doc_number)) ? lang('payment_voucher') . " " . $pv_info->doc_number : ""; ?>
+            <?php echo (isset($pv_info->doc_number) && !empty($pv_info->doc_number)) ? lang("payment_voucher") . " " . $pv_info->doc_number : ""; ?>
         </h1>
         <div class="title-button-group">
-            <a style="margin-left: 15px;" class="btn btn-default mt0 mb0 back-to-index-btn" href="<?php echo get_uri("accounting/buy/payment_voucher"); ?>">
+            <a style="margin-left: 15px;" class="btn btn-default mt0 mb0 back-to-index-btn" 
+                href="<?php echo get_uri("accounting/buy/payment_voucher"); ?>"> 
                 <i class="fa fa-hand-o-left" aria-hidden="true"></i>
-                <?php echo lang('back_to_table'); ?>
+                <?php echo lang("back_to_table"); ?>
             </a>
 
             <?php if ($pv_info->status != "R" && $pv_info->status != "X"): ?>
                 <a id="add_item_button" class="btn btn-default" data-post-doc_id="<?php echo $pv_info->id; ?>" 
                     data-act="ajax-modal" data-title="<?php echo lang("share_doc") . " " . $pv_info->doc_number; ?>" 
-                    data-action-url="<?php echo get_uri("payment_voucher/share"); ?>"> <?php echo lang("share"); ?>
+                    data-action-url="<?php echo get_uri("payment_voucher/share"); ?>"> 
+                    <i class="fa fa-share-square-o" aria-hidden="true"></i>
+                    <?php echo lang("share"); ?>
                 </a>
 
-                <a href="javascript:void(0);" class="btn btn-warning" onclick="window.open('<?php echo $print_url; ?>', '_blank');">
-                    <i class="fa fa-print" aria-hidden="true"></i> 
+                <a href="javascript:void(0);" class="btn btn-warning" 
+                    onclick="window.open('<?php echo $print_url; ?>', '_blank');"> 
+                    <i class="fa fa-print" aria-hidden="true"></i>
                     <?php echo lang("payment_voucher_print"); ?>
                 </a>
             <?php endif; ?>
 
             <?php if ($pv_info->status == "W" && $pv_info->pay_status == "C"): ?>
                 <a href="javascript:void(0);" id="btn-approval" class="btn btn-primary">
-                    <i class="fa fa-check" aria-hidden="true"></i> 
+                    <i class="fa fa-check" aria-hidden="true"></i>
                     <?php echo lang("payment_voucher_approve"); ?>
                 </a>
             <?php endif; ?>
 
             <?php
-                if ($pv_info->pay_status != "C") {
-                    if ($pv_info->pay_status != "O") {
-                        echo modal_anchor(
-                            get_uri("payment_voucher/record_payment"),
-                            '<i class="fa fa-money" aria-hidden="true"></i> ' . lang("payment_information_add"),
-                            array(
-                                "data-post-doc_id" => $pv_info->id,
-                                "data-act" => "ajax-modal",
-                                "data-title" => lang("payment_information_add"),
-                                "title" => lang("payment_information_add"),
-                                "class" => "btn btn-info"
-                            )
-                        );
-                    }
+            if ($pv_info->pay_status != "C") {
+                if ($pv_info->pay_status != "O") {
+                    echo modal_anchor(
+                        get_uri("payment_voucher/record_payment"),
+                        '<i class="fa fa-money" aria-hidden="true"></i> ' . lang("payment_information_add"),
+                        array(
+                            "data-post-doc_id" => $pv_info->id,
+                            "data-act" => "ajax-modal",
+                            "data-title" => lang("payment_information_add"),
+                            "title" => lang("payment_information_add"),
+                            "class" => "btn btn-info"
+                        )
+                    );
                 }
+            }
             ?>
         </div>
     </div>
@@ -166,13 +170,13 @@
                         } elseif ($supplier_address == "" && $supplier["state"] != "") {
                             $supplier_address .= $supplier["state"];
                         }
-                            
+
                         if ($supplier_address != "" && $supplier["zip"] != "") {
                             $supplier_address .= " " . $supplier["zip"];
                         } elseif ($supplier_address == "" && $supplier["zip"] != "") {
                             $supplier_address .= $supplier["zip"];
                         }
-                        
+
                         echo $supplier_address;
                         ?>
                     </p>
@@ -187,7 +191,7 @@
 
         <div class="r">
             <h1 class="document_name custom-color">
-                <?php echo lang('payment_voucher'); ?>
+                <?php echo lang("payment_voucher"); ?>
             </h1>
 
             <div class="about_company">
@@ -208,23 +212,25 @@
                             <?php echo convertDate($pv_info->doc_date, true); ?>
                         </td>
                     </tr>
-                    <?php if (isset($pv_info->reference_number) && !empty($pv_info->reference_number) && trim($pv_info->reference_number) != ""): ?>
+
+                    <?php if (isset($pv_info->supplier_invoice) && !empty($pv_info->supplier_invoice)): ?>
                         <tr>
                             <td class="custom-color">
-                                <?php echo lang("reference_number"); ?>
+                                <?php echo lang("pv_invoice_refer"); ?>
                             </td>
                             <td>
-                                <?php echo trim($pv_info->reference_number); ?>
+                                <?php echo $pv_info->supplier_invoice; ?>
                             </td>
                         </tr>
                     <?php endif; ?>
-                    <?php if (isset($pv_info->references) && !empty($pv_info->references)): ?>
+                    
+                    <?php if (isset($pv_info->references_links) && !empty($pv_info->references_links)): ?>
                         <tr>
                             <td class="custom-color">
-                                <?php echo lang("reference_number"); ?>
+                                <?php echo lang("po_no"); ?>
                             </td>
                             <td>
-                                <?php echo trim($pv_info->references); ?>
+                                <?php echo $pv_info->references_links; ?>
                             </td>
                         </tr>
                     <?php endif; ?>
@@ -235,7 +241,7 @@
                 <table width="100%">
                     <tr>
                         <td class="custom-color" style="width: 30%;">
-                            <?php echo lang('contact_name'); ?>
+                            <?php echo lang("contact_name"); ?>
                         </td>
                         <td>
                             <?php echo (isset($supplier_contact) && !empty($supplier_contact)) ? $supplier_contact["first_name"] . " " . $supplier_contact["last_name"] : '-'; ?>
@@ -289,15 +295,29 @@
                 <?php if (sizeof($pv_detail)): ?>
                     <?php foreach ($pv_detail as $key => $item): ?>
                         <tr>
-                            <td><?php echo $key + 1; ?></td>
                             <td>
-                                <p class="desc1"><?php echo $item->product_name; ?></p>
-                                <p class="desc2"><?php echo $item->product_description; ?></p>
+                                <?php echo $key + 1; ?>
                             </td>
-                            <td><?php echo number_format($item->quantity, 2); ?></td>
-                            <td><?php echo mb_strtoupper($item->unit); ?></td>
-                            <td><?php echo number_format($item->price, 2); ?></td>
-                            <td><?php echo number_format($item->total_price, 2); ?></td>
+                            <td>
+                                <p class="desc1">
+                                    <?php echo $item->product_name; ?>
+                                </p>
+                                <p class="desc2">
+                                    <?php echo $item->product_description; ?>
+                                </p>
+                            </td>
+                            <td>
+                                <?php echo number_format($item->quantity, 2); ?>
+                            </td>
+                            <td>
+                                <?php echo mb_strtoupper($item->unit); ?>
+                            </td>
+                            <td>
+                                <?php echo number_format($item->price, 2); ?>
+                            </td>
+                            <td>
+                                <?php echo number_format($item->total_price, 2); ?>
+                            </td>
                             <td></td>
                         </tr>
                     <?php endforeach; ?>
@@ -309,12 +329,14 @@
                 </tr>
                 <tr>
                     <td colspan="3">
-                        <p><textarea name="total_in_text" id="total_in_text" rows="4" readonly><?php echo $pv_info->total_in_text; ?></textarea></p>
+                        <p>
+                            <textarea name="total_in_text" id="total_in_text" rows="4" readonly><?php echo $pv_info->total_in_text; ?></textarea>
+                        </p>
                     </td>
                     <td colspan="4" class="summary">
                         <p id="s-sub-total-before-discount">
                             <span class="c1 custom-color">
-                                <?php echo lang('total_all_item'); ?>
+                                <?php echo lang("total_all_item"); ?>
                             </span>
                             <span class="c2">
                                 <input type="text" id="sub_total_before_discount" value="<?php echo number_format($pv_info->sub_total, 2); ?>" readonly>
@@ -360,7 +382,8 @@
                                     <?php echo lang("with_holding_tax"); ?>
                                 </span>
                                 <span class="c2 wht">
-                                    <input type="text" id="wht_value" value="<?php echo number_format($pv_info->wht_value, 2); ?>" readonly>
+                                    <input type="text" id="wht_value"
+                                        value="<?php echo number_format($pv_info->wht_value, 2); ?>" readonly>
                                 </span>
                                 <span class="c3 wht">
                                     <span class="currency">
@@ -373,7 +396,8 @@
                                     <?php echo lang("payment_amount"); ?>
                                 </span>
                                 <span class="c2 wht">
-                                    <input type="text" id="payment_amount" value="<?php echo number_format($pv_info->payment_amount, 2); ?>" readonly>
+                                    <input type="text" id="payment_amount"
+                                        value="<?php echo number_format($pv_info->payment_amount, 2); ?>" readonly>
                                 </span>
                                 <span class="c3 wht">
                                     <span class="currency">
@@ -389,7 +413,7 @@
         <?php if (trim($pv_info->remark) != ""): ?>
             <div class="remark clear">
                 <p class="custom-color">
-                    <?php echo lang('remark') . ' / ' . lang('payment_condition'); ?>
+                    <?php echo lang("remark") . " / " . lang("payment_condition"); ?>
                 </p>
                 <p>
                     <?php echo nl2br($pv_info->remark); ?>
@@ -400,43 +424,63 @@
 
     <div class="payment_info clear" id="paymentInfo">
         <?php if (isset($pv_method) && !empty($pv_method)): ?>
-            <p class="custom-color"><?php echo lang("payment_information"); ?></p>
+            <p class="custom-color">
+                <?php echo lang("payment_information"); ?>
+            </p>
             <?php
-                if (sizeof($pv_method)):
-                    $index = 1;
-                    foreach ($pv_method as $item):
-                        ?>
-                            <div id="paymentItems">
-                                <table>
-                                    <tr>
-                                        <td rowspan="2" class="payment_number" width="5%">#<?php echo $index; ?></td>
-                                        <td class="payment_key" width="15%"><?php echo lang("payments_date"); ?>: </td>
-                                        <td class="payment_value" width="15%"><?php echo $item->date_output; ?></td>
-                                        <td class="payment_type">
-                                            <div>
-                                                <span class="font-weight-bold"><?php echo lang("payment_method"); ?>: </span>
-                                                <span style="margin-left: 1rem;"><?php echo $item->type_name; ?></span>
-                                            </div>
-                                        </td>
-                                        <td rowspan="2" width="15%" class="text-center font-size-bigger font-weight-bold"><?php echo $item->currency_format; ?></td>
-                                        <td rowspan="2" class="text-center option opx">
-                                            <?php if ($item->receipt_flag == 0): ?>
-                                                <a class="edit" data-item_id="<?php echo $item->id; ?>"><i class="fa fa-check"></i></a>
-                                                <a class="delete" data-item_id="<?php echo $item->id; ?>"><i class="fa fa-times"></i></a>
-                                            <?php endif; ?>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td class="payment_key"><?php echo lang("payments_amount"); ?>: </td>
-                                        <td class="payment_value"><?php echo $item->number_format; ?></td>
-                                        <td class="payment_type"><?php echo $item->type_description?></td>
-                                    </tr>
-                                </table>
-                            </div>
-                        <?php
-                        $index++;
-                    endforeach;
-                endif;
+            if (sizeof($pv_method)):
+                $index = 1;
+                foreach ($pv_method as $item):
+                    ?>
+                    <div id="paymentItems">
+                        <table>
+                            <tr>
+                                <td rowspan="2" class="payment_number" width="5%">#
+                                    <?php echo $index; ?>
+                                </td>
+                                <td class="payment_key" width="15%">
+                                    <?php echo lang("payments_date"); ?>:
+                                </td>
+                                <td class="payment_value" width="15%">
+                                    <?php echo $item->date_output; ?>
+                                </td>
+                                <td class="payment_type">
+                                    <div>
+                                        <span class="font-weight-bold">
+                                            <?php echo lang("payment_method"); ?>:
+                                        </span>
+                                        <span style="margin-left: 1rem;">
+                                            <?php echo $item->type_name; ?>
+                                        </span>
+                                    </div>
+                                </td>
+                                <td rowspan="2" width="15%" class="text-center font-size-bigger font-weight-bold">
+                                    <?php echo $item->currency_format; ?>
+                                </td>
+                                <td rowspan="2" class="text-center option opx">
+                                    <?php if ($item->receipt_flag == 0): ?>
+                                        <a class="edit" data-item_id="<?php echo $item->id; ?>"><i class="fa fa-check"></i></a>
+                                        <a class="delete" data-item_id="<?php echo $item->id; ?>"><i class="fa fa-times"></i></a>
+                                    <?php endif; ?>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="payment_key">
+                                    <?php echo lang("payments_amount"); ?>:
+                                </td>
+                                <td class="payment_value">
+                                    <?php echo $item->number_format; ?>
+                                </td>
+                                <td class="payment_type">
+                                    <?php echo $item->type_description ?>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                    <?php
+                    $index++;
+                endforeach;
+            endif;
             ?>
         <?php endif; ?>
     </div>
@@ -448,21 +492,25 @@
                 <div class="name">
                     <span class="l1">
                         <span class="signature">
-                            <?php if ($pv_info->status != "R" && $pv_info->status != "X"): if ($pv_info->created_by != null): if (null != $requester_sign = $this->Users_m->getSignature($pv_info->created_by)): ?>
-                                <img src="<?php echo '/' . $requester_sign; ?>">
-                            <?php endif; endif; endif; ?>
+                            <?php if ($pv_info->status != "R" && $pv_info->status != "X"):
+                                if ($pv_info->created_by != null):
+                                    if (null != $requester_sign = $this->Users_m->getSignature($pv_info->created_by)): ?>
+                                        <img src="<?php echo '/' . $requester_sign; ?>">
+                                    <?php endif; endif; endif; ?>
                         </span>
                     </span>
                     <span class="l2">
                         <?php
-                            $issuer_name = "( " . str_repeat("_", 18) . " )";
-                            if ($created_by["last_name"] == "") {
-                                $issuer_name = "( " . $created_by["first_name"] . " )";
-                            } else {
-                                $issuer_name = "( " . $created_by["first_name"] . " " . $created_by["last_name"] . " )";
-                            }
+                        $issuer_name = "( " . str_repeat("_", 18) . " )";
+                        if ($created_by["last_name"] == "") {
+                            $issuer_name = "( " . $created_by["first_name"] . " )";
+                        } else {
+                            $issuer_name = "( " . $created_by["first_name"] . " " . $created_by["last_name"] . " )";
+                        }
                         ?>
-                        <p><?php echo $issuer_name; ?></p>
+                        <p>
+                            <?php echo $issuer_name; ?>
+                        </p>
                         <?php echo lang('issuer_of_document'); ?>
                     </span>
                 </div>
@@ -496,16 +544,18 @@
                     </span>
                     <span class="l2">
                         <?php
-                            $approver_name = "( " . str_repeat("_", 18) . " )";
-                            if ($pv_info->status == "A") {
-                                if ($approved_by["last_name"] == "") {
-                                    $approver_name = "( " . $approved_by["first_name"] . " )";
-                                } else {
-                                    $approver_name = "( " . $approved_by["first_name"] . " " . $approved_by["last_name"] . " )";
-                                }
+                        $approver_name = "( " . str_repeat("_", 18) . " )";
+                        if ($pv_info->status == "A") {
+                            if ($approved_by["last_name"] == "") {
+                                $approver_name = "( " . $approved_by["first_name"] . " )";
+                            } else {
+                                $approver_name = "( " . $approved_by["first_name"] . " " . $approved_by["last_name"] . " )";
                             }
+                        }
                         ?>
-                        <p><?php echo $approver_name; ?></p>
+                        <p>
+                            <?php echo $approver_name; ?>
+                        </p>
                         <?php echo lang('approver'); ?>
                     </span>
                 </div>
@@ -544,14 +594,13 @@
         });
     });
 
-    async function approveDocumentInfo () {
+    async function approveDocumentInfo() {
         let url = '<?php echo_uri($active_module); ?>';
         let request = {
             taskName: 'update_doc_status',
             doc_id: '<?php echo $pv_info->id; ?>',
             update_status_to: 'A'
         };
-        // console.log(url, request);
 
         await axios.post(url, request).then(response => {
             const { data } = response;
@@ -568,7 +617,7 @@
         });
     }
 
-    async function saveItemGotReceipt (id) {
+    async function saveItemGotReceipt(id) {
         let url = '<?php echo_uri($active_module); ?>';
         let request = {
             taskName: 'got_a_receipt',
@@ -589,18 +638,14 @@
         });
     }
 
-    async function saveItemDeleted (id) {
+    async function saveItemDeleted(id) {
         let url = '<?php echo_uri($active_module); ?>';
         let request = {
             taskName: 'item_deleted',
             id: id
         };
 
-        // console.log(url, request);
-
         await axios.post(url, request).then(response => {
-            console.log(response);
-
             const { data } = response;
 
             if (data.status == 'success') {

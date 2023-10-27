@@ -1,6 +1,6 @@
 <style type="text/css">
     .modal-dialog {
-        width: min(73%, 1024px);
+        width: min(70%, 1024px);
     }
 
     .pointer-none {
@@ -56,7 +56,7 @@
 
 <?php
 echo form_open(
-    get_uri("payment_voucher/addnew_save"),
+    get_uri("goods_receipt/addnew_save"),
     array(
         "id" => "addnew-form",
         "class" => "general-form",
@@ -81,14 +81,10 @@ echo form_open(
         </label>
         <div class="col-md-9">
             <select name="project-id" id="project-id" class="form-control select-project" required>
-                <option value="0">
-                    <?php echo "-- " . lang("project_refer") . " --"; ?>
-                </option>
+                <option value="0"><?php echo "-- " . lang("project_refer") . " --"; ?></option>
                 <?php if (sizeof($project_dropdown)): ?>
                     <?php foreach ($project_dropdown as $project): ?>
-                        <option value="<?php echo $project["project_id"]; ?>">
-                            <?php echo $project["project_name"]; ?>
-                        </option>
+                        <option value="<?php echo $project["project_id"]; ?>"><?php echo $project["project_name"]; ?></option>
                     <?php endforeach; ?>
                 <?php endif; ?>
             </select>
@@ -103,9 +99,7 @@ echo form_open(
             <select id="supplier-id" name="supplier-id" class="form-control select-supplier" required>
                 <?php if (sizeof($supplier_dropdown)): ?>
                     <?php foreach ($supplier_dropdown as $supplier): ?>
-                        <option value="<?php echo $supplier["supplier_id"]; ?>">
-                            <?php echo $supplier["supplier_name"]; ?>
-                        </option>
+                        <option value="<?php echo $supplier["supplier_id"]; ?>"><?php echo $supplier["supplier_name"]; ?></option>
                     <?php endforeach; ?>
                 <?php endif; ?>
             </select>
@@ -113,11 +107,11 @@ echo form_open(
     </div>
 
     <div class="form-group">
-        <label for="invoice-refer" class="col-md-3">
-            <?php echo lang("pv_invoice_refer"); ?>
+        <label for="delivery-refer" class="col-md-3">
+            <?php echo lang("gr_delivery_refer"); ?>
         </label>
         <div class="col-md-9">
-            <input type="text" name="invoice-refer" id="invoice-refer" class="form-control select-invoice-refer" placeholder="<?php echo lang("pv_invoice_refer_placeholder"); ?>" maxlength="40" required>
+            <input type="text" name="delivery-refer" id="delivery-refer" class="form-control select-delivery-refer" placeholder="<?php echo lang("gr_delivery_refer_placeholder"); ?>" maxlength="40" required>
         </div>
     </div>
 
@@ -126,7 +120,7 @@ echo form_open(
             <?php echo lang("remark"); ?>
         </label>
         <div class="col-md-9">
-            <textarea name="remark-text" id="remark-text" class="form-control" cols="30" rows="10" placeholder="<?php echo lang("pv_remark_placeholder"); ?>"></textarea>
+            <textarea name="remark-text" id="remark-text" class="form-control" cols="30" rows="10" placeholder="<?php echo lang("gr_remark_placeholder"); ?>"></textarea>
         </div>
     </div>
 
@@ -134,21 +128,13 @@ echo form_open(
         <table>
             <thead>
                 <tr>
-                    <th width="25%">
-                        <?php echo lang("purchase_order"); ?>
-                    </th>
-                    <th width="38%">
-                        <?php echo lang("details"); ?>
-                    </th>
-                    <th width="17%">
-                        <?php echo lang("quantity"); ?>
-                    </th>
-                    <th width="10%">
-                        <?php echo lang("stock_material_unit"); ?>
-                    </th>
+                    <th width="25%"><?php echo lang("purchase_order"); ?></th>
+                    <th width="38%"><?php echo lang("details"); ?></th>
+                    <th width="17%"><?php echo lang("quantity"); ?></th>
+                    <th width="10%"><?php echo lang("stock_material_unit"); ?></th>
                     <th>
                         <button id="btn-add-item" class="btn btn-primary right-control">
-                            <span class="fa fa-plus-circle"></span>
+                            <span class="fa fa-plus-circle"></span> 
                             <?php echo lang("add"); ?>
                         </button>
                     </th>
@@ -179,7 +165,7 @@ echo form_open(
     let purchaseOrderList = [];
     let purchaseItemList = [];
 
-    async function toggleSupplierId() {
+    async function toggleSupplierId () {
         let trCount = await tableBody.find("tr").length;
 
         if (trCount) {
@@ -189,9 +175,10 @@ echo form_open(
         }
     }
 
-    async function toggleButtonAdd() {
+    async function toggleButtonAdd () {
         let trCount = await tableBody.find("tr").length;
         let itemCount = await purchaseItemList.length;
+        // console.log(trCount, itemCount);
 
         if (trCount === itemCount) {
             $("#btn-add-item").addClass('hide');
@@ -200,11 +187,12 @@ echo form_open(
         }
     }
 
-    async function getPurchaseOrderList() {
-        let url = '<?php echo get_uri('payment_voucher/purchase_order_list'); ?>';
+    async function getPurchaseOrderList () {
+        let url = '<?php echo get_uri('goods_receipt/purchase_order_list'); ?>';
         let req = {
             supplier_id: $("#supplier-id").val()
         };
+        // console.log(url, req);
 
         purchaseOrderList = [];
         purchaseItemList = [];
@@ -221,7 +209,7 @@ echo form_open(
         });
     }
 
-    async function processBinding() {
+    async function processBinding () {
         $(".select-order").select2("destroy");
         $(".select-order").select2();
 
@@ -240,7 +228,7 @@ echo form_open(
                 optionItems.map((i) => {
                     selectItems.append(`<option value="${i.po_item_id}">${i.product_name}</option>`);
                 });
-
+                
                 selectItems.removeClass('pointer-none hide');
                 selectItems.select2();
             } else {
@@ -337,7 +325,7 @@ echo form_open(
         $("#project-id").select2();
 
         $("#supplier-id").select2();
-
+        
         getPurchaseOrderList();
 
         $("#supplier-id").on("click", function (e) {
@@ -347,7 +335,7 @@ echo form_open(
 
         $("#btn-add-item").on("click", async function (e) {
             e.preventDefault();
-
+            
             await tableBody.append(`
                 <tr>
                     <td>
@@ -384,6 +372,7 @@ echo form_open(
 
         addNewForm.appForm({
             onSuccess: function (result) {
+                console.log(result);
                 const { post_result } = result;
 
                 if (post_result.trans_status == "T") {

@@ -2552,14 +2552,27 @@ $lang["record_expenses"] = "บันทึกค่าใช้จ่าย";
 $lang["record_products"] = "บันทึกซื้อสินค้า";
 $lang["operation"] = "ดำเนินการ";
 
+$lang["purchase_order_refer"] = "อ้างอิงใบสั่งซื้อ";
+
 $lang["goods_receipt"] = "ใบรับสินค้า (GR)";
 $lang["goods_receipt_add"] = "เพิ่มใบรับสินค้า (GR)";
 $lang["goods_receipt_approve"] = "อนุมัติใบรับสินค้าและนำเข้าคลัง";
 $lang["goods_receipt_print"] = "พิมพ์ใบรับสินค้า";
+$lang["goods_receipt_edit"] = "แก้ไขใบรับสินค้า (GR)";
 $lang["receive_date"] = "วันที่รับสินค้า";
 $lang["record_of_receipt"] = "บันทึกซื้อสินค้า";
 $lang["record_of_expenses"] = "บันทึกค่าใช้จ่าย";
 $lang["record_of_goods_receipt"] = "ออกใบรับสินค้า";
+$lang["goods_receipt_due"] = "วันที่ครบกำหนด";
+
+$lang["gr_save_succeed"] = "เพิ่มใบรับสินค้าเรียบร้อยแล้ว";
+$lang["gr_item_duplicated"] = "รายการที่เลือกต้องไม่ซ้ำกัน";
+$lang["gr_no_item_select"] = "ยังไม่ได้เลือกรายการ";
+$lang["gr_incomplete_info"] = "ระบุข้อมูลไม่ครบถ้วน";
+$lang["gr_incorrect_qty"] = "ระบุจำนวนไม่ถูกต้อง";
+$lang["gr_delivery_refer"] = "อ้างอิงใบส่งสินค้า";
+$lang["gr_delivery_refer_placeholder"] = "ระบุเลขที่ใบส่งสินค้าของผู้ขายหรือผู้จัดจำหน่าย";
+$lang["gr_remark_placeholder"] = "ระบุหมายเหตุหรือเงื่อนไขต่างๆ ที่เกี่ยวกับการรับสินค้า";
 
 $lang["payment_voucher"] = "ใบสำคัญจ่าย (PV)";
 $lang["payment_voucher_add"] = "เพิ่มใบสำคัญจ่าย (PV)";
@@ -2578,6 +2591,9 @@ $lang["payment_voucher_payee"] = "ผู้ขาย";
 $lang["payment_information"] = "ข้อมูลการชำระเงิน";
 $lang["payment_information_add"] = "บันทึกการชำระเงิน";
 
+$lang["pv_invoice_refer"] = "อ้างอิงใบแจ้งหนี้";
+$lang["pv_invoice_refer_placeholder"] = "ระบุเลขที่ใบแจ้งหนี้ของผู้ขายหรือผู้จัดจำหน่าย";
+$lang["pv_remark_placeholder"] = "ระบุหมายเหตุหรือเงื่อนไขต่างๆ ที่เกี่ยวกับการชำระเงิน";
 $lang["pv_pay_date"] = "วันที่ชำระเงิน";
 $lang["pv_pay_amount"] = "จำนวนเงินรวม";
 $lang["pv_pay_method"] = "วิธีการชำระเงิน";

@@ -2155,14 +2155,26 @@ $lang["record_expenses"] = "Record expense";
 $lang["record_products"] = "Record product";
 $lang["operation"] = "Operations";
 
+$lang["purchase_order_refer"] = "PO Refer.";
+
 $lang["goods_receipt"] = "Goods Receipt";
 $lang["goods_receipt_add"] = "Create (GR)";
 $lang["goods_receipt_approve"] = "Approve and add stock";
 $lang["goods_receipt_print"] = "Print (GR)";
+$lang["goods_receipt_edit"] = "Edit (GR)";
 $lang["receive_date"] = "Receive date";
 $lang["record_of_receipt"] = "Record of Goods receipt";
 $lang["record_of_expenses"] = "Record of Expenses";
 $lang["record_of_goods_receipt"] = "Record of Goods receipt";
+$lang["goods_receipt_due"] = "Due date";
+
+$lang["gr_save_succeed"] = "Payment voucher have been created.";
+$lang["gr_item_duplicated"] = "Found duplicate items.";
+$lang["gr_no_item_select"] = "No items selected.";
+$lang["gr_incomplete_info"] = "Incomplete information.";
+$lang["gr_incorrect_qty"] = "Incorrect quantity specified.";
+$lang["gr_delivery_refer"] = "Supplier Delivery Note";
+$lang["gr_delivery_refer_placeholder"] = "Delivery Note number that will be received.";
 
 $lang["payment_voucher"] = "Payment Voucher";
 $lang["payment_voucher_add"] = "Create new PV";
@@ -2181,6 +2193,9 @@ $lang["payment_voucher_payee"] = "Payee Info.";
 $lang["payment_information"] = "Payment Info.";
 $lang["payment_information_add"] = "Add payment Info.";
 
+$lang["pv_invoice_refer"] = "Supplier Invoice";
+$lang["pv_invoice_refer_placeholder"] = "Invoice number that will be pay.";
+$lang["pv_remark_placeholder"] = "Remark or Terms and Conditions to payment.";
 $lang["pv_pay_date"] = "Pay Date";
 $lang["pv_pay_amount"] = "Pay Amount";
 $lang["pv_pay_method"] = "Payment Method";

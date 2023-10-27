@@ -81,7 +81,22 @@ class Payment_voucher extends MY_Controller
         $data["pv_info"] = $this->Payment_voucher_m->dev2_getPaymentVoucherHeaderById($data["pv_id"]);
         $data["pv_info"]->total_in_text = "(" . numberToText($data["pv_info"]->total) . ")";
         if (!empty($data["pv_info"]->reference_list)) {
-            $data["pv_info"]->references = implode(", ", (array) json_decode($data["pv_info"]->reference_list));
+            $data["pv_info"]->references = (array) json_decode($data["pv_info"]->reference_list);
+            foreach ($data["pv_info"]->references as $po_no) {
+                $data["pv_info"]->references_link[] = anchor(
+                    get_uri("purchase_order/view/" . $this->Goods_receipt_m->dev2_getPurchaseOrderIdByPurchaseOrderNo($po_no)),
+                    $po_no,
+                    array("target" => "_blank")
+                );
+            }
+
+            $data["pv_info"]->references_links = implode(", ", $data["pv_info"]->references_link);
+        } else {
+            $data["pv_info"]->references_links = anchor(
+                get_uri("purchase_order/view/" . $this->Goods_receipt_m->dev2_getPurchaseOrderIdByPurchaseOrderNo($data["pv_info"]->reference_number)),
+                $data["pv_info"]->reference_number,
+                array("target" => "_blank")
+            );
         }
         
         $data["pv_detail"] = $this->Payment_voucher_m->dev2_getPaymentVoucherDetailByHeaderId($data["pv_id"]);
@@ -98,14 +113,16 @@ class Payment_voucher extends MY_Controller
 
     function print()
     {
-        $this->data["doc"] = $doc = $this->Payment_voucher_m->getEdoc($this->uri->segment(3), null);
-        if ($doc['status'] != 'success') redirect('forbidden');
+        $this->data["doc"] = $this->Payment_voucher_m->getEdoc($this->uri->segment(3), null);
+        $this->data["og_title"] = get_setting("company_name") . " - " . $this->data["doc"]["doc_number"];
+        if ($this->data["doc"]["status"] != "success") {
+            redirect("forbidden");
+        }
 
         $this->data["additional_style"] = 'style="width: 30%;"';
-        $this->data["docmode"] = "private_print";
 
         // var_dump(arr($this->data)); exit();
-        $this->load->view('edocs/payment_voucher', $this->data);
+        $this->load->view("edocs/payment_voucher", $this->data);
     }
 
     function delete_doc()

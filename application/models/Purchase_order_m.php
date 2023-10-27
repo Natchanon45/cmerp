@@ -1022,7 +1022,8 @@ class Purchase_order_m extends MY_Model
                 'payment_amount' => $qrow->payment_amount,
                 'remark' => $qrow->remark,
                 'created_by' => $qrow->created_by,
-                'created_datetime' => date("Y-m-d H:i:s")
+                'created_datetime' => date("Y-m-d H:i:s"),
+                'status' => "W"
             ));
 
             $pv_id = $db->insert_id();

@@ -63,7 +63,16 @@ echo form_open(
 
 <div class="modal-body clearfix">
     <div class="form-group">
-        <label for="doc-date" class=" col-md-3">
+        <label for="doc-number" class="col-md-3">
+            <?php echo lang("number_of_document"); ?>
+        </label>
+        <div class="col-md-9">
+            <input type="text" value="<?php echo $header_data->doc_number; ?>" class="form-control pointer-none" readonly>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label for="doc-date" class="col-md-3">
             <?php echo lang("document_date"); ?>
         </label>
         <div class="col-md-9">
@@ -103,6 +112,24 @@ echo form_open(
                     <option value="<?php echo $header_data->supplier_id; ?>"><?php echo $header_data->supplier_name; ?></option>
                 <?php endif; ?>
             </select>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label for="invoice-refer" class="col-md-3">
+            <?php echo lang("pv_invoice_refer"); ?>
+        </label>
+        <div class="col-md-9">
+            <input <?php if (isset($header_data->supplier_invoice) && !empty($header_data->supplier_invoice)) { echo 'value="' . $header_data->supplier_invoice . '"'; } ?> type="text" name="invoice-refer" id="invoice-refer" class="form-control select-invoice-refer <?php if ($header_data->status == "A") { echo "pointer-none"; } ?>" placeholder="<?php echo lang("pv_invoice_refer_placeholder"); ?>" maxlength="40" required>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label for="remark-text" class="col-md-3">
+            <?php echo lang("remark"); ?>
+        </label>
+        <div class="col-md-9">
+            <textarea name="remark-text" id="remark-text" class="form-control <?php if ($header_data->status == "A") { echo "pointer-none"; } ?>" cols="30" rows="10" placeholder="<?php echo lang("pv_remark_placeholder"); ?>"><?php if (isset($header_data->remark) && !empty($header_data->remark)) { echo $header_data->remark; } ?></textarea>
         </div>
     </div>
 
@@ -169,7 +196,7 @@ echo form_open(
         <?php echo lang("close"); ?>
     </button>
 
-    <?php if ($header_data->status == "W" && $header_data->po_id == 0): ?>
+    <?php if ($header_data->status == "W"): ?>
         <button type="submit" id="btn-submit" class="btn btn-primary"><span class="fa fa-check-circle"></span>
             <?php echo lang("save"); ?>
         </button>

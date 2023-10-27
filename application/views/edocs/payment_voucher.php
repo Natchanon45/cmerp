@@ -104,7 +104,7 @@
 					<div class="left">
 						<div class="logo">
 							<?php if (file_exists($_SERVER['DOCUMENT_ROOT'] . get_file_from_setting("estimate_logo", true)) != false): ?>
-								<img src="<?php echo get_file_from_setting("estimate_logo", get_setting('only_file_path')); ?>" />
+								<img src="<?php echo get_file_from_setting("estimate_logo", get_setting("only_file_path")); ?>" />
 							<?php else: ?>
 								<span class="nologo">&nbsp;</span>
 							<?php endif; ?>
@@ -144,8 +144,7 @@
 									<?php echo $doc["seller"]["company_name"] ?>
 								</p>
 								<p>
-									<?php if ($doc["seller"] != null)
-										echo nl2br($doc["seller"]["address"]); ?>
+									<?php if ($doc["seller"] != null) echo nl2br($doc["seller"]["address"]); ?>
 								</p>
 								<p>
 									<?php
@@ -166,11 +165,7 @@
 										echo $client_address;
 									?>
 								</p>
-								<?php if (trim($doc["seller"]["country"]) != ""): ?>
-									<p>
-										<?php // echo $doc["seller"]["country"]; ?>
-									</p>
-								<?php endif; ?>
+								
 								<?php if (trim($doc["seller"]["vat_number"]) != ""): ?>
 									<p>
 										<?php echo lang("vat_number") . ": " . $doc["seller"]["vat_number"]; ?>
@@ -199,13 +194,25 @@
 										<?php echo convertDate($doc["doc_date"], true); ?>
 									</td>
 								</tr>
-								<?php if (trim($doc["reference_number"]) != ""): ?>
+
+								<?php if (isset($doc["supplier_invoice"]) && !empty($doc["supplier_invoice"])): ?>
 									<tr>
 										<td class="custom-color">
-											<?php echo lang("refer_of_document"); ?>
+											<?php echo lang("pv_invoice_refer"); ?>
 										</td>
 										<td>
-											<?php echo $doc["reference_number"]; ?>
+											<?php echo $doc["supplier_invoice"]; ?>
+										</td>
+									</tr>
+								<?php endif; ?>
+
+								<?php if (isset($doc["references"]) && !empty($doc["references"])): ?>
+									<tr>
+										<td class="custom-color">
+											<?php echo lang("po_no"); ?>
+										</td>
+										<td>
+											<?php echo $doc["references"]; ?>
 										</td>
 									</tr>
 								<?php endif; ?>
@@ -294,14 +301,14 @@
 												</span>
 												<span class="product_description">
 													<?php
-														if (trim($item->product_description) != ""):
+														if (!empty($item->product_description) && trim($item->product_description) != "") {
 															echo trim($item->product_description);
-														endif;
+														}
 													?>
 												</span>
 											</td>
 											<td>
-												<?php echo $item->quantity; ?>
+												<?php echo number_format($item->quantity, 2); ?>
 											</td>
 											<td>
 												<?php echo $item->unit; ?>
@@ -375,7 +382,7 @@
 								</div>
 							<?php endif; ?>
 
-							<?php if ($doc["vat_value"] == 0): ?>
+							<?php if ($doc["vat_value"] > 0): ?>
 								<div class="row">
 									<div class="c1 custom-color">
 										<?php echo lang("value_add_tax"); ?>
@@ -436,10 +443,12 @@
 							<?php endif; ?>
 						</div>
 					</div>
+
 					<?php if (trim($doc["remark"]) != ""): ?>
+						<br>
 						<div class="remark clear">
 							<div class="l1 custom-color">
-								<?php echo lang("remark") . ' / ' . lang("payment_condition"); ?>
+								<?php echo lang("remark") . " / " . lang("payment_condition"); ?>
 							</div>
 							<div class="l2 clear">
 								<?php echo nl2br($doc["remark"]); ?>
@@ -491,9 +500,7 @@
 
 				<div class="footer clear">
 					<div class="c1">
-						<div class="on_behalf_of">
-							<?php // echo $doc["seller"]["company_name"]; ?>
-						</div>
+						<div class="on_behalf_of"></div>
 						<div class="signature clear">
 							<div class="name">
 								<span class="l1">
@@ -527,9 +534,7 @@
 						</div>
 					</div>
 					<div class="c2">
-						<div class="on_behalf_of">
-							<?php // echo get_setting("company_name"); ?>
-						</div>
+						<div class="on_behalf_of"></div>
 						<div class="signature clear">
 							<div class="name">
 								<span class="l1">
