@@ -88,7 +88,7 @@
                     <?php if($this->Permission_m->accounting["sales_order"]["access"] == true): ?>
                         <?php $number_of_enable_module++; ?>
                         <li data-module="sales-orders" class="<?php if($module == "sales-orders") echo 'active custom-bg01'; ?>">
-                            <a class="<?php if($module == "sales-orders") echo 'custom-color'; ?>"><?php echo lang('account_docname_sales_order'); ?></a>
+                            <a class="<?php if($module == "sales-orders") echo 'custom-color'; ?>"><?php echo lang('account_docname_work_order'); ?></a>
                         </li>
                     <?php endif; ?>
                     <?php if($this->Permission_m->accounting["quotation"]["access"] == true): ?>
@@ -378,21 +378,21 @@ function updateStatus(docId, updateStatusTo){
                     $("#popup").attr("data-post-id", data.popup_doc_id)
                     $("#popup").attr("data-title", data.popup_title);
                     $("#popup").attr("data-action-url", data.popup_url);
-                    $("#popup").trigger("click");
+                    $("#popup").trigger("click");      
                 }else{
                     location.href = data.url;
+                    return;
                 }
             }else{
-                appAlert.success(data.message, {duration: 6000});    
+                appAlert.success(data.message, {duration: 6000});
             }
-
-            $("#datagrid").appTable({newData: data.dataset, dataId: data.doc_id});
         }else if(data.status == "notchange"){
-            $("#datagrid").appTable({newData: data.dataset, dataId: data.doc_id});
+            
         }else{
             appAlert.error(data.message, {duration: 6000});
-            $("#datagrid").appTable({newData: data.dataset, dataId: data.doc_id});
         }
+
+        $("#datagrid").appTable({newData: data.dataset, dataId: data.doc_id});
 
     }).catch(function (error) {});
 }

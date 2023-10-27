@@ -28,7 +28,7 @@ class Sales_orders_m extends MY_Model {
     }
 
     function getPurposeInfo($purpose_code){
-        if($purpose_code == "P") return lang("account_docname_work_order");
+        if($purpose_code == "P") return lang("account_docname_production_order");
         elseif($purpose_code == "S") return lang("account_docname_sales_order");
         return "";
     }
@@ -50,12 +50,8 @@ class Sales_orders_m extends MY_Model {
             }
 
             if($sorow->purpose == "P"){
-                if($sorow->project_id == null){
-                    $doc_status .= "<option selected>".lang("account_status_approved")."</option>";
-                    $doc_status .= "<option value='PROJECT'>".lang("account_so_create_project")."</option>";
-                }else{
-                    $doc_status .= "<option selected>".lang("account_status_issued")."</option>";
-                }
+                $doc_status .= "<option selected>".lang("account_status_approved")."</option>";
+                $doc_status .= "<option value='PROJECT'>".lang("account_so_view_project")."</option>";
             }
 
         }elseif($sorow->status == "V"){
@@ -699,13 +695,19 @@ class Sales_orders_m extends MY_Model {
             return $this->data;
         }elseif($updateStatusTo == "PROJECT"){
             if($currentStatus == "V") return $this->data;
-            if($this->createProject($sorow) != true){
+            $this->data["popup_doc_id"] = $sales_order_id;
+            $this->data["popup_title"] = lang("account_so_title_automatically_create_project");
+            $this->data["popup_url"] = get_uri("sales-orders/make_production_order");
+            $this->data["task"] = "popup";
+            $this->data["status"] = "success";
+            return $this->data;
+            /*if($this->createProject($sorow) != true){
                 $db->trans_rollback();
                 $this->data["message"] = lang("account_so_message_component_required");
                 return $this->data;
             }
             $this->data["message"] = sprintf(lang("account_so_message_project_was_created"), $sorow->project_title);
-            $this->data["status"] = "success";
+            $this->data["status"] = "success";*/
 
         }elseif($updateStatusTo == "V"){
             $db->where("id", $docId);
@@ -1263,6 +1265,197 @@ class Sales_orders_m extends MY_Model {
 
         return false;
     }
+
+
+
+    /***** start project ****/
+
+    function productsToProject($sales_order_id){
+        $db = $this->db;
+        $ci = get_instance();
+
+        $sorow = $db->select("*")
+                        ->from("sales_order")
+                        ->where("id", $sales_order_id)
+                        ->where("status", "A")
+                        ->where("deleted", 0)
+                        ->get()->row();
+
+        if(empty($sorow)) return $this->data;
+        
+        $soirows = $db->select("*")
+                        ->from("sales_order_items")
+                        ->where("sales_order_id", $sales_order_id)
+                        ->order_by("sort", "asc")
+                        ->get()->result();
+
+        $html = "";
+        $total_records = 0;
+        
+        if(!empty($soirows)){
+
+            foreach($soirows as $soirow){
+                /*$product_remaining = 0;
+                $total_submit_quantity = 0;
+
+                if($soirow->mr_header_id != null){
+                    $product_remaining = $soirow->product_remaining;
+                    $total_submit_quantity = $ci->Bom_item_m->getRatioByMaterialRequestId($soirow->mr_header_id);
+                }else{
+                    $product_remaining = $ci->Bom_item_m->getTotalRemainingItems($soirow->product_id);
+                    if($product_remaining <= 0) continue;
+
+                    if($product_remaining < $soirow->quantity){
+                        $total_submit_quantity = $product_remaining;
+                    }else{
+                        $total_submit_quantity = $soirow->quantity;
+                    }
+                }*/
+
+                $product_remaining = $this->Bom_item_m->getTotalRemainingItems($soirow->product_id);;
+
+                $html .= "<tr class='sales_order_items' data-id='".$soirow->id."'>";
+                    $html .= "<td class='product_name'>".$soirow->product_name."</td>";
+                    $html .= "<td class='instock'>".($soirow->mr_header_id == null ? number_format($product_remaining, DEC)." ".$soirow->unit:'-')."</td>";
+                    $html .= "<td class='total_used'><input type='text' value='".number_format($soirow->quantity, DEC)."' readonly>".$soirow->unit."</td>";
+                    
+                    $html .= "<td class='total_submit'><span class='made_to_order ".($sorow->project_id != null ? 'readonly':'')."'>";
+                    $html .= "<input type='text' value='".number_format($soirow->quantity, DEC)."' ".($sorow->project_id != null ? 'readonly':'').">";
+                    $html .= $soirow->unit."</span></td>";
+
+                $html .= "</tr>";
+                $total_records++;
+            }
+        }
+
+        if($total_records >= 1){
+            $this->data["html"] = $html;
+        }else{
+            $this->data["html"] = "<tr class='norecord'><td colspan='7'>ไม่พบข้อมูลสินค้า</td></tr>";
+        }
+
+        return $this->data;
+    }
+
+    function makeProject(){
+        $db = $this->db;
+
+        $sorow = $db->select("*")
+                    ->from("sales_order")
+                    ->where("id", $this->json->sales_order_id)
+                    ->where("deleted", 0)
+                    ->where("purpose", "P")
+                    ->where("status", "A")
+                    ->where("project_id IS NULL")
+                    ->get()->row();
+
+
+        if(empty($sorow)) return $this->data;
+
+        $sales_order_id = $sorow->id;
+        
+        $db->trans_begin();
+        
+        $db->insert("projects", [
+                                    "title"=>$sorow->project_title,
+                                    "description"=>$sorow->project_description,
+                                    "start_date"=>$sorow->project_start_date,
+                                    "deadline"=>$sorow->project_deadline,
+                                    "client_id"=>$sorow->client_id,
+                                    "client_type"=>$this->Customers_m->isLead($sorow->client_id) == true ? 1:0,
+                                    "created_date"=>date("Y-m-d"),
+                                    "created_by"=>$this->login_user->id,
+                                    "status"=>"open",
+                                    "price"=>$sorow->project_price,
+                                    "starred_by"=>"",
+                                    "estimate_id"=>0,
+                                ]);
+
+        $project_id = $db->insert_id();
+        $made_to_order = json_decode($this->json->made_to_order);
+        $production_bom_data = [];
+
+        foreach($made_to_order as $mto){
+            $soirow = $db->select("*")
+                        ->from("sales_order_items")
+                        ->where("id", $mto->item_id)
+                        ->where("sales_order_id", $sales_order_id)
+                        ->get()->row();
+
+            if(empty($soirow)){
+                $db->trans_rollback();
+                return $this->data;
+            }
+
+            $submit_num = getNumber($mto->submit_num);
+
+            if($submit_num <= 0){
+                $this->data["message"] = "ตัวเลข 'สั่งผลิด' ต้องมีค่ามากกว่า ".number_format($submit_num, DEC);
+                $db->trans_rollback();
+                return $this->data;
+            }
+
+            if($soirow->item_mixing_groups_id == null){
+                $db->trans_rollback();
+                $this->data["message"] = "ไม่สามารถสร้างโปรเจคได้ เนื่องจากมีรายการสินค้าที่ยังไม่ผูกสูตรผสมอยู่ในรายการั่งผลิต";
+                return $this->data;
+            }
+
+            $production_bom_data[] = [
+                                    "project_id"=>$project_id,
+                                    "item_id"=>$soirow->product_id,
+                                    "item_mixing"=>$soirow->item_mixing_groups_id,
+                                    "quantity" =>$submit_num,
+                                    "produce_in"=>$soirow->add_stock == "Y" ? 1 : 0,
+                                ];  
+        }
+
+        $this->Projects_model->dev2_postProductionBomDataProcessing($production_bom_data);
+
+        $db->where("id", $sales_order_id);
+        $db->update("sales_order", ["project_id"=>$project_id]);
+
+        if ($db->trans_status() === FALSE){
+            $db->trans_rollback();
+            return $this->data;
+        }
+
+        $db->trans_commit();
+        $this->data["status"] = "success";
+        $this->data["message"] = lang('record_saved');
+        return $this->data;
+    }
+
+    function canMakeProject($sales_order_id){
+        $db = $this->db;
+
+        $sorow = $db->select("project_id")
+                        ->from("sales_order")
+                        ->where("id", $sales_order_id)
+                        ->get()->row();
+
+        if(empty($sorow)) return false;
+        if($sorow->project_id == null) return true;
+
+        return false;
+    }
+
+    function canViewProject($sales_order_id){
+        $db = $this->db;
+        $ci = get_instance();
+
+        if($this->canMakeMR($sales_order_id)) return true;
+
+        $db->where("sales_order_id", $sales_order_id);
+        $db->where("mr_header_id IS NOT NULL");
+        if($db->count_all_results("sales_order_items") > 0) return true;
+
+        return false;
+    }
+
+
+
+    /**** end project *****/
 
     function createProject($sorow){
         $db = $this->db;
