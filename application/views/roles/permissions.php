@@ -39,9 +39,8 @@
 .permission-list ol li label{
     margin-left: 4px;
 }
-
-
 </style>
+
 <div class="tab-content">
     <?php echo form_open(get_uri("roles/save_permissions"), array("id" => "permissions-form", "class" => "general-form dashed-row", "role" => "form")); ?>
     <input type="hidden" name="id" value="<?php echo $model_info->id; ?>" />
@@ -761,61 +760,89 @@
                     </div>
                 </li>
                 <li class="accounting">
-                    <h5>ตั้งค่าสิทธิ์การเข้าถึงการจัดการบัญชี:</h5>
+                    <h5><?php echo lang("setting_account_management"); ?>:</h5>
                     <fieldset>
-                        <legend>ใบสั่งขาย</legend>
+                        <legend><?php lang("setting_sale_order"); ?></legend>
                         <div>
                             <input type="checkbox" name="accounting_sales_order_access" value="Y" <?php if($accounting['sales_order']['access'] == true) echo "checked"; ?> >
-                            <label for="accounting_sales_order_access">สามารถเห็นใบสั่งขาย</label>
+                            <label for="accounting_sales_order_access"><?php echo lang("setting_sale_order_access"); ?></label>
                         </div>
                     </fieldset>
                     <fieldset>
-                        <legend>ใบเสนอราคา</legend>
+                        <legend><?php echo lang("setting_quotation"); ?></legend>
                         <div>
                             <input type="checkbox" name="accounting_quotation_access" value="Y" <?php if($accounting['quotation']['access'] == true) echo "checked"; ?> >
-                            <label for="accounting_quotation_access">สามารถเห็นใบเสนอราคา</label>
+                            <label for="accounting_quotation_access"><?php echo lang("setting_quotation_access"); ?></label>
                         </div>
                     </fieldset>
                     <fieldset>
-                        <legend>ใบแจ้งหนี้</legend>
+                        <legend><?php echo lang("setting_invoice"); ?></legend>
                         <div>
                             <input type="checkbox" name="accounting_invoice_access" value="Y" <?php if($accounting['invoice']['access'] == true) echo "checked"; ?> >
-                            <label for="accounting_invoice_access">สามารถเห็นใบแจ้งหนี้</label>
+                            <label for="accounting_invoice_access"><?php echo lang("setting_invoice_access"); ?></label>
                         </div>
                     </fieldset>
                     <fieldset>
-                        <legend>ใบกำกับภาษี</legend>
+                        <legend><?php echo lang("setting_tax_invoice"); ?></legend>
                         <div>
                             <input type="checkbox" name="accounting_tax_invoice_access" value="Y" <?php if($accounting['tax_invoice']['access'] == true) echo "checked"; ?> >
-                            <label for="accounting_tax_invoice_access">สามารถเห็นใบกำกับภาษี</label>
+                            <label for="accounting_tax_invoice_access"><?php echo lang("setting_tax_invoice_access"); ?></label>
                         </div>
                     </fieldset>
                     <fieldset>
-                        <legend>ใบวางบิล</legend>
+                        <legend><?php echo lang("setting_billing_note"); ?></legend>
                         <div>
                             <input type="checkbox" name="accounting_billing_note_access" value="Y" <?php if($accounting['billing_note']['access'] == true) echo "checked"; ?> >
-                            <label for="accounting_billing_note_access">สามารถเห็นใบวางบิล</label>
+                            <label for="accounting_billing_note_access"><?php echo lang("setting_billing_note_access"); ?></label>
                         </div>
                     </fieldset>
                     <fieldset>
-                        <legend>ใบเสร็จรับเงิน</legend>
+                        <legend><?php echo lang("setting_receipt"); ?></legend>
                         <div>
                             <input type="checkbox" name="accounting_receipt_access" value="Y" <?php if($accounting['receipt']['access'] == true) echo "checked"; ?> >
-                            <label for="accounting_receipt_access">สามารถเห็นใบเสร็จรับเงิน</label>
+                            <label for="accounting_receipt_access"><?php echo lang("setting_receipt_access"); ?></label>
                         </div>
                     </fieldset>
                     <fieldset>
-                        <legend>ใบลดหนี้</legend>
+                        <legend><?php echo lang("setting_credit_note"); ?></legend>
                         <div>
                             <input type="checkbox" name="accounting_credit_note_access" value="Y" <?php if($accounting['credit_note']['access'] == true) echo "checked"; ?> >
-                            <label for="accounting_credit_note_access">สามารถเห็นใบลดหนี้</label>
+                            <label for="accounting_credit_note_access"><?php echo lang("setting_credit_note_access"); ?></label>
                         </div>
                     </fieldset>
                     <fieldset>
-                        <legend>ใบเพิ่มหนี้</legend>
+                        <legend><?php echo lang("setting_debit_note"); ?></legend>
                         <div>
                             <input type="checkbox" name="accounting_debit_note_access" value="Y" <?php if($accounting['debit_note']['access'] == true) echo "checked"; ?> >
-                            <label for="accounting_debit_note_access">สามารถเห็นใบเพิ่มหนี้</label>
+                            <label for="accounting_debit_note_access"><?php echo lang("setting_debit_note_access"); ?></label>
+                        </div>
+                    </fieldset>
+                    <fieldset>
+                        <legend><?php echo lang("setting_purchase_request"); ?></legend>
+                        <div>
+                            <input type="checkbox" name="accounting_purchase_request_access" value="Y" <?php if ($accounting["purchase_request"]["access"]) { echo "checked"; } ?>>
+                            <label for="accounting_purchase_request"><?php echo lang("setting_purchase_request_access"); ?></label>
+                        </div>
+                    </fieldset>
+                    <fieldset>
+                        <legend><?php echo lang("setting_purchase_order"); ?></legend>
+                        <div>
+                            <input type="checkbox" name="accounting_purchase_order_access" value="Y" <?php if ($accounting["purchase_order"]["access"]) { echo "checked"; } ?>>
+                            <label for="accounting_purchase_order"><?php echo lang("setting_purchase_order_access"); ?></label>
+                        </div>
+                    </fieldset>
+                    <fieldset>
+                        <legend><?php echo lang("setting_payment_voucher"); ?></legend>
+                        <div>
+                            <input type="checkbox" name="accounting_payment_voucher_access" value="Y" <?php if ($accounting["payment_voucher"]["access"]) { echo "checked"; } ?>>
+                            <label for="accounting_payment_voucher"><?php echo lang("setting_payment_voucher_access"); ?></label>
+                        </div>
+                    </fieldset>
+                    <fieldset>
+                        <legend><?php echo lang("setting_goods_receipt"); ?></legend>
+                        <div>
+                            <input type="checkbox" name="accounting_goods_receipt_access" value="Y" <?php if ($accounting["goods_receipt"]["access"]) { echo "checked"; } ?>>
+                            <label for="accounting_goods_receipt"><?php echo lang("setting_goods_receipt_access"); ?></label>
                         </div>
                     </fieldset>
                 </li>
