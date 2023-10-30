@@ -1,3 +1,11 @@
+<?php // var_dump(arr($permissions["accounting"])); exit(); ?>
+<?php
+    $auth = new stdClass();
+    if (isset($permissions["accounting"]) && !empty($permissions["accounting"])) {
+        $auth = $permissions["accounting"];
+    }
+?>
+
 <style>
     #accounting_navs:after,
     .tabs:after,
@@ -86,8 +94,8 @@
 <div id="page-content" class="p20 clearfix">
     <ul class="nav nav-tabs bg-white title" role="tablist">
         <!-- <li><a href="<?php // echo get_uri("accounting/coa"); ?>"><?php // echo lang('coa'); ?></a></li> -->
-        <li><a href="<?php echo get_uri("accounting/sell"); ?>"><?php echo lang('sell_account'); ?></a></li>
-        <li class="active"><a><?php echo lang('buy_account'); ?></a></li>
+        <li><a href="<?php echo get_uri("accounting/sell"); ?>"><?php echo lang("sell_account"); ?></a></li>
+        <li class="active"><a><?php echo lang("buy_account"); ?></a></li>
     </ul>
 
     <div class="panel panel-default">
@@ -96,28 +104,27 @@
                 <ul class="tabs">
                     <?php $number_of_enable_module = 0; ?>
 
-                    <?php if ($permissions['access_purchase_request']):
-                        $number_of_enable_module++; ?>
+                    <?php if ($auth->purchase_request->access): $number_of_enable_module++; ?>
                         <li data-module="purchase_request" class="<?php if ($module == "purchase_request") echo 'active custom-bg01'; ?>">
-                            <a class="<?php if ($module == "purchase_request") echo 'custom-color'; ?>"><?php echo lang('purchase_request'); ?></a>
+                            <a class="<?php if ($module == "purchase_request") echo 'custom-color'; ?>"><?php echo lang("purchase_request"); ?></a>
                         </li>
                     <?php endif; ?>
 
-                    <?php if ($permissions['access_purchase_request']): $number_of_enable_module++; ?>
+                    <?php if ($auth->purchase_order->access): $number_of_enable_module++; ?>
                         <li data-module="purchase_order" class="<?php if ($module == "purchase_order") echo 'active custom-bg01'; ?>">
-                            <a class="<?php if ($module == "purchase_order") echo 'custom-color'; ?>"><?php echo lang('purchase_order'); ?></a>
+                            <a class="<?php if ($module == "purchase_order") echo 'custom-color'; ?>"><?php echo lang("purchase_order"); ?></a>
                         </li>
                     <?php endif; ?>
 
-                    <?php if ($permissions['access_purchase_request']): $number_of_enable_module++; ?>
+                    <?php if ($auth->payment_voucher->access): $number_of_enable_module++; ?>
                         <li data-module="payment_voucher" class="<?php if($module == "payment_voucher") echo 'active custom-bg01'; ?>">
-                            <a class="<?php if($module == "payment_voucher") echo 'custom-color'; ?>"><?php echo lang('payment_voucher'); ?></a>
+                            <a class="<?php if($module == "payment_voucher") echo 'custom-color'; ?>"><?php echo lang("payment_voucher"); ?></a>
                         </li>
                     <?php endif; ?>
 
-                    <?php if ($permissions['access_purchase_request']): $number_of_enable_module++; ?>
+                    <?php if ($auth->goods_receipt->access): $number_of_enable_module++; ?>
                         <li data-module="goods_receipt" class="<?php if ($module == "goods_receipt") echo 'active custom-bg01'; ?>">
-                            <a class="<?php if ($module == "goods_receipt") echo 'custom-color'; ?>"><?php echo lang('goods_receipt'); ?></a>
+                            <a class="<?php if ($module == "goods_receipt") echo 'custom-color'; ?>"><?php echo lang("goods_receipt"); ?></a>
                         </li>
                     <?php endif; ?>
                 </ul>

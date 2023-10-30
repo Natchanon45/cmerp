@@ -83,15 +83,18 @@ class Accounting extends MY_Controller {
     // บัญชีซื้อ
     function buy()
     {
+        $auth = $this->Permission_m->permissions->accounting;
+        // var_dump(arr($auth)); exit();
+
         // Permission Check
-        if ($this->check_permission("access_purchase_request")) {
+        if ($auth->purchase_request->access) {
             $this->data["module"] = "purchase_request";
-        } elseif ($this->check_permission("access_purchase_order")) {
+        } elseif ($auth->purchase_order->access) {
             $this->data["module"] = "purchase_order";
-        } elseif ($this->check_permission("access_goods_receipt")) {
-            $this->data["module"] = "goods_receipt";
-        } elseif ($this->check_permission("access_purchase_order")) {
+        } elseif ($auth->payment_voucher->access) {
             $this->data["module"] = "payment_voucher";
+        } elseif ($auth->goods_receipt->access) {
+            $this->data["module"] = "goods_receipt";
         } else {
             $this->session->set_flashdata("notice_error", lang("no_permissions"));
             redirect("/");
