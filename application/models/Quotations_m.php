@@ -793,15 +793,39 @@ class Quotations_m extends MY_Model {
         $product_id = $this->json->product_id == ""?null:$this->json->product_id;
         $product_name = $this->json->product_name;
         $product_description = $this->json->product_description;
-        $quantity = round(getNumber($this->json->quantity), $this->Settings_m->getDecimalPlacesNumber());
+        $quantity = round(getNumber($this->json->quantity), DEC);
         $unit = $this->json->unit;
-        $price_after_discount = $price = getNumber($this->json->price);
+        $price = getNumber($this->json->price);
         $discount_type = $this->json->discount_type;
         $discount_value = getNumber($this->json->discount_value);
         $discount_percent = null;
         $discount_amount = 0;
+        $price_after_discount = $total_price = 0;
 
-        if($discount_type == "P"){
+        if($quantity > 0){
+            $total_price = $price * $quantity;
+            $price_after_discount = $total_price;
+
+            if($discount_type == "P"){
+                if($discount_value < 0) $discount_value = 0;
+                if($discount_value >= 100) $discount_value = 100;
+
+                $discount_percent = $discount_value;
+                $discount_amount = ($total_price * $discount_percent)/100;
+                $price_after_discount = $total_price - $discount_amount;
+
+            }else{
+                if($discount_value < 0) $discount_value = 0;
+                if($discount_value > $total_price) $discount_value = $total_price;
+
+                $discount_amount = $discount_value;
+                $price_after_discount = $total_price - $discount_value;
+                
+            }
+        }
+
+
+        /*if($discount_type == "P"){
             if($discount_value < 0) $discount_value = 0;
             if($discount_value >= 100){
                 $discount_value = 100;
@@ -815,9 +839,9 @@ class Quotations_m extends MY_Model {
             if($discount_value > $price) $discount_value = $price;
             $discount_amount = $discount_value;
             $price_after_discount = $price - $discount_value;
-        }
+        }*/
 
-        $total_price = $price_after_discount * $quantity;
+        //$total_price = $price_after_discount * $quantity;
 
         $fdata = [
                     "quotation_id"=>$docId,
@@ -830,7 +854,7 @@ class Quotations_m extends MY_Model {
                     "discount_type"=>$discount_type,
                     "discount_percent"=>$discount_percent,
                     "discount_amount"=>$discount_amount,
-                    "total_price"=>round($total_price, 2),
+                    "total_price"=>round($price_after_discount, 2),
                 ];
 
         $db->trans_begin();
@@ -1017,7 +1041,7 @@ class Quotations_m extends MY_Model {
                             "product_description"=>$qirow->product_description,
                             "quantity"=>$qirow->quantity,
                             "unit"=>$qirow->unit,
-                            "price"=>$qirow->price - $qirow->discount_amount,
+                            "price"=>$qirow->total_price / $qirow->quantity,
                             "total_price"=>$qirow->total_price,
                             "sort"=>$qirow->sort
                         ];
