@@ -2059,6 +2059,7 @@ $lang["finished_goods_restock_add"] = "Add Restock FG";
 $lang["raw_mats"] = "Raw Materials";
 $lang["raw_mats_restock"] = "Restock RM";
 $lang["raw_mats_restock_add"] = "Add Restock RM";
+$lang["sale_order_refer"] = "Sale Order";
 
 // Start - Warehouse Category
 $lang["warehouse_category"] = "Warehouse";
@@ -2112,6 +2113,18 @@ $lang["payments_waiting"] = "Awaiting payment";
 $lang["payments_partial"] = "Partial payment";
 $lang["payments_completed"] = "Completed payment";
 
+$lang["btn_add_raw_material"] = "Add Material";
+$lang["btn_add_finished_goods"] = "Add Finished Goods";
+$lang["btn_add_expense"] = "Add Expense";
+
+$lang["btn_edit_raw_material"] = "Edit Material";
+$lang["btn_edit_finished_goods"] = "Edit Finished Goods";
+$lang["btn_edit_expense"] = "Edit Expense";
+
+$lang["label_raw_material"] = "Raw Material";
+$lang["label_finished_goods"] = "Finished Goods";
+$lang["label_expense"] = "Expense";
+
 $lang["purchase_request"] = "Purchase Requisition";
 $lang["purchase_request_add"] = "Create new PR";
 $lang["request_date"] = "Request Date";
@@ -2134,20 +2147,71 @@ $lang["mixed_purchase"] = "Raw Material/Finished Goods";
 
 $lang["purchase_order"] = "Purchase Order";
 $lang["purchase_order_add"] = "Create new PO";
+$lang["purchase_order_edit"] = "Purchase Order Edit";
+$lang["purchase_order_approve"] = "Approve (PO)";
 $lang["purchase_by"] = "Purchased by";
 $lang["po_no"] = "PO Number";
 $lang["po_type"] = "PO Type";
 $lang["record_expenses"] = "Record expense";
 $lang["record_products"] = "Record product";
+$lang["operation"] = "Operations";
+
+$lang["purchase_order_refer"] = "PO Refer.";
 
 $lang["goods_receipt"] = "Goods Receipt";
-$lang["goods_receipt_add"] = "Create new GR";
+$lang["goods_receipt_add"] = "Create (GR)";
+$lang["goods_receipt_approve"] = "Approve and add stock";
+$lang["goods_receipt_print"] = "Print (GR)";
+$lang["goods_receipt_edit"] = "Edit (GR)";
 $lang["receive_date"] = "Receive date";
 $lang["record_of_receipt"] = "Record of Goods receipt";
 $lang["record_of_expenses"] = "Record of Expenses";
+$lang["record_of_goods_receipt"] = "Record of Goods receipt";
+$lang["goods_receipt_due"] = "Due date";
+
+$lang["gr_button_created"] = "Create GR";
+$lang["gr_total_quantity"] = "Total quantity";
+$lang["gr_save_succeed"] = "Payment voucher have been created.";
+$lang["gr_item_duplicated"] = "Found duplicate items.";
+$lang["gr_no_item_select"] = "No items selected.";
+$lang["gr_incomplete_info"] = "Incomplete information.";
+$lang["gr_incorrect_qty"] = "Incorrect quantity specified.";
+$lang["gr_delivery_refer"] = "Supplier Delivery Note";
+$lang["gr_delivery_refer_placeholder"] = "Delivery Note number that will be received.";
 
 $lang["payment_voucher"] = "Payment Voucher";
 $lang["payment_voucher_add"] = "Create new PV";
+$lang["payment_voucher_approve"] = "Payment approve";
+$lang["payment_voucher_print"] = "Print (PV)";
+$lang["payment_voucher_edit"] = "Edit (PV)";
+$lang["record_of_payment_voucher"] = "Record of Payment voucher";
+$lang["date_of_document"] = "Date of Document";
+$lang["number_of_document"] = "Doc. No.";
+$lang["refer_of_document"] = "Ref. No.";
+$lang["issuer_of_document"] = "Document Issuer";
+$lang["date_of_issued"] = "Issued Date";
+$lang["total_payment_amount"] = "Total Payment";
+$lang["payment_voucher_payer"] = "Payer Info.";
+$lang["payment_voucher_payee"] = "Payee Info.";
+$lang["payment_information"] = "Payment Info.";
+$lang["payment_information_add"] = "Add payment Info.";
+
+$lang["pv_invoice_refer"] = "Supplier Invoice";
+$lang["pv_invoice_refer_placeholder"] = "Invoice number that will be pay.";
+$lang["pv_remark_placeholder"] = "Remark or Terms and Conditions to payment.";
+$lang["pv_pay_date"] = "Pay Date";
+$lang["pv_pay_amount"] = "Pay Amount";
+$lang["pv_pay_method"] = "Payment Method";
+$lang["pv_incorrect_amt"] = "Incorrect Amount, please check.";
+$lang["pv_pay_amt_exceed_total"] = "Pay amount exceeded the total amount, please check.";
+$lang["pv_no_select_pay_method"] = "Not selected the payment method yet.";
+$lang["pv_no_specify_description"] = "No description or payment details";
+
+$lang["pv_save_succeed"] = "Payment voucher have been created.";
+$lang["pv_item_duplicated"] = "Found duplicate items.";
+$lang["pv_no_item_select"] = "No items selected.";
+$lang["pv_incomplete_info"] = "Incomplete information.";
+$lang["pv_incorrect_qty"] = "Incorrect quantity specified.";
 
 $lang["material_request_type"] = "Request type";
 $lang["project_refer"] = "Project reference";
@@ -2175,6 +2239,8 @@ $lang["grand_total_price"] = "Grand total";
 $lang["payment_amount"] = "Payment amount";
 $lang["payment_condition"] = "Payment condition";
 $lang["record_canceled"] = "The record has been canceled.";
+$lang["discount_amount"] = "Discount amount";
+$lang["amount_after_discount"] = "Amount after discount";
 
 $lang["buy_account"] = "Buy Account";
 $lang["sell_account"] = "Sell Account";
@@ -2210,3 +2276,30 @@ $lang["production_order_delete_failure"] = "Cannot delete. Contact an administra
 $lang["production_order_bom_recalc"] = "RM Update";
 $lang["production_order_state_change"] = "Production order state change.";
 $lang["production_order_cannot_change_status"] = "Cannot change the order state, create and approve the material request document, please.";
+
+// Setting Access Rights for Account Management
+$lang["setting_account_management"] = "Setting access rights for Account management";
+$lang["setting_sale_order"] = "Sale order";
+$lang["setting_sale_order_access"] = "Can access sale orders";
+$lang["setting_quotation"] = "Quotation";
+$lang["setting_quotation_access"] = "Can access quotations";
+$lang["setting_invoice"] = "Invoices";
+$lang["setting_invoice_access"] = "Can access invoices";
+$lang["setting_tax_invoice"] = "Tax invoices";
+$lang["setting_tax_invoice_access"] = "Can access tax invoices";
+$lang["setting_billing_note"] = "Billing notes";
+$lang["setting_billing_note_access"] = "Can access billing notes";
+$lang["setting_receipt"] = "Receipts";
+$lang["setting_receipt_access"] = "Can access receipts";
+$lang["setting_credit_note"] = "Credit note";
+$lang["setting_credit_note_access"] = "Can access credit notes";
+$lang["setting_debit_note"] = "Debit note";
+$lang["setting_debit_note_access"] = "Can access debit notes";
+$lang["setting_purchase_request"] = "Purchase request";
+$lang["setting_purchase_request_access"] = "Can access purchase request";
+$lang["setting_purchase_order"] = "Purchase order";
+$lang["setting_purchase_order_access"] = "Can access purchase order";
+$lang["setting_payment_voucher"] = "Payment voucher";
+$lang["setting_payment_voucher_access"] = "Can access payment voucher";
+$lang["setting_goods_receipt"] = "Goods receipt";
+$lang["setting_goods_receipt_access"] = "Can access goods receipt";

@@ -25,7 +25,7 @@ class Goods_receipt extends MY_Controller
 
     function index()
     {
-        if ($this->input->post('datatable') == true) {
+        if ($this->input->post("datatable") == true) {
             jout(["data" => $this->Goods_receipt_m->indexDataSet()]);
             return;
         } elseif (isset($this->json->taskName)) {
@@ -35,7 +35,7 @@ class Goods_receipt extends MY_Controller
             return;
         }
 
-        redirect('accounting/buy/goods_receipt');
+        redirect("accounting/buy/goods_receipt");
     }
 
     function addedit()
@@ -54,13 +54,6 @@ class Goods_receipt extends MY_Controller
 
     function view()
     {
-        // if (isset($this->json->task)) {
-        //     if ($this->json->task == "load_items") jout($this->Purchase_order_m->items());
-        //     if ($this->json->task == "update_doc") jout($this->Purchase_order_m->updateDoc());
-        //     if ($this->json->task == "delete_item") jout($this->Purchase_order_m->deleteItem());
-        //     return;
-        // }
-
         if (isset($this->json->task) && !empty($this->json->task)) {
             if ($this->json->task == 'load_items') jout($this->Goods_receipt_m->items());
             if ($this->json->task == 'update_doc') jout($this->Goods_receipt_m->updateDoc());
@@ -68,37 +61,61 @@ class Goods_receipt extends MY_Controller
         }
 
         if (empty($this->uri->segment(3))) {
-            redirect(get_uri('accounting/buy'));
+            redirect(get_uri('accounting/buy/goods_receipt'));
             return;
         }
 
-        $data = $this->Goods_receipt_m->getDoc($this->uri->segment(3));
-        if ($data['status'] != 'success') {
-            redirect(get_uri('accounting/buy'));
-            return;
+        $data["active_module"] = "goods_receipt";
+
+        $data["gr_id"] = $this->uri->segment(3);
+        $data["gr_info"] = $this->Goods_receipt_m->dev2_getGoodsReceiptInfoById($data["gr_id"]);
+        $data["gr_info"]->total_in_text = "(" . numberToText($data["gr_info"]->total) . ")";
+        if (!empty($data["gr_info"]->reference_list)) {
+            $data["gr_info"]->references = (array) json_decode($data["gr_info"]->reference_list);
+            foreach ($data["gr_info"]->references as $po_no) {
+                $data["gr_info"]->references_link[] = anchor(
+                    get_uri("purchase_order/view/" . $this->Goods_receipt_m->dev2_getPurchaseOrderIdByPurchaseOrderNo($po_no)),
+                    $po_no,
+                    array(
+                        "target" => "_blank"
+                    )
+                );
+            }
+
+            $data["gr_info"]->references_links = implode(", ", $data["gr_info"]->references_link);
+        } else {
+            $data["gr_info"]->references_links = anchor(
+                get_uri("purchase_order/view/" . $this->Goods_receipt_m->dev2_getPurchaseOrderIdByPurchaseOrderNo($data["gr_info"]->reference_number)),
+                $data["gr_info"]->reference_number,
+                array(
+                    "target" => "_blank"
+                )
+            );
         }
 
-        $data['active_module'] = 'goods_receipt';
-        $data['created'] = $this->Users_m->getInfo($data['created_by']);
-        $data['supplier'] = $this->Bom_suppliers_model->getInfo($data['supplier_id']);
-        $data['supplier_contact'] = $this->Bom_suppliers_model->getContactInfo($data['supplier_id']);
-        $data['print_gr_url'] = get_uri('goods_receipt/print_goods_receipt/' . str_replace("=", "", base64_encode($data['doc_id'] . ':' . $data['doc_number'])));
-        $data['print_pv_url'] = get_uri('goods_receipt/print_payment_voucher/' . str_replace("=", "", base64_encode($data['doc_id'] . ':' . $data['doc_number'])));
+        $data["gr_detail"] = $this->Goods_receipt_m->dev2_getGoodsReceiptDetailByHeaderId($data["gr_id"]);
+        $data["created"] = $this->Users_m->getInfo($data["gr_info"]->created_by);
+        $data["approved"] = $this->Users_m->getInfo($data["gr_info"]->approved_by);
+        $data["supplier"] = $this->Bom_suppliers_model->getInfo($data["gr_info"]->supplier_id);
+        $data["supplier_contact"] = $this->Bom_suppliers_model->getContactInfo($data["gr_info"]->supplier_id);
+        $data["print_url"] = get_uri("goods_receipt/print_goods_receipt/" . str_replace("=", "", base64_encode($data["gr_info"]->id . ":" . $data["gr_info"]->doc_number)));
 
         // var_dump(arr($data)); exit();
-        $this->template->rander('goods_receipt/view', $data);
+        $this->template->rander("goods_receipt/view", $data);
     }
 
     function print_goods_receipt()
     {
-        $this->data['doc'] = $doc = $this->Goods_receipt_m->getEdoc($this->uri->segment(3), null);
-        if ($doc['status'] != 'success') redirect('forbidden');
+        $this->data["doc"] = $this->Goods_receipt_m->getEdoc($this->uri->segment(3), null);
+        $this->data["og_title"] = get_setting("company_name") . " - " . $this->data["doc"]["doc_number"];
+        if ($this->data["doc"]["status"] != "success") {
+            redirect("forbidden");
+        }
 
-        $this->data['additional_style'] = 'style="width: 30%;"';
-        $this->data['docmode'] = 'private_print';
+        $this->data["additional_style"] = 'style="width: 30%;"';
         
         // var_dump(arr($this->data)); exit();
-        $this->load->view('edocs/goods_receipt', $this->data);
+        $this->load->view("edocs/goods_receipt", $this->data);
     }
 
     function print_payment_voucher()
@@ -173,12 +190,14 @@ class Goods_receipt extends MY_Controller
     function share()
     {
         if (isset($this->json->task)) {
-            if ($this->json->task == 'gen_sharekey') jout($this->Purchase_order_m->genShareKey());
+            if ($this->json->task == "gen_sharekey") jout($this->Goods_receipt_m->genShareKey());
             return;
         }
 
-        $data = $this->Goods_receipt_m->getDoc($this->input->post('doc_id'));
-        $this->load->view('goods_receipt/share', $data);
+        $data = $this->Goods_receipt_m->getDoc($this->input->post("doc_id"));
+
+        // var_dump(arr($data)); exit();
+        $this->load->view("goods_receipt/share", $data);
     }
 
     function record_payment()
@@ -227,6 +246,217 @@ class Goods_receipt extends MY_Controller
     {
         $payments_method = $this->Goods_receipt_m->payments_method();
         var_dump(arr($payments_method));
+    }
+
+    function addnew()
+    {
+        $view_data = [];
+
+        $view_data["supplier_dropdown"] = $this->Goods_receipt_m->dev2_getSupplieHavePurchaseOrderApproved();
+        $view_data["project_dropdown"] = $this->Goods_receipt_m->dev2_getProjectReferByProjectOpen();
+
+        // var_dump(arr($view_data)); exit();
+        $this->load->view("goods_receipt/addnew", $view_data);
+    }
+
+    function purchase_order_list()
+    {
+        $json = $this->json;
+        $result = [
+            "success" => false,
+            "data" => null,
+            "length" => 0,
+            "supplier_id" => $json->supplier_id
+        ];
+
+        $data = $this->Goods_receipt_m->dev2_getPurchaseOrderListBySupplierId($json->supplier_id);
+        if (isset($data) && !empty($data)) {
+            if (sizeof($data)) {
+                $result = [
+                    "success" => true,
+                    "data" => $data,
+                    "length" => sizeof($data),
+                    "supplier_id" => $json->supplier_id
+                ];
+            }
+        }
+
+        echo json_encode($result);
+    }
+
+    function purchase_order_list_edit()
+    {
+        $json = $this->json;
+        $result = [
+            "success" => false,
+            "data" => null,
+            "length" => 0,
+            "supplier_id" => $json->supplier_id
+        ];
+
+        $data = $this->Goods_receipt_m->dev2_getPurchaseOrderListBySupplierIdEdit($json->document_id, $json->supplier_id);
+        if (isset($data) && !empty($data)) {
+            if (sizeof($data)) {
+                $result = [
+                    "success" => true,
+                    "data" => $data,
+                    "length" => sizeof($data),
+                    "supplier_id" => $json->supplier_id
+                ];
+            }
+        }
+
+        echo json_encode($result);
+    }
+
+    function editnew()
+    {
+        $post = $this->input->post();
+        $view_data = [];
+
+        if (!$post["id"]) {
+            $view_data["status"] = "success";
+            $view_data["message"] = "500 Internal server error.";
+            
+            $this->load->view("goods_receipt/editnew", $view_data);
+            return;
+        }
+
+        $view_data["header_data"] = $this->Goods_receipt_m->dev2_getGoodsReceiptHeaderByPvId($post["id"]);
+        if ($view_data["header_data"]->project_id != 0) {
+            $view_data["header_data"]->project_name = $this->Goods_receipt_m->dev2_getProjectNameByProjectId($view_data["header_data"]->project_id);
+        }
+        if ($view_data["header_data"]->supplier_id != 0) {
+            $view_data["header_data"]->supplier_name = $this->Goods_receipt_m->dev2_getSupplierNameBySupplierId($view_data["header_data"]->supplier_id);
+        }
+
+        $view_data["detail_data"] = $this->Goods_receipt_m->dev2_getGoodsReceiptDetailByPvId($post["id"]);
+        $view_data["supplier_dropdown"] = $this->Goods_receipt_m->dev2_getSupplieHavePurchaseOrderApproved();
+        $view_data["project_dropdown"] = $this->Goods_receipt_m->dev2_getProjectReferByProjectOpen();
+
+        // var_dump(arr($view_data)); exit();
+        $this->load->view("goods_receipt/editnew", $view_data);
+    }
+
+    function addnew_save()
+    {
+        $post = $this->input->post();
+        $result = [
+            "success" => true,
+            "data" => $post,
+            "message" => lang("gr_save_succeed")
+        ];
+
+        // verify po_item_id
+        if (empty($post["po_item_id"])) {
+            $result["success"] = false;
+            $result["message"] = lang("gr_no_item_select");
+            echo json_encode($result);
+
+            return;
+        }
+
+        foreach ($post["po_item_id"] as $item) {
+            if ($item == "") {
+                $result["success"] = false;
+                $result["message"] = lang("gr_incomplete_info");
+                echo json_encode($result);
+
+                return;
+            }
+        }
+
+        $origin_po_item_id = $post["po_item_id"];
+        $unique_po_item_id = array_unique($origin_po_item_id);
+
+        if (sizeof($origin_po_item_id) !== sizeof($unique_po_item_id)) {
+            $result["success"] = false;
+            $result["message"] = lang("gr_item_duplicated");
+            echo json_encode($result);
+
+            return;
+        }
+
+        // verify status_qty
+        if (sizeof($post["status_qty"])) {
+            foreach ($post["status_qty"] as $item) {
+                if ($item == "N") {
+                    $result["success"] = false;
+                    $result["message"] = lang("gr_incorrect_qty");
+                    echo json_encode($result);
+
+                    return;
+                }
+            }
+        }
+
+        $post["doc-date"] = $this->DateCaseConvert($post["doc-date"]);
+        $result["post_result"] = $this->Goods_receipt_m->dev2_postGoodsReceiptByCreateForm($post);
+
+        echo json_encode($result);
+    }
+
+    function editnew_save()
+    {
+        $post = $this->input->post();
+        $result = [
+            "success" => true,
+            "data" => $post,
+            "message" => lang("gr_save_succeed")
+        ];
+
+        // verify po_item_id
+        if (empty($post["po_item_id"])) {
+            $result["success"] = false;
+            $result["message"] = lang("gr_no_item_select");
+            echo json_encode($result);
+
+            return;
+        }
+
+        foreach ($post["po_item_id"] as $item) {
+            if ($item == "") {
+                $result["success"] = false;
+                $result["message"] = lang("gr_incomplete_info");
+                echo json_encode($result);
+
+                return;
+            }
+        }
+
+        $origin_po_item_id = $post["po_item_id"];
+        $unique_po_item_id = array_unique($origin_po_item_id);
+
+        if (sizeof($origin_po_item_id) !== sizeof($unique_po_item_id)) {
+            $result["success"] = false;
+            $result["message"] = lang("gr_item_duplicated");
+            echo json_encode($result);
+
+            return;
+        }
+
+        // verify status_qty
+        if (sizeof($post["status_qty"])) {
+            foreach ($post["status_qty"] as $item) {
+                if ($item == "N") {
+                    $result["success"] = false;
+                    $result["message"] = lang("gr_incorrect_qty");
+                    echo json_encode($result);
+
+                    return;
+                }
+            }
+        }
+
+        $post["doc-date"] = $this->DateCaseConvert($post["doc-date"]);
+        $result["post_result"] = $this->Goods_receipt_m->dev2_postGoodsReceiptByCreateFormEdit($post);
+
+        echo json_encode($result);
+    }
+
+    public function dev2_serializeTypeForGoodsReceiptItems()
+    {
+        $this->Goods_receipt_m->dev2_serializeTypeForGoodsReceiptItems();
     }
 
     private function DateCaseConvert(string $dateInput): string

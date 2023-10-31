@@ -43,7 +43,7 @@
 
 .doc-detail td:first-child {
     width: fit-content !important;
-    padding-right: 10px;
+    padding-right: 1.2rem;
 }
 </style>
 
@@ -132,6 +132,25 @@
                         <td class="custom-color"><?php echo ucwords(lang('project_refer')); ?></td>
                         <td><?php echo (isset($mat_project_info->title) && !empty($mat_project_info->title)) ? $mat_project_info->title : '-'; ?></td>
                     </tr>
+                    
+                    <?php if (isset($mat_req_info->sale_order_id) && !empty($mat_req_info->sale_order_id)): ?>
+                        <?php
+                            $reference_number = "-";
+                            if ($mat_req_info->sale_order_id != 0) {
+                                $reference_number = anchor(
+                                    get_uri("sales_orders/view/" . $mat_req_info->sale_order_id),
+                                    $mat_req_info->sale_order_no,
+                                    ["target" => "_blank"]
+                                );
+                                ?>
+                                <tr>
+                                    <td class="custom-color"><?php echo lang("sale_order_refer"); ?></td>
+                                    <td><?php echo $reference_number; ?></td>
+                                </tr>
+                                <?php
+                            }
+                        ?>
+                    <?php endif; ?>
                 </table>
             </div>
         </div>

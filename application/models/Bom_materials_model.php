@@ -2,7 +2,6 @@
 
 class Bom_materials_model extends Crud_model
 {
-
 	private $table = null;
 
 	function __construct()
@@ -111,7 +110,7 @@ class Bom_materials_model extends Crud_model
 		if ($supplier_id) {
 			$where .= " AND bmp.supplier_id = $supplier_id";
 		}
-		
+
 		$category_id = get_array_value($options, "category_id");
 		if ($category_id) {
 			$where .= " AND bm.category_id = $category_id";
@@ -218,7 +217,7 @@ class Bom_materials_model extends Crud_model
 			AND bs.remaining > 0 
 			GROUP BY bs.material_id
 		";
-		// arr($sql);
+		
 		$result = $this->db->query($sql);
 
 		if ($result->num_rows()) {
@@ -231,10 +230,7 @@ class Bom_materials_model extends Crud_model
 		$materials_table = $this->db->dbprefix('bom_materials');
 		$material_id = $this->db->escape_str($material_id);
 
-		$sql = "SELECT $materials_table.*
-			FROM $materials_table
-			WHERE $materials_table.`id` = '$material_id'
-        	";
+		$sql = "SELECT $materials_table.* FROM $materials_table WHERE $materials_table.`id` = '$material_id' ";
 		$result = $this->db->query($sql);
 
 		if ($result->num_rows()) {
@@ -269,10 +265,10 @@ class Bom_materials_model extends Crud_model
 		}
 	}
 
-	function dev2_getCountNameByMaterialNameWithId($name, $id) 
+	function dev2_getCountNameByMaterialNameWithId($name, $id)
 	{
 		$sql = "SELECT `name` FROM `bom_materials` WHERE 1 AND LOWER(`name`) = '" . strtolower($name) . "' AND `id` <> '" . $id . "'";
-		
+
 		if (isset($name) && strlen($name) > 0) {
 			$query = $this->db->query($sql);
 			return $query->num_rows();
@@ -284,37 +280,37 @@ class Bom_materials_model extends Crud_model
 	function dev2_getMaterialCateByName($name)
 	{
 		$rows = 0;
-        $sql = "SELECT `id` FROM `bom_material_categories` WHERE 1 AND LOWER(`title`) = '" . strtolower($name) . "'";
+		$sql = "SELECT `id` FROM `bom_material_categories` WHERE 1 AND LOWER(`title`) = '" . strtolower($name) . "'";
 
-        if (isset($name) && strlen($name) > 0) {
-            $query = $this->db->query($sql);
-            $rows = $query->num_rows();
-        }
-        return $rows;
+		if (isset($name) && strlen($name) > 0) {
+			$query = $this->db->query($sql);
+			$rows = $query->num_rows();
+		}
+		return $rows;
 	}
 
 	function dev2_getMaterialCateByNameWithId($name, $id)
 	{
 		$rows = 0;
-        $sql = "SELECT `id` FROM `bom_material_categories` WHERE 1 AND LOWER(`title`) = '" . strtolower($name) . "' AND `id` != '" . $id . "'";
+		$sql = "SELECT `id` FROM `bom_material_categories` WHERE 1 AND LOWER(`title`) = '" . strtolower($name) . "' AND `id` != '" . $id . "'";
 
-        if (isset($name) && strlen($name) > 0) {
-            $query = $this->db->query($sql);
-            $rows = $query->num_rows();
-        }
-        return $rows;
+		if (isset($name) && strlen($name) > 0) {
+			$query = $this->db->query($sql);
+			$rows = $query->num_rows();
+		}
+		return $rows;
 	}
 
 	function dev2_getCountMaterialCateById($id)
 	{
 		$rows = 0;
-        $sql = "SELECT `id` FROM `bom_materials` WHERE `category_id` = '" . $id . "'";
+		$sql = "SELECT `id` FROM `bom_materials` WHERE `category_id` = '" . $id . "'";
 
-        if (isset($id) && $id != "0") {
-            $query = $this->db->query($sql);
-            $rows = $query->num_rows();
-        }
-        return $rows;
+		if (isset($id) && $id != "0") {
+			$query = $this->db->query($sql);
+			$rows = $query->num_rows();
+		}
+		return $rows;
 	}
 
 	function dev2_getCountWarehouseById($id = 0)
@@ -333,19 +329,43 @@ class Bom_materials_model extends Crud_model
 	{
 		$db = $this->db;
 
-		$db->select("*")
-			->from("bom_materials");
+		$db->select("*")->from("bom_materials");
 
 		if ($this->input->post("keyword")) {
 			$keyword = $this->input->post("keyword");
-			$db->like("production_name", $keyword);
-			$db->or_like("barcode", $keyword);
+			$db->like("name", $keyword);
+			$db->or_like("production_name", $keyword);
+			$db->or_like("description", $keyword);
 		}
 
 		if ($this->input->get("keyword")) {
 			$keyword = $this->input->get("keyword");
-			$db->like("production_name", $keyword);
-			$db->or_like("barcode", $keyword);
+			$db->like("name", $keyword);
+			$db->or_like("production_name", $keyword);
+			$db->or_like("description", $keyword);
+		}
+
+		return $db->get()->result();
+	}
+
+	function dev2_getMaterialsDropdownByKeyword()
+	{
+		$db = $this->db;
+		$getKeyword = $this->input->get("keyword");
+        $postKeyword = $this->input->post("keyword");
+
+		$db->select("*")->from("bom_materials");
+
+		if (isset($postKeyword) && !empty($postKeyword)) {
+			$db->like("name", $postKeyword);
+			$db->or_like("production_name", $postKeyword);
+			$db->or_like("description", $postKeyword);
+		}
+
+		if (isset($getKeyword) && !empty($getKeyword)) {
+			$db->like("name", $getKeyword);
+			$db->or_like("production_name", $getKeyword);
+			$db->or_like("description", $getKeyword);
 		}
 
 		return $db->get()->result();

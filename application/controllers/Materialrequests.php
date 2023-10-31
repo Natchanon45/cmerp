@@ -2018,10 +2018,15 @@ class Materialrequests extends MY_Controller
 			"end_date" => $this->input->post("end_date")
 		);
 
-		$result = $this->Materialrequests_model->get_meterial_request_list($options);
-
+		// $result = $this->Materialrequests_model->get_meterial_request_list($options);
+		$result = $this->Materialrequests_model->dev2_getMaterialRequestByOptions($options);
+		
 		if (sizeof($result)) {
+			// var_dump(arr($result)); exit();
+
 			foreach ($result as $data) {
+				// var_dump(arr($data)); exit();
+
 				$buttons = array();
 				$status_color = "#efc050";
 				$status_text = lang("status_waiting_for_approve");
@@ -2069,21 +2074,32 @@ class Materialrequests extends MY_Controller
 					);
 				}
 
+				$reference_number = "-";
+				if ($data->sale_order_id != 0) {
+					$reference_number = anchor(
+						get_uri("sales_orders/view/" . $data->sale_order_id),
+						$data->sale_order_no,
+						["target" => "_blank"]
+					);
+				}
+
 				$operation = implode('', $buttons);
 				$row[] = array(
 					"id" => $data->id,
 					"doc_no" => $data->doc_no ? anchor(get_uri("materialrequests/view/" . $data->id), $data->doc_no) : lang("have_no_document_number"),
-					"category_name" => $data->title,
-					"project_name" => $data->project_id ? anchor(get_uri("projects/view/" . $data->project_id), $data->project_name ? $data->project_name : $data->project_names) : lang("have_no_project_name"),
-					"client_name" => $data->company_name ? $data->company_name : '-',
-					"user_name" => $data->first_name . " " . $data->last_name,
-					"request_date" => format_to_date($data->mr_date),
+					"category_name" => $data->category_info->title,
+					"reference_number" => $reference_number,
+					"project_name" => $data->project_id ? anchor(get_uri("projects/view/" . $data->project_id), $data->project_info->title ? $data->project_info->title : lang("have_no_project_name")) : lang("have_no_project_name"),
+					"client_name" => (isset($data->client_info->company_name) && !empty($data->client_info->company_name)) ? $data->client_info->company_name : '-',
+					"user_name" => $data->creator_info->first_name . " " . $data->creator_info->last_name,
+					"request_date" => convertDate($data->mr_date, true),
 					"status" => "<span style='background-color: $status_color;' class='label'>$status_text</span>",
 					"operation" => $operation
 				);
 			}
 		}
 
+		// var_dump(arr($row)); exit();
 		echo json_encode(array("data" => $row));
 	}
 

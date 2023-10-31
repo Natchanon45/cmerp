@@ -1,7 +1,7 @@
 <div class="panel">
   <div class="tab-title clearfix">
     <h4>
-      <?php echo lang('stock_restock_item_info_restock'); ?>
+      <?php echo lang("general_info"); ?>
     </h4>
   </div>
 
