@@ -320,7 +320,7 @@ $lang["delete_client"] = "ลบลูกค้า";
 $lang["client"] = "ลูกค้า";
 $lang["clients"] = "ลูกค้าทั้งหมด";
 $lang["client_details"] = "รายละเอียดลูกค้า";
-$lang["due"] = "ครบกำหนด";
+$lang["due"] = "เกินกำหนด";
 
 $lang["add_contact"] = "เพิ่มข้อมูลติดต่อ";
 $lang["edit_contact"] = "แก้ไขข้อมูลติดต่อ";
@@ -520,7 +520,7 @@ $lang["bill_date"] = "วันที่ออกบิล";
 ///$lang["due_date"] = "วันที่เรียกชำระ";
 $lang["payment_date"] = "วันที่จ่าย";
 $lang["bill_to"] = "ส่งเบิกไปที่";
-$lang["invoice_value"] = "มูลค่าใบแจ้งหนี้";
+$lang["invoice_value"] = "มูลค่าใบแจ้งหนี้ทั้งหมด";
 $lang["payment_received"] = "ได้รับการชำระเงินแล้ว";
 $lang["invoice_payments"] = "การชำระเงิน";
 $lang["draft"] = "ร่าง";

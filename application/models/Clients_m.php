@@ -299,13 +299,13 @@ class Clients_m extends MY_Model {
                                             ->where("client_id", $client_id)
                                             ->where_in("status", ["O", "P"]);
 
-        if($overdue_checking == true) $this->db->where("DATE(due_date) <", date("Y-m-d"));
+        if($overdue_checking == true) $this->db->where("DATE(due_date) >", date("Y-m-d"));
 
         $total_invoice_amounts = $this->db->get()->row()->TOTAL_INVOICE_AMOUNTS;
 
         if($total_invoice_amounts == null) $total_invoice_amounts = 0;
 
-        return $total_invoice_amounts - $this->getTotalPaymentReceives($client_id, false, true);
+        return $total_invoice_amounts - $this->getTotalPaymentReceives($client_id, false, $overdue_checking);
     }
 
     function getTotalPaymentReceives($client_id, $include_on_cash = false, $overdue_checking = false){
@@ -317,7 +317,7 @@ class Clients_m extends MY_Model {
                     ->where("deleted", 0)
                     ->where("client_id", $client_id);
 
-        if($overdue_checking == true) $this->db->where("DATE(due_date) <", date("Y-m-d"));
+        if($overdue_checking == true) $this->db->where("DATE(due_date) >", date("Y-m-d"));
         $total_payment_receives = $this->db->get()->row()->TOTAL_PAYMENT_RECEIVES;
 
         if($total_payment_receives == null) $total_payment_receives = 0;
