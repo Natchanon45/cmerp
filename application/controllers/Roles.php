@@ -353,6 +353,11 @@ class Roles extends MY_Controller {
         $accounting_credit_note_access = $this->input->post('accounting_credit_note_access') == "Y" ? true : false;
         $accounting_debit_note_access = $this->input->post('accounting_debit_note_access') == "Y" ? true : false;
 
+        $accounting_purchase_request_access = $this->input->post("accounting_purchase_request_access") == "Y" ? true : false;
+        $accounting_purchase_order_access = $this->input->post("accounting_purchase_order_access") == "Y" ? true : false;
+        $accounting_payment_voucher_access = $this->input->post("accounting_payment_voucher_access") == "Y" ? true : false;
+        $accounting_goods_receipt_access = $this->input->post("accounting_goods_receipt_access") == "Y" ? true : false;
+
         if($this->input->post('access_material_request') == "Y") $access_material_request = true;
         if($this->input->post('create_material_request') == "Y") $create_material_request = true;
         if($this->input->post('update_material_request') == "Y") $update_material_request = true;
@@ -460,7 +465,11 @@ class Roles extends MY_Controller {
                 "billing_note"=>["access"=>$accounting_billing_note_access],
                 "receipt"=>["access"=>$accounting_receipt_access],
                 "credit_note"=>["access"=>$accounting_credit_note_access],
-                "debit_note"=>["access"=>$accounting_debit_note_access]
+                "debit_note"=>["access"=>$accounting_debit_note_access],
+                "purchase_request" => [ "access" => $accounting_purchase_request_access ],
+                "purchase_order" => [ "access" => $accounting_purchase_order_access ],
+                "payment_voucher" => [ "access" => $accounting_payment_voucher_access ],
+                "goods_receipt" => [ "access" => $accounting_goods_receipt_access ]
             ],
         	"access_material_request"=>$access_material_request,
         	"create_material_request"=>$create_material_request,
@@ -697,6 +706,11 @@ class Roles extends MY_Controller {
             $view_data['accounting']['receipt']['access'] = !isset($permissions["accounting"]["receipt"]) ? false : $permissions["accounting"]["receipt"]["access"];
             $view_data['accounting']['credit_note']['access'] = !isset($permissions["accounting"]["credit_note"]) ? false : $permissions["accounting"]["credit_note"]["access"];
             $view_data['accounting']['debit_note']['access'] = !isset($permissions["accounting"]["debit_note"]) ? false : $permissions["accounting"]["debit_note"]["access"];
+
+            $view_data["accounting"]["purchase_request"]["access"] = !isset($permissions["accounting"]["purchase_request"]) ? false : $permissions["accounting"]["purchase_request"]["access"];
+            $view_data["accounting"]["purchase_order"]["access"] = !isset($permissions["accounting"]["purchase_order"]) ? false : $permissions["accounting"]["purchase_order"]["access"];
+            $view_data["accounting"]["goods_receipt"]["access"] = !isset($permissions["accounting"]["goods_receipt"]) ? false : $permissions["accounting"]["goods_receipt"]["access"];
+            $view_data["accounting"]["payment_voucher"]["access"] = !isset($permissions["accounting"]["purchase_request"]) ? false : $permissions["accounting"]["payment_voucher"]["access"];
 
             $view_data['access_material_request'] = get_array_value($permissions, "access_material_request");
             $view_data['create_material_request'] = get_array_value($permissions, "create_material_request");

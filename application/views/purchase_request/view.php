@@ -7,22 +7,22 @@
 
 <div id="dcontroller" class="clearfix">
     <div class="page-title clearfix mt15 clear">
-        <h1><?php echo (isset($doc_number) && !empty($doc_number)) ? lang('purchase_request') . ' ' . $doc_number : ''; ?></h1>
+        <h1><?php echo (isset($doc_number) && !empty($doc_number)) ? lang("purchase_request") . " " . $doc_number : ""; ?></h1>
 
         <div class="title-button-group">
             <a style="margin-left: 15px;" class="btn btn-default mt0 mb0 back-to-index-btn" href="<?php echo get_uri("accounting/buy/purchase_request"); ?>">
                 <i class="fa fa-hand-o-left" aria-hidden="true"></i>
-                <?php echo lang('back_to_table'); ?>
+                <?php echo lang("back_to_table"); ?>
             </a>
             <a id="add_item_button" class="btn btn-default" data-post-doc_id="<?php echo $doc_id; ?>" data-act="ajax-modal" data-title="<?php echo lang('share_doc') . ' ' . $doc_number; ?>" data-action-url="<?php echo get_uri("purchase_request/share"); ?>">
-                <?php echo lang('share'); ?>
+                <?php echo lang("share"); ?>
             </a>
             <a onclick="window.open('<?php echo $print_url; ?>', '' ,'width=980,height=720');" class="btn btn-default">
-                <?php echo lang('print'); ?>
+                <?php echo lang("print"); ?>
             </a>
             <?php if ($doc_status == "W"): ?>
                 <a href="javascript:void(0);" id="btn-approval" class="btn btn-info">
-                    <?php echo lang('approve'); ?>
+                    <?php echo lang("approve"); ?>
                 </a>
             <?php endif; ?>
         </div>
@@ -34,7 +34,7 @@
         <div class="l">
             <div class="logo">
                 <?php if (file_exists($_SERVER['DOCUMENT_ROOT'] . get_file_from_setting("estimate_logo", true)) != false): ?>
-                    <img src="<?php echo get_file_from_setting("estimate_logo", get_setting('only_file_path')); ?>" />
+                    <img src="<?php echo get_file_from_setting("estimate_logo", get_setting("only_file_path")); ?>" />
                 <?php else: ?>
                     <span class="nologo">&nbsp;</span>
                 <?php endif; ?>
@@ -72,9 +72,6 @@
                             echo $supplier_address;
                         ?>
                     </p>
-                    <?php if (trim($supplier["country"]) != ""): ?>
-                        <p><?php // echo $supplier["country"]; ?></p>
-                    <?php endif; ?>
                     <?php if (trim($supplier["vat_number"]) != ""): ?>
                         <p><?php echo lang("vat_number") . ": " . $supplier["vat_number"]; ?></p>
                     <?php endif; ?>
@@ -83,59 +80,47 @@
         </div><!--.l-->
 
         <div class="r">
-            <h1 class="document_name custom-color"><?php echo lang('purchase_request'); ?></h1>
+            <h1 class="document_name custom-color"><?php echo lang("purchase_request"); ?></h1>
             <div class="about_company">
                 <table width="100%">
                     <tr>
-                        <td class="custom-color top-vertical" style="width: 30%;"><?php echo lang('document_number'); ?></td>
+                        <td class="custom-color top-vertical" style="width: 30%;"><?php echo lang("document_number"); ?></td>
                         <td><?php echo $doc_number; ?></td>
                     </tr>
                     <tr>
-                        <td class="custom-color top-vertical"><?php echo lang('document_date'); ?></td>
+                        <td class="custom-color top-vertical"><?php echo lang("document_date"); ?></td>
                         <td><?php echo convertDate($doc_date, true); ?></td>
                     </tr>
 
-                    <!-- <tr>
-                        <td class="custom-color">เครดิต</td>
-                        <td><?php // echo $credit; ?> วัน</td>
-                    </tr> -->
-
                     <tr>
-                        <td class="custom-color top-vertical"><?php echo lang('request_by'); ?></td>
+                        <td class="custom-color top-vertical"><?php echo lang("issuer_of_document"); ?></td>
                         <td><?php if ($created != null) echo $created["first_name"] . " " . $created["last_name"]; ?></td>
                     </tr>
                     <tr>
-                        <td class="custom-color top-vertical"><?php echo lang('project_refer'); ?></td>
+                        <td class="custom-color top-vertical"><?php echo lang("project_refer"); ?></td>
                         <td>
                             <?php echo (isset($project_info->title) && !empty($project_info->title)) ? $project_info->title : '-'; ?>
                         </td>
                     </tr>
-
-                    <!-- <tr>
-                        <td class="custom-color top-vertical"><?php // echo lang('reference_number'); ?></td>
-                        <td>
-                            <?php // echo (isset($reference_number) && !empty($reference_number) && trim($reference_number) != "") ? $reference_number : '-'; ?>
-                        </td>
-                    </tr> -->
 
                 </table>
             </div>
             <div class="about_customer">
                 <table width="100%">
                     <tr>
-                        <td class="custom-color" style="width: 30%;"><?php echo lang('contact_name'); ?></td>
+                        <td class="custom-color" style="width: 30%;"><?php echo lang("contact_name"); ?></td>
                         <td>
                             <?php echo (isset($supplier_contact) && !empty($supplier_contact)) ? $supplier_contact["first_name"] . " " . $supplier_contact["last_name"] : '-'; ?>
                         </td>
                     </tr>
                     <tr>
-                        <td class="custom-color"><?php echo lang('phone'); ?></td>
+                        <td class="custom-color"><?php echo lang("phone"); ?></td>
                         <td>
                             <?php echo (isset($supplier_contact) && !empty($supplier_contact)) ? $supplier_contact["phone"] : '-'; ?>
                         </td>
                     </tr>
                     <tr>
-                        <td class="custom-color"><?php echo lang('email'); ?></td>
+                        <td class="custom-color"><?php echo lang("email"); ?></td>
                         <td>
                             <?php echo (isset($supplier_contact) && !empty($supplier_contact)) ? $supplier_contact["email"] : '-'; ?>
                         </td>
@@ -150,11 +135,11 @@
             <thead>
                 <tr>
                     <td>#</td>
-                    <td><?php echo lang('details'); ?></td>
-                    <td><?php echo lang('quantity'); ?></td>
-                    <td><?php echo lang('stock_material_unit'); ?></td>
-                    <td><?php echo lang('rate'); ?></td>
-                    <td><?php echo lang('total_item'); ?></td>
+                    <td><?php echo lang("details"); ?></td>
+                    <td><?php echo lang("quantity"); ?></td>
+                    <td><?php echo lang("stock_material_unit"); ?></td>
+                    <td><?php echo lang("rate"); ?></td>
+                    <td><?php echo lang("total_item"); ?></td>
                     <td></td>
                 </tr>
             </thead>
@@ -166,14 +151,24 @@
                         <?php if ($doc_status == "W"): ?>
                             <p>
                                 <?php
+                                    $btn_text = lang("btn_add_raw_material");
+                                    
+                                    if ($pr_type == 3) {
+                                        $btn_text = lang("btn_add_finished_goods");
+                                    }
+
+                                    if ($pr_type == 5) {
+                                        $btn_text = lang("btn_add_expense");
+                                    }
+
                                     echo modal_anchor(
                                         get_uri("purchase_request/item"),
-                                        "<i class='fa fa-plus-circle'></i> " . lang('add_item_product'),
+                                        "<i class='fa fa-plus-circle'></i> " . $btn_text,
                                         array(
                                             "id" => "add_item_button",
                                             "class" => "btn btn-default",
-                                            "title" => $modal_header,
-                                            "data-title" => $modal_header,
+                                            "title" => $btn_text,
+                                            "data-title" => $btn_text,
                                             "data-post-doc_id" => $doc_id
                                         )
                                     );
@@ -184,49 +179,31 @@
                     </td>
                     <td colspan="4" class="summary">
                         <p id="s-sub-total-before-discount">
-                            <span class="c1 custom-color"><?php echo lang('total_all_item'); ?></span>
+                            <span class="c1 custom-color"><?php echo lang("total_all_item"); ?></span>
                             <span class="c2"><input type="text" id="sub_total_before_discount" readonly></span>
-                            <span class="c3"><span class="currency"><?php echo lang('THB'); ?></span></span>
+                            <span class="c3"><span class="currency"><?php echo lang("THB"); ?></span></span>
                         </p>
-
-                        <!-- <p id="s-discount">
-                            <span class="c1 custom-color">
-                                ส่วนลด&nbsp;<input type="number" id="discount_percent" value="<?php // echo $discount_percent; ?>" <?php // if ($doc_status != "W") echo "disabled"; ?>>
-                                <select id="discount_type" <?php // if ($doc_status != "W") echo "disabled"; ?>>
-                                    <option value="P" <?php // if ($discount_type == "P") echo "selected"; ?>>%</option>
-                                    <option value="F" <?php // if ($discount_type == "F") echo "selected"; ?>>฿</option>
-                                </select>
-                            </span>
-                            <span class="c2"><input type="text" id="discount_amount" value="<?php // echo $discount_amount; ?>" readonly></span>
-                            <span class="c3"><span class="currency">บาท</span></span>
-                        </p> -->
-
-                        <!-- <p id="s-sub-total">
-                            <span class="c1"><i class="custom-color t1">ราคาหลังหักส่วนลด</i><i class="custom-color t2">รวมเป็นเงิน</i></span>
-                            <span class="c2"><input type="text" id="sub_total" readonly></span>
-                            <span class="c3"><span class="currency">บาท</span></span>
-                        </p> -->
 
                         <p id="s-vat">
                             <span class="c1 custom-color">
                                 <input type="checkbox" id="vat_inc" <?php if ($vat_inc == "Y") echo "checked"; ?> <?php if ($doc_status != "W") echo "disabled"; ?>>
-                                <span><?php echo lang('value_add_tax'); ?></span>
+                                <span><?php echo lang("value_add_tax"); ?></span>
                                 <?php echo $this->Taxes_m->getVatPercent() . "%"; ?>
                             </span>
                             <span class="c2"><input type="text" id="vat_value" readonly></span>
-                            <span class="c3"><span class="currency"><?php echo lang('THB'); ?></span></span>
+                            <span class="c3"><span class="currency"><?php echo lang("THB"); ?></span></span>
                         </p>
 
                         <p id="s-total">
-                            <span class="c1 custom-color"><?php echo lang('grand_total_price'); ?></span>
+                            <span class="c1 custom-color"><?php echo lang("grand_total_price"); ?></span>
                             <span class="c2"><input type="text" id="total" readonly></span>
-                            <span class="c3"><span class="currency"><?php echo lang('THB'); ?></span></span>
+                            <span class="c3"><span class="currency"><?php echo lang("THB"); ?></span></span>
                         </p>
 
                         <p id="s-wht">
                             <span class="c1 custom-color">
                                 <input type="checkbox" id="wht_inc" <?php if ($wht_inc == "Y") echo "checked" ?> <?php if ($doc_status != "W") echo "disabled"; ?> <?php if ($pr_type != "5") echo "disabled"; ?>>
-                                <span><?php echo lang('with_holding_tax'); ?></span>
+                                <span><?php echo lang("with_holding_tax"); ?></span>
                                 <select id="wht_percent" class="wht custom-color <?php echo $wht_inc == "Y" ? "v" : "h"; ?>" <?php if ($doc_status != "W") echo "disabled"; ?>>
                                     <?php if ($wht_inc == 'Y' && isset($wht_percent) && !empty($wht_percent)): ?>
                                         <option value="<?php echo $wht_percent; ?>" selected><?php echo $wht_percent . '%'; ?></option>
@@ -243,13 +220,13 @@
                                 </select>
                             </span>
                             <span class="c2 wht <?php echo $wht_inc == "Y" ? "v" : "h"; ?>"><input type="text" id="wht_value" readonly></span>
-                            <span class="c3 wht <?php echo $wht_inc == "Y" ? "v" : "h"; ?>"><span class="currency"><?php echo lang('THB'); ?></span></span>
+                            <span class="c3 wht <?php echo $wht_inc == "Y" ? "v" : "h"; ?>"><span class="currency"><?php echo lang("THB"); ?></span></span>
                         </p>
 
                         <p id="s-payment-amount">
-                            <span class="c1 custom-color wht <?php echo $wht_inc == "Y" ? "v" : "h"; ?>"><?php echo lang('payment_amount'); ?></span>
+                            <span class="c1 custom-color wht <?php echo $wht_inc == "Y" ? "v" : "h"; ?>"><?php echo lang("payment_amount"); ?></span>
                             <span class="c2 wht <?php echo $wht_inc == "Y" ? "v" : "h"; ?>"><input type="text" id="payment_amount" readonly></span>
-                            <span class="c3 wht <?php echo $wht_inc == "Y" ? "v" : "h"; ?>"><span class="currency"><?php echo lang('THB'); ?></span></span>
+                            <span class="c3 wht <?php echo $wht_inc == "Y" ? "v" : "h"; ?>"><span class="currency"><?php echo lang("THB"); ?></span></span>
                         </p>
                     </td>
                 </tr>
@@ -257,7 +234,7 @@
         </table>
         <?php if (trim($remark) != ""): ?>
             <div class="remark clear">
-                <p class="custom-color"><?php echo lang('remark'); ?></p>
+                <p class="custom-color"><?php echo lang("remark"); ?></p>
                 <p><?php echo nl2br($remark); ?></p>
             </div>
         <?php endif; ?>
@@ -265,9 +242,7 @@
 
     <div class="docsignature clear">
         <div class="customer">
-            <div class="on_behalf_of">
-                <?php // echo "ในนาม" . $client["company_name"]; ?>
-            </div>
+            <div class="on_behalf_of"></div>
             <div class="clear">
                 <div class="name">
                     <span class="l1">
@@ -277,7 +252,7 @@
                             <?php endif; endif; endif; ?>
                         </span>
                     </span>
-                    <span class="l2"><?php echo lang('request_by'); ?></span>
+                    <span class="l2"><?php echo lang("issuer_of_document"); ?></span>
                 </div>
                 <div class="date">
                     <span class="l1">
@@ -285,14 +260,12 @@
                             <span class="approved_date"><?php echo convertDate($doc_date, true); ?></span>
                         <?php endif; ?>
                     </span>
-                    <span class="l2"><?php echo lang('date'); ?></span>
+                    <span class="l2"><?php echo lang("date_of_issued"); ?></span>
                 </div>
             </div>
         </div><!--.customer -->
         <div class="company">
-            <div class="on_behalf_of">
-                <?php // echo "ในนาม" . get_setting("company_name"); ?>
-            </div>
+            <div class="on_behalf_of"></div>
             <div class="clear">
                 <div class="name">
                     <span class="l1">
@@ -302,7 +275,7 @@
                             <?php endif; endif; ?>
                         </span>
                     </span>
-                    <span class="l2"><?php echo lang('approver'); ?></span>
+                    <span class="l2"><?php echo lang("approver"); ?></span>
                 </div>
                 <div class="date">
                     <span class="l1">
@@ -310,7 +283,7 @@
                             <span class="approved_date"><?php echo convertDate($approved_datetime, true); ?></span>
                         <?php endif; ?>
                     </span>
-                    <span class="l2"><?php echo lang('date'); ?></span>
+                    <span class="l2"><?php echo lang("day_of_approved"); ?></span>
                 </div>
             </div>
         </div><!--.company-->
@@ -330,10 +303,6 @@
     $(document).ready(function () {
         loadItems();
 
-        // $("#discount_percent, #discount_amount").blur(function () {
-        //     loadSummary();
-        // });
-
         $("#vat_inc, #wht_inc, #wht_percent").change(function () {
             loadSummary();
         });
@@ -349,8 +318,6 @@
             task: 'load_items',
             doc_id: '<?php echo $doc_id; ?>'
         }).then(function (response) {
-            // console.log(response);
-
             let data = response.data;
             if (data.status == "notfound") {
                 let notfound = `
@@ -360,8 +327,6 @@
                 `;
                 $(".docitem tbody").empty().append(notfound);
             } else if (data.status == "success") {
-                // console.log(data.items);
-
                 let tbody = '';
                 let items = data.items;
                 for (let i = 0; i < items.length; i++) {
@@ -397,16 +362,6 @@
     }
 
     function loadSummary() {
-        // let discount_type = $("#discount_type").val();
-        // let discount_percent = 0;
-        // let discount_value = 0;
-
-        // if (discount_type == "P") {
-        //     discount_percent = tonum($("#discount_percent").val());
-        // } else {
-        //     discount_value = tonum($("#discount_amount").val());
-        // }
-
         axios.post('<?php echo current_url(); ?>', {
             task: 'update_doc',
             doc_id: '<?php echo $doc_id; ?>',
@@ -417,8 +372,6 @@
             wht_inc: $("#wht_inc").is(":checked"),
             wht_percent: $("#wht_percent").val()
         }).then(function (response) {
-            // console.log(response);
-
             let data = response.data;
 
             $("#sub_total_before_discount").val(data.sub_total_before_discount);
@@ -430,31 +383,6 @@
             $("#total").val(data.total);
             $("#total_in_text").val("(" + data.total_in_text + ")");
             $("#payment_amount").val(data.payment_amount);
-
-            // if (data.discount_type == "P") {
-            //     $("#discount_type").val("P");
-            //     $("#discount_percent").removeClass("h").addClass("v");
-            //     $("#discount_amount").removeClass("f").addClass("p");
-            //     $("#discount_amount").prop("readonly", true);
-            //     discount_value = $("#discount_percent").val();
-            // } else {
-            //     $("#discount_type").val("F");
-            //     $("#discount_percent").removeClass("v").addClass("h");
-            //     $("#discount_amount").removeClass("p").addClass("f");
-            //     $("#discount_amount").prop("readonly", false);
-            //     discount_value = $("#discount_amount").val();
-            // }
-
-            // if (discount_value > 0) {
-            //     $("#s-sub-total-before-discount, #s-discount").removeClass("h").addClass("v");
-            //     $("#s-sub-total .t1").removeClass("h").addClass("v");
-            //     $("#s-sub-total .t2").removeClass("v").addClass("h");
-
-            // } else {
-            //     $("#s-sub-total-before-discount, #s-discount").removeClass("v").addClass("h");
-            //     $("#s-sub-total .t1").removeClass("v").addClass("h");
-            //     $("#s-sub-total .t2").removeClass("h").addClass("v");
-            // }
 
             if (data.vat_inc == "Y") {
                 $("#vat_inc").prop("checked", true);
@@ -485,10 +413,8 @@
             doc_id: '<?php echo $doc_id; ?>',
             item_id: item_id
         };
-        // console.log(url, request);
 
         axios.post(url, request).then((response) => {
-            // console.log(response);
             loadItems();
         });
     }
@@ -500,10 +426,8 @@
             doc_id: '<?php echo $doc_id; ?>',
             update_status_to: 'A'
         };
-        // console.log(url, req);
 
         axios.post(url, request).then((response) => {
-            // console.log(response);
             let data = response.data;
 
             if (data.status == "success") {
@@ -514,8 +438,6 @@
                 appAlert.error(data.message, { duration: 3001 });
             }
         }).catch((error) => {
-            // console.log(error);
-
             appAlert.error("500 Internal Server Error.", { duration: 3001 });
         });
     }

@@ -26,7 +26,7 @@
     <div class="mt15 clearfix">
         <div class="col-md-6  widget-container">
             <div class="panel panel-sky">
-                <a href="<?php echo get_uri('projects/index'); ?>" class="white-link">
+                <a id="summary_project" class="white-link" style="cursor: pointer;">
                     <div class="panel-body ">
                         <div class="widget-icon">
                             <i class="fa fa-th-large"></i>
@@ -41,7 +41,7 @@
         </div>
         <div class="col-md-6  widget-container">
             <div class="panel panel-primary">
-                <a href="<?php echo get_uri('invoices/index'); ?>" class="white-link">
+                <a class="white-link">
                     <div class="panel-body ">
                         <div class="widget-icon">
                             <i class="fa fa-file-text"></i>
@@ -56,7 +56,7 @@
         </div>
         <div class="col-md-6  widget-container">
             <div class="panel panel-success">
-                <a href="<?php echo get_uri('invoice_payments/index'); ?>" class="white-link">
+                <a class="white-link">
                     <div class="panel-body ">
                         <div class="widget-icon">
                             <i class="fa fa-check-square"></i>
@@ -71,7 +71,7 @@
         </div>
         <div class="col-md-6  widget-container">
             <div class="panel panel-coral">
-                <a href="<?php echo get_uri('invoices/index'); ?>" class="white-link">
+                <a class="white-link">
                     <div class="panel-body ">
                         <div class="widget-icon">
                             <i class="fa fa-money"></i>
@@ -87,9 +87,9 @@
     </div><!--.mt15-->
 
     <ul id="client-tabs" data-toggle="ajax-tab" class="nav nav-tabs" role="tablist">
-        <li><a  role="presentation" href="<?php echo_uri("clients/contacts/" . $crow->id); ?>" data-target="#client-contacts"> <?php echo lang('contacts'); ?></a></li>
-        <li><a  role="presentation" href="<?php echo_uri("clients/company_info_tab/" . $crow->id); ?>" data-target="#client-info"> <?php echo lang('client_info'); ?></a></li>
-        <li><a  role="presentation" href="<?php echo_uri("clients/projects/" . $crow->id); ?>" data-target="#client-projects"><?php echo lang('projects'); ?></a></li>
+        <li><a role="presentation" href="<?php echo_uri("clients/contacts/" . $crow->id); ?>" data-target="#client-contacts"> <?php echo lang('contacts'); ?></a></li>
+        <li><a role="presentation" href="<?php echo_uri("clients/company_info_tab/" . $crow->id); ?>" data-target="#client-info"> <?php echo lang('client_info'); ?></a></li>
+        <li><a id="tab_project" role="presentation" href="<?php echo_uri("clients/projects/" . $crow->id); ?>" data-target="#client-projects"><?php echo lang('projects'); ?></a></li>
         
         <!--<li><a  role="presentation" href="<?php echo_uri("clients/invoices/" . $crow->id); ?>" data-target="#client-invoices"> <?php echo lang('invoices'); ?></a></li>
         <li><a  role="presentation" href="<?php echo_uri("clients/payments/" . $crow->id); ?>" data-target="#client-payments"> <?php echo lang('payments'); ?></a></li>-->
@@ -138,18 +138,21 @@
 </div>
 
 <script type="text/javascript">
-    $(document).ready(function () {
-        setTimeout(function () {
-            var tab = "<?php echo $tab; ?>";
-            if (tab === "info") {
-                $("[data-target=#client-info]").trigger("click");
-            } else if (tab === "projects") {
-                $("[data-target=#client-projects]").trigger("click");
-            } else if (tab === "invoices") {
-                $("[data-target=#client-invoices]").trigger("click");
-            } else if (tab === "payments") {
-                $("[data-target=#client-payments]").trigger("click");
-            }
-        }, 210);
+$(document).ready(function () {
+    $("#summary_project").on("click", function(){
+        $("#tab_project").trigger("click");
     });
+    setTimeout(function () {
+        var tab = "<?php echo $tab; ?>";
+        if (tab === "info") {
+            $("[data-target=#client-info]").trigger("click");
+        } else if (tab === "projects") {
+            $("[data-target=#client-projects]").trigger("click");
+        } else if (tab === "invoices") {
+            $("[data-target=#client-invoices]").trigger("click");
+        } else if (tab === "payments") {
+            $("[data-target=#client-payments]").trigger("click");
+        }
+    }, 210);
+});
 </script>

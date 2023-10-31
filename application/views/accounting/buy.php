@@ -1,3 +1,5 @@
+<?php // var_dump(arr($user_permissions)); exit(); ?>
+
 <style>
     #accounting_navs:after,
     .tabs:after,
@@ -80,51 +82,65 @@
         pointer-events: none;
         appearance: none;
     }
+    
+    .buy-custom-tabs {
+        width: 60% !important;
+    }
+
+    .buy-custom-buttons {
+        width: 35% !important;
+    }
+
+    .buy-custom-buttons li {
+        display: inline;
+    }
 </style>
 
 <a id="popup" data-act="ajax-modal" class="btn ajax-modal"></a>
 <div id="page-content" class="p20 clearfix">
     <ul class="nav nav-tabs bg-white title" role="tablist">
         <!-- <li><a href="<?php // echo get_uri("accounting/coa"); ?>"><?php // echo lang('coa'); ?></a></li> -->
-        <li><a href="<?php echo get_uri("accounting/sell"); ?>"><?php echo lang('sell_account'); ?></a></li>
-        <li class="active"><a><?php echo lang('buy_account'); ?></a></li>
+        <li><a href="<?php echo get_uri("accounting/sell"); ?>"><?php echo lang("sell_account"); ?></a></li>
+        <li class="active"><a><?php echo lang("buy_account"); ?></a></li>
     </ul>
 
     <div class="panel panel-default">
         <div class="table-responsive">
             <div id="accounting_navs">
-                <ul class="tabs">
+                <ul class="tabs buy-custom-tabs">
                     <?php $number_of_enable_module = 0; ?>
 
-                    <?php if ($permissions['access_purchase_request']):
-                        $number_of_enable_module++; ?>
+                    <?php if ($user_permissions->purchase_request["access"]): $number_of_enable_module++; ?>
                         <li data-module="purchase_request" class="<?php if ($module == "purchase_request") echo 'active custom-bg01'; ?>">
-                            <a class="<?php if ($module == "purchase_request") echo 'custom-color'; ?>"><?php echo lang('purchase_request'); ?></a>
+                            <a class="<?php if ($module == "purchase_request") echo 'custom-color'; ?>"><?php echo lang("purchase_request"); ?></a>
                         </li>
                     <?php endif; ?>
 
-                    <?php if ($permissions['access_purchase_request']): $number_of_enable_module++; ?>
+                    <?php if ($user_permissions->purchase_order["access"]): $number_of_enable_module++; ?>
                         <li data-module="purchase_order" class="<?php if ($module == "purchase_order") echo 'active custom-bg01'; ?>">
-                            <a class="<?php if ($module == "purchase_order") echo 'custom-color'; ?>"><?php echo lang('purchase_order'); ?></a>
+                            <a class="<?php if ($module == "purchase_order") echo 'custom-color'; ?>"><?php echo lang("purchase_order"); ?></a>
                         </li>
                     <?php endif; ?>
 
-                    <?php if ($permissions['access_purchase_request']): $number_of_enable_module++; ?>
+                    <?php if ($user_permissions->payment_voucher["access"]): $number_of_enable_module++; ?>
+                        <li data-module="payment_voucher" class="<?php if($module == "payment_voucher") echo 'active custom-bg01'; ?>">
+                            <a class="<?php if($module == "payment_voucher") echo 'custom-color'; ?>"><?php echo lang("payment_voucher"); ?></a>
+                        </li>
+                    <?php endif; ?>
+
+                    <?php if ($user_permissions->goods_receipt["access"]): $number_of_enable_module++; ?>
                         <li data-module="goods_receipt" class="<?php if ($module == "goods_receipt") echo 'active custom-bg01'; ?>">
-                            <a class="<?php if ($module == "goods_receipt") echo 'custom-color'; ?>"><?php echo lang('goods_receipt'); ?></a>
+                            <a class="<?php if ($module == "goods_receipt") echo 'custom-color'; ?>"><?php echo lang("goods_receipt"); ?></a>
                         </li>
                     <?php endif; ?>
-
-                    <!-- <?php // if ($permissions['access_purchase_request']): $number_of_enable_module++; ?>
-                        <li data-module="payment_voucher" class="<?php // if($module == "payment_voucher") echo 'active custom-bg01'; ?>">
-                            <a class="<?php // if($module == "payment_voucher") echo 'custom-color'; ?>"><?php // echo lang('payment_voucher'); ?></a>
-                        </li>
-                    <?php // endif; ?> -->
                 </ul>
 
-                <ul class="buttons">
-                    <li class="add">
-                        <a data-act="ajax-modal" class="btn btn-default" data-title="<?php echo $modal_header; ?>"><i class="fa fa-plus-circle"></i><span></span></a>
+                <ul class="buttons buy-custom-buttons">
+                    <li class="add add1">
+                        <a data-act="ajax-modal" class="btn btn-default"><i class="fa fa-plus-circle"></i><span></span></a>
+                    </li>
+                    <li class="add add2 hide">
+                        <a data-act="ajax-modal" class="btn btn-default"><i class="fa fa-plus-circle"></i><span></span></a>
                     </li>
                 </ul>
             </div>
@@ -174,10 +190,14 @@
         let grid_excel = null;
         let grid_summation = null;
 
-        if (active_module == 'purchase_request') {
+        if (active_module == 'purchase_request') 
+        {
             $(".buttons").removeClass('hide');
-            $(".buttons li.add a").attr('data-action-url', '<?php echo get_uri('purchase_request/addedit'); ?>');
-            $(".buttons li.add span").append('<?php echo lang('purchase_request_add'); ?>');
+            $(".buttons li.add1 a").attr('data-action-url', '<?php echo get_uri("purchase_request/addedit"); ?>');
+            $(".buttons li.add1 a").attr('data-title', '<?php echo lang("purchase_request_add"); ?>');
+            $(".buttons li.add1 span").append('<?php echo lang("purchase_request_add"); ?>');
+
+            $(".buttons li.add2").addClass('hide');
 
             status_dropdown = '<?php echo $pr_status_dropdown; ?>';
             supplier_dropdown = '<?php echo $supplier_dropdown; ?>';
@@ -190,13 +210,13 @@
             ];
 
             grid_columns = [
-                { title: '<?php echo lang('request_date'); ?>', class: 'w10p' },
-                { title: '<?php echo lang('pr_number'); ?>', class: 'w10p' },
-                { title: '<?php echo lang('pr_type'); ?>', class: 'w10p' },
-                { title: '<?php echo lang('supplier_name'); ?>', class: 'w25p' },
-                { title: '<?php echo lang('request_by'); ?>', class: 'w15p' },
-                { title: '<?php echo lang('total_amount'); ?>', class: 'text-right w15p' },
-                { title: '<?php echo lang('status'); ?>', class: 'w10p' },
+                { title: '<?php echo lang("document_date"); ?>', class: 'w10p' },
+                { title: '<?php echo lang("pr_number"); ?>', class: 'w10p' },
+                { title: '<?php echo lang("pr_type"); ?>', class: 'w10p' },
+                { title: '<?php echo lang("supplier_name"); ?>', class: 'w25p' },
+                { title: '<?php echo lang("issuer_of_document"); ?>', class: 'w15p' },
+                { title: '<?php echo lang("total_amount"); ?>', class: 'text-right w15p' },
+                { title: '<?php echo lang("status"); ?>', class: 'w10p' },
                 { title: '<i class="fa fa-bars"></i>', class: 'text-center option w10p' }
             ];
 
@@ -206,10 +226,15 @@
             grid_summation = [
                 { column: 5, dataType: 'currency' }
             ];
-        } else if (active_module == 'purchase_order') {
-            $(".buttons").addClass('hide');
-            $(".buttons li.add a").attr('data-action-url', '<?php echo get_uri('purchase_order/addedit'); ?>');
-            $(".buttons li.add span").append('<?php echo lang('purchase_order_add'); ?>');
+        } 
+        else if (active_module == 'purchase_order') 
+        {
+            $(".buttons").removeClass('hide');
+            $(".buttons li.add1 a").attr('data-action-url', '<?php echo get_uri("purchase_order/addedit"); ?>');
+            $(".buttons li.add1 a").attr('data-title', '<?php echo lang("purchase_order_add"); ?>');
+            $(".buttons li.add1 span").append('<?php echo lang("purchase_order_add"); ?>');
+
+            $(".buttons li.add2").addClass('hide');
 
             status_dropdown = '<?php echo $po_status_dropdown; ?>';
             supplier_dropdown = '<?php echo $supplier_dropdown; ?>';
@@ -222,14 +247,14 @@
             ];
 
             grid_columns = [
-                { title: '<?php echo lang('request_date'); ?>', class: 'w10p' },
-                { title: '<?php echo lang('pr_number'); ?>', class: 'w10p' },
-                { title: '<?php echo lang('reference_number'); ?>', class: 'w10p' },
-                { title: '<?php echo lang('pr_type'); ?>', class: 'w10p' },
-                { title: '<?php echo lang('supplier_name'); ?>', class: 'w20p' },
-                { title: '<?php echo lang('request_by'); ?>', class: 'w10p' },
-                { title: '<?php echo lang('total_amount'); ?>', class: 'text-right w10p' },
-                { title: '<?php echo lang('status'); ?>', class: 'w10p' },
+                { title: '<?php echo lang("document_date"); ?>', class: 'w10p' },
+                { title: '<?php echo lang("pr_number"); ?>', class: 'w10p' },
+                { title: '<?php echo lang("reference_number"); ?>', class: 'w10p' },
+                { title: '<?php echo lang("pr_type"); ?>', class: 'w10p' },
+                { title: '<?php echo lang("supplier_name"); ?>', class: 'w20p' },
+                { title: '<?php echo lang("issuer_of_document"); ?>', class: 'w10p' },
+                { title: '<?php echo lang("total_amount"); ?>', class: 'text-right w10p' },
+                { title: '<?php echo lang("status"); ?>', class: 'w10p' },
                 { title: '<i class="fa fa-bars"></i>', class: 'text-center option w5p' }
             ];
 
@@ -239,30 +264,32 @@
             grid_summation = [
                 { column: 6, dataType: 'currency' }
             ];
-        } else if (active_module == 'goods_receipt') {
-            $(".buttons").addClass('hide');
-            $(".buttons li.add a").attr('data-action-url', '<?php echo get_uri('goods_receipt/addedit'); ?>');
-            $(".buttons li.add span").append('<?php echo lang('goods_receipt_add'); ?>');
+        } 
+        else if (active_module == 'payment_voucher') 
+        {
+            $(".buttons").removeClass('hide');
+            $(".buttons li.add1 a").attr('data-action-url', '<?php echo get_uri("payment_voucher/addnew"); ?>');
+            $(".buttons li.add1 a").attr('data-title', '<?php echo lang("payment_voucher_add"); ?>');
+            $(".buttons li.add1 span").append('<?php echo lang("payment_voucher_add"); ?>');
 
-            status_dropdown = '<?php echo $gr_status_dropdown; ?>';
+            $(".buttons li.add2").addClass('hide');
+
+            status_dropdown = '<?php echo $pv_status_dropdown; ?>';
             supplier_dropdown = '<?php echo $supplier_dropdown; ?>';
-            type_dropdown = '<?php echo $type_dropdown; ?>';
 
             grid_filters = [
                 { name: 'status', class: 'w150', options: JSON.parse(status_dropdown) },
-                { name: 'po_type', class: 'w200', options: JSON.parse(type_dropdown) },
                 { name: 'supplier_id', class: 'w250', options: JSON.parse(supplier_dropdown) }
             ];
 
             grid_columns = [
-                { title: '<?php echo lang('request_date'); ?>', class: 'w10p' },
-                { title: '<?php echo lang('pr_number'); ?>', class: 'w10p' },
-                { title: '<?php echo lang('reference_number'); ?>', class: 'w10p' },
-                { title: '<?php echo lang('pr_type'); ?>', class: 'w10p' },
-                { title: '<?php echo lang('supplier_name'); ?>', class: 'w20p' },
-                { title: '<?php echo lang('request_by'); ?>', class: 'w10p' },
-                { title: '<?php echo lang('total_amount'); ?>', class: 'text-right w10p' },
-                { title: '<?php echo lang('status'); ?>', class: 'w10p' },
+                { title: '<?php echo lang("document_date"); ?>', class: 'w10p' },
+                { title: '<?php echo lang("number_of_document"); ?>', class: 'w10p' },
+                { title: '<?php echo lang("reference_number"); ?>', class: 'w10p' },
+                { title: '<?php echo lang("supplier_name"); ?>', class: 'w20p' },
+                { title: '<?php echo lang("issuer_of_document"); ?>', class: 'w10p' },
+                { title: '<?php echo lang("total_payment_amount"); ?>', class: 'text-right w10p' },
+                { title: '<?php echo lang("status"); ?>', class: 'w10p' },
                 { title: '<i class="fa fa-bars"></i>', class: 'text-center option w5p' }
             ];
 
@@ -270,7 +297,45 @@
             grid_excel = combineCustomFieldsColumns([0, 1, 2, 3, 4, 5, 6]);
 
             grid_summation = [
-                { column: 6, dataType: 'currency' }
+                { column: 5, dataType: 'currency' }
+            ];
+        } 
+        else if (active_module == 'goods_receipt') 
+        {
+            $(".buttons").removeClass('hide');
+            $(".buttons li.add1 a").attr('data-action-url', '<?php echo get_uri("goods_receipt/addnew"); ?>');
+            $(".buttons li.add1 a").attr('data-title', '<?php echo lang("goods_receipt_add"); ?>');
+            $(".buttons li.add1 span").append('<?php echo lang("goods_receipt_add"); ?>');
+
+            $(".buttons li.add2").addClass('hide');
+            $(".buttons li.add2 a").attr('data-action-url', '<?php echo get_uri("goods_receipt/addnew_nopo"); ?>');
+            $(".buttons li.add2 a").attr('data-title', '<?php echo lang("goods_receipt_add_nopo"); ?>');
+            $(".buttons li.add2 span").append('<?php echo lang("goods_receipt_add_nopo"); ?>');
+
+            status_dropdown = '<?php echo $gr_status_dropdown; ?>';
+            supplier_dropdown = '<?php echo $supplier_dropdown; ?>';
+
+            grid_filters = [
+                { name: 'status', class: 'w150', options: JSON.parse(status_dropdown) },
+                { name: 'supplier_id', class: 'w250', options: JSON.parse(supplier_dropdown) }
+            ];
+
+            grid_columns = [
+                { title: '<?php echo lang("document_date"); ?>', class: 'w10p' },
+                { title: '<?php echo lang("pr_number"); ?>', class: 'w10p' },
+                { title: '<?php echo lang("reference_number"); ?>', class: 'w10p' },
+                { title: '<?php echo lang("supplier_name"); ?>', class: 'w20p' },
+                { title: '<?php echo lang("issuer_of_document"); ?>', class: 'w10p' },
+                { title: '<?php echo lang("total_amount"); ?>', class: 'text-right w10p' },
+                { title: '<?php echo lang("status"); ?>', class: 'w10p' },
+                { title: '<i class="fa fa-bars"></i>', class: 'text-center option w5p' }
+            ];
+
+            grid_print = combineCustomFieldsColumns([0, 1, 2, 3, 4, 5, 6]);
+            grid_excel = combineCustomFieldsColumns([0, 1, 2, 3, 4, 5, 6]);
+
+            grid_summation = [
+                { column: 5, dataType: 'currency' }
             ];
         }
 
@@ -278,8 +343,14 @@
             source: '<?php echo_uri(); ?>' + active_module,
             order: [[0, 'desc']],
             rangeDatepicker: [{
-                startDate: { name: 'start_date', value: '<?php echo date('Y-m-01'); ?>' },
-                endDate: { name: 'end_date', value: '<?php echo date("Y-m-d", strtotime('last day of this month', time())); ?>' }
+                startDate: {
+                    name: 'start_date',
+                    value: '<?php echo date("Y-m-01"); ?>'
+                },
+                endDate: {
+                    name: 'end_date',
+                    value: '<?php echo date("Y-m-d", strtotime("last day of this month", time())); ?>'
+                }
             }],
             destroy: true,
             filterDropdown: grid_filters,
@@ -293,32 +364,36 @@
             $(".dropdown_status").on("change", function () {
                 let url = '<?php echo_uri(); ?>' + active_module;
                 let request = {
+                    taskName: 'update_doc_status',
                     task: 'update_doc_status',
                     doc_id: $(this).data("doc_id"),
                     update_status_to: $(this).val()
                 };
+                // console.log(url, request);
 
                 axios.post(url, request).then((response) => {
-                    // console.log(response);
+                    console.log(response);
                     
-                    let data = response.data;
-                    if (data.status == "success") {
-                        if (typeof data.task !== "undefined") {
+                    const { data } = response;
+
+                    if (data.status == 'success') {
+                        if (typeof data.task !== 'undefined') {
                             if (data.task === 'cancelled_purchase_order') {
                                 window.location.reload();
                                 return;
                             }
-
                             if (data.task === 'create_purchase_order') {
                                 window.location.href = data.url;
                                 return
                             }
-
                             if (data.task === 'approved_purchase_order') {
                                 window.location.href = data.url;
                                 return;
                             }
-
+                            if (data.task === 'create_payment_voucher') {
+                                window.location.href = data.url;
+                                return;
+                            }
                             if (data.task === 'create_goods_receipt') {
                                 window.location.href = data.url;
                                 return;
@@ -335,6 +410,7 @@
                         dataId: data.doc_id
                     });
                 }).catch((error) => {
+                    console.log(error);
                     appAlert.error("500 Internal Server Error.", { duration: 3001 });
                 });
             });

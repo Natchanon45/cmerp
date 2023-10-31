@@ -65,48 +65,59 @@ class Goods_receipt_m extends MY_Model
         return lang($type[$id]);
     }
 
-    function getIndexDataSetHTML($qrow)
+    function getIndexDataSetHTML($item)
     {
-        $doc_status = '<select class="dropdown_status select-status pointer-none" data-doc_id="' . $qrow->id . '">';
-        
-        if ($qrow->status == 'N') {
-            $doc_status .= '<option>' . lang('payments_draft') . '</option>';
-        } else {
-            if ($qrow->pay_status == 'N') {
-                $doc_status .= '<option>' . lang('payments_waiting') . '</option>';
-            } elseif ($qrow->pay_status == 'P') {
-                $doc_status .= '<option>' . lang('payments_partial') . '</option>';
-            } elseif ($qrow->pay_status == 'C') {
-                $doc_status .= '<option>' . lang('payments_completed') . '</option>';
-            }
-        } 
+        $doc_status = '<select class="dropdown_status pointer-none select-status" data-doc_id="' . $item->id . '">';
+        $btn_control = '';
+
+        if ($item->status == "W") {
+            $doc_status .= '<option value="W" selected>' . lang('pr_pending') . '</option>';
+            $btn_control = "<a data-post-id='" . $item->id . "' data-title='" . lang("goods_receipt_edit") . "' data-action-url='" . get_uri("goods_receipt/editnew") . "' data-act='ajax-modal' class='edit'><i class='fa fa-pencil'></i></a>";
+        }
+
+        if ($item->status == "A") {
+            $doc_status .= '<option value="A" selected>' . lang('pr_approved') . '</option>';
+            $btn_control = "<a data-post-id='" . $item->id . "' data-title='" . lang("goods_receipt_edit") . "' data-action-url='" . get_uri("goods_receipt/editnew") . "' data-act='ajax-modal' class='edit'><i class='fa fa-eye'></i></a>";
+        }
         
         $doc_status .= '</select>';
 
         $request_by = '-';
-        if ($qrow->created_by) {
-            $user = $this->Users_model->getUserById($qrow->created_by);
+        if ($item->created_by) {
+            $user = $this->Users_model->getUserById($item->created_by);
             $url = get_avatar($user->image);
             $span = '<span class="avatar avatar-xs mr10"><img src="' . $url . '" alt=""></span>' . $user->first_name . ' ' . $user->last_name;
             $request_by = get_team_member_profile_link($user->id, $span);
         }
 
         $supplier_name = '-';
-        if ($qrow->supplier_id) {
-            $supplier = $this->Bom_suppliers_model->dev2_getSupplierNameById($qrow->supplier_id);
-            $supplier_name = '<a href="' .  get_uri('stock/supplier_view/' . $qrow->supplier_id) . '">' . mb_strimwidth($supplier, 0, 55, '...') . '</a>';
+        if ($item->supplier_id) {
+            $supplier = $this->Bom_suppliers_model->dev2_getSupplierNameById($item->supplier_id);
+            $supplier_name = '<a href="' .  get_uri('stock/supplier_view/' . $item->supplier_id) . '">' . mb_strimwidth($supplier, 0, 55, '...') . '</a>';
+        }
+
+        $extract_refer = '-';
+        if (isset($item->reference_number) && !empty($item->reference_number)) {
+            $extract_refer = $item->reference_number;
+        } else {
+            $temp = (array) json_decode($item->reference_list);
+            if (sizeof($temp)) {
+                $extract_refer = '';
+                foreach ($temp as $i) {
+                    $extract_refer .= $i . "<br>";
+                }
+            }
         }
 
         $data = array(
-            '<a href="' . get_uri('goods_receipt/view/' . $qrow->id) . '">' . convertDate($qrow->doc_date, true) . '</a>',
-            '<a href="' . get_uri('goods_receipt/view/' . $qrow->id) . '">' . $qrow->doc_number . '</a>',
-            $qrow->reference_number,
-            $qrow->po_type ? $this->dev2_getPoTypeById($qrow->po_type) : '-',
+            '<a href="' . get_uri('goods_receipt/view/' . $item->id) . '">' . convertDate($item->doc_date, true) . '</a>',
+            '<a href="' . get_uri('goods_receipt/view/' . $item->id) . '">' . $item->doc_number . '</a>',
+            $extract_refer,
             $supplier_name,
             $request_by,
-            number_format($qrow->total, 2),
+            number_format($item->total, 2),
             $doc_status,
-            "<a data-post-id='" . $qrow->id . "' data-action-url='" . get_uri('goods_receipt/addedit') . "' data-act='ajax-modal' class='edit'><i class='fa fa-pencil'></i></a>"
+            $btn_control
         );
 
         return $data;
@@ -119,13 +130,7 @@ class Goods_receipt_m extends MY_Model
         $db->select('*')->from('goods_receipt');
 
         if ($this->input->post('status') != null) {
-            if ($this->input->post('status') == 'N' || $this->input->post('status') == 'W') {
-                $db->where('status', $this->input->post('status'));
-                $db->where('pay_status', 'N');
-            }
-            if ($this->input->post('status') == 'P' || $this->input->post('status') == 'C') {
-                $db->where('pay_status', $this->input->post('status'));
-            }
+            $db->where("status", $this->input->post("status"));
         }
 
         if ($this->input->post('po_type') != null) {
@@ -257,37 +262,31 @@ class Goods_receipt_m extends MY_Model
         }
 
         $db->where("deleted", 0);
-
         $qrow = $db->select("*")->from("goods_receipt")->get()->row();
-
         if (empty($qrow)) return $this->data;
 
         $docId = $qrow->id;
-
         $qirows = $db->select("*")->from("goods_receipt_items")->where("pv_id", $docId)->order_by("sort", "asc")->get()->result();
-        $pay_qirows = $db->select("*")->from("goods_receipt_payment")->where("pv_id", $docId)->where('receipt_flag', 1)->order_by("id", "asc")->get()->result();
-
-        if (sizeof($pay_qirows)) {
-            foreach ($pay_qirows as $item) {
-                $item->date_output = convertDate($item->date, true);
-                $item->number_format = number_format($item->amount, 2);
-                $item->currency_format = to_currency($item->amount);
-            }
-        }
-
+        
         $supplier_id = $qrow->supplier_id;
 
         $this->data["buyer"] = $ci->Users_m->getInfo($qrow->created_by);
-
         $this->data["seller"] = $ci->Bom_suppliers_model->getInfo($supplier_id);
         $this->data["seller_contact"] = $ci->Bom_suppliers_model->getContactInfo($supplier_id);
 
         $this->data["doc_number"] = $qrow->doc_number;
-        $this->data['pv_number'] = $qrow->pv_number;
         $this->data["doc_date"] = $qrow->doc_date;
         $this->data["credit"] = $qrow->credit;
         $this->data["due_date"] = $qrow->due_date;
+        $this->data["supplier_invoice"] = $qrow->supplier_invoice;
         $this->data["reference_number"] = $qrow->reference_number;
+        $this->data["reference_list"] = (array) json_decode($qrow->reference_list);
+        if (!empty($qrow->reference_list)) {
+            $this->data["references"] = implode(", ", $this->data["reference_list"]);
+        } else {
+            $this->data["references"] = $this->data["reference_number"];
+        }
+
         $this->data["remark"] = $qrow->remark;
         $this->data["sub_total_before_discount"] = $qrow->sub_total_before_discount;
         $this->data["discount_type"] = $qrow->discount_type;
@@ -305,13 +304,12 @@ class Goods_receipt_m extends MY_Model
         $this->data["payment_amount"] = $qrow->payment_amount;
 
         $this->data["sharekey_by"] = $qrow->sharekey_by;
-        $this->data["approved_by"] = $qrow->approved_by;
+        $this->data["created_by"] = $ci->Users_m->getInfo($qrow->created_by);
+        $this->data["created_datetime"] = $qrow->approved_datetime;
+        $this->data["approved_by"] = $ci->Users_m->getInfo($qrow->approved_by);
         $this->data["approved_datetime"] = $qrow->approved_datetime;
         $this->data["doc_status"] = $qrow->status;
-
-        $this->data["doc"] = $qrow;
         $this->data["items"] = $qirows;
-        $this->data["payments"] = $pay_qirows;
 
         $this->data["status"] = "success";
         $this->data["message"] = "ok";
@@ -794,58 +792,58 @@ class Goods_receipt_m extends MY_Model
     function updateStatus()
     {
         $db = $this->db;
-        $this->data['doc_id'] = $this->json->documentId;
-        $this->data['updateStatusTo'] = $this->json->updateStatus;
+        $this->data["doc_id"] = $this->json->documentId;
+        $this->data["updateStatusTo"] = $this->json->updateStatus;
 
-        $qrow = $db->select('*')->from('goods_receipt')->where('id', $this->data['doc_id'])->where('deleted', 0)->get()->row();
+        $qrow = $db->select("*")->from("goods_receipt")->where("id", $this->data["doc_id"])->where("deleted", 0)->get()->row();
         if (empty($qrow)) return $this->data;
 
-        $pv_id = $this->data['doc_id'] = $qrow->id;
-        $this->data['currentStatus'] = $qrow->status;
+        $pv_id = $this->data["doc_id"] = $qrow->id;
+        $this->data["currentStatus"] = $qrow->status;
 
-        if ($this->data['updateStatusTo'] == $this->data['currentStatus']) {
-            $this->data['dataset'] = $this->getIndexDataSetHTML($qrow);
+        if ($this->data["updateStatusTo"] == $this->data["currentStatus"]) {
+            $this->data["dataset"] = $this->getIndexDataSetHTML($qrow);
             return $this->data;
         }
 
         $this->db->trans_begin();
 
-        if ($this->data['updateStatusTo'] == 'W')
+        if ($this->data["updateStatusTo"] == "W")
         {
-            if ($this->data['currentStatus'] != 'N') {
-                $this->data['dataset'] = $this->getIndexDataSetHTML($qrow);
+            if ($this->data["currentStatus"] != "N") {
+                $this->data["dataset"] = $this->getIndexDataSetHTML($qrow);
                 return $this->data;
             }
 
-            $db->where('id', $pv_id);
-            $db->update('goods_receipt', [
-                'status' => 'W'
+            $db->where("id", $pv_id);
+            $db->update("goods_receipt", [
+                "status" => "W"
             ]);
 
-            $this->data['status'] = 'success';
+            $this->data["status"] = "success";
         }
 
-        if ($this->data['updateStatusTo'] == 'A')
+        if ($this->data["updateStatusTo"] == "A")
         {
-            if ($this->data['currentStatus'] != 'W') {
-                $this->data['dataset'] = $this->getIndexDataSetHTML($qrow);
+            if ($this->data["currentStatus"] != "W") {
+                $this->data["dataset"] = $this->getIndexDataSetHTML($qrow);
                 return $this->data;
             }
 
-            $db->where('id', $pv_id);
-            $db->update('goods_receipt', [
-                'status' => 'A',
-                'approved_by' => $this->login_user->id,
-                'approved_datetime' => date('Y-m-d H:i:s')
+            $db->where("id", $pv_id);
+            $db->update("goods_receipt", [
+                "status" => "A",
+                "approved_by" => $this->login_user->id,
+                "approved_datetime" => date("Y-m-d H:i:s")
             ]);
 
             // Create add stock
             if ($qrow->po_type != 5) {
                 // prepare gr info
                 $gr_info = array(
-                    'doc_id' => $this->data['doc_id'],
-                    'doc_number' => $qrow->doc_number,
-                    'reference_number' => $qrow->reference_number
+                    "doc_id" => $this->data["doc_id"],
+                    "doc_number" => $qrow->doc_number,
+                    "reference_number" => $qrow->reference_number
                 );
 
                 if ($qrow->po_type == 1) {
@@ -854,29 +852,33 @@ class Goods_receipt_m extends MY_Model
                 } elseif ($qrow->po_type == 3) {
                     // FG
                     $this->postGoodsReceiptStockFG($gr_info);
+                } elseif ($qrow->po_type == 0) {
+                    // Mix
+                    $gr_info["reference_number"] = implode(", ", (array) json_decode($qrow->reference_list));
+                    $this->postGoodsReceiptStockMix($gr_info);
                 }
             }
 
-            $this->data['status'] = 'success';
+            $this->data["status"] = "success";
         }
 
         if ($db->trans_status() === FALSE) {
             $db->trans_rollback();
 
-            $this->data['post'] = $this->json;
-            $this->data['dataset'] = $this->getIndexDataSetHTML($qrow);
+            $this->data["post"] = $this->json;
+            $this->data["dataset"] = $this->getIndexDataSetHTML($qrow);
             return $this->data;
         }
 
         $db->trans_commit();
 
-        if (isset($this->data['task'])) return $this->data;
+        if (isset($this->data["task"])) return $this->data;
 
-        $qrow = $db->select('*')->from('goods_receipt')->where('id', $pv_id)->where('deleted', 0)->get()->row();
+        $qrow = $db->select("*")->from("goods_receipt")->where("id", $pv_id)->where("deleted", 0)->get()->row();
 
-        $this->data['dataset'] = $this->getIndexDataSetHTML($qrow);
-        $this->data['status'] = 'success';
-        $this->data['message'] = lang('record_saved');
+        $this->data["dataset"] = $this->getIndexDataSetHTML($qrow);
+        $this->data["status"] = "success";
+        $this->data["message"] = lang("record_saved");
 
         return $this->data;
     }
@@ -897,15 +899,14 @@ class Goods_receipt_m extends MY_Model
             while (true) {
                 $sharekey = uniqid();
                 $db->where("sharekey", $sharekey);
-                if ($db->count_all_results("po_header") < 1)
-                    break;
+                if ($db->count_all_results("goods_receipt") < 1) break;
             }
 
             $this->data["sharelink"] = get_uri($this->shareHtmlAddress . "th/" . $sharekey);
         }
 
         $db->where("id", $docId);
-        $db->update("po_header", ["sharekey" => $sharekey, "sharekey_by" => $sharekey_by]);
+        $db->update("goods_receipt", ["sharekey" => $sharekey, "sharekey_by" => $sharekey_by]);
 
         return $this->data;
     }
@@ -1027,6 +1028,57 @@ class Goods_receipt_m extends MY_Model
         return $result;
     }
 
+    function postGoodsReceiptStockMix($data = array())
+    {
+        // get gr item
+        $gr_items = $this->db->select('*')->from('goods_receipt_items')->where('pv_id', $data['doc_id'])->get()->result();
+
+        // insert to bom_item_groups
+        $this->db->insert('bom_item_groups', [
+            'name' => $data['doc_number'],
+            'po_no' => $data['reference_number'],
+            'created_by' => $this->login_user->id,
+            'created_date' => date('Y-m-d')
+        ]);
+        $fg_stock_group = $this->db->insert_id();
+
+        // insert to bom_stock_groups
+        $this->db->insert('bom_stock_groups', [
+            'name' => $data['doc_number'],
+            'po_no' => $data['reference_number'],
+            'created_by' => $this->login_user->id,
+            'created_date' => date('Y-m-d')
+        ]);
+        $rm_stock_group = $this->db->insert_id();
+
+        // insert to bom_item_stocks, bom_stocks
+        if (sizeof($gr_items)) {
+            foreach ($gr_items as $item) {
+                if ($item->po_type == 3) {
+                    $this->db->insert('bom_item_stocks', [
+                        'group_id' => $fg_stock_group,
+                        'item_id' => $item->product_id,
+                        'stock' => $item->quantity,
+                        'remaining' => $item->quantity,
+                        'price' => $item->total_price,
+                        'serial_number' => $data["doc_number"] . "-" . $item->po_item_id
+                    ]);
+                }
+
+                if ($item->po_type == 1) {
+                    $this->db->insert('bom_stocks', [
+                        'group_id' => $rm_stock_group,
+                        'material_id' => $item->product_id,
+                        'stock' => $item->quantity,
+                        'remaining' => $item->quantity,
+                        'price' => $item->total_price,
+                        'serial_number' => $data["doc_number"] . "-" . $item->po_item_id
+                    ]);
+                }
+            }
+        }
+    }
+
     function postGoodsReceiptStockFG($data = array())
     {
         // get gr item
@@ -1050,7 +1102,7 @@ class Goods_receipt_m extends MY_Model
                     'stock' => $item->quantity,
                     'remaining' => $item->quantity,
                     'price' => $item->total_price,
-                    'serial_number' => $data['reference_number'] . '-' . sprintf("%04d", $item->po_item_id)
+                    'serial_number' => $data["doc_number"] . "-" . $item->po_item_id
                 ]);
             }
         }
@@ -1079,10 +1131,587 @@ class Goods_receipt_m extends MY_Model
                     'stock' => $item->quantity,
                     'remaining' => $item->quantity,
                     'price' => $item->total_price,
-                    'serial_number' => $data['reference_number'] . '-' . sprintf("%04d", $item->po_item_id)
+                    'serial_number' => $data["doc_number"] . "-" . $item->po_item_id
                 ]);
             }
         }
+    }
+
+    public function dev2_getGoodsReceiptInfoById(int $id) : stdClass
+    {
+        $info = new stdClass();
+
+        $query = $this->db->get_where("goods_receipt", ["id" => $id])->row();
+        if (!empty($query)) {
+            $info = $query;
+        }
+        return $info;
+    }
+
+    public function dev2_getGoodsReceiptDetailByHeaderId(int $id) : array
+    {
+        $info = array();
+
+        $query = $this->db->get_where("goods_receipt_items", ["pv_id" => $id])->result();
+        if (sizeof($query)) {
+            $info = $query;
+        }
+        return $info;
+    }
+
+    public function dev2_getProjectReferByProjectOpen() : array
+    {
+        $result = array();
+
+        $query = $this->db->select('id, title')->from('projects')->where('status', 'open')->get();
+        $data = $query->result();
+
+        $project_dropdown = array();
+        if (!empty($data)) {
+            foreach ($data as $item) {
+                $project_dropdown[] = array(
+                    "project_id" => $item->id,
+                    "project_name" => $item->title
+                );
+            }
+        }
+
+        $result = $project_dropdown;
+        return $result;
+    }
+
+    public function dev2_getProjectNameByProjectId(int $project_id) : string
+    {
+        $name = "-";
+
+        $query = $this->db->get_where("projects", ["id" => $project_id])->row();
+        if (!empty($query)) {
+            $name = $query->title;
+        }
+        return $name;
+    }
+
+    public function dev2_getSupplierNameBySupplierId(int $supplier_id) : string
+    {
+        $name = "-";
+
+        $query = $this->db->get_where("bom_suppliers", ["id"=> $supplier_id])->row();
+        if (!empty($query)) {
+            $name = $query->company_name;
+        }
+        return $name;
+    }
+
+    public function dev2_getGoodsReceiptHeaderByPvId(int $id) : stdClass
+    {
+        $info = new stdClass();
+
+        $query = $this->db->get_where("goods_receipt", ["id" => $id])->row();
+        if (!empty($query)) {
+            $info = $query;
+        }
+        return $info;
+    }
+
+    public function dev2_getGoodsReceiptDetailByPvId(int $pv_id) : array
+    {
+        $info = array();
+
+        $query = $this->db->get_where("goods_receipt_items", ["pv_id" => $pv_id])->result();
+        if (sizeof($query)) {
+            foreach ($query as $row) {
+                $row->po_info = $this->dev2_getPurchaseOrderById($row->po_id);
+                $row->po_item_info = $this->dev2_getPurchaseOrderItemByItemId($row->po_item_id);
+            }
+
+            $info = $query;
+        }
+        return $info;
+    }
+
+    public function dev2_getSupplieHavePurchaseOrderApproved() : array
+    {
+        $result = array();
+
+        $query = $this->db->select('supplier_id')->from('po_header')->where('receipt_status !=', 'C')->where('status', 'A')->get();
+        $data = $query->result();
+
+        $supplier_ids = array();
+        if (!empty($data)) {
+            foreach ($data as $item) {
+                array_push($supplier_ids, $item->supplier_id);
+            }
+
+            $supplier_ids = array_unique($supplier_ids);
+            $supplier_dropdown = array();
+            foreach ($supplier_ids as $supplier_id) {
+                $supplier_dropdown[] = array(
+                    "supplier_id" => $supplier_id,
+                    "supplier_name" => $this->Bom_suppliers_model->dev2_getSupplierNameById($supplier_id)
+                );
+            }
+        }
+
+        $result = $supplier_dropdown;
+        return $result;
+    }
+
+    public function dev2_getPurchaseOrderListBySupplierId(int $supplier_id) : array
+    {
+        $result = array();
+
+        $sql = "SELECT * FROM `po_header` WHERE `supplier_id` = ? AND `receipt_status` != 'C' AND `status` = 'A'";
+        $query = $this->db->query($sql, $supplier_id);
+        $data = $query->result();
+
+        $po_list = array();
+        $po_header_dropdown = array();
+        if (!empty($data)) {
+            foreach ($data as $item) {
+                array_push($po_list, $item->id);
+                
+                $po_header_dropdown[] = array(
+                    "po_id" => $item->id,
+                    "po_number" => $item->doc_number
+                );
+            }
+        }
+        $po_list = implode(',', $po_list);
+
+        $sql = "SELECT * FROM `po_detail` WHERE `po_id` IN (" . $po_list . ") AND `receipt` < `quantity`";
+        $query = $this->db->query($sql);
+        $data = $query->result();
+
+        $po_detail_dropdown = array();
+        if (!empty($data)) {
+            foreach ($data as $item) {
+                $pending = $item->quantity - $item->receipt;
+                $po_detail_dropdown[] = array(
+                    "po_item_id" => $item->id,
+                    "po_id" => $item->po_id,
+                    "product_name" => $item->product_name,
+                    "quantity" => $pending,
+                    "unit" => $item->unit
+                );
+            }
+        }
+
+        $result["orders"] = $po_header_dropdown;
+        $result["items"] = $po_detail_dropdown;
+
+        return $result;
+    }
+
+    public function dev2_getPurchaseOrderListBySupplierIdEdit(int $document_id, int $supplier_id) : array
+    {
+        $result = array();
+
+        $sql = "SELECT * FROM `po_header` WHERE `supplier_id` = ? AND `status` = 'A'";
+        $query = $this->db->query($sql, $supplier_id);
+        $data = $query->result();
+
+        $po_list = array();
+        $po_header_dropdown = array();
+        if (!empty($data)) {
+            foreach ($data as $item) {
+                array_push($po_list, $item->id);
+
+                $po_header_dropdown[] = array(
+                    "po_id" => $item->id,
+                    "po_number" => $item->doc_number
+                );
+            }
+        }
+        $po_list = implode(',', $po_list);
+
+        $sql = "SELECT * FROM `po_detail` WHERE `po_id` IN (" . $po_list . ")";
+        $query = $this->db->query($sql);
+        $data = $query->result();
+
+        $document_info = $this->db->get_where("goods_receipt_items", ["pv_id" => $document_id])->result();
+
+        $po_detail_dropdown = array();
+        if (!empty($data)) {
+            foreach ($data as $item) {
+                $payment = $item->payment;
+
+                if (!empty($document_info)) {
+                    foreach ($document_info as $info) {
+                        if ($info->po_item_id == $item->id) {
+                            $payment = $payment - $info->quantity;
+                        }
+                    }
+                }
+
+                $pending = $item->quantity - $payment;
+                if ($pending > 0) {
+                    $po_detail_dropdown[] = array(
+                        "po_item_id" => $item->id,
+                        "po_id" => $item->po_id,
+                        "product_name" => $item->product_name,
+                        "quantity" => $pending,
+                        "unit" => $item->unit
+                    );
+                }
+            }
+        }
+
+        $result["orders"] = $po_header_dropdown;
+        $result["items"] = $po_detail_dropdown;
+
+        return $result;
+    }
+
+    public function dev2_postGoodsReceiptByCreateForm($data)
+    {
+        $this->db->trans_start();
+
+        // prepare document number
+        $param_docno = [
+            "prefix" => "GR",
+            "LPAD" => 4,
+            "column" => "doc_number",
+            "table" => "goods_receipt"
+        ];
+        $gr_doc_number = $this->Db_model->genDocNo($param_docno);
+
+        // prepare gr header
+        $header_data = array(
+            "po_id" => "0",
+            "doc_number" => $gr_doc_number,
+            "po_type" => "0",
+            "doc_date" => $data["doc-date"],
+            "credit" => "0",
+            "due_date" => $data["doc-date"],
+            "project_id" => $data["project-id"],
+            "supplier_id" => $data["supplier-id"],
+            "supplier_invoice" => $data["delivery-refer"],
+            "remark" => $data["remark-text"],
+            "created_by" => $this->login_user->id,
+            "created_datetime" => date("Y-m-d H:i:s"),
+            "status" => "W"
+        );
+        
+        // create a gr header
+        $this->db->insert("goods_receipt", $header_data);
+        $header_data["id"] = $this->db->insert_id();
+
+        // prepare pv detail
+        $detail_data = array();
+        $refer_list = array();
+        $sub_total = 0;
+        $vat_total = 0;
+        $wht_total = 0;
+        $sort = 1;
+        if (sizeof($data["po_item_id"])) {
+            foreach ($data["po_item_id"] as $key => $item) {
+                $po_item_info = $this->dev2_getPurchaseOrderItemByItemId($item);
+                $po_info = $this->dev2_getPurchaseOrderById($data["po_id"][$key]);
+                array_push($refer_list, $po_info->doc_number);
+
+                $total_price = $po_item_info->price * $data["quantity"][$key];
+                $detail_data[$key] = array(
+                    "pv_id" => $header_data["id"],
+                    "po_id" => $po_item_info->po_id,
+                    "po_type" => $po_info->po_type,
+                    "po_item_id" => $po_item_info->id,
+                    "product_id" => $po_item_info->product_id,
+                    "product_name" => $po_item_info->product_name,
+                    "product_description" => $po_item_info->product_description,
+                    "quantity" => $data["quantity"][$key],
+                    "unit" => $po_item_info->unit,
+                    "price" => $po_item_info->price,
+                    "total_price" => $total_price,
+                    "sort" => $sort
+                );
+
+                // create a pv detail
+                $this->db->insert("goods_receipt_items", $detail_data[$key]);
+                $detail_data[$key]["id"] = $this->db->insert_id();
+
+                // calc vat
+                $vat = 0;
+                if ($po_info->vat_inc == "Y") {
+                    $vat = ($total_price * $po_info->vat_percent) / 100;
+                }
+
+                // calc wht
+                $wht = 0;
+                if ($po_info->wht_inc == "Y") {
+                    $wht = ($total_price * $po_info->vat_percent) / 100;
+                }
+
+                $sub_total += $total_price;
+                $vat_total += $vat;
+                $wht_total += $wht;
+                $sort++;
+
+                // patch po detail & po header
+                $this->dev2_patchPurchaseOrderItemPaymentById($po_item_info->id);
+                $this->dev2_patchPurchaseOrderHeaderPaymentById($po_info->id);
+            }
+
+            $header_data["reference_list"] = array_unique($refer_list);
+            $header_data["sub_total_before_discount"] = $sub_total;
+            $header_data["sub_total"] = $sub_total;
+            $header_data["vat_value"] = $vat_total;
+            $header_data["total"] = $sub_total + $vat_total;
+            $header_data["wht_value"] = $wht_total;
+            $header_data["payment_amount"] = $header_data["total"] - $header_data["wht_value"];
+
+            $this->db->where("id", $header_data["id"]);
+            $this->db->update("goods_receipt", array(
+                "reference_list" => json_encode($header_data["reference_list"]),
+                "sub_total_before_discount" => $header_data["sub_total_before_discount"],
+                "sub_total" => $header_data["sub_total"],
+                "vat_value" => $header_data["vat_value"],
+                "total" => $header_data["total"],
+                "wht_value" => $header_data["wht_value"],
+                "payment_amount" => $header_data["payment_amount"]
+            ));
+        }
+
+        $trans_message = null;
+        if ($this->db->trans_status() === FALSE) {
+            $this->db->trans_rollback();
+            $trans_message = "F";
+        } else {
+            $this->db->trans_commit();
+            $trans_message = "T";
+        }
+
+        return array(
+            $header_data,
+            $detail_data,
+            "trans_status" => $trans_message,
+            "reload_url" => get_uri("accounting/buy/goods_receipt"),
+            "target_url" => get_uri("goods_receipt/view/" . $header_data["id"])
+        );
+    }
+
+    public function dev2_postGoodsReceiptByCreateFormEdit($data)
+    {
+        $this->db->trans_start();
+
+        // prepare document number
+        $gr_info = $this->db->get_where("goods_receipt", ["id" => $data["document-id"]])->row();
+
+        // prepare pv header
+        $header_data = array(
+            "id" => $gr_info->id,
+            "po_id" => $gr_info->po_id,
+            "doc_number" => $gr_info->doc_number,
+            "po_type" => $gr_info->po_type,
+            "doc_date" => $data["doc-date"],
+            "credit" => "0",
+            "due_date" => $data["doc-date"],
+            "project_id" => $data["project-id"],
+            "supplier_id" => $gr_info->supplier_id,
+            "supplier_invoice" => $data["delivery-refer"],
+            "remark" => $data["remark-text"],
+            "created_by" => $gr_info->created_by,
+            "created_datetime" => $gr_info->created_datetime
+        );
+
+        // update header
+        $this->db->where("id", $header_data["id"]);
+        $this->db->update("goods_receipt", array(
+            "doc_date" => $data["doc-date"],
+            "due_date" => $data["doc-date"],
+            "project_id" => $data["project-id"],
+            "supplier_invoice" => $data["delivery-refer"],
+            "remark" => $data["remark-text"]
+        ));
+
+        $detail_data = array();
+        $refer_list = array();
+
+        if ($gr_info->po_id == 0) {
+            // clear old detail
+            $this->db->where("pv_id", $header_data["id"]);
+            $this->db->delete("goods_receipt_items");
+
+            // prepare pv detail
+            $sub_total = 0;
+            $vat_total = 0;
+            $wht_total = 0;
+            $sort = 1;
+
+            if (sizeof($data["po_item_id"])) {
+                foreach ($data["po_item_id"] as $key => $item) {
+                    $po_item_info = $this->dev2_getPurchaseOrderItemByItemId($item);
+                    $po_info = $this->dev2_getPurchaseOrderById($data["po_id"][$key]);
+                    array_push($refer_list, $po_info->doc_number);
+    
+                    $total_price = $po_item_info->price * $data["quantity"][$key];
+                    $detail_data[$key] = array(
+                        "pv_id" => $header_data["id"],
+                        "po_id" => $po_item_info->po_id,
+                        "po_type" => $po_info->po_type,
+                        "po_item_id" => $po_item_info->id,
+                        "product_id" => $po_item_info->product_id,
+                        "product_name" => $po_item_info->product_name,
+                        "product_description" => $po_item_info->product_description,
+                        "quantity" => $data["quantity"][$key],
+                        "unit" => $po_item_info->unit,
+                        "price" => $po_item_info->price,
+                        "total_price" => $total_price,
+                        "sort" => $sort
+                    );
+    
+                    // create a pv detail
+                    $this->db->insert("goods_receipt_items", $detail_data[$key]);
+                    $detail_data[$key]["id"] = $this->db->insert_id();
+    
+                    // calc vat
+                    $vat = 0;
+                    if ($po_info->vat_inc == "Y") {
+                        $vat = ($total_price * $po_info->vat_percent) / 100;
+                    }
+    
+                    // calc wht
+                    $wht = 0;
+                    if ($po_info->wht_inc == "Y") {
+                        $wht = ($total_price * $po_info->vat_percent) / 100;
+                    }
+    
+                    $sub_total += $total_price;
+                    $vat_total += $vat;
+                    $wht_total += $wht;
+                    $sort++;
+    
+                    // patch po detail & po header
+                    $this->dev2_patchPurchaseOrderItemPaymentById($po_item_info->id);
+                    $this->dev2_patchPurchaseOrderHeaderPaymentById($po_info->id);
+                }
+    
+                $header_data["reference_list"] = array_unique($refer_list);
+                $header_data["sub_total_before_discount"] = $sub_total;
+                $header_data["sub_total"] = $sub_total;
+                $header_data["vat_value"] = $vat_total;
+                $header_data["total"] = $sub_total + $vat_total;
+                $header_data["wht_value"] = $wht_total;
+                $header_data["payment_amount"] = $header_data["total"] - $header_data["wht_value"];
+    
+                $this->db->where("id", $header_data["id"]);
+                $this->db->update("goods_receipt", array(
+                    "reference_list" => json_encode($header_data["reference_list"]),
+                    "sub_total_before_discount" => $header_data["sub_total_before_discount"],
+                    "sub_total" => $header_data["sub_total"],
+                    "vat_value" => $header_data["vat_value"],
+                    "total" => $header_data["total"],
+                    "wht_value" => $header_data["wht_value"],
+                    "payment_amount" => $header_data["payment_amount"]
+                ));
+            }
+        }
+
+        $trans_message = null;
+        if ($this->db->trans_status() === FALSE) {
+            $this->db->trans_rollback();
+            $trans_message = "F";
+        } else {
+            $this->db->trans_commit();
+            $trans_message = "T";
+        }
+
+        return array(
+            $header_data,
+            $detail_data,
+            "trans_status" => $trans_message,
+            "reload_url" => get_uri("accounting/buy/goods_receipt"),
+            "target_url" => get_uri("goods_receipt/view/" . $header_data["id"])
+        );
+    }
+
+    public function dev2_getPurchaseOrderIdByPurchaseOrderNo(string $po_no) : int
+    {
+        $id = 0;
+
+        $query = $this->db->get_where("po_header", ["doc_number" => $po_no])->row();
+        if (isset($query) && !empty($query)) {
+            $id = $query->id;
+        }
+        return $id;
+    }
+
+    public function dev2_serializeTypeForGoodsReceiptItems() : void
+    {
+        $this->db->trans_start();
+
+        $po_list = $this->db->get_where("po_header", ["deleted" => 0])->result();
+
+        if (sizeof($po_list)) {
+            foreach ($po_list as $po) {
+                $this->db->where("po_id", $po->id);
+                $this->db->update("goods_receipt_items", [
+                    "po_type" => $po->po_type
+                ]);
+            }
+        }
+
+        if ($this->db->trans_status() === FALSE) {
+            $this->db->trans_rollback();
+        } else {
+            $this->db->trans_commit();
+        }
+    }
+
+    private function dev2_getPurchaseOrderItemByItemId($id)
+    {
+        $info = new stdClass();
+
+        $query = $this->db->get_where("po_detail", array("id" => $id))->row();
+        if (isset($query) && !empty($query)) {
+            $info = $query;
+        }
+        return $info;
+    }
+
+    private function dev2_getPurchaseOrderById($id)
+    {
+        $info = new stdClass();
+
+        $query = $this->db->get_where("po_header", array("id" => $id))->row();
+        if (isset($query) && !empty($query)) {
+            $info = $query;
+        }
+        return $info;
+    }
+
+    private function dev2_patchPurchaseOrderItemPaymentById(int $id) : void
+    {
+        $sql = "SELECT SUM(quantity) AS quantity FROM goods_receipt_items WHERE po_item_id = ?";
+        $item = $this->db->query($sql, $id)->row();
+
+        if (isset($item->quantity) && $item->quantity >= 0) {
+            $this->db->where("id", $id);
+            $this->db->update("po_detail", array("receipt" => $item->quantity));
+        }
+    }
+
+    private function dev2_patchPurchaseOrderHeaderPaymentById(int $id) : void
+    {
+        $query = $this->db->get_where("po_detail", array("po_id" => $id))->result();
+        $receipt_status = "W";
+
+        $pending = 0;
+        if (sizeof($query)) {
+            foreach ($query as $row) {
+                if ($row->receipt < $row->quantity) {
+                    $pending++;
+                }
+            }
+        }
+
+        if ($pending > 0) {
+            $receipt_status = "P";
+        } else {
+            $receipt_status = "C";
+        }
+
+        $this->db->where("id", $id);
+        $this->db->update("po_header", array("receipt_status" => $receipt_status));
     }
 
 }

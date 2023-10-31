@@ -139,34 +139,41 @@ $(document).ready(function () {
 });
 
 function calculatePrice(){
-    let quantity = tonum($("#quantity").val(), <?php echo $this->Settings_m->getDecimalPlacesNumber(); ?>);
+    let quantity = tonum($("#quantity").val(), <?php echo DEC; ?>);
     let price = tonum($("#price").val(), 2);
-    let price_after_discount = price;
     let discount_type = $("#item_discount_type").val();
     let discount_value = tonum($("#item_discount_value").val(), 2);
+    let total_price = 0;
+    let price_after_discount = 0;
 
-    if(discount_type == "P"){
-        if(discount_value < 0) discount_value = 0;
-        if(discount_value >= 100) discount_value = 100;
-        price_after_discount = price - tonum((price * discount_value)/100, 2);
-        /*if(discount_value >= 100){
-            discount_value = 100;
-            price_after_discount = 0;
-        }*/
+    if(quantity > 0){
+        total_price = price * quantity;
+        price_after_discount = total_price;
 
+        if(discount_type == "P"){
+            if(discount_value < 0) discount_value = 0;
+            if(discount_value >= 100) discount_value = 100;
+
+            if(discount_value > 0){
+                price_after_discount = total_price - tonum((price_after_discount * discount_value)/100, 2);
+            }
+
+        }else{
+            if(discount_value < 0) discount_value = 0;
+            if(discount_value > total_price) discount_value = total_price;
+
+            if(discount_value > 0){
+                price_after_discount = total_price - discount_value;
+            }
+        }
+        
     }else{
-        if(discount_value < 0) discount_value = 0;
-        if(discount_value > price) discount_value = price;
-        price_after_discount = price - discount_value;
+        quantity = 0;
     }
-
-    if(quantity < 0 ) quantity = 0;
-    if(price_after_discount < 0 ) price_after_discount = 0;
-    let total_price = price_after_discount * quantity;
     
-    $("#quantity").val($.number(quantity, <?php echo $this->Settings_m->getDecimalPlacesNumber(); ?>));
+    $("#quantity").val($.number(quantity, <?php echo DEC; ?>));
     $("#price").val($.number(price, 2));
     $("#item_discount_value").val($.number(discount_value, 2));
-    $("#total_price").val($.number(total_price, 2));
+    $("#total_price").val($.number(price_after_discount, 2));
 }
 </script>

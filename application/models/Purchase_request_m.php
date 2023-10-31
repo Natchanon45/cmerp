@@ -72,7 +72,7 @@ class Purchase_request_m extends MY_Model
         $status = '<select class="dropdown_status select-status" data-doc_id="' . $item->id . '">';
 
         if ($item->status == "W") {
-            $button = "<a data-post-id='" . $item->id . "' data-title='" . $this->modal_header() . "' data-action-url='" . get_uri('purchase_request/addedit') . "' data-act='ajax-modal' class='edit'><i class='fa fa-pencil'></i></a>";
+            $button = "<a data-post-id='" . $item->id . "' data-title='" . lang("purchase_request_edit") . "' data-action-url='" . get_uri('purchase_request/addedit') . "' data-act='ajax-modal' class='edit'><i class='fa fa-pencil'></i></a>";
             $status .= '
                 <option selected>' . lang('pr_pending') . '</option>
                 <option value="A">' . lang('pr_approved') . '</option>
@@ -81,14 +81,14 @@ class Purchase_request_m extends MY_Model
         }
 
         if ($item->status == "A") {
-            $button = "<a data-post-id='" . $item->id . "' data-title='" . $this->modal_header() . "' data-action-url='" . get_uri('purchase_request/addedit') . "' data-act='ajax-modal' class='edit'><i class='fa fa-eye'></i></a>";
+            $button = "<a data-post-id='" . $item->id . "' data-title='" . lang("purchase_request") . "' data-action-url='" . get_uri('purchase_request/addedit') . "' data-act='ajax-modal' class='edit'><i class='fa fa-eye'></i></a>";
             $status .= '
                 <option selected>' . lang('pr_approved') . '</option>
             ';
         }
 
         if ($item->status == "R") {
-            $button = "<a data-post-id='" . $item->id . "' data-title='" . $this->modal_header() . "' data-action-url='" . get_uri('purchase_request/addedit') . "' data-act='ajax-modal' class='edit'><i class='fa fa-eye'></i></a>";
+            $button = "<a data-post-id='" . $item->id . "' data-title='" . lang("purchase_request") . "' data-action-url='" . get_uri('purchase_request/addedit') . "' data-act='ajax-modal' class='edit'><i class='fa fa-eye'></i></a>";
             $status .= '
                 <option selected>' . lang('pr_rejected') . '</option>
             ';

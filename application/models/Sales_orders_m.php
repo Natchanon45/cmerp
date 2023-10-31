@@ -854,9 +854,9 @@ class Sales_orders_m extends MY_Model {
 
                     $html .= "</td>";
                     $html .= "<td class='unit'>".$soirow->unit."</td>";
-                    $html .= "<td class='instock'>".($soirow->pr_header_id == null ? $product_remaining:'-')."</td>";
-                    $html .= "<td class='quantity'>".$soirow->quantity."</td>";
-                    $html .= "<td class='topurchase'>".abs($product_remaining - $soirow->quantity)."</td>";
+                    $html .= "<td class='instock'>".($soirow->pr_header_id == null ? number_format($product_remaining, 2):'-')."</td>";
+                    $html .= "<td class='quantity'>".number_format($soirow->quantity, DEC)."</td>";
+                    $html .= "<td class='topurchase'>".number_format(abs($product_remaining - $soirow->quantity), 2)."</td>";
                     $html .= "<td class='reference_number'>";
 
                     if($soirow->pr_header_id != null){
@@ -883,7 +883,6 @@ class Sales_orders_m extends MY_Model {
 
     function makePR(){
         $db = $this->db;
-        $ci = get_instance();
         $sales_order_id = $this->json->sales_order_id;
         $sales_order_items = json_decode($this->json->sales_order_items);
 
@@ -940,7 +939,7 @@ class Sales_orders_m extends MY_Model {
 
         foreach($suppliers as $supid => $products){
             if(!empty($products)){
-                $pr_doc_number = $ci->Purchase_request_m->getNewDocNumber();
+                $pr_doc_number = $this->Purchase_request_m->getNewDocNumber();
                 $pr_doc_date = date("Y-m-d");
                 $pr_type = 3;
                 $pr_doc_valid_until_date = date("Y-m-d");
@@ -962,19 +961,19 @@ class Sales_orders_m extends MY_Model {
                 $sort = 0;
 
                 foreach($products as $p){
+                    $product_remaining = $this->Bom_item_m->getTotalRemainingItems($p["product_id"]);
+
                     $db->insert("pr_detail", [
                                                 "pr_id"=>$pr_header_id,
                                                 "product_id"=>$p["product_id"],
                                                 "product_name"=>$p["product_name"],
                                                 "product_description"=>$p["product_description"],
-                                                "quantity"=>$p["quantity"],
+                                                "quantity"=>abs($product_remaining - $p["quantity"]),
                                                 "unit"=>$p["unit"],
-                                                "price"=>$p["price"],
-                                                "total_price"=>$p["total_price"],
+                                                "price"=>0,
+                                                "total_price"=>0,
                                                 "sort"=>++$sort,
                                             ]);
-
-                    $product_remaining = $ci->Bom_item_m->getTotalRemainingItems($p["product_id"]);
 
                     $db->where("id", $p["sales_order_items_id"]);
                     $db->update("sales_order_items", [
@@ -1081,9 +1080,10 @@ class Sales_orders_m extends MY_Model {
 
                 $html .= "<tr class='sales_order_items' data-id='".$soirow->id."'>";
                     $html .= "<td class='product_name'>".$soirow->product_name."</td>";
-                    $html .= "<td class='instock'>".($soirow->mr_header_id == null ? $product_remaining." ".$soirow->unit:'-')."</td>";
-                    $html .= "<td class='total_used'>".$soirow->quantity." ".$soirow->unit."</td>";
-                    $html .= "<td class='total_submit'>".$total_submit_quantity." ".$soirow->unit."</td>";
+                    $html .= "<td class='unit'>".$soirow->unit."</td>";
+                    $html .= "<td class='instock'>".($soirow->mr_header_id == null ? number_format($product_remaining, 2):'-')."</td>";
+                    $html .= "<td class='total_used'>".number_format($soirow->quantity, 2)."</td>";
+                    $html .= "<td class='total_submit'>".number_format($total_submit_quantity, 2)."</td>";
                     $html .= "<td class='reference_number'>";
 
                     if($soirow->mr_header_id != null){
@@ -1316,12 +1316,13 @@ class Sales_orders_m extends MY_Model {
 
                 $html .= "<tr class='sales_order_items' data-id='".$soirow->id."'>";
                     $html .= "<td class='product_name'>".$soirow->product_name."</td>";
-                    $html .= "<td class='instock'>".($soirow->mr_header_id == null ? number_format($product_remaining, DEC)." ".$soirow->unit:'-')."</td>";
-                    $html .= "<td class='total_used'><input type='text' value='".number_format($soirow->quantity, DEC)."' readonly>".$soirow->unit."</td>";
+                    $html .= "<td class='unit'>".$soirow->unit."</td>";
+                    $html .= "<td class='instock'>".($soirow->mr_header_id == null ? number_format($product_remaining, DEC):'-')."</td>";
+                    $html .= "<td class='total_used'><input type='text' value='".number_format($soirow->quantity, DEC)."' readonly></td>";
                     
-                    $html .= "<td class='total_submit'><span class='made_to_order ".($sorow->project_id != null ? 'readonly':'')."'>";
+                    $html .= "<td class='total_submit'>";
                     $html .= "<input type='text' value='".number_format($soirow->quantity, DEC)."' ".($sorow->project_id != null ? 'readonly':'').">";
-                    $html .= $soirow->unit."</span></td>";
+                    $html .= "</span></td>";
 
                 $html .= "</tr>";
                 $total_records++;

@@ -101,7 +101,43 @@ class Share extends PublicController
         }
         
         if ($doc["status"] != "success") redirect("forbidden");
-        $this->load->view('edocs/purchase_order', $this->data);
+        $this->load->view("edocs/purchase_order", $this->data);
+    }
+
+    function payment_voucher()
+    {
+        $this->data["doc"] = $this->Payment_voucher_m->getEdoc(null, $this->uri->segment(5), $this->uri->segment(4));
+        $this->data["og_title"] = get_setting("company_name") . " - " . $this->data["doc"]["doc_number"];
+        if ($this->data["doc"]["status"] != "success") {
+            redirect("forbidden");
+        }
+
+        $this->data["additional_style"] = 'style="width: 30%;"';
+        if ($this->uri->segment(4) == 'en') {
+            $this->lang->load('default_lang', 'english');
+            $this->data["additional_style"] = 'style="width: 35%;"';
+        }
+
+        // var_dump(arr($this->data)); exit();
+        $this->load->view("edocs/payment_voucher", $this->data);
+    }
+
+    function goods_receipt()
+    {
+        $this->data["doc"] = $this->Goods_receipt_m->getEdoc(null, $this->uri->segment(5), $this->uri->segment(4));
+        $this->data["og_title"] = get_setting("company_name") . " - " . $this->data["doc"]["doc_number"];
+        if ($this->data["doc"]["status"] != "success") {
+            redirect("forbidden");
+        }
+
+        $this->data["additional_style"] = 'style="width: 30%;"';
+        if ($this->uri->segment(4) == 'en') {
+            $this->lang->load('default_lang', 'english');
+            $this->data["additional_style"] = 'style="width: 35%;"';
+        }
+
+        // var_dump(arr($this->data)); exit();
+        $this->load->view("edocs/goods_receipt", $this->data);
     }
 
 }

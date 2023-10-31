@@ -51,11 +51,11 @@
 
 .popup .product td.product_name{
     padding-left: 8px;
-    width: 25%;
+    width: 21%;
 }
 
 .popup .product td.product_supplier{
-    width: 25%;
+    width: 21%;
     padding-top: 8px;
 }
 
@@ -70,22 +70,22 @@
 }
 
 .popup .product td.unit{
-    width: 9%;
+    width: 11%;
     text-align: left;
 }
 
 .popup .product td.instock{
-    width: 9%;
+    width: 11%;
     text-align: right;
 }
 
 .popup .product td.quantity{
-    width: 9%;
+    width: 11%;
     text-align: right;
 }
 
 .popup .product td.topurchase{
-    width: 9%;
+    width: 11%;
     text-align: right;
 }
 

@@ -1,4 +1,5 @@
 <?php
+
 class Purchaserequest_m extends CI_Model
 {
     function __construct()
@@ -132,6 +133,24 @@ class Purchaserequest_m extends CI_Model
         return $data;
     }
 
+    function dev2_getPvStatusDropdown()
+    {
+        $data[] = array(
+            "id" => "",
+            "text" => "-- " . lang("status") . " --"
+        );
+        $data[] = array(
+            "id" => "W",
+            "text" => lang("pr_pending")
+        );
+        $data[] = array(
+            "id" => "A",
+            "text" => lang("pr_approved")
+        );
+
+        return $data;
+    }
+
     function dev2_getPoStatusDropdown()
     {
         $data[] = array(
@@ -161,20 +180,12 @@ class Purchaserequest_m extends CI_Model
             "text" => "-- " . lang("status") . " --"
         );
         $data[] = array(
-            "id" => "N",
-            "text" => lang('payments_draft')
-        );
-        $data[] = array(
             "id" => "W",
-            "text" => lang('payments_waiting')
+            "text" => lang("pr_pending")
         );
         $data[] = array(
-            "id" => "P",
-            "text" => lang('payments_partial')
-        );
-        $data[] = array(
-            "id" => "C",
-            "text" => lang('payments_completed')
+            "id" => "A",
+            "text" => lang("pr_approved")
         );
 
         return $data;

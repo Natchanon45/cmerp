@@ -1,3 +1,10 @@
+<?php
+
+$btn_add = lang("btn_add_raw_material");
+$btn_edit = lang("btn_edit_raw_material");
+
+?>
+
 <link rel="stylesheet" href="/assets/css/printd.css?t=<?php echo time(); ?>">
 <style type="text/css">
     .top-vertical {
@@ -25,21 +32,45 @@
                     <?php echo lang('share'); ?>
                 </a>
                 <a onclick="window.open('<?php echo $print_url; ?>', '' ,'width=980,height=720');" class="btn btn-default">
-                    <?php echo lang('print'); ?>
+                    <?php echo lang("print"); ?>
                 </a>
             <?php endif; ?>
+
             <?php if ($doc_status == "W"): ?>
                 <a href="javascript:void(0);" id="btn-approval" class="btn btn-info">
-                    <?php echo lang('approve'); ?>
+                    <i class="fa fa-check-square-o"></i>
+                    <?php echo str_repeat("&nbsp;", 1) . lang('purchase_order_approve'); ?>
                 </a>
             <?php endif; ?>
 
             <?php if ($doc_status == "A"): ?>
-                <?php if ($doc_receipt_status != 'C'): ?>
-                    <a href="javascript:void(0);" id="btn-receipt" class="btn btn-info">
-                        <i class="fa fa-file-text-o"></i> 
-                        <?php echo ($doc_type == 5) ? lang('record_expenses') : lang('record_products'); ?>
-                    </a>
+                <?php if ($doc_receipt_status == "W" || $doc_payment_status == "W"): ?>
+                    <span class="dropdown inline-block">
+                        <button class="btn btn-warning dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <i class="fa fa-info-circle"></i>
+                            <?php echo str_repeat("&nbsp;", 1) . lang("operation"); ?>
+                        </button>
+                        <ul class="dropdown-menu dropdown-left rounded" role="menu" aria-labelledby="dropdownMenuButton">
+                            
+                            <?php if($doc_payment_status == "W"): ?>
+                                <li role="presentation">
+                                    <a href="javascript:void(0);" id="btn-payment" class="dropdown-item">
+                                        <i class="fa fa-file" aria-hidden="true"></i>
+                                        <?php echo str_repeat("&nbsp;", 1) . lang("record_of_payment_voucher"); ?>
+                                    </a>
+                                </li>
+                            <?php endif; ?>
+
+                            <?php if ($doc_receipt_status == "W"): ?>
+                                <li role="presentation">
+                                    <a href="javascript:void(0);" id="btn-receipt" class="dropdown-item">
+                                        <i class="fa fa-file-o" aria-hidden="true"></i> 
+                                        <?php echo str_repeat("&nbsp;", 1) . lang("record_of_goods_receipt"); ?>
+                                    </a>
+                                </li>
+                            <?php endif; ?>
+                        </ul>
+                    </span>
                 <?php endif; ?>
             <?php endif; ?>
         </div>
@@ -86,9 +117,6 @@
                             echo $supplier_address;
                         ?>
                     </p>
-                    <?php if (trim($supplier["country"]) != ""): ?>
-                        <p><?php // echo $supplier["country"]; ?></p>
-                    <?php endif; ?>
                     <?php if (trim($supplier["vat_number"]) != ""): ?>
                         <p><?php echo lang("vat_number") . ": " . $supplier["vat_number"]; ?></p>
                     <?php endif; ?>
@@ -167,11 +195,35 @@
                 <tr>
                     <td colspan="3">
                         <?php if ($doc_status == "W"): ?>
-                            <p>
-                                <?php // echo modal_anchor(get_uri("purchase_order/item"), "<i class='fa fa-plus-circle'></i> " . lang('add_item_product'), array("id"=>"add_item_button", "class" => "btn btn-default", "title" => lang('add_item_product'), "data-post-doc_id" => $doc_id)); ?>
-                            </p>
+                            <?php if ($pr_id == null || $pr_id == ''): ?>
+                                <?php
+                                    if ($doc_type == 3) {
+                                        $btn_add = lang("btn_add_finished_goods");
+                                        $btn_edit = lang("btn_edit_finished_goods");
+                                    }
+
+                                    if ($doc_type == 5) {
+                                        $btn_add = lang("btn_add_expense");
+                                        $btn_edit = lang("btn_edit_expense");
+                                    }
+                                ?>
+                                <p>
+                                    <?php
+                                        echo modal_anchor(
+                                            get_uri("purchase_order/item"), 
+                                            "<i class='fa fa-plus-circle'></i> " . $btn_add, 
+                                            array(
+                                                "id" => "add_item_button", 
+                                                "class" => "btn btn-default", 
+                                                "title" => $btn_add, 
+                                                "data-title" => $btn_add, 
+                                                "data-post-doc_id" => $doc_id
+                                            )
+                                        );
+                                    ?>
+                                </p>
+                            <?php endif; ?>
                         <?php endif; ?>
-                        <!-- <p><input type="text" id="total_in_text" readonly></p> -->
                         <p><textarea name="total_in_text" id="total_in_text" rows="4" readonly></textarea></p>
                     </td>
                     <td colspan="4" class="summary">
@@ -188,30 +240,6 @@
                                 </span>
                             </span>
                         </p>
-
-                        <!-- <p id="s-discount">
-                            <span class="c1 custom-color">
-                                ส่วนลด&nbsp;<input type="number" id="discount_percent"
-                                    value="<?php // echo $discount_percent; ?>" <?php // if ($doc_status != "W")
-                                           // echo "disabled"; ?>>
-                                <select id="discount_type" <?php // if ($doc_status != "W")
-                                    // echo "disabled"; ?>>
-                                    <option value="P" <?php // if ($discount_type == "P")
-                                        // echo "selected"; ?>>%</option>
-                                    <option value="F" <?php // if ($discount_type == "F")
-                                        // echo "selected"; ?>>฿</option>
-                                </select>
-                            </span>
-                            <span class="c2"><input type="text" id="discount_amount"
-                                    value="<?php // echo $discount_amount; ?>" readonly></span>
-                            <span class="c3"><span class="currency">บาท</span></span>
-                        </p>
-                        <p id="s-sub-total">
-                            <span class="c1"><i class="custom-color t1">ราคาหลังหักส่วนลด</i><i
-                                    class="custom-color t2">รวมเป็นเงิน</i></span>
-                            <span class="c2"><input type="text" id="sub_total" readonly></span>
-                            <span class="c3"><span class="currency">บาท</span></span>
-                        </p> -->
 
                         <p id="s-vat">
                             <span class="c1 custom-color">
@@ -291,9 +319,7 @@
 
     <div class="docsignature clear">
         <div class="customer">
-            <div class="on_behalf_of">
-                <?php // echo "ในนาม" . $client["company_name"]; ?>
-            </div>
+            <div class="on_behalf_of"></div>
             <div class="clear">
                 <div class="name">
                     <span class="l1">
@@ -318,9 +344,7 @@
             </div>
         </div><!--.customer -->
         <div class="company">
-            <div class="on_behalf_of">
-                <?php // echo "ในนาม" . get_setting("company_name"); ?>
-            </div>
+            <div class="on_behalf_of"></div>
             <div class="clear">
                 <div class="name">
                     <span class="l1">
@@ -348,6 +372,8 @@
 </div><!--#printd-->
 
 <script type="text/javascript">
+    const requestId = '<?php echo $pr_id; ?>';
+
     window.addEventListener('keydown', (e) => {
         if (e.keyCode === 80 && (e.ctrlKey || e.metaKey) && !e.altKey && (!e.shiftKey || window.chrome || window.opera)) {
             e.preventDefault();
@@ -365,10 +391,6 @@
     $(document).ready(function () {
         loadItems();
 
-        // $("#discount_percent, #discount_amount").blur(function () {
-        //     loadSummary();
-        // });
-
         $("#vat_inc, #wht_inc, #wht_percent").change(function () {
             loadSummary();
         });
@@ -382,6 +404,11 @@
             e.preventDefault();
             receipt();
         });
+
+        $("#btn-payment").on('click', function (e) {
+            e.preventDefault();
+            payment();
+        });
     });
 
     function loadItems() {
@@ -392,16 +419,13 @@
         }
 
         axios.post(url, request).then(function (response) {
-            // console.log(response);
-
             let data = response.data;
             if (data.status == "notfound") {
                 $(".docitem tbody").empty().append(`<tr><td colspan="7" class="notfound">${data.message}</td></tr>`);
             } else if (data.status == "success") {
-                // console.log(data.items);
-
                 let tbody = '';
                 let items = data.items;
+
                 for (let i = 0; i < items.length; i++) {
                     tbody += `<tr>`;
                     tbody += `<td>${i + 1}</td>`;
@@ -415,17 +439,19 @@
                     tbody += `<td>${items[i]['total_price']}</td>`;
                     tbody += `<td class="edititem">`;
                     if (data.doc_status == 'W') {
-                        tbody += `<a class="edit" data-post-doc_id="<?php echo $doc_id; ?>" data-title="<?php echo $modal_header; ?>" data-post-item_id="${items[i]['id']}" data-act="ajax-modal" data-action-url="<?php echo_uri('purchase_order/item'); ?>"><i class="fa fa-pencil"></i></a>`;
-                        // tbody += `<a class="delete" data-item_id="${items[i]['id']}"><i class="fa fa-times fa-fw"></i></a>`;
+                        tbody += `<a class="edit" data-post-doc_id="<?php echo $doc_id; ?>" data-title="<?php echo $btn_edit; ?>" data-post-item_id="${items[i]['id']}" data-act="ajax-modal" data-action-url="<?php echo_uri("purchase_order/item"); ?>"><i class="fa fa-pencil"></i></a>`;
+                        if (!requestId) {
+                            tbody += `<a class="delete" data-item_id="${items[i]['id']}"><i class="fa fa-times fa-fw"></i></a>`;
+                        }
                     }
                     tbody += `</td>`;
                     tbody += `</tr>`;
                 }
 
                 $(".docitem tbody").empty().append(tbody);
-                // $(".edititem .delete").click(function () {
-                //     deleteItem($(this).data("item_id"));
-                // });
+                $(".edititem .delete").click(function () {
+                    deletion($(this).data("item_id"));
+                });
             }
 
             loadSummary();
@@ -435,16 +461,6 @@
     }
 
     function loadSummary() {
-        // let discount_type = $("#discount_type").val();
-        // let discount_percent = 0;
-        // let discount_value = 0;
-
-        // if (discount_type == "P") {
-        //     discount_percent = tonum($("#discount_percent").val());
-        // } else {
-        //     discount_value = tonum($("#discount_amount").val());
-        // }
-
         let url = '<?php echo current_url(); ?>';
         let request = {
             task: 'update_doc',
@@ -458,9 +474,8 @@
         }
 
         axios.post(url, request).then(function (response) {
-            // console.log(response);
-
             let data = response.data;
+
             $("#sub_total_before_discount").val(data.sub_total_before_discount);
             $("#discount_percent").val(data.discount_percent);
             $("#discount_amount").val(data.discount_amount);
@@ -470,31 +485,6 @@
             $("#total").val(data.total);
             $("#total_in_text").val("(" + data.total_in_text + ")");
             $("#payment_amount").val(data.payment_amount);
-
-            // if (data.discount_type == "P") {
-            //     $("#discount_type").val("P");
-            //     $("#discount_percent").removeClass("h").addClass("v");
-            //     $("#discount_amount").removeClass("f").addClass("p");
-            //     $("#discount_amount").prop("readonly", true);
-            //     discount_value = $("#discount_percent").val();
-            // } else {
-            //     $("#discount_type").val("F");
-            //     $("#discount_percent").removeClass("v").addClass("h");
-            //     $("#discount_amount").removeClass("p").addClass("f");
-            //     $("#discount_amount").prop("readonly", false);
-            //     discount_value = $("#discount_amount").val();
-            // }
-
-            // if (discount_value > 0) {
-            //     $("#s-sub-total-before-discount, #s-discount").removeClass("h").addClass("v");
-            //     $("#s-sub-total .t1").removeClass("h").addClass("v");
-            //     $("#s-sub-total .t2").removeClass("v").addClass("h");
-
-            // } else {
-            //     $("#s-sub-total-before-discount, #s-discount").removeClass("v").addClass("h");
-            //     $("#s-sub-total .t1").removeClass("v").addClass("h");
-            //     $("#s-sub-total .t2").removeClass("h").addClass("v");
-            // }
 
             if (data.vat_inc == "Y") {
                 $("#vat_inc").prop("checked", true);
@@ -525,18 +515,14 @@
             doc_id: '<?php echo $doc_id; ?>',
             item_id: item_id
         }
-        // console.log(url, request);
 
         await axios.post(url, request).then(response => {
-            // console.log(response);
-
             let data = response.data;
+
             if (data.status == "success") {
                 loadItems();
             }
         }).catch(error => {
-            // console.log(error);
-
             appAlert.error('500 Internal Server Error.', {
                 duration: 3001
             });
@@ -550,12 +536,10 @@
             doc_id: '<?php echo $doc_id; ?>',
             update_status_to: 'A'
         }
-        // console.log(url, request);
 
         await axios.post(url, request).then(response => {
-            // console.log(response);
-
             let data = response.data;
+
             if (data.status == "success") {
                 if (typeof data.task !== "undefined") {
                     window.location.href = data.url;
@@ -566,8 +550,6 @@
                 });
             }
         }).catch(error => {
-            // console.log(error);
-
             appAlert.error('500 Internal Server Error.', {
                 duration: 3001
             });
@@ -581,12 +563,10 @@
             doc_id: '<?php echo $doc_id; ?>',
             update_status_to: 'GR'
         }
-        console.log(url, request);
 
         await axios.post(url, request).then(response => {
-            // console.log(response);
-
             let data = response.data;
+
             if (data.status == "success") {
                 if (typeof data.task !== "undefined") {
                     window.location.href = data.url;
@@ -597,8 +577,33 @@
                 });
             }
         }).catch(error => {
-            // console.log(error);
+            appAlert.error('500 Internal Server Error.', {
+                duration: 3001
+            });
+        });
+    };
 
+    const payment = async () => {
+        let url = '<?php echo_uri($active_module); ?>';
+        let request = {
+            task: 'update_doc_status',
+            doc_id: '<?php echo $doc_id; ?>',
+            update_status_to: 'PV'
+        };
+
+        await axios.post(url, request).then(response => {
+            let data = response.data;
+
+            if (data.status == "success") {
+                if (typeof data.task !== "undefined") {
+                    window.location.href = data.url;
+                }
+            } else {
+                appAlert.error(data.message, {
+                    duration: 3001
+                });
+            }
+        }).catch(error => {
             appAlert.error('500 Internal Server Error.', {
                 duration: 3001
             });

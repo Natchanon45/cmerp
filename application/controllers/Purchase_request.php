@@ -26,7 +26,7 @@ class Purchase_request extends MY_Controller
             return;
         }
 
-        redirect("/accounting/buy/purchase_request");
+        redirect("accounting/buy/purchase_request");
     }
 
     function dev2_IndexDataSet()
@@ -120,14 +120,14 @@ class Purchase_request extends MY_Controller
         if ($this->input->get('task') != null) {
             if ($this->input->get('task') == 'suggest_products') {
                 if ($this->input->get('type') == '3') {
-                    $sprows = $this->Products_m->getRows();
+                    $sprows = $this->Products_m->dev2_getItemsDropdownByKeyword();
                     if (isset($sprows) && !empty($sprows)) {
                         foreach ($sprows as $sprow) {
                             $suggestion[] = ['id' => $sprow->id, 'text' => $sprow->title, 'description' => $sprow->description, 'unit' => $sprow->unit_type, 'price' => $sprow->rate];
                         }
                     }
                 } elseif ($this->input->get('type') == '1') {
-                    $sprows = $this->Bom_materials_model->getRows();
+                    $sprows = $this->Bom_materials_model->dev2_getMaterialsDropdownByKeyword();
                     if (isset($sprows) && !empty($sprows)) {
                         foreach ($sprows as $sprow) {
                             $suggestion[] = ['id' => $sprow->id, 'text' => $sprow->name . ' - ' . $sprow->production_name, 'description' => $sprow->description, 'unit' => $sprow->unit, 'price' => 0];

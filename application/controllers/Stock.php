@@ -5104,7 +5104,7 @@ class Stock extends MY_Controller
             is_date_exists($data->expiration_date) ? format_to_date($data->expiration_date, false) : '-',
             $data->stock ? to_decimal_format2($data->stock) : 0,
             $data->remaining ? to_decimal_format2($data->remaining) : 0,
-            $data->item_unit ? strtoupper($data->item_unit) : '-'
+            $data->item_unit ? mb_strtoupper($data->item_unit) : '-'
         );
 
         if ($this->check_permission('bom_restock_read_price')) {

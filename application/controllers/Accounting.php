@@ -8,8 +8,8 @@ class Accounting extends MY_Controller {
             $this->session->set_flashdata('notice_error', lang('no_permissions'));
             redirect("/");
         }*/
+        
         $this->load->model('Purchaserequest_m');
-
         $this->data["company_setting"] = $this->Settings_m->getCompany();
     }
 
@@ -80,33 +80,44 @@ class Accounting extends MY_Controller {
         $this->template->rander("accounting/sell", $this->data);
     }
 
-    //บัญชีซื้อ
-    function buy() {
-        if ($this->check_permission('access_purchase_request')) {
-            $this->data['module'] = 'purchase_request';
-        } elseif ($this->check_permission('access_purchase_order')) {
-            $this->data['module'] = 'purchase_order';
-        } elseif ($this->check_permission('access_goods_receipt')) {
-            $this->data['module'] = 'goods_receipt';
-        }elseif ($this->check_permission('access_purchase_order')) {
-            $this->data['module'] = 'payment_voucher';
-        }else {
-            $this->session->set_flashdata('notice_error', lang('no_permissions'));
-            redirect('/');
+    // บัญชีซื้อ
+    function buy()
+    {
+        $permissions = (object) $this->Permission_m->accounting;
+        // var_dump(arr($permissions)); exit();
+
+        // Permission Check
+        if ($permissions->purchase_request["access"]) {
+            $this->data["module"] = "purchase_request";
+        } elseif ($permissions->purchase_order["access"]) {
+            $this->data["module"] = "purchase_order";
+        } elseif ($permissions->payment_voucher["access"]) {
+            $this->data["module"] = "payment_voucher";
+        } elseif ($permissions->goods_receipt["access"]) {
+            $this->data["module"] = "goods_receipt";
+        } else {
+            $this->session->set_flashdata("notice_error", lang("no_permissions"));
+            redirect("/");
             return;
         }
 
-        if($this->uri->segment(3) != null) $this->data["module"] = $this->uri->segment(3);
-        $this->data['permissions'] = (array) $this->Permission_m->permissions;
+        // Current Module
+        if ($this->uri->segment(3) != null) {
+            $this->data["module"] = $this->uri->segment(3);
+        }
 
+        // Define Modal Header
         $modal_header = str_replace("https:", "", str_replace("http:", "", str_replace("/", "", base_url())));
-        $this->data['modal_header'] = strtoupper($modal_header);
-        
-        $this->data['supplier_dropdown'] = json_encode($this->Bom_suppliers_model->dev2_getSupplierDropdownWithCode());
-        $this->data['pr_status_dropdown'] = json_encode($this->Purchaserequest_m->dev2_getPrStatusDropdown());
-        $this->data['po_status_dropdown'] = json_encode($this->Purchaserequest_m->dev2_getPoStatusDropdown());
-        $this->data['gr_status_dropdown'] = json_encode($this->Purchaserequest_m->dev2_getGrStatusDropdown());
-        $this->data['type_dropdown'] = json_encode($this->Purchaserequest_m->dev2_getPrTypeDropdown());
+        $this->data["modal_header"] = strtoupper($modal_header);
+
+        // Prepare dropdown status
+        $this->data["supplier_dropdown"] = json_encode($this->Bom_suppliers_model->dev2_getSupplierDropdownWithCode());
+        $this->data["pr_status_dropdown"] = json_encode($this->Purchaserequest_m->dev2_getPrStatusDropdown());
+        $this->data["po_status_dropdown"] = json_encode($this->Purchaserequest_m->dev2_getPoStatusDropdown());
+        $this->data["pv_status_dropdown"] = json_encode($this->Purchaserequest_m->dev2_getPvStatusDropdown());
+        $this->data["gr_status_dropdown"] = json_encode($this->Purchaserequest_m->dev2_getGrStatusDropdown());
+        $this->data["type_dropdown"] = json_encode($this->Purchaserequest_m->dev2_getPrTypeDropdown());
+        $this->data["user_permissions"] = $permissions;
 
         // var_dump(arr($this->data)); exit();
         $this->template->rander("accounting/buy", $this->data);
