@@ -1,6 +1,15 @@
 <div class="general-form modal-body clearfix">
+    <?php if (isset($doc_number) && !empty($doc_number)): ?>
+        <div class="form-group">
+            <label for="doc_number" class="col-md-3"><?php echo lang("document_number"); ?></label>
+            <div class="col-md-9">
+                <input type="text" class="form-control" value="<?php echo $doc_number; ?>" disabled>
+            </div>
+        </div>
+    <?php endif; ?>
+
     <div class="form-group">
-        <label for="doc_date" class=" col-md-3"><?php echo lang('document_date'); ?></label>
+        <label for="doc_date" class=" col-md-3"><?php echo lang("document_date"); ?></label>
         <div class="col-md-9">
             <input type="text" id="doc_date" class="form-control" autocomplete="off" readonly>
         </div>
@@ -76,7 +85,7 @@
     </button>
     <?php if ($doc_status == "W" || !isset($doc_id)): ?>
         <button type="button" id="btnSubmit" class="btn btn-primary"><span class="fa fa-check-circle"></span>
-            <?php echo lang('save'); ?>
+            <?php echo (empty($doc_id)) ? lang('create') : lang('edit'); ?>
         </button>
     <?php endif; ?>
 </div>

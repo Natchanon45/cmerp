@@ -85,6 +85,10 @@
 		.font-size-bigger {
 			font-size: 120%;
 		}
+
+		.w-adjust {
+			width: 10px !important;
+		}
 	</style>
 </head>
 <?php if ($print_mode == "private"): ?>
@@ -256,6 +260,7 @@
 					</div>
 				</div><!--.header-->
 
+				<?php $total_quantity = 0; ?>
 				<div class="body">
 					<div class="items">
 						<table>
@@ -265,8 +270,7 @@
 									<td><?php echo lang("details"); ?></td>
 									<td><?php echo lang("quantity"); ?></td>
 									<td><?php echo lang("stock_material_unit"); ?></td>
-									<td><?php echo lang("rate"); ?></td>
-									<td><?php echo lang("total_item"); ?></td>
+									<td class="w-adjust"></td>
 								</tr>
 							</thead>
 
@@ -274,6 +278,7 @@
 								<?php if (!empty($doc["items"])): ?>
 									<?php $i = 1; ?>
 									<?php foreach ($doc["items"] as $item): ?>
+										<?php $total_quantity += $item->quantity; ?>
 										<tr>
 											<td><?php echo $i++; ?></td>
 											<td>
@@ -286,43 +291,54 @@
 											</td>
 											<td><?php echo number_format($item->quantity, 2); ?></td>
 											<td><?php echo $item->unit; ?></td>
-											<td><?php echo number_format($item->price, 2); ?></td>
-											<td><?php echo number_format($item->total_price, 2); ?></td>
+											<td></td>
 										</tr>
 									<?php endforeach; ?>
 								<?php endif; ?>
 							</tbody>
+							<tfoot>
+								<tr>
+									<td colspan="2" style="text-align: right;">
+										<span class="custom-color" style="padding-right: 50px;">
+											<?php echo lang("gr_total_quantity"); ?>
+										</span>
+									</td>
+									<td style="text-align: right; border-bottom: double #cecece">
+										<span><?php echo number_format($total_quantity, 2); ?></span>
+									</td>
+								</tr>
+							</tfoot>
 						</table>
 					</div>
 					<div class="summary clear">
 						<div class="total_in_text">
-							<span><?php echo "(" . $doc["total_in_text"] . ")"; ?></span>
+							<span><?php // echo "(" . $doc["total_in_text"] . ")"; ?></span>
 						</div>
 						<div class="total_all">
 							<div class="row">
-								<div class="c1 custom-color"><?php echo lang("total_all_item"); ?></div>
+								<div class="c1 custom-color"><?php // echo lang("total_all_item"); ?></div>
 								<div class="c2">
-									<span><?php echo number_format($doc["sub_total_before_discount"], 2); ?></span>
-									<span><?php echo lang("THB"); ?></span>
+									<span><?php // echo number_format($doc["sub_total_before_discount"], 2); ?></span>
+									<span><?php // echo lang("THB"); ?></span>
 								</div>
 							</div>
 
 							<?php if ($doc["discount_amount"] > 0): ?>
 								<div class="row">
 									<div class="c1 custom-color">
-										<?php echo lang("discount_amount"); ?>
-										<?php if ($doc["discount_type"] == "P") { echo number_format_drop_zero_decimals($doc["discount_percent"], 2) . "%"; } ?>
+										<?php // echo lang("discount_amount"); ?>
+										<?php // if ($doc["discount_type"] == "P") { echo number_format_drop_zero_decimals($doc["discount_percent"], 2) . "%"; } ?>
 									</div>
 									<div class="c2">
-										<span><?php echo number_format($doc["discount_amount"], 2); ?></span>
-										<span><?php echo lang("THB"); ?></span>
+										<span><?php // echo number_format($doc["discount_amount"], 2); ?></span>
+										<span><?php // echo lang("THB"); ?></span>
 									</div>
 								</div>
 								<div class="row">
-									<div class="c1 custom-color"><?php echo lang("amount_after_discount"); ?></div>
+									<div class="c1 custom-color"><?php // echo lang("amount_after_discount"); ?></div>
 									<div class="c2">
-										<span><?php echo number_format($doc["sub_total"], 2); ?></span>
-										<span><?php echo lang("THB"); ?></span>
+										<span><?php // echo number_format($doc["sub_total"], 2); ?></span>
+										<span><?php // echo lang("THB"); ?></span>
 									</div>
 								</div>
 							<?php endif; ?>
@@ -330,44 +346,44 @@
 							<?php if ($doc["vat_value"] > 0): ?>
 								<div class="row">
 									<div class="c1 custom-color">
-										<?php echo lang("value_add_tax"); ?>
+										<?php // echo lang("value_add_tax"); ?>
 										<?php // echo number_format_drop_zero_decimals($doc["vat_percent"], 2) . "%"; ?>
 									</div>
 									<div class="c2">
-										<span><?php echo number_format($doc["vat_value"], 2); ?></span>
-										<span><?php echo lang("THB"); ?></span>
+										<span><?php // echo number_format($doc["vat_value"], 2); ?></span>
+										<span><?php // echo lang("THB"); ?></span>
 									</div>
 								</div>
 							<?php endif; ?>
 
 							<div class="row">
 								<div class="c1 custom-color">
-									<?php echo lang("grand_total_price"); ?>
+									<?php // echo lang("grand_total_price"); ?>
 								</div>
 								<div class="c2">
-									<span><?php echo number_format($doc["total"], 2); ?></span>
-									<span><?php echo lang("THB"); ?></span>
+									<span><?php // echo number_format($doc["total"], 2); ?></span>
+									<span><?php // echo lang("THB"); ?></span>
 								</div>
 							</div>
 
 							<?php if ($doc["wht_value"] > 0): ?>
 								<div class="row wht">
 									<div class="c1 custom-color">
-										<?php echo lang("with_holding_tax"); ?>
+										<?php // echo lang("with_holding_tax"); ?>
 										<?php // echo number_format_drop_zero_decimals($doc["wht_percent"], 2) . "%"; ?>
 									</div>
 									<div class="c2">
-										<span><?php echo number_format($doc["wht_value"], 2); ?></span>
-										<span><?php echo lang("THB"); ?></span>
+										<span><?php // echo number_format($doc["wht_value"], 2); ?></span>
+										<span><?php // echo lang("THB"); ?></span>
 									</div>
 								</div>
 								<div class="row">
 									<div class="c1 custom-color">
-										<?php echo lang("payment_amount"); ?>
+										<?php // echo lang("payment_amount"); ?>
 									</div>
 									<div class="c2">
-										<span><?php echo number_format($doc["payment_amount"], 2); ?></span>
-										<span><?php echo lang("THB"); ?></span>
+										<span><?php // echo number_format($doc["payment_amount"], 2); ?></span>
+										<span><?php // echo lang("THB"); ?></span>
 									</div>
 								</div>
 							<?php endif; ?>

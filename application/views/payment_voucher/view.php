@@ -511,7 +511,7 @@
                         <p>
                             <?php echo $issuer_name; ?>
                         </p>
-                        <?php echo lang('issuer_of_document'); ?>
+                        <?php echo lang("issuer_of_document"); ?>
                     </span>
                 </div>
                 <div class="date">
@@ -523,7 +523,7 @@
                         <?php endif; ?>
                     </span>
                     <span class="l2">
-                        <?php echo lang('date_of_issued'); ?>
+                        <?php echo lang("date_of_issued"); ?>
                     </span>
                 </div>
             </div>
@@ -556,7 +556,7 @@
                         <p>
                             <?php echo $approver_name; ?>
                         </p>
-                        <?php echo lang('approver'); ?>
+                        <?php echo lang("approver"); ?>
                     </span>
                 </div>
                 <div class="date">
@@ -568,7 +568,7 @@
                         <?php endif; ?>
                     </span>
                     <span class="l2">
-                        <?php echo lang('day_of_approved'); ?>
+                        <?php echo lang("day_of_approved"); ?>
                     </span>
                 </div>
             </div>

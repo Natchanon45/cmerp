@@ -274,7 +274,7 @@ class MaterialRequests_model extends Crud_model
 		// UPDATE `materialrequests` SET `catid` = 1 WHERE `catid` = 0;
 
 		$this->db->select('materialrequests.id, materialrequests.doc_no, materialrequests.catid, pr_categories.title, materialrequests.project_id, materialrequests.project_name, projects.title as project_names, clients.company_name, users.first_name, users.last_name, materialrequests.mr_date, materialrequests.status_id');
-		$this->db->from(' materialrequests');
+		$this->db->from('materialrequests');
 		$this->db->join('pr_categories', 'materialrequests.catid = pr_categories.id', 'left');
 		$this->db->join('projects', 'materialrequests.project_id = projects.id', 'left');
 		$this->db->join('clients', 'projects.client_id = clients.id', 'left');
@@ -283,8 +283,10 @@ class MaterialRequests_model extends Crud_model
 		if (!empty($options["status_id"])) {
 			$this->db->where('materialrequests.status_id', $options["status_id"]);
 		}
-		$this->db->where('materialrequests.mr_date >=', $options["start_date"]);
-		$this->db->where('materialrequests.mr_date <=', $options["end_date"]);
+		if (!empty($options["start_date"]) && !empty($options["end_date"])) {
+			$this->db->where('materialrequests.mr_date >=', $options["start_date"]);
+			$this->db->where('materialrequests.mr_date <=', $options["end_date"]);
+		}
 		
 		$query = $this->db->get();
 		return $query->result();
@@ -666,6 +668,46 @@ class MaterialRequests_model extends Crud_model
 		}
 
 		return $query;
+	}
+
+	public function dev2_getMaterialRequestByOptions(array $options) : array
+	{
+		$data = array();
+
+		if (isset($options["status_id"]) && !empty($options["status_id"])) {
+			$this->db->where("status_id", $options["status_id"]);
+		}
+		if (isset($options["start_date"]) && isset($options["end_date"])) {
+			if (!empty($options["start_date"]) && !empty($options["end_date"])) {
+				$this->db->where("mr_date >=", $options["start_date"]);
+				$this->db->where("mr_date <=", $options["end_date"]);
+			}
+		}
+
+		$query = $this->db->get("materialrequests")->result();
+		if (sizeof($query)) {
+			foreach ($query as $item) {
+				$item->creator_info = $this->dev2_getRowInfoByTableId($item->created_by, "users");
+				$item->category_info = $this->dev2_getRowInfoByTableId($item->catid, "pr_categories");
+				$item->project_info = $this->dev2_getRowInfoByTableId($item->project_id, "projects");
+				if (isset($item->project_info->client_id) && !empty($item->project_info->client_id)) {
+					$item->client_info = $this->dev2_getRowInfoByTableId($item->project_info->client_id, "clients");
+				}
+			}
+			$data = $query;
+		}
+		return $data;
+	}
+
+	private function dev2_getRowInfoByTableId(int $id, string $table) : stdClass
+	{
+		$data = new stdClass();
+		
+		$query = $this->db->get_where($table, ["id" => $id])->row();
+		if (!empty($query)) {
+			$data = $query;
+		}
+		return $data;
 	}
 
 }

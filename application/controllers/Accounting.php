@@ -83,17 +83,17 @@ class Accounting extends MY_Controller {
     // บัญชีซื้อ
     function buy()
     {
-        $auth = $this->Permission_m->permissions->accounting;
-        // var_dump(arr($auth)); exit();
+        $permissions = (object) $this->Permission_m->accounting;
+        // var_dump(arr($permissions)); exit();
 
         // Permission Check
-        if ($auth->purchase_request->access) {
+        if ($permissions->purchase_request["access"]) {
             $this->data["module"] = "purchase_request";
-        } elseif ($auth->purchase_order->access) {
+        } elseif ($permissions->purchase_order["access"]) {
             $this->data["module"] = "purchase_order";
-        } elseif ($auth->payment_voucher->access) {
+        } elseif ($permissions->payment_voucher["access"]) {
             $this->data["module"] = "payment_voucher";
-        } elseif ($auth->goods_receipt->access) {
+        } elseif ($permissions->goods_receipt["access"]) {
             $this->data["module"] = "goods_receipt";
         } else {
             $this->session->set_flashdata("notice_error", lang("no_permissions"));
@@ -106,9 +106,6 @@ class Accounting extends MY_Controller {
             $this->data["module"] = $this->uri->segment(3);
         }
 
-        // User Permissions
-        $this->data["permissions"] = (array) $this->Permission_m->permissions;
-
         // Define Modal Header
         $modal_header = str_replace("https:", "", str_replace("http:", "", str_replace("/", "", base_url())));
         $this->data["modal_header"] = strtoupper($modal_header);
@@ -120,6 +117,7 @@ class Accounting extends MY_Controller {
         $this->data["pv_status_dropdown"] = json_encode($this->Purchaserequest_m->dev2_getPvStatusDropdown());
         $this->data["gr_status_dropdown"] = json_encode($this->Purchaserequest_m->dev2_getGrStatusDropdown());
         $this->data["type_dropdown"] = json_encode($this->Purchaserequest_m->dev2_getPrTypeDropdown());
+        $this->data["user_permissions"] = $permissions;
 
         // var_dump(arr($this->data)); exit();
         $this->template->rander("accounting/buy", $this->data);

@@ -198,7 +198,7 @@ echo form_open(
 
     <?php if ($header_data->status == "W"): ?>
         <button type="submit" id="btn-submit" class="btn btn-primary"><span class="fa fa-check-circle"></span>
-            <?php echo lang("save"); ?>
+            <?php echo lang("edit"); ?>
         </button>
     <?php endif; ?>
 </div>

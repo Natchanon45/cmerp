@@ -2059,6 +2059,7 @@ $lang["finished_goods_restock_add"] = "Add Restock FG";
 $lang["raw_mats"] = "Raw Materials";
 $lang["raw_mats_restock"] = "Restock RM";
 $lang["raw_mats_restock_add"] = "Add Restock RM";
+$lang["sale_order_refer"] = "Sale Order";
 
 // Start - Warehouse Category
 $lang["warehouse_category"] = "Warehouse";
@@ -2168,6 +2169,8 @@ $lang["record_of_expenses"] = "Record of Expenses";
 $lang["record_of_goods_receipt"] = "Record of Goods receipt";
 $lang["goods_receipt_due"] = "Due date";
 
+$lang["gr_button_created"] = "Create GR";
+$lang["gr_total_quantity"] = "Total quantity";
 $lang["gr_save_succeed"] = "Payment voucher have been created.";
 $lang["gr_item_duplicated"] = "Found duplicate items.";
 $lang["gr_no_item_select"] = "No items selected.";

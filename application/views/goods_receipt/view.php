@@ -55,6 +55,24 @@
     .font-size-bigger {
         font-size: 120%;
     }
+
+    .w-adjust {
+        width: 130px !important;
+        vertical-align: text-top;
+    }
+
+    .docitem table {
+        table-layout: unset !important;
+    }
+
+    .total_quantity td {
+        padding-top: 1rem !important;
+        border-bottom: none !important;
+    }
+    
+    .total_quantity_display {
+        border-bottom: double #cecece !important;
+    }
 </style>
 
 <div id="dcontroller" class="clearfix">
@@ -158,15 +176,15 @@
             <div class="about_company">
                 <table>
                     <tr>
-                        <td class="custom-color"><?php echo lang("number_of_document"); ?></td>
+                        <td class="custom-color w-adjust"><?php echo lang("number_of_document"); ?></td>
                         <td><?php echo $gr_info->doc_number; ?></td>
                     </tr>
                     <tr>
-                        <td class="custom-color"><?php echo lang("document_date"); ?></td>
+                        <td class="custom-color w-adjust"><?php echo lang("document_date"); ?></td>
                         <td><?php echo convertDate($gr_info->doc_date, true); ?></td>
                     </tr>
                     <tr>
-                        <td class="custom-color"><?php echo lang("purchase_by"); ?></td>
+                        <td class="custom-color w-adjust"><?php echo lang("purchase_by"); ?></td>
                         <td>
                             <?php
                                 if (isset($created) && !empty($created)) {
@@ -180,14 +198,14 @@
 
                     <?php if (isset($gr_info->supplier_invoice) && !empty($gr_info->supplier_invoice)): ?>
                         <tr>
-                            <td class="custom-color"><?php echo lang("gr_delivery_refer"); ?></td>
+                            <td class="custom-color w-adjust"><?php echo lang("gr_delivery_refer"); ?></td>
                             <td><?php echo $gr_info->supplier_invoice; ?></td>
                         </tr>
                     <?php endif; ?>
 
                     <?php if (isset($gr_info->references_links) && !empty($gr_info->references_links)): ?>
                         <tr>
-                            <td class="custom-color"><?php echo lang("po_no"); ?></td>
+                            <td class="custom-color w-adjust"><?php echo lang("po_no"); ?></td>
                             <td><?php echo $gr_info->references_links; ?></td>
                         </tr>
                     <?php endif; ?>
@@ -218,6 +236,7 @@
         </div>
     </div><!--.docheader-->
 
+    <?php $total_quantity = 0; ?>
     <div class="docitem">
         <table>
             <thead>
@@ -226,14 +245,14 @@
                     <td><?php echo lang("details"); ?></td>
                     <td><?php echo lang("quantity"); ?></td>
                     <td><?php echo lang("stock_material_unit"); ?></td>
-                    <td><?php echo lang("rate"); ?></td>
-                    <td><?php echo lang("total_item"); ?></td>
+
                     <td></td>
                 </tr>
             </thead>
             <tbody>
                 <?php if (sizeof($gr_detail)): ?>
                     <?php foreach ($gr_detail as $key => $item): ?>
+                        <?php $total_quantity += $item->quantity; ?>
                         <tr>
                             <td><?php echo $key + 1; ?></td>
                             <td>
@@ -242,52 +261,62 @@
                             </td>
                             <td><?php echo number_format($item->quantity, 2); ?></td>
                             <td><?php echo mb_strtoupper($item->unit); ?></td>
-                            <td><?php echo number_format($item->price, 2); ?></td>
-                            <td><?php echo number_format($item->total_price, 2); ?></td>
+
                             <td></td>
                         </tr>
                     <?php endforeach; ?>
                 <?php endif; ?>
             </tbody>
             <tfoot>
+                <tr height="35px">
+                    <td colspan="2" style="text-align: right; vertical-align: middle !important;">
+                        <span class="custom-color" style="padding-right: 42px;">
+                            <?php echo lang("gr_total_quantity"); ?>
+                        </span>
+                    </td>
+                    <td style="text-align: right; border-bottom: double #cecece; vertical-align: middle !important;">
+                        <span><?php echo number_format($total_quantity, 2); ?></span>
+                    </td>
+                    <td colspan="3"></td>
+                </tr>
                 <tr><td colspan="7">&nbsp;</td></tr>
                 <tr>
                     <td colspan="3" style="padding-left: 0 !important;">
                         <p>
-                            <input type="text" id="total_in_text" style="margin-top: 2rem !important;" value="<?php echo $gr_info->total_in_text; ?>" readonly>
+                            <input type="text" id="total_in_text" style="margin-top: 2rem !important;" value="<?php // echo $gr_info->total_in_text; ?>" readonly>
                         </p>
                     </td>
                     <td colspan="4" class="summary">
                         <p id="s-sub-total-before-discount">
                             <span class="c1 custom-color">
-                                <?php echo lang("total_all_item"); ?>
+                                <?php // echo lang("total_all_item"); ?>
                             </span>
                             <span class="c2">
-                                <input type="text" id="sub_total_before_discount" value="<?php echo number_format($gr_info->sub_total_before_discount, 2); ?>" readonly>
+                                <input type="text" id="sub_total_before_discount" value="<?php // echo number_format($gr_info->sub_total_before_discount, 2); ?>" readonly>
                             </span>
                             <span class="c3">
-                                <span class="currency"><?php echo lang("THB"); ?></span>
+                                <span class="currency"><?php // echo lang("THB"); ?></span>
                             </span>
                         </p>
                         
                         <p id="s-vat">
                             <span class="c1 custom-color">
-                                <?php echo lang("value_add_tax") . " " . $this->Taxes_m->getVatPercent() . "%"; ?>
+                                <?php // echo lang("value_add_tax") . " " . $this->Taxes_m->getVatPercent() . "%"; ?>
                             </span>
                             <span class="c2">
-                                <input type="text" id="vat_value" value="<?php echo number_format($gr_info->vat_value, 2); ?>" readonly>
+                                <input type="text" id="vat_value" value="<?php // echo number_format($gr_info->vat_value, 2); ?>" readonly>
                             </span>
                             <span class="c3">
-                                <span class="currency"><?php echo lang("THB"); ?></span>
+                                <span class="currency"><?php // echo lang("THB"); ?></span>
                             </span>
                         </p>
 
                         <p id="s-total">
                             <span class="c1 custom-color">
-                                <?php echo lang('grand_total_price'); ?>
+                                <?php // echo lang('grand_total_price'); ?>
                             </span>
                             <span class="c2">
-                                <input type="text" id="total" value="<?php echo number_format($gr_info->total, 2); ?>" readonly>
+                                <input type="text" id="total" value="<?php // echo number_format($gr_info->total, 2); ?>" readonly>
                             </span>
                             <span class="c3">
                                 <span class="currency"><?php echo lang("THB"); ?></span>
@@ -297,25 +326,25 @@
                         <?php if (isset($gr_info->wht_value) && $gr_info->wht_value > 0): ?>
                             <p id="s-wht">
                                 <span class="c1 custom-color">
-                                    <?php echo lang("with_holding_tax"); ?>
+                                    <?php // echo lang("with_holding_tax"); ?>
                                 </span>
                                 <span class="c2 wht">
-                                    <input type="text" id="wht_value" value="<?php echo number_format($gr_info->wht_value, 2); ?>" readonly>
+                                    <input type="text" id="wht_value" value="<?php // echo number_format($gr_info->wht_value, 2); ?>" readonly>
                                 </span>
                                 <span class="c3 wht">
-                                    <span class="currency"><?php echo lang("THB"); ?></span>
+                                    <span class="currency"><?php // echo lang("THB"); ?></span>
                                 </span>
                             </p>
 
                             <p id="s-payment-amount">
                                 <span class="c1 custom-color wht">
-                                    <?php echo lang("payment_amount"); ?>
+                                    <?php // echo lang("payment_amount"); ?>
                                 </span>
                                 <span class="c2 wht">
-                                    <input type="text" id="payment_amount" value="<?php echo number_format($gr_info->payment_amount, 2); ?>" readonly>
+                                    <input type="text" id="payment_amount" value="<?php // echo number_format($gr_info->payment_amount, 2); ?>" readonly>
                                 </span>
                                 <span class="c3 wht">
-                                    <span class="currency"><?php echo lang("THB"); ?></span>
+                                    <span class="currency"><?php // echo lang("THB"); ?></span>
                                 </span>
                             </p>
                         <?php endif; ?>

@@ -165,7 +165,7 @@ echo form_open(
         <?php echo lang("close"); ?>
     </button>
     <button type="submit" id="btn-submit" class="btn btn-primary"><span class="fa fa-check-circle"></span>
-        <?php echo lang("save"); ?>
+        <?php echo lang("create"); ?>
     </button>
 </div>
 

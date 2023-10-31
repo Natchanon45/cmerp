@@ -7,22 +7,22 @@
 
 <div id="dcontroller" class="clearfix">
     <div class="page-title clearfix mt15 clear">
-        <h1><?php echo (isset($doc_number) && !empty($doc_number)) ? lang('purchase_request') . ' ' . $doc_number : ''; ?></h1>
+        <h1><?php echo (isset($doc_number) && !empty($doc_number)) ? lang("purchase_request") . " " . $doc_number : ""; ?></h1>
 
         <div class="title-button-group">
             <a style="margin-left: 15px;" class="btn btn-default mt0 mb0 back-to-index-btn" href="<?php echo get_uri("accounting/buy/purchase_request"); ?>">
                 <i class="fa fa-hand-o-left" aria-hidden="true"></i>
-                <?php echo lang('back_to_table'); ?>
+                <?php echo lang("back_to_table"); ?>
             </a>
             <a id="add_item_button" class="btn btn-default" data-post-doc_id="<?php echo $doc_id; ?>" data-act="ajax-modal" data-title="<?php echo lang('share_doc') . ' ' . $doc_number; ?>" data-action-url="<?php echo get_uri("purchase_request/share"); ?>">
-                <?php echo lang('share'); ?>
+                <?php echo lang("share"); ?>
             </a>
             <a onclick="window.open('<?php echo $print_url; ?>', '' ,'width=980,height=720');" class="btn btn-default">
-                <?php echo lang('print'); ?>
+                <?php echo lang("print"); ?>
             </a>
             <?php if ($doc_status == "W"): ?>
                 <a href="javascript:void(0);" id="btn-approval" class="btn btn-info">
-                    <?php echo lang('approve'); ?>
+                    <?php echo lang("approve"); ?>
                 </a>
             <?php endif; ?>
         </div>
@@ -34,7 +34,7 @@
         <div class="l">
             <div class="logo">
                 <?php if (file_exists($_SERVER['DOCUMENT_ROOT'] . get_file_from_setting("estimate_logo", true)) != false): ?>
-                    <img src="<?php echo get_file_from_setting("estimate_logo", get_setting('only_file_path')); ?>" />
+                    <img src="<?php echo get_file_from_setting("estimate_logo", get_setting("only_file_path")); ?>" />
                 <?php else: ?>
                     <span class="nologo">&nbsp;</span>
                 <?php endif; ?>
@@ -80,24 +80,24 @@
         </div><!--.l-->
 
         <div class="r">
-            <h1 class="document_name custom-color"><?php echo lang('purchase_request'); ?></h1>
+            <h1 class="document_name custom-color"><?php echo lang("purchase_request"); ?></h1>
             <div class="about_company">
                 <table width="100%">
                     <tr>
-                        <td class="custom-color top-vertical" style="width: 30%;"><?php echo lang('document_number'); ?></td>
+                        <td class="custom-color top-vertical" style="width: 30%;"><?php echo lang("document_number"); ?></td>
                         <td><?php echo $doc_number; ?></td>
                     </tr>
                     <tr>
-                        <td class="custom-color top-vertical"><?php echo lang('document_date'); ?></td>
+                        <td class="custom-color top-vertical"><?php echo lang("document_date"); ?></td>
                         <td><?php echo convertDate($doc_date, true); ?></td>
                     </tr>
 
                     <tr>
-                        <td class="custom-color top-vertical"><?php echo lang('request_by'); ?></td>
+                        <td class="custom-color top-vertical"><?php echo lang("issuer_of_document"); ?></td>
                         <td><?php if ($created != null) echo $created["first_name"] . " " . $created["last_name"]; ?></td>
                     </tr>
                     <tr>
-                        <td class="custom-color top-vertical"><?php echo lang('project_refer'); ?></td>
+                        <td class="custom-color top-vertical"><?php echo lang("project_refer"); ?></td>
                         <td>
                             <?php echo (isset($project_info->title) && !empty($project_info->title)) ? $project_info->title : '-'; ?>
                         </td>
@@ -108,19 +108,19 @@
             <div class="about_customer">
                 <table width="100%">
                     <tr>
-                        <td class="custom-color" style="width: 30%;"><?php echo lang('contact_name'); ?></td>
+                        <td class="custom-color" style="width: 30%;"><?php echo lang("contact_name"); ?></td>
                         <td>
                             <?php echo (isset($supplier_contact) && !empty($supplier_contact)) ? $supplier_contact["first_name"] . " " . $supplier_contact["last_name"] : '-'; ?>
                         </td>
                     </tr>
                     <tr>
-                        <td class="custom-color"><?php echo lang('phone'); ?></td>
+                        <td class="custom-color"><?php echo lang("phone"); ?></td>
                         <td>
                             <?php echo (isset($supplier_contact) && !empty($supplier_contact)) ? $supplier_contact["phone"] : '-'; ?>
                         </td>
                     </tr>
                     <tr>
-                        <td class="custom-color"><?php echo lang('email'); ?></td>
+                        <td class="custom-color"><?php echo lang("email"); ?></td>
                         <td>
                             <?php echo (isset($supplier_contact) && !empty($supplier_contact)) ? $supplier_contact["email"] : '-'; ?>
                         </td>
@@ -135,11 +135,11 @@
             <thead>
                 <tr>
                     <td>#</td>
-                    <td><?php echo lang('details'); ?></td>
-                    <td><?php echo lang('quantity'); ?></td>
-                    <td><?php echo lang('stock_material_unit'); ?></td>
-                    <td><?php echo lang('rate'); ?></td>
-                    <td><?php echo lang('total_item'); ?></td>
+                    <td><?php echo lang("details"); ?></td>
+                    <td><?php echo lang("quantity"); ?></td>
+                    <td><?php echo lang("stock_material_unit"); ?></td>
+                    <td><?php echo lang("rate"); ?></td>
+                    <td><?php echo lang("total_item"); ?></td>
                     <td></td>
                 </tr>
             </thead>
@@ -167,8 +167,8 @@
                                         array(
                                             "id" => "add_item_button",
                                             "class" => "btn btn-default",
-                                            "title" => $modal_header,
-                                            "data-title" => $modal_header,
+                                            "title" => $btn_text,
+                                            "data-title" => $btn_text,
                                             "data-post-doc_id" => $doc_id
                                         )
                                     );
@@ -179,31 +179,31 @@
                     </td>
                     <td colspan="4" class="summary">
                         <p id="s-sub-total-before-discount">
-                            <span class="c1 custom-color"><?php echo lang('total_all_item'); ?></span>
+                            <span class="c1 custom-color"><?php echo lang("total_all_item"); ?></span>
                             <span class="c2"><input type="text" id="sub_total_before_discount" readonly></span>
-                            <span class="c3"><span class="currency"><?php echo lang('THB'); ?></span></span>
+                            <span class="c3"><span class="currency"><?php echo lang("THB"); ?></span></span>
                         </p>
 
                         <p id="s-vat">
                             <span class="c1 custom-color">
                                 <input type="checkbox" id="vat_inc" <?php if ($vat_inc == "Y") echo "checked"; ?> <?php if ($doc_status != "W") echo "disabled"; ?>>
-                                <span><?php echo lang('value_add_tax'); ?></span>
+                                <span><?php echo lang("value_add_tax"); ?></span>
                                 <?php echo $this->Taxes_m->getVatPercent() . "%"; ?>
                             </span>
                             <span class="c2"><input type="text" id="vat_value" readonly></span>
-                            <span class="c3"><span class="currency"><?php echo lang('THB'); ?></span></span>
+                            <span class="c3"><span class="currency"><?php echo lang("THB"); ?></span></span>
                         </p>
 
                         <p id="s-total">
-                            <span class="c1 custom-color"><?php echo lang('grand_total_price'); ?></span>
+                            <span class="c1 custom-color"><?php echo lang("grand_total_price"); ?></span>
                             <span class="c2"><input type="text" id="total" readonly></span>
-                            <span class="c3"><span class="currency"><?php echo lang('THB'); ?></span></span>
+                            <span class="c3"><span class="currency"><?php echo lang("THB"); ?></span></span>
                         </p>
 
                         <p id="s-wht">
                             <span class="c1 custom-color">
                                 <input type="checkbox" id="wht_inc" <?php if ($wht_inc == "Y") echo "checked" ?> <?php if ($doc_status != "W") echo "disabled"; ?> <?php if ($pr_type != "5") echo "disabled"; ?>>
-                                <span><?php echo lang('with_holding_tax'); ?></span>
+                                <span><?php echo lang("with_holding_tax"); ?></span>
                                 <select id="wht_percent" class="wht custom-color <?php echo $wht_inc == "Y" ? "v" : "h"; ?>" <?php if ($doc_status != "W") echo "disabled"; ?>>
                                     <?php if ($wht_inc == 'Y' && isset($wht_percent) && !empty($wht_percent)): ?>
                                         <option value="<?php echo $wht_percent; ?>" selected><?php echo $wht_percent . '%'; ?></option>
@@ -220,13 +220,13 @@
                                 </select>
                             </span>
                             <span class="c2 wht <?php echo $wht_inc == "Y" ? "v" : "h"; ?>"><input type="text" id="wht_value" readonly></span>
-                            <span class="c3 wht <?php echo $wht_inc == "Y" ? "v" : "h"; ?>"><span class="currency"><?php echo lang('THB'); ?></span></span>
+                            <span class="c3 wht <?php echo $wht_inc == "Y" ? "v" : "h"; ?>"><span class="currency"><?php echo lang("THB"); ?></span></span>
                         </p>
 
                         <p id="s-payment-amount">
-                            <span class="c1 custom-color wht <?php echo $wht_inc == "Y" ? "v" : "h"; ?>"><?php echo lang('payment_amount'); ?></span>
+                            <span class="c1 custom-color wht <?php echo $wht_inc == "Y" ? "v" : "h"; ?>"><?php echo lang("payment_amount"); ?></span>
                             <span class="c2 wht <?php echo $wht_inc == "Y" ? "v" : "h"; ?>"><input type="text" id="payment_amount" readonly></span>
-                            <span class="c3 wht <?php echo $wht_inc == "Y" ? "v" : "h"; ?>"><span class="currency"><?php echo lang('THB'); ?></span></span>
+                            <span class="c3 wht <?php echo $wht_inc == "Y" ? "v" : "h"; ?>"><span class="currency"><?php echo lang("THB"); ?></span></span>
                         </p>
                     </td>
                 </tr>
@@ -234,7 +234,7 @@
         </table>
         <?php if (trim($remark) != ""): ?>
             <div class="remark clear">
-                <p class="custom-color"><?php echo lang('remark'); ?></p>
+                <p class="custom-color"><?php echo lang("remark"); ?></p>
                 <p><?php echo nl2br($remark); ?></p>
             </div>
         <?php endif; ?>
@@ -252,7 +252,7 @@
                             <?php endif; endif; endif; ?>
                         </span>
                     </span>
-                    <span class="l2"><?php echo lang('request_by'); ?></span>
+                    <span class="l2"><?php echo lang("issuer_of_document"); ?></span>
                 </div>
                 <div class="date">
                     <span class="l1">
@@ -260,7 +260,7 @@
                             <span class="approved_date"><?php echo convertDate($doc_date, true); ?></span>
                         <?php endif; ?>
                     </span>
-                    <span class="l2"><?php echo lang('date'); ?></span>
+                    <span class="l2"><?php echo lang("date_of_issued"); ?></span>
                 </div>
             </div>
         </div><!--.customer -->
@@ -275,7 +275,7 @@
                             <?php endif; endif; ?>
                         </span>
                     </span>
-                    <span class="l2"><?php echo lang('approver'); ?></span>
+                    <span class="l2"><?php echo lang("approver"); ?></span>
                 </div>
                 <div class="date">
                     <span class="l1">
@@ -283,7 +283,7 @@
                             <span class="approved_date"><?php echo convertDate($approved_datetime, true); ?></span>
                         <?php endif; ?>
                     </span>
-                    <span class="l2"><?php echo lang('date'); ?></span>
+                    <span class="l2"><?php echo lang("day_of_approved"); ?></span>
                 </div>
             </div>
         </div><!--.company-->

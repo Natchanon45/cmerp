@@ -1,3 +1,10 @@
+<?php
+
+$btn_add = lang("btn_add_raw_material");
+$btn_edit = lang("btn_edit_raw_material");
+
+?>
+
 <link rel="stylesheet" href="/assets/css/printd.css?t=<?php echo time(); ?>">
 <style type="text/css">
     .top-vertical {
@@ -190,9 +197,6 @@
                         <?php if ($doc_status == "W"): ?>
                             <?php if ($pr_id == null || $pr_id == ''): ?>
                                 <?php
-                                    $btn_add = lang("btn_add_raw_material");
-                                    $btn_edit = lang("btn_edit_raw_material");
-
                                     if ($doc_type == 3) {
                                         $btn_add = lang("btn_add_finished_goods");
                                         $btn_edit = lang("btn_edit_finished_goods");

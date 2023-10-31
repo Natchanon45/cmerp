@@ -38,6 +38,7 @@ class Purchase_order extends MY_Controller
 
         $data = $this->Purchase_order_m->getDoc($this->input->post('id'));
 
+        // var_dump(arr($data)); exit();
         $this->load->view('purchase_order/addedit', $data);
     }
 
