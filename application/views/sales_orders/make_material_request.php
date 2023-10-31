@@ -1,7 +1,7 @@
 <style type="text/css">
 .modal-dialog {
     width: 100%;
-    max-width: 1000px;
+    max-width: 1024px;
 }
 
 .popup .product {
@@ -51,12 +51,16 @@
 
 .popup .product td.product_name{
     padding-left: 8px;
-    width: 38%;
+    width: 30%;
 }
 
 .popup .product td.product_supplier .supplier_name{
     display: inline-block;
     margin-top: 2px;
+}
+
+.popup .product td.unit{
+    width: 14%;
 }
 
 .popup .product td.instock{
@@ -75,7 +79,7 @@
 }
 
 .popup .product td.reference_number{
-    width: 20%;
+    width: 14%;
     text-align: center;
 }
 
@@ -126,6 +130,7 @@
                 <thead>
                     <tr>
                         <td class="custom-bg product_name"><?php echo lang("account_so_product"); ?></td>
+                        <td class="custom-bg unit"><?php echo lang("account_so_unit"); ?></td>
                         <td class="custom-bg instock"><?php echo lang("account_so_in_stock"); ?></td>
                         <td class="custom-bg total_used"><?php echo lang("account_so_order_qty"); ?></td>
                         <td class="custom-bg total_submit"><?php echo lang("account_so_mr_qty"); ?></td>

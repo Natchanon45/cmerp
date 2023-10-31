@@ -51,7 +51,7 @@
 
 .popup .product td.product_name{
     padding-left: 8px;
-    width: 46%;
+    width: 36%;
     padding-top: 15px;
 }
 
@@ -60,19 +60,23 @@
     margin-top: 2px;
 }
 
+.popup .product td.unit{
+    width: 16%;
+}
+
 .popup .product td.instock{
-    width: 18%;
+    width: 16%;
     text-align: right;
     padding-top: 15px;
 }
 
 .popup .product td.total_used{
-    width: 18%;
+    width: 16%;
     text-align: right;
 }
 
 .popup .product td.total_submit{
-    width: 18%;
+    width: 16%;
     text-align: right;
 }
 
@@ -116,24 +120,18 @@
     width: 100%;
 }
 
-.popup .made_to_order{
-    border: 1px solid #ccc;
-    background: #fff;
-    display: block;
-    border-radius: 4px;
-    padding: 0 4px;
-}
-
-.popup .made_to_order.readonly{
-    border: 0;
-    background: none;
-}
-
-
 .popup .sales_order_items input,
 .popup .sales_order_items input:focus{
-    width: 110px;
+    width: 100%;
     text-align: right;
+    border-radius: 4px;
+    border:1px solid #ccc;
+    /*border: 0;
+    outline: none;
+    background: none;*/
+}
+
+.popup .sales_order_items input:read-only{
     border: 0;
     outline: none;
     background: none;
@@ -146,6 +144,7 @@
                 <thead>
                     <tr>
                         <td class="custom-bg product_name"><?php echo lang("account_so_product"); ?></td>
+                        <td class="custom-bg unit"><?php echo lang("account_so_unit"); ?></td>
                         <td class="custom-bg instock"><?php echo lang("account_so_in_stock"); ?></td>
                         <td class="custom-bg total_used"><?php echo lang("account_so_order_qty"); ?></td>
                         <td class="custom-bg total_submit"><?php echo lang("account_made_to_order"); ?></td>
@@ -167,8 +166,6 @@ $(document).ready(function() {
     $('#ajaxModal').on('hidden.bs.modal', function (e) {
         parent.updateRow("<?php echo $doc_id; ?>");
     });
-
-    
 
     $("#btnSubmit").click(function() {
         made_to_order = [];

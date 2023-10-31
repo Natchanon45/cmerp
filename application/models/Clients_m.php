@@ -293,8 +293,11 @@ class Clients_m extends MY_Model {
     }
 
     function getTotalInvoiceAmounts($client_id, $overdue_checking = false){
+        $company_setting = $this->Settings_m->getCompany();
+
         $this->db->select("SUM(total) AS TOTAL_INVOICE_AMOUNTS")
                                             ->from("invoice")
+                                            ->where("billing_type", $company_setting["company_billing_type"])
                                             ->where("deleted", 0)
                                             ->where("client_id", $client_id)
                                             ->where_in("status", ["O", "P"]);
@@ -309,11 +312,13 @@ class Clients_m extends MY_Model {
     }
 
     function getTotalPaymentReceives($client_id, $include_on_cash = false, $overdue_checking = false){
+        $company_setting = $this->Settings_m->getCompany();
         $total_payment_amount = 0;
 
         $this->db->select("SUM(money_payment_receive) AS TOTAL_PAYMENT_RECEIVES")
                     ->from("invoice")
                     ->join("invoice_payment", "invoice.id = invoice_payment.invoice_id")
+                    ->where("billing_type", $company_setting["company_billing_type"])
                     ->where("deleted", 0)
                     ->where("client_id", $client_id);
 
@@ -325,6 +330,7 @@ class Clients_m extends MY_Model {
         if($include_on_cash == true){
             $total_payment_amount = $this->db->select("SUM(payment_amount) AS TOTAL_PAYMENT_AMOUNT")
                                             ->from("receipt")
+                                            ->where("billing_type", $company_setting["company_billing_type"])
                                             ->where("deleted", 0)
                                             ->where("client_id", $client_id)
                                             ->where("invoice_payment_id IS NULL")
