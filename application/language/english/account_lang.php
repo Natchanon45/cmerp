@@ -55,6 +55,7 @@ $lang["account_so_title_automatically_create_project"] = "Automatically Create P
 $lang["account_so_message_product_not_found"] = "There are no products to approve in this sales order";
 $lang["account_so_message_component_required"] = "Can't create project, component required";
 $lang["account_so_message_project_was_created"] = "Project '%s' was created";
+$lang["account_so_message_supplier_not_found"] = "Supplier was not found";
 
 $lang["account_so_product"] = "Product";
 $lang["account_so_supplier"] = "Supplier";

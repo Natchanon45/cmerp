@@ -837,19 +837,23 @@ class Sales_orders_m extends MY_Model {
                     $html .= "<td class='product_name'>".$soirow->product_name."</td>";
                     $html .= "<td class='product_supplier'>";
 
-                        if($soirow->pr_header_id == null){
-                            if(empty($biprows)){
-                                $html .= "<span class='supplier_not_found'>ไม่พบผู้จัดจำหน่าย</span>";
+                        if($this->Permission_m->bom_supplier_read == "1"){
+                            if($soirow->pr_header_id == null){
+                                if(empty($biprows)){
+                                    $html .= "<span class='supplier_not_found'>".lang('account_so_message_supplier_not_found')."</span>";
+                                }else{
+                                    $html .= "<select class='suppliers'>";
+                                        foreach($biprows as $biprow){
+                                            $html .= "<option value='".$biprow->supplier_id."'>".$this->Suppliers_m->getInfo($biprow->supplier_id)["company_name"]."</option>";
+                                        }
+                                    $html .= "</select>";
+                                }
                             }else{
-                                $html .= "<select class='suppliers'>";
-                                    foreach($biprows as $biprow){
-                                        $html .= "<option value='".$biprow->supplier_id."'>".$this->Suppliers_m->getInfo($biprow->supplier_id)["company_name"]."</option>";
-                                    }
-                                $html .= "</select>";
+                                $supplier = $ci->Suppliers_m->getInfo($soirow->supplier_id);
+                                if($supplier != null) $html .= "<span class='supplier_name'>".$supplier["company_name"]."</span>";
                             }
                         }else{
-                            $supplier = $ci->Suppliers_m->getInfo($soirow->supplier_id);
-                            if($supplier != null) $html .= "<span class='supplier_name'>".$supplier["company_name"]."</span>";
+                            $html .= "-";
                         }
 
                     $html .= "</td>";
