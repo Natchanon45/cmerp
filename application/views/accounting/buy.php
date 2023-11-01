@@ -136,7 +136,7 @@
                 </ul>
 
                 <ul class="buttons buy-custom-buttons">
-                    <li class="add add1">
+                    <li class="add add1 hide">
                         <a data-act="ajax-modal" class="btn btn-default"><i class="fa fa-plus-circle"></i><span></span></a>
                     </li>
                     <li class="add add2 hide">
@@ -192,10 +192,13 @@
 
         if (active_module == 'purchase_request') 
         {
-            $(".buttons").removeClass('hide');
-            $(".buttons li.add1 a").attr('data-action-url', '<?php echo get_uri("purchase_request/addedit"); ?>');
-            $(".buttons li.add1 a").attr('data-title', '<?php echo lang("purchase_request_add"); ?>');
-            $(".buttons li.add1 span").append('<?php echo lang("purchase_request_add"); ?>');
+            <?php if ($user_permissions->supplier["access"]): ?>
+                $(".buttons").removeClass('hide');
+                $(".buttons li.add1").removeClass('hide');
+                $(".buttons li.add1 a").attr('data-action-url', '<?php echo get_uri("purchase_request/addedit"); ?>');
+                $(".buttons li.add1 a").attr('data-title', '<?php echo lang("purchase_request_add"); ?>');
+                $(".buttons li.add1 span").append('<?php echo lang("purchase_request_add"); ?>');
+            <?php endif; ?>
 
             $(".buttons li.add2").addClass('hide');
 
@@ -213,7 +216,9 @@
                 { title: '<?php echo lang("document_date"); ?>', class: 'w10p' },
                 { title: '<?php echo lang("pr_number"); ?>', class: 'w10p' },
                 { title: '<?php echo lang("pr_type"); ?>', class: 'w10p' },
-                { title: '<?php echo lang("supplier_name"); ?>', class: 'w25p' },
+                <?php if ($user_permissions->supplier["access"]): ?>
+                    { title: '<?php echo lang("supplier_name"); ?>', class: 'w25p' },
+                <?php endif; ?>
                 { title: '<?php echo lang("issuer_of_document"); ?>', class: 'w15p' },
                 { title: '<?php echo lang("total_amount"); ?>', class: 'text-right w15p' },
                 { title: '<?php echo lang("status"); ?>', class: 'w10p' },
@@ -229,10 +234,13 @@
         } 
         else if (active_module == 'purchase_order') 
         {
-            $(".buttons").removeClass('hide');
-            $(".buttons li.add1 a").attr('data-action-url', '<?php echo get_uri("purchase_order/addedit"); ?>');
-            $(".buttons li.add1 a").attr('data-title', '<?php echo lang("purchase_order_add"); ?>');
-            $(".buttons li.add1 span").append('<?php echo lang("purchase_order_add"); ?>');
+            <?php if ($user_permissions->supplier["access"]): ?>
+                $(".buttons").removeClass('hide');
+                $(".buttons li.add1").removeClass('hide');
+                $(".buttons li.add1 a").attr('data-action-url', '<?php echo get_uri("purchase_order/addedit"); ?>');
+                $(".buttons li.add1 a").attr('data-title', '<?php echo lang("purchase_order_add"); ?>');
+                $(".buttons li.add1 span").append('<?php echo lang("purchase_order_add"); ?>');
+            <?php endif; ?>
 
             $(".buttons li.add2").addClass('hide');
 
@@ -251,7 +259,9 @@
                 { title: '<?php echo lang("pr_number"); ?>', class: 'w10p' },
                 { title: '<?php echo lang("reference_number"); ?>', class: 'w10p' },
                 { title: '<?php echo lang("pr_type"); ?>', class: 'w10p' },
-                { title: '<?php echo lang("supplier_name"); ?>', class: 'w20p' },
+                <?php if ($user_permissions->supplier["access"]): ?>
+                    { title: '<?php echo lang("supplier_name"); ?>', class: 'w20p' },
+                <?php endif; ?>
                 { title: '<?php echo lang("issuer_of_document"); ?>', class: 'w10p' },
                 { title: '<?php echo lang("total_amount"); ?>', class: 'text-right w10p' },
                 { title: '<?php echo lang("status"); ?>', class: 'w10p' },
@@ -267,10 +277,13 @@
         } 
         else if (active_module == 'payment_voucher') 
         {
-            $(".buttons").removeClass('hide');
-            $(".buttons li.add1 a").attr('data-action-url', '<?php echo get_uri("payment_voucher/addnew"); ?>');
-            $(".buttons li.add1 a").attr('data-title', '<?php echo lang("payment_voucher_add"); ?>');
-            $(".buttons li.add1 span").append('<?php echo lang("payment_voucher_add"); ?>');
+            <?php if ($user_permissions->supplier["access"]): ?>
+                $(".buttons").removeClass('hide');
+                $(".buttons li.add1").removeClass('hide');
+                $(".buttons li.add1 a").attr('data-action-url', '<?php echo get_uri("payment_voucher/addnew"); ?>');
+                $(".buttons li.add1 a").attr('data-title', '<?php echo lang("payment_voucher_add"); ?>');
+                $(".buttons li.add1 span").append('<?php echo lang("payment_voucher_add"); ?>');
+            <?php endif; ?>
 
             $(".buttons li.add2").addClass('hide');
 
@@ -286,7 +299,9 @@
                 { title: '<?php echo lang("document_date"); ?>', class: 'w10p' },
                 { title: '<?php echo lang("number_of_document"); ?>', class: 'w10p' },
                 { title: '<?php echo lang("reference_number"); ?>', class: 'w10p' },
-                { title: '<?php echo lang("supplier_name"); ?>', class: 'w20p' },
+                <?php if ($user_permissions->supplier["access"]): ?>
+                    { title: '<?php echo lang("supplier_name"); ?>', class: 'w20p' },
+                <?php endif; ?>
                 { title: '<?php echo lang("issuer_of_document"); ?>', class: 'w10p' },
                 { title: '<?php echo lang("total_payment_amount"); ?>', class: 'text-right w10p' },
                 { title: '<?php echo lang("status"); ?>', class: 'w10p' },
@@ -302,15 +317,18 @@
         } 
         else if (active_module == 'goods_receipt') 
         {
-            $(".buttons").removeClass('hide');
-            $(".buttons li.add1 a").attr('data-action-url', '<?php echo get_uri("goods_receipt/addnew"); ?>');
-            $(".buttons li.add1 a").attr('data-title', '<?php echo lang("goods_receipt_add"); ?>');
-            $(".buttons li.add1 span").append('<?php echo lang("goods_receipt_add"); ?>');
+            <?php if ($user_permissions->supplier["access"]): ?>
+                $(".buttons").removeClass('hide');
+                $(".buttons li.add1").removeClass('hide');
+                $(".buttons li.add1 a").attr('data-action-url', '<?php echo get_uri("goods_receipt/addnew"); ?>');
+                $(".buttons li.add1 a").attr('data-title', '<?php echo lang("goods_receipt_add"); ?>');
+                $(".buttons li.add1 span").append('<?php echo lang("goods_receipt_add"); ?>');
 
-            $(".buttons li.add2").addClass('hide');
-            $(".buttons li.add2 a").attr('data-action-url', '<?php echo get_uri("goods_receipt/addnew_nopo"); ?>');
-            $(".buttons li.add2 a").attr('data-title', '<?php echo lang("goods_receipt_add_nopo"); ?>');
-            $(".buttons li.add2 span").append('<?php echo lang("goods_receipt_add_nopo"); ?>');
+                $(".buttons li.add2").addClass('hide');
+                $(".buttons li.add2 a").attr('data-action-url', '<?php echo get_uri("goods_receipt/addnew_nopo"); ?>');
+                $(".buttons li.add2 a").attr('data-title', '<?php echo lang("goods_receipt_add_nopo"); ?>');
+                $(".buttons li.add2 span").append('<?php echo lang("goods_receipt_add_nopo"); ?>');
+            <?php endif; ?>
 
             status_dropdown = '<?php echo $gr_status_dropdown; ?>';
             supplier_dropdown = '<?php echo $supplier_dropdown; ?>';
@@ -324,7 +342,9 @@
                 { title: '<?php echo lang("document_date"); ?>', class: 'w10p' },
                 { title: '<?php echo lang("pr_number"); ?>', class: 'w10p' },
                 { title: '<?php echo lang("reference_number"); ?>', class: 'w10p' },
-                { title: '<?php echo lang("supplier_name"); ?>', class: 'w20p' },
+                <?php if ($user_permissions->supplier["access"]): ?>
+                    { title: '<?php echo lang("supplier_name"); ?>', class: 'w20p' },
+                <?php endif; ?>
                 { title: '<?php echo lang("issuer_of_document"); ?>', class: 'w10p' },
                 { title: '<?php echo lang("total_amount"); ?>', class: 'text-right w10p' },
                 { title: '<?php echo lang("status"); ?>', class: 'w10p' },

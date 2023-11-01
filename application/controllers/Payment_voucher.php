@@ -107,6 +107,11 @@ class Payment_voucher extends MY_Controller
         $data["supplier_contact"] = $this->Suppliers_m->getContactInfo($data["pv_info"]->supplier_id);
         $data["print_url"] = get_uri("payment_voucher/print/" . str_replace("=", "", base64_encode($data["pv_info"]->id . ':' . $data["pv_info"]->doc_number)));
 
+        $data["bom_supplier_read"] = false;
+        if (isset($this->Permission_m->bom_supplier_read) && $this->Permission_m->bom_supplier_read) {
+            $data["bom_supplier_read"] = true;
+        }
+
         // var_dump(arr($data)); exit();
         $this->template->rander("payment_voucher/view", $data);
     }
@@ -230,6 +235,11 @@ class Payment_voucher extends MY_Controller
         $view_data["supplier_dropdown"] = $this->Payment_voucher_m->dev2_getSupplieHavePurchaseOrderApproved();
         $view_data["project_dropdown"] = $this->Payment_voucher_m->dev2_getProjectReferByProjectOpen();
 
+        $view_data["bom_supplier_read"] = false;
+        if (isset($this->Permission_m->bom_supplier_read) && $this->Permission_m->bom_supplier_read) {
+            $view_data["bom_supplier_read"] = true;
+        }
+
         // var_dump(arr($view_data)); exit();
         $this->load->view("payment_voucher/addnew", $view_data);
     }
@@ -258,6 +268,11 @@ class Payment_voucher extends MY_Controller
         $view_data["detail_data"] = $this->Payment_voucher_m->dev2_getPaymentVoucherDetailByPvId($post["id"]);
         $view_data["supplier_dropdown"] = $this->Payment_voucher_m->dev2_getSupplieHavePurchaseOrderApproved();
         $view_data["project_dropdown"] = $this->Payment_voucher_m->dev2_getProjectReferByProjectOpen();
+
+        $view_data["bom_supplier_read"] = false;
+        if (isset($this->Permission_m->bom_supplier_read) && $this->Permission_m->bom_supplier_read) {
+            $view_data["bom_supplier_read"] = true;
+        }
 
         // var_dump(arr($view_data)); exit();
         $this->load->view("payment_voucher/editnew", $view_data);

@@ -155,8 +155,9 @@
     </div>
     <div class="footer">
         <button type="button" class="btn btn-default" data-dismiss="modal"><span class="fa fa-close"></span><?php echo lang("account_button_close"); ?></button>
-        <button type="button" id="btnSubmit" class="btn btn-primary" style="display: <?php echo $can_make_pr == true ? 'inline-block':'none'; ?>;"><span class="fa fa-check-circle"></span><?php echo lang("account_button_create_pr"); ?></button>
-        
+        <?php if($this->Permission_m->bom_supplier_read == "1"): ?>
+            <button type="button" id="btnSubmit" class="btn btn-primary" style="display: <?php echo $can_make_pr == true ? 'inline-block':'none'; ?>;"><span class="fa fa-check-circle"></span><?php echo lang("account_button_create_pr"); ?></button>
+        <?php endif; ?>
     </div>
 </div>
 <script type="text/javascript">
@@ -167,30 +168,32 @@ $(document).ready(function() {
         parent.updateRow("<?php echo $doc_id; ?>");
     });
 
-    $("#btnSubmit").click(function() {
-        sales_order_items = [];
-        $(".sales_order_items").each(function(i, obj) {
-            supplier_id = $(obj).find(".suppliers").val();
-            if(supplier_id === undefined) supplier_id = null;
-            sales_order_items.push({sales_order_item_id:$(obj).data("id"), supplier_id:supplier_id});
-        });
+    <?php if($this->Permission_m->bom_supplier_read == "1"): ?>
+        $("#btnSubmit").click(function() {
+            sales_order_items = [];
+            $(".sales_order_items").each(function(i, obj) {
+                supplier_id = $(obj).find(".suppliers").val();
+                if(supplier_id === undefined) supplier_id = null;
+                sales_order_items.push({sales_order_item_id:$(obj).data("id"), supplier_id:supplier_id});
+            });
 
-        axios.post('<?php echo current_url(); ?>', {
-            task: 'do_make_purchase_requisition',
-            sales_order_id: '<?php echo $doc_id; ?>',
-            sales_order_items: JSON.stringify(sales_order_items)
-        }).then(function (response) {
-            data = response.data;
-            alert(data.message);
-            
-            if(data.status == "success"){
-                if(data.can_make_pr == true) $("#btnSubmit").css("display", "inline-block");
-                else $("#btnSubmit").css("display", "none");
-                getProducts("<?php echo $doc_id; ?>");
-            }
-            
-        }).catch(function (error) {});
-    });
+            axios.post('<?php echo current_url(); ?>', {
+                task: 'do_make_purchase_requisition',
+                sales_order_id: '<?php echo $doc_id; ?>',
+                sales_order_items: JSON.stringify(sales_order_items)
+            }).then(function (response) {
+                data = response.data;
+                alert(data.message);
+                
+                if(data.status == "success"){
+                    if(data.can_make_pr == true) $("#btnSubmit").css("display", "inline-block");
+                    else $("#btnSubmit").css("display", "none");
+                    getProducts("<?php echo $doc_id; ?>");
+                }
+                
+            }).catch(function (error) {});
+        });
+    <?php endif; ?>
 });
 
 function getProducts(sales_order_id){

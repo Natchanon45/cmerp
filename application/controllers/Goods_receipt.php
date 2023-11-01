@@ -100,6 +100,11 @@ class Goods_receipt extends MY_Controller
         $data["supplier_contact"] = $this->Bom_suppliers_model->getContactInfo($data["gr_info"]->supplier_id);
         $data["print_url"] = get_uri("goods_receipt/print_goods_receipt/" . str_replace("=", "", base64_encode($data["gr_info"]->id . ":" . $data["gr_info"]->doc_number)));
 
+        $data["bom_supplier_read"] = false;
+        if (isset($this->Permission_m->bom_supplier_read) && $this->Permission_m->bom_supplier_read) {
+            $data["bom_supplier_read"] = true;
+        }
+
         // var_dump(arr($data)); exit();
         $this->template->rander("goods_receipt/view", $data);
     }
@@ -108,11 +113,16 @@ class Goods_receipt extends MY_Controller
     {
         $this->data["doc"] = $this->Goods_receipt_m->getEdoc($this->uri->segment(3), null);
         $this->data["og_title"] = get_setting("company_name") . " - " . $this->data["doc"]["doc_number"];
+        
         if ($this->data["doc"]["status"] != "success") {
             redirect("forbidden");
         }
-
         $this->data["additional_style"] = 'style="width: 30%;"';
+
+        $this->data["bom_supplier_read"] = false;
+        if (isset($this->Permission_m->bom_supplier_read) && $this->Permission_m->bom_supplier_read) {
+            $this->data["bom_supplier_read"] = true;
+        }
         
         // var_dump(arr($this->data)); exit();
         $this->load->view("edocs/goods_receipt", $this->data);
@@ -125,6 +135,11 @@ class Goods_receipt extends MY_Controller
 
         $this->data['additional_style'] = 'style="width: 30%;"';
         $this->data['docmode'] = 'private_print';
+
+        $this->data["bom_supplier_read"] = false;
+        if (isset($this->Permission_m->bom_supplier_read) && $this->Permission_m->bom_supplier_read) {
+            $this->data["bom_supplier_read"] = true;
+        }
 
         // var_dump(arr($this->data)); exit();
         $this->load->view('edocs/payment_voucher', $this->data);
@@ -255,6 +270,11 @@ class Goods_receipt extends MY_Controller
         $view_data["supplier_dropdown"] = $this->Goods_receipt_m->dev2_getSupplieHavePurchaseOrderApproved();
         $view_data["project_dropdown"] = $this->Goods_receipt_m->dev2_getProjectReferByProjectOpen();
 
+        $view_data["bom_supplier_read"] = false;
+        if (isset($this->Permission_m->bom_supplier_read) && $this->Permission_m->bom_supplier_read) {
+            $view_data["bom_supplier_read"] = true;
+        }
+
         // var_dump(arr($view_data)); exit();
         $this->load->view("goods_receipt/addnew", $view_data);
     }
@@ -333,6 +353,11 @@ class Goods_receipt extends MY_Controller
         $view_data["detail_data"] = $this->Goods_receipt_m->dev2_getGoodsReceiptDetailByPvId($post["id"]);
         $view_data["supplier_dropdown"] = $this->Goods_receipt_m->dev2_getSupplieHavePurchaseOrderApproved();
         $view_data["project_dropdown"] = $this->Goods_receipt_m->dev2_getProjectReferByProjectOpen();
+
+        $view_data["bom_supplier_read"] = false;
+        if (isset($this->Permission_m->bom_supplier_read) && $this->Permission_m->bom_supplier_read) {
+            $view_data["bom_supplier_read"] = true;
+        }
 
         // var_dump(arr($view_data)); exit();
         $this->load->view("goods_receipt/editnew", $view_data);
@@ -454,6 +479,7 @@ class Goods_receipt extends MY_Controller
         echo json_encode($result);
     }
 
+    // https://demo.cmerp.co/index.php/goods_receipt/dev2_serializeTypeForGoodsReceiptItems
     public function dev2_serializeTypeForGoodsReceiptItems()
     {
         $this->Goods_receipt_m->dev2_serializeTypeForGoodsReceiptItems();
