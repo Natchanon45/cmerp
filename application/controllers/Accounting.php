@@ -117,7 +117,13 @@ class Accounting extends MY_Controller {
         $this->data["pv_status_dropdown"] = json_encode($this->Purchaserequest_m->dev2_getPvStatusDropdown());
         $this->data["gr_status_dropdown"] = json_encode($this->Purchaserequest_m->dev2_getGrStatusDropdown());
         $this->data["type_dropdown"] = json_encode($this->Purchaserequest_m->dev2_getPrTypeDropdown());
+        
         $this->data["user_permissions"] = $permissions;
+        if (isset($this->Permission_m->bom_supplier_read) && $this->Permission_m->bom_supplier_read) {
+            $this->data["user_permissions"]->supplier["access"] = true;
+        } else {
+            $this->data["user_permissions"]->supplier["access"] = false;
+        }
 
         // var_dump(arr($this->data)); exit();
         $this->template->rander("accounting/buy", $this->data);

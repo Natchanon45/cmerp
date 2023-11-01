@@ -95,22 +95,24 @@ echo form_open(
         </div>
     </div>
 
-    <div class="form-group">
-        <label for="supplier-id" class="col-md-3">
-            <?php echo lang("suppliers"); ?>
-        </label>
-        <div class="col-md-9">
-            <select id="supplier-id" name="supplier-id" class="form-control select-supplier" required>
-                <?php if (sizeof($supplier_dropdown)): ?>
-                    <?php foreach ($supplier_dropdown as $supplier): ?>
-                        <option value="<?php echo $supplier["supplier_id"]; ?>">
-                            <?php echo $supplier["supplier_name"]; ?>
-                        </option>
-                    <?php endforeach; ?>
-                <?php endif; ?>
-            </select>
+    <?php if (isset($bom_supplier_read) && $bom_supplier_read): ?>
+        <div class="form-group">
+            <label for="supplier-id" class="col-md-3">
+                <?php echo lang("suppliers"); ?>
+            </label>
+            <div class="col-md-9">
+                <select id="supplier-id" name="supplier-id" class="form-control select-supplier" required>
+                    <?php if (sizeof($supplier_dropdown)): ?>
+                        <?php foreach ($supplier_dropdown as $supplier): ?>
+                            <option value="<?php echo $supplier["supplier_id"]; ?>">
+                                <?php echo $supplier["supplier_name"]; ?>
+                            </option>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
+                </select>
+            </div>
         </div>
-    </div>
+    <?php endif; ?>
 
     <div class="form-group">
         <label for="invoice-refer" class="col-md-3">
@@ -147,10 +149,12 @@ echo form_open(
                         <?php echo lang("stock_material_unit"); ?>
                     </th>
                     <th>
-                        <button id="btn-add-item" class="btn btn-primary right-control">
-                            <span class="fa fa-plus-circle"></span>
-                            <?php echo lang("add"); ?>
-                        </button>
+                        <?php if (isset($bom_supplier_read) && $bom_supplier_read): ?>
+                            <button id="btn-add-item" class="btn btn-primary right-control">
+                                <span class="fa fa-plus-circle"></span>
+                                <?php echo lang("add"); ?>
+                            </button>
+                        <?php endif; ?>
                     </th>
                 </tr>
             </thead>
@@ -164,9 +168,12 @@ echo form_open(
     <button type="button" class="btn btn-default" data-dismiss="modal"><span class="fa fa-close"></span>
         <?php echo lang("close"); ?>
     </button>
-    <button type="submit" id="btn-submit" class="btn btn-primary"><span class="fa fa-check-circle"></span>
-        <?php echo lang("create"); ?>
-    </button>
+
+    <?php if (isset($bom_supplier_read) && $bom_supplier_read): ?>
+        <button type="submit" id="btn-submit" class="btn btn-primary"><span class="fa fa-check-circle"></span>
+            <?php echo lang("create"); ?>
+        </button>
+    <?php endif; ?>
 </div>
 
 <?php echo form_close(); ?>

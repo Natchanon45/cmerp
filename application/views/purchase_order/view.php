@@ -104,21 +104,23 @@ $btn_edit = lang("btn_edit_raw_material");
 
             <div class="customer">
                 <p class="custom-color"><?php echo lang("supplier_name"); ?></p>
-                <?php if ($supplier != null): ?>
-                    <p class="customer_name"><?php echo $supplier["company_name"]; ?></p>
-                    <p><?php if ($supplier != null) echo nl2br($supplier["address"]); ?></p>
-                    <p>
-                        <?php
-                            $supplier_address = $supplier["city"];
-                            if ($supplier_address != "" && $supplier["state"] != "") $supplier_address .= ", " . $supplier["state"];
-                            elseif ($supplier_address == "" && $supplier["state"] != "") $supplier_address .= $supplier["state"];
-                            if ($supplier_address != "" && $supplier["zip"] != "") $supplier_address .= " " . $supplier["zip"];
-                            elseif ($supplier_address == "" && $supplier["zip"] != "") $supplier_address .= $supplier["zip"];
-                            echo $supplier_address;
-                        ?>
-                    </p>
-                    <?php if (trim($supplier["vat_number"]) != ""): ?>
-                        <p><?php echo lang("vat_number") . ": " . $supplier["vat_number"]; ?></p>
+                <?php if (isset($bom_supplier_read) && $bom_supplier_read): ?>
+                    <?php if ($supplier != null): ?>
+                        <p class="customer_name"><?php echo $supplier["company_name"]; ?></p>
+                        <p><?php if ($supplier != null) echo nl2br($supplier["address"]); ?></p>
+                        <p>
+                            <?php
+                                $supplier_address = $supplier["city"];
+                                if ($supplier_address != "" && $supplier["state"] != "") $supplier_address .= ", " . $supplier["state"];
+                                elseif ($supplier_address == "" && $supplier["state"] != "") $supplier_address .= $supplier["state"];
+                                if ($supplier_address != "" && $supplier["zip"] != "") $supplier_address .= " " . $supplier["zip"];
+                                elseif ($supplier_address == "" && $supplier["zip"] != "") $supplier_address .= $supplier["zip"];
+                                echo $supplier_address;
+                            ?>
+                        </p>
+                        <?php if (trim($supplier["vat_number"]) != ""): ?>
+                            <p><?php echo lang("vat_number") . ": " . $supplier["vat_number"]; ?></p>
+                        <?php endif; ?>
                     <?php endif; ?>
                 <?php endif; ?>
             </div><!-- .company -->

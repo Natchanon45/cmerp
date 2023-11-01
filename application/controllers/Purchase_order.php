@@ -38,6 +38,11 @@ class Purchase_order extends MY_Controller
 
         $data = $this->Purchase_order_m->getDoc($this->input->post('id'));
 
+        $data["bom_supplier_read"] = false;
+        if (isset($this->Permission_m->bom_supplier_read) && $this->Permission_m->bom_supplier_read) {
+            $data["bom_supplier_read"] = true;
+        }
+
         // var_dump(arr($data)); exit();
         $this->load->view('purchase_order/addedit', $data);
     }
@@ -69,6 +74,11 @@ class Purchase_order extends MY_Controller
         $data['supplier_contact'] = $this->Bom_suppliers_model->getContactInfo($data['supplier_id']);
         $data['print_url'] = get_uri('purchase_order/print/' . str_replace('=', '', base64_encode($data['doc_id'] . ':' . $data['doc_number'])));
 
+        $data["bom_supplier_read"] = false;
+        if (isset($this->Permission_m->bom_supplier_read) && $this->Permission_m->bom_supplier_read) {
+            $data["bom_supplier_read"] = true;
+        }
+
         // var_dump(arr($data)); exit();
         $this->template->rander('purchase_order/view', $data);
     }
@@ -80,6 +90,11 @@ class Purchase_order extends MY_Controller
 
         $this->data['additional_style'] = 'style="width: 30%;"';
         if ($this->Purchase_order_m->user_language() == 'english') $this->data['additional_style'] = 'style="width: 35%;"';
+
+        $this->data["bom_supplier_read"] = false;
+        if (isset($this->Permission_m->bom_supplier_read) && $this->Permission_m->bom_supplier_read) {
+            $this->data["bom_supplier_read"] = true;
+        }
 
         $this->data['docmode'] = 'private_print';
         $this->load->view('edocs/purchase_order', $this->data);

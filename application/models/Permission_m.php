@@ -42,6 +42,8 @@ class Permission_m extends MY_Model
 	public $delete_purchase_request = false;
 	public $approve_purchase_request = false;
 
+	public $bom_supplier_read = false;
+
 	function __construct() 
 	{		
 		$urow = $this->db->select("is_admin, role_id")
@@ -103,6 +105,8 @@ class Permission_m extends MY_Model
 		$permissions["update_purchase_request"] = $this->update_purchase_request = true;
 		$permissions["delete_purchase_request"] = $this->delete_purchase_request = true;
 		$permissions["approve_purchase_request"] = $this->approve_purchase_request = true;
+
+		$permissions["bom_supplier_read"] = $this->bom_supplier_read = true;
 
 		$this->permissions = $permissions;
 	}
@@ -182,6 +186,11 @@ class Permission_m extends MY_Model
 		if(isset($permissions->approve_purchase_request)){
 			$this->approve_purchase_request = $permissions->approve_purchase_request;
 			if($this->access_purchase_request == false) $this->approve_purchase_request = false;
+		}
+
+		if(isset($permissions->bom_supplier_read)){
+			$this->bom_supplier_read = $permissions->bom_supplier_read;
+			if($this->bom_supplier_read == false) $this->bom_supplier_read = false;
 		}
 
 		$this->permissions = $permissions;

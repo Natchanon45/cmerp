@@ -158,17 +158,18 @@ class Purchase_order_m extends MY_Model
             $supplier_name = "<a href='" . get_uri('stock/supplier_view/' . $qrow->supplier_id) . "'>" . mb_strimwidth($supplier, 0, 55, '...') . "</a>";
         }
 
-        $data = array(
-            "<a href='" . get_uri('purchase_order/view/' . $qrow->id) . "'>" . convertDate($qrow->doc_date, true) . "</a>",
-            "<a href='" . get_uri('purchase_order/view/' . $qrow->id) . "'>" . $qrow->doc_number . "</a>",
-            $qrow->reference_number,
-            $qrow->po_type ? $this->dev2_getPoTypeById($qrow->po_type) : '-',
-            $supplier_name,
-            $request_by,
-            number_format($qrow->total, 2),
-            $doc_status,
-            $button
-        );
+        $data[] = "<a href='" . get_uri('purchase_order/view/' . $qrow->id) . "'>" . convertDate($qrow->doc_date, true) . "</a>";
+        $data[] = "<a href='" . get_uri('purchase_order/view/' . $qrow->id) . "'>" . $qrow->doc_number . "</a>";
+        $data[] = $qrow->reference_number ? $qrow->reference_number : '-';
+        $data[] = $qrow->po_type ? $this->dev2_getPoTypeById($qrow->po_type) : '-';
+        if (isset($this->Permission_m->bom_supplier_read) && $this->Permission_m->bom_supplier_read) {
+            $data[] = $supplier_name;
+        }
+        
+        $data[] = $request_by;
+        $data[] = number_format($qrow->total, 2);
+        $data[] = $doc_status;
+        $data[] = $button;
 
         return $data;
     }
