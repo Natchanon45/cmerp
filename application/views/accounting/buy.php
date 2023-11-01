@@ -1,4 +1,4 @@
-<?php // var_dump(arr($user_permissions)); exit(); ?>
+<?php // var_dump(arr($auth_sell)); exit(); ?>
 
 <style>
     #accounting_navs:after,
@@ -100,7 +100,11 @@
 <div id="page-content" class="p20 clearfix">
     <ul class="nav nav-tabs bg-white title" role="tablist">
         <!-- <li><a href="<?php // echo get_uri("accounting/coa"); ?>"><?php // echo lang('coa'); ?></a></li> -->
-        <li><a href="<?php echo get_uri("accounting/sell"); ?>"><?php echo lang("sell_account"); ?></a></li>
+        
+        <?php if (isset($auth_sell) && $auth_sell): ?>
+            <li><a href="<?php echo get_uri("accounting/sell"); ?>"><?php echo lang("sell_account"); ?></a></li>
+        <?php endif; ?>
+        
         <li class="active"><a><?php echo lang("buy_account"); ?></a></li>
     </ul>
 
