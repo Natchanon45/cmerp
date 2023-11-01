@@ -68,6 +68,7 @@ class Share extends PublicController
         $this->data["og_title"] = get_setting("company_name") . " - " . $doc["doc_number"];
 
         if ($doc["status"] != "success") redirect("forbidden");
+        $this->data["bom_supplier_read"] = $this->get_bom_supplier_read();
         $this->load->view('edocs/purchase_request', $this->data);
     }
 
@@ -99,6 +100,7 @@ class Share extends PublicController
             $this->lang->load('default_lang', 'english');
             $this->data['additional_style'] = 'style="width: 35%;"';
         }
+        $this->data["bom_supplier_read"] = $this->get_bom_supplier_read();
         
         if ($doc["status"] != "success") redirect("forbidden");
         $this->load->view("edocs/purchase_order", $this->data);
@@ -117,6 +119,7 @@ class Share extends PublicController
             $this->lang->load('default_lang', 'english');
             $this->data["additional_style"] = 'style="width: 35%;"';
         }
+        $this->data["bom_supplier_read"] = $this->get_bom_supplier_read();
 
         // var_dump(arr($this->data)); exit();
         $this->load->view("edocs/payment_voucher", $this->data);
@@ -135,9 +138,20 @@ class Share extends PublicController
             $this->lang->load('default_lang', 'english');
             $this->data["additional_style"] = 'style="width: 35%;"';
         }
+        $this->data["bom_supplier_read"] = $this->get_bom_supplier_read();
 
         // var_dump(arr($this->data)); exit();
         $this->load->view("edocs/goods_receipt", $this->data);
+    }
+
+    private function get_bom_supplier_read() : bool
+    {
+        $result = false;
+        if (isset($this->Permission_m->bom_supplier_read) && $this->Permission_m->bom_supplier_read) {
+            $result = true;
+        }
+
+        return $result;
     }
 
 }

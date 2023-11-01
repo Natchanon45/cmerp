@@ -17,6 +17,7 @@ class Purchase_request_m extends MY_Model
         parent::__construct();
         $this->load->model('Purchase_order_m');
         $this->load->model('Goods_receipt_m');
+        $this->load->model('Permission_m');
     }
 
     function getCode()
@@ -110,16 +111,17 @@ class Purchase_request_m extends MY_Model
             $supplier_name = "<a href='" . get_uri('stock/supplier_view/' . $item->supplier_id) . "'>" . mb_strimwidth($supplier, 0, 60, '...') . "</a>";
         }
 
-        $data = array(
-            "<a href='" . get_uri('purchase_request/view/' . $item->id) . "'>" . convertDate($item->doc_date, true) . "</a>",
-            "<a href='" . get_uri('purchase_request/view/' . $item->id) . "'>" . $item->doc_number . "</a>",
-            $item->pr_type ? $this->dev2_getPrTypeById($item->pr_type) : '-',
-            $supplier_name,
-            $request_by,
-            number_format($item->total, 2),
-            $status,
-            $button
-        );
+        $data[] = "<a href='" . get_uri('purchase_request/view/' . $item->id) . "'>" . convertDate($item->doc_date, true) . "</a>";
+        $data[] = "<a href='" . get_uri('purchase_request/view/' . $item->id) . "'>" . $item->doc_number . "</a>";
+        $data[] = $item->pr_type ? $this->dev2_getPrTypeById($item->pr_type) : "-";
+        if (isset($this->Permission_m->bom_supplier_read) && $this->Permission_m->bom_supplier_read) {
+            $data[] = $supplier_name;
+        }
+        
+        $data[] = $request_by;
+        $data[] = number_format($item->total, 2);
+        $data[] = $status;
+        $data[] = $button;
 
         return $data;
     }

@@ -141,44 +141,44 @@
 							<?php endif; ?>
 						</div>
 						<div class="buyer">
-							<p class="custom-color">
-								<?php echo lang("payment_voucher_payee"); ?>
-							</p>
-							<?php if ($doc["seller"] != null): ?>
-								<p class="customer_name">
-									<?php echo $doc["seller"]["company_name"] ?>
-								</p>
-								<p>
-									<?php if ($doc["seller"] != null) echo nl2br($doc["seller"]["address"]); ?>
-								</p>
-								<p>
-									<?php
-										$client_address = $doc["seller"]["city"];
-										
-										if ($client_address != "" && $doc["seller"]["state"] != "") {
-											$client_address .= ", " . $doc["seller"]["state"];
-										} elseif ($client_address == "" && $doc["seller"]["state"] != "") {
-											$client_address .= $doc["seller"]["state"];
-										}
+							<p class="custom-color"><?php echo lang("payment_voucher_payee"); ?></p>
+							<?php if (isset($bom_supplier_read) && $bom_supplier_read): ?>
+								<?php if ($doc["seller"] != null): ?>
+									<p class="customer_name">
+										<?php echo $doc["seller"]["company_name"] ?>
+									</p>
+									<p>
+										<?php if ($doc["seller"] != null) echo nl2br($doc["seller"]["address"]); ?>
+									</p>
+									<p>
+										<?php
+											$client_address = $doc["seller"]["city"];
 											
-										if ($client_address != "" && $doc["seller"]["zip"] != "") {
-											$client_address .= " " . $doc["seller"]["zip"];
-										} elseif ($client_address == "" && $doc["seller"]["zip"] != "") {
-											$client_address .= $doc["seller"]["zip"];
-										}
-										
-										echo $client_address;
-									?>
-								</p>
-								<?php if (trim($doc["seller"]["country"]) != ""): ?>
-									<p>
-										<?php // echo $doc["seller"]["country"]; ?>
+											if ($client_address != "" && $doc["seller"]["state"] != "") {
+												$client_address .= ", " . $doc["seller"]["state"];
+											} elseif ($client_address == "" && $doc["seller"]["state"] != "") {
+												$client_address .= $doc["seller"]["state"];
+											}
+												
+											if ($client_address != "" && $doc["seller"]["zip"] != "") {
+												$client_address .= " " . $doc["seller"]["zip"];
+											} elseif ($client_address == "" && $doc["seller"]["zip"] != "") {
+												$client_address .= $doc["seller"]["zip"];
+											}
+											
+											echo $client_address;
+										?>
 									</p>
-								<?php endif; ?>
-								<?php if (trim($doc["seller"]["vat_number"]) != ""): ?>
-									<p>
-										<?php echo lang("vat_number") . ": " . $doc["seller"]["vat_number"]; ?>
-									</p>
+									<?php if (trim($doc["seller"]["country"]) != ""): ?>
+										<p>
+											<?php // echo $doc["seller"]["country"]; ?>
+										</p>
+									<?php endif; ?>
+									<?php if (trim($doc["seller"]["vat_number"]) != ""): ?>
+										<p>
+											<?php echo lang("vat_number") . ": " . $doc["seller"]["vat_number"]; ?>
+										</p>
+									<?php endif; ?>
 								<?php endif; ?>
 							<?php endif; ?>
 						</div>
@@ -366,8 +366,8 @@
 								</div>
 							</div>
 
-							<?php if ($doc["wht_value"] > 0): ?>
-								<div class="row wht">
+							<?php // if ($doc["wht_value"] > 0): ?>
+								<!-- <div class="row wht">
 									<div class="c1 custom-color">
 										<?php // echo lang("with_holding_tax"); ?>
 										<?php // echo number_format_drop_zero_decimals($doc["wht_percent"], 2) . "%"; ?>
@@ -376,8 +376,8 @@
 										<span><?php // echo number_format($doc["wht_value"], 2); ?></span>
 										<span><?php // echo lang("THB"); ?></span>
 									</div>
-								</div>
-								<div class="row">
+								</div> -->
+								<!-- <div class="row">
 									<div class="c1 custom-color">
 										<?php // echo lang("payment_amount"); ?>
 									</div>
@@ -385,8 +385,8 @@
 										<span><?php // echo number_format($doc["payment_amount"], 2); ?></span>
 										<span><?php // echo lang("THB"); ?></span>
 									</div>
-								</div>
-							<?php endif; ?>
+								</div> -->
+							<?php // endif; ?>
 						</div>
 					</div>
 
@@ -435,9 +435,16 @@
 						<div class="signature clear">
 							<div class="name">
 								<span class="l1">
-									<?php $signature = $this->Users_m->getSignature($doc["approved_by"]["id"]); ?>
-									<?php if ($doc["doc_status"] == "A" && $signature != null): ?>
-										<img src="<?php echo str_replace("./", "/", $signature); ?>">
+									<?php
+										$signature = null;
+										if (isset($doc["approved_by"]["id"]) && !empty($doc["approved_by"]["id"])) {
+											$signature = $this->Users_m->getSignature($doc["approved_by"]["id"]);
+										}
+									?>
+									<?php if (isset($doc["doc_status"]) && $doc["doc_status"] == "A"): ?>
+										<?php if ($signature != null): ?>
+											<img src="<?php echo str_replace("./", "/", $signature); ?>">
+										<?php endif; ?>
 									<?php endif; ?>
 								</span>
 								<span class="l2"><?php echo lang("approver"); ?></span>

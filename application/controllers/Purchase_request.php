@@ -42,6 +42,11 @@ class Purchase_request extends MY_Controller
         }
 
         $data = $this->Purchase_request_m->getDoc($this->input->post('id'));
+        
+        $data["bom_supplier_read"] = false;
+        if (isset($this->Permission_m->bom_supplier_read) && $this->Permission_m->bom_supplier_read) {
+            $data["bom_supplier_read"] = true;
+        }
 
         // var_dump(arr($data)); exit();
         $this->load->view('purchase_request/addedit', $data);
@@ -77,6 +82,11 @@ class Purchase_request extends MY_Controller
         $data['supplier'] = $this->Bom_suppliers_model->getInfo($data['supplier_id']);
         $data['supplier_contact'] = $this->Bom_suppliers_model->getContactInfo($data['supplier_id']);
         $data['print_url'] = get_uri('purchase_request/print/' . str_replace('=', '', base64_encode($data['doc_id'] . ':' . $data['doc_number'])));
+        
+        $data["bom_supplier_read"] = false;
+        if (isset($this->Permission_m->bom_supplier_read) && $this->Permission_m->bom_supplier_read) {
+            $data["bom_supplier_read"] = true;
+        }
 
         // var_dump(arr($data)); exit();
         $this->template->rander('purchase_request/view', $data);
@@ -88,6 +98,11 @@ class Purchase_request extends MY_Controller
         if ($doc['status'] != 'success') redirect('forbidden');
 
         $this->data['docmode'] = 'private_print';
+
+        $this->data["bom_supplier_read"] = false;
+        if (isset($this->Permission_m->bom_supplier_read) && $this->Permission_m->bom_supplier_read) {
+            $this->data["bom_supplier_read"] = true;
+        }
         
         // var_dump(arr($this->data)); exit();
         $this->load->view('edocs/purchase_request', $this->data);

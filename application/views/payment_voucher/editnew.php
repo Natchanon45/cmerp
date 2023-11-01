@@ -102,18 +102,20 @@ echo form_open(
         </div>
     </div>
 
-    <div class="form-group">
-        <label for="supplier-id" class="col-md-3">
-            <?php echo lang("suppliers"); ?>
-        </label>
-        <div class="col-md-9">
-            <select id="supplier-id" name="supplier-id" class="form-control select-supplier pointer-none" required>
-                <?php if (isset($header_data->supplier_id) && $header_data->supplier_id != 0): ?>
-                    <option value="<?php echo $header_data->supplier_id; ?>"><?php echo $header_data->supplier_name; ?></option>
-                <?php endif; ?>
-            </select>
+    <?php if (isset($bom_supplier_read) && $bom_supplier_read): ?>
+        <div class="form-group">
+            <label for="supplier-id" class="col-md-3">
+                <?php echo lang("suppliers"); ?>
+            </label>
+            <div class="col-md-9">
+                <select id="supplier-id" name="supplier-id" class="form-control select-supplier pointer-none" required>
+                    <?php if (isset($header_data->supplier_id) && $header_data->supplier_id != 0): ?>
+                        <option value="<?php echo $header_data->supplier_id; ?>"><?php echo $header_data->supplier_name; ?></option>
+                    <?php endif; ?>
+                </select>
+            </div>
         </div>
-    </div>
+    <?php endif; ?>
 
     <div class="form-group">
         <label for="invoice-refer" class="col-md-3">
@@ -142,13 +144,15 @@ echo form_open(
                     <th width="17%"><?php echo lang("quantity"); ?></th>
                     <th width="10%"><?php echo lang("stock_material_unit"); ?></th>
                     
-                    <?php if ($header_data->status == "W" && $header_data->po_id == 0): ?>
-                        <th>
-                            <button id="btn-add-item" class="btn btn-primary right-control hide">
-                                <span class="fa fa-plus-circle"></span> 
-                                <?php  echo lang("add"); ?>
-                            </button>
-                        </th>
+                    <?php if (isset($bom_supplier_read) && $bom_supplier_read): ?>
+                        <?php if ($header_data->status == "W" && $header_data->po_id == 0): ?>
+                            <th>
+                                <button id="btn-add-item" class="btn btn-primary right-control hide">
+                                    <span class="fa fa-plus-circle"></span> 
+                                    <?php  echo lang("add"); ?>
+                                </button>
+                            </th>
+                        <?php endif; ?>
                     <?php endif; ?>
                 </tr>
             </thead>
@@ -175,13 +179,15 @@ echo form_open(
                                 <input name="unit[]" class="form-control select-unit" value="<?php echo $item->unit; ?>" readonly>
                             </td>
 
-                            <?php if ($header_data->status == "W" && $header_data->po_id == 0): ?>
-                                <td>
-                                    <button class="btn btn-danger button-delete-edit right-control" data-item_id="<?php echo $item->id; ?>">
-                                        <span class="fa fa-trash"></span> 
-                                        <?php echo lang("delete"); ?>
-                                    </button>
-                                </td>
+                            <?php if (isset($bom_supplier_read) && $bom_supplier_read): ?>
+                                <?php if ($header_data->status == "W" && $header_data->po_id == 0): ?>
+                                    <td>
+                                        <button class="btn btn-danger button-delete-edit right-control" data-item_id="<?php echo $item->id; ?>">
+                                            <span class="fa fa-trash"></span> 
+                                            <?php echo lang("delete"); ?>
+                                        </button>
+                                    </td>
+                                <?php endif; ?>
                             <?php endif; ?>
                         </tr>
                     <?php endforeach; ?>
@@ -196,10 +202,12 @@ echo form_open(
         <?php echo lang("close"); ?>
     </button>
 
-    <?php if ($header_data->status == "W"): ?>
-        <button type="submit" id="btn-submit" class="btn btn-primary"><span class="fa fa-check-circle"></span>
-            <?php echo lang("edit"); ?>
-        </button>
+    <?php if (isset($bom_supplier_read) && $bom_supplier_read): ?>
+        <?php if ($header_data->status == "W"): ?>
+            <button type="submit" id="btn-submit" class="btn btn-primary"><span class="fa fa-check-circle"></span>
+                <?php echo lang("edit"); ?>
+            </button>
+        <?php endif; ?>
     <?php endif; ?>
 </div>
 

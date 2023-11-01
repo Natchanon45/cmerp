@@ -84,11 +84,13 @@
                 </a>
             <?php endif; ?>
 
-            <?php if ($pv_info->status == "W" && $pv_info->pay_status == "C"): ?>
-                <a href="javascript:void(0);" id="btn-approval" class="btn btn-primary">
-                    <i class="fa fa-check" aria-hidden="true"></i>
-                    <?php echo lang("payment_voucher_approve"); ?>
-                </a>
+            <?php if ($pv_info->status == "W"): ?>
+                <?php if ($pv_info->pay_status == "C" || $pv_info->pay_status == "O"): ?>
+                    <a href="javascript:void(0);" id="btn-approval" class="btn btn-primary">
+                        <i class="fa fa-check" aria-hidden="true"></i>
+                        <?php echo lang("payment_voucher_approve"); ?>
+                    </a>
+                <?php endif; ?>
             <?php endif; ?>
 
             <?php
@@ -151,39 +153,39 @@
             </div><!-- .company -->
 
             <div class="customer">
-                <p class="custom-color">
-                    <?php echo lang("payment_voucher_payee"); ?>
-                </p>
-                <?php if (isset($supplier) && !empty($supplier)): ?>
-                    <p class="customer_name">
-                        <?php echo $supplier["company_name"] ? $supplier["company_name"] : ''; ?>
-                    </p>
-                    <p>
-                        <?php echo $supplier["address"] ? nl2br($supplier["address"]) : ''; ?>
-                    </p>
-                    <p>
-                        <?php
-                        $supplier_address = $supplier["city"];
-
-                        if ($supplier_address != "" && $supplier["state"] != "") {
-                            $supplier_address .= ", " . $supplier["state"];
-                        } elseif ($supplier_address == "" && $supplier["state"] != "") {
-                            $supplier_address .= $supplier["state"];
-                        }
-
-                        if ($supplier_address != "" && $supplier["zip"] != "") {
-                            $supplier_address .= " " . $supplier["zip"];
-                        } elseif ($supplier_address == "" && $supplier["zip"] != "") {
-                            $supplier_address .= $supplier["zip"];
-                        }
-
-                        echo $supplier_address;
-                        ?>
-                    </p>
-                    <?php if (isset($supplier["vat_number"]) && !empty($supplier["vat_number"]) && trim($supplier["vat_number"]) != ""): ?>
-                        <p>
-                            <?php echo lang("vat_number") . ": " . trim($supplier["vat_number"]); ?>
+                <p class="custom-color"><?php echo lang("payment_voucher_payee"); ?></p>
+                <?php if (isset($bom_supplier_read) && $bom_supplier_read): ?>
+                    <?php if (isset($supplier) && !empty($supplier)): ?>
+                        <p class="customer_name">
+                            <?php echo $supplier["company_name"] ? $supplier["company_name"] : ''; ?>
                         </p>
+                        <p>
+                            <?php echo $supplier["address"] ? nl2br($supplier["address"]) : ''; ?>
+                        </p>
+                        <p>
+                            <?php
+                            $supplier_address = $supplier["city"];
+
+                            if ($supplier_address != "" && $supplier["state"] != "") {
+                                $supplier_address .= ", " . $supplier["state"];
+                            } elseif ($supplier_address == "" && $supplier["state"] != "") {
+                                $supplier_address .= $supplier["state"];
+                            }
+
+                            if ($supplier_address != "" && $supplier["zip"] != "") {
+                                $supplier_address .= " " . $supplier["zip"];
+                            } elseif ($supplier_address == "" && $supplier["zip"] != "") {
+                                $supplier_address .= $supplier["zip"];
+                            }
+
+                            echo $supplier_address;
+                            ?>
+                        </p>
+                        <?php if (isset($supplier["vat_number"]) && !empty($supplier["vat_number"]) && trim($supplier["vat_number"]) != ""): ?>
+                            <p>
+                                <?php echo lang("vat_number") . ": " . trim($supplier["vat_number"]); ?>
+                            </p>
+                        <?php endif; ?>
                     <?php endif; ?>
                 <?php endif; ?>
             </div><!-- .company -->

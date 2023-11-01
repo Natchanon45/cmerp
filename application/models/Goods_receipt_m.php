@@ -109,16 +109,17 @@ class Goods_receipt_m extends MY_Model
             }
         }
 
-        $data = array(
-            '<a href="' . get_uri('goods_receipt/view/' . $item->id) . '">' . convertDate($item->doc_date, true) . '</a>',
-            '<a href="' . get_uri('goods_receipt/view/' . $item->id) . '">' . $item->doc_number . '</a>',
-            $extract_refer,
-            $supplier_name,
-            $request_by,
-            number_format($item->total, 2),
-            $doc_status,
-            $btn_control
-        );
+        $data[] = '<a href="' . get_uri('goods_receipt/view/' . $item->id) . '">' . convertDate($item->doc_date, true) . '</a>';
+        $data[] = '<a href="' . get_uri('goods_receipt/view/' . $item->id) . '">' . $item->doc_number . '</a>';
+        $data[] = $extract_refer;
+        if (isset($this->Permission_m->bom_supplier_read) && $this->Permission_m->bom_supplier_read) {
+            $data[] = $supplier_name;
+        }
+        
+        $data[] = $request_by;
+        $data[] = number_format($item->total, 2);
+        $data[] = $doc_status;
+        $data[] = $btn_control;
 
         return $data;
     }
@@ -1438,7 +1439,7 @@ class Goods_receipt_m extends MY_Model
                 // calc wht
                 $wht = 0;
                 if ($po_info->wht_inc == "Y") {
-                    $wht = ($total_price * $po_info->vat_percent) / 100;
+                    $wht = ($total_price * $po_info->wht_percent) / 100;
                 }
 
                 $sub_total += $total_price;

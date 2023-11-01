@@ -55,6 +55,7 @@
         </div>
     </div>
 
+    <?php if (isset($bom_supplier_read) && $bom_supplier_read): ?>
     <div class="form-group">
         <label for="supplier_id" class=" col-md-3"><?php echo lang('select_supplier'); ?></label>
         <div class="col-md-9">
@@ -69,6 +70,7 @@
             </select>
         </div>
     </div>
+    <?php endif; ?>
 
     <div class="form-group">
         <label for="project_id" class=" col-md-3"><?php echo lang('project_refer'); ?></label>
@@ -98,10 +100,12 @@
     <button type="button" class="btn btn-default" data-dismiss="modal"><span class="fa fa-close"></span>
         <?php echo lang('close'); ?>
     </button>
-    <?php if ($doc_status == "W" || !isset($doc_id)): ?>
-        <button type="button" id="btnSubmit" class="btn btn-primary"><span class="fa fa-check-circle"></span>
-            <?php echo (empty($doc_id)) ? lang('create') : lang('edit'); ?>
-        </button>
+    <?php if (isset($bom_supplier_read) && $bom_supplier_read): ?>
+        <?php if ($doc_status == "W" || !isset($doc_id)): ?>
+            <button type="button" id="btnSubmit" class="btn btn-primary"><span class="fa fa-check-circle"></span>
+                <?php echo (empty($doc_id)) ? lang('create') : lang('edit'); ?>
+            </button>
+        <?php endif; ?>
     <?php endif; ?>
 </div>
 
