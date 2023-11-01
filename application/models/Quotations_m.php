@@ -588,7 +588,7 @@ class Quotations_m extends MY_Model {
                                         "vat_inc"=>$company_setting["company_vat_registered"],
                                         "seller_id"=>$seller_id,
                                         "client_id"=>$customer_id,
-                                        "project_id"=>($project_id != null ? $project:null),
+                                        "project_id"=>($project_id != null ? $project_id:null),
                                         "remark"=>$remark,
                                         "created_by"=>$this->login_user->id,
                                         "created_datetime"=>date("Y-m-d H:i:s"),
