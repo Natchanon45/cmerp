@@ -78,7 +78,10 @@
     <ul class="nav nav-tabs bg-white title" role="tablist">
         <!--<li><a href="#">ผังบัญชี</a></li>-->
         <li class="active"><a><?php echo lang('sell_account'); ?></a></li>
-        <li><a href="<?php echo get_uri("accounting/buy"); ?>"><?php echo lang('buy_account'); ?></a></li>
+
+        <?php if (isset($auth_buy) && $auth_buy): ?>
+            <li><a href="<?php echo get_uri("accounting/buy"); ?>"><?php echo lang('buy_account'); ?></a></li>
+        <?php endif; ?>
     </ul>
     <div class="panel panel-default">
         <div class="table-responsive pb50">
