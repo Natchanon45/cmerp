@@ -136,6 +136,21 @@
                 ?>
             </div>
         </div>
+
+        <div class="form-group">
+            <label for="noti_threshold" class="col-md-3">
+                <?php echo lang('stock_item_noti_threshold'); ?>
+            </label>
+            <div class="col-md-9">
+                <input
+                    type="number" name="noti_threshold" class="form-control" min="0" step="0.0001" required 
+                    name="noti_threshold" value="<?php echo @$model_info->noti_threshold; ?>" 
+                    placeholder="<?php echo lang('stock_item_noti_threshold'); ?>" data-rule-required = "true"
+                    data-msg-required="<?php echo lang("field_required"); ?>"/>
+            </div>
+        </div>
+
+
         <div class="form-group">
             <label for="item_rate" class=" col-md-3">
                 <?php echo lang('rate'); ?>

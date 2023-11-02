@@ -3,7 +3,6 @@
     padding-right: 19px !important;
 }
 </style>
-
 <div id="page-content" class="p20 clearfix">
     <div class="panel panel-default">
         <div class="page-title clearfix">
@@ -29,43 +28,41 @@
                     );
                 }
                 if ($can_create) {
-                    echo modal_anchor(
-                        get_uri("stock/item_modal"),
+                    /*echo modal_anchor(
+                        get_uri("item/item_modal"),
                         "<i class='fa fa-plus-circle'></i> " . lang('stock_item_add'),
                         array("class" => "btn btn-default", "title" => lang('stock_item_add'))
-                    );
+                    );*/
+
+                    echo modal_anchor(get_uri("items/modal_form"), "<i class='fa fa-plus-circle'></i> " . lang('add_item'), array("class" => "btn btn-default", "title" => lang('add_item')));
                 }
                 ?>
             </div>
         </div>
         <div class="table-responsive">
-            <table id="material-table" class="display" cellspacing="0" width="100%"></table>
+            <table id="item-table" class="display" cellspacing="0" width="100%"></table>
         </div>
     </div>
 </div>
 
 <script type="text/javascript">
     $(document).ready(function () {
-        $("#material-table").appTable({
-            source: '<?php echo_uri("stock/item_list"); ?>',
+        $("#item-table").appTable({
+            source: '<?php echo_uri("items/list_data"); ?>',
             filterDropdown: [
                 { name: "category_id", class: "w200", options: <?php echo json_encode($category_dropdown); ?> }
             ],
             columns: [
-                { title: "<?php echo lang("id"); ?>", "class": "text-center w50" },
-                { title: "<?php echo lang("preview_image"); ?> ", "class": "w100" },
-                { title: '<?php echo lang("stock_item_code"); ?>' },
-                <?php if ($can_read_production_name): ?>
-                    { title: '<?php echo lang("stock_item_name"); ?>' },
-                <?php endif; ?>
-                { title: '<?php echo lang("stock_item_barcode"); ?>', "class": "w200" },
-                { title: '<?php echo lang("rate"); ?>', "class": "w100 text-right pr-19px" },
-                { title: '<?php echo lang("currency"); ?>', "class": "w50" },
-                { title: '<?php echo lang("stock_item_category"); ?>' },
-                { title: '<?php echo lang("description"); ?>' },
-                { title: '<?php echo lang("stock_item_remaining"); ?>', "class": "text-right pr-19px" },
-                { title: '<?php echo lang("stock_item_unit"); ?>', "class": "w50" },
-                { title: '<i class="fa fa-bars"></i>', "class": "text-center option w100" }
+                { title: "<?php echo lang('id'); ?>", "class": "w50 text-center" },
+                { title: "<?php echo lang('preview_image'); ?>", "class": "w50" },
+                { title: "<?php echo lang("stock_item_code"); ?>", "class": "w100" },
+                { title: "<?php echo lang('stock_products'); ?>", "class": "w20p" },
+                { title: "<?php echo lang('description'); ?>" },
+                { title: "<?php echo lang('category'); ?>" },
+                { title: "<?php echo lang('unit_type'); ?>", "class": "w100" },
+                { title: '<?php echo lang("stock_material_barcode"); ?>' },
+                { title: "<?php echo lang('rate'); ?>", "class": "text-right w100" },
+                { title: "<i class='fa fa-bars'></i>", "class": "text-center option w100" }
             ],
             <?php if ($can_read_production_name): ?>
                 printColumns : combineCustomFieldsColumns([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]),

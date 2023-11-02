@@ -4531,17 +4531,21 @@ class Stock extends MY_Controller
 
         $options = '';
         if ($this->check_permission('bom_material_update')) {
-            $options .= modal_anchor(
+            // btn-edit
+            /*$options .= modal_anchor(
                 get_uri("stock/item_modal"), 
                 "<i class='fa fa-pencil'></i>", 
                 array("class" => "edit", "title" => lang('stock_item_edit'), "data-post-id" => $data->id)
-            ); // btn-edit
+            );*/ 
+            $options .= modal_anchor(get_uri("items/modal_form"), "<i class='fa fa-pencil'></i>", array("class" => "edit", "title" => lang('stock_item_edit'), "data-post-id" => $data->id));
         } else {
-            $options .= modal_anchor(
+            // btn-view
+            /*$options .= modal_anchor(
                 get_uri("stock/item_modal"), 
                 "<i class='fa fa-eye'></i>", 
                 array("class" => "edit", "title" => lang('stock_item_edit'), "data-post-id" => $data->id)
-            ); // btn-view
+            );*/
+            $options .= modal_anchor(get_uri("items/modal_form"), "<i class='fa fa-eye'></i>", array("class" => "edit", "title" => lang('stock_item_edit'), "data-post-id" => $data->id));
         }
 
         if ($this->check_permission('bom_material_delete') && $item_can_delete['status']) {

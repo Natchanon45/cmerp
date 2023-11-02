@@ -98,6 +98,7 @@ class Items extends MY_Controller
 			"account_id" => $account_id ? $account_id : null,
 			"unit_type" => $this->input->post('unit_type'),
 			"barcode" => $this->input->post('barcode'),
+			"noti_threshold" => $this->input->post('noti_threshold'),
 			"rate" => unformat_currency($this->input->post('item_rate')),
 			"show_in_client_portal" => $this->input->post('show_in_client_portal') ? $this->input->post('show_in_client_portal') : ""
 		);
@@ -179,6 +180,7 @@ class Items extends MY_Controller
 			$options = array("id" => $item_id);
 			$item_info = $this->Items_model->get_details($options)->row();
 			echo json_encode(array("success" => true, "id" => $item_info->id, "data" => $this->_make_item_row($item_info), 'message' => lang('record_saved')));
+
 		} else {
 			echo json_encode(array("success" => false, 'message' => lang('error_occurred')));
 		}
