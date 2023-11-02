@@ -30,10 +30,10 @@ class Bom_item_model extends Crud_model {
             bmc.title category, 
             SUM(bs.remaining) remaining 
             FROM items bm 
-            LEFT JOIN item_categories bmc ON bmc.id = bm.category_id 
+            LEFT JOIN material_categories bmc ON bmc.id = bm.category_id AND bmc.item_type = 'FG' 
             LEFT JOIN bom_item_stocks bs ON bs.item_id = bm.id AND bs.remaining > 0 
             WHERE 1 $where 
-            AND bm.deleted = 0 GROUP BY bm.id 
+            GROUP BY bm.id 
         ");
     }
     
@@ -59,22 +59,26 @@ class Bom_item_model extends Crud_model {
         if ($temp): return true; else: return false; endif;
     }
 
-    function get_categories($options = array()) {
+    function get_categories($options = array()) 
+    {
         $where = "";
-        
         $id = get_array_value($options, "id");
+        $type = get_array_value($options, "type");
+
         if ($id) {
             $where .= " AND bmc.id = $id";
         }
 
-        return $this->db->query("
-            SELECT bmc.* 
-            FROM item_categories bmc 
-            WHERE 1 $where 
-            AND bmc.deleted = 0 ORDER BY bmc.id
-        ");
+        if ($type) {
+            $where .= " AND bmc.item_type = '" . $type . "'";
+        }
+
+        $sql = "SELECT bmc.* FROM material_categories bmc WHERE 1 $where ORDER BY bmc.id";
+        return $this->db->query($sql);
     }
-    function category_create($data) {
+
+    function category_create($data)
+    {
         $this->db->insert('item_categories', $data);
         return $this->db->insert_id();
     }
@@ -239,5 +243,30 @@ class Bom_item_model extends Crud_model {
         }
         return $data;
     }
+
+    public function dev2_getAllCategories() : array
+	{
+		$data = array();
+		$query = $this->db->get_where("item_categories", ["deleted" => 0])->result();
+		if (sizeof($query)) {
+			$data = $query;
+		}
+
+		return $data;
+	}
+
+	public function dev2_postOptimizationProcess(array $data) : void
+	{
+		// Insert to new table [material_categories]
+		$this->db->insert("material_categories", [
+			"title" => $data["title"],
+			"item_type" => $data["item_type"]
+		]);
+		$new_id = $this->db->insert_id();
+
+		// Update new id to master data
+		$this->db->where("category_id", $data["id"]);
+		$this->db->update("items", ["category_id" => $new_id]);
+	}
 
 }

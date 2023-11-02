@@ -13,6 +13,7 @@ class Stock extends MY_Controller
         require_once(APPPATH . "third_party/php-excel-writer/src/ExcelWriter.php");
 
         $this->load->model("Permission_m");
+        $this->load->model("Material_categories_m");
         
         $this->load->model("Account_category_model");
         $this->load->model("Warehouse_category_model");
@@ -1204,6 +1205,7 @@ class Stock extends MY_Controller
             $result[] = $this->_material_make_row($data);
         }
 
+        // var_dump(arr($list_data)); exit();
         echo json_encode(array("data" => $result));
     }
 
@@ -1382,7 +1384,7 @@ class Stock extends MY_Controller
 
         $view_data['view'] = $this->input->post('view');
         $view_data['model_info'] = $this->Bom_materials_model->get_one($material_id);
-        $view_data['category_dropdown'] = $this->Bom_materials_model->get_category_dropdown();
+        $view_data['category_dropdown'] = $this->Bom_materials_model->get_category_dropdown(["type" => "RM"]);
         $view_data['account_category'] = $this->Account_category_model->get_list_dropdown();
         $view_data['warehouse_category'] = $this->Warehouse_category_model->dropdown();
 
@@ -1395,6 +1397,7 @@ class Stock extends MY_Controller
                 redirect("forbidden");
         }
 
+        // var_dump(arr($view_data)); exit();
         $this->load->view('stock/material/modal', $view_data); 
     }
 
@@ -2519,34 +2522,26 @@ class Stock extends MY_Controller
     // START: Material Category
     function material_category_modal()
     {
-        $this->check_module_availability("module_stock");
-        if (!$this->bom_can_access_material() || !$this->check_permission('bom_material_create') || !$this->check_permission('bom_material_update')) {
-            redirect("forbidden");
+        $post = $this->input->post();
+
+        if (isset($post["type"]) && !empty($post["type"])) {
+            $view_data["item_type"] = $post["type"];
+            $view_data["existing_categories"] = $this->Material_categories_m->dev2_getCategoryListByType($view_data["item_type"]);
         }
 
-        $type = $this->input->post("type");
-        if ($type) {
-            $model_info = new stdClass();
-            $model_info->color = "";
-
-            $view_data["type"] = $type;
-            $view_data["model_info"] = $model_info;
-
-            $view_data["existing_categories"] = $this->Bom_materials_model->get_categories()->result();
-
-            $this->load->view("stock/material/modal_category", $view_data);
-        }
+        // var_dump(arr($view_data)); exit();
+        $this->load->view("stock/material/modal_category", $view_data);
     }
 
     function material_category_save() 
     {
         $this->check_module_availability("module_stock");
-        if (!$this->bom_can_access_material() || !$this->check_permission('bom_material_create') || !$this->check_permission('bom_material_update')) {
-            echo json_encode(array("success" => false, 'message' => lang('no_permissions')));
+
+        if (!$this->bom_can_access_material() || !$this->check_permission("bom_material_create") || !$this->check_permission("bom_material_update")) {
+            echo json_encode(array("success" => false, "message" => lang("no_permissions")));
             exit;
         }
 
-        $id = $this->input->post('id');
         validate_submitted_data(
             array(
                 "id" => "numeric",
@@ -2555,69 +2550,64 @@ class Stock extends MY_Controller
         ); 
 
         $data = array(
-            "id" => $id,
-            "title" => $this->input->post('title')
+            "id" => $this->input->post("id") ? $this->input->post("id") : null,
+            "title" => $this->input->post("title"),
+            "item_type" => "RM"
         ); 
 
-        if ($id) {
-            $is_duplicate = $this->dev2_checkDuplicateMaterialCateNameWithId($this->input->post('title'), $this->input->post('id'));
+        if (isset($data["id"]) && !empty($data["id"])) {
+            $is_duplicate = $this->dev2_checkDuplicateMaterialCateNameWithId($data["id"], $data["title"], $data["item_type"]);
 
             if ($is_duplicate) {
-                echo json_encode(array("success" => true, "post" => $is_duplicate, "message" => lang('item_cate_duplicate')));
+                echo json_encode(array("success" => true, "post" => $is_duplicate, "message" => lang("item_cate_duplicate")));
                 exit;
-            }
+            } 
         } else {
-            $is_duplicate = $this->dev2_checkDuplicateMaterialCateName($this->input->post('title'));
+            $is_duplicate = $this->dev2_checkDuplicateMaterialCateName($data["title"], $data["item_type"]);
 
             if ($is_duplicate) {
-                echo json_encode(array("success" => true, "post" => $is_duplicate, "message" => lang('item_cate_duplicate')));
+                echo json_encode(array("success" => true, "post" => $is_duplicate, "message" => lang("item_cate_duplicate")));
                 exit;
             }
-        }
+        } 
+        
+        $save_id = $this->Material_categories_m->dev2_postCategoryData($data);
 
-        if (!$id) {
-            $save_id = $this->Bom_materials_model->category_create($data);
-        } else {
-            $save_id = $this->Bom_materials_model->category_update($data);
-        }
-
-        if ($save_id) {
+        if ($save_id) { 
             echo json_encode(
                 array(
                     "success" => true,
-                    "data" => $this->Bom_materials_model->get_categories(['id' => $save_id])->row(),
+                    "data" => $this->Material_categories_m->dev2_getCategoryInfoById($save_id),
                     "post" => $is_duplicate,
-                    'id' => $save_id,
-                    'message' => lang('record_saved')
+                    "id" => $save_id,
+                    "message" => lang("record_saved")
                 )
             );
         } else {
-            echo json_encode(array("success" => false, 'message' => lang('error_occurred')));
+            echo json_encode(array("success" => false, "message" => lang("error_occurred")));
         }
     }
 
     function material_category_delete()
     {
+        $post = $this->input->post();
+
         $this->check_module_availability("module_stock");
-        if (
-            !$this->bom_can_access_material() || !$this->check_permission('bom_material_create')
-            || !$this->check_permission('bom_material_update')
-        ) {
-            echo json_encode(array("success" => false, 'message' => lang('no_permissions')));
+        if (!$this->bom_can_access_material() || !$this->check_permission("bom_material_create") || !$this->check_permission("bom_material_update")) {
+            echo json_encode(array("success" => false, "message" => lang("no_permissions")));
             exit;
         }
 
-        $id = $this->input->post('id');
         validate_submitted_data(
             array(
                 "id" => "required|numeric"
             )
-        );
+        ); // dev2
 
-        if ($this->Bom_materials_model->category_delete($id)) {
-            echo json_encode(array("success" => true, 'message' => lang('record_deleted'), 'id' => $id));
+        if ($this->Material_categories_m->dev2_deleteCategoryById($post["id"])) {
+            echo json_encode(array("success" => true, "message" => lang("record_deleted"), "id" => $post["id"]));
         } else {
-            echo json_encode(array("success" => false, 'message' => lang('record_cannot_be_deleted')));
+            echo json_encode(array("success" => false, "message" => lang("record_cannot_be_deleted")));
         }
     }
     // END: Material Category
@@ -4597,7 +4587,7 @@ class Stock extends MY_Controller
 
         $view_data['view'] = $this->input->post('view');
         $view_data['model_info'] = $this->Bom_item_model->get_one($item_id);
-        $view_data['category_dropdown'] = $this->Bom_item_model->get_category_dropdown();
+        $view_data['category_dropdown'] = $this->Bom_item_model->get_category_dropdown(["type" => "FG"]);
         $view_data['account_category'] = $this->Account_category_model->get_list_dropdown();
 
         if (!empty($view_data['model_info']->id)) {
@@ -5454,37 +5444,26 @@ class Stock extends MY_Controller
     // START: Material Category
     function item_category_modal() 
     {
-        $this->check_module_availability("module_stock");
-        $view_data['can_access_material'] = $this->bom_can_access_material();
-        $view_data['can_create'] = $this->check_permission('bom_material_create');
-        $view_data['can_update'] = $this->check_permission('bom_material_update');
+        $post = $this->input->post();
 
-        if (!$this->bom_can_access_material() || !$this->check_permission('bom_material_create') || !$this->check_permission('bom_material_update')) 
-            redirect("forbidden");
-
-        $type = $this->input->post("type");
-        if ($type) {
-            $model_info = new stdClass();
-            $model_info->color = "";
-
-            $view_data["type"] = $type;
-            $view_data["model_info"] = $model_info;
-
-            $view_data["existing_categories"] = $this->Bom_item_model->get_categories()->result();
-
-            $this->load->view("stock/item/modal_category", $view_data);
+        if (isset($post["type"]) && !empty($post["type"])) {
+            $view_data["item_type"] = $post["type"];
+            $view_data["existing_categories"] = $this->Material_categories_m->dev2_getCategoryListByType($view_data["item_type"]);
         }
+
+        // var_dump(arr($view_data)); exit();
+        $this->load->view("stock/item/modal_category", $view_data);
     }
 
     function item_category_save() 
     {
         $this->check_module_availability("module_stock");
-        if (!$this->bom_can_access_material() || !$this->check_permission('bom_material_create') || !$this->check_permission('bom_material_update')) {
-            echo json_encode(array("success" => false, 'message' => lang('no_permissions')));
+
+        if (!$this->bom_can_access_material() || !$this->check_permission("bom_material_create") || !$this->check_permission("bom_material_update")) {
+            echo json_encode(array("success" => false, "message" => lang("no_permissions")));
             exit;
         }
-
-        $id = $this->input->post('id');
+        
         validate_submitted_data(
             array(
                 "id" => "numeric",
@@ -5493,69 +5472,64 @@ class Stock extends MY_Controller
         ); 
 
         $data = array(
-            "id" => $id,
-            "title" => $this->input->post('title')
+            "id" => $this->input->post("id") ? $this->input->post("id") : null,
+            "title" => $this->input->post("title"),
+            "item_type" => "FG"
         ); 
 
-        if ($id) {
-            $is_duplicate = $this->dev2_checkDuplicateItemCateNameWithId($this->input->post('title'), $this->input->post('id'));
+        if (isset($data["id"]) && !empty($data["id"])) {
+            $is_duplicate = $this->dev2_checkDuplicateItemCateNameWithId($data["id"], $data["title"], $data["item_type"]);
 
             if ($is_duplicate) {
-                echo json_encode(array("success" => true, "post" => $is_duplicate, "message" => lang('item_cate_duplicate')));
+                echo json_encode(array("success" => true, "post" => $is_duplicate, "message" => lang("item_cate_duplicate")));
                 exit;
-            }
+            } 
         } else {
-            $is_duplicate = $this->dev2_checkDuplicateItemCateName($this->input->post('title'));
+            $is_duplicate = $this->dev2_checkDuplicateItemCateName($data["title"], $data["item_type"]);
 
             if ($is_duplicate) {
-                echo json_encode(array("success" => true, "post" => $is_duplicate, "message" => lang('item_cate_duplicate')));
+                echo json_encode(array("success" => true, "post" => $is_duplicate, "message" => lang("item_cate_duplicate")));
                 exit;
             }
-        }
+        } 
 
-        if (!$id) {
-            $save_id = $this->Bom_item_model->category_create($data);
-        } else {
-            $save_id = $this->Bom_item_model->category_update($data);
-        }
+        $save_id = $this->Material_categories_m->dev2_postCategoryData($data);
 
-        if ($save_id) {
+        if ($save_id) { 
             echo json_encode(
                 array(
                     "success" => true,
-                    "data" => $this->Bom_item_model->get_categories(['id' => $save_id])->row(),
+                    "data" => $this->Material_categories_m->dev2_getCategoryInfoById($save_id),
                     "post" => $is_duplicate,
-                    'id' => $save_id,
-                    'message' => lang('record_saved')
+                    "id" => $save_id,
+                    "message" => lang("record_saved")
                 )
             );
         } else {
-            echo json_encode(array("success" => false, 'message' => lang('error_occurred')));
+            echo json_encode(array("success" => false, "message" => lang("error_occurred")));
         }
     }
 
     function item_category_delete()
     {
+        $post = $this->input->post();
+
         $this->check_module_availability("module_stock");
-        if (
-            !$this->bom_can_access_material() || !$this->check_permission('bom_material_create')
-            || !$this->check_permission('bom_material_update')
-        ) {
-            echo json_encode(array("success" => false, 'message' => lang('no_permissions')));
+        if (!$this->bom_can_access_material() || !$this->check_permission("bom_material_create") || !$this->check_permission("bom_material_update")) {
+            echo json_encode(array("success" => false, "message" => lang("no_permissions")));
             exit;
         }
 
-        $id = $this->input->post('id');
         validate_submitted_data(
             array(
                 "id" => "required|numeric"
             )
-        );
+        ); // dev2
 
-        if ($this->Bom_item_model->category_delete($id)) {
-            echo json_encode(array("success" => true, 'message' => lang('record_deleted'), 'id' => $id));
+        if ($this->Material_categories_m->dev2_deleteCategoryById($post["id"])) {
+            echo json_encode(array("success" => true, "message" => lang("record_deleted"), "id" => $post["id"]));
         } else {
-            echo json_encode(array("success" => false, 'message' => lang('record_cannot_be_deleted')));
+            echo json_encode(array("success" => false, "message" => lang("record_cannot_be_deleted")));
         }
     }
 
@@ -5991,10 +5965,10 @@ class Stock extends MY_Controller
         return $is_duplicate;
     }
 
-    public function dev2_checkDuplicateItemCateName($name)
+    public function dev2_checkDuplicateItemCateName($name, $type)
     {
         $is_duplicate = false;
-        $rows = $this->Item_categories_model->dev2_getItemCateByName($name);
+        $rows = $this->Material_categories_m->dev2_getDuplicatedCategoryByName($name, $type);
 
         if ($rows > 0) {
             $is_duplicate = true;
@@ -6002,10 +5976,21 @@ class Stock extends MY_Controller
         return $is_duplicate;
     }
 
-    public function dev2_checkDuplicateItemCateNameWithId($name, $id)
+    public function dev2_checkDuplicateItemCateNameWithId($id, $name, $type)
     {
         $is_duplicate = false;
-        $rows = $this->Item_categories_model->dev2_getItemCateByNameWithId($name, $id);
+        $rows = $this->Material_categories_m->dev2_getDuplicatedCategoryByNameWithId($id, $name, $type);
+
+        if ($rows > 0) {
+            $is_duplicate = true;
+        }
+        return $is_duplicate;
+    } 
+
+    public function dev2_checkDuplicateMaterialCateName($name, $type)
+    {
+        $is_duplicate = false;
+        $rows = $this->Material_categories_m->dev2_getDuplicatedCategoryByName($name, $type);
 
         if ($rows > 0) {
             $is_duplicate = true;
@@ -6013,27 +5998,16 @@ class Stock extends MY_Controller
         return $is_duplicate;
     }
 
-    public function dev2_checkDuplicateMaterialCateName($name)
+    public function dev2_checkDuplicateMaterialCateNameWithId($id, $name, $type)
     {
         $is_duplicate = false;
-        $rows = $this->Bom_materials_model->dev2_getMaterialCateByName($name);
+        $rows = $this->Material_categories_m->dev2_getDuplicatedCategoryByNameWithId($id, $name, $type);
 
         if ($rows > 0) {
             $is_duplicate = true;
         }
         return $is_duplicate;
-    }
-
-    public function dev2_checkDuplicateMaterialCateNameWithId($name, $id)
-    {
-        $is_duplicate = false;
-        $rows = $this->Bom_materials_model->dev2_getMaterialCateByNameWithId($name, $id);
-
-        if ($rows > 0) {
-            $is_duplicate = true;
-        }
-        return $is_duplicate;
-    }
+    } 
 
     public function dev2_countMaterialCateById($id)
     {
@@ -6151,6 +6125,74 @@ class Stock extends MY_Controller
             lang('THB'),
             $buttons
         ];
+    }
+
+    public function dev2_optimizationMaterialCategories() : void
+    {
+        // stock/dev2_optimizationMaterialCategories
+        $this->db->trans_start();
+
+        // Step 1: Pull base category
+        $category_data = $this->Bom_materials_model->dev2_getAllCategories();
+        // var_dump(arr($category_data));
+
+        // Step 2: If category not empty -> Loop data insert to new table [material_categories]
+        if (isset($category_data) && !empty($category_data)) {
+            foreach ($category_data as $category_item) {
+                // var_dump(arr($category_item->id . ' => ' . $category_item->title));
+
+                $new_data = array(
+                    "id" => $category_item->id,
+                    "title" => $category_item->title,
+                    "item_type" => "RM"
+                );
+                $this->Bom_materials_model->dev2_postOptimizationProcess($new_data);
+            }
+        }
+
+        if ($this->db->trans_status() === FALSE) {
+            // Something went wrong, so roll back the transaction
+            $this->db->trans_rollback();
+            echo 'Transaction failed.';
+        } else {
+            // Everything is successful, commit the transaction
+            $this->db->trans_commit();
+            echo 'Transaction successful.';
+        }
+    }
+
+    public function dev2_optimizationItemCategories() : void
+    {
+        // stock/dev2_optimizationItemCategories
+        $this->db->trans_start();
+
+        // Step 1: Pull base category
+        $category_data = $this->Bom_item_model->dev2_getAllCategories();
+        // var_dump(arr($category_data));
+
+        // Step 2: If category not empty -> Loop data insert to new table [material_categories]
+        if (isset($category_data) && !empty($category_data)) {
+            foreach ($category_data as $category_item) {
+                // var_dump(arr($category_item->id . ' => ' . $category_item->title));
+
+                $new_data = array(
+                    "id" => $category_item->id,
+                    "title" => $category_item->title,
+                    "item_type" => "FG"
+                );
+                $this->Bom_item_model->dev2_postOptimizationProcess($new_data);
+            }
+        }
+
+        if ($this->db->trans_status() === FALSE) {
+            // Something went wrong, so roll back the transaction
+            $this->db->trans_rollback();
+            echo 'Transaction failed.';
+        } else {
+            // Everything is successful, commit the transaction
+            $this->db->trans_commit();
+            echo 'Transaction successful.';
+        }
     }
 
 }
