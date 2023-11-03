@@ -2,7 +2,6 @@
 
 class Item_categories_model extends Crud_model
 {
-
     private $table = null;
 
     function __construct()
@@ -80,5 +79,3 @@ class Item_categories_model extends Crud_model
     }
 
 }
-
-?>
