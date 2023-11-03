@@ -1,7 +1,5 @@
 <?php
-
-if (!defined('BASEPATH'))
-	exit('No direct script access allowed');
+if (!defined('BASEPATH')) exit('No direct script access allowed');
 
 use Laminas\Barcode\Barcode;
 
@@ -14,9 +12,10 @@ class Items extends MY_Controller
 	{
 		parent::__construct();
 		$this->init_permission_checker("order");
+
 		$this->load->model("Bom_item_mixing_groups_model");
 		$this->load->model("Account_category_model");
-		$this->className = 'items';
+		$this->className = "items";
 	}
 
 	protected function validate_access_to_items()
@@ -24,21 +23,21 @@ class Items extends MY_Controller
 		$access_invoice = $this->get_access_info("invoice");
 		$access_estimate = $this->get_access_info("estimate");
 
-		//don't show the items if invoice/estimate modetail_mixing_modalle is not enabled
+		// Don't show the items if invoice / estimate modetail_mixing_modalle is not enabled
 		if (!(get_setting("module_invoice") == "1" || get_setting("module_estimate") == "1")) {
 			redirect("forbidden");
 		}
 
 		if ($this->login_user->is_admin) {
 			return true;
-		} else if ($access_invoice->access_type === "all" || $access_estimate->access_type === "all") {
+		} elseif ($access_invoice->access_type === "all" || $access_estimate->access_type === "all") {
 			return true;
 		} else {
 			redirect("forbidden");
 		}
 	}
 
-	//get categories dropdown
+	// Get categories dropdown
 	private function _get_categories_dropdown()
 	{
 		$categories = $this->Item_categories_model->get_all_where(array("deleted" => 0), 0, 0, "title")->result();
@@ -52,11 +51,9 @@ class Items extends MY_Controller
 	}
 
 	/* load item modal */
-
 	function modal_form()
 	{
-		if ($this->Permission_m->create_product_item != true)
-			redirect("forbidden");
+		if ($this->Permission_m->create_product_item != true) redirect("forbidden");
 
 		validate_submitted_data(
 			array(
@@ -64,12 +61,11 @@ class Items extends MY_Controller
 			)
 		);
 
-		$view_data['model_info'] = $this->Items_model->get_one($this->input->post('id'));
-		$view_data['categories_dropdown'] = $this->Item_categories_model->get_dropdown_list(array("title"));
+		$view_data["model_info"] = $this->Items_model->get_one($this->input->post('id'));
+		$view_data["categories_dropdown"] = $this->Item_categories_model->get_dropdown_list(array("title"));
 		$view_data["account_category"] = $this->Account_category_model->get_list_dropdown();
 
 		// var_dump(arr($view_data)); exit;
-
 		$this->load->view('items/modal_form', $view_data);
 	}
 
@@ -528,7 +524,7 @@ class Items extends MY_Controller
 		if ($item_id) {
 			$model_info = $this->Items_model->get_details(array("id" => $item_id, "login_user_id" => $this->login_user->id))->row();
 			if ($model_info) {
-				$view_data['model_info'] = $model_info;
+				$view_data["model_info"] = $model_info;
 				$view_data["tab"] = $tab;
 				$view_data["access_product_item_formula"] = false;
 				$this->template->rander("items/detail/index", $view_data);
@@ -570,7 +566,7 @@ class Items extends MY_Controller
 		redirect("forbidden");
 		}*/
 
-		$view_data['item_id'] = $item_id;
+		$view_data["item_id"] = $item_id;
 		$this->load->view("items/detail/mixing", $view_data);
 	}
 
@@ -955,7 +951,8 @@ class Items extends MY_Controller
 			$view_data['model_info']->is_public = 1;
 		}
 
-		$this->load->view('items/detail/modal_mixing', $view_data);
+		// var_dump(arr($view_data)); exit();
+		$this->load->view("items/detail/modal_mixing", $view_data);
 	}
 
 	function detail_mixing_save()
@@ -1378,7 +1375,7 @@ class Items extends MY_Controller
 
 		$list_data = $this->db->get()->result();
 
-		//$list_data = $this->Items_model->get_details($options, $this->getRolePermission)->result();//log_message("error", $this->db->last_query());
+		// $list_data = $this->Items_model->get_details($options, $this->getRolePermission)->result();//log_message("error", $this->db->last_query());
 		
 		foreach ($list_data as $data) 
 		{
@@ -1406,6 +1403,7 @@ class Items extends MY_Controller
 
 		echo json_encode(array("data" => $result));
 	}
+
 }
 
 /* End of file items.php */
