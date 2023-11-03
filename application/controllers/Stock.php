@@ -3524,6 +3524,68 @@ class Stock extends MY_Controller
     }
     // END: Restock Used History
 
+
+
+
+
+
+    //START: SFG
+
+    function sfg(){
+        if($this->input->post("datatable") == true){
+            jout(["data"=>$this->Sfg_m->indexDataSet()]);
+            return;
+            /*$options = array(
+                "category_id" => $this->input->post("category_id")
+            );
+            $list_data = $this->Bom_item_model->get_details($options)->result();
+            $result = array();
+            foreach ($list_data as $data) {
+                $result[] = $this->_item_make_row($data);
+            }
+            echo json_encode(array("data" => $result));
+            return;*/
+
+        }
+
+        $this->template->rander("stock/sfg/index", []);
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    // END
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     // START: Calculator
     function calculator()
     {
