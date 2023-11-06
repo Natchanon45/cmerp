@@ -394,9 +394,13 @@ class Bom_materials_model extends Crud_model
 		]);
 		$new_id = $this->db->insert_id();
 
-		// Update new id to master data
+		// Update new id to master data [bom_materials]
 		$this->db->where("category_id", $data["id"]);
 		$this->db->update("bom_materials", ["category_id" => $new_id]);
+
+		// Update new id to bom items [bom_item_mixings]
+		$this->db->where("cat_id", $data["id"]);
+		$this->db->update("bom_item_mixings", ["cat_id" => $new_id]);
 	}
 
 }

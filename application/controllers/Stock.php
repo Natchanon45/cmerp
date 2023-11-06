@@ -2602,7 +2602,7 @@ class Stock extends MY_Controller
             array(
                 "id" => "required|numeric"
             )
-        ); // dev2
+        );
 
         if ($this->Material_categories_m->dev2_deleteCategoryById($post["id"])) {
             echo json_encode(array("success" => true, "message" => lang("record_deleted"), "id" => $post["id"]));
@@ -5390,7 +5390,7 @@ class Stock extends MY_Controller
         $this->load->view('stock/item/modal_file', $view_data);
     }
 
-    function item_save_file()
+    function item_save_file() 
     {
         $this->check_module_availability("module_stock");
         if (!$this->bom_can_access_material() || !$this->check_permission('bom_material_update')) {
@@ -5427,7 +5427,7 @@ class Stock extends MY_Controller
                         "created_at" => $now,
                         "uploaded_by" => $this->login_user->id
                     );
-                    $success = $this->Bom_item_files_model->save($data);
+                    $success = $this->Bom_item_files_model->save($data); 
                 } else {
                     $success = false;
                 }
@@ -5525,7 +5525,7 @@ class Stock extends MY_Controller
             array(
                 "id" => "required|numeric"
             )
-        ); // dev2
+        );
 
         if ($this->Material_categories_m->dev2_deleteCategoryById($post["id"])) {
             echo json_encode(array("success" => true, "message" => lang("record_deleted"), "id" => $post["id"]));

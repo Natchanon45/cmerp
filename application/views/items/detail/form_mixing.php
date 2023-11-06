@@ -33,7 +33,7 @@
 					"name" => "name",
 					"value" => $model_info->name,
 					"class" => "form-control",
-					"placeholder" => lang("item_mixing_name"),
+					"placeholder" => lang("item_mixing_names"),
 					"autofocus" => true,
 					"data-rule-required" => true,
 					"data-msg-required" => lang("field_required"),
@@ -112,20 +112,7 @@
 		</div>
 	</div>
 </div>
-<?php /*<td>
-<select name="cat_id[]" class="form-control select-category" required>
-<option value="" data-unit=""></option>
-<?php
-foreach($categories_dropdown as $cat_id=>$text){
-$selected = '';
-if($cat_id == @$k->cat_id) $selected = 'selected';
-echo '<option value="'.$cat_id.'" '.$selected.'>'
-  .$text
-.'</option>';
-}
-?>
-</select>
-</td>*/?>
+
 <div id="type-container">
 	<table class="display dataTable no-footer" cellspacing="0" width="100%" role="grid" aria-describedby="supplier-table_info">
 		<thead>
@@ -146,96 +133,68 @@ echo '<option value="'.$cat_id.'" '.$selected.'>'
 		</thead>
 	
 		<tbody id="table-body">
-			<?php if (isset($material_cat_mixings)) {
-				foreach ($material_cat_mixings as $cat_id => $v) {
-					$temp_cat_id = 'cat_' . uniqid();
-					?>
-					<tr>
-						<td colspan="3">&nbsp;</td>
-					</tr>
+			<?php if (isset($material_cat_mixings) && sizeof($material_cat_mixings)): ?>
+				<?php foreach ($material_cat_mixings as $id => $name): ?>
+					<?php $temp_cat_id = "cat_" . uniqid(); ?>
 					<tr>
 						<td colspan="2">
-							<select name="cat_id[<?php echo $temp_cat_id; ?>]" temp-cat-id="<?php echo $temp_cat_id; ?>"
-								class="form-control select-category" required>
-								<option value="" data-unit="">
-									<?php echo lang('select_category'); ?>
-								</option>
-								<?php
-								foreach ($categories_dropdown as $k => $title) {
-									$selected = '';
-									if ($k == $cat_id)
-										$selected = 'selected';
-									echo '<option value="' . $k . '" ' . $selected . '>' . $title . '</option>';
-								}
-								?>
+							<select name="cat_id[<?php echo $temp_cat_id; ?>]" temp-cat-id="<?php echo $temp_cat_id; ?>" id="<?php echo $temp_cat_id; ?>" class="form-control select-category" required>
+								<option value="" data-unit=""><?php echo lang("select_category"); ?></option>
+								<?php foreach ($categories_dropdown as $key => $value): ?>
+									<option value="<?php echo $key; ?>" <?php if ($id == $key) { echo "selected"; } ?>><?php echo $value; ?></option>
+								<?php endforeach; ?>
 							</select>
 						</td>
 						<td>
-							<a href="javascript:" id="" class="btn btn-primary btn-add-material"
-								temp-cat-id="<?php echo $temp_cat_id; ?>">
+							<a href="javascript:void(0);" class="btn btn-primary btn-add-material" temp-cat-id="<?php echo $temp_cat_id; ?>">
 								<span class="fa fa-plus-circle"></span>
-								<?php echo lang('add'); ?>
+								<?php echo lang("add"); ?>
 							</a>
 						</td>
 					</tr>
 					<tr>
 						<td colspan="3">
-							<table class="display dataTable no-footer" cellspacing="0" width="100%" role="grid"
-								aria-describedby="supplier-table_info">
+							<table class="display dataTable no-footer" cellspacing="0" width="100%" role="grid" aria-describedby="supplier-table_info">
 								<thead class="hide_head">
 									<tr class="hide_head">
-										<td class="hide_head">&nbsp;</td>
-										<td class="w200 hide_head">&nbsp;</td>
-										<td class="w70 hide_head">&nbsp;</td>
+										<td class="hide_head"></td>
+										<td class="hide_head w200"></td>
+										<td class="hide_head w70"></td>
 									</tr>
 								</thead>
 								<tbody class="table-body2">
-									<?php foreach ($material_cat_mixings[$cat_id] as $material) { ?>
+									<?php foreach ($material_cat_mixings[$id] as $material): ?>
 										<tr>
 											<td>
-												<select name="material_id[<?php echo $temp_cat_id; ?>][]"
-													class="form-control select-material" required>
-													<option value="" data-unit="">
-														<?php echo lang('select_material'); ?>
-													</option>
-													<?php
-													foreach ($material_dropdown as $d) {
-														$material_name = $d->name;
-														if ($bom_material_read_production_name == true)
-															$material_name .= " - " . $d->production_name;
-
-														$selected = '';
-														if ($d->id == $material->material_id)
-															$selected = 'selected';
-														echo '<option value="' . $d->id . '" data-unit="' . $d->unit . '" ' . $selected . '>' . $material_name . '</option>';
-													}
-													?>
+												<select name="material_id[<?php echo $temp_cat_id; ?>][]" class="form-control select-material" required>
+													<option value="" data-unit=""><?php echo lang("select_material"); ?></option>
+													<?php foreach ($material_dropdown as $dropdown): ?>
+														<option value="<?php echo $dropdown->id; ?>" data-unit="<?php echo $dropdown->unit; ?>" <?php if ($material->material_id == $dropdown->id) { echo "selected"; } ?>>
+															<?php echo (isset($bom_material_read_production_name) && $bom_material_read_production_name) ? $dropdown->name . " - " . $dropdown->production_name : $dropdown->name; ?>
+														</option>
+													<?php endforeach; ?>
 												</select>
 											</td>
 											<td>
 												<div class="input-suffix">
-													<input type="number" name="mixing_ratio[<?php echo $temp_cat_id; ?>][]" required
-														class="form-control" min="0" step="0.0001"
-														value="<?= $material->ratio ?>" />
-													<div class="input-tag">
-														<?= $material->material_unit ?>
-													</div>
+													<input type="number" name="mixing_ratio[<?php echo $temp_cat_id; ?>][]" class="form-control select-number-ratio" value="<?php echo $material->ratio; ?>" min="0" step="0.0001" required>
+													<div class="input-tag"><?php echo $material->material_unit; ?></div>
 												</div>
 											</td>
 											<td>
-												<a href="javascript:" class="btn btn-danger btn-delete-material">
+												<a href="javascript:void(0);" class="btn btn-danger btn-delete-material">
 													<span class="fa fa-trash"></span>
-													<?php echo lang('delete'); ?>
+													<?php echo lang("delete"); ?>
 												</a>
 											</td>
 										</tr>
-									<?php } ?>
+									<?php endforeach; ?>
 								</tbody>
 							</table>
 						</td>
 					</tr>
-				<?php }
-			} ?>
+				<?php endforeach; ?>
+			<?php endif; ?>
 		</tbody>
 	</table>
 </div>
@@ -244,148 +203,173 @@ echo '<option value="'.$cat_id.'" '.$selected.'>'
 	$(document).ready(function () {
 		$("#form-header .select2").select2();
 
-		var clientFormGroup = $('#client-form-group'),
-			publicSelect = $('#is_public');
+		var clientFormGroup = $("#client-form-group");
+		var publicSelect = $("#is_public");
+
 		toggleClient();
-		publicSelect.change(function () { toggleClient(); });
-		function toggleClient() {
-			if (publicSelect.prop('checked')) clientFormGroup.css('display', 'none');
-			else clientFormGroup.css('display', 'block');
+
+		publicSelect.change(function () {
+			toggleClient();
+		});
+
+		function toggleClient () {
+			if (publicSelect.prop("checked")) {
+				clientFormGroup.css("display", "none");
+			} else {
+				clientFormGroup.css("display", "block");
+			}
 		}
 
-		var typeContainer = $('#type-container');
-		var btnAdd = typeContainer.find('.btn-add-material'),
-			tableBody = typeContainer.find('#table-body')
-		btnAddCat = typeContainer.find('#btn-add-category');
-		<?php /*
- <td>
- <select name="cat_id[]" class="form-control select-category" required>
- <option value="" data-unit=""></option>
- <?php
-  foreach($categories_dropdown as $cat_id=>$text){
-	$selected = '';
-	if($cat_id == @$k->cat_id) $selected = 'selected';
-	echo '<option value="'.$cat_id.'" '.$selected.'>'
-		.$text
-	  .'</option>';
-  }
- ?>
- </select>
- </td>
- */?>
+		var typeContainer = $("#type-container");
+		var tableBody = typeContainer.find("#table-body");
+		var btnAddCat = typeContainer.find("#btn-add-category");
+
 		btnAddCat.click(function (e) {
-			//tableBody = typeContainer.find('#table-body');
 			e.preventDefault();
-			let temp_cat_id = 'cat_' + $.now();
+
+			let temp_cat_id = `cat_${$.now()}`;
+			// console.log(temp_cat_id);
+
 			tableBody.append(`
-		<tr><td colspan="3">&nbsp;</td></tr>
-		<tr>
-		  <td colspan="2">
-			<select name="cat_id[${temp_cat_id}]" temp-cat-id="${temp_cat_id}" class="form-control select-category" required>
-			  <option value="" data-unit=""><?php echo lang('select_category'); ?></option>
-			  <?php
-			  foreach ($categories_dropdown as $k => $title) {
-				  echo '<option value="' . $k . '">'
-				  	. $title
-				  	. '</option>';
-			  }
-			  ?>
-			</select>
-		  </td>
-		  <td>
-			<a href="javascript:" id="" temp-cat-id="${temp_cat_id}" class="btn btn-primary btn-add-material">
-			  <span class="fa fa-plus-circle"></span> <?php echo lang('add'); ?>
-			</a>
-			<?php /*<a href="javascript:" class="btn btn-danger btn-delete-material">
-	<span class="fa fa-trash"></span> <?php echo lang('delete'); ?>
-  </a>*/?>
-		  </td>
-		</tr>
-		<tr><td colspan="3">
-		  <table class="display dataTable no-footer" cellspacing="0" width="100%" role="grid" aria-describedby="supplier-table_info">
-			<thead class="hide_head">
-			  <tr class="hide_head">
-				<td class="hide_head">&nbsp;</td>
-				<td class="w200 hide_head">&nbsp;</td>
-				<td class="w70 hide_head">&nbsp;</td>
-			  </tr>
-			</thead>
-			<tbody class="table-body2"></tbody>
-		  </table></td>
-		</tr>
-	  `);
+				<tr>
+					<td colspan="2">
+						<select name="cat_id[${temp_cat_id}]" temp-cat-id="${temp_cat_id}" class="form-control select-category" required>
+							<option value="" data-unit=""><?php echo lang("select_category"); ?></option>
+							<?php foreach ($categories_dropdown as $key => $value): ?>
+								<option value="<?php echo $key; ?>"><?php echo $value; ?></option>
+							<?php endforeach; ?>
+						</select>
+					</td>
+					<td>
+						<a href="javascript:void(0);" temp-cat-id="${temp_cat_id}" class="btn btn-primary btn-add-material hide">
+							<span class="fa fa-plus-circle"></span>
+							<?php echo lang("add"); ?>
+						</a>
+					</td>
+				</tr>
+				<tr>
+					<td colspan="3">
+						<table class="display dataTable no-footer" cellspacing="0" width="100%" role="grid" aria-describedby="supplier-table_info">
+							<thead class="hide_head">
+								<tr class="hide_head">
+									<td class="hide_head"></td>
+									<td class="hide_head w200"></td>
+									<td class="hide_head w70"></td>
+								</tr>
+							</thead>
+							<tbody class="table-body2"></tbody>
+						</table>
+					</td>
+				</tr>
+			`);
+
 			processBindingCat();
 		});
-		processBindingCat();
+
 		function processBindingCat() {
-			typeContainer.find('.btn-add-material').unbind();
-			typeContainer.find('.btn-add-material').click(function (e) {
+			typeContainer.find(".select-category").select2("destroy");
+			typeContainer.find(".select-category").select2();
+			typeContainer.find(".select-category").change(function (e) {
 				e.preventDefault();
-				addMaterialRow($(this).attr('temp-cat-id'), $(this).closest('tr').next().find('.table-body2'));
+
+				let self = $(this);
+				let btn = self.closest("tr").find(".btn-add-material");
+
+				if (self.val() === null || self.val() === '') {
+					// console.log('Value is either null or empty.');
+					btn.addClass("hide");
+				} else {
+					// console.log('Value is not null or empty.');
+					btn.removeClass("hide");
+				}
+			});
+
+			typeContainer.find(".btn-add-material").unbind();
+			typeContainer.find(".btn-add-material").click(function (e) {
+				e.preventDefault();
+
+				let self = $(this);
+				let dropdown = self.closest("tr").find(".select-category");
+
+				dropdown.addClass("pointer-none");
+				addMaterialRow(
+					$(this).attr("temp-cat-id"),
+					$(this).closest("tr").next().find(".table-body2")
+				);
 			});
 		}
-		function addMaterialRow(temp_cat_id, tableBody_) {
-			// console.log(temp_cat_id);
-			// return;
-			tableBody_.append(`
-		<tr>
-		  <td>
-			<select name="material_id[${temp_cat_id}][]" class="form-control select-material" required>
-			  <option value="" data-unit=""><?php echo lang('select_material'); ?></option>
-			  <?php
-			  foreach ($material_dropdown as $d) {
-				  $material_name = $d->name;
-				  if ($bom_material_read_production_name == true)
-					  $material_name .= " - " . $d->production_name;
 
-				  echo '<option value="' . $d->id . '" data-unit="' . $d->unit . '">' . $material_name . '</option>';
-			  }
-			  ?>
-			</select>
-		  </td>
-		  <td>
-			<div class="input-suffix">
-			  <input 
-				type="number" name="mixing_ratio[${temp_cat_id}][]" required 
-				class="form-control" min="0" step="0.0001" value="0" 
-			  />
-			  <div class="input-tag"></div>
-			</div>
-		  </td>
-		  <td>
-			<a href="javascript:" class="btn btn-danger btn-delete-material">
-			  <span class="fa fa-trash"></span> <?php echo lang('delete'); ?>
-			</a>
-		  </td>
-		</tr>
-	  `);
+		processBindingCat();
+
+		function addMaterialRow(rowCate, rowBody) {
+			rowBody.append(`
+				<tr>
+					<td>
+						<select name="material_id[${rowCate}][]" class="form-control select-material" required>
+							<option value="" data-unit=""><?php echo lang("select_material"); ?></option>
+							<?php foreach ($material_dropdown as $dropdown): ?>
+								<option value="<?php echo $dropdown->id; ?>" data-unit="<?php echo $dropdown->unit; ?>">
+									<?php echo (isset($bom_material_read_production_name) && $bom_material_read_production_name) ? $dropdown->name . " - " . $dropdown->production_name : $dropdown->name; ?>
+								</option>
+							<?php endforeach; ?>
+						</select>
+					</td>
+					<td>
+						<div class="input-suffix">
+							<input type="number" name="mixing_ratio[${rowCate}][]" class="form-control select-number-ratio" value="0" min="0" step="0.0001" required>
+							<div class="input-tag"></div>
+						</div>
+					</td>
+					<td>
+						<a href="javascript:void(0);" class="btn btn-danger btn-delete-material">
+							<span class="fa fa-trash"></span> 
+							<?php echo lang("delete"); ?>
+						</a>
+					</td>
+				</tr>
+			`);
+
 			processBinding();
 		}
 
-		btnAdd.click(function (e) {
-			e.preventDefault();
-			addMaterialRow($(this).attr('temp-cat-id'), $(this).closest('tr').next().find('.table-body2'));
-		});
-
-		processBinding();
-
 		function processBinding() {
-			typeContainer.find('.btn-delete-material').unbind();
-			typeContainer.find('.btn-delete-material').click(function (e) {
+			typeContainer.find(".btn-delete-material").unbind();
+			typeContainer.find(".btn-delete-material").click(function (e) {
 				e.preventDefault();
-				$(this).closest('tr').remove();
+
+				const self = $(this);
+				
+				let trCount = self.closest("tbody").find("tr");
+				let dropdownCategory = self.closest("table").closest("tr").prev("tr").find(".select-category");
+				let trActual = trCount.length - 1;
+				
+				if (trActual <= 0) {
+					dropdownCategory.removeClass("pointer-none");
+				}
+				
+				self.closest("tr").remove();
 				processBinding();
 			});
 
-			typeContainer.find('.select-material').select2('destroy');
-			typeContainer.find('.select-material').select2();
+			typeContainer.find(".select-material").select2("destroy");
+			typeContainer.find(".select-material").select2();
+			typeContainer.find(".select-material").unbind();
+			typeContainer.find(".select-material").change(function (e) {
+				e.preventDefault();
 
-			typeContainer.find('.select-material').unbind();
-			typeContainer.find('.select-material').change(function () {
 				let self = $(this);
-				let option = $(this).find('[value="' + this.value + '"]');
-				self.closest('tr').find('.input-tag').html(option.data('unit'));
+				let option = self.find(`[value="${self.val()}"]`);
+
+				self.closest("tr").find(".input-tag").html(option.data("unit"));
+			});
+
+			typeContainer.find(".select-number-ratio").unbind();
+			typeContainer.find(".select-number-ratio").click(function (e) {
+				e.preventDefault()
+				e.target.select();
 			});
 		}
+
+		processBinding();
 	});
 </script>

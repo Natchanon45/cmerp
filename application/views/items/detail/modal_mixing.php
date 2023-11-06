@@ -42,15 +42,20 @@
 		jQuery('#id').val(0);
 		jQuery('#mixing-form').submit();
 	}
+
 	function duplicate_to_new_item() {
 		jQuery('#id').val(0);
 		jQuery('#clone_to_new_item').val(1);
 		jQuery('#mixing-form').submit();
 	}
+
 	$(document).ready(function () {
 		$('[data-toggle="tooltip"]').tooltip();
+
 		$("#mixing-form").appForm({
 			onSuccess: function (result) {
+				console.log(result);
+				
 				if (result.view === "details") {
 					appAlert.success(result.message, { duration: 10000 });
 					setTimeout(function () {
