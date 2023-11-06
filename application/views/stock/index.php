@@ -38,7 +38,7 @@
 
     <?php if($access_material){?>
       <div class="grid xl-20 lg-30 md-1-3">
-        <a class="box-card-01 box-shadow" href="<?php echo_uri('stock/sfg'); ?>">
+        <a class="box-card-01 box-shadow" href="<?php echo_uri('sfg'); ?>">
           <div class="icon">
             <i class="fa fa-tags" aria-hidden="true"></i>
           </div>
@@ -49,7 +49,7 @@
 
     <?php if($access_restock){?>
       <div class="grid xl-20 lg-30 md-1-3">
-        <a class="box-card-01 box-shadow" href="<?php echo_uri('stock/restocks_item'); ?>">
+        <a class="box-card-01 box-shadow" href="<?php echo_uri('sfg/restocks'); ?>">
           <div class="icon">
             <i class="fa fa-database" aria-hidden="true"></i>
           </div>
@@ -104,7 +104,7 @@
 
     <?php if($access_material && $access_restock){?>
       <div class="grid xl-20 lg-30 md-1-3">
-        <a class="box-card-01 box-shadow" href="<?php echo_uri('stock/material_report'); ?>">
+        <a class="box-card-01 box-shadow" href="<?php echo_uri('sfg/report'); ?>">
           <div class="icon">
             <i class="fa fa-bar-chart" aria-hidden="true"></i>
           </div>

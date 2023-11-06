@@ -6,65 +6,7 @@ class Sfg_m extends MY_Model {
         parent::__construct();
     }
 
-    function getCode(){
-        return $this->code;
-    }
-
-    function getNewDocNumber(){
-        $this->db->where("DATE_FORMAT(created_datetime,'%Y-%m')", date("Y-m"));
-        $this->db->where("deleted", 0);
-        $running_number = $this->db->get("quotation")->num_rows() + 1;
-
-        $doc_number = $this->getCode().date("Ym").sprintf("%04d", $running_number);
-
-        return $doc_number;
-    }
-
-    function getStatusName($status_code){
-        if($status_code == "W"){
-            return "รออนุมัติ";
-        }
-    }
-
     function getIndexDataSetHTML($irow){
-        /*$buttons = "<a data-post-id='".$qrow->id."' data-post-task='save_doc' data-title='แก้ไขใบเสนอราคา ".$qrow->doc_number."' data-action-url='".get_uri("quotations/addedit")."' data-act='ajax-modal' class='edit'><i class='fa fa-pencil'></i></a><a data-post-id='".$qrow->id."' data-post-task='copy_doc' data-title='คัดลอกใบเสนอราคาจาก ".$qrow->doc_number."' data-action-url='".get_uri("quotations/addedit")."' data-act='ajax-modal' class='copy'><i class='fa fa-clone' aria-hidden='true'></i></a>";*/
-
-
-        /*$buttons = modal_anchor(get_uri("items/modal_form"), "<i class='fa fa-pencil'></i>", array("class" => "edit", "title" => lang('stock_item_edit'), "data-post-id" => $data->id)).js_anchor("<i class='fa fa-times fa-fw'></i>", 
-                        array(
-                            "title" => lang('stock_restock_item_delete'), 
-                            "class" => "delete", 
-                            "data-id" => $data->id, 
-                            "data-action-url" => get_uri("stock/item_delete"), 
-                            "data-action" => "delete-confirmation"
-                        )
-                    );
-
-        $row_data = array(
-                anchor(get_uri('stock/item_view/' . $data->id), $data->id),
-                $preview,
-                $data->item_code ? $data->item_code : '-',
-                anchor(get_uri('stock/item_view/' . $data->id), $data->title),
-                $data->barcode ? '<div style="text-align:center"><a href="' . $src . '" class="barcode_img" download><img src="' . $src . '" /><div class="text">Click to download</div></a></div>' : '-',
-                $data->rate ? to_decimal_format3($data->rate) : to_decimal_format3(0),
-                lang('THB'),
-                $data->category ? $data->category : '-',
-                $data->description ? trim($data->description) : '-',
-                $data->remaining ? to_decimal_format2($data->remaining) : to_decimal_format2(0),
-                $data->unit_type ? mb_strtoupper($data->unit_type) : '-'
-            );
-
-  
-
-        $data = [
-                    "<a href='".get_uri("quotations/view/".$qrow->id)."'>".convertDate($qrow->doc_date, true)."</a>",
-                    "<a href='".get_uri("quotations/view/".$qrow->id)."'>".$qrow->doc_number."</a>",
-                    $qrow->reference_number, "<a href='".get_uri("clients/view/".$qrow->client_id)."'>".$this->Clients_m->getCompanyName($qrow->client_id)."</a>",
-                    $customer_group_names,
-                    convertDate($qrow->doc_date, true), number_format($qrow->total, 2), $doc_status, $buttons
-                ];
-*/
-
         $preview = '<img class="product-preview" src="' . base_url('assets/images/file_preview.jpg'). '">';
         if ($irow->files) {
             $images = @unserialize($irow->files);
@@ -75,10 +17,8 @@ class Sfg_m extends MY_Model {
 
         $src = @$irow->barcode;
         if ($src) {
-            $src = base_url('/items/barcode/' . $src);
+            $src = get_uri('/items/barcode/' . $src);
         }
-
-
 
         $data = [
                     "<a href='".get_uri('items/item_view/' . $irow->id)."'>".$irow->id."</a>",
@@ -86,11 +26,10 @@ class Sfg_m extends MY_Model {
                     $irow->item_code ? $irow->item_code : '-',
                     "<a href='".get_uri('items/detail/' . $irow->id)."'>".$irow->title."</a>",
                     nl2br($irow->description),
-                    $irow->category_title ? "$irow->category_title" : "-",
                     $irow->unit_type ? $irow->unit_type : "",
                     @$irow->barcode ? '<div style="text-align:center"><a href="' . $src . '" class="barcode_img" download><img src="' . $src . '" /><div class="text">Click to download</div></a></div>' : '-',
                     $irow->rate,
-                    "<a class='delete' data-id='".$irow->id."' data-action-url='".get_uri("stock/item_delete")."' data-action='delete-confirmation'><i class='fa fa-times fa-fw'></i></a>"
+                    modal_anchor(get_uri("sfg/addedit"), "<i class='fa fa-pencil'></i>", array("class" => "edit", "title" => lang('edit_item'), "data-post-id" => $irow->id))."<a class='delete' data-id='".$irow->id."' data-action-url='".get_uri("sfg/item_delete")."' data-action='delete-confirmation'><i class='fa fa-times fa-fw'></i></a>"
 
                 ];
 
@@ -100,11 +39,12 @@ class Sfg_m extends MY_Model {
     function indexDataSet() {
         $db = $this->db;
         $company_setting = $this->Settings_m->getCompany();
-//->where("item_type", $this->item_type)
+
         $db->select("items.*, item_categories.title AS category_title")
             ->from("items")
             ->join("item_categories", "item_categories.id = items.category_id", "left")
             ->join("bom_item_stocks", "bom_item_stocks.item_id = items.id", "left")
+            ->where("item_type", $this->item_type)
             ->where("items.deleted", 0);
 
         if($this->input->post("category_id") != null){
@@ -446,162 +386,127 @@ class Sfg_m extends MY_Model {
         $db = $this->db;
         $company_setting = $this->Settings_m->getCompany();
 
-        $this->validateDoc();
-        if($this->data["status"] == "validate") return $this->data;
+        //$this->validateDoc();
+        //if($this->data["status"] == "validate") return $this->data;
 
-        $task = $this->json->task;
-        $docId = $this->json->doc_id;
-        $doc_date = convertDate($this->json->doc_date);
-        $credit = intval($this->json->credit) < 0 ? 0:intval($this->json->credit);
-        $doc_valid_until_date = convertDate($this->json->doc_valid_until_date);
-        $reference_number = $this->json->reference_number;
-        $seller_id = $this->json->seller_id;
-        $client_id = $this->json->client_id;
-        $lead_id = $this->json->lead_id;
-        $project_id = $this->json->project_id;
-        $remark = $this->json->remark;
+        $sfg_id = $this->input->post('id');
+        $oid = $this->input->post('oid');
+        $is_duplicate = $this->input->post('is_duplicate');
+        $account_id = $this->input->post('account_id');
 
-        if($client_id == "" && $lead_id == ""){
-            $this->data["status"] = "validate";
-            $this->data["messages"]["client_id"] = "โปรดใส่ข้อมูล";
-            return $this->data;
+        $new_files = [];
+        $target_path = get_setting("timeline_file_path");
+        $timeline_file_path = get_setting("timeline_file_path");
+
+        $files_data = move_files_from_temp_dir_to_permanent_dir($target_path, "item");
+        $new_files = unserialize($files_data);
+
+        $files = [];
+
+        if ($sfg_id) {
+            $item_info = $this->Items_model->get_one($sfg_id);
+            $new_files = update_saved_files($timeline_file_path, $item_info->files, $new_files);
+        } elseif ($oid && $is_duplicate) {// duplicate
+            $o_item_info = $this->Items_model->get_one($oid);
+            $new_files = unserialize($o_item_info->files);
+            $files_data = copy_files($new_files, $target_path, "item");
+            $new_files = unserialize($files_data);
+
+            $files = $this->Bom_item_mixing_groups_model->get_file_details(['ref_id' => $oid, 'tablename' => 'items'])->result();
+            // $new_files = update_saved_files($timeline_file_path, $o_item_info->files, $new_files);
         }
 
-        $customer_id = null;
-        if($client_id != "") $customer_id = $client_id;
-        if($lead_id != "") $customer_id = $lead_id;
+        $item_data = array(
+            "item_type"=>$this->item_type,
+            "title" => $this->input->post('title'),
+            "description" => $this->input->post('description'),
+            "unit_type" => $this->input->post('unit_type'),
+            "rate" => unformat_currency($this->input->post('item_rate')),
+            "files"=>serialize($new_files),
+            "barcode" => $this->input->post('barcode'),
+            "show_in_client_portal" => $this->input->post('show_in_client_portal') ? $this->input->post('show_in_client_portal') : "",
+            "account_id" => $account_id ? $account_id : null,
+            "noti_threshold" => $this->input->post('noti_threshold'),
+            "item_code" => $this->input->post('item_code')
+        );
 
-        if($docId != "" && $task == "save_doc"){
-            $qrow = $db->select("status")
-                        ->from("quotation")
-                        ->where("id", $docId)
-                        ->where("billing_type", $company_setting["company_billing_type"])
-                        ->where("deleted", 0)
+        if ($sfg_id) {
+            $db->where("id", $sfg_id);
+            $db->update("items", $item_data);
+        }else{
+            $item_data["created_by"] = $this->login_user->id;
+            $db->insert("items", $item_data);
+            $sfg_id = $db->insert_id();
+        }
+
+        $sfgrow = $db->select("*")
+                        ->from("items")
+                        ->where("id", $sfg_id)
                         ->get()->row();
 
-            if(empty($qrow)){
-                $this->data["success"] = false;
-                $this->data["message"] = "ขออภัย เกิดข้อผิดพลาดระหว่างดำเนินการ! โปรดลองใหม่อีกครั้งในภายหลัง";
-                return $this->data;
-            }
-
-            if($qrow->status != "W"){
-                $this->data["success"] = false;
-                $this->data["message"] = "ไม่สามารถบันทึกเอกสารได้เนื่องจากเอกสารมีการเปลี่ยนแปลงสถานะแล้ว";
-                return $this->data;
-            }
-
-            $db->where("id", $docId);
-            $db->where("deleted", 0);
-            $db->update("quotation", [
-                                        "doc_date"=>$doc_date,
-                                        "credit"=>$credit,
-                                        "doc_valid_until_date"=>$doc_valid_until_date,
-                                        "reference_number"=>$reference_number,
-                                        "seller_id"=>$seller_id,
-                                        "client_id"=>$customer_id,
-                                        "project_id"=>$project_id,
-                                        "remark"=>$remark
-                                    ]);
-        }elseif($docId != "" && $task == "copy_doc"){
-            $qrow = $db->select("*")
-                        ->from("quotation")
-                        ->where("id", $docId)
-                        ->where("deleted", 0)
-                        ->get()->row();
-
-            if(empty($qrow)){
-                $this->data["success"] = false;
-                $this->data["message"] = "ขออภัย เกิดข้อผิดพลาดระหว่างดำเนินการ! โปรดลองใหม่อีกครั้งในภายหลัง";
-                return $this->data;
-            }
-
-            $doc_number = $this->getNewDocNumber();
         
-            $db->insert("quotation", [
-                                        "billing_type"=>$qrow->billing_type,
-                                        "doc_number"=>$doc_number,
-                                        "doc_date"=>$doc_date,
-                                        "credit"=>$credit,
-                                        "doc_valid_until_date"=>$doc_valid_until_date,
-                                        "reference_number"=>$reference_number,
-                                        "project_id"=>$project_id,
-                                        "seller_id"=>$seller_id,
-                                        "client_id"=>$customer_id,
-                                        "sub_total_before_discount"=>$qrow->sub_total_before_discount,
-                                        "discount_type"=>$qrow->discount_type,
-                                        "discount_percent"=>$qrow->discount_percent,
-                                        "discount_amount"=>$qrow->discount_amount,
-                                        "sub_total"=>$qrow->sub_total,
-                                        "vat_inc"=>$qrow->vat_inc,
-                                        "vat_percent"=>$qrow->vat_percent,
-                                        "vat_value"=>$qrow->vat_value,
-                                        "total"=>$qrow->total,
-                                        "wht_inc"=>$qrow->wht_inc,
-                                        "wht_percent"=>$qrow->wht_percent,
-                                        "wht_value"=>$qrow->wht_value,
-                                        "payment_amount"=>$qrow->payment_amount,
-                                        "remark"=>$remark,
-                                        "created_by"=>$this->login_user->id,
-                                        "created_datetime"=>date("Y-m-d H:i:s"),
-                                        "status"=>"W"
-                                    ]);
 
-            $newDocId = $db->insert_id();
+        return array("success" => true, "id" => $sfg_id, "data" => $this->getIndexDataSetHTML($sfgrow), 'message' => lang('record_saved'));
 
-            $qirows = $db->select("*")
-                        ->from("quotation_items")
-                        ->where("quotation_id", $docId)
-                        ->get()->result();
 
-            if(!empty($qirows)){
-                foreach($qirows as $qirow){
-                    $db->insert("quotation_items", [
-                                                        "quotation_id"=>$newDocId,
-                                                        "product_id"=>$qirow->product_id,
-                                                        "product_name"=>$qirow->product_name,
-                                                        "product_description"=>$qirow->product_description,
-                                                        "quantity"=>$qirow->quantity,
-                                                        "unit"=>$qirow->unit,
-                                                        "price"=>$qirow->price,
-                                                        "discount_type"=>$qirow->discount_type,
-                                                        "discount_percent"=>$qirow->discount_percent,
-                                                        "discount_amount"=>$qirow->discount_amount,
-                                                        "total_price"=>$qirow->total_price,
-                                                        "sort"=>$qirow->sort
-                                                    ]);
+        /*if ($item_id) {
+            
+            if ($oid && $is_duplicate) {
+                $mixing_groups = $this->Bom_item_mixing_groups_model->get_details(['item_id' => $oid])->result();
+                foreach ($mixing_groups as $g) {
+                    $g_a = [];
+                    $g_a['id'] = 0;
+                    $g_a['item_id'] = $item_id;
+                    $g_a['name'] = $g->name;
+                    $g_a['ratio'] = $g->ratio;
+                    $g_a['is_public'] = $g->is_public;
+                    $g_a['for_client_id'] = $g->for_client_id;
+
+                    $new_gid = $this->Bom_item_mixing_groups_model->save($g_a, 0);
+                    if ($new_gid) {
+                        $material_mixings = $this->Bom_item_mixing_groups_model->get_mixings(['group_id' => $g->id])->result();
+                        $material_ids = [];
+                        $ratios = [];
+                        $cat_ids = [];
+                        foreach ($material_mixings as $mm) {
+                            if (!isset($material_ids[$mm->cat_id]))
+                                $material_ids[$mm->cat_id] = [];
+                            $material_ids[$mm->cat_id][] = $mm->material_id;
+
+                            if (!isset($ratios[$mm->cat_id]))
+                                $ratios[$mm->cat_id] = [];
+                            $ratios[$mm->cat_id][] = $mm->ratio;
+
+                            $cat_ids[$mm->cat_id] = $mm->cat_id;
+                        }
+                        $this->Bom_item_mixing_groups_model->mixing_save($new_gid, $material_ids, $cat_ids, $ratios);
+                    } else {
+                        var_dump($g_a, $this->Bom_item_mixing_groups_model->db);
+                    }
+                }
+                $target_path = BASEPATH . 'files/';
+                foreach ($files as $f) {
+                    $file_path = $target_path . $f->path;
+                    if (file_exists($file_path)) {
+                        $new_file_name = '_new_' . $f->path;
+                        $new_file_path = $target_path . $new_file_name;
+                        if (@copy($file_path, $new_file_path)) {
+                            $new_f_item = (array) $f;
+                            $new_f_item['id'] = 0;
+                            $new_f_item['ref_id'] = $item_id;
+                            $new_f_item['path'] = $new_file_name;
+                            $this->Bom_item_mixing_groups_model->save_file($new_f_item, 0);
+                        }
+                    }
                 }
             }
+            $options = array("id" => $item_id);
+            $item_info = $this->Items_model->get_details($options)->row();
+            echo json_encode(array("success" => true, "id" => $item_info->id, "data" => $this->_make_item_row($item_info), 'message' => lang('record_saved')));
 
-            $docId = $newDocId;
-
-        }else{
-            $doc_number = $this->getNewDocNumber();
-        
-            $db->insert("quotation", [
-                                        "billing_type"=>$company_setting["company_billing_type"],
-                                        "doc_number"=>$doc_number,
-                                        "doc_date"=>$doc_date,
-                                        "credit"=>$credit,
-                                        "doc_valid_until_date"=>$doc_valid_until_date,
-                                        "reference_number"=>$reference_number,
-                                        "vat_inc"=>$company_setting["company_vat_registered"],
-                                        "seller_id"=>$seller_id,
-                                        "client_id"=>$customer_id,
-                                        "project_id"=>($project_id != null ? $project_id:null),
-                                        "remark"=>$remark,
-                                        "created_by"=>$this->login_user->id,
-                                        "created_datetime"=>date("Y-m-d H:i:s"),
-                                        "status"=>"W"
-                                    ]);
-
-            $docId = $db->insert_id();
-        }
-        
-        $this->data["target"] = get_uri("quotations/view/". $docId);
-        $this->data["status"] = "success";
-
-        return $this->data;
+        } else {
+            echo json_encode(array("success" => false, 'message' => lang('error_occurred')));
+        }*/
     }
 
     function deleteDoc(){

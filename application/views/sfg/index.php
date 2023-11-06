@@ -15,18 +15,18 @@
             
             <div class="title-button-group">
                 <?php
-                    echo modal_anchor(
+                    /*echo modal_anchor(
                         get_uri("stock/item_import_modal"),
                         "<i class='fa fa-upload'></i> " . lang('stock_item_import'),
                         array("class" => "btn btn-default", "title" => lang('stock_item_import'))
                     );
-                    /*echo modal_anchor(
+                    echo modal_anchor(
                         get_uri("stock/item_category_modal"),
                         "<i class='fa fa-tags'></i> " . lang('add_category'),
                         array("class" => "btn btn-default", "title" => lang('add_category'), "data-post-type" => "item")
                     );*/
                 
-                    echo modal_anchor(get_uri("items/modal_form"), "<i class='fa fa-plus-circle'></i> " . lang('add_item'), array("class" => "btn btn-default", "title" => lang('add_item')));
+                    echo modal_anchor(get_uri("sfg/addedit"), "<i class='fa fa-plus-circle'></i> " . lang('add_item'), array("class" => "btn btn-default", "title" => lang('add_item')));
                 ?>
             </div>
         </div>
@@ -39,7 +39,7 @@
 <script type="text/javascript">
     $(document).ready(function () {
         $("#item-table").appTable({
-            source: '<?php echo_uri("stock/sfg"); ?>',
+            source: '<?php echo_uri("sfg"); ?>',
             
             columns: [
                 { title: "<?php echo lang('id'); ?>", "class": "w50 text-center" },
@@ -47,7 +47,6 @@
                 { title: "<?php echo lang("stock_item_code"); ?>", "class": "w100" },
                 { title: "<?php echo lang('stock_products'); ?>", "class": "w20p" },
                 { title: "<?php echo lang('description'); ?>" },
-                { title: "<?php echo lang('category'); ?>" },
                 { title: "<?php echo lang('unit_type'); ?>", "class": "w100" },
                 { title: '<?php echo lang("stock_material_barcode"); ?>' },
                 { title: "<?php echo lang('rate'); ?>", "class": "text-right w100" },

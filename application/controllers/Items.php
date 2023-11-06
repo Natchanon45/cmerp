@@ -8,6 +8,8 @@ use Laminas\Barcode\Barcode;
 class Items extends MY_Controller
 {
 
+	private $item_type = "FG";
+
 	function __construct()
 	{
 		parent::__construct();
@@ -231,7 +233,7 @@ class Items extends MY_Controller
 	{
 		$src = @$data->barcode;
 		if ($src) {
-			$src = base_url('/items/barcode/' . $src);
+			$src = get_uri('/items/barcode/' . $src);
 		}
 
 		// var_dump($src); exit;
@@ -1363,6 +1365,7 @@ class Items extends MY_Controller
 		$this->db->select("items.*, item_categories.title AS category_title")
 					->from("items")
 					->join("item_categories", "items.category_id = item_categories.id", "left")
+					->where("item_type", $this->item_type)
 					->where("items.deleted", "0");
 
 		if($category_id)$this->db->where("items.category_id", $category_id);
