@@ -39,14 +39,14 @@
 
 <script type="text/javascript">
 	function duplicate_new_mixing() {
-		jQuery('#id').val(0);
-		jQuery('#mixing-form').submit();
+		jQuery("#id").val(0);
+		jQuery("#mixing-form").submit();
 	}
 
 	function duplicate_to_new_item() {
-		jQuery('#id').val(0);
-		jQuery('#clone_to_new_item').val(1);
-		jQuery('#mixing-form').submit();
+		jQuery("#id").val(0);
+		jQuery("#clone_to_new_item").val(1);
+		jQuery("#mixing-form").submit();
 	}
 
 	$(document).ready(function () {

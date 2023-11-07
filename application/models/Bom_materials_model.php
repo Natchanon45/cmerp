@@ -32,9 +32,9 @@ class Bom_materials_model extends Crud_model
 		return $this->db->query("
 			SELECT bm.*, bmc.title category, SUM(bs.remaining) remaining 
 			FROM bom_materials bm 
-			LEFT JOIN material_categories bmc ON bmc.id = bm.category_id AND bmc.item_type = 'RM' 
+			LEFT JOIN material_categories bmc ON bmc.id = bm.category_id 
 			LEFT JOIN bom_stocks bs ON bs.material_id = bm.id AND bs.remaining > 0 
-			WHERE 1 $where 
+			WHERE 1 AND bmc.item_type = 'RM' $where 
 			GROUP BY bm.id 
 		");
 	}

@@ -2702,3 +2702,6 @@ $lang["setting_payment_voucher"] = "ใบสำคัญจ่าย";
 $lang["setting_payment_voucher_access"] = "สามารถเห็นใบสำคัญจ่าย";
 $lang["setting_goods_receipt"] = "ใบรับสินค้า";
 $lang["setting_goods_receipt_access"] = "สามารถเห็นใบรับสินค้า";
+
+// Semi-Finished Goods
+$lang["sfg_column_header"] = "สินค้ากึ่งสำเร็จ";

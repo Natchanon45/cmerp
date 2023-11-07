@@ -166,6 +166,7 @@
 									<?php foreach ($material_cat_mixings[$id] as $material): ?>
 										<tr>
 											<td>
+												<input type="hidden" name="item_type[<?php echo $temp_cat_id; ?>][]" value="RM">
 												<select name="material_id[<?php echo $temp_cat_id; ?>][]" class="form-control select-material" required>
 													<option value="" data-unit=""><?php echo lang("select_material"); ?></option>
 													<?php foreach ($material_dropdown as $dropdown): ?>
@@ -178,6 +179,93 @@
 											<td>
 												<div class="input-suffix">
 													<input type="number" name="mixing_ratio[<?php echo $temp_cat_id; ?>][]" class="form-control select-number-ratio" value="<?php echo $material->ratio; ?>" min="0" step="0.0001" required>
+													<div class="input-tag"><?php echo $material->material_unit; ?></div>
+												</div>
+											</td>
+											<td>
+												<a href="javascript:void(0);" class="btn btn-danger btn-delete-material">
+													<span class="fa fa-trash"></span>
+													<?php echo lang("delete"); ?>
+												</a>
+											</td>
+										</tr>
+									<?php endforeach; ?>
+								</tbody>
+							</table>
+						</td>
+					</tr>
+				<?php endforeach; ?>
+			<?php endif; ?>
+		</tbody>
+	</table>
+</div><br>
+
+<div id="type-container-sfg">
+	<table class="display dataTable no-footer" cellspacing="0" width="100%" role="grid" aria-describedby="supplier-table_info">
+		<thead>
+			<tr role="row">
+				<th>
+					<?php echo lang("sfg_column_header"); ?>
+				</th>
+				<th class="w200">
+					<?php echo lang("item_mixing_ratio"); ?>
+				</th>	
+				<th class="w70">
+					<a href="javascript:void(0);" id="btn-add-category" class="btn btn-info">
+						<span class="fa fa-plus-circle"></span>
+						<?php echo lang("add_category"); ?>
+					</a>
+				</th>
+			</tr>
+		</thead>
+	
+		<tbody id="table-body">
+			<?php if (isset($sfg_cat_mixings) && sizeof($sfg_cat_mixings)): ?>
+				<?php foreach ($sfg_cat_mixings as $id => $name): ?>
+					<?php $sfg_temp_cat_id = "cat_" . uniqid(); ?>
+					<tr>
+						<td colspan="2">
+							<select name="cat_id[<?php echo $sfg_temp_cat_id; ?>]" temp-cat-id="<?php echo $sfg_temp_cat_id; ?>" id="<?php echo $sfg_temp_cat_id; ?>" class="form-control select-category" required>
+								<option value="" data-unit=""><?php echo lang("select_category"); ?></option>
+								<?php foreach ($sfg_categories_dropdown as $key => $value): ?>
+									<option value="<?php echo $key; ?>" <?php if ($id == $key) { echo "selected"; } ?>><?php echo $value; ?></option>
+								<?php endforeach; ?>
+							</select>
+						</td>
+						<td>
+							<a href="javascript:void(0);" class="btn btn-primary btn-add-material" temp-cat-id="<?php echo $sfg_temp_cat_id; ?>">
+								<span class="fa fa-plus-circle"></span>
+								<?php echo lang("add"); ?>
+							</a>
+						</td>
+					</tr>
+					<tr>
+						<td colspan="3">
+							<table class="display dataTable no-footer" cellspacing="0" width="100%" role="grid" aria-describedby="supplier-table_info">
+								<thead class="hide_head">
+									<tr class="hide_head">
+										<td class="hide_head"></td>
+										<td class="hide_head w200"></td>
+										<td class="hide_head w70"></td>
+									</tr>
+								</thead>
+								<tbody class="table-body2">
+									<?php foreach ($sfg_cat_mixings[$id] as $material): ?>
+										<tr>
+											<td>
+												<input type="hidden" name="item_type[<?php echo $sfg_temp_cat_id; ?>][]" value="SFG">
+												<select name="material_id[<?php echo $sfg_temp_cat_id; ?>][]" class="form-control select-material" required>
+													<option value="" data-unit=""><?php echo lang("select_material"); ?></option>
+													<?php foreach ($sfg_dropdown as $dropdown): ?>
+														<option value="<?php echo $dropdown->id; ?>" data-unit="<?php echo $dropdown->unit_type; ?>" <?php if ($material->material_id == $dropdown->id) { echo "selected"; } ?>>
+															<?php echo (isset($bom_material_read_production_name) && $bom_material_read_production_name) ? $dropdown->item_code . " - " . $dropdown->title : $dropdown->item_code; ?>
+														</option>
+													<?php endforeach; ?>
+												</select>
+											</td>
+											<td>
+												<div class="input-suffix">
+													<input type="number" name="mixing_ratio[<?php echo $sfg_temp_cat_id; ?>][]" class="form-control select-number-ratio" value="<?php echo $material->ratio; ?>" min="0" step="0.0001" required>
 													<div class="input-tag"><?php echo $material->material_unit; ?></div>
 												</div>
 											</td>
@@ -224,12 +312,15 @@
 		var tableBody = typeContainer.find("#table-body");
 		var btnAddCat = typeContainer.find("#btn-add-category");
 
+		var typeContainerSfg = $("#type-container-sfg")
+		var tableBodySfg = typeContainerSfg.find("#table-body");
+		var btnAddCatSfg = typeContainerSfg.find("#btn-add-category");
+
 		btnAddCat.click(function (e) {
 			e.preventDefault();
 
 			let temp_cat_id = `cat_${$.now()}`;
-			// console.log(temp_cat_id);
-
+			
 			tableBody.append(`
 				<tr>
 					<td colspan="2">
@@ -266,6 +357,47 @@
 			processBindingCat();
 		});
 
+		btnAddCatSfg.click(function (e) {
+			e.preventDefault();
+
+			let sfg_temp_cat_id = `cat_${$.now()}`;
+			
+			tableBodySfg.append(`
+				<tr>
+					<td colspan="2">
+						<select name="cat_id[${sfg_temp_cat_id}]" temp-cat-id="${sfg_temp_cat_id}" class="form-control select-category" required>
+							<option value="" data-unit=""><?php echo lang("select_category"); ?></option>
+							<?php foreach ($sfg_categories_dropdown as $key => $value): ?>
+								<option value="<?php echo $key; ?>"><?php echo $value; ?></option>
+							<?php endforeach; ?>
+						</select>
+					</td>
+					<td>
+						<a href="javascript:void(0);" temp-cat-id="${sfg_temp_cat_id}" class="btn btn-primary btn-add-material hide">
+							<span class="fa fa-plus-circle"></span>
+							<?php echo lang("add"); ?>
+						</a>
+					</td>
+				</tr>
+				<tr>
+					<td colspan="3">
+						<table class="display dataTable no-footer" cellspacing="0" width="100%" role="grid" aria-describedby="supplier-table_info">
+							<thead class="hide_head">
+								<tr class="hide_head">
+									<td class="hide_head"></td>
+									<td class="hide_head w200"></td>
+									<td class="hide_head w70"></td>
+								</tr>
+							</thead>
+							<tbody class="table-body2"></tbody>
+						</table>
+					</td>
+				</tr>
+			`);
+
+			processBindingCatSfg();
+		});
+
 		function processBindingCat() {
 			typeContainer.find(".select-category").select2("destroy");
 			typeContainer.find(".select-category").select2();
@@ -299,12 +431,47 @@
 			});
 		}
 
+		function processBindingCatSfg() {
+			typeContainerSfg.find(".select-category").select2("destroy");
+			typeContainerSfg.find(".select-category").select2();
+			typeContainerSfg.find(".select-category").change(function (e) {
+				e.preventDefault();
+
+				let self = $(this);
+				let btn = self.closest("tr").find(".btn-add-material");
+
+				if (self.val() === null || self.val() === '') {
+					// console.log('Value is either null or empty.');
+					btn.addClass("hide");
+				} else {
+					// console.log('Value is not null or empty.');
+					btn.removeClass("hide");
+				}
+			});
+
+			typeContainerSfg.find(".btn-add-material").unbind();
+			typeContainerSfg.find(".btn-add-material").click(function (e) {
+				e.preventDefault();
+
+				let self = $(this);
+				let dropdown = self.closest("tr").find(".select-category");
+
+				dropdown.addClass("pointer-none");
+				addMaterialRowSfg(
+					$(this).attr("temp-cat-id"),
+					$(this).closest("tr").next().find(".table-body2")
+				);
+			});
+		}
+
 		processBindingCat();
+		processBindingCatSfg();
 
 		function addMaterialRow(rowCate, rowBody) {
 			rowBody.append(`
 				<tr>
 					<td>
+						<input type="hidden" name="item_type[${rowCate}][]" value="RM">
 						<select name="material_id[${rowCate}][]" class="form-control select-material" required>
 							<option value="" data-unit=""><?php echo lang("select_material"); ?></option>
 							<?php foreach ($material_dropdown as $dropdown): ?>
@@ -330,6 +497,38 @@
 			`);
 
 			processBinding();
+		}
+
+		function addMaterialRowSfg(rowCate, rowBody) {
+			rowBody.append(`
+				<tr>
+					<td>
+						<input type="hidden" name="item_type[${rowCate}][]" value="SFG">
+						<select name="material_id[${rowCate}][]" class="form-control select-material" required>
+							<option value="" data-unit=""><?php echo lang("select_material"); ?></option>
+							<?php foreach ($sfg_dropdown as $dropdown): ?>
+								<option value="<?php echo $dropdown->id; ?>" data-unit="<?php echo $dropdown->unit_type; ?>">
+									<?php echo (isset($bom_material_read_production_name) && $bom_material_read_production_name) ? $dropdown->item_code . " - " . $dropdown->title : $dropdown->item_code; ?>
+								</option>
+							<?php endforeach; ?>
+						</select>
+					</td>
+					<td>
+						<div class="input-suffix">
+							<input type="number" name="mixing_ratio[${rowCate}][]" class="form-control select-number-ratio" value="0" min="0" step="0.0001" required>
+							<div class="input-tag"></div>
+						</div>
+					</td>
+					<td>
+						<a href="javascript:void(0);" class="btn btn-danger btn-delete-material">
+							<span class="fa fa-trash"></span> 
+							<?php echo lang("delete"); ?>
+						</a>
+					</td>
+				</tr>
+			`);
+
+			processBindingSfg();
 		}
 
 		function processBinding() {
@@ -370,6 +569,45 @@
 			});
 		}
 
+		function processBindingSfg() {
+			typeContainerSfg.find(".btn-delete-material").unbind();
+			typeContainerSfg.find(".btn-delete-material").click(function (e) {
+				e.preventDefault();
+
+				const self = $(this);
+				
+				let trCount = self.closest("tbody").find("tr");
+				let dropdownCategory = self.closest("table").closest("tr").prev("tr").find(".select-category");
+				let trActual = trCount.length - 1;
+				
+				if (trActual <= 0) {
+					dropdownCategory.removeClass("pointer-none");
+				}
+				
+				self.closest("tr").remove();
+				processBindingSfg();
+			});
+
+			typeContainerSfg.find(".select-material").select2("destroy");
+			typeContainerSfg.find(".select-material").select2();
+			typeContainerSfg.find(".select-material").unbind();
+			typeContainerSfg.find(".select-material").change(function (e) {
+				e.preventDefault();
+
+				let self = $(this);
+				let option = self.find(`[value="${self.val()}"]`);
+
+				self.closest("tr").find(".input-tag").html(option.data("unit"));
+			});
+
+			typeContainerSfg.find(".select-number-ratio").unbind();
+			typeContainerSfg.find(".select-number-ratio").click(function (e) {
+				e.preventDefault()
+				e.target.select();
+			});
+		}
+
 		processBinding();
+		processBindingSfg();
 	});
 </script>
