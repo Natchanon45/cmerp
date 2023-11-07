@@ -17,14 +17,14 @@ class Sfg_m extends MY_Model {
 
         $src = @$irow->barcode;
         if ($src) {
-            $src = get_uri('/items/barcode/' . $src);
+            $src = get_uri('/sfg/barcode/' . $src);
         }
 
         $data = [
-                    "<a href='".get_uri('items/item_view/' . $irow->id)."'>".$irow->id."</a>",
+                    "<a href='".get_uri('sfg/detail/' . $irow->id)."'>".$irow->id."</a>",
                     $preview,
                     $irow->item_code ? $irow->item_code : '-',
-                    "<a href='".get_uri('items/detail/' . $irow->id)."'>".$irow->title."</a>",
+                    "<a href='".get_uri('sfg/detail/' . $irow->id)."'>".$irow->title."</a>",
                     nl2br($irow->description),
                     $irow->unit_type ? $irow->unit_type : "",
                     @$irow->barcode ? '<div style="text-align:center"><a href="' . $src . '" class="barcode_img" download><img src="' . $src . '" /><div class="text">Click to download</div></a></div>' : '-',
@@ -62,300 +62,16 @@ class Sfg_m extends MY_Model {
         return $dataset;
     }
 
-    function getDoc($docId){
+    function getRow($docId){
         $db = $this->db;
-        $ci = get_instance();
-        $company_setting = $this->Settings_m->getCompany();
 
-        $this->data["doc_id"] = null;
-        $this->data["billing_type"] = "";
-        $this->data["doc_date"] = date("Y-m-d");
-        $this->data["credit"] = "0";
-        $this->data["doc_valid_until_date"] = date("Y-m-d");
-        $this->data["reference_number"] = "";
-        $this->data["discount_type"] = "P";
-        $this->data["discount_percent"] = 0;
-        $this->data["discount_amount"] = 0;
-        $this->data["vat_inc"] = "N";
-        $this->data["wht_inc"] = "N";
-        $this->data["project_id"] = null;
-        $this->data["customer_id"] = null;
-        $this->data["seller_id"] = null;
-        $this->data["client_id"] = null;
-        $this->data["lead_id"] = null;
-        $this->data["remark"] = null;
-        $this->data["created_by"] = null;
-        $this->data["created_datetime"] = null;
-        $this->data["approved_by"] = null;
-        $this->data["approved_datetime"] = null;
-        $this->data["company_stamp"] = null;
-        $this->data["doc_status"] = null;
-
-        if(!empty($docId)){
-            $qrow = $db->select("*")
-                        ->from("quotation")
-                        ->where("id", $docId)
-                        ->where("billing_type", $company_setting["company_billing_type"])
-                        ->where("deleted", 0)
-                        ->get()->row();
-
-            if(empty($qrow)) return $this->data;
-
-            $lead_id = $client_id = null;
-            
-            if($this->Customers_m->isLead($qrow->client_id) == true){
-                $this->data["customer_id"] = $lead_id = $qrow->client_id;
-                $this->data["customer_is_lead"] = 1;
-            }else{
-                $this->data["customer_id"] = $client_id = $qrow->client_id;
-                $this->data["customer_is_lead"] = 0;
-            }
-
-            $this->data["doc_id"] = $docId;
-            $this->data["billing_type"] = $qrow->billing_type;
-            $this->data["doc_number"] = $qrow->doc_number;
-            $this->data["share_link"] = $qrow->sharekey != null ? get_uri($this->shareHtmlAddress."th/".$qrow->sharekey) : null;
-            $this->data["doc_date"] = $qrow->doc_date;
-            $this->data["credit"] = $qrow->credit;
-            $this->data["doc_valid_until_date"] = $qrow->doc_valid_until_date;
-            $this->data["reference_number"] = $qrow->reference_number;
-            $this->data["discount_type"] = $qrow->discount_type;
-            $this->data["discount_percent"] = $qrow->discount_percent;
-            $this->data["discount_amount"] = $qrow->discount_amount;
-            $this->data["vat_inc"] = $qrow->vat_inc;
-            $this->data["vat_percent"] = number_format_drop_zero_decimals($qrow->vat_percent, 2)."%";
-            $this->data["wht_inc"] = $qrow->wht_inc;
-            $this->data["project_id"] = $qrow->project_id;
-            if($qrow->seller_id != null) $this->data["seller"] = $ci->Users_m->getInfo($qrow->seller_id);
-            $this->data["seller_id"] = $qrow->seller_id;
-            $this->data["client_id"] = $client_id;
-            $this->data["lead_id"] = $lead_id;
-            $this->data["remark"] = $qrow->remark;
-
-            $this->data["created"] = $this->Users_m->getInfo($qrow->created_by);
-            $this->data["created_by"] = $qrow->created_by;
-            $this->data["created_datetime"] = $qrow->created_datetime;
-
-            if($qrow->approved_by != null) $this->data["approved"] = $ci->Users_m->getInfo($qrow->approved_by);
-            $this->data["approved_by"] = $qrow->approved_by;
-            $this->data["approved_datetime"] = $qrow->approved_datetime;
-            if(file_exists($_SERVER['DOCUMENT_ROOT']."/".$company_setting["company_stamp"])) $this->data["company_stamp"] = $company_setting["company_stamp"];
-            $this->data["doc_status"] = $qrow->status;
-            
-        }
-
-        $this->data["status"] = "success";
-
-        return $this->data;
-    }
-
-    function getEdoc($docId = null, $sharekey = null){
-        $db = $this->db;
-        $company_setting = $this->Settings_m->getCompany();
-        $ci = get_instance();
-
-        if($docId != null && $sharekey == null){
-            $docId = base64_decode($docId);
-            list($docId, $docNumber) = explode(":", $docId);
-            $db->where("id", $docId);
-            $db->where("doc_number", $docNumber);
-        }elseif($docId == null && $sharekey != null){
-            $db->where("sharekey", $sharekey);
-        }else{
-            return $this->data;
-        }
-
-        $qrow = $db->select("*")
-                    ->from("quotation")
-                    ->where("billing_type", $company_setting["company_billing_type"])
-                    ->where("deleted", 0)
+        $irow = $db->select("*")
+                    ->from("items")
+                    ->where("id", $docId)
+                    ->where("item_type", $this->item_type)
                     ->get()->row();
-
-        if(empty($qrow)) return $this->data;
-
-        $docId = $qrow->id;
-
-        $qirows = $db->select("*")
-                        ->from("quotation_items")
-                        ->where("quotation_id", $docId)
-                        ->order_by("sort", "asc")
-                        ->get()->result();
-
-        $client_id = $qrow->client_id;
-        $created_by = $qrow->created_by;
-
-        if($qrow->seller_id != null) $this->data["seller"] = $ci->Users_m->getInfo($qrow->seller_id);
-
-        $this->data["buyer"] = $ci->Customers_m->getInfo($client_id);
-        $this->data["buyer_contact"] = $ci->Customers_m->getContactInfo($client_id);
-
-        $this->data["doc_number"] = $qrow->doc_number;
-        $this->data["doc_date"] = $qrow->doc_date;
-        $this->data["credit"] = $qrow->credit;
-        $this->data["doc_valid_until_date"] = $qrow->doc_valid_until_date;
-        $this->data["reference_number"] = $qrow->reference_number;
-        $this->data["remark"] = $qrow->remark;
-
-        $this->data["sub_total_before_discount"] = $qrow->sub_total_before_discount;
-
-        $this->data["discount_type"] = $qrow->discount_type;
-        $this->data["discount_percent"] = $qrow->discount_percent;
-        $this->data["discount_amount"] = $qrow->discount_amount;
         
-        $this->data["sub_total"] = $qrow->sub_total;
-
-        $this->data["vat_inc"] = $qrow->vat_inc;
-        $this->data["vat_percent"] = $qrow->vat_percent;
-        $this->data["vat_value"] = $qrow->vat_value;
-        $this->data["total"] = $qrow->total;
-        $this->data["total_in_text"] = numberToText($qrow->total);
-        $this->data["wht_inc"] = $qrow->wht_inc;
-        $this->data["wht_percent"] = $qrow->wht_percent;
-        $this->data["wht_value"] = $qrow->wht_value;
-        $this->data["payment_amount"] = $qrow->payment_amount;
-
-        $this->data["sharekey_by"] = $qrow->sharekey_by;
-
-        $this->data["created"] = $ci->Users_m->getInfo($created_by);
-        $this->data["created_by"] = $qrow->created_by;
-        $this->data["created_datetime"] = $qrow->created_datetime;
-        $this->data["approved_by"] = $qrow->approved_by;
-        $this->data["approved_datetime"] = $qrow->approved_datetime;
-        if(file_exists($_SERVER['DOCUMENT_ROOT']."/".$company_setting["company_stamp"])) $this->data["company_stamp"] = $company_setting["company_stamp"];
-        $this->data["doc_status"] = $qrow->status;
-
-        $this->data["doc"] = $qrow;
-        $this->data["items"] = $qirows;
-
-        $this->data["status"] = "success";
-        $this->data["message"] = "ok";
-
-        return $this->data;
-    }
-
-    function updateDoc($docId = null){
-        $db = $this->db;
-
-        $discount_type = "P";
-        $discount_percent = 0;
-        $discount_amount = 0;
-
-        $vat_inc = "N";
-        $vat_percent = $this->Taxes_m->getVatPercent();
-        $vat_value = 0;
-
-        $wht_inc = "N";
-        $wht_percent = $this->Taxes_m->getWhtPercent();
-        $wht_value = 0;
-        
-        if($docId == null && isset($this->json->doc_id)){
-            $docId = $this->json->doc_id;
-
-            $vat_inc = $this->json->vat_inc == true ? "Y":"N";
-            $wht_inc = $this->json->wht_inc == true ? "Y":"N";
-            
-            $qrow = $db->select("*")
-                        ->from("quotation")
-                        ->where("id", $docId)
-                        ->where("deleted", 0)
-                        ->get()->row();
-
-            if(empty($qrow)) return $this->data;
-
-            $discount_type = $this->json->discount_type;
-
-            if($discount_type == "P"){
-                $discount_percent = getNumber($this->json->discount_percent);
-                if($discount_percent >= 100) $discount_percent = 99.99;
-                if($discount_percent < 0) $discount_percent = 0;
-            }else{
-                $discount_amount = getNumber($this->json->discount_value);
-            }
-            
-
-            if($vat_inc == "Y") $vat_percent = $this->Taxes_m->getVatPercent();
-            if($wht_inc == "Y") $wht_percent = getNumber($this->json->wht_percent);
-
-        }else{
-            $qrow = $db->select("*")
-                        ->from("quotation")
-                        ->where("id", $docId)
-                        ->where("deleted", 0)
-                        ->get()->row();
-
-            if(empty($qrow)) return $this->data;            
-
-            $discount_type = $qrow->discount_type;
-            $discount_percent = $qrow->discount_percent;
-            $discount_amount = $qrow->discount_amount;
-
-
-            $vat_inc = $qrow->vat_inc;
-            $wht_inc = $qrow->wht_inc;
-
-            if($vat_inc == "Y") $vat_percent = $qrow->vat_percent;
-            if($wht_inc == "Y") $wht_percent = $qrow->wht_percent;
-        }
-        
-        $sub_total_before_discount = $db->select("SUM(total_price) AS SUB_TOTAL")
-                                        ->from("quotation_items")
-                                        ->where("quotation_id", $docId)
-                                        ->get()->row()->SUB_TOTAL;
-
-        if($sub_total_before_discount == null) $sub_total_before_discount = 0;
-        if($discount_type == "P"){
-            if($discount_percent > 0){
-                $discount_amount = ($sub_total_before_discount * $discount_percent)/100;
-            }
-        }else{
-            if($discount_amount > $sub_total_before_discount) $discount_amount = $sub_total_before_discount;
-            if($discount_amount < 0) $discount_amount = 0;
-        }
-
-        $sub_total = $sub_total_before_discount - $discount_amount;
-
-        if($vat_inc == "Y") $vat_value = ($sub_total * $vat_percent)/100;
-        $total = $sub_total + $vat_value;
-
-        if($wht_inc == "Y") $wht_value = ($sub_total * $wht_percent) / 100;
-        $payment_amount = $total - $wht_value;
-
-        $db->where("id", $docId);
-        $db->update("quotation", [
-                                    "sub_total_before_discount"=>$sub_total_before_discount,
-                                    "discount_type"=>$discount_type,
-                                    "discount_percent"=>$discount_percent,
-                                    "discount_amount"=>$discount_amount,
-                                    "sub_total"=>$sub_total,
-                                    "vat_inc"=>$vat_inc,
-                                    "vat_percent"=>$vat_percent,
-                                    "vat_value"=>$vat_value,
-                                    "total"=>$total,
-                                    "wht_inc"=>$wht_inc,
-                                    "wht_percent"=>$wht_percent,
-                                    "wht_value"=>$wht_value,
-                                    "payment_amount"=>$payment_amount
-                                ]);
-
-        $this->data["sub_total_before_discount"] = number_format($sub_total_before_discount, 2);
-        $this->data["discount_type"] = $discount_type;
-        $this->data["discount_percent"] = number_format($discount_percent, 2);
-        $this->data["discount_amount"] = number_format($discount_amount, 2);
-        $this->data["sub_total"] = number_format($sub_total, 2);
-        $this->data["vat_inc"] = $vat_inc;
-        $this->data["vat_percent"] = number_format_drop_zero_decimals($vat_percent, 2);
-        $this->data["vat_value"] = number_format($vat_value, 2);
-        $this->data["total"] = number_format($total, 2);
-        $this->data["total_in_text"] = numberToText($total);
-        $this->data["wht_inc"] = $wht_inc;
-        $this->data["wht_percent"] = number_format_drop_zero_decimals($wht_percent, 2);
-        $this->data["wht_value"] = number_format($wht_value, 2);
-        $this->data["payment_amount"] = number_format($payment_amount, 2);
-
-        $this->data["status"] = "success";
-        $this->data["message"] = lang("record_saved");
-
-        return $this->data;
+        return $irow;
     }
 
     function validateDoc(){
@@ -380,6 +96,14 @@ class Sfg_m extends MY_Model {
             if(form_error('doc_valid_until_date') != null) $this->data["messages"]["doc_valid_until_date"] = form_error('doc_valid_until_date');
         }
 
+    }
+
+    function validateFile(){
+        $file_name = $this->input->post("file_name");
+
+        if (!is_valid_file_to_upload($file_name)) return ["success" => false, 'message' => lang('invalid_file_type')];
+        if (is_image_file($file_name)) return ["success" => true];
+        else return ["success" => false, 'message' => lang('please_upload_valid_image_files')];
     }
 
     function saveDoc(){
