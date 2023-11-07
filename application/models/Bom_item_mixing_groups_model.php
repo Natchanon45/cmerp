@@ -47,14 +47,15 @@ class Bom_item_mixing_groups_model extends Crud_model {
         
         $id = get_array_value($options, "id");
         if ($id) {
-            $where .= " bmc.id = $id";
+            $where .= " AND bmc.id = $id";
         }
 
-        // $item_id = get_array_value($options, "item_id");
-        // if (isset($options['item_id']) && $item_id) {
-        //     $where .= " bmc.item_id = $item_id";
-        // }
-        $sql = "SELECT bmc.* FROM bom_material_categories bmc ".($where?' WHERE '.$where:'');
+        $type = get_array_value($options, "type");
+        if ($type) {
+            $where .= " AND bmc.item_type = '" . $type . "'";
+        }
+
+        $sql = "SELECT bmc.* FROM material_categories bmc WHERE 1 $where";
         return $this->db->query($sql);
     }
 
@@ -141,7 +142,7 @@ class Bom_item_mixing_groups_model extends Crud_model {
     }
 
     function get_categories_list() {
-        $rows = $this->get_category_details()->result();
+        $rows = $this->get_category_details(["type" => "RM"])->result();
         $options = [];
         foreach($rows as $row) {
             $options[$row->id] = $row->title;

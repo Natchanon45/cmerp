@@ -1,6 +1,10 @@
 <div class="page-title clearfix no-border bg-off-white">
-    <h1><a class="title-back" href="<?php echo get_uri('items'); ?>"><i class="fa fa-chevron-left" aria-hidden="true"></i></a><?php echo lang('item') . " - " . $model_info->title ?></h1>
+  <h1>
+    <a class="title-back" href="<?php echo get_uri('items'); ?>"><i class="fa fa-chevron-left" aria-hidden="true"></i></a>
+    <?php echo lang("item") . " - " . $model_info->title; ?>
+  </h1>
 </div>
+
 <div id="page-content" class="clearfix">
     <ul id="client-tabs" data-toggle="ajax-tab" class="nav nav-tabs" role="tablist" style="background:#ffffff;">
         <li><a role="presentation" href="<?php echo_uri("items/detail_info/".$model_info->id); ?>" data-target="#item-info"><?php echo lang('item_details'); ?></a></li>
