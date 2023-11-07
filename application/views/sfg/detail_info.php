@@ -1,25 +1,37 @@
 <div class="tab-content">
-  <?php echo form_open(get_uri("items/save"), array("id" => "item-form", "class" => "general-form", "role" => "form")); ?>
+  <?php echo form_open(current_url(), array("id" => "item-form", "class" => "general-form", "role" => "form")); ?>
   <div class="panel post-dropzone" id="items-dropzone">
     <div class="panel-body">
       <input type="hidden" name="id" value="<?php echo $model_info->id; ?>" />
 
-      <?php if ($model_info->id) { ?>
-        <div class="form-group">
-          <div class="col-md-12 text-off"> <?php echo lang('item_edit_instruction'); ?></div>
+      <div class="form-group">
+        <label for="item_code" class="col-md-2">รหัสสินค้ากึ่งสำเร็จ</label>
+        <div class="col-md-10">
+          <?php
+            echo form_input(array(
+                "id" => "item_code",
+                "name" => "item_code",
+                "value" => $model_info->item_code,
+                "class" => "form-control validate-hidden",
+                "placeholder" => "รหัสสินค้ากึ่งสำเร็จ",
+                "autofocus" => true,
+                "data-rule-required" => true,
+                "data-msg-required" => lang("field_required")
+            ));
+          ?>
         </div>
-      <?php } ?>
+      </div>      
 
       <div class="form-group">
-        <label for="title" class="<?= $label_column ?>"><?php echo lang('title'); ?></label>
-        <div class="<?= $field_column ?>">
+        <label for="title" class="col-md-2">ชื่อสินค้ากึ่งสำเร็จ</label>
+        <div class="col-md-10">
           <?php
             echo form_input(array(
               "id" => "title",
               "name" => "title",
               "value" => $model_info->title,
               "class" => "form-control validate-hidden",
-              "placeholder" => lang('title'),
+              "placeholder" => "ชื่อสินค้ากึ่งสำเร็จ",
               "autofocus" => true,
               "data-rule-required" => true,
               "data-msg-required" => lang("field_required"),
@@ -27,9 +39,64 @@
           ?>
         </div>
       </div>
+
       <div class="form-group">
-        <label for="description" class="<?= $label_column ?>"><?php echo lang('description'); ?></label>
-        <div class="<?= $field_column ?>">
+          <label for="item_rate" class="col-md-2">ราคา</label>
+          <div class="col-md-10">
+              <?php
+              echo form_input(
+                  array(
+                      "id" => "item_rate",
+                      "name" => "item_rate",
+                      "value" => $model_info->rate,
+                      "class" => "form-control",
+                      "placeholder" => "ราคา"
+                  )
+              );
+              ?>
+          </div>
+      </div>
+
+      <div class="form-group">
+        <label for="category_id" class="col-md-2">หมวดหมู่</label>
+        <div class="col-md-10">
+          <?php
+            echo form_input(
+                array(
+                    "id" => "category_id",
+                    "name" => "category_id",
+                    "value" => $model_info->category_id ? $model_info->category_id : null,
+                    "class" => "form-control",
+                    "placeholder" => "หมวดหมู่"
+                )
+            );
+          ?>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="category_id" class="col-md-2">หมวดบัญชี</label>
+        <div class="col-md-10">
+          <?php
+            echo form_input(
+                array(
+                    "id" => "account_id",
+                    "name" => "account_id",
+                    "value" => $model_info->account_id ? $model_info->account_id : null,
+                    "class" => "form-control",
+                    "placeholder" => "หมวดบัญชี"
+                )
+            );
+          ?>
+        </div>
+      </div>
+
+      
+
+
+      <div class="form-group">
+        <label for="description" class="col-md-2"><?php echo lang('description'); ?></label>
+        <div class="col-md-10">
           <?php
             echo form_textarea(array(
               "id" => "description",
@@ -42,17 +109,10 @@
           ?>
         </div>
       </div>
+      
       <div class="form-group">
-        <label for="category_id" class="<?= $label_column ?>"><?php echo lang('category'); ?></label>
-        <div class="<?= $field_column ?>">
-          <?php
-            echo form_dropdown("category_id", $categories_dropdown, $model_info->category_id, "class='select2 validate-hidden' id='category_id' data-rule-required='true', data-msg-required='" . lang('field_required') . "'");
-          ?>
-        </div>
-      </div>
-      <div class="form-group">
-        <label for="unit_type" class="<?= $label_column ?>"><?php echo lang('unit_type'); ?></label>
-        <div class="<?= $field_column ?>">
+        <label for="unit_type" class="col-md-2">หน่วย</label>
+        <div class="col-md-10">
           <?php
             echo form_input(array(
               "id" => "unit_type",
@@ -64,33 +124,34 @@
           ?>
         </div>
       </div>
+
       <div class="form-group">
-        <label for="item_rate" class="<?= $label_column ?>"><?php echo lang('rate'); ?></label>
-      <div class="<?= $field_column ?>">
+        <label for="unit_type" class="col-md-2">รหัสบาร์โค้ด</label>
+        <div class="col-md-10">
           <?php
-            echo form_input(array(
-              "id" => "item_rate",
-              "name" => "item_rate",
-              "value" => $model_info->rate ? $model_info->rate : "",
-              "class" => "form-control",
-              "placeholder" => lang('rate'),
-              "data-rule-required" => true,
-              "data-msg-required" => lang("field_required"),
-            ));
+            echo form_input(
+                array(
+                    "id" => "barcode",
+                    "name" => "barcode",
+                    "value" => @$model_info->barcode,
+                    "class" => "form-control",
+                    "placeholder" => lang('stock_item_barcode')
+                )
+            );
           ?>
         </div>
       </div>
 
-      <?php if ($this->login_user->is_admin && get_setting("module_order")) { ?>
-        <div class="form-group">
-          <label for="show_in_client_portal" class="<?= $label_column ?> col-xs-5 col-sm-4"><?php echo lang('show_in_client_portal'); ?></label>
-          <div class=" <?= $field_column ?> col-xs-7 col-sm-8">
-            <?php
-              echo form_checkbox("show_in_client_portal", "1", $model_info->show_in_client_portal ? true : false, "id='show_in_client_portal'");
-            ?>                       
-          </div>
+      <div class="form-group">
+        <label for="unit_type" class="col-md-2">จำนวนเตือนขั้นต่ำ</label>
+        <div class="col-md-10">
+          <input
+            type="number" name="noti_threshold" class="form-control" min="0" step="0.0001" required 
+            name="noti_threshold" value="<?php echo @$model_info->noti_threshold; ?>" 
+            placeholder="<?php echo lang('stock_item_noti_threshold'); ?>" data-rule-required = "true" 
+            data-msg-required="<?php echo lang("field_required"); ?>"/>
         </div>
-      <?php } ?>
+      </div>
 
       <div class="form-group">
         <div class="col-md-12 row pr0">
@@ -117,8 +178,8 @@
 
 <script type="text/javascript">
   $(document).ready(function () {
-    var uploadUrl = "<?php echo get_uri("items/upload_file"); ?>";
-    var validationUri = "<?php echo get_uri("items/validate_items_file"); ?>";
+    var uploadUrl = "<?php echo get_uri("sfg/upload_photo/upload_file") ?>";
+    var validationUri = "<?php echo get_uri("sfg/upload_photo/validate_file") ?>";
 
     var dropzone = attachDropzoneWithForm("#items-dropzone", uploadUrl, validationUri);
 
@@ -129,6 +190,9 @@
       }
     });
     
-    $("#item-form .select2").select2();
+    //$("#item-form .select2").select2();
+    $('#category_id').select2({data: <?php echo json_encode($category_dropdown); ?>});
+    $('#account_id').select2({ data: <?php echo json_encode($account_category); ?> });
+    
   });
 </script>

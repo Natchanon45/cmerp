@@ -23,13 +23,17 @@ class Sfg extends MY_Controller {
         $this->template->rander("sfg/index", []);
     }
 
+    function upload_photo(){
+        $task = $this->uri->segment(3);
+        if($task == "upload_file") upload_file_to_temp();
+        if($task == "validate_file") jout($this->Sfg_m->validateFile());
+    }
+
     function addedit(){
         $task = $this->uri->segment(3);
 
         if($task != null){
-            if($task == "save")jout($this->Sfg_m->saveDoc());
-            if($task == "upload_file") upload_file_to_temp();
-            if($task == "validate_file") jout($this->Sfg_m->validateFile());
+            if($task == "save")jout($this->Sfg_m->saveDetailInfo());
             return;
         }
 
@@ -54,7 +58,31 @@ class Sfg extends MY_Controller {
         
     }
 
-    function detail_info($item_id = 0){
+    function detail_info(){
+        $model_info = $this->Sfg_m->getRow($this->uri->segment(3));
+
+        if($this->input->method(false) == "post"){
+            jout($this->Sfg_m->saveDetailInfo());
+            return;
+        }
+
+        $view_data['model_info'] = $model_info;
+        $view_data['categories_dropdown'] = $this->Item_categories_model->get_dropdown_list(array("title"));
+
+        $view_data['category_dropdown'] = $this->Bom_item_model->get_category_dropdown();
+        $view_data['account_category'] = $this->Account_category_model->get_list_dropdown();
+
+        $this->load->view('sfg/detail_info', $view_data);
+        
+    }
+
+    function detail_pricing(){
+        if($this->input->method(false) == "post"){
+            jout($this->Sfg_m->saveDetailInfo());
+            return;
+        }
+
+
         $view_data['model_info'] = $this->Items_model->get_one($item_id);
         $view_data['categories_dropdown'] = $this->Item_categories_model->get_dropdown_list(array("title"));
 

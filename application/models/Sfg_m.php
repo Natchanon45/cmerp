@@ -6,6 +6,18 @@ class Sfg_m extends MY_Model {
         parent::__construct();
     }
 
+    function getRow($docId){
+        $db = $this->db;
+
+        $irow = $db->select("*")
+                    ->from("items")
+                    ->where("id", $docId)
+                    ->where("item_type", $this->item_type)
+                    ->get()->row();
+        
+        return $irow;
+    }
+
     function getIndexDataSetHTML($irow){
         $preview = '<img class="product-preview" src="' . base_url('assets/images/file_preview.jpg'). '">';
         if ($irow->files) {
@@ -62,18 +74,6 @@ class Sfg_m extends MY_Model {
         return $dataset;
     }
 
-    function getRow($docId){
-        $db = $this->db;
-
-        $irow = $db->select("*")
-                    ->from("items")
-                    ->where("id", $docId)
-                    ->where("item_type", $this->item_type)
-                    ->get()->row();
-        
-        return $irow;
-    }
-
     function validateDoc(){
         $_POST = json_decode(file_get_contents('php://input'), true);
 
@@ -106,7 +106,7 @@ class Sfg_m extends MY_Model {
         else return ["success" => false, 'message' => lang('please_upload_valid_image_files')];
     }
 
-    function saveDoc(){
+    function saveDetailInfo(){
         $db = $this->db;
         $company_setting = $this->Settings_m->getCompany();
 
@@ -146,6 +146,7 @@ class Sfg_m extends MY_Model {
             "description" => $this->input->post('description'),
             "unit_type" => $this->input->post('unit_type'),
             "rate" => unformat_currency($this->input->post('item_rate')),
+            "category_id" => $this->input->post('category_id') ? $this->input->post('category_id') : 0,
             "files"=>serialize($new_files),
             "barcode" => $this->input->post('barcode'),
             "show_in_client_portal" => $this->input->post('show_in_client_portal') ? $this->input->post('show_in_client_portal') : "",
@@ -233,126 +234,13 @@ class Sfg_m extends MY_Model {
         }*/
     }
 
-    function deleteDoc(){
+    function deleteDetailInfo(){
         $db = $this->db;
         
 
         return $this->data;
     }
 
-
-    function items(){
-        $db = $this->db;
-        
-        $qrow = $db->select("id, status")
-                        ->from("quotation")
-                        ->where("id", $this->json->doc_id)
-                        ->where("deleted", 0)
-                        ->get()->row();
-
-        if(empty($qrow)) return $this->data;
-
-        $qirows = $db->select("*")
-                        ->from("quotation_items")
-                        ->where("quotation_id", $this->json->doc_id)
-                        ->order_by("id", "asc")
-                        ->get()->result();
-
-        if(empty($qirows)){
-            $this->data["status"] = "notfound";
-            $this->data["message"] = "ไม่พบข้อมูล";
-            return $this->data;
-        }
-
-        $items = [];
-
-        foreach($qirows as $qirow){
-            $item["id"] = $qirow->id;
-            $item["product_name"] = $qirow->product_name;
-            $item["product_description"] = $qirow->product_description;
-            $item["quantity"] = $qirow->quantity;
-            $item["unit"] = $qirow->unit;
-            $item["price"] = number_format($qirow->price, 2);
-            $item["discount_per_unit"] = number_format($qirow->discount_amount, 2);
-            $item["total_price"] = number_format($qirow->total_price, 2);
-
-            $items[] = $item;
-        }
-
-        $this->data["doc_status"] = $qrow->status;
-        $this->data["items"] = $items;
-        $this->data["status"] = "success";
-
-        return $this->data;
-    }
-
-    function item(){
-        $db = $this->db;
-        $docId = $this->input->post("doc_id");
-        $itemId = $this->input->post("item_id");
-
-        $qrow = $db->select("id")
-                        ->from("quotation")
-                        ->where("id", $docId)
-                        ->where("deleted", 0)
-                        ->get()->row();
-
-        if(empty($qrow)) return $this->data;
-
-        $this->data["doc_id"] = $docId;
-        $this->data["product_id"] = "";
-        $this->data["product_name"] = "";
-        $this->data["product_description"] = "";
-        $this->data["quantity"] = number_format(1, $this->Settings_m->getDecimalPlacesNumber());
-        $this->data["unit"] = "";
-        $this->data["price"] = number_format(0, 2);
-        $this->data["discount_type"] = "P";
-        $this->data["discount_value"] = number_format(0, 2);
-        $this->data["total_price"] = number_format(0, 2);
-
-        if(!empty($itemId)){
-            $qirow = $db->select("*")
-                        ->from("quotation_items")
-                        ->where("id", $itemId)
-                        ->where("quotation_id", $docId)
-                        ->get()->row();
-
-            if(empty($qirow)) return $this->data;
-
-            $this->data["item_id"] = $qirow->id;
-            $this->data["product_id"] = $qirow->product_id;
-            $this->data["product_name"] = $qirow->product_name;
-            $this->data["product_description"] = $qirow->product_description;
-            $this->data["quantity"] = number_format($qirow->quantity, $this->Settings_m->getDecimalPlacesNumber());
-            $this->data["unit"] = $qirow->unit;
-            $this->data["price"] = number_format($qirow->price, 2);
-            $this->data["discount_type"] = $qirow->discount_type;
-            $this->data["discount_value"] = number_format(($qirow->discount_type == "P" ? $qirow->discount_percent:$qirow->discount_amount), 2);
-            $this->data["total_price"] = number_format($qirow->total_price, 2);
-        }
-
-        $this->data["status"] = "success";
-
-        return $this->data;
-    }
-
-    function validateItem(){
-        $_POST = json_decode(file_get_contents('php://input'), true);
-
-        $this->form_validation->set_rules([
-                                            [
-                                                "field"=>"quantity",
-                                                'label' => '',
-                                                'rules' => 'required'
-                                            ]
-                                        ]);
-
-        if ($this->form_validation->run() == FALSE){
-            $this->data["status"] = "validate";
-            if(form_error('quantity') != null) $this->data["messages"]["quantity"] = form_error('quantity');
-        }
-
-    }
 
     function getDetailMixingsDataSetHTML($data){
         $row_data = array(

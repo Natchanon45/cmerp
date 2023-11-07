@@ -217,8 +217,10 @@
     }
 
     $(document).ready(function () {
-        var uploadUrl = "<?php echo get_uri("sfg/addedit/upload_file"); ?>";
-        var validationUri = "<?php echo get_uri("sfg/addedit/validate_file"); ?>";
+        //var uploadUrl = "<?php echo get_uri("sfg/addedit/upload_file"); ?>";
+        //var validationUri = "<?php echo get_uri("sfg/addedit/validate_file"); ?>";
+        var uploadUrl = "<?php echo get_uri("sfg/upload_photo/upload_file") ?>";
+        var validationUri = "<?php echo get_uri("sfg/upload_photo/validate_file") ?>";
 
         var dropzone = attachDropzoneWithForm("#items-dropzone", uploadUrl, validationUri);
 
