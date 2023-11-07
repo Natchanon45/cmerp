@@ -235,60 +235,11 @@ class Sfg_m extends MY_Model {
 
     function deleteDoc(){
         $db = $this->db;
-        $docId = $this->input->post("id");
+        
 
-        $qrow = $db->select("status")
-                        ->from("quotation")
-                        ->where("id", $docId)
-                        ->get()->row();
-
-        if(empty($qrow)) return $this->data;
-
-        $bnrow = $db->select("*")
-                    ->from("billing_note")
-                    ->where("quotation_id", $docId)
-                    ->where("deleted", 0)
-                    ->get()->row();
-
-        if(!empty($bnrow)){
-            $this->data["success"] = false;
-            $this->data["message"] = "คุณไม่สามารถลบเอกสารได้ เนื่องจากเอกสารถูกอ้างอิงในใบวางบิลแล้ว";
-            return $this->data;
-        }
-
-        if($qrow->status != "W"){
-            $this->data["success"] = false;
-            $this->data["message"] = "คุณไม่สามารถลบเอกสารได้ เนื่องจากเอกสารมีการเปลี่ยนแปลงสถานะแล้ว";
-            return $this->data;
-        }
-
-        $db->where("id", $docId);
-        $db->update("quotation", ["deleted"=>1]);
-
-        $data["success"] = true;
-        $data["message"] = lang('record_deleted');
-
-        return $data;
+        return $this->data;
     }
 
-    function undoDoc(){
-        $db = $this->db;
-        $docId = $this->input->post("id");
-
-        $db->where("id", $docId);
-        $db->update("quotation", ["deleted"=>0]);
-
-        $qrow = $db->select("*")
-                    ->from("quotation")
-                    ->where("id", $docId)
-                    ->get()->row();
-
-        $data["success"] = true;
-        $data["data"] = $this->getIndexDataSetHTML($qrow);
-        $data["message"] = lang('record_undone');
-
-        return $data;
-    }
 
     function items(){
         $db = $this->db;
@@ -403,373 +354,151 @@ class Sfg_m extends MY_Model {
 
     }
 
-    function saveItem(){
-        $db = $this->db;
-        $docId = isset($this->json->doc_id)?$this->json->doc_id:null;
+    function getDetailMixingsDataSetHTML($data){
+        $row_data = array(
+            $data->id,
+            modal_anchor(get_uri("items/detail_mixing_modal"), $data->name, array("class" => "edit", "title" => lang('item_mixing_edit'), "data-post-id" => $data->id, "data-post-item_id" => $data->item_id)),
+            //$data->category_name,
+            to_decimal_format2($data->ratio) . ' ' . $data->unit_type,
+            $data->is_public == 1 ? lang('yes') : lang('no'),
+            $data->is_public == 0 && !empty($data->for_client_id)
+            ? anchor(get_uri("clients/view/" . $data->for_client_id), $data->company_name)
+            : '-',
+        );
 
-        $qrow = $db->select("id")
-                    ->from("quotation")
-                    ->where("id", $docId)
-                    ->where("deleted", 0)
-                    ->get()->row();
+        $row_data[] = modal_anchor(get_uri("items/detail_mixing_modal"), "<i class='fa fa-pencil'></i>", array("class" => "edit", "title" => lang('item_mixing_edit'), "data-post-id" => $data->id, "data-post-item_id" => $data->item_id))
+            . js_anchor("<i class='fa fa-times fa-fw'></i>", array('title' => lang('item_mixing_delete'), "class" => "delete", "data-id" => $data->id, "data-action-url" => get_uri("items/detail_mixing_delete"), "data-action" => "delete-confirmation"));
 
-        if(empty($qrow)) return $this->data;
-        
-        $this->validateItem();
-        if($this->data["status"] == "validate") return $this->data;
-
-        $itemId = $this->json->item_id;
-        $product_id = $this->json->product_id == ""?null:$this->json->product_id;
-        $product_name = $this->json->product_name;
-        $product_description = $this->json->product_description;
-        $quantity = round(getNumber($this->json->quantity), DEC);
-        $unit = $this->json->unit;
-        $price = getNumber($this->json->price);
-        $discount_type = $this->json->discount_type;
-        $discount_value = getNumber($this->json->discount_value);
-        $discount_percent = null;
-        $discount_amount = 0;
-        $price_after_discount = $total_price = 0;
-
-        if($quantity > 0){
-            $total_price = $price * $quantity;
-            $price_after_discount = $total_price;
-
-            if($discount_type == "P"){
-                if($discount_value < 0) $discount_value = 0;
-                if($discount_value >= 100) $discount_value = 100;
-
-                $discount_percent = $discount_value;
-                $discount_amount = ($total_price * $discount_percent)/100;
-                $price_after_discount = $total_price - $discount_amount;
-
-            }else{
-                if($discount_value < 0) $discount_value = 0;
-                if($discount_value > $total_price) $discount_value = $total_price;
-
-                $discount_amount = $discount_value;
-                $price_after_discount = $total_price - $discount_value;
-                
-            }
-        }
-
-
-        /*if($discount_type == "P"){
-            if($discount_value < 0) $discount_value = 0;
-            if($discount_value >= 100){
-                $discount_value = 100;
-            }
-            $discount_percent = $discount_value;
-            $discount_amount = ($price * $discount_percent)/100;
-            $price_after_discount = $price - $discount_amount;
-            
-        }else{
-            if($discount_value < 0) $discount_value = 0;
-            if($discount_value > $price) $discount_value = $price;
-            $discount_amount = $discount_value;
-            $price_after_discount = $price - $discount_value;
-        }*/
-
-        //$total_price = $price_after_discount * $quantity;
-
-        $fdata = [
-                    "quotation_id"=>$docId,
-                    "product_id"=>$product_id,
-                    "product_name"=>$product_name,
-                    "product_description"=>$product_description,
-                    "quantity"=>$quantity,
-                    "unit"=>$unit,
-                    "price"=>$price,
-                    "discount_type"=>$discount_type,
-                    "discount_percent"=>$discount_percent,
-                    "discount_amount"=>$discount_amount,
-                    "total_price"=>round($price_after_discount, 2),
-                ];
-
-        $db->trans_begin();
-        
-        if(empty($itemId)){
-            $db->where("quotation_id", $docId);
-            $total_items = $db->count_all_results("quotation_items");
-            $fdata["quotation_id"] = $docId;
-            $fdata["sort"] = $total_items + 1;
-            $db->insert("quotation_items", $fdata);
-        }else{
-            $db->where("id", $itemId);
-            $db->where("quotation_id", $docId);
-            $db->update("quotation_items", $fdata);
-        }
-
-        
-        if ($db->trans_status() === FALSE){
-            $db->trans_rollback();
-        }
-
-        $db->trans_commit();
-
-        $this->updateDoc($docId);
-
-        $this->data["target"] = get_uri("quotations/view/".$docId);
-        $this->data["status"] = "success";
-
-        return $this->data;
-
+        return $row_data;
     }
 
-    function deleteItem(){
-        $db = $this->db;
-        $docId = $this->json->doc_id;
-        
-        $db->where("id", $this->json->item_id);
-        $db->where("quotation_id", $docId);
-        $db->delete("quotation_items");
+    function detailMixingsDataSet($docId) {
+        $result = [];
+        $list_data = $this->Bom_item_mixing_groups_model->get_details(['item_id' => $docId])->result();
 
-        if($db->affected_rows() != 1) return $this->data;
-
-        $this->updateDoc($docId);
-
-        $this->data["status"] = "success";
-
-        return $this->data;
-    }
-
-    function updateStatus(){
-        $db = $this->db;
-        $company_setting = $this->Settings_m->getCompany();
-        $docId = $this->json->doc_id;
-        $updateStatusTo = $this->json->update_status_to;
-
-        $qrow = $db->select("*")
-                    ->from("quotation")
-                    ->where("id",$docId)
-                    ->where("billing_type", $company_setting["company_billing_type"])
-                    ->where("deleted", 0)
-                    ->get()->row();
-
-        if(empty($qrow)) return $this->data;
-
-        $quotation_billing_type = $qrow->billing_type;
-        $quotation_id = $this->data["doc_id"] = $docId;
-        $quotation_number = $qrow->doc_number;
-        $currentStatus = $qrow->status;
-
-        $quotation_sub_total_before_discount = $qrow->sub_total_before_discount;
-
-        $quotation_discount_type = $qrow->discount_type;
-        $quotation_discount_percent = $qrow->discount_percent;
-        $quotation_discount_amount = $qrow->discount_amount;
-
-        $quotation_sub_total = $qrow->sub_total;
-
-        $quotation_vat_inc = $qrow->vat_inc;
-        $quotation_vat_percent = $qrow->vat_percent;
-        $quotation_vat_value = $qrow->vat_value;
-
-        $quotation_wht_inc = $qrow->wht_inc;
-        $quotation_wht_percent = $qrow->wht_percent;
-        $quotation_wht_value = $qrow->wht_value;
-
-        $quotation_total = $qrow->total;
-        $quotation_payment_amount = $qrow->payment_amount;
-
-        if($qrow->status == $updateStatusTo && $updateStatusTo != "P"){
-            $this->data["dataset"] = $this->getIndexDataSetHTML($qrow);
-            return $this->data;
+        foreach ($list_data as $data) {
+            $result[] = $this->getDetailMixingsDataSetHTML($data);
         }
 
-        $this->db->trans_begin();
+        return $result;
+    }
 
-        if($updateStatusTo == "A"){//Approved
-            if($currentStatus == "R"){
-                $this->data["dataset"] = $this->getIndexDataSetHTML($qrow);
-                return $this->data;
-            }
+    function detailMixings(){
+        validate_submitted_data(
+            array(
+                "id" => "numeric",
+                "item_id" => "required|numeric"
+            )
+        );
 
-            $db->where("id", $quotation_id);
-            $db->update("quotation", [
-                                        "approved_by"=>$this->login_user->id,
-                                        "approved_datetime"=>date("Y-m-d H:i:s"),
-                                        "status"=>"A"
-                                    ]);
+        $id = $this->input->post("id");
+        $item_id = $this->input->post("item_id");
 
-        }elseif($updateStatusTo == "R"){//Refused
-            $db->where("id", $quotation_id);
-            $db->update("quotation", ["status"=>"R"]);
+        $view_data["label_column"] = "col-md-3";
+        $view_data["field_column"] = "col-md-9";
 
-        }elseif($updateStatusTo == "I"){
-            $db->where("id", $quotation_id);
-            $db->update("quotation", ["status"=>"I"]);
+        $view_data["view"] = $this->input->post("view");
+        $view_data["model_info"] = $this->Bom_item_mixing_groups_model->get_one($id);
+        $view_data["item"] = $this->Items_model->get_one($item_id);
 
-            $item_table2 = "";
+        $view_data["material_dropdown"] = $this->Bom_materials_model->get_details([])->result();
+        $view_data["clients_dropdown"] = $this->Clients_model->get_dropdown_list(array("company_name"), "id", array("is_lead" => 0));
+        $view_data["categories_dropdown"] = $this->Bom_item_mixing_groups_model->get_categories_list();
+        
+        $view_data["items_dropdown"] = ["" => "- " . lang("item_selected") . " -"];
+        $items = $this->Items_model->get_details()->result();
+        foreach ($items as $item) {
+            $view_data["items_dropdown"][$item->id] = $item->title;
+        }
 
-            $fields1 = [
-                        "doc_date"=>date("Y-m-d"),
-                        "billing_type"=>$quotation_billing_type,
-                        "quotation_id"=>$quotation_id,
-                        "reference_number"=>$quotation_number,
-                        "project_id"=>$qrow->project_id,
-                        "client_id"=>$qrow->client_id,
-                        "sub_total_before_discount"=>$quotation_sub_total_before_discount,
-                        "discount_type"=>$quotation_discount_type,
-                        "discount_percent"=>$quotation_discount_percent,
-                        "discount_amount"=>$quotation_discount_amount,
-                        "sub_total"=>$quotation_sub_total,
-                        "vat_inc"=>$quotation_vat_inc,
-                        "vat_percent"=>$quotation_vat_percent,
-                        "vat_value"=>$quotation_vat_value,
-                        "total"=>$quotation_total,
-                        "wht_inc"=>$quotation_wht_inc,
-                        "wht_percent"=>$quotation_wht_percent,
-                        "wht_value"=>$quotation_wht_value,
-                        "payment_amount"=>$quotation_payment_amount,
-                        "remark"=>$qrow->remark,
-                        "created_by"=>$this->login_user->id,
-                        "created_datetime"=>date("Y-m-d H:i:s"),
-                        "status"=>"W",
-                        "deleted"=>0
-                    ];
+        $view_data["material_mixings"] = [];
+        $view_data["material_cat_mixings"] = [];
 
-            if($company_setting["company_billing_type"] == 3 || $company_setting["company_billing_type"] == 6){
-                $item_table2 = "receipt_items";
-                $fields2 = ["doc_number"=>$this->Receipts_m->getNewDocNumber()];
-
-                $db->insert("receipt", array_merge($fields1, $fields2));
-                $doc_id2 = $db->insert_id();
-                $this->data["url"] = get_uri("receipts/view/".$doc_id2);
-            }else{
-                $item_table2 = "invoice_items";
-                $invoice_date = date("Y-m-d");
-                $invoice_credit = $qrow->credit;
-                $invoice_due_date = date("Y-m-d", strtotime($invoice_date. " + ".$invoice_credit." days"));
-
-                $fields2 = [
-                                "doc_number"=>$this->Invoices_m->getNewDocNumber(),
-                                "credit"=>$qrow->credit,
-                                "due_date"=>$invoice_due_date
-                            ];
-
-                $db->insert("invoice", array_merge($fields1, $fields2));
-                $doc_id2 = $db->insert_id();
-                $this->data["url"] = get_uri("invoices/view/".$doc_id2);
-            }
-
-            $qirows = $db->select("*")
-                            ->from("quotation_items")
-                            ->where("quotation_id", $quotation_id)
-                            ->order_by("sort", "ASC")
-                            ->get()->result();
-
-            if(empty(!$qirows)){
-                if($item_table2 == "receipt_items") $fields2 = ["receipt_id"=>$doc_id2];
-                else $fields2 = ["invoice_id"=>$doc_id2];
-
-                foreach($qirows as $qirow){
-                    $fields1 = [
-                            "product_id"=>$qirow->product_id,
-                            "product_name"=>$qirow->product_name,
-                            "product_description"=>$qirow->product_description,
-                            "quantity"=>$qirow->quantity,
-                            "unit"=>$qirow->unit,
-                            "price"=>$qirow->total_price / $qirow->quantity,
-                            "total_price"=>$qirow->total_price,
-                            "sort"=>$qirow->sort
-                        ];
-
-                    $db->insert($item_table2, array_merge($fields1, $fields2));
+        if (!empty($id)) {
+            $view_data["material_mixings"] = $this->Bom_item_mixing_groups_model->get_mixings(["group_id" => $id])->result();
+            foreach ($view_data["material_mixings"] as $mx) {
+                if (!isset($view_data["material_cat_mixings"][$mx->cat_id])) {
+                    $view_data["material_cat_mixings"][$mx->cat_id] = [];
                 }
+                $view_data["material_cat_mixings"][$mx->cat_id][] = $mx;
             }
-
-            $this->data["task"] = "create_invoice";
-            $this->data["status"] = "success";
-            $this->data["message"] = lang('record_saved');
-
-        }elseif($updateStatusTo == "RESET"){
-            if($company_setting["company_billing_type"] == 3 || $company_setting["company_billing_type"] == 6){
-                $rerow = $db->select("doc_number")
-                            ->from("receipt")
-                            ->where("quotation_id", $quotation_id)
-                            ->where("status !=", "V")
-                            ->where("deleted", 0)
-                            ->get()->row();
-
-                if(!empty($rerow)){
-                    $this->data["dataset"] = $this->getIndexDataSetHTML($qrow);
-                    $this->data["message"] = "ไม่สามารถรีเซ็ตใบเสนอราคาได้ เนื่องจากมีการผูกใบเสนอราคากับใบเสร็จเลขที่ ".$rerow->doc_number." แล้ว";
-                    $this->data["status"] = "error";
-                    $db->trans_rollback();
-                    return $this->data;
-                }
-            }else{
-                $ivrow = $db->select("doc_number")
-                        ->from("invoice")
-                        ->where("quotation_id", $quotation_id)
-                        ->where_in("status", ["W", "O", "P"])
-                        ->where("deleted", 0)
-                        ->get()->row();
-
-                if(!empty($ivrow)){
-                    $this->data["dataset"] = $this->getIndexDataSetHTML($qrow);
-                    $this->data["message"] = "ไม่สามารถรีเซ็ตใบเสนอราคาได้ เนื่องจากมีการผูกใบเสนอราคากับใบแจ้งหนี้เลขที่ ".$ivrow->doc_number." แล้ว";
-                    $this->data["status"] = "error";
-                    $db->trans_rollback();
-                    return $this->data;
-                }
-            }
-
-            $db->where("id", $quotation_id);
-            $db->update("quotation", [
-                                        "approved_by"=>NULL,
-                                        "approved_datetime"=>NULL,
-                                        "status"=>"W"
-                                    ]);
         }
 
-        if ($db->trans_status() === FALSE){
-            $db->trans_rollback();
-            $this->data["dataset"] = $this->getIndexDataSetHTML($qrow);
-            return $this->data;
+        if (empty($view_data["model_info"]->item_id)) {
+            $view_data["model_info"]->item_id = $item_id;
+            $view_data["model_info"]->is_public = 1;
         }
 
-        $db->trans_commit();
-
-        if(isset($this->data["task"])) return $this->data;
-
-        $qrow = $db->select("*")
-                    ->from("quotation")
-                    ->where("id",$docId)
-                    ->where("deleted", 0)
-                    ->get()->row();
-
-        $this->data["dataset"] = $this->getIndexDataSetHTML($qrow);
-        $this->data["status"] = "success";
-        $this->data["message"] = lang("record_saved");
-        return $this->data;
+        return $view_data;
     }
 
-    function genShareKey(){
-        $db = $this->db;
-        $docId = $this->json->doc_id;
-        $genKey = $this->json->gen_key;
+    function saveDetailMixings(){
+        $id = $this->input->post("id");
+        $item_id = $this->input->post("item_id");
+        $is_public = $this->input->post("is_public");
+        $clone_to_new_item = $this->input->post("clone_to_new_item");
+
+        validate_submitted_data(
+            array(
+                "id" => "numeric",
+                "item_id" => "required|numeric",
+                "name" => "required",
+                "ratio" => "required|numeric"
+            )
+        );
+
+        if ($clone_to_new_item) {
+            $target_path = get_setting("timeline_file_path");
+            $item = $this->Items_model->get_one($item_id);
+            $new_files = unserialize($item->files);
+            $files_data = copy_files($new_files, $target_path, "item");
+            $new_files = unserialize($files_data);
+
+            $item_data = array(
+                "title" => $item->title . "[COPY]",
+                "description" => $item->description,
+                "category_id" => $item->category_id,
+                "unit_type" => $item->unit_type,
+                "rate" => $item->rate,
+                "show_in_client_portal" => 0,
+                "files" => serialize($new_files)
+            );
+            $item_id = $this->Items_model->save($item_data, 0);
+            $item = $this->Items_model->get_one($item_id);
+        }
+
+        $data = array(
+            "item_id" => $item_id,
+            "name" => $this->input->post("name"),
+            "ratio" => $this->input->post("ratio"),
+            "is_public" => $is_public,
+            "for_client_id" => $is_public == 1 ? null : $this->input->post("for_client_id")
+        );
+        $data = clean_data($data);
+
+        $save_id = $this->Bom_item_mixing_groups_model->save($data, $id);
+        $material_ids = $this->input->post("material_id[]");
+        $cat_ids = $this->input->post("cat_id[]");
+        $ratios = $this->input->post("mixing_ratio[]");
+        $this->Bom_item_mixing_groups_model->mixing_save($save_id, $material_ids, $cat_ids, $ratios);
+
+        if ($save_id) {
+            echo json_encode(
+                array(
+                    "success" => true,
+                    "data" => $this->_detail_mixing_row_data($save_id),
+                    "id" => $save_id,
+                    "view" => $this->input->post("view"),
+                    "message" => lang("record_saved")
+                )
+            );
+        } else {
+            echo json_encode(array("success" => false, "message" => lang("error_occurred")));
+        }
+    }
+
+    function deleteDetailMixings(){
         
-        $sharekey = null;
-        $sharekey_by = null;
-
-        if($genKey == true){
-            $sharekey = "";
-            $sharekey_by = $this->login_user->id;
-
-            while(true){
-                $sharekey = uniqid();
-                $db->where("sharekey", $sharekey);
-                if($db->count_all_results("quotation") < 1) break;
-            }
-
-            $this->data["sharelink"] = get_uri($this->shareHtmlAddress."th/".$sharekey);
-        }
-
-        $db->where("id", $docId);
-        $db->update("quotation", ["sharekey"=>$sharekey, "sharekey_by"=>$sharekey_by]);
-
-        return $this->data;
     }
+
 }

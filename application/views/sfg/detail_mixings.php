@@ -5,7 +5,7 @@
       <?php
         // if ($can_edit_suppliers) {
           echo modal_anchor(
-            get_uri("#"), 
+            get_uri("sfg/detail_mixings_modal"), 
             "<i class='fa fa-plus-circle'></i> " . lang('item_mixing_add'), 
             array(
               "class" => "btn btn-default", 

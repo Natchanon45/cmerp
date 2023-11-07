@@ -69,19 +69,22 @@ class Sfg extends MY_Controller {
         $docId = $this->uri->segment(3);
 
         if($this->input->post("datatable") == true){
-            $result = array();
-            $list_data = $this->Bom_item_mixing_groups_model->get_details(['item_id' => $docId])->result();
-
-            foreach ($list_data as $data) {
-                $result[] = $this->_detail_mixing_make_row($data);
-            }
-
-            echo json_encode(array("data" => $result));
+            jout(["data"=>$this->Sfg_m->detailMixingsDataSet($docId)]);
             return;
         }
 
         $this->data["item_id"] = $docId;
         $this->load->view("sfg/detail_mixings", $this->data);
+    }
+
+    function detail_mixings_modal(){
+        
+        if($this->input->post("id") != null){
+            $this->Sfg_m->saveDetailMixings();
+            return;
+        }
+        $this->data = $this->Sfg_m->detailMixings();
+        $this->load->view("sfg/detail_mixings_modal", $this->data);
     }
 
     function detail_files($item_id = 0){
@@ -103,11 +106,4 @@ class Sfg extends MY_Controller {
         $view_data['item_id'] = $item_id;
         $this->load->view("sfg/detail_files", $this->data);
     }
-
-
-
-
-
-
-    
 }
