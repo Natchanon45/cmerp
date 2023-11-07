@@ -68,13 +68,22 @@ class Invoices_m extends MY_Model {
             $customer_group_names = substr($customer_group_names, 0, -2);
         }
 
+        $total_payment_amount = $this->db->select("SUM(payment_amount) AS TOTAL_PAYMENT_AMOUNT")
+                                            ->from("invoice_payment")
+                                            ->where("invoice_id", $ivrow->id)
+                                            ->get()->row()->TOTAL_PAYMENT_AMOUNT;
+
+        if($total_payment_amount == null) $total_payment_amount = 0;
+
+        $total_invoice_remaining = $ivrow->total - $total_payment_amount;
+
         $data = [
                     "<a href='".get_uri("invoices/view/".$ivrow->id)."'>".convertDate($ivrow->doc_date, 2)."</a>",
                     "<a href='".get_uri("invoices/view/".$ivrow->id)."'>".$ivrow->doc_number."</a>",
                     $reference_number_column,
                     "<a href='".get_uri("clients/view/".$ivrow->client_id)."'>".$this->Clients_m->getCompanyName($ivrow->client_id)."</a>",
                     $customer_group_names,
-                    convertDate($ivrow->due_date, true), number_format($ivrow->total, 2), $doc_status,
+                    convertDate($ivrow->due_date, true), number_format($total_invoice_remaining, 2), $doc_status,
                     "<a data-post-id='".$ivrow->id."' data-action-url='".get_uri("invoices/addedit")."' data-act='ajax-modal' class='edit'><i class='fa fa-pencil'></i></a>"
                 ];
 

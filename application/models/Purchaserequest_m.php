@@ -147,6 +147,14 @@ class Purchaserequest_m extends CI_Model
             "id" => "A",
             "text" => lang("pr_approved")
         );
+        $data[] = array(
+            "id" => "R",
+            "text" => lang("pr_rejected")
+        );
+        $data[] = array(
+            "id" => "X",
+            "text" => lang("pr_cancelled")
+        );
 
         return $data;
     }

@@ -2594,6 +2594,7 @@ $lang["payment_voucher_payer"] = "ผู้ซื้อ";
 $lang["payment_voucher_payee"] = "ผู้ขาย";
 $lang["payment_information"] = "ข้อมูลการชำระเงิน";
 $lang["payment_information_add"] = "บันทึกการชำระเงิน";
+$lang["payment_information_wait"] = "รอบันทึกการชำระ";
 
 $lang["pv_invoice_refer"] = "อ้างอิงใบแจ้งหนี้";
 $lang["pv_invoice_refer_placeholder"] = "ระบุเลขที่ใบแจ้งหนี้ของผู้ขายหรือผู้จัดจำหน่าย";

@@ -2195,6 +2195,7 @@ $lang["payment_voucher_payer"] = "Payer Info.";
 $lang["payment_voucher_payee"] = "Payee Info.";
 $lang["payment_information"] = "Payment Info.";
 $lang["payment_information_add"] = "Add payment Info.";
+$lang["payment_information_wait"] = "Awaiting for add payment.";
 
 $lang["pv_invoice_refer"] = "Supplier Invoice";
 $lang["pv_invoice_refer_placeholder"] = "Invoice number that will be pay.";
