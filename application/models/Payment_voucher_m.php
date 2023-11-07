@@ -39,15 +39,44 @@ class Payment_voucher_m extends MY_Model
 
     function getIndexDataSetHTML($item)
     {
-        $doc_status = '<select class="dropdown_status pointer-none select-status" data-doc_id="' . $item->id . '">';
+        $doc_status = '';
         $btn_control = '';
+        
+        $document_date = "<a href='" . get_uri('payment_voucher/view/' . $item->id) . "'>" . convertDate($item->doc_date, true) . "</a>";
+        $document_number = "<a href='" . get_uri('payment_voucher/view/' . $item->id) . "'>" . $item->doc_number . "</a>";
 
         if ($item->status == "W") {
-            $doc_status .= '<option value="W" selected>' . lang('pr_pending') . '</option>';
+            $doc_status = '<select class="dropdown_status select-status select2" data-doc_id="' . $item->id . '">';
+            if ($item->pay_status == "N" || $item->pay_status == "P") {
+                $doc_status .= '<option value="W" selected>' . lang('payment_information_wait') . '</option>';
+                $doc_status .= '<option value="X">' . lang('pr_cancelled') . '</option>';
+            }
+
+            if ($item->pay_status == "C" || $item->pay_status == "O") {
+                $doc_status .= '<option value="W" selected>' . lang('pr_pending') . '</option>';
+                $doc_status .= '<option value="A">' . lang('pr_approved') . '</option>';
+                $doc_status .= '<option value="R">' . lang('pr_rejected') . '</option>';
+            }
+            
             $btn_control = "<a data-post-id='" . $item->id . "' data-title='" . lang("payment_voucher_edit") . "' data-action-url='" . get_uri("payment_voucher/editnew") . "' data-act='ajax-modal' class='edit'><i class='fa fa-pencil'></i></a>";
+        }
+
+        if ($item->status == "X") {
+            $doc_status = '<select class="dropdown_status pointer-none select-status" data-doc_id="' . $item->id . '">';
+            $doc_status .= '<option value="X" selected>' . lang('pr_cancelled') . '</option>';
+            $document_date = convertDate($item->doc_date, true);
+            $document_number = $item->doc_number;
+        }
+
+        if ($item->status == "R") {
+            $doc_status = '<select class="dropdown_status pointer-none select-status" data-doc_id="' . $item->id . '">';
+            $doc_status .= '<option value="R" selected>' . lang('pr_rejected') . '</option>';
+            $document_date = convertDate($item->doc_date, true);
+            $document_number = $item->doc_number;
         }
         
         if ($item->status == "A") {
+            $doc_status = '<select class="dropdown_status pointer-none select-status" data-doc_id="' . $item->id . '">';
             $doc_status .= '<option value="A" selected>' . lang('pr_approved') . '</option>';
             $btn_control = "<a data-post-id='" . $item->id . "' data-title='" . lang("payment_voucher_edit") . "' data-action-url='" . get_uri("payment_voucher/editnew") . "' data-act='ajax-modal' class='edit'><i class='fa fa-eye'></i></a>";
         }
@@ -81,8 +110,8 @@ class Payment_voucher_m extends MY_Model
             }
         }
 
-        $data[] = "<a href='" . get_uri('payment_voucher/view/' . $item->id) . "'>" . convertDate($item->doc_date, true) . "</a>";
-        $data[] = "<a href='" . get_uri('payment_voucher/view/' . $item->id) . "'>" . $item->doc_number . "</a>";
+        $data[] = $document_date;
+        $data[] = $document_number;
         $data[] = $extract_refer;
         if (isset($this->Permission_m->bom_supplier_read) && $this->Permission_m->bom_supplier_read) {
             $data[] = $supplier_name;
@@ -711,8 +740,9 @@ class Payment_voucher_m extends MY_Model
 
         $this->db->trans_begin();
 
-        if ($updateStatusTo == "A") { // Approved
-            if ($currentStatus == "R") {
+        if ($updateStatusTo == "A") // Approved
+        {
+            if ($currentStatus != "W") {
                 $this->data["dataset"] = $this->getIndexDataSetHTML($pvrow);
                 return $this->data;
             }
@@ -728,9 +758,32 @@ class Payment_voucher_m extends MY_Model
                 "approved_datetime" => date("Y-m-d H:i:s"),
                 "status" => "A"
             ]);
-        } elseif ($updateStatusTo == "R") { // Rejected
+        } 
+        elseif ($updateStatusTo == "R" || $updateStatusTo == "X") // Rejected or Canceled
+        {
+            if ($currentStatus != "W") {
+                $this->data["dataset"] = $this->getIndexDataSetHTML($pvrow);
+                return $this->data;
+            }
+
+            // remove payment info
+            $db->where("pv_id", $payment_voucher_id);
+            $db->delete("goods_receipt_payment");
+
+            // process to po detail
+            $pv_items = $db->select("*")->from("pv_detail")->where("pv_id", $payment_voucher_id)->get()->result();
+            if (sizeof($pv_items)) {
+                $db->where("pv_id", $payment_voucher_id);
+                $db->delete("pv_detail");
+
+                foreach ($pv_items as $pv_item) {
+                    $this->dev2_patchPurchaseOrderItemPaymentById($pv_item->po_item_id);
+                    $this->dev2_patchPurchaseOrderHeaderPaymentById($pv_item->po_id);
+                }
+            }
+
             $db->where("id", $payment_voucher_id);
-            $db->update("payment_voucher", ["status" => "R"]);
+            $db->update("pv_header", ["status" => $updateStatusTo]);
         }
 
         if ($db->trans_status() === FALSE) {
@@ -1402,7 +1455,7 @@ class Payment_voucher_m extends MY_Model
 
     private function dev2_patchPurchaseOrderItemPaymentById(int $id) : void
     {
-        $sql = "SELECT SUM(quantity) AS quantity FROM pv_detail WHERE po_item_id = ?";
+        $sql = "SELECT IFNULL(SUM(quantity), 0) AS quantity FROM pv_detail WHERE po_item_id = ?";
         $item = $this->db->query($sql, $id)->row();
 
         if (isset($item->quantity) && $item->quantity >= 0) {
