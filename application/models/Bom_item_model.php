@@ -244,6 +244,35 @@ class Bom_item_model extends Crud_model {
         return $data;
     }
 
+    public function dev2_getSfgDetail($options)
+    {
+        $where = "";
+
+        $id = get_array_value($options, "id");
+        if ($id) {
+			$where .= " AND bm.id = $id";
+		}
+
+        $category_id = get_array_value($options, "category_id");
+        if ($category_id) {
+			$where .= " AND bm.category_id = $category_id";
+		}
+
+        $exceptId = get_array_value($options, "except_id");
+        if ($exceptId) {
+			$where .= " AND bm.id != $exceptId";
+		}
+
+        return $this->db->query("
+			SELECT bm.*, bmc.title category, SUM(bs.remaining) remaining 
+			FROM items bm 
+			LEFT JOIN material_categories bmc ON bmc.id = bm.category_id  
+			LEFT JOIN bom_item_stocks bs ON bs.item_id = bm.id AND bs.remaining > 0 
+			WHERE 1 AND bm.item_type = 'SFG' $where 
+			GROUP BY bm.id 
+		");
+    }
+
     public function dev2_getAllCategories() : array
 	{
 		$data = array();

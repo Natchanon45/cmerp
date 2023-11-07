@@ -2305,3 +2305,6 @@ $lang["setting_payment_voucher"] = "Payment voucher";
 $lang["setting_payment_voucher_access"] = "Can access payment voucher";
 $lang["setting_goods_receipt"] = "Goods receipt";
 $lang["setting_goods_receipt_access"] = "Can access goods receipt";
+
+// Semi-Finished Goods
+$lang["sfg_column_header"] = "Semi-Finished Goods";

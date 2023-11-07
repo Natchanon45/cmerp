@@ -919,6 +919,9 @@ class Items extends MY_Controller
 		$view_data["material_dropdown"] = $this->Bom_materials_model->get_details([])->result();
 		$view_data["clients_dropdown"] = $this->Clients_model->get_dropdown_list(array("company_name"), "id", array("is_lead" => 0));
 		$view_data["categories_dropdown"] = $this->Bom_item_mixing_groups_model->get_categories_list();
+
+		$view_data["sfg_dropdown"] = $this->Bom_item_model->dev2_getSfgDetail([])->result();
+		$view_data["sfg_categories_dropdown"] = $this->Bom_item_mixing_groups_model->get_categories_list_sfg();
 		
 		$view_data["items_dropdown"] = ["" => "- " . lang("item_selected") . " -"];
 		$items = $this->Items_model->get_details()->result();
@@ -928,15 +931,29 @@ class Items extends MY_Controller
 
 		$view_data["material_mixings"] = [];
 		$view_data["material_cat_mixings"] = [];
-		$view_data["bom_material_read_production_name"] = $this->check_permission("bom_material_read_production_name");
+
+		$view_data["sfg_mixings"] = [];
+		$view_data["sfg_cat_mixings"] = [];
 
 		if (!empty($id)) {
 			$view_data["material_mixings"] = $this->Bom_item_mixing_groups_model->get_mixings(["group_id" => $id])->result();
-			foreach ($view_data["material_mixings"] as $mx) {
-				if (!isset($view_data["material_cat_mixings"][$mx->cat_id])) {
-					$view_data["material_cat_mixings"][$mx->cat_id] = [];
+			if (sizeof($view_data["material_mixings"])) {
+				foreach ($view_data["material_mixings"] as $rmx) {
+					if (!isset($view_data["material_cat_mixings"][$rmx->cat_id])) {
+						$view_data["material_cat_mixings"][$rmx->cat_id] = [];
+					}
+					$view_data["material_cat_mixings"][$rmx->cat_id][] = $rmx;
 				}
-				$view_data["material_cat_mixings"][$mx->cat_id][] = $mx;
+			}
+
+			$view_data["sfg_mixings"] = $this->Bom_item_mixing_groups_model->get_mixings_sfg(["group_id" => $id])->result();
+			if (sizeof($view_data["sfg_mixings"])) {
+				foreach ($view_data["sfg_mixings"] as $sfgx) {
+					if (!isset($view_data["sfg_cat_mixings"][$sfgx->cat_id])) {
+						$view_data["sfg_cat_mixings"][$sfgx->cat_id] = [];
+					}
+					$view_data["sfg_cat_mixings"][$sfgx->cat_id][] = $sfgx;
+				}
 			}
 		}
 
@@ -944,6 +961,8 @@ class Items extends MY_Controller
 			$view_data["model_info"]->item_id = $item_id;
 			$view_data["model_info"]->is_public = 1;
 		}
+
+		$view_data["bom_material_read_production_name"] = $this->check_permission("bom_material_read_production_name");
 
 		// var_dump(arr($view_data)); exit();
 		$this->load->view("items/detail/modal_mixing", $view_data);
@@ -1000,7 +1019,8 @@ class Items extends MY_Controller
 		$material_ids = $this->input->post("material_id[]");
 		$cat_ids = $this->input->post("cat_id[]");
 		$ratios = $this->input->post("mixing_ratio[]");
-		$this->Bom_item_mixing_groups_model->mixing_save($save_id, $material_ids, $cat_ids, $ratios);
+		$item_types = $this->input->post("item_type[]");
+		$this->Bom_item_mixing_groups_model->mixing_save($save_id, $material_ids, $cat_ids, $ratios, $item_types);
 
 		if ($save_id) {
 			echo json_encode(
