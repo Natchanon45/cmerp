@@ -18,6 +18,89 @@ class Sfg_m extends MY_Model {
         return $irow;
     }
 
+    function deleteRow(){
+        $id = $this->input->post('id');
+        validate_submitted_data(
+            array(
+                "id" => "required|numeric"
+            )
+        );
+
+        if ($this->Bom_item_model->delete_material_and_sub_items($id)) {
+            return array("success" => true, 'message' => lang('record_deleted'));
+        } else {
+            return array("success" => false, 'message' => lang('record_cannot_be_deleted'));
+        }   
+    }
+
+    function saveCategory(){
+        validate_submitted_data(
+            array(
+                "id" => "numeric",
+                "title" => "required"
+            )
+        ); 
+
+        $data = array(
+            "id" => $this->input->post("id") ? $this->input->post("id") : null,
+            "title" => $this->input->post("title"),
+            "item_type" => $this->item_type
+        ); 
+
+        if (isset($data["id"]) && !empty($data["id"])) {
+            $is_duplicate = false;
+            $rows = $this->Material_categories_m->dev2_getDuplicatedCategoryByNameWithId($data["id"], $data["title"], $data["item_type"]);
+
+            if ($rows > 0) $is_duplicate = true;
+            
+            if ($is_duplicate) {
+                echo json_encode(array("success" => true, "post" => $is_duplicate, "message" => lang("item_cate_duplicate")));
+                exit;
+            } 
+        } else {
+
+            $is_duplicate = false;
+            $rows = $this->Material_categories_m->dev2_getDuplicatedCategoryByName($data["title"], $data["item_type"]);
+
+            if ($rows > 0) $is_duplicate = true;
+
+            if ($is_duplicate) {
+                echo json_encode(array("success" => true, "post" => $is_duplicate, "message" => lang("item_cate_duplicate")));
+                exit;
+            }
+        } 
+
+        $save_id = $this->Material_categories_m->dev2_postCategoryData($data);
+
+        if ($save_id) { 
+            return array(
+                    "success" => true,
+                    "data" => $this->Material_categories_m->dev2_getCategoryInfoById($save_id),
+                    "post" => $is_duplicate,
+                    "id" => $save_id,
+                    "message" => lang("record_saved")
+                );
+        } else {
+            return array("success" => false, "message" => lang("error_occurred"));
+        }
+    }
+
+    function deleteCategory(){
+        $post = $this->input->post();
+
+        validate_submitted_data(
+            array(
+                "id" => "required|numeric"
+            )
+        );
+
+        if ($this->Material_categories_m->dev2_deleteCategoryById($post["id"])) {
+            return array("success" => true, "message" => lang("record_deleted"), "id" => $post["id"]);
+        } else {
+            return array("success" => false, "message" => lang("record_cannot_be_deleted"));
+        }
+    }
+
     function getIndexDataSetHTML($irow){
         $preview = '<img class="product-preview" src="' . base_url('assets/images/file_preview.jpg'). '">';
         if ($irow->files) {
@@ -32,16 +115,19 @@ class Sfg_m extends MY_Model {
             $src = get_uri('/sfg/barcode/' . $src);
         }
 
+        $category_title = $this->Material_categories_m->getTitle($irow->category_id);
+
         $data = [
                     "<a href='".get_uri('sfg/detail/' . $irow->id)."'>".$irow->id."</a>",
                     $preview,
                     $irow->item_code ? $irow->item_code : '-',
                     "<a href='".get_uri('sfg/detail/' . $irow->id)."'>".$irow->title."</a>",
                     nl2br($irow->description),
+                    $category_title != null ? $category_title : "-",
                     $irow->unit_type ? $irow->unit_type : "",
                     @$irow->barcode ? '<div style="text-align:center"><a href="' . $src . '" class="barcode_img" download><img src="' . $src . '" /><div class="text">Click to download</div></a></div>' : '-',
                     $irow->rate,
-                    modal_anchor(get_uri("sfg/addedit"), "<i class='fa fa-pencil'></i>", array("class" => "edit", "title" => lang('edit_item'), "data-post-id" => $irow->id))."<a class='delete' data-id='".$irow->id."' data-action-url='".get_uri("sfg/item_delete")."' data-action='delete-confirmation'><i class='fa fa-times fa-fw'></i></a>"
+                    modal_anchor(get_uri("sfg/addedit"), "<i class='fa fa-pencil'></i>", array("class" => "edit", "title" => lang('edit_item'), "data-post-id" => $irow->id))."<a class='delete' data-id='".$irow->id."' data-action-url='".get_uri("sfg/addedit/delete")."' data-action='delete-confirmation'><i class='fa fa-times fa-fw'></i></a>"
 
                 ];
 
@@ -52,7 +138,7 @@ class Sfg_m extends MY_Model {
         $db = $this->db;
         $company_setting = $this->Settings_m->getCompany();
 
-        $db->select("items.*, item_categories.title AS category_title")
+        $db->select("items.*")
             ->from("items")
             ->join("item_categories", "item_categories.id = items.category_id", "left")
             ->join("bom_item_stocks", "bom_item_stocks.item_id = items.id", "left")
@@ -432,5 +518,7 @@ class Sfg_m extends MY_Model {
     function deleteDetailMixings(){
         
     }
+
+
 
 }

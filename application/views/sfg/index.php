@@ -19,12 +19,12 @@
                         get_uri("stock/item_import_modal"),
                         "<i class='fa fa-upload'></i> " . lang('stock_item_import'),
                         array("class" => "btn btn-default", "title" => lang('stock_item_import'))
-                    );
+                    );*/
                     echo modal_anchor(
-                        get_uri("stock/item_category_modal"),
+                        get_uri("sfg/category_modal"),
                         "<i class='fa fa-tags'></i> " . lang('add_category'),
                         array("class" => "btn btn-default", "title" => lang('add_category'), "data-post-type" => "item")
-                    );*/
+                    );
                 
                     echo modal_anchor(get_uri("sfg/addedit"), "<i class='fa fa-plus-circle'></i> " . lang('add_item'), array("class" => "btn btn-default", "title" => lang('add_item')));
                 ?>
@@ -44,9 +44,10 @@
             columns: [
                 { title: "<?php echo lang('id'); ?>", "class": "w50 text-center" },
                 { title: "<?php echo lang('preview_image'); ?>", "class": "w50" },
-                { title: "<?php echo lang("stock_item_code"); ?>", "class": "w100" },
+                { title: "รหัสสินค้ากึ่งสำเร็จ", "class": "w100" },
                 { title: "<?php echo lang('stock_products'); ?>", "class": "w20p" },
                 { title: "<?php echo lang('description'); ?>" },
+                { title: "<?php echo lang('category'); ?>" },
                 { title: "<?php echo lang('unit_type'); ?>", "class": "w100" },
                 { title: '<?php echo lang("stock_material_barcode"); ?>' },
                 { title: "<?php echo lang('rate'); ?>", "class": "text-right w100" },

@@ -1,7 +1,7 @@
 <?php echo form_open(current_url(), array("id" => "mixing-form", "class" => "general-form", "role" => "form")); ?>
 
 <div class="modal-body clearfix">
-	<?php $this->load->view("items/detail/form_mixing"); ?>
+	<?php $this->load->view("sfg/detail_mixings_modal_mixing"); ?>
 </div>
 
 <div class="modal-footer">

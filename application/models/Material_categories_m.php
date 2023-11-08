@@ -10,6 +10,26 @@ class Material_categories_m extends Crud_model
         parent::__construct($this->table);
     }
 
+    public function getRows($item_type = null){
+        $builder = $this->db->select("*")
+                            ->from("material_categories");
+
+        if($item_type != null) $builder->where("item_type", strtoupper($item_type));
+
+        return $builder->get()->result();
+    }
+
+    public function getTitle($category_id){
+        $mcrow = $this->db->select("title")
+                            ->from("material_categories")
+                            ->where("id", $category_id)
+                            ->get()->row();
+
+        if(empty($mcrow)) return null;
+
+        return $mcrow->title;
+    }
+
     public function dev2_getCategoryInfoById(int $id) : stdClass
     {
         $info = new stdClass();

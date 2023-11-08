@@ -3,6 +3,8 @@ if (!defined('BASEPATH')) exit('No direct script access allowed');
 use Laminas\Barcode\Barcode;
 
 class Sfg extends MY_Controller {
+    private $item_type = "SFG";
+
     function __construct() {
         parent::__construct();
         $this->load->model("Account_category_model");
@@ -30,16 +32,30 @@ class Sfg extends MY_Controller {
         if($task == "validate_file") jout($this->Sfg_m->validateFile());
     }
 
+    function category_modal(){
+        $task = $this->uri->segment(3);
+        
+        if($task != null){
+            if($task == "save") jout($this->Sfg_m->saveCategory());
+            if($task == "delete") jout($this->Sfg_m->deleteCategory());
+            return;
+        }
+        
+        $view_data["existing_categories"] = $this->Material_categories_m->dev2_getCategoryListByType($this->item_type);
+        
+        $this->load->view("sfg/category_modal", $view_data);
+    }
+
     function addedit(){
         $task = $this->uri->segment(3);
 
         if($task != null){
-            if($task == "save")jout($this->Sfg_m->saveDetailInfo());
+            if($task == "save") jout($this->Sfg_m->saveDetailInfo());
+            if($task == "delete") jout($this->Sfg_m->deleteRow());
             return;
         }
 
         $view_data['model_info'] = $this->Items_model->get_one($this->input->post('id'));
-        $view_data['categories_dropdown'] = $this->Item_categories_model->get_dropdown_list(array("title"));
         $view_data["account_category"] = $this->Account_category_model->get_list_dropdown();
 
         $this->load->view('sfg/addedit', $view_data);

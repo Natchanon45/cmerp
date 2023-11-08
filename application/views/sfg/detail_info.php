@@ -60,22 +60,20 @@
       <div class="form-group">
         <label for="category_id" class="col-md-2">หมวดหมู่</label>
         <div class="col-md-10">
-          <?php
-            echo form_input(
-                array(
-                    "id" => "category_id",
-                    "name" => "category_id",
-                    "value" => $model_info->category_id ? $model_info->category_id : null,
-                    "class" => "form-control",
-                    "placeholder" => "หมวดหมู่"
-                )
-            );
-          ?>
+          <?php $mcrows = $this->Material_categories_m->getRows("SFG"); ?>
+          <select name="category_id" class="form-control">
+            <option>- หมวดหมู่ -</option>
+            <?php if(!empty($mcrows)): ?>
+              <?php foreach($mcrows as $mcrow): ?>
+                <option value="<?php echo $mcrow->id; ?>" <?php if($mcrow->id == $model_info->category_id) echo "selected";?>><?php echo $this->Material_categories_m->getTitle($mcrow->id); ?></option>
+              <?php endforeach;?>
+            <?php endif; ?>
+          </select>
         </div>
       </div>
 
       <div class="form-group">
-        <label for="category_id" class="col-md-2">หมวดบัญชี</label>
+        <label for="account_id" class="col-md-2">หมวดบัญชี</label>
         <div class="col-md-10">
           <?php
             echo form_input(

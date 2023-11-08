@@ -6,15 +6,6 @@
         <input type="hidden" name="oid" id="oid" value="<?php echo $model_info->id; ?>" />
         <input type="hidden" name="is_duplicate" id="is_duplicate" value="0" />
 
-        <?php if ($model_info->id): ?>
-            <div class="form-group">
-                <div class="col-md-12 text-off">
-                    <?php echo lang('item_edit_instruction'); ?>
-                </div>
-            </div>
-        <?php endif; ?>
-
-
         <div class="form-group">
             <label for="item_code" class="col-md-3"><?php echo lang('stock_item_code'); ?></label>
             <div class="col-md-9">
@@ -58,7 +49,7 @@
             <label for="description" class="col-md-3">
                 <?php echo lang('description'); ?>
             </label>
-            <div class=" col-md-9">
+            <div class="col-md-9">
                 <?php
                 echo form_textarea(
                     array(
@@ -71,6 +62,21 @@
                     )
                 );
                 ?>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="category_id" class="col-md-3"><?php echo lang('stock_item_category'); ?></label>
+            <div class="col-md-9">
+                <?php $mcrows = $this->Material_categories_m->getRows("SFG"); ?>
+                <select id="category_id" name="category_id" class="form-control">
+                    <option>- หมวดหมู่ -</option>
+                    <?php if(!empty($mcrows)): ?>
+                        <?php foreach($mcrows as $mcrow): ?>
+                            <option value="<?php echo $mcrow->id; ?>" <?php if($mcrow->id == $model_info->category_id) echo "selected";?>><?php echo $this->Material_categories_m->getTitle($mcrow->id); ?></option>
+                        <?php endforeach;?>
+                    <?php endif; ?>
+                </select>
             </div>
         </div>
 
