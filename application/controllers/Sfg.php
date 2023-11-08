@@ -6,6 +6,7 @@ class Sfg extends MY_Controller {
     function __construct() {
         parent::__construct();
         $this->load->model("Account_category_model");
+        $this->load->model("Bom_item_pricings_model");
     }
 
     function barcode($barcode){
@@ -77,20 +78,44 @@ class Sfg extends MY_Controller {
     }
 
     function detail_pricing(){
-        if($this->input->method(false) == "post"){
-            jout($this->Sfg_m->saveDetailInfo());
+        $docId = $this->uri->segment(3);
+
+        if($this->input->post("datatable") == true){
+            jout(["data"=>$this->Sfg_m->detailPricingDataSet($docId)]);
             return;
         }
 
+        $view_data['item_id'] = $this->uri->segment(3);
+        $view_data['category_dropdown'] = $this->Item_categories_model->dev2_getCategoryDropdown();
+        $view_data['supplier_dropdown'] = $this->Bom_suppliers_model->dev2_getSupplierDropdown();
+        $view_data['is_admin'] = $this->login_user->is_admin;
 
-        $view_data['model_info'] = $this->Items_model->get_one($item_id);
-        $view_data['categories_dropdown'] = $this->Item_categories_model->get_dropdown_list(array("title"));
-
-        $view_data['label_column'] = "col-md-2";
-        $view_data['field_column'] = "col-md-10";
-
-        $this->load->view('sfg/detail_info', $view_data);
+        $this->load->view('sfg/detail_pricing', $view_data);
         
+    }
+
+    function detail_pricing_modal(){
+        $docId = $this->uri->segment(3);
+
+        if($docId != null){
+            jout($this->Sfg_m->saveDetailPricing());
+            return;
+        }
+
+        $post = $_POST;
+
+        if (isset($post['id']) && !empty($post['id'])) {
+            $this->data['model_info'] = $this->Bom_item_pricings_model->getItemPricingById($post['id']);
+        }
+
+        $this->data['item_id'] = $post['item_id'];
+        if (isset($post['item_id']) && !empty($post['item_id'])) {
+            $this->data['item_data'] = $this->Items_model->get_one($post['item_id']);
+        }
+
+        $this->data['supplier_dropdown'] = $this->Bom_suppliers_model->dev2_getSupplierDropdown();
+
+        $this->load->view("sfg/detail_pricing_modal", $this->data);
     }
 
     function detail_mixings(){

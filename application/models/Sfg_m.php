@@ -172,75 +172,119 @@ class Sfg_m extends MY_Model {
         
 
         return array("success" => true, "id" => $sfg_id, "data" => $this->getIndexDataSetHTML($sfgrow), 'message' => lang('record_saved'));
-
-
-        /*if ($item_id) {
-            
-            if ($oid && $is_duplicate) {
-                $mixing_groups = $this->Bom_item_mixing_groups_model->get_details(['item_id' => $oid])->result();
-                foreach ($mixing_groups as $g) {
-                    $g_a = [];
-                    $g_a['id'] = 0;
-                    $g_a['item_id'] = $item_id;
-                    $g_a['name'] = $g->name;
-                    $g_a['ratio'] = $g->ratio;
-                    $g_a['is_public'] = $g->is_public;
-                    $g_a['for_client_id'] = $g->for_client_id;
-
-                    $new_gid = $this->Bom_item_mixing_groups_model->save($g_a, 0);
-                    if ($new_gid) {
-                        $material_mixings = $this->Bom_item_mixing_groups_model->get_mixings(['group_id' => $g->id])->result();
-                        $material_ids = [];
-                        $ratios = [];
-                        $cat_ids = [];
-                        foreach ($material_mixings as $mm) {
-                            if (!isset($material_ids[$mm->cat_id]))
-                                $material_ids[$mm->cat_id] = [];
-                            $material_ids[$mm->cat_id][] = $mm->material_id;
-
-                            if (!isset($ratios[$mm->cat_id]))
-                                $ratios[$mm->cat_id] = [];
-                            $ratios[$mm->cat_id][] = $mm->ratio;
-
-                            $cat_ids[$mm->cat_id] = $mm->cat_id;
-                        }
-                        $this->Bom_item_mixing_groups_model->mixing_save($new_gid, $material_ids, $cat_ids, $ratios);
-                    } else {
-                        var_dump($g_a, $this->Bom_item_mixing_groups_model->db);
-                    }
-                }
-                $target_path = BASEPATH . 'files/';
-                foreach ($files as $f) {
-                    $file_path = $target_path . $f->path;
-                    if (file_exists($file_path)) {
-                        $new_file_name = '_new_' . $f->path;
-                        $new_file_path = $target_path . $new_file_name;
-                        if (@copy($file_path, $new_file_path)) {
-                            $new_f_item = (array) $f;
-                            $new_f_item['id'] = 0;
-                            $new_f_item['ref_id'] = $item_id;
-                            $new_f_item['path'] = $new_file_name;
-                            $this->Bom_item_mixing_groups_model->save_file($new_f_item, 0);
-                        }
-                    }
-                }
-            }
-            $options = array("id" => $item_id);
-            $item_info = $this->Items_model->get_details($options)->row();
-            echo json_encode(array("success" => true, "id" => $item_info->id, "data" => $this->_make_item_row($item_info), 'message' => lang('record_saved')));
-
-        } else {
-            echo json_encode(array("success" => false, 'message' => lang('error_occurred')));
-        }*/
     }
 
-    function deleteDetailInfo(){
-        $db = $this->db;
+    function getDetailPricingDataSetHTML($data){
+        $buttons = "";
         
+        $buttons .= modal_anchor(
+            get_uri('stock/item_pricing_modal'), '<i class="fa fa-pencil"></i>', 
+            array(
+                'class' => 'edit',
+                'title' => lang('stock_supplier_fg_pricing_edit'),
+                'data-title' => lang('stock_supplier_fg_pricing_edit'),
+                'data-post-id' => $data->id,
+                'data-post-item_id' => $data->item_id,
+                'data-post-supplier_id' => $data->supplier_id
+            )
+        );
+        
+        $buttons .= js_anchor(
+            '<i class="fa fa-times fa-fw"></i>', 
+            array(
+                'title' => lang('stock_supplier_fg_pricing_delete'),
+                'class' => 'delete',
+                'data-id' => $data->id,
+                'data-action-url' => get_uri('stock/supplier_fg_pricing_delete'),
+                'data-action' => 'delete-confirmation'
+            )
+        );
 
-        return $this->data;
+        return [
+            $data->id,
+            anchor(get_uri('stock/supplier_view/' . $data->supplier_id), $data->supplier_data->company_name),
+            (isset($data->supplier_contact->first_name) && !empty($data->supplier_contact->first_name)) ? $data->supplier_contact->first_name . ' ' . $data->supplier_contact->last_name : '-',
+            (isset($data->supplier_contact->phone) && !empty($data->supplier_contact->phone)) ? $data->supplier_contact->phone : '-',
+            (isset($data->supplier_contact->email) && !empty($data->supplier_contact->email)) ? $data->supplier_contact->email : '-',
+            number_format($data->ratio, 4),
+            $data->item_data->unit_type,
+            number_format($data->price, 2),
+            lang('THB'),
+            $buttons
+        ];
     }
 
+    function detailPricingDataSet($docId) {
+        $result = [];
+        $list_data = $this->Items_model->dev2_getItemPricings(['item_id' => $docId]);
+
+        if (sizeof($list_data)) {
+            foreach ($list_data as $data) {
+                $result[] = $this->getDetailPricingDataSetHTML($data);
+            }
+        }
+
+        return $result;
+    }
+
+    function saveDetailPricing(){
+        validate_submitted_data([
+            'id' => 'numeric',
+            'supplier_id' => 'required|numeric',
+            'item_id' => 'required|numeric',
+            'ratio' => 'required|numeric',
+            'price' => 'required|numeric'
+        ]);
+
+        $post = $this->input->post();
+        $data_id = '';
+        $item = '';
+        $type = '';
+
+        if (isset($post['id']) && empty($post['id'])) {
+            $item = $this->Bom_item_pricings_model->getItemPricingByItemSupplierId($post['item_id'], $post['supplier_id']);
+
+            if (isset($item) && !empty($item)) {
+                $type = 'patch';
+
+                $this->Bom_item_pricings_model->patchItemPricingByPricingInfo($post['item_id'], $post['supplier_id'], [
+                    'ratio' => $post['ratio'],
+                    'price' => $post['price']
+                ]);
+
+                $data_id = $item->id;
+            } else {
+                $type = 'post';
+
+                $data_id = $this->Bom_item_pricings_model->postItemPricingByInfo([
+                    'item_id' => $post['item_id'],
+                    'supplier_id' => $post['supplier_id'],
+                    'ratio' => $post['ratio'],
+                    'price' => $post['price']
+                ]);
+            }
+        } else {
+            $type = 'put';
+
+            $this->Bom_item_pricings_model->putItemPricingByPricingInfo($post['id'], [
+                'item_id' => $post['item_id'],
+                'supplier_id' => $post['supplier_id'],
+                'ratio' => $post['ratio'],
+                'price' => $post['price']
+            ]);
+
+            $item = $this->Bom_item_pricings_model->getItemPricingById($post['id']);
+            $data_id = $item->id;
+        }
+
+        $data_result = '';
+        if ($data_id) {
+            $data = $this->Items_model->dev2_getItemPricings(['id' => $data_id]);
+            $data_result = $this->getDetailPricingDataSetHTML($data[0]);
+        }
+
+        return ['success' => true, 'data_post' => $post, 'data_result' => $data_result, 'data_result_id' => $data_id, 'type' => $type];
+    }
 
     function getDetailMixingsDataSetHTML($data){
         $row_data = array(

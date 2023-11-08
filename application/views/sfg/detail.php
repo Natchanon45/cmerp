@@ -4,7 +4,7 @@
 <div id="page-content" class="clearfix">
     <ul id="client-tabs" data-toggle="ajax-tab" class="nav nav-tabs" role="tablist" style="background:#ffffff;">
         <li><a role="presentation" href="<?php echo_uri("sfg/detail_info/".$model_info->id); ?>" data-target="#sfg-info"><?php echo lang('item_details'); ?></a></li>
-        <li><a role="presentation" href="<?php echo_uri("sfg/detail_pricings/" . $model_info->id); ?>" data-target="#sfg-pricings"><?php echo lang('stock_item_pricings'); ?></a></li>
+        <li><a role="presentation" href="<?php echo_uri("sfg/detail_pricing/" . $model_info->id); ?>" data-target="#sfg-pricings"><?php echo lang('stock_item_pricings'); ?></a></li>
         <li><a role="presentation" href="<?php echo_uri("sfg/detail_mixings/".$model_info->id); ?>" data-target="#sfg-mixing"><?php echo lang('item_mixings'); ?></a></li>
         <li><a role="presentation" href="<?php echo_uri("stock/item_files/" . $model_info->id); ?>" data-target="#sfg-files">
         <?php echo lang('files'); ?></a></li>
