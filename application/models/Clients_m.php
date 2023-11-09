@@ -278,7 +278,6 @@ class Clients_m extends MY_Model {
         $crow = $db->select("company_name")
                         ->from("clients")
                         ->where("id", $client_id)
-                        ->where("deleted", 0)
                         ->get()->row();
 
         if(empty($crow)) return null;
