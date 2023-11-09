@@ -791,7 +791,6 @@ class Clients extends MY_Controller {
 
         validate_submitted_data(array(
             "first_name" => "required",
-            "last_name" => "required",
             "client_id" => "required|numeric"
         ));
 
@@ -800,7 +799,7 @@ class Clients extends MY_Controller {
             //inserting new contact. client_id is required
 
             validate_submitted_data(array(
-                "email" => "required|valid_email",
+                "email" => "valid_email",
             ));
 
             //we'll save following fields only when creating a new contact from this form
@@ -1054,7 +1053,7 @@ class Clients extends MY_Controller {
         $options = array("user_type" => "client", "client_id" => $client_id, "custom_fields" => $custom_fields, "show_own_clients_only_user_id" => $this->show_own_clients_only_user_id());
 		
 		
-		$new_filters['WHERE'][] = "users.client_id = ". $client_id ."";
+		$new_filters['WHERE'][] = "users.client_id = ". $client_id ."&& users.deleted=0";
         $list_data = $this->Users_model->get_details( $options , $filters = array(), $new_filters )->result();
         $result = array();
 
