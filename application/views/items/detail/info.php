@@ -11,15 +11,33 @@
       <?php } ?>
 
       <div class="form-group">
-        <label for="title" class="<?= $label_column ?>"><?php echo lang('title'); ?></label>
-        <div class="<?= $field_column ?>">
+        <label for="item_code" class="col-md-2"><?php echo lang('stock_item_code'); ?></label>
+        <div class="col-md-10">
+          <?php
+            echo form_input(array(
+                "id" => "item_code",
+                "name" => "item_code",
+                "value" => $model_info->item_code,
+                "class" => "form-control validate-hidden",
+                "placeholder" => lang('stock_item_code'),
+                "autofocus" => true,
+                "data-rule-required" => true,
+                "data-msg-required" => lang("field_required")
+            ));
+          ?>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="title" class="col-md-2"><?php echo lang('stock_item_name'); ?></label>
+        <div class="col-md-10">
           <?php
             echo form_input(array(
               "id" => "title",
               "name" => "title",
               "value" => $model_info->title,
               "class" => "form-control validate-hidden",
-              "placeholder" => lang('title'),
+              "placeholder" => lang('stock_item_name'),
               "autofocus" => true,
               "data-rule-required" => true,
               "data-msg-required" => lang("field_required"),
@@ -27,9 +45,42 @@
           ?>
         </div>
       </div>
+
       <div class="form-group">
-        <label for="description" class="<?= $label_column ?>"><?php echo lang('description'); ?></label>
-        <div class="<?= $field_column ?>">
+        <label for="category_id" class="col-md-2">หมวดหมู่</label>
+        <div class="col-md-10">
+          <?php $mcrows = $this->Material_categories_m->getRows("FG"); ?>
+          <select name="category_id" class="form-control">
+            <option>- หมวดหมู่ -</option>
+            <?php if(!empty($mcrows)): ?>
+              <?php foreach($mcrows as $mcrow): ?>
+                <option value="<?php echo $mcrow->id; ?>" <?php if($mcrow->id == $model_info->category_id) echo "selected";?>><?php echo $this->Material_categories_m->getTitle($mcrow->id); ?></option>
+              <?php endforeach;?>
+            <?php endif; ?>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="account_id" class="col-md-2">หมวดบัญชี</label>
+        <div class="col-md-10">
+          <?php
+            echo form_input(
+                array(
+                    "id" => "account_id",
+                    "name" => "account_id",
+                    "value" => $model_info->account_id ? $model_info->account_id : null,
+                    "class" => "form-control",
+                    "placeholder" => "หมวดบัญชี"
+                )
+            );
+          ?>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="description" class="col-md-2"><?php echo lang('description'); ?></label>
+        <div class="col-md-10">
           <?php
             echo form_textarea(array(
               "id" => "description",
@@ -42,17 +93,10 @@
           ?>
         </div>
       </div>
+      
       <div class="form-group">
-        <label for="category_id" class="<?= $label_column ?>"><?php echo lang('category'); ?></label>
-        <div class="<?= $field_column ?>">
-          <?php
-            echo form_dropdown("category_id", $categories_dropdown, $model_info->category_id, "class='select2 validate-hidden' id='category_id' data-rule-required='true', data-msg-required='" . lang('field_required') . "'");
-          ?>
-        </div>
-      </div>
-      <div class="form-group">
-        <label for="unit_type" class="<?= $label_column ?>"><?php echo lang('unit_type'); ?></label>
-        <div class="<?= $field_column ?>">
+        <label for="unit_type" class="col-md-2"><?php echo lang('unit_type'); ?></label>
+        <div class="col-md-10">
           <?php
             echo form_input(array(
               "id" => "unit_type",
@@ -65,8 +109,8 @@
         </div>
       </div>
       <div class="form-group">
-        <label for="item_rate" class="<?= $label_column ?>"><?php echo lang('rate'); ?></label>
-      <div class="<?= $field_column ?>">
+        <label for="item_rate" class="col-md-2"><?php echo lang('rate'); ?></label>
+      <div class="col-md-10">
           <?php
             echo form_input(array(
               "id" => "item_rate",
@@ -81,10 +125,38 @@
         </div>
       </div>
 
+      <div class="form-group">
+        <label for="unit_type" class="col-md-2">รหัสบาร์โค้ด</label>
+        <div class="col-md-10">
+          <?php
+            echo form_input(
+                array(
+                    "id" => "barcode",
+                    "name" => "barcode",
+                    "value" => @$model_info->barcode,
+                    "class" => "form-control",
+                    "placeholder" => lang('stock_item_barcode')
+                )
+            );
+          ?>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="unit_type" class="col-md-2">จำนวนเตือนขั้นต่ำ</label>
+        <div class="col-md-10">
+          <input
+            type="number" name="noti_threshold" class="form-control" min="0" step="0.0001" required 
+            name="noti_threshold" value="<?php echo @$model_info->noti_threshold; ?>" 
+            placeholder="<?php echo lang('stock_item_noti_threshold'); ?>" data-rule-required = "true" 
+            data-msg-required="<?php echo lang("field_required"); ?>"/>
+        </div>
+      </div>
+
       <?php if ($this->login_user->is_admin && get_setting("module_order")) { ?>
         <div class="form-group">
-          <label for="show_in_client_portal" class="<?= $label_column ?> col-xs-5 col-sm-4"><?php echo lang('show_in_client_portal'); ?></label>
-          <div class=" <?= $field_column ?> col-xs-7 col-sm-8">
+          <label for="show_in_client_portal" class="col-md-2 col-xs-5 col-sm-4"><?php echo lang('show_in_client_portal'); ?></label>
+          <div class=" col-md-10 col-xs-7 col-sm-8">
             <?php
               echo form_checkbox("show_in_client_portal", "1", $model_info->show_in_client_portal ? true : false, "id='show_in_client_portal'");
             ?>                       
@@ -129,6 +201,8 @@
       }
     });
     
-    $("#item-form .select2").select2();
+    //$("#item-form .select2").select2();
+    $('#category_id').select2({data: <?php echo json_encode($category_dropdown); ?>});
+    $('#account_id').select2({ data: <?php echo json_encode($account_category); ?> });
   });
 </script>

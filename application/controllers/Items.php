@@ -547,10 +547,9 @@ class Items extends MY_Controller
 			//$this->validate_access_to_items();
 
 			$view_data['model_info'] = $this->Items_model->get_one($item_id);
-			$view_data['categories_dropdown'] = $this->Item_categories_model->get_dropdown_list(array("title"));
+			$view_data['category_dropdown'] = $this->Item_categories_model->get_dropdown_list(array("title"));
 
-			$view_data['label_column'] = "col-md-2";
-			$view_data['field_column'] = "col-md-10";
+			$view_data['account_category'] = $this->Account_category_model->get_list_dropdown();
 
 			$this->load->view('items/detail/info', $view_data);
 		}

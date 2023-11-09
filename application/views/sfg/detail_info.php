@@ -41,23 +41,6 @@
       </div>
 
       <div class="form-group">
-          <label for="item_rate" class="col-md-2">ราคา</label>
-          <div class="col-md-10">
-              <?php
-              echo form_input(
-                  array(
-                      "id" => "item_rate",
-                      "name" => "item_rate",
-                      "value" => $model_info->rate,
-                      "class" => "form-control",
-                      "placeholder" => "ราคา"
-                  )
-              );
-              ?>
-          </div>
-      </div>
-
-      <div class="form-group">
         <label for="category_id" class="col-md-2">หมวดหมู่</label>
         <div class="col-md-10">
           <?php $mcrows = $this->Material_categories_m->getRows("SFG"); ?>
@@ -89,9 +72,6 @@
         </div>
       </div>
 
-      
-
-
       <div class="form-group">
         <label for="description" class="col-md-2"><?php echo lang('description'); ?></label>
         <div class="col-md-10">
@@ -121,6 +101,23 @@
             ));
           ?>
         </div>
+      </div>
+
+      <div class="form-group">
+          <label for="item_rate" class="col-md-2">ราคา</label>
+          <div class="col-md-10">
+              <?php
+              echo form_input(
+                  array(
+                      "id" => "item_rate",
+                      "name" => "item_rate",
+                      "value" => $model_info->rate,
+                      "class" => "form-control",
+                      "placeholder" => "ราคา"
+                  )
+              );
+              ?>
+          </div>
       </div>
 
       <div class="form-group">
