@@ -30,7 +30,7 @@
             "value" => $model_info->last_name,
             "class" => "form-control",
             "placeholder" => lang('last_name'),
-            "data-rule-required" => true,
+            "data-rule-required" => false,
             "data-msg-required" => lang("field_required"),
         ));
         ?>
@@ -52,7 +52,7 @@ if (!$model_info->id) {
                 "placeholder" => lang('email'),
                 "data-rule-email" => true,
                 "data-msg-email" => lang("enter_valid_email"),
-                "data-rule-required" => true,
+                "data-rule-required" => false,
                 "data-msg-required" => lang("field_required"),
                 "autocomplete" => "off"
             ));

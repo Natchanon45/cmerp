@@ -176,7 +176,11 @@
                     <span class="l3"><?php echo lang("account_approved_by"); ?></span>
                 </div>
                 <div class="date">
-                    <span class="l1"><span class="approved_date"><?php echo convertDate($approved_datetime, true); ?></span></span>
+                    <span class="l1">
+                        <?php if($approved_by != null): ?>
+                            <span class="approved_date"><?php echo convertDate($approved_datetime, true); ?></span>
+                        <?php endif; ?>
+                    </span>
                     <span class="l2"><?php echo lang("account_date"); ?></span>
                 </div>
             </div>
