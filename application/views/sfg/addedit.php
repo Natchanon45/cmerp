@@ -15,7 +15,7 @@
                         "name" => "item_code",
                         "value" => $model_info->item_code,
                         "class" => "form-control",
-                        "placeholder" => lang('stock_item_code'),
+                        "placeholder" => "รหัสสินค้ากึ่งสำเร็จ",
                         "autofocus" => true,
                         "data-rule-required" => true,
                         "data-msg-required" => lang("field_required"),

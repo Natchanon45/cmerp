@@ -147,11 +147,14 @@ class Sfg extends MY_Controller {
     }
 
     function detail_mixings_modal(){
-        
-        if($this->input->post("id") != null){
-            $this->Sfg_m->saveDetailMixings();
+        $task = $this->uri->segment(3);
+
+        if($task != null){
+            if($task == "save") jout($this->Sfg_m->saveDetailMixings());
+            if($task == "delete") jout($this->Sfg_m->deleteDetailMixings());
             return;
         }
+
         $this->data = $this->Sfg_m->detailMixings();
         $this->load->view("sfg/detail_mixings_modal", $this->data);
     }

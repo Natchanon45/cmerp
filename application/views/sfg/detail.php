@@ -6,17 +6,17 @@
         <li><a role="presentation" href="<?php echo_uri("sfg/detail_info/".$model_info->id); ?>" data-target="#sfg-info"><?php echo lang('item_details'); ?></a></li>
         <li><a role="presentation" href="<?php echo_uri("sfg/detail_pricing/" . $model_info->id); ?>" data-target="#sfg-pricings"><?php echo lang('stock_item_pricings'); ?></a></li>
         <li><a role="presentation" href="<?php echo_uri("sfg/detail_mixings/".$model_info->id); ?>" data-target="#sfg-mixing"><?php echo lang('item_mixings'); ?></a></li>
-        <li><a role="presentation" href="<?php echo_uri("stock/item_files/" . $model_info->id); ?>" data-target="#sfg-files">
+        <!--<li><a role="presentation" href="<?php echo_uri("stock/item_files/" . $model_info->id); ?>" data-target="#sfg-files">
         <?php echo lang('files'); ?></a></li>
         <li><a role="presentation" href="<?php echo_uri("stock/item_remainings/" . $model_info->id); ?>" data-target="#sfg-remaining"><?php echo lang('stock_restock_list'); ?></a></li>
-        <li><a role="presentation" href="<?php echo_uri("stock/item_used/" . $model_info->id); ?>" data-target="#sfg-used"><?php echo lang('stock_restock_used_list'); ?></a></li>
+        <li><a role="presentation" href="<?php echo_uri("stock/item_used/" . $model_info->id); ?>" data-target="#sfg-used"><?php echo lang('stock_restock_used_list'); ?></a></li>-->
     </ul>
     <div class="tab-content">
         <div role="tabpanel" class="tab-pane fade" id="sfg-info"></div>
         <div role="tabpanel" class="tab-pane fade" id="sfg-pricings"></div>
         <div role="tabpanel" class="tab-pane fade" id="sfg-mixing"></div>
-        <div role="tabpanel" class="tab-pane fade" id="sfg-files"></div>
+        <!--<div role="tabpanel" class="tab-pane fade" id="sfg-files"></div>
         <div role="tabpanel" class="tab-pane fade" id="sfg-remaining"></div>
-        <div role="tabpanel" class="tab-pane fade" id="sfg-used"></div>
+        <div role="tabpanel" class="tab-pane fade" id="sfg-used"></div>-->
     </div>
 </div>

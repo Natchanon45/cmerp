@@ -375,7 +375,7 @@ class Sfg_m extends MY_Model {
     function getDetailMixingsDataSetHTML($data){
         $row_data = array(
             $data->id,
-            modal_anchor(get_uri("items/detail_mixing_modal"), $data->name, array("class" => "edit", "title" => lang('item_mixing_edit'), "data-post-id" => $data->id, "data-post-item_id" => $data->item_id)),
+            modal_anchor(get_uri("sfg/detail_mixings_modal"), $data->name, array("class" => "edit", "title" => lang('item_mixing_edit'), "data-post-id" => $data->id, "data-post-item_id" => $data->item_id)),
             //$data->category_name,
             to_decimal_format2($data->ratio) . ' ' . $data->unit_type,
             $data->is_public == 1 ? lang('yes') : lang('no'),
@@ -384,8 +384,8 @@ class Sfg_m extends MY_Model {
             : '-',
         );
 
-        $row_data[] = modal_anchor(get_uri("items/detail_mixing_modal"), "<i class='fa fa-pencil'></i>", array("class" => "edit", "title" => lang('item_mixing_edit'), "data-post-id" => $data->id, "data-post-item_id" => $data->item_id))
-            . js_anchor("<i class='fa fa-times fa-fw'></i>", array('title' => lang('item_mixing_delete'), "class" => "delete", "data-id" => $data->id, "data-action-url" => get_uri("items/detail_mixing_delete"), "data-action" => "delete-confirmation"));
+        $row_data[] = modal_anchor(get_uri("sfg/detail_mixings_modal"), "<i class='fa fa-pencil'></i>", array("class" => "edit", "title" => lang('item_mixing_edit'), "data-post-id" => $data->id, "data-post-item_id" => $data->item_id))
+            . js_anchor("<i class='fa fa-times fa-fw'></i>", array('title' => lang('item_mixing_delete'), "class" => "delete", "data-id" => $data->id, "data-action-url" => get_uri("sfg/detail_mixings_modal/delete"), "data-action" => "delete-confirmation"));
 
         return $row_data;
     }
@@ -422,6 +422,9 @@ class Sfg_m extends MY_Model {
         $view_data["material_dropdown"] = $this->Bom_materials_model->get_details([])->result();
         $view_data["clients_dropdown"] = $this->Clients_model->get_dropdown_list(array("company_name"), "id", array("is_lead" => 0));
         $view_data["categories_dropdown"] = $this->Bom_item_mixing_groups_model->get_categories_list();
+
+        $view_data["sfg_dropdown"] = $this->Bom_item_model->dev2_getSfgDetail([])->result();
+        $view_data["sfg_categories_dropdown"] = $this->Bom_item_mixing_groups_model->get_categories_list_sfg();
         
         $view_data["items_dropdown"] = ["" => "- " . lang("item_selected") . " -"];
         $items = $this->Items_model->get_details()->result();
@@ -498,25 +501,35 @@ class Sfg_m extends MY_Model {
         $material_ids = $this->input->post("material_id[]");
         $cat_ids = $this->input->post("cat_id[]");
         $ratios = $this->input->post("mixing_ratio[]");
-        $this->Bom_item_mixing_groups_model->mixing_save($save_id, $material_ids, $cat_ids, $ratios);
+        $item_types = $this->input->post("item_type[]");
+        $this->Bom_item_mixing_groups_model->mixing_save($save_id, $material_ids, $cat_ids, $ratios, $item_types);
 
         if ($save_id) {
-            echo json_encode(
-                array(
+            return array(
                     "success" => true,
-                    "data" => $this->_detail_mixing_row_data($save_id),
+                    "data" => $this->getDetailMixingsDataSetHTML($this->Bom_item_mixing_groups_model->get_details(["id" => $save_id])->row()),
                     "id" => $save_id,
                     "view" => $this->input->post("view"),
-                    "message" => lang("record_saved")
-                )
-            );
+                    "message" => lang("record_saved"));
+            
         } else {
-            echo json_encode(array("success" => false, "message" => lang("error_occurred")));
+            return array("success" => false, "message" => lang("error_occurred"));
         }
     }
 
     function deleteDetailMixings(){
-        
+        validate_submitted_data(
+            array(
+                "id" => "required|numeric"
+            )
+        );
+
+        $id = $this->input->post('id');
+        if ($this->Bom_item_mixing_groups_model->delete_mixing($id)) {
+            return array("success" => true, 'message' => lang('record_deleted'));
+        } else {
+            return array("success" => false, 'message' => lang('record_cannot_be_deleted'));
+        }
     }
 
 

@@ -47,7 +47,7 @@
       </div>
     <?php }?>
 
-    <?php if($access_restock){?>
+    <?php /*if($access_restock){?>
       <div class="grid xl-20 lg-30 md-1-3">
         <a class="box-card-01 box-shadow" href="<?php echo_uri('sfg/restocks'); ?>">
           <div class="icon">
@@ -56,7 +56,7 @@
           <h4 class="fw-500">นำเข้าสินค้ากึ่งสำเร็จ</h4>
         </a>
       </div>
-    <?php }?>
+    <?php }*/?>
 
     <?php if($access_material){?>
       <div class="grid xl-20 lg-30 md-1-3">
@@ -102,7 +102,7 @@
       </div>
     <?php }?>
 
-    <?php if($access_material && $access_restock){?>
+    <?php /*if($access_material && $access_restock){?>
       <div class="grid xl-20 lg-30 md-1-3">
         <a class="box-card-01 box-shadow" href="<?php echo_uri('sfg/report'); ?>">
           <div class="icon">
@@ -111,7 +111,7 @@
           <h4 class="fw-500">รายงานสินค้ากึ่งสำเร็จ</h4>
         </a>
       </div>
-    <?php }?>
+    <?php }*/?>
 
     <?php if($access_material && $access_restock){?>
       <div class="grid xl-20 lg-30 md-1-3">

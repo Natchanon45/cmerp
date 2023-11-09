@@ -1,4 +1,4 @@
-<?php echo form_open(current_url(), array("id" => "mixing-form", "class" => "general-form", "role" => "form")); ?>
+<?php echo form_open(get_uri("sfg/detail_mixings_modal/save"), array("id" => "mixing-form", "class" => "general-form", "role" => "form")); ?>
 
 <div class="modal-body clearfix">
 	<?php $this->load->view("sfg/detail_mixings_modal_mixing"); ?>
@@ -15,10 +15,10 @@
 			<span class="fa fa-check-circle"></span>
 			<?php echo lang("duplicate_to_new_mixing"); ?>
 		</button>
-		<button type="button" class="btn btn-primary" onclick="javascript:duplicate_to_new_item();">
+		<!--<button type="button" class="btn btn-primary" onclick="javascript:duplicate_to_new_item();">
 			<span class="fa fa-check-circle"></span>
 			<?php echo lang("duplicate_to_new_item"); ?>
-		</button>
+		</button>-->
 	<?php endif; ?>
 
 	<button type="submit" class="btn btn-primary">
@@ -43,11 +43,11 @@
 		jQuery('#mixing-form').submit();
 	}
 
-	function duplicate_to_new_item() {
+	/*function duplicate_to_new_item() {
 		jQuery('#id').val(0);
 		jQuery('#clone_to_new_item').val(1);
 		jQuery('#mixing-form').submit();
-	}
+	}*/
 
 	$(document).ready(function () {
 		$('[data-toggle="tooltip"]').tooltip();

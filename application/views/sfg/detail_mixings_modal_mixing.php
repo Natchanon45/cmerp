@@ -111,7 +111,7 @@
 	</div>
 </div>
 
-<?php /*
+
 <div id="type-container">
 	<table class="display dataTable no-footer" cellspacing="0" width="100%" role="grid" aria-describedby="supplier-table_info">
 		<thead>
@@ -198,7 +198,8 @@
 		</tbody>
 	</table>
 </div><br>
-*/ ?>
+
+<?php /*
 <div id="type-container-sfg">
 	<table class="display dataTable no-footer" cellspacing="0" width="100%" role="grid" aria-describedby="supplier-table_info">
 		<thead>
@@ -285,7 +286,7 @@
 		</tbody>
 	</table>
 </div>
-
+*/?>
 <script type="text/javascript">
 	$(document).ready(function () {
 		$("#form-header .select2").select2();
@@ -311,9 +312,9 @@
 		var tableBody = typeContainer.find("#table-body");
 		var btnAddCat = typeContainer.find("#btn-add-category");
 
-		var typeContainerSfg = $("#type-container-sfg")
+		/*var typeContainerSfg = $("#type-container-sfg")
 		var tableBodySfg = typeContainerSfg.find("#table-body");
-		var btnAddCatSfg = typeContainerSfg.find("#btn-add-category");
+		var btnAddCatSfg = typeContainerSfg.find("#btn-add-category");*/
 
 		btnAddCat.click(function (e) {
 			e.preventDefault();
@@ -356,7 +357,7 @@
 			processBindingCat();
 		});
 
-		btnAddCatSfg.click(function (e) {
+		/*btnAddCatSfg.click(function (e) {
 			e.preventDefault();
 
 			let sfg_temp_cat_id = `cat_${$.now()}`;
@@ -395,7 +396,7 @@
 			`);
 
 			processBindingCatSfg();
-		});
+		});*/
 
 		function processBindingCat() {
 			typeContainer.find(".select-category").select2("destroy");
@@ -430,7 +431,7 @@
 			});
 		}
 
-		function processBindingCatSfg() {
+		/*function processBindingCatSfg() {
 			typeContainerSfg.find(".select-category").select2("destroy");
 			typeContainerSfg.find(".select-category").select2();
 			typeContainerSfg.find(".select-category").change(function (e) {
@@ -461,10 +462,10 @@
 					$(this).closest("tr").next().find(".table-body2")
 				);
 			});
-		}
+		}*/
 
 		processBindingCat();
-		processBindingCatSfg();
+		//processBindingCatSfg();
 
 		function addMaterialRow(rowCate, rowBody) {
 			rowBody.append(`
@@ -498,7 +499,7 @@
 			processBinding();
 		}
 
-		function addMaterialRowSfg(rowCate, rowBody) {
+		/*function addMaterialRowSfg(rowCate, rowBody) {
 			rowBody.append(`
 				<tr>
 					<td>
@@ -528,7 +529,7 @@
 			`);
 
 			processBindingSfg();
-		}
+		}*/
 
 		function processBinding() {
 			typeContainer.find(".btn-delete-material").unbind();
@@ -568,7 +569,7 @@
 			});
 		}
 
-		function processBindingSfg() {
+		/*function processBindingSfg() {
 			typeContainerSfg.find(".btn-delete-material").unbind();
 			typeContainerSfg.find(".btn-delete-material").click(function (e) {
 				e.preventDefault();
@@ -604,9 +605,9 @@
 				e.preventDefault()
 				e.target.select();
 			});
-		}
+		}*/
 
 		processBinding();
-		processBindingSfg();
+		//processBindingSfg();
 	});
 </script>
