@@ -116,6 +116,7 @@
         </tbody>
     </table>
 
+    <?php $total_rm_cost = 0; $total_sfg_cost = 0; ?>
     <table id="table-order-detail">
         <thead>
             <tr>
@@ -139,8 +140,8 @@
             </tr>
         </thead>
         <tbody>
-            <?php if (isset($production_bom_detail) && !empty($production_bom_detail)): ?>
-                <?php $total_rm_cost = 0; foreach ($production_bom_detail as $detail): ?>
+            <?php if (isset($production_bom_detail->rm) && !empty($production_bom_detail->rm)): ?>
+                <?php foreach ($production_bom_detail->rm as $detail): ?>
                     <tr>
                         <td class="rm-name">
                             <span class="font-bold">
@@ -232,6 +233,125 @@
             </tfoot>
         <?php endif; ?>
     </table>
+
+    <?php if ($production_bom_header->item_type == "FG"): ?>
+        <table id="table-order-detail">
+            <thead>
+                <tr>
+                    <th>
+                        <?php echo lang("sfg"); ?>
+                    </th>
+                    <th>
+                        <?php echo lang("stock_restock_name"); ?>
+                    </th>
+                    <th>
+                        <?php echo lang("quantity"); ?>
+                    </th>
+                    <?php if ($auth_read_cost): ?>
+                        <th>
+                            <?php echo lang("production_order_sfg_cost"); ?>
+                        </th>
+                    <?php endif; ?>
+                    <th>
+                        <?php echo lang("material_request_no"); ?>
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php if (isset($production_bom_detail->sfg) && !empty($production_bom_detail->sfg)): ?>
+                    <?php foreach ($production_bom_detail->sfg as $detail): ?>
+                        <tr>
+                            <td class="rm-name">
+                                <span class="font-bold">
+                                    <?php echo $detail->material_info->item_code; ?>
+                                </span>
+                                <span>
+                                    <?php echo mb_strimwidth($detail->material_info->title, 0, 50, '...'); ?>
+                                </span>
+                            </td>
+                            <td>
+                                <?php
+                                if (!empty($detail->stock_id)):
+                                    if (isset($detail->stock_info) && !empty($detail->stock_info)):
+                                        echo $detail->stock_info->group_info->name;
+                                    else:
+                                        echo "-";
+                                    endif;
+                                else:
+                                    echo "-";
+                                endif;
+                                ?>
+                            </td>
+                            <td class="text-right font-bold">
+                                <?php if (isset($detail->ratio) && !empty($detail->ratio)): ?>
+                                    <span class="<?php echo $detail->ratio > 0 ? "color-success" : "color-danger"; ?>">
+                                        <?php echo number_format($detail->ratio, 3) . " " . $detail->material_info->unit_type; ?> 
+                                    </span>
+                                    <span>
+                                        <?php
+                                            if (isset($detail->actual_total_remain) && isset($detail->required_qty)): 
+                                                if (!empty($detail->actual_total_remain) && !empty($detail->required_qty)): 
+                                                    if ($detail->required_qty <= $detail->actual_total_remain): 
+                                        ?>
+                                        <i class="fa fa-database stock-notice"></i>
+                                        <?php
+                                                    endif;
+                                                endif;
+                                            endif;
+                                        ?>
+                                    </span>
+                                <?php endif; ?>
+                            </td>
+                            <?php if ($auth_read_cost): ?>
+                                <td class="text-right">
+                                    <?php
+                                    if (!empty($detail->stock_id)):
+                                        if (isset($detail->stock_info) && !empty($detail->stock_info)):
+                                            $sfg_cost = 0;
+                                            if ($detail->stock_info->price > 0):
+                                                $sfg_cost = ($detail->stock_info->price / $detail->stock_info->stock) * $detail->ratio;
+                                            endif;
+                                            echo number_format($sfg_cost, 2) . " " . lang("THB");
+                                            $total_sfg_cost += $sfg_cost;
+                                        else:
+                                            echo "-";
+                                        endif;
+                                    else:
+                                        echo "-";
+                                    endif;
+                                    ?>
+                                </td>
+                            <?php endif; ?>
+                            <td>
+                                <?php
+                                if (!empty($detail->mr_id)):
+                                    if (isset($detail->mr_info) && !empty($detail->mr_info)):
+                                    ?>
+                                        <a href="<?php echo get_uri("materialrequests/view/" . $detail->mr_id); ?>" target="_blank"><?php echo $detail->mr_info->doc_no; ?></a>
+                                    <?php
+                                    else:
+                                        echo "-";
+                                    endif;
+                                else:
+                                    echo "-";
+                                endif;
+                                ?>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                <?php endif; ?>
+            </tbody>
+            <?php if ($auth_read_cost): ?>
+                <tfoot>
+                    <tr>
+                        <td class="text-center font-bold" colspan="3"><?php echo lang("production_order_sfg_cost_total"); ?></td>
+                        <td class="text-right font-bold"><?php echo number_format($total_sfg_cost, 2) . " " . lang("THB"); ?></td>
+                        <td></td>
+                    </tr>
+                </tfoot>
+            <?php endif; ?>
+        </table>
+    <?php endif; ?>
 </div>
 
 <div class="modal-footer">

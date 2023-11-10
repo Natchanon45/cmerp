@@ -23,7 +23,7 @@
 <div class="form-header" id="form-header">
 	<div class="form-group">
 		<label for="name" class="<?php echo $label_column; ?>">
-			<?php echo lang("item_mixing_name") . " dev2"; ?>
+			<?php echo lang("item_mixing_name"); ?>
 		</label>
 		<div class="<?php echo $field_column; ?>">
 			<?php

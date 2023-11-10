@@ -92,18 +92,46 @@
                     "data-post-project_name" => $project_info["title"]
                 )
             );
-
-            echo modal_anchor(
-                get_uri("projects/production_order_modal_form"),
-                "<i class='fa fa-plus-circle'></i> " . lang("production_order_add"),
-                array(
-                    "class" => "btn btn-default",
-                    "title" => lang("production_order_add"),
-                    "data-title" => lang("production_order_add"),
-                    "data-post-project_id" => $project_info["id"]
-                )
-            );
             ?>
+
+            <span class="dropdown inline-block">
+                <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <i class="fa fa-info-circle"></i>
+                    <?php echo lang("production_order_add"); ?>
+                </button>
+                <ul class="dropdown-menu dropdown-left rounded" role="menu" aria-labelledby="dropdownMenuButton">
+                    <li role="presentation">
+                        <?php
+                            echo modal_anchor(
+                                get_uri("projects/production_order_modal_form"),
+                                "<i class='fa fa-plus-circle'></i> " . lang("fg"),
+                                array(
+                                    "class" => "dropdown-item",
+                                    "title" => lang("production_order_add") . lang("fg"),
+                                    "data-title" => lang("production_order_add") . lang("fg"),
+                                    "data-post-project_id" => $project_info["id"],
+                                    "data-post-item_type" => "FG"
+                                )
+                            );
+                        ?>
+                    </li>
+                    <li role="presentation">
+                        <?php
+                            echo modal_anchor(
+                                get_uri("projects/production_order_modal_form"),
+                                "<i class='fa fa-plus-circle'></i> " . lang("sfg"),
+                                array(
+                                    "class" => "dropdown-item",
+                                    "title" => lang("production_order_add") . lang("sfg"),
+                                    "data-title" => lang("production_order_add") . lang("sfg"),
+                                    "data-post-project_id" => $project_info["id"],
+                                    "data-post-item_type" => "SFG"
+                                )
+                            );
+                        ?>
+                    </li>
+                </ul>
+            </span>
         </div>
     </div>
     <div id="table-wrapper" class="table-responsive"></div>
@@ -149,6 +177,8 @@ const produceStatus = {
     ]
 };
 
+let printColumns = [0, 1, 2, 3, 5, 6, 7];
+let xlsColumns = [0, 1, 2, 3, 5, 6, 7];
 let summation = [];
 let columns = [
     { title: '<?php echo lang("id"); ?>', class: 'text-center' },
@@ -165,7 +195,7 @@ let columns = [
 if (authReadCostAmount.value) {
     columns = [
         { title: '<?php echo lang("id"); ?>', class: 'text-center' },
-        { title: '<?php echo lang("item"); ?>' },
+        { title: '<?php echo lang("item") . "/" . lang("sfg"); ?>' },
         { title: '<?php echo lang("item_mixing_name"); ?>' },
         { title: '<?php echo lang("quantity"); ?>', class: 'text-right' },
         { title: '<?php echo lang("stock_material_unit"); ?>', class: 'text-left' },
@@ -189,7 +219,9 @@ async function loadProductionOrderList() {
         filterDropdown: [mrStatus, produceStatus],
         destroy: true,
         columns: columns,
-        summation: summation
+        summation: summation,
+        printColumns: printColumns,
+        xlsColumns: xlsColumns
     };
 
     await $("#table-wrapper").empty();

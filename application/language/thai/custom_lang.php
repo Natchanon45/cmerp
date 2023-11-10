@@ -2650,6 +2650,8 @@ $lang["production_order_add"] = "เพิ่มรายการผลิต";
 $lang["production_order_delete"] = "ลบรายการผลิต";
 $lang["production_order_rm_cost"] = "ต้นทุนวัตถุดิบ";
 $lang["production_order_rm_cost_total"] = "รวมต้นทุนวัตถุดิบ";
+$lang["production_order_sfg_cost"] = "ต้นทุนสินค้ากึ่งสำเร็จ";
+$lang["production_order_sfg_cost_total"] = "รวมต้นทุนสินค้ากึ่งสำเร็จ";
 $lang["production_order_produce_status"] = "การผลิต";
 $lang["production_order_produce_status_select"] = "สถานะการผลิต";
 $lang["production_order_mr_status"] = "การเบิกวัตถุดิบ";
@@ -2705,3 +2707,6 @@ $lang["setting_goods_receipt_access"] = "สามารถเห็นใบร
 
 // Semi-Finished Goods
 $lang["sfg_column_header"] = "สินค้ากึ่งสำเร็จ";
+$lang["item_type"] = "ประเภทสินค้า";
+$lang["fg"] = "สินค้าสำเร็จ";
+$lang["sfg"] = "สินค้ากึ่งสำเร็จ";
