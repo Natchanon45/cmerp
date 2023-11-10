@@ -2253,6 +2253,8 @@ $lang["production_order_add"] = "Add Order";
 $lang["production_order_delete"] = "Delete Order";
 $lang["production_order_rm_cost"] = "RM Cost";
 $lang["production_order_rm_cost_total"] = "Total RM Cost";
+$lang["production_order_sfg_cost"] = "SFG Cost";
+$lang["production_order_sfg_cost_total"] = "Total SFG Cost";
 $lang["production_order_produce_status"] = "Production";
 $lang["production_order_produce_status_select"] = "Select produce state";
 $lang["production_order_mr_status"] = "Material Request";
@@ -2308,3 +2310,6 @@ $lang["setting_goods_receipt_access"] = "Can access goods receipt";
 
 // Semi-Finished Goods
 $lang["sfg_column_header"] = "Semi-Finished Goods";
+$lang["item_type"] = "Item type";
+$lang["fg"] = "FG";
+$lang["sfg"] = "SFG";
