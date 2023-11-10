@@ -47,6 +47,22 @@
       </div>
 
       <div class="form-group">
+        <label for="description" class="col-md-2"><?php echo lang('description'); ?></label>
+        <div class="col-md-10">
+          <?php
+            echo form_textarea(array(
+              "id" => "description",
+              "name" => "description",
+              "value" => $model_info->description ? $model_info->description : "",
+              "class" => "form-control",
+              "placeholder" => lang('description'),
+              "data-rich-text-editor" => false
+            ));
+          ?>
+        </div>
+      </div>
+
+      <div class="form-group">
         <label for="category_id" class="col-md-2">หมวดหมู่</label>
         <div class="col-md-10">
           <?php $mcrows = $this->Material_categories_m->getRows("FG"); ?>
@@ -74,22 +90,6 @@
                     "placeholder" => "หมวดบัญชี"
                 )
             );
-          ?>
-        </div>
-      </div>
-
-      <div class="form-group">
-        <label for="description" class="col-md-2"><?php echo lang('description'); ?></label>
-        <div class="col-md-10">
-          <?php
-            echo form_textarea(array(
-              "id" => "description",
-              "name" => "description",
-              "value" => $model_info->description ? $model_info->description : "",
-              "class" => "form-control",
-              "placeholder" => lang('description'),
-              "data-rich-text-editor" => false
-            ));
           ?>
         </div>
       </div>

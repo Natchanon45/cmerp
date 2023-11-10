@@ -118,6 +118,29 @@
                 ?>
             </div>
         </div>
+
+        <div class="form-group">
+            <label for="item_rate" class=" col-md-3">
+                <?php echo lang('rate'); ?>
+            </label>
+            <div class="col-md-9">
+                <?php
+                echo form_input(
+                    array(
+                        "id" => "item_rate",
+                        "name" => "item_rate",
+                        "value" => $model_info->rate ? $model_info->rate : 0,
+                        "class" => "form-control",
+                        "placeholder" => lang('rate'),
+                        "data-rule-required" => true,
+                        "data-msg-required" => lang("field_required"),
+                    )
+                );
+                ?>
+            </div>
+        </div>
+
+
         <div class="form-group">
             <label for="barcode" class=" col-md-3">
                 <?php echo lang('stock_material_barcode'); ?>
@@ -147,28 +170,6 @@
                     name="noti_threshold" value="<?php echo @$model_info->noti_threshold; ?>" 
                     placeholder="<?php echo lang('stock_item_noti_threshold'); ?>" data-rule-required = "true"
                     data-msg-required="<?php echo lang("field_required"); ?>"/>
-            </div>
-        </div>
-
-
-        <div class="form-group">
-            <label for="item_rate" class=" col-md-3">
-                <?php echo lang('rate'); ?>
-            </label>
-            <div class="col-md-9">
-                <?php
-                echo form_input(
-                    array(
-                        "id" => "item_rate",
-                        "name" => "item_rate",
-                        "value" => $model_info->rate ? $model_info->rate : "",
-                        "class" => "form-control",
-                        "placeholder" => lang('rate'),
-                        "data-rule-required" => true,
-                        "data-msg-required" => lang("field_required"),
-                    )
-                );
-                ?>
             </div>
         </div>
 
