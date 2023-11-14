@@ -174,7 +174,7 @@ class Bom_item_groups_model extends Crud_model {
         }
     }
 
-    function dev2_getRestockingItemList($post)
+    function dev2_getRestockingItemList($post, $item_type = "FG")
     {
         $where_create_by = "";
         if ($post) {
@@ -185,7 +185,7 @@ class Bom_item_groups_model extends Crud_model {
         FROM bom_item_stocks bis 
         LEFT JOIN bom_item_groups big ON bis.group_id = big.id 
         INNER JOIN items i ON bis.item_id = i.id 
-        WHERE 1 AND bis.stock > 0 " . $where_create_by . " ORDER BY bis.id ";
+        WHERE 1 AND bis.stock > 0 " . $where_create_by . " AND item_type = '".$item_type."' ORDER BY bis.id ";
         
         $query = $this->db->query($sql);
         return $query->result();

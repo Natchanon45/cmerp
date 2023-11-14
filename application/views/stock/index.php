@@ -49,7 +49,7 @@
 
     <?php /*if($access_restock){?>
       <div class="grid xl-20 lg-30 md-1-3">
-        <a class="box-card-01 box-shadow" href="<?php echo_uri('sfg/restocks'); ?>">
+        <a class="box-card-01 box-shadow" href="<?php echo_uri('sfg/restock'); ?>">
           <div class="icon">
             <i class="fa fa-database" aria-hidden="true"></i>
           </div>

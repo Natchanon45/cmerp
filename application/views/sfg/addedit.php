@@ -7,7 +7,7 @@
         <input type="hidden" name="is_duplicate" id="is_duplicate" value="0" />
 
         <div class="form-group">
-            <label for="item_code" class="col-md-3"><?php echo lang('stock_item_code'); ?></label>
+            <label for="item_code" class="col-md-3">รหัสสินค้ากึ่งสำเร็จ</label>
             <div class="col-md-9">
                 <?php
                     echo form_input(array(
@@ -25,9 +25,7 @@
         </div>
 
         <div class="form-group">
-            <label for="title" class=" col-md-3">
-                <?php echo lang('stock_item_name'); ?>
-            </label>
+            <label for="title" class=" col-md-3">ชื่อสินค้ากึ่งสำเร็จ</label>
             <div class="col-md-9">
                 <?php
                 echo form_input(
@@ -36,7 +34,7 @@
                         "name" => "title",
                         "value" => $model_info->title,
                         "class" => "form-control validate-hidden",
-                        "placeholder" => lang('title'),
+                        "placeholder" => "ชื่อสินค้ากึ่งสำเร็จ",
                         "autofocus" => true,
                         "data-rule-required" => true,
                         "data-msg-required" => lang("field_required"),

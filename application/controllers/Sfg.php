@@ -23,7 +23,15 @@ class Sfg extends MY_Controller {
             return;
         }
 
-        $this->template->rander("sfg/index", []);
+        $categories = $this->Material_categories_m->getRows($this->item_type);
+        $categories_dropdown = array(array("id" => "", "text" => "- " . lang("category") . " -"));
+        foreach ($categories as $category) {
+            $categories_dropdown[] = array("id" => $category->id, "text" => $category->title);
+        }
+
+        $view_data['categories_dropdown'] = json_encode($categories_dropdown);
+
+        $this->template->rander("sfg/index", $view_data);
     }
 
     function upload_photo(){
@@ -177,5 +185,31 @@ class Sfg extends MY_Controller {
 
         $view_data['item_id'] = $item_id;
         $this->load->view("sfg/detail_files", $this->data);
+    }
+
+    function restock(){
+        if($this->input->post("datatable") == true){
+            jout(["data"=>$this->Sfg_m->indexRestockDataSet()]);
+            return;
+        }
+
+        $view_data['team_members_dropdown'] = $this->get_team_members_dropdown(true);
+
+        $this->template->rander("sfg/restock/index", $view_data);
+    }
+
+    function restock_addedit_modal(){
+        $task = $this->uri->segment(3);
+
+        if($task != null){
+            if($task == "save") jout($this->Sfg_m->saveRestock());
+            if($task == "delete") jout($this->Sfg_m->deleteRestock());
+            return;
+        }
+
+        $view_data = $this->Sfg_m->restock();
+        $view_data["team_members_dropdown"] = $this->get_team_members_dropdown(true);
+
+        $this->load->view('sfg/restock/modal', $view_data);
     }
 }

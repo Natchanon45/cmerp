@@ -140,7 +140,6 @@
             </div>
         </div>
 
-
         <div class="form-group">
             <label for="barcode" class=" col-md-3">
                 <?php echo lang('stock_material_barcode'); ?>

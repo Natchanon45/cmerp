@@ -255,8 +255,6 @@ class Sfg_m extends MY_Model {
                         ->where("id", $sfg_id)
                         ->get()->row();
 
-        
-
         return array("success" => true, "id" => $sfg_id, "data" => $this->getIndexDataSetHTML($sfgrow), 'message' => lang('record_saved'));
     }
 
@@ -427,7 +425,7 @@ class Sfg_m extends MY_Model {
         $view_data["sfg_categories_dropdown"] = $this->Bom_item_mixing_groups_model->get_categories_list_sfg();
         
         $view_data["items_dropdown"] = ["" => "- " . lang("item_selected") . " -"];
-        $items = $this->Items_model->get_details()->result();
+        $items = $this->Items_model->get_details(["item_type"=>$this->item_type])->result();
         foreach ($items as $item) {
             $view_data["items_dropdown"][$item->id] = $item->title;
         }
@@ -532,6 +530,149 @@ class Sfg_m extends MY_Model {
         }
     }
 
+    function getIndexRestockDataSetHTML($item){
+        $button = modal_anchor(get_uri('sfg/restock_addedit'), "<i class='fa fa-pencil'></i>", array("class" => "edit", "title" => lang('stock_restock_item_edit'), "data-post-id" => $item->group_id));
 
+        $button .= js_anchor("<i class='fa fa-times fa-fw'></i>", array('title' => lang('stock_restock_delete'), "class" => "delete", "data-id" => $item->id, "data-action-url" => get_uri("stock/dev2_restock_item_delete"), "data-action" => "delete-confirmation"));
+        
 
+        // REMARK
+        $item_name = $item->item_name;
+        if (isset($item->item_code) && !empty($item->item_code)) {
+            $item_name = mb_strtoupper($item->item_code) . ' - ' . $item->item_name;
+        }
+
+        $display_item = '<span>
+            <span style="display: block;"><b>' . lang("stock_product_name") . '</b>: ' . anchor(get_uri('items/detail/' . $item->item_id), $item_name) . '</span>
+        </span>';
+
+        $mixing_name = null;
+        if (isset($item->mixing_group_id) && !empty($item->mixing_group_id)) {
+            $mixing_name = $this->Bom_item_groups_model->dev2_getMixingNameByMixingGroupId($item->mixing_group_id);
+
+            $display_item = '<span>
+                <span style="display: block;"><b>' . lang("stock_product_name") . '</b>: ' . anchor(get_uri('items/detail/' . $item->item_id), $item_name) . '</span>
+                <span style="display: block;"><b>' . lang("production_order_bom_name") . '</b>: ' . $mixing_name . '</span>
+            </span>';
+        }
+
+        return array(
+            $item->id,
+            anchor(get_uri('stock/restock_item_view/' . $item->group_id), $item->group_name),
+            $item->sern ? $item->sern : '-',
+            $display_item,
+            to_decimal_format3($item->stock_qty),
+            to_decimal_format3($item->remain_qty),
+            mb_strtoupper($item->item_unit),
+            $item->create_by ? anchor(get_uri('team_members/view/' . $item->create_by), $this->Account_category_model->created_by($item->create_by)) : '',
+            format_to_date($item->create_date),
+            $button
+        );
+    }
+
+    function indexRestockDataSet() {
+        $post = $this->input->post('created_by') ? $this->input->post('created_by') : '';
+        $result = $this->Bom_item_groups_model->dev2_getRestockingItemList($post, "SFG");
+        
+        $data = array();
+        // var_dump(arr($result)); exit();
+        foreach ($result as $item) {
+            $data[] = $this->getIndexRestockDataSetHTML($item);
+        }
+
+        // var_dump(arr($data)); exit();
+        return $data;
+    }
+
+    function restock(){
+        $group_id = $this->input->post('id');
+        validate_submitted_data(
+            array(
+                "id" => "numeric"
+            )
+        );
+
+        $view_data["view"] = $this->input->post('view');
+        $view_data['model_info'] = $this->Bom_item_groups_model->get_one($group_id);
+
+        $view_data['item_dropdown'] = $this->Items_model->get_details(["item_type"=>$this->item_type])->result();
+        $view_data['item_restocks'] = $this->Bom_item_groups_model->get_restocks(['group_id' => $group_id ? $group_id : -1])->result();
+
+        foreach ($view_data['item_restocks'] as $key => $value) {
+            $rows = $this->Bom_project_item_items_model->getCountStockUsedById($id);
+
+            if ($rows == 0) $view_data['item_restocks'][$key]->can_delete = true;    
+            else $view_data['item_restocks'][$key]->can_delete = false;
+        }
+
+        return $view_data;
+    }
+
+    function saveRestock(){
+        $id = $this->input->post('id');
+
+        validate_submitted_data(
+            array(
+                "id" => "numeric"
+            )
+        );
+
+        $data = array(
+            "name" => $this->input->post('name'),
+            "created_by" => $this->input->post('created_by'),
+            "created_date" => $this->input->post('created_date'),
+            "po_no" => $this->input->post('po_no')
+        );
+
+        if (!$this->login_user->is_admin || empty($data["created_by"])) {
+            $data["created_by"] = $this->login_user->id;
+        }
+
+        $data = clean_data($data);
+
+        $save_id = $this->Bom_item_groups_model->save($data, $id);
+
+        if ($save_id) {
+            $restock_ids = $this->input->post('restock_id[]');
+            $item_ids = $this->input->post('item_id[]');
+            $expire_date = $this->input->post('expired_date[]');
+            $stocks = $this->input->post('stock[]');
+            $prices = $this->input->post('price[]');
+            $serns = $this->input->post('sern[]');
+            if (isset($restock_ids) && isset($item_ids) && isset($stocks)) {
+                $this->Bom_item_groups_model->restock_item_save(
+                    $save_id,
+                    $restock_ids,
+                    $item_ids,
+                    $expire_date,
+                    $stocks,
+                    $prices,
+                    $serns
+                );
+            }
+
+            return array(
+                    "success" => true,
+                    "data" => $this->getIndexRestockDataSetHTML($this->Bom_item_groups_model->get_details(['id' => $id])->row()),
+                    'id' => $save_id,
+                    'view' => $this->input->post('view'),
+                    'message' => lang('record_saved')
+                );
+            
+        } else {
+            return array("success" => false, 'message' => lang('error_occurred'));
+        }
+    }
+
+    function deleteRestock(){
+
+        $id = $this->input->post('id');
+        validate_submitted_data(
+            array(
+                "id" => "required|numeric"
+            )
+        );
+
+        echo json_encode(array('success' => true, 'message' => $id));
+    }
 }

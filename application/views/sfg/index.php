@@ -40,7 +40,9 @@
     $(document).ready(function () {
         $("#item-table").appTable({
             source: '<?php echo_uri("sfg"); ?>',
-            
+            filterDropdown: [
+                { name: "category_id", class: "w200", options: <?php echo $categories_dropdown; ?> }
+            ],
             columns: [
                 { title: "<?php echo lang('id'); ?>", "class": "w50 text-center" },
                 { title: "<?php echo lang('preview_image'); ?>", "class": "w50" },
