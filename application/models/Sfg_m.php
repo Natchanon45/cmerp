@@ -597,9 +597,10 @@ class Sfg_m extends MY_Model {
 
         $view_data['item_dropdown'] = $this->Items_model->get_details(["item_type"=>$this->item_type])->result();
         $view_data['item_restocks'] = $this->Bom_item_groups_model->get_restocks(['group_id' => $group_id ? $group_id : -1])->result();
+        // var_dump(arr($view_data['item_restocks'])); exit();
 
         foreach ($view_data['item_restocks'] as $key => $value) {
-            $rows = $this->Bom_project_item_items_model->getCountStockUsedById($id);
+            $rows = $this->Bom_project_item_items_model->getCountStockUsedById($value->id);
 
             if ($rows == 0) $view_data['item_restocks'][$key]->can_delete = true;    
             else $view_data['item_restocks'][$key]->can_delete = false;

@@ -1184,7 +1184,7 @@ class Stock extends MY_Controller
         $view_data['can_delete'] = $this->check_permission('bom_material_delete');
         $view_data['can_read_production_name'] = $this->check_permission('bom_material_read_production_name');
 
-        $view_data["category_dropdown"] = $this->Bom_materials_model->get_category_dropdown();
+        $view_data["category_dropdown"] = $this->Bom_materials_model->get_category_dropdown(["type" => "RM"]);
 
         $view_data['is_admin'] = $this->login_user->is_admin;
         $this->template->rander("stock/material/index", $view_data);
@@ -4421,7 +4421,7 @@ class Stock extends MY_Controller
         $view_data['can_delete'] = $this->check_permission('bom_material_delete');
         $view_data['can_read_production_name'] = $this->check_permission('bom_material_read_production_name');
 
-        $view_data["category_dropdown"] = $this->Bom_item_model->get_category_dropdown();
+        $view_data["category_dropdown"] = $this->Bom_item_model->get_category_dropdown(["type" => "FG"]);
 
         $view_data['is_admin'] = $this->login_user->is_admin;
         $this->template->rander("stock/item/index", $view_data);
