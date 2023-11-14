@@ -1,17 +1,11 @@
 <div class="tab-content">
-  <?php echo form_open(get_uri("items/save"), array("id" => "item-form", "class" => "general-form", "role" => "form")); ?>
+  <?php echo form_open(current_url(), array("id" => "item-form", "class" => "general-form", "role" => "form")); ?>
   <div class="panel post-dropzone" id="items-dropzone">
     <div class="panel-body">
       <input type="hidden" name="id" value="<?php echo $model_info->id; ?>" />
 
-      <?php if ($model_info->id) { ?>
-        <div class="form-group">
-          <div class="col-md-12 text-off"> <?php echo lang('item_edit_instruction'); ?></div>
-        </div>
-      <?php } ?>
-
       <div class="form-group">
-        <label for="item_code" class="col-md-2"><?php echo lang('stock_item_code'); ?></label>
+        <label for="item_code" class="col-md-2">รหัสสินค้ากึ่งสำเร็จ</label>
         <div class="col-md-10">
           <?php
             echo form_input(array(
@@ -19,17 +13,17 @@
                 "name" => "item_code",
                 "value" => $model_info->item_code,
                 "class" => "form-control validate-hidden",
-                "placeholder" => lang('stock_item_code'),
+                "placeholder" => "รหัสสินค้ากึ่งสำเร็จ",
                 "autofocus" => true,
                 "data-rule-required" => true,
                 "data-msg-required" => lang("field_required")
             ));
           ?>
         </div>
-      </div>
+      </div>      
 
       <div class="form-group">
-        <label for="title" class="col-md-2"><?php echo lang('stock_item_name'); ?></label>
+        <label for="title" class="col-md-2">ชื่อสินค้ากึ่งสำเร็จ</label>
         <div class="col-md-10">
           <?php
             echo form_input(array(
@@ -37,7 +31,7 @@
               "name" => "title",
               "value" => $model_info->title,
               "class" => "form-control validate-hidden",
-              "placeholder" => lang('stock_item_name'),
+              "placeholder" => "ชื่อสินค้ากึ่งสำเร็จ",
               "autofocus" => true,
               "data-rule-required" => true,
               "data-msg-required" => lang("field_required"),
@@ -65,7 +59,7 @@
       <div class="form-group">
         <label for="category_id" class="col-md-2">หมวดหมู่</label>
         <div class="col-md-10">
-          <?php $mcrows = $this->Material_categories_m->getRows("FG"); ?>
+          <?php $mcrows = $this->Material_categories_m->getRows("SFG"); ?>
           <select name="category_id" class="form-control">
             <option>- หมวดหมู่ -</option>
             <?php if(!empty($mcrows)): ?>
@@ -95,7 +89,7 @@
       </div>
       
       <div class="form-group">
-        <label for="unit_type" class="col-md-2"><?php echo lang('unit_type'); ?></label>
+        <label for="unit_type" class="col-md-2">หน่วย</label>
         <div class="col-md-10">
           <?php
             echo form_input(array(
@@ -108,21 +102,22 @@
           ?>
         </div>
       </div>
+
       <div class="form-group">
-        <label for="item_rate" class="col-md-2"><?php echo lang('rate'); ?></label>
-      <div class="col-md-10">
-          <?php
-            echo form_input(array(
-              "id" => "item_rate",
-              "name" => "item_rate",
-              "value" => $model_info->rate ? $model_info->rate : "",
-              "class" => "form-control",
-              "placeholder" => lang('rate'),
-              "data-rule-required" => true,
-              "data-msg-required" => lang("field_required"),
-            ));
-          ?>
-        </div>
+          <label for="item_rate" class="col-md-2">ราคา</label>
+          <div class="col-md-10">
+              <?php
+              echo form_input(
+                  array(
+                      "id" => "item_rate",
+                      "name" => "item_rate",
+                      "value" => $model_info->rate,
+                      "class" => "form-control",
+                      "placeholder" => "ราคา"
+                  )
+              );
+              ?>
+          </div>
       </div>
 
       <div class="form-group">
@@ -153,17 +148,6 @@
         </div>
       </div>
 
-      <?php if ($this->login_user->is_admin && get_setting("module_order")) { ?>
-        <div class="form-group">
-          <label for="show_in_client_portal" class="col-md-2 col-xs-5 col-sm-4"><?php echo lang('show_in_client_portal'); ?></label>
-          <div class=" col-md-10 col-xs-7 col-sm-8">
-            <?php
-              echo form_checkbox("show_in_client_portal", "1", $model_info->show_in_client_portal ? true : false, "id='show_in_client_portal'");
-            ?>                       
-          </div>
-        </div>
-      <?php } ?>
-
       <div class="form-group">
         <div class="col-md-12 row pr0">
           <?php
@@ -189,8 +173,8 @@
 
 <script type="text/javascript">
   $(document).ready(function () {
-    var uploadUrl = "<?php echo get_uri("items/upload_file"); ?>";
-    var validationUri = "<?php echo get_uri("items/validate_items_file"); ?>";
+    var uploadUrl = "<?php echo get_uri("sfg/upload_photo/upload_file") ?>";
+    var validationUri = "<?php echo get_uri("sfg/upload_photo/validate_file") ?>";
 
     var dropzone = attachDropzoneWithForm("#items-dropzone", uploadUrl, validationUri);
 
@@ -204,5 +188,6 @@
     //$("#item-form .select2").select2();
     $('#category_id').select2({data: <?php echo json_encode($category_dropdown); ?>});
     $('#account_id').select2({ data: <?php echo json_encode($account_category); ?> });
+    
   });
 </script>

@@ -17,6 +17,16 @@ class Items_model extends Crud_model
 		$item_categories_table = $this->db->dbprefix('item_categories');
 
 		$where = "";
+
+		$item_type = get_array_value($options, "item_type");
+		
+		if($item_type != null){
+			if(strtoupper($item_type) == "SFG") $where .= " AND item_type='".strtoupper($item_type)."'";
+			if(strtoupper($item_type) == "FG") $where .= " AND item_type='".strtoupper($item_type)."'";
+		}else{
+			$where .= " AND item_type='FG'";
+		}
+
 		$id = get_array_value($options, "id");
 		if ($id) {
 			$where .= " AND $items_table.id=$id";

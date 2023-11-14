@@ -24,7 +24,7 @@
 					echo modal_anchor(
 						get_uri("stock/material_category_modal"),
 						"<i class='fa fa-tags'></i> " . lang('add_category'),
-						array("class" => "btn btn-default", "title" => lang('add_category'), "data-post-type" => "material")
+						array("class" => "btn btn-default", "title" => lang('add_category'), "data-post-type" => "RM")
 					);
 				}
 				if ($can_create) {

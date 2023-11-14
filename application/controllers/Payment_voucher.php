@@ -125,6 +125,10 @@ class Payment_voucher extends MY_Controller
         }
 
         $this->data["additional_style"] = 'style="width: 30%;"';
+        $this->data["bom_supplier_read"] = false;
+        if (isset($this->Permission_m->bom_supplier_read) && $this->Permission_m->bom_supplier_read) {
+            $this->data["bom_supplier_read"] = true;
+        }
 
         // var_dump(arr($this->data)); exit();
         $this->load->view("edocs/payment_voucher", $this->data);

@@ -29,14 +29,14 @@ class Bom_materials_model extends Crud_model
 			$where .= " AND bm.id != $exceptId";
 		}
 
-		return $this->db->query(
-			"SELECT bm.*, bmc.title category, SUM(bs.remaining) remaining 
+		return $this->db->query("
+			SELECT bm.*, bmc.title category, SUM(bs.remaining) remaining 
 			FROM bom_materials bm 
-			LEFT JOIN bom_material_categories bmc ON bmc.id = bm.category_id 
+			LEFT JOIN material_categories bmc ON bmc.id = bm.category_id 
 			LEFT JOIN bom_stocks bs ON bs.material_id = bm.id AND bs.remaining > 0 
-			WHERE 1 $where 
-			GROUP BY bm.id "
-		);
+			WHERE 1 AND bmc.item_type = 'RM' $where 
+			GROUP BY bm.id 
+		");
 	}
 
 	function delete_material_and_sub_items($material_id)
@@ -135,15 +135,18 @@ class Bom_materials_model extends Crud_model
 	{
 		$where = "";
 		$id = get_array_value($options, "id");
+		$type = get_array_value($options, "type");
+
 		if ($id) {
 			$where .= " AND bmc.id = $id";
 		}
 
-		return $this->db->query(
-			"SELECT bmc.* 
-			FROM bom_material_categories bmc 
-			WHERE 1 $where "
-		);
+		if ($type) {
+			$where .= " AND bmc.item_type = '" . $type . "'";
+		}
+
+		$sql = "SELECT bmc.* FROM material_categories bmc WHERE 1 $where ORDER BY bmc.id";
+		return $this->db->query($sql);
 	}
 
 	function category_create($data)
@@ -369,6 +372,35 @@ class Bom_materials_model extends Crud_model
 		}
 
 		return $db->get()->result();
+	}
+
+	public function dev2_getAllCategories() : array
+	{
+		$data = array();
+		$query = $this->db->get("bom_material_categories")->result();
+		if (sizeof($query)) {
+			$data = $query;
+		}
+
+		return $data;
+	}
+
+	public function dev2_postOptimizationProcess(array $data) : void
+	{
+		// Insert to new table [material_categories]
+		$this->db->insert("material_categories", [
+			"title" => $data["title"],
+			"item_type" => $data["item_type"]
+		]);
+		$new_id = $this->db->insert_id();
+
+		// Update new id to master data [bom_materials]
+		$this->db->where("category_id", $data["id"]);
+		$this->db->update("bom_materials", ["category_id" => $new_id]);
+
+		// Update new id to bom items [bom_item_mixings]
+		$this->db->where("cat_id", $data["id"]);
+		$this->db->update("bom_item_mixings", ["cat_id" => $new_id]);
 	}
 
 }

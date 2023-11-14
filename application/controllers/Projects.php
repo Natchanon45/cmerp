@@ -5943,15 +5943,23 @@ class Projects extends MY_Controller
     public function production_order_modal_form()
     {
         $post = (object) $this->input->post();
+        // var_dump(arr($post)); exit();
 
         if (!isset($post->project_id) || empty($post->project_id)) {
             // have no a project id
             return;
         }
 
+        if (!isset($post->item_type) || empty($post->item_type)) {
+            // have no a item type
+            return;
+        }
+
+        $data["post"] = $post;
+
         $data["info"] = $this->Projects_model->dev2_getProjectInfoByProjectId($post->project_id);
-        $data["items_dropdown"] = $this->Projects_model->dev2_getFinishedGoodsDropdown();
-        $data["items_mixing_dropdown"] = $this->Projects_model->dev2_getMixingGroupDropdown();
+        $data["items_dropdown"] = $this->Projects_model->dev2_getFinishedGoodsDropdown($post->item_type);
+        $data["items_mixing_dropdown"] = $this->Projects_model->dev2_getMixingGroupDropdown($post->item_type);
 
         // var_dump(arr($data)); exit();
         $this->load->view("projects/production_orders/modal_add", $data);
@@ -5981,6 +5989,7 @@ class Projects extends MY_Controller
 
                 $data[] = [
                     "project_id" => $post["project_id"],
+                    "item_type" => $post["item_type"],
                     "item_id" => $post["item_id"][$i],
                     "item_mixing" => $post["item_mixing"][$i],
                     "quantity" => $post["quantity"][$i],

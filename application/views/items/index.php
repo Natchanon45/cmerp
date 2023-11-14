@@ -27,11 +27,10 @@
             columns: [
                 { title: "<?php echo lang('id'); ?>", "class": "w50 text-center" },
                 { title: "<?php echo lang('preview_image'); ?>", "class": "w50" },
-                { title: "รหัสสินค้า", "class": "w100" },
+                { title: "<?php echo lang("stock_item_code"); ?>", "class": "w100" },
                 { title: "<?php echo lang('stock_products'); ?>", "class": "w20p" },
                 { title: "<?php echo lang('description'); ?>" },
                 { title: "<?php echo lang('category'); ?>" },
-                // { title: "<?php // echo lang('account_category'); ?>" },
                 { title: "<?php echo lang('unit_type'); ?>", "class": "w100" },
                 { title: '<?php echo lang("stock_material_barcode"); ?>' },
                 { title: "<?php echo lang('rate'); ?>", "class": "text-right w100" },
