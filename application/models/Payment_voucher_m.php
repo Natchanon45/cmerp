@@ -901,9 +901,9 @@ class Payment_voucher_m extends MY_Model
 
         if ($pay->amount == 0) {
             $pay_status = 'N';
-        } elseif ($pay->amount < $info->payment_amount) {
+        } elseif (round($pay->amount, 2) < round($info->payment_amount, 2)) {
             $pay_status = 'P';
-        } elseif ($pay->amount == $info->payment_amount) {
+        } elseif (round($pay->amount, 2) == round($info->payment_amount, 2)) {
             $pay_status = 'C';
         } else {
             $pay_status = 'O';
