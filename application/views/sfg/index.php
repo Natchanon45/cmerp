@@ -10,32 +10,23 @@
                 <a class="title-back" href="<?php echo get_uri('stock'); ?>">
                     <i class="fa fa-chevron-left" aria-hidden="true"></i>
                 </a>
-                <?php echo lang('stock_items'); ?>
+                สินค้ากึ่งสำเร็จ
             </h1>
             
             <div class="title-button-group">
                 <?php
-                if ($can_create && $can_update) {
-                    echo modal_anchor(
+                    /*echo modal_anchor(
                         get_uri("stock/item_import_modal"),
                         "<i class='fa fa-upload'></i> " . lang('stock_item_import'),
                         array("class" => "btn btn-default", "title" => lang('stock_item_import'))
-                    );
-                    echo modal_anchor(
-                        get_uri("stock/item_category_modal"),
-                        "<i class='fa fa-tags'></i> " . lang('add_category'),
-                        array("class" => "btn btn-default", "title" => lang('add_category'), "data-post-type" => "FG")
-                    );
-                }
-                if ($can_create) {
-                    /*echo modal_anchor(
-                        get_uri("item/item_modal"),
-                        "<i class='fa fa-plus-circle'></i> " . lang('stock_item_add'),
-                        array("class" => "btn btn-default", "title" => lang('stock_item_add'))
                     );*/
-
-                    echo modal_anchor(get_uri("items/modal_form"), "<i class='fa fa-plus-circle'></i> " . lang('add_item'), array("class" => "btn btn-default", "title" => lang('add_item')));
-                }
+                    echo modal_anchor(
+                        get_uri("sfg/category_modal"),
+                        "<i class='fa fa-tags'></i> " . lang('add_category'),
+                        array("class" => "btn btn-default", "title" => lang('add_category'), "data-post-type" => "item")
+                    );
+                
+                    echo modal_anchor(get_uri("sfg/addedit"), "<i class='fa fa-plus-circle'></i> " . lang('add_item'), array("class" => "btn btn-default", "title" => lang('add_item')));
                 ?>
             </div>
         </div>
@@ -48,14 +39,14 @@
 <script type="text/javascript">
     $(document).ready(function () {
         $("#item-table").appTable({
-            source: '<?php echo_uri("items/list_data"); ?>',
+            source: '<?php echo_uri("sfg"); ?>',
             filterDropdown: [
-                { name: "category_id", class: "w200", options: <?php echo json_encode($category_dropdown); ?> }
+                { name: "category_id", class: "w200", options: <?php echo $categories_dropdown; ?> }
             ],
             columns: [
                 { title: "<?php echo lang('id'); ?>", "class": "w50 text-center" },
                 { title: "<?php echo lang('preview_image'); ?>", "class": "w50" },
-                { title: "<?php echo lang("stock_item_code"); ?>", "class": "w100" },
+                { title: "รหัสสินค้ากึ่งสำเร็จ", "class": "w100" },
                 { title: "<?php echo lang('stock_products'); ?>", "class": "w20p" },
                 { title: "<?php echo lang('description'); ?>" },
                 { title: "<?php echo lang('category'); ?>" },
@@ -63,14 +54,7 @@
                 { title: '<?php echo lang("stock_material_barcode"); ?>' },
                 { title: "<?php echo lang('rate'); ?>", "class": "text-right w100" },
                 { title: "<i class='fa fa-bars'></i>", "class": "text-center option w100" }
-            ],
-            <?php if ($can_read_production_name): ?>
-                printColumns : combineCustomFieldsColumns([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]),
-                xlsColumns: combineCustomFieldsColumns([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
-            <?php else: ?>
-                printColumns: combineCustomFieldsColumns([0, 1, 2, 3, 4, 5, 6, 7, 8]),
-                xlsColumns: combineCustomFieldsColumns([0, 1, 2, 3, 4, 5, 6, 7, 8])
-            <?php endif; ?>
+            ]
         });
     });
 </script>

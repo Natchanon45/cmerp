@@ -47,14 +47,15 @@ class Bom_item_mixing_groups_model extends Crud_model {
         
         $id = get_array_value($options, "id");
         if ($id) {
-            $where .= " bmc.id = $id";
+            $where .= " AND bmc.id = $id";
         }
 
-        // $item_id = get_array_value($options, "item_id");
-        // if (isset($options['item_id']) && $item_id) {
-        //     $where .= " bmc.item_id = $item_id";
-        // }
-        $sql = "SELECT bmc.* FROM bom_material_categories bmc ".($where?' WHERE '.$where:'');
+        $type = get_array_value($options, "type");
+        if ($type) {
+            $where .= " AND bmc.item_type = '" . $type . "'";
+        }
+
+        $sql = "SELECT bmc.* FROM material_categories bmc WHERE 1 $where";
         return $this->db->query($sql);
     }
 
@@ -141,7 +142,7 @@ class Bom_item_mixing_groups_model extends Crud_model {
     }
 
     function get_categories_list() {
-        $rows = $this->get_category_details()->result();
+        $rows = $this->get_category_details(["type" => "RM"])->result();
         $options = [];
         foreach($rows as $row) {
             $options[$row->id] = $row->title;
@@ -149,32 +150,74 @@ class Bom_item_mixing_groups_model extends Crud_model {
         return $options;
     }
 
-    function get_mixings($options = array()) {
+    function get_categories_list_sfg() {
+        $rows = $this->get_category_details(["type" => "SFG"])->result();
+        $options = [];
+        foreach($rows as $row) {
+            $options[$row->id] = $row->title;
+        }
+        return $options;
+    }
+
+    function get_mixings($options = array())
+    {
         $where = "";
         
         $id = get_array_value($options, "id");
         if ($id) {
             $where .= " AND bim.id = $id";
         }
+
         $group_id = get_array_value($options, "group_id");
         if ($group_id) {
             $where .= " AND bim.group_id = $group_id";
         }
+
         $material_id = get_array_value($options, "material_id");
         if ($material_id) {
             $where .= " AND bim.material_id = $material_id";
         }
+
         $sql = "
-            SELECT bim.*, 
-            bm.name material_name, bm.unit material_unit 
+            SELECT bim.*, bm.name material_name, bm.unit material_unit 
             FROM bom_item_mixings bim 
             INNER JOIN bom_materials bm ON bm.id = bim.material_id 
-            WHERE 1 $where 
+            WHERE 1 AND bim.item_type = 'RM' $where 
             GROUP BY bim.id 
         ";
         return $this->db->query($sql);
     }
-    function mixing_save($group_id = 0, $material_ids = [], $cat_ids = [], $ratios = []) {
+
+    function get_mixings_sfg($options = array())
+    {
+        $where = "";
+        
+        $id = get_array_value($options, "id");
+        if ($id) {
+            $where .= " AND bim.id = $id";
+        }
+
+        $group_id = get_array_value($options, "group_id");
+        if ($group_id) {
+            $where .= " AND bim.group_id = $group_id";
+        }
+
+        $material_id = get_array_value($options, "material_id");
+        if ($material_id) {
+            $where .= " AND bim.material_id = $material_id";
+        }
+
+        $sql = "
+            SELECT bim.*, bm.title material_name, bm.unit_type material_unit 
+            FROM bom_item_mixings bim 
+            INNER JOIN items bm ON bm.id = bim.material_id AND bm.item_type = 'SFG' 
+            WHERE 1 AND bim.item_type = 'SFG' $where 
+            GROUP BY bim.id 
+        ";
+        return $this->db->query($sql);
+    }
+
+    function mixing_save($group_id = 0, $material_ids = [], $cat_ids = [], $ratios = [], $item_types = []) {
         $this->db->query("DELETE FROM bom_item_mixings WHERE group_id = $group_id");
         if(!empty($cat_ids) && sizeof($cat_ids)){
             foreach($cat_ids as $cat_temp_id=>$cat_id) {
@@ -185,6 +228,7 @@ class Bom_item_mixing_groups_model extends Crud_model {
                                 'group_id' => $group_id,
                                 'material_id' => $material_id,
                                 'cat_id' => $cat_id,
+                                'item_type' => $item_types[$cat_temp_id][$i],
                                 'ratio' => $ratios[$cat_temp_id][$i]
                             ];
                             //var_dump($data);

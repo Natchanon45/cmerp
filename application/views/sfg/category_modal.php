@@ -6,13 +6,13 @@
   }
 </style>
 
-<?php echo form_open(get_uri("stock/material_category_save"), array("id" => "category-form", "class" => "general-form", "role" => "form")); ?>
+<?php echo form_open(get_uri("sfg/category_modal/save"), array("id" => "category-form", "class" => "general-form", "role" => "form")); ?>
 
 <div class="modal-body clearfix label-modal-body">
   <input type="hidden" id="category_id" name="id">
   <input type="hidden" id="category_type" name="type" value="<?php if (isset($type) && !empty($type)) { echo $type; } ?>">
 
-  <div class="add-label clearfix pb10">
+  <div class="add-label clearfix">
     <div class="col-md-9">
       <div class="form-group">
         <div class=" col-md-12">
@@ -110,7 +110,7 @@
     });
 
     function showEditMode($selector) { // MARK
-      let url = "<?php echo get_uri('stock/dev2_countMaterialCateById/'); ?>" + $selector.data().id;
+      let url = "<?php echo get_uri('item_categories/dev2_countItemCateById/'); ?>" + $selector.data().id;
       $.ajax({
         url: url,
         type: 'GET',
@@ -140,9 +140,9 @@
     });
 
     $("#category-delete-btn").click(function () {
-      appLoader.show({ container: ".label-modal-body", css: "left:0;" });
+      appLoader.show({ container: ".label-modal-body", css: "left: 0;" });
       $.ajax({
-        url: "<?php echo get_uri('stock/material_category_delete') ?>",
+        url: "<?php echo get_uri('sfg/category_modal/delete'); ?>",
         type: 'POST',
         dataType: 'json',
         data: { id: $("#category_id").val() },

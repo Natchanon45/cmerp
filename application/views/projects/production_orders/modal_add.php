@@ -78,6 +78,7 @@ echo form_open(
 
 <div class="modal-body clearfix">
     <input type="hidden" name="project_id" value="<?php if (isset($info["id"]) && !empty($info["id"])) { echo $info["id"]; } ?>">
+    <input type="hidden" name="item_type" value="<?php if (isset($post->item_type) && !empty($post->item_type)) { echo $post->item_type; } ?>">
 
     <table id="table-bom-select">
         <thead>

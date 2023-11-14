@@ -38,6 +38,28 @@
 
     <?php if($access_material){?>
       <div class="grid xl-20 lg-30 md-1-3">
+        <a class="box-card-01 box-shadow" href="<?php echo_uri('sfg'); ?>">
+          <div class="icon">
+            <i class="fa fa-tags" aria-hidden="true"></i>
+          </div>
+          <h4 class="fw-500">สินค้ากึ่งสำเร็จ</h4> 
+        </a>
+      </div>
+    <?php }?>
+
+    <?php /*if($access_restock){?>
+      <div class="grid xl-20 lg-30 md-1-3">
+        <a class="box-card-01 box-shadow" href="<?php echo_uri('sfg/restock'); ?>">
+          <div class="icon">
+            <i class="fa fa-database" aria-hidden="true"></i>
+          </div>
+          <h4 class="fw-500">นำเข้าสินค้ากึ่งสำเร็จ</h4>
+        </a>
+      </div>
+    <?php }*/?>
+
+    <?php if($access_material){?>
+      <div class="grid xl-20 lg-30 md-1-3">
         <a class="box-card-01 box-shadow" href="<?php echo_uri('stock/items'); ?>">
           <div class="icon">
             <i class="fa fa-tags" aria-hidden="true"></i>
@@ -79,6 +101,17 @@
         </a>
       </div>
     <?php }?>
+
+    <?php /*if($access_material && $access_restock){?>
+      <div class="grid xl-20 lg-30 md-1-3">
+        <a class="box-card-01 box-shadow" href="<?php echo_uri('sfg/report'); ?>">
+          <div class="icon">
+            <i class="fa fa-bar-chart" aria-hidden="true"></i>
+          </div>
+          <h4 class="fw-500">รายงานสินค้ากึ่งสำเร็จ</h4>
+        </a>
+      </div>
+    <?php }*/?>
 
     <?php if($access_material && $access_restock){?>
       <div class="grid xl-20 lg-30 md-1-3">

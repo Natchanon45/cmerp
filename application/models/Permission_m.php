@@ -44,6 +44,12 @@ class Permission_m extends MY_Model
 
 	public $bom_supplier_read = false;
 
+	public $bom_material_read = false;
+	public $bom_material_read_production_name = false;
+	public $bom_material_create = false;
+	public $bom_material_update = false;
+	public $bom_material_delete = false;
+
 	function __construct() 
 	{		
 		$urow = $this->db->select("is_admin, role_id")
@@ -107,6 +113,12 @@ class Permission_m extends MY_Model
 		$permissions["approve_purchase_request"] = $this->approve_purchase_request = true;
 
 		$permissions["bom_supplier_read"] = $this->bom_supplier_read = true;
+
+		$permissions["bom_material_read"] = $this->bom_material_read = true;
+		$permissions["bom_material_read_production_name"] = $this->bom_material_read_production_name = true;
+		$permissions["bom_material_create"] = $this->bom_material_create = true;
+		$permissions["bom_material_update"] = $this->bom_material_update = true;
+		$permissions["bom_material_delete"] = $this->bom_material_delete = true;
 
 		$this->permissions = $permissions;
 	}
@@ -191,6 +203,31 @@ class Permission_m extends MY_Model
 		if(isset($permissions->bom_supplier_read)){
 			$this->bom_supplier_read = $permissions->bom_supplier_read;
 			if($this->bom_supplier_read == false) $this->bom_supplier_read = false;
+		}
+
+		if(isset($permissions->bom_material_read)){
+			$this->bom_material_read = $permissions->bom_material_read;
+			if($this->bom_material_read == false) $this->bom_material_read = false;
+		}
+
+		if(isset($permissions->bom_material_read_production_name)){
+			$this->bom_material_read_production_name = $permissions->bom_material_read_production_name;
+			if($this->bom_material_read_production_name == false) $this->bom_material_read_production_name = false;
+		}
+
+		if(isset($permissions->bom_material_create)){
+			$this->bom_material_create = $permissions->bom_material_create;
+			if($this->bom_material_create == false) $this->bom_material_create = false;
+		}
+
+		if(isset($permissions->bom_material_update)){
+			$this->bom_material_update = $permissions->bom_material_update;
+			if($this->bom_material_update == false) $this->bom_material_update = false;
+		}
+
+		if(isset($permissions->bom_material_delete)){
+			$this->bom_material_delete = $permissions->bom_material_delete;
+			if($this->bom_material_delete == false) $this->bom_material_delete = false;
 		}
 
 		$this->permissions = $permissions;

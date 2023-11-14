@@ -1,4 +1,4 @@
-<?php echo form_open(get_uri("items/save"), array("id" => "item-form", "class" => "general-form", "role" => "form")); ?>
+<?php echo form_open(get_uri("sfg/addedit/save"), array("id" => "sfg-form", "class" => "general-form", "role" => "form")); ?>
 <div id="items-dropzone" class="post-dropzone">
     <div class="modal-body clearfix">
 
@@ -6,17 +6,8 @@
         <input type="hidden" name="oid" id="oid" value="<?php echo $model_info->id; ?>" />
         <input type="hidden" name="is_duplicate" id="is_duplicate" value="0" />
 
-        <?php if ($model_info->id): ?>
-            <div class="form-group">
-                <div class="col-md-12 text-off">
-                    <?php echo lang('item_edit_instruction'); ?>
-                </div>
-            </div>
-        <?php endif; ?>
-
-
         <div class="form-group">
-            <label for="item_code" class="col-md-3"><?php echo lang('stock_item_code'); ?></label>
+            <label for="item_code" class="col-md-3">รหัสสินค้ากึ่งสำเร็จ</label>
             <div class="col-md-9">
                 <?php
                     echo form_input(array(
@@ -24,7 +15,7 @@
                         "name" => "item_code",
                         "value" => $model_info->item_code,
                         "class" => "form-control",
-                        "placeholder" => lang('stock_item_code'),
+                        "placeholder" => "รหัสสินค้ากึ่งสำเร็จ",
                         "autofocus" => true,
                         "data-rule-required" => true,
                         "data-msg-required" => lang("field_required"),
@@ -34,9 +25,7 @@
         </div>
 
         <div class="form-group">
-            <label for="title" class=" col-md-3">
-                <?php echo lang('stock_item_name'); ?>
-            </label>
+            <label for="title" class=" col-md-3">ชื่อสินค้ากึ่งสำเร็จ</label>
             <div class="col-md-9">
                 <?php
                 echo form_input(
@@ -45,7 +34,7 @@
                         "name" => "title",
                         "value" => $model_info->title,
                         "class" => "form-control validate-hidden",
-                        "placeholder" => lang('title'),
+                        "placeholder" => "ชื่อสินค้ากึ่งสำเร็จ",
                         "autofocus" => true,
                         "data-rule-required" => true,
                         "data-msg-required" => lang("field_required"),
@@ -58,7 +47,7 @@
             <label for="description" class="col-md-3">
                 <?php echo lang('description'); ?>
             </label>
-            <div class=" col-md-9">
+            <div class="col-md-9">
                 <?php
                 echo form_textarea(
                     array(
@@ -73,14 +62,19 @@
                 ?>
             </div>
         </div>
+
         <div class="form-group">
-            <label for="category_id" class=" col-md-3">
-                <?php echo lang('category'); ?>
-            </label>
-            <div class=" col-md-9">
-                <?php
-                echo form_dropdown("category_id", $categories_dropdown, $model_info->category_id, "class='select2 validate-hidden' id='category_id' data-rule-required='true', data-msg-required='" . lang('field_required') . "'");
-                ?>
+            <label for="category_id" class="col-md-3"><?php echo lang('stock_item_category'); ?></label>
+            <div class="col-md-9">
+                <?php $mcrows = $this->Material_categories_m->getRows("SFG"); ?>
+                <select id="category_id" name="category_id" class="form-control">
+                    <option>- หมวดหมู่ -</option>
+                    <?php if(!empty($mcrows)): ?>
+                        <?php foreach($mcrows as $mcrow): ?>
+                            <option value="<?php echo $mcrow->id; ?>" <?php if($mcrow->id == $model_info->category_id) echo "selected";?>><?php echo $this->Material_categories_m->getTitle($mcrow->id); ?></option>
+                        <?php endforeach;?>
+                    <?php endif; ?>
+                </select>
             </div>
         </div>
 
@@ -172,7 +166,7 @@
             </div>
         </div>
 
-        <?php if ($this->login_user->is_admin && get_setting("module_order")): ?>
+        <?php /*if ($this->login_user->is_admin && get_setting("module_order")): ?>
             <div class="form-group">
                 <label for="show_in_client_portal" class=" col-md-3 col-xs-5 col-sm-4">
                     <?php echo lang('show_in_client_portal'); ?>
@@ -183,7 +177,7 @@
                     ?>
                 </div>
             </div>
-        <?php endif; ?>
+        <?php endif;*/ ?>
 
         <div class="form-group">
             <div class="col-md-12 row pr0">
@@ -223,16 +217,18 @@
     function duplicate() {
         jQuery('#id').val(0);
         jQuery('#is_duplicate').val(1);
-        jQuery('#item-form').submit();
+        jQuery('#sfg-form').submit();
     }
 
     $(document).ready(function () {
-        var uploadUrl = "<?php echo get_uri("items/upload_file"); ?>";
-        var validationUri = "<?php echo get_uri("items/validate_items_file"); ?>";
+        //var uploadUrl = "<?php echo get_uri("sfg/addedit/upload_file"); ?>";
+        //var validationUri = "<?php echo get_uri("sfg/addedit/validate_file"); ?>";
+        var uploadUrl = "<?php echo get_uri("sfg/upload_photo/upload_file") ?>";
+        var validationUri = "<?php echo get_uri("sfg/upload_photo/validate_file") ?>";
 
         var dropzone = attachDropzoneWithForm("#items-dropzone", uploadUrl, validationUri);
 
-        $("#item-form").appForm({
+        $("#sfg-form").appForm({
             onSuccess: function (result) {
                 if (window.refreshAfterUpdate) {
                     window.refreshAfterUpdate = false;
@@ -243,7 +239,7 @@
             }
         });
 
-        $("#item-form .select2").select2();
+        $("#sfg-form .select2").select2();
         $('#account_id').select2({ data: <?php echo json_encode($account_category); ?> });
     });
 </script>

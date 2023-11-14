@@ -1,15 +1,16 @@
 <style>
-#alert-message {
+  #alert-message {
     box-shadow: none;
     color: #ec5855;
     margin: 0 1rem 0 1rem !important;
-}
+  }
 </style>
 
 <?php echo form_open(get_uri("stock/item_category_save"), array("id" => "category-form", "class" => "general-form", "role" => "form")); ?>
+
 <div class="modal-body clearfix label-modal-body">
-  <input type="hidden" id="type" name="type" value="<?php echo $type; ?>" />
-  <input type="hidden" id="category_id" name="id" value="" />
+  <input type="hidden" id="category_id" name="id">
+  <input type="hidden" id="category_type" name="type" value="<?php if (isset($type) && !empty($type)) { echo $type; } ?>">
 
   <div class="add-label clearfix">
     <div class="col-md-9">
@@ -32,7 +33,9 @@
           ?>
         </div>
         <p id="alert-message" class="hide">
-            <span><?php echo lang('item_cate_duplicate'); ?></span>
+          <span>
+            <?php echo lang('item_cate_duplicate'); ?>
+          </span>
         </p>
       </div>
     </div>
@@ -44,26 +47,27 @@
     </div>
   </div>
   <div id="category-show-area" class="p15 b-t">
-    <?php foreach ($existing_categories as $d) { ?>
-      <span data-act="category-edit-delete" data-id="<?php echo $d->id; ?>" class="label label-material cate-large mr5 clickable"><?php echo $d->title; ?></span>
-    <?php } ?>
+    <?php foreach ($existing_categories as $category_item): ?>
+      <span data-act="category-edit-delete" data-id="<?php echo $category_item->id; ?>" class="label label-material cate-large mr5 clickable"><?php echo $category_item->title; ?></span>
+    <?php endforeach; ?>
   </div>
 </div>
 
 <div class="modal-footer">
   <button id="category-delete-btn" type="button" class="btn btn-default hide pull-left">
-    <span class="fa fa-close"></span> 
+    <span class="fa fa-close"></span>
     <?php echo lang('delete'); ?>
   </button>
   <button id="cancel-edit-btn" type="button" class="btn btn-default ml10 hide pull-left">
-    <span class="fa fa-close"></span> 
+    <span class="fa fa-close"></span>
     <?php echo lang('cancel'); ?>
   </button>
   <button type="button" class="btn btn-default" data-dismiss="modal">
-    <span class="fa fa-close"></span> 
+    <span class="fa fa-close"></span>
     <?php echo lang('close'); ?>
   </button>
 </div>
+
 <?php echo form_close(); ?>
 
 <script type="text/javascript">
@@ -74,11 +78,11 @@
       isModal: false,
       onSuccess: function (result) {
         if (result.post) {
-            $('#alert-message').removeClass('hide');
-            
-            setTimeout((e) => {
-                $('#alert-message').addClass('hide');
-            }, 3000);
+          $('#alert-message').removeClass('hide');
+
+          setTimeout((e) => {
+            $('#alert-message').addClass('hide');
+          }, 3000);
         } else {
           if (result.success) {
             $('#alert-message').addClass('hide');
@@ -94,7 +98,7 @@
             $("#title").val("").focus();
           }
         }
-      } 
+      }
     });
 
     $('body').on('click', "[data-act='category-edit-delete']", function (e) {
@@ -102,7 +106,7 @@
     });
 
     $('body').on('click', "#title", function (e) {
-        e.target.select();
+      e.target.select();
     });
 
     function showEditMode($selector) { // MARK
@@ -110,7 +114,7 @@
       $.ajax({
         url: url,
         type: 'GET',
-        success: function(result) {
+        success: function (result) {
           if (parseInt(result) > 0) {
             $("#category-delete-btn").addClass("hide");
           } else {
@@ -136,7 +140,7 @@
     });
 
     $("#category-delete-btn").click(function () {
-      appLoader.show({container: ".label-modal-body", css: "left: 0;"});
+      appLoader.show({ container: ".label-modal-body", css: "left: 0;" });
       $.ajax({
         url: "<?php echo get_uri('stock/item_category_delete'); ?>",
         type: 'POST',
