@@ -78,4 +78,17 @@ class Item_categories_model extends Crud_model
         return $data;
     }
 
+    function get_dropdown_lists()
+    {
+        $data = [];
+        $get = $this->db->get_where("material_categories", ["item_type" => "FG"])->result();
+        if (sizeof($get)) {
+            foreach ($get as $cate) {
+                $data[$cate->id] = $cate->title;
+            }
+        }
+
+        return $data;
+    }
+
 }

@@ -62,7 +62,8 @@ class Items extends MY_Controller
 		);
 
 		$view_data["model_info"] = $this->Items_model->get_one($this->input->post('id'));
-		$view_data["categories_dropdown"] = $this->Item_categories_model->get_dropdown_list(array("title"));
+		$view_data["categories_dropdowns"] = $this->Item_categories_model->get_dropdown_list(array("title"));
+		$view_data["categories_dropdown"] = $this->Item_categories_model->get_dropdown_lists();
 		$view_data["account_category"] = $this->Account_category_model->get_list_dropdown();
 
 		// var_dump(arr($view_data)); exit;

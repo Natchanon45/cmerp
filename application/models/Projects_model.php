@@ -537,6 +537,44 @@ class Projects_model extends Crud_model {
         return $info;
     }
 
+    public function dev2_getMixingListByProjectId(int $project_id) : array
+    {
+        $info = [];
+        $get_rm = $this->db->get_where("bom_project_item_materials", ["project_id" => $project_id])->result();
+        $get_sfg = $this->db->get_where("bom_project_item_items", ["project_id" => $project_id])->result();
+
+        if (!empty($get_rm) && sizeof($get_rm)) {
+            foreach ($get_rm as $rm) {
+                $info[] = $rm;
+            }
+        }
+
+        if (!empty($get_sfg) && sizeof($get_sfg)) {
+            foreach ($get_sfg as $sfg) {
+                $info[] = $sfg;
+            }
+        }
+
+        return $info;
+    }
+
+    public function dev2_getMixingCategoryListByProjectId(int $project_id) : array
+    {
+        $info = array();
+        $sql = "
+            SELECT `category_in_bom`, `material_id`, CASE WHEN `ratio` < 0 THEN `ratio` * -1 ELSE `ratio` END AS `quantity` 
+            FROM `bom_project_item_materials` 
+            WHERE `project_id` = ? 
+            ORDER BY `category_in_bom`, `material_id` 
+        ";
+        $query = $this->db->query($sql, $project_id)->result();
+        if (sizeof($query)) {
+            $info = $query;
+        }
+
+        return $info;
+    }
+
     public function dev2_getRawMatCostOfProductionOrderByProductionOrderId(int $id, float $quantity): float
     {
         $cost = array();
@@ -785,6 +823,8 @@ class Projects_model extends Crud_model {
                                                 "project_item_id" => $bpi_id,
                                                 "item_id" => $mixing->material_id,
                                                 "stock_id" => $stocking->id,
+                                                "from_mixing" => $mixing->group_id,
+                                                "category_in_bom" => $mixing->cat_id,
                                                 "ratio" => $used,
                                                 "created_by" => $this->login_user->id
                                             ]);
@@ -799,6 +839,8 @@ class Projects_model extends Crud_model {
                                                 "project_item_id" => $bpi_id,
                                                 "material_id" => $mixing->material_id,
                                                 "stock_id" => $stocking->id,
+                                                "from_mixing" => $mixing->group_id,
+                                                "category_in_bom" => $mixing->cat_id,
                                                 "ratio" => $used,
                                                 "created_by" => $this->login_user->id
                                             ]);
@@ -816,6 +858,8 @@ class Projects_model extends Crud_model {
                                         "project_id" => $item["project_id"],
                                         "project_item_id" => $bpi_id,
                                         "item_id" => $mixing->material_id,
+                                        "from_mixing" => $mixing->group_id,
+                                        "category_in_bom" => $mixing->cat_id,
                                         "ratio" => $total_ratio * -1,
                                         "created_by" => $this->login_user->id
                                     ]);
@@ -829,6 +873,8 @@ class Projects_model extends Crud_model {
                                         "project_id" => $item["project_id"],
                                         "project_item_id" => $bpi_id,
                                         "material_id" => $mixing->material_id,
+                                        "from_mixing" => $mixing->group_id,
+                                        "category_in_bom" => $mixing->cat_id,
                                         "ratio" => $total_ratio * -1,
                                         "created_by" => $this->login_user->id
                                     ]);
