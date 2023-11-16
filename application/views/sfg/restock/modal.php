@@ -55,8 +55,8 @@
 
 		$("#restock-form").appForm({
 			onSuccess: function (result) {
-				// console.log(result);
 
+				// console.log(result);
 				setTimeout(function () {
 					location.reload();
 				}, 500);

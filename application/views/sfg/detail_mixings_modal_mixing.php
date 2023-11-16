@@ -171,7 +171,7 @@
 													<?php foreach ($material_dropdown as $dropdown): ?>
 														<option value="<?php echo $dropdown->id; ?>" data-unit="<?php echo $dropdown->unit; ?>" <?php if ($material->material_id == $dropdown->id) { echo "selected"; } ?>>
 															<?php
-																if($this->Permission_m->bom_material_read_production_name == "1"){
+																if($this->Permission_m->bom_material_read_production_name == true){
 																	echo $dropdown->name." - ".$dropdown->production_name;
 																}else{
 																	echo $dropdown->name;
@@ -320,7 +320,7 @@
 							<?php foreach ($material_dropdown as $dropdown): ?>
 								<option value="<?php echo $dropdown->id; ?>" data-unit="<?php echo $dropdown->unit; ?>">
 									<?php
-										if($this->Permission_m->bom_material_read_production_name == "1"){
+										if($this->Permission_m->bom_material_read_production_name == true){
 											echo $dropdown->name." - ".$dropdown->production_name;
 										}else{
 											echo $dropdown->name;

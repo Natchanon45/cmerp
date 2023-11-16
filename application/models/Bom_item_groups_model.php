@@ -85,6 +85,16 @@ class Bom_item_groups_model extends Crud_model {
 
     function get_restocks2($options = array()) {
          $where = "";
+
+        if(isset($options["item_type"])){
+            if($options["item_type"] == "SFG"){
+                $where .= " AND bm.item_type = 'SFG'";
+            }else{
+                $where .= " AND bm.item_type = 'FG'";
+            }
+        }else{
+            $where .= " AND bm.item_type = 'FG'";
+        }
         
         $id = get_array_value($options, "id");
         if ($id) {
