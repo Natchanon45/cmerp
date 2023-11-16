@@ -178,7 +178,7 @@
 											</td>
 											<td>
 												<div class="input-suffix">
-													<input type="number" name="mixing_ratio[<?php echo $temp_cat_id; ?>][]" class="form-control select-number-ratio" value="<?php echo $material->ratio; ?>" min="0" step="0.0001" required>
+													<input type="number" name="mixing_ratio[<?php echo $temp_cat_id; ?>][]" class="form-control select-number-ratio" value="<?php echo $material->ratio; ?>" min="0" step="0.000001" required>
 													<div class="input-tag"><?php echo $material->material_unit; ?></div>
 												</div>
 											</td>
@@ -265,7 +265,7 @@
 											</td>
 											<td>
 												<div class="input-suffix">
-													<input type="number" name="mixing_ratio[<?php echo $sfg_temp_cat_id; ?>][]" class="form-control select-number-ratio" value="<?php echo $material->ratio; ?>" min="0" step="0.0001" required>
+													<input type="number" name="mixing_ratio[<?php echo $sfg_temp_cat_id; ?>][]" class="form-control select-number-ratio" value="<?php echo $material->ratio; ?>" min="0" step="0.000001" required>
 													<div class="input-tag"><?php echo $material->material_unit; ?></div>
 												</div>
 											</td>
@@ -483,7 +483,7 @@
 					</td>
 					<td>
 						<div class="input-suffix">
-							<input type="number" name="mixing_ratio[${rowCate}][]" class="form-control select-number-ratio" value="0" min="0" step="0.0001" required>
+							<input type="number" name="mixing_ratio[${rowCate}][]" class="form-control select-number-ratio" value="0" min="0" step="0.000001" required>
 							<div class="input-tag"></div>
 						</div>
 					</td>
@@ -515,7 +515,7 @@
 					</td>
 					<td>
 						<div class="input-suffix">
-							<input type="number" name="mixing_ratio[${rowCate}][]" class="form-control select-number-ratio" value="0" min="0" step="0.0001" required>
+							<input type="number" name="mixing_ratio[${rowCate}][]" class="form-control select-number-ratio" value="0" min="0" step="0.000001" required>
 							<div class="input-tag"></div>
 						</div>
 					</td>
