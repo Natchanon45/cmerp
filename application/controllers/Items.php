@@ -16,6 +16,8 @@ class Items extends MY_Controller
 		$this->load->model("Bom_item_mixing_groups_model");
 		$this->load->model("Account_category_model");
 		$this->className = "items";
+
+		if($this->Permission_m->access_product_item == false) redirect(get_uri());
 	}
 
 	protected function validate_access_to_items()
@@ -1370,6 +1372,8 @@ class Items extends MY_Controller
 			->where("items.deleted", "0");
 
 		if($category_id) $this->db->where("items.category_id", $category_id);
+
+		if($this->Permission_m->access_product_item == "own") $this->db->where("items.created_by", $this->login_user->id);
 
 		// if(!empty($fs)){
 		// 	foreach($fs as $f){
