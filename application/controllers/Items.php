@@ -62,8 +62,10 @@ class Items extends MY_Controller
 		);
 
 		$view_data["model_info"] = $this->Items_model->get_one($this->input->post('id'));
-		$view_data["categories_dropdown"] = $this->Item_categories_model->get_dropdown_list(array("title"));
+		// $view_data["categories_dropdowns"] = $this->Item_categories_model->get_dropdown_list(array("title"));
 		$view_data["account_category"] = $this->Account_category_model->get_list_dropdown();
+
+		$view_data["categories_dropdown"] = $this->Item_categories_model->dev2_ItemCategoryDropdown();
 
 		// var_dump(arr($view_data)); exit;
 		$this->load->view('items/modal_form', $view_data);
@@ -1354,27 +1356,26 @@ class Items extends MY_Controller
 
 	function list_data()
 	{
-		$category_id = $this->input->post('category_id');
+		$category_id = $this->input->post("category_id");
 		$options = array("category_id" => $category_id);
-
 		$result = array();
 
-		//$fs = $this->getRolePermission["filters"]["WHERE"];
+		// $fs = $this->getRolePermission["filters"]["WHERE"];
+		// $this->db->select("*, title AS category_title")->from("items");
 
-		//$this->db->select("*, title AS category_title")->from("items");
-		$this->db->select("items.*, item_categories.title AS category_title")
-					->from("items")
-					->join("item_categories", "items.category_id = item_categories.id", "left")
-					->where("item_type", $this->item_type)
-					->where("items.deleted", "0");
+		$this->db->select("items.*, material_categories.title AS category_title")
+			->from("items")
+			->join("material_categories", "items.category_id = material_categories.id AND items.item_type = material_categories.item_type", "left")
+			->where("items.item_type", $this->item_type)
+			->where("items.deleted", "0");
 
-		if($category_id)$this->db->where("items.category_id", $category_id);
+		if($category_id) $this->db->where("items.category_id", $category_id);
 
-		if(!empty($fs)){
-			foreach($fs as $f){
-				$this->db->where($f);
-			}
-		}
+		// if(!empty($fs)){
+		// 	foreach($fs as $f){
+		// 		$this->db->where($f);
+		// 	}
+		// }
 
 		$list_data = $this->db->get()->result();
 
@@ -1391,7 +1392,6 @@ class Items extends MY_Controller
 			if (is_array($images) && sizeof($images)) {
 				$preview = '<img class="product-preview" src="' . base_url('files/timeline_files/' . $images[sizeof($images) - 1]['file_name']) . '" />';
 			}
-
 			$buttons = array();
 			if (empty($this->getRolePermission['read_only'])) {
 
@@ -1400,7 +1400,6 @@ class Items extends MY_Controller
 				js_anchor("<i class='fa fa-times fa-fw'></i>", array('title' => lang('delete'), "class" => "delete", "data-id" => $data->id, "data-action-url" => get_uri("" . $this->className . "/delete"), "data-action" => "delete"));
 
 			}
-
 			$result[] = $this->_make_item_row($data);
 		}
 
