@@ -202,14 +202,10 @@
                             </td>
                         <?php } ?>
                         <td style="text-align: center;">
-                            <?php if (!$readonly) { ?>
-                                <?php if ($k->can_delete && $can_delete): ?>
-                                    <a href="javascript:void();" class="btn btn-danger btn-delete-material w100p">
-                                        <span class="fa fa-trash"></span>
-                                        <?php echo lang('delete'); ?> 
-                                    </a>
-                                <?php endif; ?>
-                            <?php } ?>
+                            <a href="javascript:void();" class="btn btn-danger btn-delete-material w100p">
+                                <span class="fa fa-trash"></span>
+                                <?php echo lang('delete'); ?> 
+                            </a>
                         </td>
                     </tr>
                     <?php } ?>

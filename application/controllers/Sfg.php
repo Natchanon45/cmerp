@@ -200,29 +200,20 @@ class Sfg extends MY_Controller {
             return;
         }
 
-        /*$this->check_module_availability("module_stock");
-        if (!$this->bom_can_access_material() || !$this->bom_can_access_restock()) {
-            redirect("forbidden");
-        }*/
-
         $view_data['can_read_price'] = $this->check_permission('bom_restock_read_price');
         $view_data['item_id'] = $docId;
         $view_data['is_admin'] = $this->login_user->is_admin;
         $this->load->view('sfg/detail_item_remaining', $view_data);
     }
 
-    function detail_item_used($item_id = 0){
-        $docId = $this->uri->segment(3);
+    function detail_item_used(){
+        $item_id = $this->uri->segment(3);
 
         if($this->input->post("datatable") == true){
-            jout(["data"=>$this->Sfg_m->detailItemUsedDataSet($docId)]);
+            jout(["data"=>$this->Sfg_m->detailItemUsedDataSet($item_id)]);
             return;
         }
 
-        /*$this->check_module_availability("module_stock");
-        if (!$this->bom_can_access_material() || !$this->bom_can_access_restock()) {
-            redirect("forbidden");
-        }*/
 
         $view_data['can_read_price'] = $this->check_permission('bom_restock_read_price');
         $view_data['item_id'] = $item_id;
@@ -230,6 +221,21 @@ class Sfg extends MY_Controller {
         $this->load->view('sfg/detail_item_used', $view_data);
         
     }
+
+    /*function detail_item_used(){
+        $restock_id = $this->uri->segment(3);
+
+        if($this->input->post("datatable") == true){
+            jout(["data"=>$this->Sfg_m->detailItemUsedDataSet($restock_id)]);
+            return;
+        }
+
+        $view_data['can_read_price'] = $this->check_permission('bom_restock_read_price');
+        $view_data['restock_id'] = $restock_id;
+        $view_data['is_admin'] = $this->login_user->is_admin;
+        $this->load->view('sfg/detail_item_used', $view_data);
+        
+    }*/
 
     function restock(){
         if($this->input->post("datatable") == true){
@@ -262,6 +268,25 @@ class Sfg extends MY_Controller {
         } else {
             show_404();
         }
+    }
+
+    function restock_import_modal(){
+        $task = $this->uri->segment(3);
+
+        if($task != null){
+            if($task == "save") jout($this->Sfg_m->saveRestock());
+            if($task == "delete") jout($this->Sfg_m->deleteRestock());
+            return;
+        }
+
+        $view_data = $this->Sfg_m->restock();
+        $view_data['can_read_price'] = $this->Permission_m->bom_restock_read_price;
+        $view_data['can_create'] = $this->Permission_m->bom_restock_create;
+        $view_data['can_update'] = $this->Permission_m->bom_restock_update;
+        $view_data['bom_material_read_production_name'] = $this->Permission_m->bom_material_read_production_name;
+        $view_data["team_members_dropdown"] = $this->get_team_members_dropdown(true);
+
+        $this->load->view('sfg/restock/restock_import_modal', $view_data);
     }
 
     function restock_view_info($restock_id = 0){
@@ -298,7 +323,7 @@ class Sfg extends MY_Controller {
             
             $result = array();
             foreach ($list_data as $data) {
-                $result[] = $this->Sfg_m->getRestockViewInfoDataSetHTML($data);
+                $result[] = $this->Sfg_m->getRestockViewDetailDataSetHTML($data);
             }
 
             echo json_encode(array("data" => $result));
@@ -316,21 +341,98 @@ class Sfg extends MY_Controller {
         }
     }
 
-    function restock_addedit_modal(){
+    function restock_item_details_modal_addedit(){
         $task = $this->uri->segment(3);
 
-        if($task != null){
-            if($task == "save") jout($this->Sfg_m->saveRestock());
-            if($task == "delete") jout($this->Sfg_m->deleteRestock());
+        if($task == "save"){
+            jout($this->Sfg_m->saveRestockViewDetail());
             return;
         }
 
-        $view_data = $this->Sfg_m->restock();
-        $view_data["team_members_dropdown"] = $this->get_team_members_dropdown(true);
-
-        $this->load->view('sfg/restock/modal', $view_data);
+        $view_data = $this->Sfg_m->restockViewDetail();
+        $this->load->view('sfg/restock/restock_item_details_modal_addedit', $view_data);
     }
 
+    function restock_item_details_upload_file(){
+        upload_file_to_temp();
+    }
+
+    function restock_item_details_validate_file(){
+        $file_name = $this->input->post("file_name");
+        if (!is_valid_file_to_upload($file_name)) jout(array("success" => false, 'message' => lang('invalid_file_type')));
+        else jout(array("success" => true));
+    }
+
+    function restock_item_details_modal_withdraw() {
+        $task = $this->uri->segment(3);
+
+        if($task != null){
+            if($task == "save") jout($this->Sfg_m->saveRestockViewDetailWithdraw());
+            if($task == "delete") jout($this->Sfg_m->deleteRestockViewDetailWithdraw());
+            return;
+        }
+
+        $view_data = $this->Sfg_m->restockViewDetailWithdraw();
+        $this->load->view('sfg/restock/restock_item_details_modal_withdraw', $view_data);
+    }
+
+    function restock_view_used($restock_id = 0){
+        $view_data['can_read_price'] = $this->check_permission('bom_restock_read_price');
+
+        
+        $view_data['restock_id'] = $restock_id;
+        $view_data['is_admin'] = $this->login_user->is_admin;
+        $this->load->view('sfg/restock/restock_view_used', $view_data);
+    }
+
+    function restock_item_used_list($restock_id = 0) {
+        $options = array(
+            "restock_id" => $restock_id
+        );
+        if ($this->check_permission('bom_restock_read_self') && !$this->check_permission('bom_restock_read')) {
+            $options['created_by'] = $this->login_user->id;
+        }
+        $list_data = $this->Bom_project_item_items_model->get_details($options)->result();
+        $result = array();
+        foreach ($list_data as $data) {
+            $result[] = $this->_restock_item_used_make_row($data);
+        }
+
+        echo json_encode(array("data" => $result)); 
+    }
+
+     private function _restock_item_used_make_row($data)
+    {
+        $used_value = 0;
+        if (!empty($data->price) && !empty($data->stock) && $data->stock > 0) {
+            $used_value = $data->price * $data->ratio / $data->stock;
+        } 
+
+        $item_name = $data->item_code;
+        if ($this->check_permission("bom_material_read_production_name")) {
+            $item_name .= " - " . $data->item_name;
+        } 
+
+        $row_data = array(
+            $data->id,
+            anchor(get_uri('sfg/detail/' . $data->item_id), $item_name),
+            !empty($data->project_title) ? anchor(get_uri('projects/view/' . $data->project_id), $data->project_title) : '-',
+            is_date_exists($data->created_at) ? format_to_date($data->created_at, false) : '-',
+            !empty($data->created_by) ? $this->Account_category_model->created_by($data->created_by) : '-',
+            !empty($data->note) ? $data->note : '-',
+            to_decimal_format3($data->ratio),
+            mb_strtoupper($data->item_unit)
+        );
+
+        if ($this->check_permission('bom_restock_read_price')) {
+            $row_data[] = to_decimal_format3($used_value);
+            $row_data[] = !empty($data->currency_symbol) ? lang($data->currency_symbol) : lang('THB');
+        } 
+
+        return $row_data;
+    }
+
+    
     function report(){
         if($this->input->post("datatable") == true){
             jout(["data"=>$this->Sfg_m->reportDataSet()]);

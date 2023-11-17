@@ -1,15 +1,13 @@
 <div class="panel">
   <div class="tab-title clearfix">
-    <h4>
-      <?php echo lang('stock_restock_item_list'); ?>
-    </h4>
+    <h4><?php echo lang('stock_restock_item_list'); ?></h4>
     <div class="title-button-group">
       <?php
       if ($can_create) {
         echo modal_anchor(
-          get_uri("stock/restock_item_view_modal"),
+          get_uri("sfg/restock_item_details_modal_addedit"),
           "<i class='fa fa-plus-circle'></i> " . lang('stock_restock_item_add'),
-          array("class" => "btn btn-default", "title" => lang('stock_restock_item_add'), "data-post-group_id" => $restock_id)
+          array("class" => "btn btn-default", "title" => "เพิ่มการนำเข้าสินค้ากึ่งสำเร็จ", "data-post-group_id" => $restock_id)
         );
       }
       ?>
@@ -27,7 +25,7 @@
       source: '<?php echo_uri("sfg/restock_item_details/" . $restock_id) ?>',
       columns: [
         { title: '<?php echo lang('id') ?>', class: 'text-center w50' },
-        { title: '<?php echo lang('items_fg'); ?>' },
+        { title: 'รายการสินค้ากึ่งสำเร็จ' },
         { title: '<?php echo lang('serial_number'); ?>' },
         { title: '<?php echo lang('files'); ?>', class: 'w125' },
         { title: '<?php echo lang('expiration_date'); ?>', class: 'w125' },

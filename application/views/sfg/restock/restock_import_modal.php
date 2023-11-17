@@ -1,7 +1,7 @@
-<?php echo form_open(get_uri("sfg/restock_addedit_modal/save"), array("id" => "restock-form", "class" => "general-form", "role" => "form")); ?>
+<?php echo form_open(get_uri("sfg/restock_import_modal/save"), array("id" => "restock-form", "class" => "general-form", "role" => "form")); ?>
 
 <div class="modal-body clearfix">
-	<?php $this->load->view("sfg/restock/form"); ?>
+	<?php $this->load->view("sfg/restock/restock_import_modal_form"); ?>
 </div>
 
 <style type="text/css">

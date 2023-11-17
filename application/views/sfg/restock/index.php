@@ -10,7 +10,7 @@
             <div class="title-button-group">
                 <?php
                     echo modal_anchor(
-                        get_uri("sfg/restock_addedit_modal"),
+                        get_uri("sfg/restock_import_modal"),
                         "<i class='fa fa-plus-circle'></i> " . "นำเข้าสินค้ากึ่งสำเร็จ",
                         array("class" => "btn btn-default", "title" => "นำเข้าสินค้ากึ่งสำเร็จ")
                     );

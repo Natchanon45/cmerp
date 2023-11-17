@@ -4388,7 +4388,7 @@ class Stock extends MY_Controller
             !empty($data->created_by) ? $this->Account_category_model->created_by($data->created_by) : '-',
             !empty($data->note) ? $data->note : '-',
             to_decimal_format3($data->ratio),
-            strtoupper($data->item_unit)
+            mb_strtoupper($data->item_unit)
         );
 
         if ($this->check_permission('bom_restock_read_price')) {
@@ -5224,7 +5224,7 @@ class Stock extends MY_Controller
             $data->created_by ? $this->Account_category_model->created_by($data->created_by) : '-',
             !empty($data->note) ? $data->note : '-',
             $data->ratio ? to_decimal_format2($data->ratio) : 0,
-            $data->item_unit ? strtoupper($data->item_unit) : ''
+            $data->item_unit ? mb_strtoupper($data->item_unit) : ''
         ); 
 
         if ($this->check_permission('bom_restock_read_price')) {

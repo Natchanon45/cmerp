@@ -3,7 +3,7 @@
     <a class="title-back" href="<?php echo get_uri('sfg/restock'); ?>">
       <i class="fa fa-chevron-left" aria-hidden="true"></i>
     </a>
-    <?php echo lang('stock_restock_item') . " - " . $restock_item_info->name ?>
+    <?php echo "นำเข้าสินค้ากึ่งสำเร็จ - " . $restock_item_info->name ?>
   </h1>
 </div>
 
@@ -18,7 +18,7 @@
         <?php echo lang('stock_restock_item_list'); ?>
       </a>
     </li>
-    <li><a role="presentation" href="<?php echo_uri("sfg/detail_item_used/" . $restock_item_info->id); ?>" data-target="#restock-used">
+    <li><a role="presentation" href="<?php echo_uri("sfg/restock_view_used/" . $restock_item_info->id); ?>" data-target="#restock-used">
         <?php echo lang('stock_restock_item_used_list'); ?>
       </a>
     </li>
