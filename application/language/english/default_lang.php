@@ -2284,6 +2284,7 @@ $lang["production_order_cannot_change_status"] = "Cannot change the order state,
 $lang["production_order_form_data_incorrect"] = "Please enter form data correctly.";
 $lang["production_order_quantity_data_incorrect"] = "Please enter the quantity each records correctly.";
 $lang["production_order_all_of_material_used"] = "All the required materials.";
+$lang["production_order_all_of_semi_used"] = "All the required semi-finished goods.";
 
 // Setting Access Rights for Account Management
 $lang["setting_account_management"] = "Setting access rights for Account management";

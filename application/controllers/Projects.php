@@ -6139,7 +6139,7 @@ class Projects extends MY_Controller
 
         $data["production_items"] = $this->Projects_model->dev2_getMixingCategoryListByProjectId($data["project_id"]);
 
-        var_dump(arr($data)); exit();
+        // var_dump(arr($data)); exit();
         $this->load->view("projects/production_orders/modal_all_bag", $data);
     }
 
@@ -6346,6 +6346,15 @@ class Projects extends MY_Controller
         }
 
         return $result;
+    }
+
+    public function dev2_TestCaseMaterialRequestStatusForProductionOrder($production_id = 0) {
+        $result = [];
+
+        $result["production_id"] = $production_id;
+        $result["mr_data"] = $this->Projects_model->dev2_patchProductionMaterialRequestStatusForTestCase($production_id);
+
+        var_dump(arr($result));
     }
 
 }

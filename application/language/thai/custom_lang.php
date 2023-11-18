@@ -2681,6 +2681,7 @@ $lang["production_order_cannot_change_status"] = "ไม่สามารถเ
 $lang["production_order_form_data_incorrect"] = "กรุณาระบุข้อมูลให้ครบถ้วน";
 $lang["production_order_quantity_data_incorrect"] = "กรุณาระบุจำนวนให้ถูกต้อง";
 $lang["production_order_all_of_material_used"] = "วัตถุดิบต้องที่ใช้ทั้งหมด";
+$lang["production_order_all_of_semi_used"] = "สินค้ากึ่งสำเร็จต้องที่ใช้ทั้งหมด";
 
 // ตั้งค่าสิทธิ์การเข้าถึงการจัดการบัญชี
 $lang["setting_account_management"] = "ตั้งค่าสิทธิ์การเข้าถึงการจัดการบัญชี";
