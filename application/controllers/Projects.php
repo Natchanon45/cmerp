@@ -6047,12 +6047,21 @@ class Projects extends MY_Controller
     {
         $post = $this->json;
 
-        $bom_recalc = $this->Projects_model->dev2_postProductionBomRecalculation(
+        $sfg_recalc = $this->Projects_model->dev2_postProductionBomRecalculation(
             $post->projectId,
             $post->projectName,
-            $post->projectBomId
+            $post->projectBomId,
+            "SFG"
         );
-        echo json_encode($bom_recalc);
+
+        $rm_recalc = $this->Projects_model->dev2_postProductionBomRecalculation(
+            $post->projectId,
+            $post->projectName,
+            $post->projectBomId,
+            "RM"
+        );
+        
+        echo json_encode(array("sfg" => $sfg_recalc, "rm" => $rm_recalc));
     }
 
     function production_order_mr_creation()
