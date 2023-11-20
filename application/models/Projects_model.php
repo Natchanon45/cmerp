@@ -1792,17 +1792,14 @@ class Projects_model extends Crud_model {
 
     private function dev2_patchProductionMaterialRequestStatus(int $production_id) : void
     {
-        // $sql = "SELECT IFNULL(COUNT(id), 0) AS row_count FROM bom_project_item_materials WHERE mr_id IS NULL AND project_item_id = ?";
-        // $query = $this->db->query($sql, $production_id)->row();
-
-        $data = $this->dev2_patchProductionMaterialRequestStatusForTestCase($production_id);
+        $data = $this->dev2_getProductionMaterialRequestStatusByProductionId($production_id);
         $mr_status = $data["production_mr_status"];
 
         $this->db->where("id", $production_id);
         $this->db->update("bom_project_items", ["mr_status" => $mr_status]);
     }
 
-    public function dev2_patchProductionMaterialRequestStatusForTestCase(int $production_id) : array
+    public function dev2_getProductionMaterialRequestStatusByProductionId(int $production_id) : array
     {
         $data = [
             "rm" => [],

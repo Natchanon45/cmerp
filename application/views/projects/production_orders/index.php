@@ -115,7 +115,66 @@
                 )
             );
             ?>
+            
+            <!-- btn-create-material-request -->
+            <span class="dropdown inline-block">
+                <button class="btn btn-info dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <i class="fa fa-plus-circle"></i>
+                    <?php echo lang("production_order_create_mr_all"); ?>
+                </button>
+                <ul class="dropdown-menu dropdown-left rounded" role="menu" aria-labelledby="dropdownMenuButton">
+                    <li role="presentation">
+                        <?php
+                            echo modal_anchor(
+                                get_uri("projects/production_order_mr_creation_all"),
+                                "<i class='fa fa-plus-circle'></i> " . "รายการผลิตทั้งหมด",
+                                array(
+                                    "class" => "dropdown-item",
+                                    "title" => lang("production_order_create_mr_all"),
+                                    "data-title" => lang("production_order_create_mr_all"),
+                                    "data-post-project_id" => $project_info["id"],
+                                    "data-post-project_name" => $project_info["title"],
+                                    "data-post-item_type" => "BOTH"
+                                )
+                            );
+                        ?>
+                    </li>
+                    <li role="presentation">
+                        <?php
+                            echo modal_anchor(
+                                get_uri("projects/production_order_mr_creation_all"),
+                                "<i class='fa fa-plus-circle'></i> " . "รายการผลิตสินค้าสำเร็จเท่านั้น",
+                                array(
+                                    "class" => "dropdown-item",
+                                    "title" => lang("production_order_mr_creation_all"),
+                                    "data-title" => lang("production_order_mr_creation_all"),
+                                    "data-post-project_id" => $project_info["id"],
+                                    "data-post-project_name" => $project_info["title"],
+                                    "data-post-item_type" => "FG"
+                                )
+                            );
+                        ?>
+                    </li>
+                    <li role="presentation">
+                        <?php
+                            echo modal_anchor(
+                                get_uri("projects/production_order_mr_creation_all"),
+                                "<i class='fa fa-plus-circle'></i> " . "รายการผลิตสินค้ากึ่งสำเร็จเท่านั้น",
+                                array(
+                                    "class" => "dropdown-item",
+                                    "title" => lang("production_order_mr_creation_all"),
+                                    "data-title" => lang("production_order_mr_creation_all"),
+                                    "data-post-project_id" => $project_info["id"],
+                                    "data-post-project_name" => $project_info["title"],
+                                    "data-post-item_type" => "SFG"
+                                )
+                            );
+                        ?>
+                    </li>
+                </ul>
+            </span>
 
+            <!-- btn-create-production -->
             <span class="dropdown inline-block">
                 <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                     <i class="fa fa-info-circle"></i>
@@ -126,7 +185,7 @@
                         <?php
                             echo modal_anchor(
                                 get_uri("projects/production_order_modal_form"),
-                                "<i class='fa fa-plus-circle'></i> " . lang("fg"),
+                                "<i class='fa fa-info-circle'></i> " . lang("fg"),
                                 array(
                                     "class" => "dropdown-item",
                                     "title" => lang("production_order_add") . lang("fg"),
@@ -141,7 +200,7 @@
                         <?php
                             echo modal_anchor(
                                 get_uri("projects/production_order_modal_form"),
-                                "<i class='fa fa-plus-circle'></i> " . lang("sfg"),
+                                "<i class='fa fa-info-circle'></i> " . lang("sfg"),
                                 array(
                                     "class" => "dropdown-item",
                                     "title" => lang("production_order_add") . lang("sfg"),

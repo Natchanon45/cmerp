@@ -6080,7 +6080,7 @@ class Projects extends MY_Controller
     {
         $data = $this->input->post();
         
-        // var_dump(arr($data)); exit();
+        var_dump(arr($data)); exit();
         $this->load->view("projects/production_orders/mr_creation_all", $data);
     }
 
@@ -6357,13 +6357,14 @@ class Projects extends MY_Controller
         return $result;
     }
 
-    public function dev2_TestCaseMaterialRequestStatusForProductionOrder($production_id = 0) {
+    public function dev2_TestCaseMaterialRequestStatusForProductionOrder($production_id = 0)
+    {
         $result = [];
 
         $result["production_id"] = $production_id;
-        $result["mr_data"] = $this->Projects_model->dev2_patchProductionMaterialRequestStatusForTestCase($production_id);
+        $result["mr_data"] = $this->Projects_model->dev2_getProductionMaterialRequestStatusByProductionId($production_id);
 
-        var_dump(arr($result));
+        var_dump(arr($result)); exit();
     }
 
 }
