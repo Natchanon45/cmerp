@@ -91,4 +91,15 @@ class Item_categories_model extends Crud_model
         return $data;
     }
 
+    public function dev2_ItemsCategoryDropdown() : array
+    {
+        $data = [];
+
+        $query = $this->db->get_where("material_categories", ["item_type" => "FG"])->result();
+        if (sizeof($query)) {
+            $data = $query;
+        }
+        return $data;
+    }
+
 }
