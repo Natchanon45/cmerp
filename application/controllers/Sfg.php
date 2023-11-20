@@ -214,28 +214,11 @@ class Sfg extends MY_Controller {
             return;
         }
 
-
         $view_data['can_read_price'] = $this->check_permission('bom_restock_read_price');
         $view_data['item_id'] = $item_id;
         $view_data['is_admin'] = $this->login_user->is_admin;
-        $this->load->view('sfg/detail_item_used', $view_data);
-        
+        $this->load->view('sfg/detail_item_used', $view_data);   
     }
-
-    /*function detail_item_used(){
-        $restock_id = $this->uri->segment(3);
-
-        if($this->input->post("datatable") == true){
-            jout(["data"=>$this->Sfg_m->detailItemUsedDataSet($restock_id)]);
-            return;
-        }
-
-        $view_data['can_read_price'] = $this->check_permission('bom_restock_read_price');
-        $view_data['restock_id'] = $restock_id;
-        $view_data['is_admin'] = $this->login_user->is_admin;
-        $this->load->view('sfg/detail_item_used', $view_data);
-        
-    }*/
 
     function restock(){
         if($this->input->post("datatable") == true){
@@ -377,61 +360,28 @@ class Sfg extends MY_Controller {
     }
 
     function restock_view_used($restock_id = 0){
-        $view_data['can_read_price'] = $this->check_permission('bom_restock_read_price');
+        if($this->input->post("datatable") == true){
+            $options = array(
+                "restock_id" => $restock_id
+            );
+            if ($this->check_permission('bom_restock_read_self') && !$this->check_permission('bom_restock_read')) {
+                $options['created_by'] = $this->login_user->id;
+            }
+            $list_data = $this->Bom_project_item_items_model->get_details($options)->result();
+            $result = array();
+            foreach ($list_data as $data) {
+                $result[] = $this->Sfg_m->getDetailItemUsedDataSetHTML($data);
+            }
 
-        
+            jout(array("data" => $result));
+            return;
+        }
+
+        $view_data['can_read_price'] = $this->check_permission('bom_restock_read_price');
         $view_data['restock_id'] = $restock_id;
         $view_data['is_admin'] = $this->login_user->is_admin;
         $this->load->view('sfg/restock/restock_view_used', $view_data);
     }
-
-    function restock_item_used_list($restock_id = 0) {
-        $options = array(
-            "restock_id" => $restock_id
-        );
-        if ($this->check_permission('bom_restock_read_self') && !$this->check_permission('bom_restock_read')) {
-            $options['created_by'] = $this->login_user->id;
-        }
-        $list_data = $this->Bom_project_item_items_model->get_details($options)->result();
-        $result = array();
-        foreach ($list_data as $data) {
-            $result[] = $this->_restock_item_used_make_row($data);
-        }
-
-        echo json_encode(array("data" => $result)); 
-    }
-
-     private function _restock_item_used_make_row($data)
-    {
-        $used_value = 0;
-        if (!empty($data->price) && !empty($data->stock) && $data->stock > 0) {
-            $used_value = $data->price * $data->ratio / $data->stock;
-        } 
-
-        $item_name = $data->item_code;
-        if ($this->check_permission("bom_material_read_production_name")) {
-            $item_name .= " - " . $data->item_name;
-        } 
-
-        $row_data = array(
-            $data->id,
-            anchor(get_uri('sfg/detail/' . $data->item_id), $item_name),
-            !empty($data->project_title) ? anchor(get_uri('projects/view/' . $data->project_id), $data->project_title) : '-',
-            is_date_exists($data->created_at) ? format_to_date($data->created_at, false) : '-',
-            !empty($data->created_by) ? $this->Account_category_model->created_by($data->created_by) : '-',
-            !empty($data->note) ? $data->note : '-',
-            to_decimal_format3($data->ratio),
-            mb_strtoupper($data->item_unit)
-        );
-
-        if ($this->check_permission('bom_restock_read_price')) {
-            $row_data[] = to_decimal_format3($used_value);
-            $row_data[] = !empty($data->currency_symbol) ? lang($data->currency_symbol) : lang('THB');
-        } 
-
-        return $row_data;
-    }
-
     
     function report(){
         if($this->input->post("datatable") == true){

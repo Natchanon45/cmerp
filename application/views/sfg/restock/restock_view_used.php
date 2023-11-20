@@ -18,7 +18,7 @@
 <script type="text/javascript">
   $(document).ready(function () {
     $("#used-table").appTable({
-      source: '<?php echo_uri("sfg/restock_item_used_list/" . $restock_id); ?>',
+      source: '<?php echo current_url(); ?>',
       columns: [
         { title: "<?php echo lang("id"); ?>", "class": "text-center w50" },
         { title: '<?php echo lang("stock_item"); ?>' },

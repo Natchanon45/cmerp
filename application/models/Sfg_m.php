@@ -761,8 +761,8 @@ class Sfg_m extends MY_Model {
         return $row_data;
     }
 
-    function detailItemUsedDataSet($restock_id) {
-        $options = array("item_id" => $restock_id);
+    function detailItemUsedDataSet($item_id) {
+        $options = array("item_id" => $item_id);
         $list_data = $this->Bom_project_item_items_model->get_details($options)->result();
         $result = array();
 
