@@ -377,7 +377,7 @@ class Bom_materials_model extends Crud_model
 	public function dev2_getAllCategories() : array
 	{
 		$data = array();
-		$query = $this->db->get("bom_material_categories")->result();
+		$query = $this->db->get_where("material_categories", ["item_type" => "RM"])->result();
 		if (sizeof($query)) {
 			$data = $query;
 		}
@@ -401,6 +401,65 @@ class Bom_materials_model extends Crud_model
 		// Update new id to bom items [bom_item_mixings]
 		$this->db->where("cat_id", $data["id"]);
 		$this->db->update("bom_item_mixings", ["cat_id" => $new_id]);
+	}
+
+	function get_material_list($options = array())
+	{
+		$where = "";
+
+		$id = get_array_value($options, "id");
+		if ($id) {
+			$where .= " AND bm.id = $id";
+		}
+
+		$category_id = get_array_value($options, "category_id");
+		if ($category_id) {
+			$where .= " AND bm.category_id = $category_id";
+		}
+
+		$exceptId = get_array_value($options, "except_id");
+		if ($exceptId) {
+			$where .= " AND bm.id != $exceptId";
+		}
+
+		$sql = "SELECT bm.* FROM bom_materials bm WHERE 1 $where";
+		$query = $this->db->query($sql)->result();
+		if (sizeof($query)) {
+			foreach ($query as $row) {
+				if ($row->category_id == null || $row->category_id == 0) {
+					$row->category = "-";
+				} else {
+					$row->category = $this->getCategoryTitleById($row->category_id);
+				}
+				
+				$row->remaining = $this->getRemainingStockById($row->id);
+			}
+		}
+
+		return $query;
+	}
+
+	private function getCategoryTitleById(int $id) : string
+	{
+		$title = '-';
+		$query = $this->db->get_where("material_categories", ["id" => $id])->row();
+		if (!empty($query)) {
+			$title = $query->title;
+		}
+
+		return $title;
+	}
+
+	private function getRemainingStockById(int $id) : float
+	{
+		$remaining = 0.00;
+		$sql = "SELECT SUM(bs.remaining) remaining FROM bom_stocks bs WHERE bs.material_id = ?";
+		$query = $this->db->query($sql, $id)->row();
+		if (!empty($query)) {
+			$remaining = $query->remaining;
+		}
+
+		return (float) $remaining;
 	}
 
 }

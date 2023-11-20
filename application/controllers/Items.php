@@ -42,7 +42,8 @@ class Items extends MY_Controller
 	// Get categories dropdown
 	private function _get_categories_dropdown()
 	{
-		$categories = $this->Item_categories_model->get_all_where(array("deleted" => 0), 0, 0, "title")->result();
+		// $categories = $this->Item_categories_model->get_all_where(array("deleted" => 0), 0, 0, "title")->result();
+		$categories = $this->Item_categories_model->dev2_ItemsCategoryDropdown();
 
 		$categories_dropdown = array(array("id" => "", "text" => "- " . lang("category") . " -"));
 		foreach ($categories as $category) {
@@ -1353,6 +1354,8 @@ class Items extends MY_Controller
 
 		$view_data['buttonTop'] = implode('', $buttonTop);
 		$view_data['categories_dropdown'] = $this->_get_categories_dropdown();
+
+		// var_dump(arr($view_data)); exit();
 		$this->template->rander("items/index", $view_data);
 	}
 

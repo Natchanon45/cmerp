@@ -151,7 +151,7 @@ if (empty($model_info->id)) {
 			"id" => "unit",
 			"name" => "unit",
 			"value" => $model_info->unit,
-			"class" => "form-control string-upper",
+			"class" => "form-control",
 			"placeholder" => lang('stock_material_unit'),
 			"data-rule-required" => true,
 			"data-msg-required" => lang("field_required"),
