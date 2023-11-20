@@ -4392,7 +4392,7 @@ class Stock extends MY_Controller
             !empty($data->created_by) ? $this->Account_category_model->created_by($data->created_by) : '-',
             !empty($data->note) ? $data->note : '-',
             to_decimal_format3($data->ratio),
-            strtoupper($data->item_unit)
+            mb_strtoupper($data->item_unit)
         );
 
         if ($this->check_permission('bom_restock_read_price')) {
@@ -5228,7 +5228,7 @@ class Stock extends MY_Controller
             $data->created_by ? $this->Account_category_model->created_by($data->created_by) : '-',
             !empty($data->note) ? $data->note : '-',
             $data->ratio ? to_decimal_format2($data->ratio) : 0,
-            $data->item_unit ? strtoupper($data->item_unit) : ''
+            $data->item_unit ? mb_strtoupper($data->item_unit) : ''
         ); 
 
         if ($this->check_permission('bom_restock_read_price')) {
@@ -5620,6 +5620,7 @@ class Stock extends MY_Controller
 
     private function _item_report_make_row($data)
     {
+
         $remaining_value = 0;
         if (!empty($data->price) && !empty($data->stock) && $data->stock > 0) {
             $remaining_value = $data->price * $data->remaining / $data->stock;
@@ -5655,8 +5656,8 @@ class Stock extends MY_Controller
             format_to_date($data->created_date),
             is_date_exists($data->expiration_date) ? format_to_date($data->expiration_date, false) : '-',
             to_decimal_format3($data->stock),
-            '<span class="' . ($is_lack ? 'lacked_material' : '') . '" data-item-id="' . $data->item_id . '" data-lacked-amount="' . ($is_lack ? $lack : 0) . '" data-unit="' . strtoupper($data->item_unit) . '" data-supplier-id="' . $data->supplier_id . '" data-supplier-name="' . $data->supplier_name . '" data-price="' . $data->price . '" data-currency="' . $data->currency . '" data-currency-symbol="' . $data->currency_symbol . '">' . to_decimal_format3($data->remaining) . '</span>',
-            strtoupper($data->item_unit)
+            '<span class="' . ($is_lack ? 'lacked_material' : '') . '" data-item-id="' . $data->item_id . '" data-lacked-amount="' . ($is_lack ? $lack : 0) . '" data-unit="' . mb_strtoupper($data->item_unit) . '" data-supplier-id="' . $data->supplier_id . '" data-supplier-name="' . $data->supplier_name . '" data-price="' . $data->price . '" data-currency="' . $data->currency . '" data-currency-symbol="' . $data->currency_symbol . '">' . to_decimal_format3($data->remaining) . '</span>',
+            mb_strtoupper($data->item_unit)
         );
 
         if ($this->check_permission('bom_restock_read_price')) {

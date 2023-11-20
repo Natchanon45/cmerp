@@ -2265,6 +2265,7 @@ $lang["production_order_producing"] = "Producing";
 $lang["production_order_produced_completed"] = "Produced completed";
 $lang["production_order_not_yet_withdrawn"] = "Not yet withdrawn";
 $lang["production_order_partially_withdrawn"] = "Partially withdrawn";
+$lang["production_order_created_withdrawn"] = "Created withdrawn";
 $lang["production_order_completed_withdrawal"] = "Withdrawal completed";
 $lang["production_order_create_mr_all"] = "MR Create all";
 $lang["production_order_change_to_producing"] = "Change to producing all";
@@ -2281,6 +2282,10 @@ $lang["production_order_delete_failure"] = "Cannot delete. Contact an administra
 $lang["production_order_bom_recalc"] = "RM Update";
 $lang["production_order_state_change"] = "Production order state change.";
 $lang["production_order_cannot_change_status"] = "Cannot change the order state, create and approve the material request document, please.";
+$lang["production_order_form_data_incorrect"] = "Please enter form data correctly.";
+$lang["production_order_quantity_data_incorrect"] = "Please enter the quantity each records correctly.";
+$lang["production_order_all_of_material_used"] = "All the required materials.";
+$lang["production_order_all_of_semi_used"] = "All the required semi-finished goods.";
 
 // Setting Access Rights for Account Management
 $lang["setting_account_management"] = "Setting access rights for Account management";

@@ -3,9 +3,9 @@
     <h4><?php echo lang('files'); ?></h4>
     <div class="title-button-group">
       <?php
-      if ($can_update) {
+      if ($this->Permission_m->bom_material_update) {
         echo modal_anchor(
-          get_uri("stock/item_file_modal"),
+          get_uri("sfg/detail_files_modal"),
           "<i class='fa fa-plus-circle'></i> " . lang('add_files'),
           array(
             "class" => "btn btn-default",
@@ -27,7 +27,7 @@
 <script type="text/javascript">
   $(document).ready(function () {
     $("#item-file-table").appTable({
-      source: '<?php echo_uri("stock/item_file_list/" . $item_id) ?>',
+      source: '<?php echo_uri("sfg/detail_files/" . $item_id) ?>',
       order: [[0, "desc"]],
       columns: [
         { title: '<?php echo lang("id"); ?>' },

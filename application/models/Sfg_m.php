@@ -140,9 +140,9 @@ class Sfg_m extends MY_Model {
 
         $db->select("items.*")
             ->from("items")
-            ->join("item_categories", "item_categories.id = items.category_id", "left")
+            ->join("material_categories", "material_categories.id = items.category_id", "left")
             ->join("bom_item_stocks", "bom_item_stocks.item_id = items.id", "left")
-            ->where("item_type", $this->item_type)
+            ->where("material_categories.item_type", $this->item_type)
             ->where("items.deleted", 0);
 
         if($this->input->post("category_id") != null){
@@ -530,8 +530,251 @@ class Sfg_m extends MY_Model {
         }
     }
 
+    function getDetailFileDataSetHTML($data){
+        $file_icon = get_file_icon(strtolower(pathinfo($data->file_name, PATHINFO_EXTENSION)));
+
+        $user_image = get_avatar($data->user_image);
+        $user_name = "<span class='avatar avatar-xs mr10'><img src='$user_image' alt='...'></span> $data->user_name";
+        if ($data->user_type == "staff") {
+            $uploaded_by = get_team_member_profile_link($data->uploaded_by, $user_name);
+        } else {
+            $uploaded_by = get_client_contact_profile_link($data->uploaded_by, $user_name);
+        }
+
+        $description = "<div class='pull-left'>"
+            . js_anchor(remove_file_prefix($data->file_name), array('title' => "", "data-toggle" => "app-modal", "data-sidebar" => "0", "data-url" => get_uri("stock/item_view_file/" . $data->id)));
+        if ($data->description) {
+            $description .= "<br /><span>" . trim($data->description) . "</span></div>";
+        } else {
+            $description .= "</div>";
+        }
+
+        $options = anchor(get_uri("stock/item_download_file/" . $data->id), "<i class='fa fa fa-cloud-download'></i>", array("title" => lang("download")));
+
+        if ($this->Permission_m->bom_material_update) {
+            $options .= js_anchor("<i class='fa fa-times fa-fw'></i>", array('title' => lang('delete_file'), "class" => "delete", "data-id" => $data->id, "data-action-url" => get_uri("stock/item_delete_file"), "data-action" => "delete-confirmation"));
+        }
+
+        return array(
+            $data->id,
+            "<div class='fa fa-$file_icon font-22 mr10 pull-left'></div>" . $description,
+            convert_file_size($data->file_size),
+            $uploaded_by,
+            format_to_datetime($data->created_at),
+            $options
+        );
+    }
+
+    function detailFileDataSet($docId) {
+        $options = array("item_id" => $docId);
+        $list_data = $this->Bom_item_files_model->get_details($options)->result();
+
+        $result = array();
+        foreach ($list_data as $data) {
+            $result[] = $this->getDetailFileDataSetHTML($data);
+        }
+
+        return $result;
+    }
+
+    
+
+    function detailFile(){
+        $post = $this->input->post();
+
+        if (isset($post['id']) && !empty($post['id'])) {
+            $view_data['model_info'] = $this->Bom_item_files_model->get_one($post['id']);
+        }
+
+        $view_data['item_id'] = $post['item_id'];
+
+        return $view_data;
+    }
+
+    function saveDetailFile(){
+        $item_id = $this->input->post('item_id');
+        validate_submitted_data(
+            array(
+                "id" => "numeric",
+                "item_id" => "required|numeric"
+            )
+        );
+
+        $files = $this->input->post("files");
+        $success = false;
+        $now = get_current_utc_time();
+
+        $target_path = getcwd() . "/" . get_general_file_path("client", $item_id);
+
+        if ($files && get_array_value($files, 0)) {
+            foreach ($files as $file) {
+                $file_name = $this->input->post('file_name_' . $file);
+                $file_info = move_temp_file($file_name, $target_path);
+                if ($file_info) {
+                    $data = array(
+                        "item_id" => $item_id,
+                        "file_name" => get_array_value($file_info, 'file_name'),
+                        "file_id" => get_array_value($file_info, 'file_id'),
+                        "service_type" => get_array_value($file_info, 'service_type'),
+                        "description" => $this->input->post('description_' . $file),
+                        "file_size" => $this->input->post('file_size_' . $file),
+                        "created_at" => $now,
+                        "uploaded_by" => $this->login_user->id
+                    );
+                    $success = $this->Bom_item_files_model->save($data); 
+                } else {
+                    $success = false;
+                }
+            }
+        }
+
+        if ($success) {
+            return array("success" => true, 'message' => lang('record_saved'));
+        } else {
+            return array("success" => false, 'message' => lang('error_occurred'));
+        }
+    }
+
+    function getDetailItemRemainingDataSetHTML($data){
+        $remaining_value = 0;
+        if (!empty($data->price) && !empty($data->stock) && $data->stock > 0) {
+            $remaining_value = $data->price * $data->remaining / $data->stock;
+        }
+
+        //$can_delete = $this->dev2_canDeleteRestockItem($data->id);
+        $can_delete = true;
+
+        $user_name = $data->user_first_name . ' ' . $data->user_last_name;
+        $user_image = get_avatar($data->user_image);
+        $user_name = "<span class='avatar avatar-xs mr10'><img src='$user_image' alt='...'></span> $user_name";
+
+        $row_data = array(
+            $data->id,
+            anchor(get_uri('sfg/restock_view/' . $data->group_id), $data->group_name),
+            $data->serial_number ? $data->serial_number : '-',
+            anchor(get_uri('team_members/view/' . $data->user_id), $user_name),
+            format_to_date($data->created_date),
+            is_date_exists($data->expiration_date) ? format_to_date($data->expiration_date, false) : '-',
+            $data->stock ? to_decimal_format2($data->stock) : 0,
+            $data->remaining ? to_decimal_format2($data->remaining) : 0,
+            $data->item_unit ? mb_strtoupper($data->item_unit) : '-'
+        );
+
+        if ($this->Permission_m->bom_restock_read_price) {
+            $row_data[] = to_decimal_format3($data->price);
+            $row_data[] = to_decimal_format3($remaining_value);
+            $row_data[] = lang('THB');
+        }
+
+        $options = '';
+        if ($this->Permission_m->bom_restock_update && $data->remaining > 0) {
+            $options .= modal_anchor(
+                get_uri("stock/restock_item_view_modal"), 
+                "<i class='fa fa-pencil'></i>", 
+                array(
+                    "class" => "edit", 
+                    "title" => lang('stock_restock_item_edit'), 
+                    "data-post-id" => $data->id, 
+                    "data-post-view" => "item"
+                )
+            ); // btn-edit
+                
+            $options .= modal_anchor(
+                get_uri("stock/restock_item_withdraw_modal"), 
+                "<i class='fa fa-share-square-o'></i>", 
+                array(
+                    "class" => "edit", 
+                    "title" => lang('stock_restock_item_withdraw'), 
+                    "data-post-id" => $data->id, 
+                    "data-post-view" => "item"
+                )
+            ); // btn-withdraw
+        } else {
+            $options .= modal_anchor(
+                get_uri("stock/restock_item_view_modal"), 
+                "<i class='fa fa-eye'></i>", 
+                array(
+                    "class" => "edit", 
+                    "title" => lang('stock_restock_item_edit'), 
+                    "data-post-id" => $data->id, 
+                    "data-post-view" => "item"
+                )
+            ); // btn-view
+        }
+
+        if ($can_delete && $this->Permission_m->bom_restock_delete) {
+            $options .= js_anchor(
+                "<i class='fa fa-times fa-fw'></i>", 
+                array(
+                    'title' => lang('stock_restock_item_delete'), 
+                    "class" => "delete", 
+                    "data-id" => $data->id, 
+                    "data-action-url" => get_uri("stock/restock_item_view_delete"), 
+                    "data-action" => "delete-confirmation"
+                )
+            ); // btn-delete
+        }
+
+        $row_data[] = $options;
+        return $row_data;
+    }
+
+    function detailItemRemainingDataSet($docId) {
+        $options = array("item_id" => $docId);
+        $list_data = $this->Bom_item_groups_model->get_restocks($options)->result();
+
+        $result = array();
+        foreach ($list_data as $data) {
+            $result[] = $this->getDetailItemRemainingDataSetHTML($data);
+        }
+
+        return $result;
+    }
+
+    function getDetailItemUsedDataSetHTML($data){
+        $used_value = 0;
+        if (!empty($data->price) && !empty($data->stock) && $data->stock > 0) {
+            $used_value = $data->price * $data->ratio / $data->stock;
+        } 
+
+        $item_name = $data->item_code;
+        if ($this->Permission_m->bom_material_read_production_name) {
+            $item_name .= " - " . $data->item_name;
+        } 
+
+        $row_data = array(
+            $data->id,
+            anchor(get_uri('sfg/detail/' . $data->item_id), $item_name),
+            !empty($data->project_title) ? anchor(get_uri('projects/view/' . $data->project_id), $data->project_title) : '-',
+            is_date_exists($data->created_at) ? format_to_date($data->created_at, false) : '-',
+            !empty($data->created_by) ? $this->Account_category_model->created_by($data->created_by) : '-',
+            !empty($data->note) ? $data->note : '-',
+            to_decimal_format3($data->ratio),
+            mb_strtoupper($data->item_unit)
+        );
+
+        if ($this->Permission_m->bom_restock_read_price) {
+            $row_data[] = to_decimal_format3($used_value);
+            $row_data[] = !empty($data->currency_symbol) ? lang($data->currency_symbol) : lang('THB');
+        } 
+
+        return $row_data;
+    }
+
+    function detailItemUsedDataSet($item_id) {
+        $options = array("item_id" => $item_id);
+        $list_data = $this->Bom_project_item_items_model->get_details($options)->result();
+        $result = array();
+
+        foreach ($list_data as $data) {
+            $result[] = $this->getDetailItemUsedDataSetHTML($data);
+        }
+
+        return $result; 
+    }
+
     function getIndexRestockDataSetHTML($item){
-        $button = modal_anchor(get_uri('sfg/restock_addedit'), "<i class='fa fa-pencil'></i>", array("class" => "edit", "title" => lang('stock_restock_item_edit'), "data-post-id" => $item->group_id));
+        $button = modal_anchor(get_uri('sfg/restock_import_modal'), "<i class='fa fa-pencil'></i>", array("class" => "edit", "title" => lang('stock_restock_item_edit'), "data-post-id" => $item->group_id));
 
         $button .= js_anchor("<i class='fa fa-times fa-fw'></i>", array('title' => lang('stock_restock_delete'), "class" => "delete", "data-id" => $item->id, "data-action-url" => get_uri("stock/dev2_restock_item_delete"), "data-action" => "delete-confirmation"));
         
@@ -558,7 +801,7 @@ class Sfg_m extends MY_Model {
 
         return array(
             $item->id,
-            anchor(get_uri('stock/restock_item_view/' . $item->group_id), $item->group_name),
+            anchor(get_uri('sfg/restock_view/' . $item->group_id), $item->group_name),
             $item->sern ? $item->sern : '-',
             $display_item,
             to_decimal_format3($item->stock_qty),
@@ -654,7 +897,7 @@ class Sfg_m extends MY_Model {
 
             return array(
                     "success" => true,
-                    "data" => $this->getIndexRestockDataSetHTML($this->Bom_item_groups_model->get_details(['id' => $id])->row()),
+                    "data" => $this->indexRestockDataSet(),
                     'id' => $save_id,
                     'view' => $this->input->post('view'),
                     'message' => lang('record_saved')
@@ -675,5 +918,424 @@ class Sfg_m extends MY_Model {
         );
 
         echo json_encode(array('success' => true, 'message' => $id));
+    }
+
+
+    function getRestockViewDetailDataSetHTML($data) {
+        $remaining_value = 0;
+        if (!empty($data->price) && !empty($data->stock) && $data->stock > 0) {
+            $remaining_value = $data->price * $data->remaining / $data->stock;
+        }
+
+        $rows = $this->Bom_project_item_items_model->getCountStockUsedById($data->id);
+        if ($rows == 0) $can_delete = true;
+        else $can_delete = false;
+        
+
+        $files_link = "";
+        if ($data->files) {
+            $files = unserialize($data->files);
+            if (count($files)) {
+                foreach ($files as $key => $value) {
+                    $file_name = get_array_value($value, "file_name");
+                    $link = " fa fa-" . get_file_icon(strtolower(pathinfo($file_name, PATHINFO_EXTENSION)));
+                    $files_link .= js_anchor(
+                        " ",
+                        array(
+                            "data-toggle" => "app-modal",
+                            "data-sidebar" => "0",
+                            "class" => "pull-left font-22 mr10 $link",
+                            "title" => remove_file_prefix($file_name),
+                            "data-url" => get_uri("stock/restock_file_preview/" . $data->id . "/" . $key)
+                        )
+                    );
+                }
+            }
+        }
+
+        // REMARK
+        $item_name = $data->item_name;
+        if (isset($data->item_code) && !empty($data->item_code)) {
+            $item_name = mb_strtoupper($data->item_code) . ' - ' . $data->item_name;
+        }
+
+        $display_item = '<span>
+            <span style="display: block;"><b>' . lang("stock_product_name") . '</b>: ' . anchor(get_uri('items/detail/' . $data->item_id), $item_name) . '</span>
+        </span>';
+
+        $mixing_name = null;
+        if (isset($data->mixing_group_id) && !empty($data->mixing_group_id)) {
+            $mixing_name = $this->Bom_item_groups_model->dev2_getMixingNameByMixingGroupId($data->mixing_group_id);
+
+            $display_item = '<span>
+                <span style="display: block;"><b>' . lang("stock_product_name") . '</b>: ' . anchor(get_uri('items/detail/' . $data->item_id), $item_name) . '</span>
+                <span style="display: block;"><b>' . lang("production_order_bom_name") . '</b>: ' . $mixing_name . '</span>
+            </span>';
+        }
+
+        $row_data = array(
+            $data->id,
+            $display_item,
+            $data->serial_number ? $data->serial_number : '-',
+            $files_link ? $files_link : '-',
+            is_date_exists($data->expiration_date) ? format_to_date($data->expiration_date, false) : '-',
+            to_decimal_format3($data->stock),
+            to_decimal_format3($data->remaining),
+            mb_strtoupper($data->item_unit)
+        );
+
+        if ($this->Permission_m->bom_restock_read_price) { 
+            $row_data[] = to_decimal_format3($data->price);
+            $row_data[] = to_decimal_format3($remaining_value);
+            $row_data[] = !empty($data->currency_symbol) ? lang($data->currency_symbol) : lang('THB');
+        }
+
+        $options = ''; 
+        if ($this->Permission_m->bom_restock_update && $data->remaining > 0) {
+            $options .= modal_anchor(
+                get_uri("sfg/restock_item_details_modal_addedit"),
+                "<i class='fa fa-pencil'></i>",
+                array("class" => "edit", "title" => lang('stock_restock_item_edit'), "data-post-id" => $data->id)
+            ); // btn-update
+            $options .= modal_anchor(
+                get_uri("sfg/restock_item_details_modal_withdraw"),
+                "<i class='fa fa-share-square-o'></i>",
+                array("class" => "edit", "title" => lang('stock_restock_item_withdraw'), "data-post-id" => $data->id, "data-post-view" => "restock")
+            ); // btn-withdraw
+        } else { 
+            $options .= modal_anchor(
+                get_uri("stock/restock_item_view_modal"),
+                "<i class='fa fa-eye'></i>",
+                array("class" => "edit", "title" => lang('stock_restock_item_edit'), "data-post-id" => $data->id)
+            ); // btn-view
+        }
+
+        if ($this->Permission_m->bom_restock_delete) { 
+            $options .= js_anchor(
+                "<i class='fa fa-times fa-fw'></i>",
+                array(
+                    "title" => lang('stock_restock_item_delete'),
+                    "class" => "delete",
+                    "data-id" => $data->id,
+                    "data-action-url" => get_uri('sfg/restock_item_details_modal_withdraw/delete'),
+                    "data-action" => "delete-confirmation"
+                )
+            ); // btn-delete
+        }
+
+        $row_data[] = $options;
+        return $row_data;
+    }
+
+    function restockViewDetail(){
+        $view_data['can_read_price'] = $this->Permission_m->bom_restock_read_price;
+        $view_data['can_create'] = $this->Permission_m->bom_restock_create;
+        $view_data['can_update'] = $this->Permission_m->bom_restock_update;
+        $view_data['bom_material_read_production_name'] = $this->Permission_m->bom_material_read_production_name;
+
+        $restock_id = $this->input->post('id');
+        validate_submitted_data(
+            array(
+                "id" => "numeric"
+            )
+        );
+
+        $view_data['view'] = $this->input->post('view');
+        $view_data['model_info'] = $this->Bom_item_stocks_model->get_one($restock_id); 
+
+        if ($view_data['model_info']->stock > 0 && $view_data['model_info']->price > 0) {
+            $view_data['model_info']->priceunit = $view_data['model_info']->price / $view_data['model_info']->stock;
+            $view_data['model_info']->priceunit = to_decimal_format3($view_data['model_info']->priceunit);
+        } 
+
+        if (!empty($view_data['model_info']->id)) {
+            $rows = $this->Bom_project_item_items_model->getCountStockUsedById($view_data['model_info']->id);
+            if ($rows == 0) $view_data['model_info']->can_delete = true;
+            else $view_data['model_info']->can_delete = false;
+        
+        }
+
+        if (empty($view_data['model_info']->id)) {
+            
+        } else {
+            $group_info = $this->Bom_item_groups_model->get_one($view_data['model_info']->group_id);
+            $created_by = $group_info->created_by;
+        }
+
+        $group_id = $this->input->post('group_id'); 
+        if (!empty($group_id) && empty($view_data['model_info']->group_id)) {
+            $view_data['model_info']->group_id = $group_id;
+        }
+
+        $view_data['item_dropdown'] = $this->Items_model->get_details(["item_type"=>$this->item_type])->result();
+
+        return $view_data;   
+    }
+
+    function saveRestockViewDetail(){
+        $id = $this->input->post('id');
+        if (empty($id)) {
+            if (!$this->Permission_m->bom_restock_create) {
+                return array("success" => false, 'message' => lang('no_permissions'));
+            }
+        } else {
+            if (!$this->Permission_m->bom_restock_update) {
+                return array("success" => false, 'message' => lang('no_permissions'));
+            }
+        } 
+
+        validate_submitted_data(
+            array(
+                "id" => "numeric",
+                "group_id" => "required|numeric",
+                "sern" => "required"
+            )
+        ); 
+
+        $serial_number = $this->input->post('sern');
+        if (!$id) {
+            $serials = $this->Bom_item_stocks_model->dev2_getSerialNumByGroupId($this->input->post('group_id'));
+            $is_duplicate = in_array($serial_number, $serials);
+
+            if ($is_duplicate) {
+                return array('success' => false, 'message' => lang('serial_number_duplicate'));
+            }
+        } else {
+            $serials = $this->Bom_item_stocks_model->dev2_getSerialNumByGroupIdWithoutSelf($this->input->post('group_id'), $this->input->post('id'));
+            $is_duplicate = in_array($serial_number, $serials);
+
+            if ($is_duplicate) {
+                return array('success' => false, 'message' => lang('serial_number_duplicate'));
+            }
+        } 
+
+        $data = array(
+            "group_id" => $this->input->post('group_id'),
+            "item_id" => $this->input->post('item_id'),
+            "serial_number" => $serial_number,
+            "stock" => $this->input->post('stock'),
+            "remaining" => $this->input->post('remaining'),
+            "note" => $this->input->post('note'),
+            "expiration_date" => $this->input->post('expiration_date')
+        );
+
+        if ($this->Permission_m->bom_restock_read_price) $data["price"] = $this->input->post('price');
+
+        $target_path = get_setting("timeline_file_path"); 
+        $files_data = move_files_from_temp_dir_to_permanent_dir($target_path, "material");
+        $new_files = unserialize($files_data);
+        if ($id) {
+            $model_info = $this->Bom_item_stocks_model->get_one($id);
+            $timeline_file_path = get_setting("timeline_file_path");
+            $new_files = update_saved_files($timeline_file_path, $model_info->files, $new_files);
+        }
+        $data["files"] = serialize($new_files);
+        $data = clean_data($data);
+
+        $save_id = $this->Bom_item_stocks_model->save($data, $id); 
+        if ($save_id) {
+            $view = $this->input->post('view');
+            if (isset($view) && $view == 'item') {
+                $data = $this->Bom_item_groups_model->get_restocks(['id' => $save_id])->row();
+                
+                return array(
+                            "success" => true,
+                            "data" => $this->Sfg_m->getRestockViewDetailDataSetHTML($this->Bom_item_groups_model->get_restocks(['id' => $save_id])->row()),
+                            'id' => $save_id,
+                            'view' => $this->input->post('view'),
+                            'message' => lang('record_saved')
+                        );
+            } else {
+                return array(
+                        "success" => true,
+                        "data" => $this->Sfg_m->getRestockViewDetailDataSetHTML($this->Bom_item_groups_model->get_restocks(['id' => $save_id])->row()),
+                        'id' => $save_id,
+                        'view' => $this->input->post('view'),
+                        'message' => lang('record_saved')
+                    );
+            }
+        } else {
+            return array("success" => false, 'message' => lang('error_occurred'));
+        }
+    }
+
+    function restockViewDetailWithdraw(){
+        $restock_id = $this->input->post('id');
+
+        validate_submitted_data(
+            array(
+                "id" => "numeric"
+            )
+        );
+
+        $view_data["view"] = $this->input->post('view');
+        $view_data['model_info'] = $this->Bom_item_stocks_model->get_one($restock_id);
+
+        $group_id = $this->input->post('group_id');
+        if (!empty($group_id) && empty($view_data['model_info']->group_id)) {
+            $view_data['model_info']->group_id = $group_id;
+        }
+
+        $view_data['item_dropdown'] = $this->Items_model->get_details(["item_type"=>"SFG"])->result();
+
+        return $view_data;
+    }
+
+    function saveRestockViewDetailWithdraw(){
+        $id = $this->input->post('id');
+        validate_submitted_data(
+            array(
+                "id" => "required|numeric",
+                "item_id" => "required|numeric",
+                "ratio" => "required|numeric"
+            )
+        );
+
+        $ratio = $this->input->post('ratio'); 
+        $data = array(
+            "item_id" => $this->input->post('item_id'),
+            "stock_id" => $id,
+            "ratio" => $ratio,
+            "note" => $this->input->post('note') ? $this->input->post('note') : ''
+        );
+        $data = clean_data($data);
+
+        $save_id = $this->Bom_project_item_items_model->save($data, null);
+        if ($save_id) {
+            $this->Bom_item_stocks_model->reduce_material($id, $ratio);
+            $view = $this->input->post('view');
+            $data = $this->Bom_item_groups_model->get_restocks(['id' => $id])->row();
+
+            if (isset($view) && $view == 'item') {
+                return array(
+                            "success" => true,
+                            "data" => $this->getRestockViewDetailDataSetHTML($data), 
+                            'id' => $id,
+                            'view' => $this->input->post('view'),
+                            'message' => lang('record_saved')
+                        );
+            } else {
+                return
+                    array(
+                        "success" => true,
+                        "data" => $this->getRestockViewDetailDataSetHTML($data),
+                        'id' => $id,
+                        'view' => $this->input->post('view'),
+                        'message' => lang('record_saved')
+                    );
+            }
+        } else { 
+            echo json_encode(array("success" => false, 'message' => lang('error_occurred')));
+        }
+    }
+
+    function deleteRestockViewDetailWithdraw(){
+        validate_submitted_data(
+            array(
+                "id" => "required|numeric"
+            )
+        );
+
+        $id = $this->input->post('id');
+        if ($this->Bom_item_stocks_model->delete_one($id)) {
+            return array("success" => true, 'message' => lang('record_deleted'));
+        } else {
+            return array("success" => false, 'message' => lang('record_cannot_be_deleted'));
+        }
+    }
+
+    function getReportDataSetHTML($data){
+        $remaining_value = 0;
+        if (!empty($data->price) && !empty($data->stock) && $data->stock > 0) {
+            $remaining_value = $data->price * $data->remaining / $data->stock;
+        }
+
+        // REMARK
+        $item_name = $data->item_name;
+        if (isset($data->item_code) && !empty($data->item_code)) {
+            $item_name = mb_strtoupper($data->item_code) . ' - ' . $data->item_name;
+        }
+
+        $display_item = '<span>
+            <span style="display: block;"><b>' . lang("stock_product_name") . '</b>: ' . anchor(get_uri('items/detail/' . $data->item_id), $item_name) . '</span>
+        </span>';
+
+        $mixing_name = null;
+        if (isset($data->mixing_group_id) && !empty($data->mixing_group_id)) {
+            $mixing_name = $this->Bom_item_groups_model->dev2_getMixingNameByMixingGroupId($data->mixing_group_id);
+
+            $display_item = '<span>
+                <span style="display: block;"><b>' . lang("stock_product_name") . '</b>: ' . anchor(get_uri('stock/item_view/' . $data->item_id), $item_name) . '</span>
+                <span style="display: block;"><b>' . lang("production_order_bom_name") . '</b>: ' . $mixing_name . '</span>
+            </span>';
+        }
+
+        $lack = $data->noti_threshold - $data->remaining;
+        $is_lack = $lack > 0 ? true : false;
+        $row_data = array(
+            $data->id,
+            anchor(get_uri('sfg/restock_view/' . $data->group_id), $data->group_name),
+            $display_item,
+            $data->item_desc,
+            format_to_date($data->created_date),
+            is_date_exists($data->expiration_date) ? format_to_date($data->expiration_date, false) : '-',
+            to_decimal_format3($data->stock),
+            '<span class="' . ($is_lack ? 'lacked_material' : '') . '" data-item-id="' . $data->item_id . '" data-lacked-amount="' . ($is_lack ? $lack : 0) . '" data-unit="' . mb_strtoupper($data->item_unit) . '" data-supplier-id="' . $data->supplier_id . '" data-supplier-name="' . $data->supplier_name . '" data-price="' . $data->price . '" data-currency="' . $data->currency . '" data-currency-symbol="' . $data->currency_symbol . '">' . to_decimal_format3($data->remaining) . '</span>',
+            mb_strtoupper($data->item_unit)
+        );
+
+        if ($this->Permission_m->bom_restock_read_price == true) {
+            $price_per_stock = 0;
+            if ($data->stock != 0) {
+                $price_per_stock = $data->price / $data->stock;
+            }
+
+            $row_data[] = to_decimal_format3($data->price);
+            $row_data[] = to_decimal_format3($price_per_stock);
+            $row_data[] = to_decimal_format3($remaining_value);
+            $row_data[] = !empty($data->currency) && isset($data->currency) ? lang($data->currency) : lang("THB");
+        }
+
+        return $row_data;
+    }
+
+    function reportDataSet() {
+        $is_zero = $this->input->post("is_zero");
+        $startDate = $this->input->post("start_date");
+        $endDate = $this->input->post("end_date");
+
+        $options = array();
+
+        $options["item_type"] = "SFG";
+
+        if (!$this->Permission_m->bom_restock_read_self && !$this->Permission_m->bom_restock_read) $options['created_by'] = $this->login_user->id;
+
+        if ((isset($startDate) && !empty($startDate)) && (isset($endDate) && !empty($endDate))) {
+            $options["start_date"] = $startDate;
+            $options["end_date"] = $endDate;
+        }
+
+        if (isset($is_zero) && !empty($is_zero)) {
+            $options["is_zero"] = $is_zero;
+        }
+
+        $list_data = $this->Bom_item_groups_model->get_restocks2($options)->result();
+        // var_dump(arr($list_data)); exit;
+
+        $result = array();
+        foreach ($list_data as $data) {
+            $result[] = $this->getReportDataSetHTML($data);
+        }
+
+        return $result;
+    }
+
+    function report(){
+        $view_data['can_update'] = !$this->Permission_m->bom_material_update && !$this->Permission_m->bom_restock_update;
+        $view_data['can_delete'] = !$this->Permission_m->bom_material_delete && !$this->Permission_m->bom_restock_delete;
+        $view_data['can_read_price'] = $this->Permission_m->bom_restock_read_price;
+        $view_data['is_admin'] = $this->login_user->is_admin;
+
+        return $view_data;
     }
 }

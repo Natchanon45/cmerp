@@ -7115,4 +7115,186 @@ class Pdf_export extends CI_Controller
         }
     }
 
+    public function production_bag_pdf($project_id = 0)
+    {
+        $data["production_items"] = $this->Projects_model->dev2_getMixingCategoryListByProjectId($project_id);
+        // var_dump(arr($data));
+
+        $defaultConfig = (new Mpdf\Config\ConfigVariables())->getDefaults();
+        $fontDirs = $defaultConfig['fontDir'];
+        
+        $defaultFontConfig = (new Mpdf\Config\FontVariables())->getDefaults();
+        $fontData = $defaultFontConfig['fontdata'];
+
+        $mpdf = new \Mpdf\Mpdf([
+            'fontDir' => array_merge($fontDirs, [
+                __DIR__ . '/fonts',
+            ]),
+            'fontdata' => $fontData + [
+                'def' => [
+                    'R' => 'THSarabun_Bold.ttf'
+                ]
+            ],
+            'default_font' => 'def',
+            'tempDir' => '/tmp'
+        ]);
+        $mpdf->charset_in = 'UTF-8';
+        $mpdf->SetTitle('Project-' . $project_id);
+        $html = '';
+
+        $header = '<div style="width: 100%; border: 1px solid rgba(0, 0, 0, 0); text-align: center; font-size: 175%;">' . lang("production_order_all_of_material_used") . '</div>';
+        $html .= $header;
+
+        $table_open_main = '<table style="width: 100%;" cellpadding="0" cellspacing="0">';
+        $html .= $table_open_main;
+
+        if (isset($data["production_items"]["rm_cate"]) && !empty($data["production_items"]["rm_cate"])) {
+            foreach ($data["production_items"]["rm_cate"] as $category) {
+                $total_group = 0.000000;
+                $category_line = '<tr class="category-line" style="background-color: rgba(0, 83, 156, .8);">
+                    <th width="15%" style="color: #f2f2f2; height: 28px; border: 1px solid rgba(0, 0, 0, 1);">' . lang("category") . '</th>
+                    <th style="text-align: left; padding-left: 10px; color: #f2f2f2; border: 1px solid rgba(0, 0, 0, 1);">' . $category["item_type"] . ' : ' . $category["title"] . '</th>
+                </tr>';
+                $html .= $category_line;
+
+                $material_open_line = '<tr class="material-line"><td colspan="2" style="border: 1px solid rgba(0, 0, 0, 1);"><table style="width: 90%; margin: 5px auto;" cellpadding="0" cellspacing="0">';
+                $html .= $material_open_line;
+
+                $thead_material_line = '<thead>
+                    <tr>
+                        <th style="font-size: 90%; border: 1px solid rgba(0, 0, 0, 1); color: #030303; background-color: rgba(0, 83, 156, .25);">' . lang("stock_material") . '</th>
+                        <th style="font-size: 90%; border: 1px solid rgba(0, 0, 0, 1); color: #030303; background-color: rgba(0, 83, 156, .25);">' . lang("quantity") . '</th>
+                        <th style="font-size: 90%; border: 1px solid rgba(0, 0, 0, 1); color: #030303; background-color: rgba(0, 83, 156, .25);">' . lang("stock_material_unit") . '</th>
+                    </tr>
+                </thead>';
+                $html .= $thead_material_line;
+
+                $tbody_material_line = '<tbody>';
+                foreach ($data["production_items"]["rm_list"] as $rm) {
+                    if ($category["id"] == $rm->category_in_bom) {
+                        $display_name = '';
+                        if (!empty($rm->material_info->production_name)) {
+                            $display_name = $rm->material_info->name . ' - ' . mb_strimwidth($rm->material_info->production_name, 0, 50, '...');
+                        } else {
+                            $display_name = $rm->material_info->name;
+                        }
+
+                        $display_description = '';
+                        if (!empty($rm->material_info->description)) {
+                            $display_description = $rm->material_info->description;
+                        }
+
+                        $total_group += $rm->quantity;
+                        $tbody_material_line .= '<tr class="material-line-items">
+                            <td class="rm-name" style="padding-left: 10px; font-size: 90%; max-width: 320px; white-space: nowrap; text-overflow: ellipsis; overflow: hidden; border: 1px solid rgba(0, 0, 0, 1);">
+                                <span class="font-bold">' . $display_name . '</span><br>
+                                <span class="rm-description">' . mb_strimwidth($display_description, 0, 50, '...') . '</span>
+                            </td>
+                            <td class="text-right rm-quantity" style="padding-right: 10px; font-size: 110%; width: 200px; text-align: right; border: 1px solid rgba(0, 0, 0, 1);">' . $rm->quantity . '</td>
+                            <td class="text-center rm-unit" style="padding-left: 10px; font-size: 110%; width: 90px; border: 1px solid rgba(0, 0, 0, 1);">' . $rm->material_info->unit . '</td>
+                        </tr>';
+                    }
+                }
+                $tbody_material_line .= '</tbody>';
+                $html .= $tbody_material_line;
+
+                $tfoot_material_line = '<tfoot>
+                    <tr>
+                        <th class="text-center" style="font-size: 90%; border: 1px solid rgba(0, 0, 0, 1); color: #030303; background-color: rgba(0, 83, 156, .25);">' . lang("gr_total_quantity") . '</th>
+                        <th colspan="2" class="text-center" style="font-size: 110%; border: 1px solid rgba(0, 0, 0, 1); color: #030303; background-color: rgba(0, 83, 156, .25);">' . number_format($total_group, 6) . '</th>
+                    </tr>
+                </tfoot>';
+                $html .= $tfoot_material_line;
+
+                $material_close_line = '</table></td></tr>';
+                $html .= $material_close_line;
+            }
+        }
+
+        $table_close_main = '</table>';
+        $html .= $table_close_main;
+
+        $mpdf->AddPage('P');
+        $mpdf->WriteHTML($html);
+
+        $html = '';
+
+        $header = '<div style="width: 100%; border: 1px solid rgba(0, 0, 0, 0); text-align: center; font-size: 175%;">' . lang("production_order_all_of_semi_used") . '</div>';
+        $html .= $header;
+
+        $table_open_main = '<table style="width: 100%;" cellpadding="0" cellspacing="0">';
+        $html .= $table_open_main;
+
+        if (isset($data["production_items"]["sfg_cate"]) && !empty($data["production_items"]["sfg_cate"])) {
+            foreach ($data["production_items"]["sfg_cate"] as $category) {
+                $total_group = 0.000000;
+                $category_line = '<tr class="category-line" style="background-color: rgba(255, 165, 0, .8);">
+                    <th width="15%" style="color: #f2f2f2; height: 28px; border: 1px solid rgba(0, 0, 0, 1);">' . lang("category") . '</th>
+                    <th style="text-align: left; padding-left: 10px; color: #f2f2f2; border: 1px solid rgba(0, 0, 0, 1);">' . $category["item_type"] . ' : ' . $category["title"] . '</th>
+                </tr>';
+                $html .= $category_line;
+
+                $material_open_line = '<tr class="material-line"><td colspan="2" style="border: 1px solid rgba(0, 0, 0, 1);"><table style="width: 90%; margin: 5px auto;" cellpadding="0" cellspacing="0">';
+                $html .= $material_open_line;
+
+                $thead_material_line = '<thead>
+                    <tr>
+                        <th style="font-size: 90%; border: 1px solid rgba(0, 0, 0, 1); color: #030303; background-color: rgba(255, 165, 0, .25);">' . lang("sfg") . '</th>
+                        <th style="font-size: 90%; border: 1px solid rgba(0, 0, 0, 1); color: #030303; background-color: rgba(255, 165, 0, .25);">' . lang("quantity") . '</th>
+                        <th style="font-size: 90%; border: 1px solid rgba(0, 0, 0, 1); color: #030303; background-color: rgba(255, 165, 0, .25);">' . lang("stock_material_unit") . '</th>
+                    </tr>
+                </thead>';
+                $html .= $thead_material_line;
+
+                $tbody_material_line = '<tbody>';
+                foreach ($data["production_items"]["sfg_list"] as $sfg) {
+                    if ($category["id"] == $sfg->category_in_bom) {
+                        $display_name = '';
+                        if (!empty($sfg->item_info->item_code)) {
+                            $display_name = $sfg->item_info->item_code . ' - ' . mb_strimwidth($sfg->item_info->title, 0, 50, '...');
+                        } else {
+                            $display_name = $sfg->item_info->title;
+                        }
+
+                        $display_description = '';
+                        if (!empty($sfg->item_info->description)) {
+                            $display_description = $sfg->item_info->description;
+                        }
+
+                        $total_group += $sfg->quantity;
+                        $tbody_material_line .= '<tr class="material-line-items">
+                            <td class="rm-name" style="padding-left: 10px; font-size: 90%; max-width: 320px; white-space: nowrap; text-overflow: ellipsis; overflow: hidden; border: 1px solid rgba(0, 0, 0, 1);">
+                                <span class="font-bold">' . $display_name . '</span><br>
+                                <span class="rm-description">' . mb_strimwidth($display_description, 0, 50, '...') . '</span>
+                            </td>
+                            <td class="text-right rm-quantity" style="padding-right: 10px; font-size: 110%; width: 200px; text-align: right; border: 1px solid rgba(0, 0, 0, 1);">' . $sfg->quantity . '</td>
+                            <td class="text-center rm-unit" style="padding-left: 10px; font-size: 110%; width: 90px; border: 1px solid rgba(0, 0, 0, 1);">' . $sfg->item_info->unit_type . '</td>
+                        </tr>';
+                    }
+                }
+                $tbody_material_line .= '</tbody>';
+                $html .= $tbody_material_line;
+
+                $tfoot_material_line = '<tfoot>
+                    <tr>
+                        <th class="text-center" style="font-size: 90%; border: 1px solid rgba(0, 0, 0, 1); color: #030303; background-color: rgba(255, 165, 0, .25);">' . lang("gr_total_quantity") . '</th>
+                        <th colspan="2" class="text-center" style="font-size: 110%; border: 1px solid rgba(0, 0, 0, 1); color: #030303; background-color: rgba(255, 165, 0, .25);">' . number_format($total_group, 6) . '</th>
+                    </tr>
+                </tfoot>';
+                $html .= $tfoot_material_line;
+
+                $material_close_line = '</table></td></tr>';
+                $html .= $material_close_line;
+            }
+        }
+
+        $table_close_main = '</table>';
+        $html .= $table_close_main;
+
+        $mpdf->AddPage('P');
+        $mpdf->WriteHTML($html);
+        
+        $mpdf->Output();
+    }
+
 }

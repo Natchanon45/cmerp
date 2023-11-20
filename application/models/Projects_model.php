@@ -537,6 +537,102 @@ class Projects_model extends Crud_model {
         return $info;
     }
 
+    public function dev2_getMixingListByProjectId(int $project_id) : array
+    {
+        $info = [];
+        $get_rm = $this->db->get_where("bom_project_item_materials", ["project_id" => $project_id])->result();
+        $get_sfg = $this->db->get_where("bom_project_item_items", ["project_id" => $project_id])->result();
+
+        if (!empty($get_rm) && sizeof($get_rm)) {
+            foreach ($get_rm as $rm) {
+                $info[] = $rm;
+            }
+        }
+
+        if (!empty($get_sfg) && sizeof($get_sfg)) {
+            foreach ($get_sfg as $sfg) {
+                $info[] = $sfg;
+            }
+        }
+
+        return $info;
+    }
+
+    public function dev2_getMixingCategoryListByProjectId(int $project_id) : array
+    {
+        $info = [
+            "rm_list" => [],
+            "rm_cate" => [],
+            "temp_rm_cate" => [],
+            "sfg_list" => [],
+            "sfg_cate" => [],
+            "temp_sfg_cate" => []
+        ];
+
+        $sql = "
+            SELECT `category_in_bom`, `material_id`, CASE WHEN `ratio` < 0 THEN `ratio` * -1 ELSE `ratio` END AS `quantity` 
+            FROM `bom_project_item_materials` 
+            WHERE `project_id` = ? 
+            ORDER BY `category_in_bom`, `material_id` 
+        ";
+
+        $sql_sfg = "
+            SELECT `category_in_bom`, `item_id` AS `material_id`, CASE WHEN `ratio` < 0 THEN `ratio` * -1 ELSE `ratio` END AS `quantity` 
+            FROM `bom_project_item_items` 
+            WHERE `project_id` = ? 
+            ORDER BY `category_in_bom`, `item_id`;
+        ";
+
+        $query = $this->db->query($sql, $project_id)->result();
+        $query_sfg = $this->db->query($sql_sfg, $project_id)->result();
+
+        if (sizeof($query)) {
+            foreach ($query as $row) {
+                $row->material_info = $this->dev2_getRowInfoByRowId($row->material_id, "bom_materials");
+                array_push($info["temp_rm_cate"], $row->category_in_bom);
+            }
+
+            $info["rm_list"] = $query;
+            $info["temp_rm_cate"] = array_unique($info["temp_rm_cate"]);
+        }
+
+        if (sizeof($query_sfg)) {
+            foreach ($query_sfg as $row) {
+                $row->item_info = $this->dev2_getRowInfoByRowId($row->material_id, "items");
+                array_push($info["temp_sfg_cate"], $row->category_in_bom);
+            }
+
+            $info["sfg_list"] = $query_sfg;
+            $info["temp_sfg_cate"] = array_unique($info["temp_sfg_cate"]);
+        }
+
+        if (sizeof($info["temp_rm_cate"])) {
+            foreach ($info["temp_rm_cate"] as $row) {
+                $row_info = $this->dev2_getMaterialCategoryTitleByCategoryId($row);
+
+                $info["rm_cate"][] = [
+                    "id" => $row,
+                    "title" => $row_info->title,
+                    "item_type" => $row_info->item_type
+                ];
+            }
+        }
+
+        if (sizeof($info["temp_sfg_cate"])) {
+            foreach ($info["temp_sfg_cate"] as $row) {
+                $row_info = $this->dev2_getMaterialCategoryTitleByCategoryId($row);
+
+                $info["sfg_cate"][] = [
+                    "id" => $row,
+                    "title" => $row_info->title,
+                    "item_type" => $row_info->item_type
+                ];
+            }
+        }
+
+        return $info;
+    }
+
     public function dev2_getRawMatCostOfProductionOrderByProductionOrderId(int $id, float $quantity): float
     {
         $cost = array();
@@ -785,6 +881,8 @@ class Projects_model extends Crud_model {
                                                 "project_item_id" => $bpi_id,
                                                 "item_id" => $mixing->material_id,
                                                 "stock_id" => $stocking->id,
+                                                "from_mixing" => $mixing->group_id,
+                                                "category_in_bom" => $mixing->cat_id,
                                                 "ratio" => $used,
                                                 "created_by" => $this->login_user->id
                                             ]);
@@ -799,6 +897,8 @@ class Projects_model extends Crud_model {
                                                 "project_item_id" => $bpi_id,
                                                 "material_id" => $mixing->material_id,
                                                 "stock_id" => $stocking->id,
+                                                "from_mixing" => $mixing->group_id,
+                                                "category_in_bom" => $mixing->cat_id,
                                                 "ratio" => $used,
                                                 "created_by" => $this->login_user->id
                                             ]);
@@ -816,6 +916,8 @@ class Projects_model extends Crud_model {
                                         "project_id" => $item["project_id"],
                                         "project_item_id" => $bpi_id,
                                         "item_id" => $mixing->material_id,
+                                        "from_mixing" => $mixing->group_id,
+                                        "category_in_bom" => $mixing->cat_id,
                                         "ratio" => $total_ratio * -1,
                                         "created_by" => $this->login_user->id
                                     ]);
@@ -829,6 +931,8 @@ class Projects_model extends Crud_model {
                                         "project_id" => $item["project_id"],
                                         "project_item_id" => $bpi_id,
                                         "material_id" => $mixing->material_id,
+                                        "from_mixing" => $mixing->group_id,
+                                        "category_in_bom" => $mixing->cat_id,
                                         "ratio" => $total_ratio * -1,
                                         "created_by" => $this->login_user->id
                                     ]);
@@ -1088,7 +1192,7 @@ class Projects_model extends Crud_model {
                 $mr_items_info[$item_id] = $item_data;
 
                 // patch mr id to bom project item material
-                $this->dev2_patchMaterialRequestIdForBomItemByItemId($item->id, $header_id);
+                $this->dev2_patchMaterialRequestIdForBomItemByItemId($item->id, $header_id, "bom_project_item_materials");
 
                 array_push($project_item_ids, $item->project_item_id);
             }
@@ -1229,8 +1333,11 @@ class Projects_model extends Crud_model {
             "target" => null
         ];
 
-        $sql = "SELECT * FROM bom_project_item_materials WHERE project_id = ? AND project_item_id = ? AND ratio > 0 AND mr_id IS NULL AND used_status = 0 AND entry_flag = 0 ORDER BY material_id, stock_id";
-        $get = $this->db->query($sql, [$project_id, $project_item_id])->result();
+        $sql_sfg = "SELECT * FROM bom_project_item_items WHERE project_id = ? AND project_item_id = ? AND ratio > 0 AND mr_id IS NULL AND used_status = 0 AND entry_flag = 0 ORDER BY item_id, stock_id";
+        $sql_rm = "SELECT * FROM bom_project_item_materials WHERE project_id = ? AND project_item_id = ? AND ratio > 0 AND mr_id IS NULL AND used_status = 0 AND entry_flag = 0 ORDER BY material_id, stock_id";
+        
+        $get_sfg = $this->db->query($sql_sfg, [$project_id, $project_item_id])->result();
+        $get_rm = $this->db->query($sql_rm, [$project_id, $project_item_id])->result();
 
         $param_docno = [
             "prefix" => "MR",
@@ -1239,7 +1346,7 @@ class Projects_model extends Crud_model {
             "table" => "materialrequests"
         ];
 
-        if (sizeof($get) && !empty($get)) {
+        if ((sizeof($get_rm) && !empty($get_rm)) || (sizeof($get_sfg) && !empty($get_sfg))) {
             // create a material request document
             $header_data = [
                 "doc_no" => $this->Db_model->genDocNo($param_docno),
@@ -1254,31 +1361,66 @@ class Projects_model extends Crud_model {
 
             $this->db->insert("materialrequests", $header_data);
             $header_id = $this->db->insert_id();
-
             $mr_items_info = array();
-            foreach ($get as $item) {
-                // add some material items to material request document
-                $material_info = $this->dev2_getRowInfoByRowId($item->material_id, "bom_materials");
-                $item_data = [
-                    "mr_id" => $header_id,
-                    "project_id" => $project_id,
-                    "project_name" => $project_name,
-                    "code" => $material_info->name,
-                    "title" => $material_info->production_name,
-                    "description" => $material_info->description,
-                    "quantity" => $item->ratio,
-                    "unit_type" => $material_info->unit,
-                    "material_id" => $item->material_id,
-                    "bpim_id" => $item->id,
-                    "stock_id" => $item->stock_id
-                ];
-                
-                $this->db->insert("mr_items", $item_data);
-                $item_id = $this->db->insert_id();
-                $mr_items_info[$item_id] = $item_data;
 
-                // patch mr id to bom project item material
-                $this->dev2_patchMaterialRequestIdForBomItemByItemId($item->id, $header_id);
+            // sfg
+            if (sizeof($get_sfg)) {
+                foreach ($get_sfg as $item) {
+                    // add some material items to material request document
+                    $item_info = $this->dev2_getRowInfoByRowId($item->item_type, "items");
+                    $item_data = [
+                        "mr_id" => $header_id,
+                        "project_id" => $project_id,
+                        "project_item_id" => $item->project_item_id,
+                        "project_name" => $project_name,
+                        "code" => $item_info->item_code,
+                        "title" => $item_info->title,
+                        "description" => $item_info->description,
+                        "quantity" => $item->ratio,
+                        "unit_type" => $item_info->unit_type,
+                        "item_type" => 'SFG',
+                        "item_id" => $item->item_id,
+                        "bpim_id" => $item->id,
+                        "stock_id" => $item->stock_id
+                    ];
+                    
+                    $this->db->insert("mr_items", $item_data);
+                    $item_id = $this->db->insert_id();
+                    $mr_items_info[$item_id] = $item_data;
+
+                    // patch mr id to bom project item items
+                    $this->dev2_patchMaterialRequestIdForBomItemByItemId($item->id, $header_id, "bom_project_item_items");
+                }
+            }
+
+            // rm
+            if (sizeof($get_rm)) {
+                foreach ($get_rm as $item) {
+                    // add some material items to material request document
+                    $material_info = $this->dev2_getRowInfoByRowId($item->material_id, "bom_materials");
+                    $item_data = [
+                        "mr_id" => $header_id,
+                        "project_id" => $project_id,
+                        "project_item_id" => $item->project_item_id,
+                        "project_name" => $project_name,
+                        "code" => $material_info->name,
+                        "title" => $material_info->production_name,
+                        "description" => $material_info->description,
+                        "quantity" => $item->ratio,
+                        "unit_type" => $material_info->unit,
+                        "item_type" => 'RM',
+                        "material_id" => $item->material_id,
+                        "bpim_id" => $item->id,
+                        "stock_id" => $item->stock_id
+                    ];
+                    
+                    $this->db->insert("mr_items", $item_data);
+                    $item_id = $this->db->insert_id();
+                    $mr_items_info[$item_id] = $item_data;
+
+                    // patch mr id to bom project item material
+                    $this->dev2_patchMaterialRequestIdForBomItemByItemId($item->id, $header_id, "bom_project_item_materials");
+                }
             }
 
             // patch material request status for production order
@@ -1379,6 +1521,18 @@ class Projects_model extends Crud_model {
             $count = $get->rows_num;
         }
         return $count;
+    }
+
+    private function dev2_getMaterialCategoryTitleByCategoryId(int $id) : stdClass
+    {
+        $info = '';
+        $query = $this->db->get_where("material_categories", ["id" => $id])->row();
+
+        if ($query !== null) {
+            $info = $query;
+        }
+
+        return $info;
     }
 
     private function dev2_getStockActualTotalRemainingBySfgId(int $id): float
@@ -1483,15 +1637,15 @@ class Projects_model extends Crud_model {
         return (float) $actual_remaining;
     }
 
-    private function dev2_patchMaterialRequestIdForBomItemByItemId(int $id, int $mr_id): void
+    private function dev2_patchMaterialRequestIdForBomItemByItemId(int $id, int $mr_id, string $table_name) : void
     {
         $this->db->where("id", $id);
-        $this->db->update("bom_project_item_materials", [
+        $this->db->update($table_name, [
             "mr_id" => $mr_id
         ]);
     }
 
-    private function dev2_patchProductionMaterialRequestStatus(int $production_id): void
+    private function dev2_patchProductionMaterialRequestStatus(int $production_id) : void
     {
         $sql = "SELECT IFNULL(COUNT(id), 0) AS row_count FROM bom_project_item_materials WHERE mr_id IS NULL AND project_item_id = ?";
         $query = $this->db->query($sql, $production_id)->row();
@@ -1499,6 +1653,109 @@ class Projects_model extends Crud_model {
 
         $this->db->where("id", $production_id);
         $this->db->update("bom_project_items", ["mr_status" => $mr_status]);
+    }
+
+    public function dev2_patchProductionMaterialRequestStatusForTestCase(int $production_id) : array
+    {
+        $data = [
+            "rm" => [],
+            "sfg" => [],
+            "mr_id" => [],
+            "mr_unique" => [],
+            "mr_unique_size" => 0,
+            "find_null" => null,
+            "mr_null" => 'N',
+            "mr_where" => null,
+            "mr_where_status" => null,
+            "status" => [],
+            "find_awaiting" => null,
+            "production_mr_status" => 0
+        ];
+        
+        // Get all sfg items
+        $get_sfg = $this->db->get_where("bom_project_item_items", ["project_item_id" => $production_id])->result();
+        if (sizeof($get_sfg)) {
+            $data["sfg"] = $get_sfg;
+
+            foreach ($get_sfg as $item) {
+                $data["mr_id"][] = $item->mr_id;
+            }
+        }
+
+        // Get all sfg items
+        $get_rm = $this->db->get_where("bom_project_item_materials", ["project_item_id" => $production_id])->result();
+        if (sizeof($get_rm)) {
+            $data["rm"] = $get_rm;
+
+            foreach ($get_rm as $item) {
+                $data["mr_id"][] = $item->mr_id;
+            }
+        }
+
+        if (sizeof($data["mr_id"])) {
+            $data["mr_unique"] = array_unique($data["mr_id"]);
+        }
+
+        $data["mr_unique_size"] = sizeof($data["mr_unique"]);
+
+        if ($data["mr_unique_size"] === 1) {
+            // Size of unique material request equals to 1
+            $data["find_null"] = array_search('', $data["mr_unique"]);
+
+            if ($data["find_null"] === 0) {
+                // Case null in array index 0 : have no material request
+                $data["production_mr_status"] = 1;
+            } else {
+                // Case not null in array index 0 : have only 1 material request in this production
+                $data["mr_where"] = implode(",", $data["mr_unique"]);
+
+                $query = $this->db->get_where("materialrequests", ["id" => $data["mr_where"]])->row();
+                if (!empty($query)) {
+                    $data["mr_where_status"] = $query->status_id;
+
+                    // Material request status is [Pending] :: Production [mr_status] is [Created withdraw]
+                    if ($data["mr_where_status"] == 1) {
+                        $data["production_mr_status"] = 4;
+                    }
+
+                    // Material request status is [Approved] :: Production [mr_status] is [Completed withdrawal]
+                    if ($data["mr_where_status"] == 3) {
+                        $data["production_mr_status"] = 3;
+                    }
+                }
+            }
+        } else {
+            // Size of unique material request not equals to 1
+            $data["find_null"] = array_search('', $data["mr_unique"]);
+
+            if ($data["find_null"] == null) {
+                // Case have no null any index in array : Let get material request list
+                $data["mr_where"] = implode(",", $data["mr_unique"]);
+
+                $sql = "SELECT `status_id` FROM `materialrequests` WHERE `id` IN (" . $data["mr_where"] . ")";
+                $query = $this->db->query($sql)->result();
+
+                if (sizeof($query)) {
+                    foreach ($query as $item) {
+                        $data["status"][] = $item->status_id;
+                    }
+
+                    $data["find_awaiting"] = array_search(1, $data["status"]);
+                    if ($data["find_awaiting"] == null) {
+                        // Case have no awaiting material request : Production [mr_status] is [Completed withdrawal]
+                        $data["production_mr_status"] = 3;
+                    } else {
+                        // Case have awaiting material request : Production [mr_status] is [Created withdraw]
+                        $data["production_mr_status"] = 4;
+                    }
+                }
+            } else {
+                // Case have null any index in array : Production [mr_status] is [Partially withdrawn]
+                $data["production_mr_status"] = 2;
+            }
+        }
+
+        return $data;
     }
 
     private function dev2_getStockGroupByProjectId(int $project_id): stdClass

@@ -1,4 +1,9 @@
 <style type="text/css">
+    .modal-dialog {
+        width: calc(70% - 5rem);
+        transition: width .55s ease;
+    }
+
     #table-order-header {
         width: 100%;
     }
@@ -78,6 +83,22 @@
         font-size: 120%;
         color: #ffc107;
     }
+
+    .stock-name-width {
+        width: 208px;
+    }
+
+    .quantity-width {
+        width: 148px;
+    }
+
+    .cost-width {
+        width: 148px;
+    }
+
+    .mr-width {
+        width: 138px;
+    }
 </style>
 
 <div class="modal-body clearfix">
@@ -120,21 +141,21 @@
     <table id="table-order-detail">
         <thead>
             <tr>
-                <th>
+                <th class="material-width">
                     <?php echo lang("stock_material"); ?>
                 </th>
-                <th>
+                <th class="stock-name-width">
                     <?php echo lang("stock_restock_name"); ?>
                 </th>
-                <th>
+                <th class="quantity-width">
                     <?php echo lang("quantity"); ?>
                 </th>
                 <?php if ($auth_read_cost): ?>
-                    <th>
+                    <th class="cost-width">
                         <?php echo lang("production_order_rm_cost"); ?>
                     </th>
                 <?php endif; ?>
-                <th>
+                <th class="mr-width">
                     <?php echo lang("material_request_no"); ?>
                 </th>
             </tr>
@@ -167,7 +188,7 @@
                         <td class="text-right font-bold">
                             <?php if (isset($detail->ratio) && !empty($detail->ratio)): ?>
                                 <span class="<?php echo $detail->ratio > 0 ? "color-success" : "color-danger"; ?>">
-                                    <?php echo number_format($detail->ratio, 3) . " " . $detail->material_info->unit; ?> 
+                                    <?php echo number_format($detail->ratio, 6) . " " . $detail->material_info->unit; ?> 
                                 </span>
                                 <span>
                                     <?php
@@ -193,7 +214,7 @@
                                         if ($detail->stock_info->price > 0):
                                             $rm_cost = ($detail->stock_info->price / $detail->stock_info->stock) * $detail->ratio;
                                         endif;
-                                        echo number_format($rm_cost, 2) . " " . lang("THB");
+                                        echo number_format($rm_cost, 3) . " " . lang("THB");
                                         $total_rm_cost += $rm_cost;
                                     else:
                                         echo "-";
@@ -204,7 +225,7 @@
                                 ?>
                             </td>
                         <?php endif; ?>
-                        <td>
+                        <td class="text-center">
                             <?php
                             if (!empty($detail->mr_id)):
                                 if (isset($detail->mr_info) && !empty($detail->mr_info)):
@@ -227,7 +248,7 @@
             <tfoot>
                 <tr>
                     <td class="text-center font-bold" colspan="3"><?php echo lang("production_order_rm_cost_total"); ?></td>
-                    <td class="text-right font-bold"><?php echo number_format($total_rm_cost, 2) . " " . lang("THB"); ?></td>
+                    <td class="text-right font-bold"><?php echo number_format($total_rm_cost, 3) . " " . lang("THB"); ?></td>
                     <td></td>
                 </tr>
             </tfoot>
@@ -238,21 +259,21 @@
         <table id="table-order-detail">
             <thead>
                 <tr>
-                    <th>
+                    <th class="material-width">
                         <?php echo lang("sfg"); ?>
                     </th>
-                    <th>
+                    <th class="stock-name-width">
                         <?php echo lang("stock_restock_name"); ?>
                     </th>
-                    <th>
+                    <th class="quantity-width">
                         <?php echo lang("quantity"); ?>
                     </th>
                     <?php if ($auth_read_cost): ?>
-                        <th>
+                        <th class="cost-width">
                             <?php echo lang("production_order_sfg_cost"); ?>
                         </th>
                     <?php endif; ?>
-                    <th>
+                    <th class="mr-width">
                         <?php echo lang("material_request_no"); ?>
                     </th>
                 </tr>
@@ -285,7 +306,7 @@
                             <td class="text-right font-bold">
                                 <?php if (isset($detail->ratio) && !empty($detail->ratio)): ?>
                                     <span class="<?php echo $detail->ratio > 0 ? "color-success" : "color-danger"; ?>">
-                                        <?php echo number_format($detail->ratio, 3) . " " . $detail->material_info->unit_type; ?> 
+                                        <?php echo number_format($detail->ratio, 6) . " " . $detail->material_info->unit_type; ?> 
                                     </span>
                                     <span>
                                         <?php
@@ -311,7 +332,7 @@
                                             if ($detail->stock_info->price > 0):
                                                 $sfg_cost = ($detail->stock_info->price / $detail->stock_info->stock) * $detail->ratio;
                                             endif;
-                                            echo number_format($sfg_cost, 2) . " " . lang("THB");
+                                            echo number_format($sfg_cost, 3) . " " . lang("THB");
                                             $total_sfg_cost += $sfg_cost;
                                         else:
                                             echo "-";
@@ -322,7 +343,7 @@
                                     ?>
                                 </td>
                             <?php endif; ?>
-                            <td>
+                            <td class="text-center">
                                 <?php
                                 if (!empty($detail->mr_id)):
                                     if (isset($detail->mr_info) && !empty($detail->mr_info)):
@@ -345,7 +366,7 @@
                 <tfoot>
                     <tr>
                         <td class="text-center font-bold" colspan="3"><?php echo lang("production_order_sfg_cost_total"); ?></td>
-                        <td class="text-right font-bold"><?php echo number_format($total_sfg_cost, 2) . " " . lang("THB"); ?></td>
+                        <td class="text-right font-bold"><?php echo number_format($total_sfg_cost, 3) . " " . lang("THB"); ?></td>
                         <td></td>
                     </tr>
                 </tfoot>

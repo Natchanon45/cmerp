@@ -2662,6 +2662,7 @@ $lang["production_order_producing"] = "กำลังผลิต";
 $lang["production_order_produced_completed"] = "ผลิตเสร็จแล้ว";
 $lang["production_order_not_yet_withdrawn"] = "ยังไม่เบิก";
 $lang["production_order_partially_withdrawn"] = "เบิกบางส่วน";
+$lang["production_order_created_withdrawn"] = "สร้างใบเบิก";
 $lang["production_order_completed_withdrawal"] = "เบิกครบแล้ว";
 $lang["production_order_create_mr_all"] = "สร้างใบเบิกทุกรายการ";
 $lang["production_order_change_to_producing"] = "เปลี่ยนสถานะเป็น กำลังผลิต ทุกรายการ";
@@ -2678,6 +2679,10 @@ $lang["production_order_delete_failure"] = "ลบรายการไม่ส
 $lang["production_order_bom_recalc"] = "อัพเดทวัตถุดิบ";
 $lang["production_order_state_change"] = "เปลี่ยนสถานะรายการผลิต";
 $lang["production_order_cannot_change_status"] = "ไม่สามารถเปลี่ยนสถานะได้, กรุณาสร้างและอนุมัติใบเบิกวัตถุดิบ";
+$lang["production_order_form_data_incorrect"] = "กรุณาระบุข้อมูลให้ครบถ้วน";
+$lang["production_order_quantity_data_incorrect"] = "กรุณาระบุจำนวนให้ถูกต้อง";
+$lang["production_order_all_of_material_used"] = "วัตถุดิบต้องที่ใช้ทั้งหมด";
+$lang["production_order_all_of_semi_used"] = "สินค้ากึ่งสำเร็จต้องที่ใช้ทั้งหมด";
 
 // ตั้งค่าสิทธิ์การเข้าถึงการจัดการบัญชี
 $lang["setting_account_management"] = "ตั้งค่าสิทธิ์การเข้าถึงการจัดการบัญชี";
