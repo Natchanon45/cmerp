@@ -1199,7 +1199,7 @@ class Stock extends MY_Controller
         $options = array(
             "category_id" => $this->input->post("category_id")
         );
-        $list_data = $this->Bom_materials_model->get_details($options)->result();
+        $list_data = $this->Bom_materials_model->get_material_list($options);
         $result = array();
         foreach ($list_data as $data) {
             $result[] = $this->_material_make_row($data);
@@ -1355,9 +1355,10 @@ class Stock extends MY_Controller
     private function _material_row_data($id)
     {
         $options = array(
-            'id' => $id
+            "id" => $id
         );
-        $data = $this->Bom_materials_model->get_details($options)->row();
+
+        $data = $this->Bom_materials_model->get_material_list($options)[0];
         return $this->_material_make_row($data);
     }
 
@@ -1482,7 +1483,10 @@ class Stock extends MY_Controller
 
         $data = clean_data($data); 
         $save_id = $this->Bom_materials_model->save($data, $material_id);
+
         if ($save_id) {
+            // $save_data = $this->Bom_materials_model->get_one($save_id);
+
             echo json_encode(
                 array(
                     'success' => true,
@@ -6194,6 +6198,16 @@ class Stock extends MY_Controller
             $this->db->trans_commit();
             echo 'Transaction successful.';
         }
+    }
+
+    public function dev2_testCaseGetMaterialDetail($id = null)
+    {
+        $options = [
+            "id" => $id
+        ];
+
+        $data = $this->Bom_materials_model->get_material_list($options);
+        var_dump(arr($data)); exit();
     }
 
 }

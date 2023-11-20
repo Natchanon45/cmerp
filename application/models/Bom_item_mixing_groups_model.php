@@ -650,7 +650,7 @@ class Bom_item_mixing_groups_model extends Crud_model {
 
     function dev2_getCountMixingByMaterialId($id)
     {
-        $query = $this->db->get_where('bom_item_mixings', ['material_id' => $id]);
+        $query = $this->db->get_where('bom_item_mixings', ['material_id' => $id, 'item_type' => 'RM']);
         return $query->num_rows();
     }
 
