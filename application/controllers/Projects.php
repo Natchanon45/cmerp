@@ -2343,7 +2343,8 @@ class Projects extends MY_Controller
     {
         $this->access_only_team_members();
         $view_data['project_id'] = 0;
-        $projects = $this->Tasks_model->get_my_projects_dropdown_list($this->login_user->id)->result();
+        //$projects = $this->Tasks_model->get_my_projects_dropdown_list($this->login_user->id)->result();
+        $projects = $this->Tasks_model->get_projects_dropdown_list($this->login_user->id)->result();
         $projects_dropdown = array(array("id" => "", "text" => "- " . lang("project") . " -"));
         foreach ($projects as $project) {
             if ($project->project_id && $project->project_title) {

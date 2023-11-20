@@ -70,7 +70,7 @@ foreach ($task_statuses as $status) {
                 {name: "specific_user_id", class: "w200", options: <?php echo $team_members_dropdown; ?>},
                 {name: "milestone_id", class: "w200", options: [{id: "", text: "- <?php echo lang('milestone'); ?> -"}], dependency: ["project_id"], dataSource: '<?php echo_uri("projects/get_milestones_for_filter") ?>'}, //milestone is dependent on project
                 {name: "project_id", class: "w200", options: <?php echo $projects_dropdown; ?>, dependent: ["milestone_id"]}, //reset milestone on changing of project
-                {name: "quick_filter", class: "w200", showHtml: true, options: <?php $this->load->view("projects/tasks/quick_filters_dropdown"); ?>}
+                //{name: "quick_filter", class: "w200", showHtml: true, options: <?php $this->load->view("projects/tasks/quick_filters_dropdown"); ?>}
             ],
             singleDatepicker: [{name: "deadline", defaultText: "<?php echo lang('deadline') ?>",
                     options: [
@@ -100,7 +100,7 @@ foreach ($task_statuses as $status) {
                 {title: '<?php echo lang("assigned_to") ?>', "class": "min-w150", visible: showOption},
                 {title: '<?php echo lang("collaborators") ?>', visible: showOption},
                 {title: '<?php echo lang("status") ?>', visible: showOption}
-<?php echo $custom_field_headers; ?>,
+                <?php echo $custom_field_headers; ?>,
                 {visible: false, searchable: false}
             ],
             printColumns: combineCustomFieldsColumns([1, 2, 4, 6, 7, 8, 9, 10], '<?php echo $custom_field_headers; ?>'),
