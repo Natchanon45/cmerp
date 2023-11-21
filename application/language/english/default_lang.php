@@ -2318,3 +2318,4 @@ $lang["sfg_column_header"] = "Semi-Finished Goods";
 $lang["item_type"] = "Item type";
 $lang["fg"] = "FG";
 $lang["sfg"] = "SFG";
+$lang["group_category"] = "Categories";

@@ -2715,3 +2715,4 @@ $lang["sfg_column_header"] = "สินค้ากึ่งสำเร็จ";
 $lang["item_type"] = "ประเภทสินค้า";
 $lang["fg"] = "สินค้าสำเร็จ";
 $lang["sfg"] = "สินค้ากึ่งสำเร็จ";
+$lang["group_category"] = "แยกตามหมวดหมู่";
