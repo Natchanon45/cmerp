@@ -758,6 +758,40 @@
                         <input type="checkbox" name="create_product_item" value="Y" <?php if($create_product_item == true) echo "checked"; ?> >
                         <label for="create_product_item">สามารถเพิ่มรายการสินค้า</label>
                     </div>
+
+                    <div>
+                        <input type="checkbox" name="access_product_category" value="Y" <?php if($access_product_category == true) echo "checked"; ?> >
+                        <label for="access_product_category">สามารถจัดการหมวดหมู่สินค้า</label>
+                    </div>
+                </li>
+                <li>
+                    <h5>ตั้งค่าสิทธิ์การเข้าถึงรายการสินค้ากึ่งสำเร็จ:</h5>
+                    <div>
+                        <input type="radio" name="access_semi_product_item" value="" <?php if($access_semi_product_item == false) echo "checked"; ?> >
+                        <label for="access_semi_product_item">ไม่ใช่</label>
+                    </div>
+                    <div>
+                        <input type="radio" name="access_semi_product_item" value="own" <?php if($access_semi_product_item == "own") echo "checked"; ?> >
+                        <label for="access_semi_product_item">ใช่เฉพาะรายการสินค้ากึ่งสำเร็จของตัวเองเท่านัน</label>
+                    </div>
+                    <div>
+                        <input type="radio" name="access_semi_product_item" value="all" <?php if($access_semi_product_item == "all") echo "checked"; ?> >
+                        <label for="access_semi_product_item">ใช่รายการสินค้ากึ่งสำเร็จทั้งหมด</label>
+                    </div>
+                    <div>
+                        <input type="checkbox" name="access_semi_product_item_formula" value="Y" <?php if($access_semi_product_item_formula == true) echo "checked"; ?> >
+                        <label for="access_semi_product_item_formula">สามารถเห็นส่วนประกอบสินค้ากึ่งสำเร็จ</label>
+                    </div>
+
+                    <div>
+                        <input type="checkbox" name="create_semi_product_item" value="Y" <?php if($create_semi_product_item == true) echo "checked"; ?> >
+                        <label for="create_semi_product_item">สามารถเพิ่มรายการสินค้ากึ่งสำเร็จ</label>
+                    </div>
+
+                    <div>
+                        <input type="checkbox" name="access_semi_product_category" value="Y" <?php if($access_semi_product_category == true) echo "checked"; ?> >
+                        <label for="access_semi_product_category">สามารถจัดการหมวดหมู่สินค้ากึ่งสำเร็จ</label>
+                    </div>
                 </li>
                 <li class="accounting">
                     <h5><?php echo lang("setting_account_management"); ?>:</h5>

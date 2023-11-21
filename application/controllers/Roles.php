@@ -317,9 +317,17 @@ class Roles extends MY_Controller {
         $access_note_specific = null;
         $add_note = false;
         $update_note = false;
+
         $access_product_item = false;
         $access_product_item_formula = false;
         $create_product_item = false;
+        $access_product_category = false;
+
+        $access_semi_product_item = false;
+        $access_semi_product_item_formula = false;
+        $create_semi_product_item = false;
+        $access_semi_product_category = false;
+
         $access_expenses = false;
 
         $access_material_request = false;
@@ -341,6 +349,12 @@ class Roles extends MY_Controller {
         if($this->input->post('access_product_item') != "") $access_product_item = $this->input->post('access_product_item');
         if($this->input->post('access_product_item_formula') == "Y") $access_product_item_formula = true;
         if($this->input->post('create_product_item') == "Y") $create_product_item = true;
+        if($this->input->post('access_product_category') == "Y") $access_product_category = true;
+
+        if($this->input->post('access_semi_product_item') != "") $access_semi_product_item = $this->input->post('access_semi_product_item');
+        if($this->input->post('access_semi_product_item_formula') == "Y") $access_semi_product_item_formula = true;
+        if($this->input->post('create_semi_product_item') == "Y") $create_semi_product_item = true;
+        if($this->input->post('access_semi_product_category') == "Y") $access_semi_product_category = true;
 
         if($this->input->post('access_expenses') != "") $access_expenses = $this->input->post('access_expenses');
 
@@ -456,6 +470,11 @@ class Roles extends MY_Controller {
             "access_product_item"=>$access_product_item,
         	"access_product_item_formula"=>$access_product_item_formula,
         	"create_product_item"=>$create_product_item,
+        	"access_product_category"=>$access_product_category,
+        	"access_semi_product_item"=>$access_semi_product_item,
+        	"access_semi_product_item_formula"=>$access_semi_product_item_formula,
+        	"create_semi_product_item"=>$create_semi_product_item,
+        	"access_semi_product_category"=>$access_semi_product_category,
             "access_expenses"=>$access_expenses,
             "accounting"=>[
                 "sales_order"=>["access"=>$accounting_sales_order_access],
@@ -695,6 +714,12 @@ class Roles extends MY_Controller {
             $view_data['access_product_item'] = get_array_value($permissions, "access_product_item");
             $view_data['access_product_item_formula'] = get_array_value($permissions, "access_product_item_formula");
             $view_data['create_product_item'] = get_array_value($permissions, "create_product_item");
+            $view_data['access_product_category'] = get_array_value($permissions, "access_product_category");
+
+            $view_data['access_semi_product_item'] = get_array_value($permissions, "access_semi_product_item");
+            $view_data['access_semi_product_item_formula'] = get_array_value($permissions, "access_semi_product_item_formula");
+            $view_data['create_semi_product_item'] = get_array_value($permissions, "create_semi_product_item");
+            $view_data['access_semi_product_category'] = get_array_value($permissions, "access_semi_product_category");
 
             $view_data['access_expenses'] = get_array_value($permissions, "access_expenses");
 
