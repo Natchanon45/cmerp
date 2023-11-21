@@ -2285,6 +2285,17 @@ $lang["production_order_form_data_incorrect"] = "Please enter form data correctl
 $lang["production_order_quantity_data_incorrect"] = "Please enter the quantity each records correctly.";
 $lang["production_order_all_of_material_used"] = "All the required materials.";
 $lang["production_order_all_of_semi_used"] = "All the required semi-finished goods.";
+$lang["production_order_create_mr_all_both"] = "All production order";
+$lang["production_order_create_mr_all_fg"] = "FG production order";
+$lang["production_order_create_mr_all_sfg"] = "SFG production otder";
+
+$lang["mr_creation_rm_will_created"] = "RM that will be used to create the requisition.";
+$lang["mr_creation_sfg_will_created"] = "SFG that will be used to create the requisition.";
+$lang["mr_creation_all_question"] = "Would you like to create an MR for these materials?";
+$lang["mr_creation_all_production"] = "Create MR for all production.";
+$lang["mr_creation_fg_production"] = "Create MR for FG production only.";
+$lang["mr_creation_sfg_production"] = "Create MR for SFG production only.";
+$lang["mr_preview"] = "Preview MR";
 
 // Setting Access Rights for Account Management
 $lang["setting_account_management"] = "Setting access rights for Account management";

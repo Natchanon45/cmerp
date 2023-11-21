@@ -6078,10 +6078,15 @@ class Projects extends MY_Controller
 
     function production_order_mr_creation_all()
     {
-        $data = $this->input->post();
+        $post = $this->input->post();
+        $mr_creation = $this->Projects_model->dev2_postProductionMaterialRequestCreationPreview(
+            $post["project_id"],
+            $post["project_name"],
+            $post["item_type"]
+        );
         
-        var_dump(arr($data)); exit();
-        $this->load->view("projects/production_orders/mr_creation_all", $data);
+        // var_dump(arr($mr_creation)); exit();
+        $this->load->view("projects/production_orders/mr_creation_all", $mr_creation);
     }
 
     function production_order_mr_creation_all_post()
@@ -6091,7 +6096,8 @@ class Projects extends MY_Controller
         // var_dump(arr($post)); exit();
         $mr_creation_all = $this->Projects_model->dev2_postProductionMaterialRequestCreationAll(
             $post->projectId,
-            $post->projectName
+            $post->projectName,
+            $post->productionIds
         );
         echo json_encode($mr_creation_all);
     }

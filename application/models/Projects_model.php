@@ -1131,9 +1131,114 @@ class Projects_model extends Crud_model {
         return $info;
     }
 
-    public function dev2_postProductionMaterialRequestCreationAll(int $project_id, string $project_name): array
+    public function dev2_postProductionMaterialRequestCreationPreview(int $project_id, string $project_name, string $item_type) : array
     {
         $info = [
+            "project_id" => $project_id,
+            "project_name" => $project_name,
+            "item_type" => $item_type,
+            "production_list" => [],
+            "production_ids" => '',
+            "rm_list" => [],
+            "rm_categories" => [],
+            "sfg_list" => [],
+            "sfg_categories" => [],
+        ];
+
+        // Get production order list
+        if ($item_type == 'BOTH') {
+            $production_list = $this->db->get_where("bom_project_items", ["project_id" => $project_id])->result();
+        } else {
+            $production_list = $this->db->get_where("bom_project_items", ["project_id" => $project_id, "item_type" => $item_type])->result();
+        }
+        
+        $production_ids = [];
+        if (sizeof($production_list)) {
+            $info["production_list"] = $production_list;
+
+            foreach ($production_list as $list) {
+                $production_ids[] = $list->id;
+            }
+        }
+
+        // Get rm item in bom of production order
+        if (sizeof($production_ids)) {
+            $ids = implode(",", $production_ids);
+            $info["production_ids"] = $ids;
+
+            $rm_sql = "SELECT * FROM bom_project_item_materials WHERE stock_id IS NOT NULL AND mr_id IS NULL AND project_item_id IN (" . $ids . ")";
+            $rm_list = $this->db->query($rm_sql)->result();
+            if (sizeof($rm_list)) {
+                foreach ($rm_list as $list) {
+                    $rm_categories[] = $list->category_in_bom;
+                    $list->material_info = $this->dev2_getRowInfoByRowId($list->material_id, "bom_materials");
+                    $list->stock_name = $this->dev2_getMaterialStockNameByStockId($list->stock_id);
+                }
+                
+                $info["rm_categories"] = $this->dev2_getInCategoriesListByListIds($rm_categories);
+                $info["rm_list"] = $rm_list;
+            }
+
+            $sfg_sql = "SELECT * FROM bom_project_item_items WHERE stock_id IS NOT NULL AND mr_id IS NULL AND project_item_id IN (" . $ids . ")";
+            $sfg_list = $this->db->query($sfg_sql)->result();
+            if (sizeof($sfg_list)) {
+                foreach ($sfg_list as $list) {
+                    $sfg_categories[] = $list->category_in_bom;
+                    $list->item_info = $this->dev2_getRowInfoByRowId($list->item_id, "items");
+                    $list->stock_name = $this->dev2_getItemStockNameByStockId($list->stock_id);
+                }
+
+                $info["sfg_categories"] = $this->dev2_getInCategoriesListByListIds($sfg_categories);
+                $info["sfg_list"] = $sfg_list;
+            }
+        }
+
+        return $info;
+    }
+
+    public function dev2_getMaterialStockNameByStockId(int $id) : string
+    {
+        $stock_name = '-';
+
+        $sql = "SELECT `name` FROM `bom_stock_groups` AS `bg` LEFT JOIN `bom_stocks` AS `bs` ON `bg`.`id` = `bs`.`group_id` WHERE `bs`.`id` = ?";
+        $query = $this->db->query($sql, $id)->row();
+
+        if (!empty($query->name)) {
+            $stock_name = $query->name;
+        }
+        return $stock_name;
+    }
+
+    public function dev2_getItemStockNameByStockId(int $id) : string
+    {
+        $stock_name = '-';
+
+        $sql = "SELECT `name` FROM `bom_item_groups` AS `bg` LEFT JOIN `bom_item_stocks` AS `bs` ON `bg`.`id` = `bs`.`group_id` WHERE `bs`.`id` = ?";
+        $query = $this->db->query($sql, $id)->row();
+
+        if (!empty($query->name)) {
+            $stock_name = $query->name;
+        }
+        return $stock_name;
+    }
+
+    private function dev2_getInCategoriesListByListIds(array $list_ids) : array
+    {
+        $categories_list = [];
+
+        $ids = implode(",", $list_ids);
+        $sql = "SELECT * FROM material_categories WHERE id IN (" . $ids . ")";
+        $query = $this->db->query($sql)->result();
+        if (sizeof($query)) {
+            $categories_list = $query;
+        }
+        return $categories_list;
+    }
+
+    public function dev2_postProductionMaterialRequestCreationAll(int $project_id, string $project_name, string $production_ids) : array
+    {
+        $info = [
+            "production_ids" => $production_ids,
             "mr_id" => null,
             "mr_info" => null,
             "mr_items_info" => null,
@@ -1142,11 +1247,11 @@ class Projects_model extends Crud_model {
             "target" => null
         ];
 
-        $sql_sfg = "SELECT * FROM bom_project_item_items WHERE project_id = ? AND ratio > 0 AND mr_id IS NULL AND used_status = 0 AND entry_flag = 0 ORDER BY item_id, stock_id";
-        $sql_rm = "SELECT * FROM bom_project_item_materials WHERE project_id = ? AND ratio > 0 AND mr_id IS NULL AND used_status = 0 AND entry_flag = 0 ORDER BY material_id, stock_id";
+        $sql_sfg = "SELECT * FROM bom_project_item_items WHERE project_id = " . $project_id . " AND project_item_id IN (" . $production_ids . ") AND ratio > 0 AND mr_id IS NULL AND used_status = 0 AND entry_flag = 0 ORDER BY item_id, stock_id";
+        $sql_rm = "SELECT * FROM bom_project_item_materials WHERE project_id = " . $project_id . " AND project_item_id IN (" . $production_ids . ") AND ratio > 0 AND mr_id IS NULL AND used_status = 0 AND entry_flag = 0 ORDER BY material_id, stock_id";
         
-        $get_sfg = $this->db->query($sql_sfg, $project_id)->result();
-        $get_rm = $this->db->query($sql_rm, $project_id)->result();
+        $get_sfg = $this->db->query($sql_sfg)->result();
+        $get_rm = $this->db->query($sql_rm)->result();
 
         $param_docno = [
             "prefix" => "MR",

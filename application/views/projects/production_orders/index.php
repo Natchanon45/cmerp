@@ -102,18 +102,6 @@
                     "data-post-project_id" => $project_info["id"]
                 )
             );
-
-            echo modal_anchor(
-                get_uri("projects/production_order_mr_creation_all"),
-                "<i class='fa fa-plus-circle'></i> " . lang("production_order_create_mr_all"),
-                array(
-                    "class" => "btn btn-info",
-                    "title" => lang("production_order_create_mr_all"),
-                    "data-title" => lang("production_order_create_mr_all"),
-                    "data-post-project_id" => $project_info["id"],
-                    "data-post-project_name" => $project_info["title"]
-                )
-            );
             ?>
             
             <!-- btn-create-material-request -->
@@ -127,11 +115,11 @@
                         <?php
                             echo modal_anchor(
                                 get_uri("projects/production_order_mr_creation_all"),
-                                "<i class='fa fa-plus-circle'></i> " . "รายการผลิตทั้งหมด",
+                                "<i class='fa fa-plus-circle'></i> " . lang("production_order_create_mr_all_both"),
                                 array(
                                     "class" => "dropdown-item",
-                                    "title" => lang("production_order_create_mr_all"),
-                                    "data-title" => lang("production_order_create_mr_all"),
+                                    "title" => lang("mr_creation_all_production"),
+                                    "data-title" => lang("mr_creation_all_production"),
                                     "data-post-project_id" => $project_info["id"],
                                     "data-post-project_name" => $project_info["title"],
                                     "data-post-item_type" => "BOTH"
@@ -143,11 +131,11 @@
                         <?php
                             echo modal_anchor(
                                 get_uri("projects/production_order_mr_creation_all"),
-                                "<i class='fa fa-plus-circle'></i> " . "รายการผลิตสินค้าสำเร็จเท่านั้น",
+                                "<i class='fa fa-plus-circle'></i> " . lang("production_order_create_mr_all_fg"),
                                 array(
                                     "class" => "dropdown-item",
-                                    "title" => lang("production_order_mr_creation_all"),
-                                    "data-title" => lang("production_order_mr_creation_all"),
+                                    "title" => lang("mr_creation_fg_production"),
+                                    "data-title" => lang("mr_creation_fg_production"),
                                     "data-post-project_id" => $project_info["id"],
                                     "data-post-project_name" => $project_info["title"],
                                     "data-post-item_type" => "FG"
@@ -159,11 +147,11 @@
                         <?php
                             echo modal_anchor(
                                 get_uri("projects/production_order_mr_creation_all"),
-                                "<i class='fa fa-plus-circle'></i> " . "รายการผลิตสินค้ากึ่งสำเร็จเท่านั้น",
+                                "<i class='fa fa-plus-circle'></i> " . lang("production_order_create_mr_all_sfg"),
                                 array(
                                     "class" => "dropdown-item",
-                                    "title" => lang("production_order_mr_creation_all"),
-                                    "data-title" => lang("production_order_mr_creation_all"),
+                                    "title" => lang("mr_creation_sfg_production"),
+                                    "data-title" => lang("mr_creation_sfg_production"),
                                     "data-post-project_id" => $project_info["id"],
                                     "data-post-project_name" => $project_info["title"],
                                     "data-post-item_type" => "SFG"
