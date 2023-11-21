@@ -147,7 +147,60 @@
                         <label for="can_delete_files"><?php echo lang("can_delete_files"); ?></label>
                     </div>
 
+                    <div>
+                        <label for="can_update_team_members_general_info_and_social_links">การเข้าถึงโปรเจค:</label>
+                        <div class="ml15">
+                            <div>
+                                <?php
+                                echo form_radio(array(
+                                    "id" => "access_project_no",
+                                    "name" => "access_project",
+                                    "value" => false,
+                                    "class" => "project_permission toggle_specific",
+                                        ), $access_project, ($access_project == "") ? true : false);
+                                ?>
+                                <label for="access_project_no">ไม่ใช่</label>
+                            </div>
+                            <div>
+                                <?php
+                                echo form_radio(array(
+                                    "id" => "access_project_all",
+                                    "name" => "access_project",
+                                    "value" => "all",
+                                    "class" => "project_permission toggle_specific",
+                                        ), $access_project, ($access_project === "all") ? true : false);
+                                ?>
+                                <label for="access_project_all">ใช่ โปรเจคทั้งหมด</label>
+                            </div>
+                            <div>
+                                <?php
+                                echo form_radio(array(
+                                    "id" => "access_project_assigned_only",
+                                    "name" => "access_project",
+                                    "value" => "assigned_only",
+                                    "class" => "project_permission toggle_specific",
+                                        ), $access_project, ($access_project === "assigned_only") ? true : false);
+                                ?>
+                                <label for="access_project_assigned_only">ใช่ โปรเจคของคุณเท่านั้น</label>
+                            </div>
+                            <div>
+                                <?php
+                                echo form_radio(array(
+                                    "id" => "access_project_specific",
+                                    "name" => "access_project",
+                                    "value" => "specific",
+                                    "class" => "project_permission toggle_specific",
+                                        ), $access_project, ($access_project === "specific") ? true : false);
+                                ?>
+                                <label for="access_project_specific">ใช่เฉพาะประเภทของโปรเจค:</label>
+                                <div class="specific_dropdown">
+                                    <input type="text" value="<?php echo $access_project_specific; ?>" name="access_project_specific" id="note_types_specific_dropdown" class="w100p validate-hidden"  data-rule-required="true" data-msg-required="<?php echo lang('field_required'); ?>" placeholder="Choose note types"  />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </li>
+
                 <li>
                     <h5><?php echo lang("set_team_members_permission"); ?>:</h5>
                     <div>
@@ -972,7 +1025,7 @@
         toggle_specific_dropdown();
 
         function toggle_specific_dropdown() {
-            var selectors = [".note_permission", ".leave_permission", ".attendance_permission", ".timesheet_manage_permission", ".team_member_update_permission", ".ticket_permission", ".message_permission_specific"];
+            var selectors = [".project_permission", ".note_permission", ".leave_permission", ".attendance_permission", ".timesheet_manage_permission", ".team_member_update_permission", ".ticket_permission", ".message_permission_specific"];
             $.each(selectors, function (index, element) {
                 var $element = $(element + ":checked");
                 if ((element !== ".message_permission_specific" && $element.val() === "specific") || (element === ".message_permission_specific" && $element.is(":checked") && !$("#message_permission_specific_area").hasClass("hide"))) {

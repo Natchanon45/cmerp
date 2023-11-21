@@ -313,6 +313,9 @@ class Roles extends MY_Controller {
 
         $id = $this->input->post('id');
 
+        $access_project = false;
+        $access_project_specific = null;
+
         $access_note = false;
         $access_note_specific = null;
         $add_note = false;
@@ -340,6 +343,9 @@ class Roles extends MY_Controller {
         $update_purchase_request = false;
         $delete_purchase_request = false;
         $approve_purchase_request = false;
+
+        if($this->input->post('access_project') != false) $access_project = $this->input->post('access_project');
+        if($access_project === "specific") $access_project_specific = $this->input->post('access_project_specific');
 
         if($this->input->post('access_note') != false) $access_note = $this->input->post('access_note');
         if($access_note === "specific") $access_note_specific = $this->input->post('access_note_specific');
@@ -463,6 +469,8 @@ class Roles extends MY_Controller {
         }
 
         $permissions = array(
+            "access_project"=>$access_project,
+            "access_project_specific"=>$access_project_specific,
             "access_note"=>$access_note,
             "access_note_specific"=>$access_note_specific,
             "add_note"=>$add_note,
@@ -704,6 +712,10 @@ class Roles extends MY_Controller {
                 $note_types_dropdown[] = array("id" => $ntype->id, "text" => $ntype->title);
             }
             $view_data['note_types_dropdown'] = json_encode($note_types_dropdown);
+
+            if(get_array_value($permissions, "access_project") === null) $view_data['access_project'] = "assigned_only";
+            else $view_data['access_project'] = get_array_value($permissions, "access_project");
+            $view_data['access_project_specific'] = get_array_value($permissions, "access_project_specific");
 
             if(get_array_value($permissions, "access_note") === null) $view_data['access_note'] = "assigned_only";
             else $view_data['access_note'] = get_array_value($permissions, "access_note");

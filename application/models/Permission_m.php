@@ -4,6 +4,9 @@ class Permission_m extends MY_Model
 {
 	public $permissions = null;
 
+	public $access_project = "assigned_only";
+	public $access_project_specific = null;
+
 	public $access_note = "assigned_only";
 	public $access_note_specific = null;
 	public $add_note = false;
@@ -80,6 +83,9 @@ class Permission_m extends MY_Model
 
 	function setAdmin()
 	{
+		$permissions["access_project"] = $this->access_project = "all";
+		$permissions["access_project_specific"] = $this->access_project_specific = null;
+
 		$permissions["access_note"] = $this->access_note = "all";
 		$permissions["access_note_specific"] = $this->access_note_specific = null;
 		$permissions["add_note"] = $this->add_note = true;
@@ -137,6 +143,10 @@ class Permission_m extends MY_Model
 
 	function setPermission($permissions)
 	{
+		//Project
+		if(isset($permissions->access_project)) $this->access_project = $permissions->access_project;
+		if(isset($permissions->access_project_specific)) $this->access_project_specific = $permissions->access_project_specific;
+
 		//Note
 		if(isset($permissions->access_note)) $this->access_note = $permissions->access_note;
 		if(isset($permissions->access_note_specific)) $this->access_note_specific = $permissions->access_note_specific;
