@@ -570,14 +570,14 @@ class Projects_model extends Crud_model {
         ];
 
         $sql = "
-            SELECT `category_in_bom`, `material_id`, CASE WHEN `ratio` < 0 THEN `ratio` * -1 ELSE `ratio` END AS `quantity` 
+            SELECT `category_in_bom`, `material_id`, `stock_id`, `mr_id`, CASE WHEN `ratio` < 0 THEN `ratio` * -1 ELSE `ratio` END AS `quantity` 
             FROM `bom_project_item_materials` 
             WHERE `project_id` = ? 
             ORDER BY `category_in_bom`, `material_id` 
         ";
 
         $sql_sfg = "
-            SELECT `category_in_bom`, `item_id` AS `material_id`, CASE WHEN `ratio` < 0 THEN `ratio` * -1 ELSE `ratio` END AS `quantity` 
+            SELECT `category_in_bom`, `item_id` AS `material_id`, `mr_id`, `stock_id`, CASE WHEN `ratio` < 0 THEN `ratio` * -1 ELSE `ratio` END AS `quantity` 
             FROM `bom_project_item_items` 
             WHERE `project_id` = ? 
             ORDER BY `category_in_bom`, `item_id`;
@@ -589,6 +589,17 @@ class Projects_model extends Crud_model {
         if (sizeof($query)) {
             foreach ($query as $row) {
                 $row->material_info = $this->dev2_getRowInfoByRowId($row->material_id, "bom_materials");
+                $row->stock_info = new stdClass();
+                $row->mr_info = new stdClass();
+
+                if (isset($row->stock_id) && !empty($row->stock_id)) {
+                    $row->stock_info = $this->dev2_getRowInfoByRowId($row->stock_id, "bom_stocks");
+                }
+
+                if (isset($row->mr_id) && !empty($row->mr_id)) {
+                    $row->mr_info = $this->dev2_getRowInfoByRowId($row->mr_id, "materialrequests");
+                }
+                
                 array_push($info["temp_rm_cate"], $row->category_in_bom);
             }
 
@@ -599,6 +610,17 @@ class Projects_model extends Crud_model {
         if (sizeof($query_sfg)) {
             foreach ($query_sfg as $row) {
                 $row->item_info = $this->dev2_getRowInfoByRowId($row->material_id, "items");
+                $row->stock_info = new stdClass();
+                $row->mr_info = new stdClass();
+
+                if (isset($row->stock_id) && !empty($row->stock_id)) {
+                    $row->stock_info = $this->dev2_getRowInfoByRowId($row->stock_id, "bom_item_stocks");
+                }
+
+                if (isset($row->mr_id) && !empty($row->mr_id)) {
+                    $row->mr_info = $this->dev2_getRowInfoByRowId($row->mr_id, "materialrequests");
+                }
+                
                 array_push($info["temp_sfg_cate"], $row->category_in_bom);
             }
 
@@ -633,7 +655,7 @@ class Projects_model extends Crud_model {
         return $info;
     }
 
-    public function dev2_getRawMatCostOfProductionOrderByProductionOrderId(int $id, float $quantity): float
+    public function dev2_getRawMatCostOfProductionOrderByProductionOrderId(int $id, float $quantity) : float
     {
         $cost = array();
         $getRmUsageList = $this->db->get_where("bom_project_item_materials", ["project_item_id" => $id])->result();
@@ -965,7 +987,7 @@ class Projects_model extends Crud_model {
         return $info;
     }
 
-    public function dev2_getProductionOrderDetailByProjectHeaderId(int $project_id, int $project_item_id): stdClass
+    public function dev2_getProductionOrderDetailByProjectHeaderId(int $project_id, int $project_item_id) : stdClass
     {
         $info = new stdClass();
         
@@ -1357,7 +1379,7 @@ class Projects_model extends Crud_model {
                 "mr_items_info" => $mr_items_info,
                 "process" => "success",
                 "success" => true,
-                "target" => get_uri("materialrequests/view/" . $header_id)
+                "target" => get_uri("materialrequests/view_group/" . $header_id)
             ];
         }
 
@@ -1683,7 +1705,7 @@ class Projects_model extends Crud_model {
                 "mr_items_info" => $mr_items_info,
                 "process" => "success",
                 "success" => true,
-                "target" => get_uri("materialrequests/view/" . $header_id)
+                "target" => get_uri("materialrequests/view_group/" . $header_id)
             ];
         }
 

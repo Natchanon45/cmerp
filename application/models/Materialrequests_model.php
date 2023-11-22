@@ -710,4 +710,26 @@ class MaterialRequests_model extends Crud_model
 		return $data;
 	}
 
+	public function dev2_getMaterialRequestProjectHeaderById(int $id) : stdClass
+	{
+		$data = new stdClass();
+
+		$query = $this->db->get_where("materialrequests", ["id" => $id, "mr_type" => 3])->row();
+		if (!empty($query)) {
+			$data = $query;
+		}
+		return $data;
+	}
+
+	public function dev2_getMaterialRequestProjectDetailById(int $id) : array
+	{
+		$data = [];
+
+		$query = $this->db->get_where("mr_items", ["mr_id" => $id])->result();
+		if (sizeof($query)) {
+			$data = $query;
+		}
+		return $data;
+	}
+
 }

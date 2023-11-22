@@ -18,13 +18,14 @@ class Materialrequests extends MY_Controller
 
 		$this->init_permission_checker("order");
 		$this->className = 'materialrequests';
+		$this->load->helper('notifications');
+
 		$this->load->model('Provetable_model');
 		$this->load->model('Db_model');
-		$this->load->helper('notifications');
 		$this->load->model('Mr_categories_model');
 		$this->load->model('Materialrequests_model');
 		$this->load->model('Mr_items_model');
-		$this->load->model("Mr_status_model");
+		$this->load->model('Mr_status_model');
 		$this->load->model('Items_model');
 		$this->load->model('Permission_m');
 		$this->load->model('Materialrequest_m');
@@ -933,6 +934,18 @@ class Materialrequests extends MY_Controller
 		$this->template->rander("materialrequests/view", $view_data);
 	}
 
+	function view_group($id = 0)
+	{
+		$data["id"] = $id;
+		$data["mr_header"] = $this->Materialrequests_model->dev2_getMaterialRequestProjectHeaderById($id);
+		if (!empty($data["mr_header"])) {
+			$data["mr_detail"] = $this->Materialrequests_model->dev2_getMaterialRequestProjectDetailById($id);
+		}
+
+		var_dump(arr($data)); exit();
+		$this->template->rander("materialrequests/view_group", $data);
+	}
+
 	private function check_access_to_this_mr($mr_data)
 	{
 		//check for valid order
@@ -1215,7 +1228,7 @@ class Materialrequests extends MY_Controller
 		$custom_fields = $this->Custom_fields_model->get_available_fields_for_table("materialrequests", $this->login_user->is_admin, $this->login_user->user_type);
 
 		$options = array("id" => $id, "custom_fields" => $custom_fields);
-		$data = $this->MaterialRequests_model->get_details($options)->row();
+		$data = $this->Materialrequests_model->get_details($options)->row();
 		return $this->_make_row($data, $custom_fields);
 	}
 

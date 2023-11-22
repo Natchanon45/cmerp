@@ -6152,6 +6152,7 @@ class Projects extends MY_Controller
     {
         $data = $this->input->post();
 
+        $data["auth_read_cost"] = $this->check_permission("bom_restock_read_price");
         $data["production_items"] = $this->Projects_model->dev2_getMixingCategoryListByProjectId($data["project_id"]);
 
         // var_dump(arr($data)); exit();
