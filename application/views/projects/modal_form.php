@@ -20,6 +20,20 @@
         </div> 
     </div>
 
+    <div class="form-group">
+        <label for="type" class=" col-md-3">ประเภทโปรเจค</label>
+        <div class=" col-md-9">
+            <select name="project_type_id" class="form-control">
+                <option value="">- เลือกประเภทโปรเจค -</option>
+                <?php if(!empty($project_types)): ?>
+                    <?php foreach($project_types as $project_type): ?>
+                        <option value="<?php echo $project_type->id; ?>" <?php if($project_type->id == $model_info->project_type_id) echo "selected"; ?>><?php echo $project_type->title; ?></option>
+                    <?php endforeach; ?>
+                <?php endif; ?>
+            </select>
+        </div>
+    </div>
+
     <?php if ($client_id) { ?>
         <input type="hidden" name="client_id" value="<?php echo $client_id; ?>" />
     <?php } else if ($this->login_user->user_type == "client") { ?>

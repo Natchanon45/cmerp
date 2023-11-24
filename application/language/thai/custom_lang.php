@@ -795,6 +795,7 @@ $lang["enable_web"] = "เปิดใช้งานเว็บ";
 $lang["event"] = "กิจกรรม";
 $lang["notify_to"] = "แจ้งเตือนไปที่";
 
+$lang["project_types"] = "ประเภทโปรเจค";
 $lang["project_created"] = "โปรเจคถูกสร้าง";
 $lang["project_deleted"] = "โปรเจคถูกลบ";
 $lang["project_task_created"] = "งานในโปรเจคถูกสร้าง";

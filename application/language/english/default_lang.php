@@ -673,6 +673,7 @@ $lang["enable_web"] = "Enable web";
 $lang["event"] = "Event";
 $lang["notify_to"] = "Notify to";
 
+$lang["project_types"] = "Project types";
 $lang["project_created"] = "Project created";
 $lang["project_deleted"] = "Project deleted";
 $lang["project_task_created"] = "Project task created";

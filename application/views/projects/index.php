@@ -49,6 +49,14 @@
             selectCompletedStatus = true;
         <?php } ?>
 
+        filterDropdown = [];
+        filterDropdown.push({name: "project_label", class: "w150", options: <?php echo $project_labels_dropdown; ?>});
+
+        <?php if(isset($project_type_dropdown)):?>
+            filterDropdown.push({name: "project_type", class: "w150", options: <?php echo $project_type_dropdown; ?>});
+        <?php endif;?>
+
+
         $("#project-table").appTable({
             source: '<?php echo_uri("projects/list_data") ?>',
             multiSelect: [{
@@ -61,15 +69,17 @@
                     { text: '<?php echo lang("canceled") ?>', value: "canceled" }
                 ]
             }],
-            filterDropdown: [{name: "project_label", class: "w200", options: <?php echo $project_labels_dropdown; ?>}],
-            singleDatepicker: [{name: "deadline", defaultText: "<?php echo lang('deadline') ?>",
-            options: [
-                { value: "expired", text: "<?php echo lang('expired') ?>" },
-                { value: moment().format("YYYY-MM-DD"), text: "<?php echo lang('today') ?>" },
-                { value: moment().add(1, 'days').format("YYYY-MM-DD"), text: "<?php echo lang('tomorrow') ?>" },
-                { value: moment().add(7, 'days').format("YYYY-MM-DD"), text: "<?php echo sprintf(lang('in_number_of_days'), 7); ?>" },
-                { value: moment().add(15, 'days').format("YYYY-MM-DD"), text: "<?php echo sprintf(lang('in_number_of_days'), 15); ?>" }
-            ]}],
+            filterDropdown: filterDropdown,
+            singleDatepicker: [{
+                                name: "deadline", defaultText: "<?php echo lang('deadline') ?>",
+                                options: [
+                                    { value: "expired", text: "<?php echo lang('expired') ?>" },
+                                    { value: moment().format("YYYY-MM-DD"), text: "<?php echo lang('today') ?>" },
+                                    { value: moment().add(1, 'days').format("YYYY-MM-DD"), text: "<?php echo lang('tomorrow') ?>" },
+                                    { value: moment().add(7, 'days').format("YYYY-MM-DD"), text: "<?php echo sprintf(lang('in_number_of_days'), 7); ?>" },
+                                    { value: moment().add(15, 'days').format("YYYY-MM-DD"), text: "<?php echo sprintf(lang('in_number_of_days'), 15); ?>" }
+                                ]
+            }],
             columns: [
                 { title: '<?php echo lang("id") ?>', "class": "w5p text-center" },
                 { title: '<?php echo lang("title") ?>', "class": "w15p" },

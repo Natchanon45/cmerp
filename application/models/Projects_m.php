@@ -5,7 +5,6 @@ class Projects_m extends MY_Model {
 		parent::__construct();
     }
 
-
     function getRows(){
         $db = $this->db;
 
@@ -154,4 +153,42 @@ class Projects_m extends MY_Model {
         return true;
         
     }
+
+    function getTypeRow($id){
+        $ptrow = $this->db->select("*")
+                            ->from("project_types")
+                            ->where("id", $id)
+                            ->get()->row();
+
+        if(empty($ptrow)) return null;
+
+        return $ptrow;
+    }
+
+    function getTypeRows(){
+        $ptrows = $this->db->select("*")
+                            ->from("project_types")
+                            ->where("deleted", 0)
+                            ->get()->result();
+
+        return $ptrows;
+    }
+
+    function saveType(){
+        $db = $this->db;
+        $id = $this->input->post("id");
+        $title = $this->input->post("title");
+
+        if($id != null){
+            $db->where("id", $id);
+            $db->update("project_types", ["title"=>$title]);
+        }else{
+            $db->insert("project_types", ["title"=>$title]);
+            $id = $this->db->insert_id();
+        }
+
+        return $id;
+    }
+
+
 }

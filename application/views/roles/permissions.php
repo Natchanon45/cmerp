@@ -194,7 +194,7 @@
                                 ?>
                                 <label for="access_project_specific">ใช่เฉพาะประเภทของโปรเจค:</label>
                                 <div class="specific_dropdown">
-                                    <input type="text" value="<?php echo $access_project_specific; ?>" name="access_project_specific" id="note_types_specific_dropdown" class="w100p validate-hidden"  data-rule-required="true" data-msg-required="<?php echo lang('field_required'); ?>" placeholder="Choose note types"  />
+                                    <input type="text" value="<?php echo $access_project_specific; ?>" name="access_project_specific" id="project_types_specific_dropdown" class="w100p validate-hidden"  data-rule-required="true" data-msg-required="<?php echo lang('field_required'); ?>" placeholder="Choose project types"  />
                                 </div>
                             </div>
                         </div>
@@ -1004,6 +1004,11 @@
             formatResult: teamAndMemberSelect2Format,
             formatSelection: teamAndMemberSelect2Format,
             data: <?php echo ($members_and_teams_dropdown); ?>
+        });
+
+        $("#project_types_specific_dropdown").select2({
+            multiple: true,
+            data: <?php echo ($project_types_dropdown); ?>
         });
 
         $("#note_types_specific_dropdown").select2({

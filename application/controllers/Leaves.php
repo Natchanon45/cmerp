@@ -47,9 +47,14 @@ class Leaves extends MY_Controller {
             if ($this->access_type === "all") {
                 $where = array("user_type" => "staff");
             } else {
-                $where = array("user_type" => "staff", "id !=" => $this->login_user->id, "where_in" => array("id" => $this->allowed_members));
+                if(count($this->allowed_members) > 0){
+                    $where = array("user_type" => "staff", "id !=" => $this->login_user->id, "where_in" => array("id" => [$this->allowed_members]));
+                }else{
+                    $where = array("user_type" => "staff", "id !=" => $this->login_user->id);
+                }
             }
             $view_data['team_members_dropdown'] = array("" => "-") + $this->Users_model->get_dropdown_list(array("first_name", "last_name"), "id", $where);
+            
         }
 
         $view_data['leave_types_dropdown'] = array("" => "-") + $this->Leave_types_model->get_dropdown_list(array("title"), "id", array("status" => "active"));
@@ -66,6 +71,9 @@ class Leaves extends MY_Controller {
 
     // save: assign leave 
     function assign_leave() {
+        $target_path = get_setting("timeline_file_path");
+        $files_data = move_files_from_temp_dir_to_permanent_dir($target_path, "leave");
+        $new_files = unserialize($files_data);
         $leave_data = $this->_prepare_leave_form_data();
         $applicant_id = $this->input->post('applicant_id');
         $leave_data['applicant_id'] = $applicant_id;
@@ -73,6 +81,7 @@ class Leaves extends MY_Controller {
         $leave_data['checked_by'] = $this->login_user->id;
         $leave_data['checked_at'] = $leave_data['created_at'];
         $leave_data['status'] = "approved";
+        $leave_data["files"] = serialize($new_files);
 
         //hasn't full access? allow to update only specific member's record, excluding loged in user's own record
         $this->access_only_allowed_members($leave_data['applicant_id']);

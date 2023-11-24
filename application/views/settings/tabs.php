@@ -44,6 +44,7 @@ if (get_setting("module_ticket") == "1") {
     $settings_menu["setup"][] = array("name" => "tickets", "url" => "ticket_types");
 }
 
+$settings_menu["setup"][] = array("name" => "project_types", "url" => "project_types");
 $settings_menu["setup"][] = array("name" => "note_types", "url" => "note_types");
 $settings_menu["setup"][] = array("name" => "account_category", "url" => "account_category");
 $settings_menu["setup"][] = array("name" => "warehouse_category", "url" => "warehouse_category");
@@ -52,9 +53,9 @@ if (get_setting("module_expense") == "1") {
     $settings_menu["setup"][] = array("name" => "expense_categories", "url" => "expense_categories");
 }
 
-if (get_setting("module_invoice") == "1" || get_setting("module_estimate") == "1") {
+/*if (get_setting("module_invoice") == "1" || get_setting("module_estimate") == "1") {
     $settings_menu["setup"][] = array("name" => "item_categories", "url" => "item_categories");
-}
+}*/
 
 if (get_setting("module_po") == "1") {
     $settings_menu["setup"][] = array("name" => "po", "url" => "settings/po");

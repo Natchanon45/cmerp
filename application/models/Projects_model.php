@@ -22,6 +22,15 @@ class Projects_model extends Crud_model {
             $where .= " AND $projects_table.id=$id";
         }
 
+        $project_type = get_array_value($options, "project_type");
+        if ($project_type) {
+            $where .= " AND $projects_table.project_type_id=$project_type";
+        }
+
+        if($this->Permission_m->access_project == "assigned_only"){
+            $where .= " AND $projects_table.created_by=".$this->login_user->id;
+        }
+
         $client_id = get_array_value($options, "client_id");
         if ($client_id) {
             $where .= " AND $projects_table.client_id=$client_id";
@@ -37,12 +46,10 @@ class Projects_model extends Crud_model {
             $where .= " AND (FIND_IN_SET($projects_table.status, '$statuses')) ";
         }
 
-
         $project_label = get_array_value($options, "project_label");
         if ($project_label) {
             $where .= " AND (FIND_IN_SET('$project_label', $projects_table.labels)) ";
         }
-
 
         $deadline = get_array_value($options, "deadline");
         $for_events_table = get_array_value($options, "for_events_table");
@@ -126,11 +133,7 @@ class Projects_model extends Crud_model {
 		
 		$filters = array();
 		if( isset( $this->getRolePermission['filters'] ) ) {
-			
-			
-			
 			$filters = $this->getRolePermission['filters'];
-		
 		}
 		
 		if( !empty( $options['id'] ) ) {

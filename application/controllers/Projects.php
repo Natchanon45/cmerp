@@ -25,6 +25,10 @@ class Projects extends MY_Controller
         $this->load->model('Permission_m');
         $this->load->model('Materialrequest_m');
         $this->load->model('Stock_m');
+
+        if($this->Permission_m->access_project == false){
+            redirect("forbidden");
+        }
     }
 
     function list_Teams($pId = 0)
@@ -380,8 +384,26 @@ class Projects extends MY_Controller
     function all_projects($status = "")
     {
         $view_data['project_labels_dropdown'] = json_encode($this->make_labels_dropdown("project", "", true));
+        $view_data['project_types'] = $this->Projects_m->getRows();
         $view_data["custom_field_headers"] = $this->Custom_fields_model->get_custom_field_headers_for_table("projects", $this->login_user->is_admin, $this->login_user->user_type);
         $view_data["status"] = $status;
+
+        $access_project_specific = $project_type_dropdown = [];
+        $prows = $this->Projects_m->getTypeRows();
+        if(!empty($prows)){
+            $project_type_dropdown[] = ["id"=>"", "text"=>"- ประเภทโปรเจค -"];
+            if($this->Permission_m->access_project == "specific") $access_project_specific = explode(",", $this->Permission_m->access_project_specific);
+
+            foreach($prows as $prow){
+                if($this->Permission_m->access_project == "specific"){
+                    if (in_array($prow->id, $access_project_specific) == false) continue;
+                }
+
+                $project_type_dropdown[] = ["id"=>$prow->id, "text"=>$prow->title];
+            }
+
+            $view_data["project_type_dropdown"] = json_encode($project_type_dropdown);
+        }
 
         if ($this->login_user->user_type === "staff") {
             $view_data["can_edit_projects"] = $this->can_edit_projects();
@@ -426,7 +448,7 @@ class Projects extends MY_Controller
             $view_data['model_info']->estimate_id = $estimate_id;
         }
 
-
+        $view_data["project_types"] = $this->Projects_m->getTypeRows();
 
         $view_data["custom_fields"] = $this->Custom_fields_model->get_combined_details("projects", $view_data['model_info']->id, $this->login_user->is_admin, $this->login_user->user_type)->result();
 
@@ -469,6 +491,7 @@ class Projects extends MY_Controller
         $status = $this->input->post('status');
 
         $data = array(
+            "project_type_id" => $this->input->post('project_type_id'),
             "title" => $this->input->post('title'),
             "description" => $this->input->post('description'),
             "client_id" => $this->input->post('client_id'),
@@ -5183,6 +5206,7 @@ class Projects extends MY_Controller
 
         $options = array(
             "statuses" => $statuses,
+            "project_type"=>$this->input->post("project_type"),
             "project_label" => $this->input->post("project_label"),
             "custom_fields" => $custom_fields,
             "deadline" => $this->input->post('deadline'),

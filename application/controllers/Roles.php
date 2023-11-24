@@ -705,6 +705,13 @@ class Roles extends MY_Controller {
             $view_data['bom_restock_update'] = get_array_value($permissions, "bom_restock_update");
             $view_data['bom_restock_delete'] = get_array_value($permissions, "bom_restock_delete");
 
+            $project_types_dropdown = array();
+            $project_types = $this->Projects_m->getTypeRows();
+            foreach ($project_types as $project_type) {
+                $project_types_dropdown[] = array("id" => $project_type->id, "text" => $project_type->title);
+            }
+            $view_data['project_types_dropdown'] = json_encode($project_types_dropdown);
+
 
             $note_types_dropdown = array();
             $note_types = $this->Note_types_model->get_all_where(array("deleted" => 0))->result();
