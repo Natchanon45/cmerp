@@ -721,15 +721,83 @@ class MaterialRequests_model extends Crud_model
 		return $data;
 	}
 
+	public function dev2_getMaterialRequestProjectListById(int $id) : array
+	{
+		$data = [
+			"rm_list" => [],
+			"sfg_list" => []
+		];
+
+		$rm_sql = "SELECT material_id, SUM(quantity) AS quantity FROM mr_items WHERE mr_id = " . $id . " AND item_type = 'RM' GROUP BY  material_id";
+		$sfg_sql = "SELECT item_id, SUM(quantity) AS quantity FROM mr_items WHERE mr_id = " . $id . " AND item_type = 'SFG' GROUP BY  item_id";
+
+		$rm_query = $this->db->query($rm_sql)->result();
+		$sfg_query = $this->db->query($sfg_sql)->result();
+
+		if (sizeof($rm_query)) {
+			foreach ($rm_query as $rm) {
+				$rm->material_info = $this->dev2_getRowInfoByRowId($rm->material_id, "bom_materials");
+			}
+
+			$data["rm_list"] = $rm_query;
+		}
+
+		if (sizeof($sfg_query)) {
+			foreach ($sfg_query as $sfg) {
+				$sfg->item_info = $this->dev2_getRowInfoByRowId($sfg->item_id, "items");
+			}
+
+			$data["sfg_list"] = $sfg_query;
+		}
+
+		return $data;
+	}
+
 	public function dev2_getMaterialRequestProjectDetailById(int $id) : array
 	{
-		$data = [];
+		$data = [
+			"mr_detail" => [],
+			"categories" => []
+		];
 
 		$query = $this->db->get_where("mr_items", ["mr_id" => $id])->result();
 		if (sizeof($query)) {
-			$data = $query;
+			$categories = [];
+			foreach ($query as $item) {
+				array_push($categories, $item->category_in_bom);
+				
+				if ($item->item_type == "RM") {
+					$item->stock_info = $this->dev2_getRowInfoByRowId($item->stock_id, "bom_stocks");
+					$item->stock_info->group_info = $this->dev2_getRowInfoByRowId($item->stock_info->group_id, "bom_stock_groups");
+				}
+
+				if ($item->item_type == "SFG") {
+					$item->stock_info = $this->dev2_getRowInfoByRowId($item->stock_id, "bom_item_stocks");
+					$item->stock_info->group_info = $this->dev2_getRowInfoByRowId($item->stock_info->group_id, "bom_item_groups");
+				}
+			}
+			
+			$categories_where = implode(',', array_unique($categories));
+			$categories_sql = "SELECT * FROM material_categories WHERE id IN (" . $categories_where . ") ORDER BY item_type";
+			$categories_query = $this->db->query($categories_sql)->result();
+			if (sizeof($categories_query)) {
+				$data["categories"] = $categories_query;
+			}
+
+			$data["mr_detail"] = $query;
 		}
 		return $data;
 	}
+
+	private function dev2_getRowInfoByRowId(int $id, string $table): stdClass
+    {
+        $info = new stdClass();
+        $get = $this->db->get_where($table, ["id" => $id])->row();
+
+        if (!empty($get)) {
+            $info = $get;
+        }
+        return $info;
+    }
 
 }

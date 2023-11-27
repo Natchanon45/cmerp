@@ -40,47 +40,73 @@ class Materialrequests extends MY_Controller
 			return;
 		}
 
+		// Get material request (MR) header
 		$info = $this->Materialrequests_model->get_one($mr_id);
 
-		// Get material request detail
-		$items = $this->Mr_items_model->get_materialrequest_item_by_id($mr_id);
-		if (sizeof($items) == 0) {
-			redirect("materialrequests/view/" . $mr_id . "/nodata");
-			return;
+		if (empty($info)) {
+			// Id was wrong
+			echo json_encode(array("status" => false, "message" => lang("nodata_item_request")));
+			exit();
 		}
+
+		// Get material request (MR) detail
+		$items = $this->Mr_items_model->get_materialrequest_item_by_id($mr_id);
+		
+		if (sizeof($items) == 0) {
+			// Material request (MR) have no item
+			echo json_encode(array("status" => false, "message" => lang("nodata_item_request")));
+			exit();
+		}
+
+		// Stored usabled result
+		$usabled = array();
+		$productions = array();
 
 		// Verify stock remaining to usabled
-		$usabled = array();
-		if ($info->mr_type == 2) {
-			foreach ($items as $item) {
+		foreach ($items as $item) {
+			if ($item->item_type == "RM") {
+				// Check RM
+				array_push($usabled, $this->Bom_stocks_model->dev2_verifyStockUsabled($item->stock_id, $item->quantity));
+			} else {
+				// Check FG, SFG
 				array_push($usabled, $this->Bom_item_stocks_model->dev2_verifyStockUsabled($item->stock_id, $item->quantity));
 			}
-		} else {
-			foreach ($items as $item) {
-				array_push($usabled, $this->Bom_stocks_model->dev2_verifyStockUsabled($item->stock_id, $item->quantity));
-			}
+
+			array_push($productions, $item->project_item_id);
 		}
 
+		$productions = array_unique($productions);
+		// echo json_encode(array("mr_id" => $mr_id, "items" => $items, "usabled" => $usabled, "productions" => $productions)); exit();
+
 		if (in_array(false, $usabled)) {
-			redirect("materialrequests/view/" . $mr_id . "/error");
-			return;
+			// Some item have no stock.
+			echo json_encode(array("status" => false, "message" => lang("not_enough_stock")));
+			exit();
 		} else {
-			// Update stock remaining to used and update used status
-			if ($info->mr_type == 2) {
-				foreach ($items as $item) {
+			// All items has stock.
+			foreach ($items as $item) {
+				if ($item->item_type == "RM") {
+					// Update RM remaining stock and used status to [bom_stocks, bom_project_item_materials] tables.
+					$this->Bom_stocks_model->dev2_updateStockUsed($item->stock_id, $item->quantity);
+					$this->Bom_project_item_materials_model->dev2_updateUsedStatusById($item->bpim_id, 1);
+				} else {
+					// Update FG or SFG remaining stock and used status to [bom_item_stocks, bom_project_item_items] tables.
 					$this->Bom_item_stocks_model->dev2_updateStockUsed($item->stock_id, $item->quantity);
 					$this->Bom_project_item_items_model->dev2_updateUsedStatusById($item->bpim_id, 1);
 				}
-			} else {
-				foreach ($items as $item) {
-					$this->Bom_stocks_model->dev2_updateStockUsed($item->stock_id, $item->quantity);
-					$this->Bom_project_item_materials_model->dev2_updateUsedStatusById($item->bpim_id, 1);
-				}
+			} // save point: เขียน function update สถานะใบเบิกในให้กับแต่ละรายการผลิต
+
+			// All production id in material request (MR)
+			foreach ($productions as $production) {
+				// Update [mr_status] production material request status to [bom_project_items]
+				$this->Projects_model->dev2_patchProductionMaterialRequestStatus($production);
 			}
 
-			// Update material request status
+			// Update material request (MR) status to approved
 			$this->Materialrequests_model->dev2_updateApprovalStatus($mr_id, 3, $this->login_user->id);
-			redirect("materialrequests/view/" . $mr_id . "/success");
+			
+			echo json_encode(array("status" => true, "message" => lang("approved_success")));
+			exit();
 		}
 	}
 
@@ -938,11 +964,30 @@ class Materialrequests extends MY_Controller
 	{
 		$data["id"] = $id;
 		$data["mr_header"] = $this->Materialrequests_model->dev2_getMaterialRequestProjectHeaderById($id);
+
 		if (!empty($data["mr_header"])) {
+			// Get material request (MR) detail information [Group Categories]
 			$data["mr_detail"] = $this->Materialrequests_model->dev2_getMaterialRequestProjectDetailById($id);
+
+			// Get material request (MR) detail information [Group Materials]
+			$data["mr_list"] = $this->Materialrequests_model->dev2_getMaterialRequestProjectListById($id);
 		}
 
-		var_dump(arr($data)); exit();
+		if (!empty($data["mr_header"]->requester_id)) {
+			// Get requester information
+			$data["requester_info"] = $this->Users_model->get_one($data["mr_header"]->requester_id);
+			$data["requester_sign"] = $this->Users_m->getSignature($data["mr_header"]->requester_id);
+		}
+
+		if (!empty($data["mr_header"]->approved_by)) {
+			// Get approver information
+			$data["approver_info"] = $this->Users_model->get_one($data["mr_header"]->approved_by);
+			$data["approver_sign"] = $this->Users_m->getSignature($data["mr_header"]->approved_by);
+		}
+
+		$data["approve_material_request"] = true;
+
+		// var_dump(arr($data)); exit();
 		$this->template->rander("materialrequests/view_group", $data);
 	}
 
@@ -2492,7 +2537,7 @@ class Materialrequests extends MY_Controller
 		$this->data['mat_item_info'] = $this->Materialrequests_model->dev2_getItemListForPrintByMaterialRequestId($id, $this->data['mat_req_info']->mr_type);
 		$this->data['mat_requester_info'] = $this->Users_m->get_user_by_id($this->data['mat_req_info']->requester_id);
 		$this->data['mat_project_info'] = $this->Projects_model->get_project_by_id($this->data['mat_req_info']->project_id);
-		$this->data["docmode"] = "private_print";
+		$this->data['docmode'] = "private_print";
 
 		// var_dump(arr($this->data)); exit();
 		$this->load->view('edocs/material_request', $this->data);

@@ -2123,6 +2123,7 @@ $lang["btn_edit_finished_goods"] = "Edit Finished Goods";
 $lang["btn_edit_expense"] = "Edit Expense";
 
 $lang["label_raw_material"] = "Raw Material";
+$lang["label_semifinished_goods"] = "Semi-Finished Goods";
 $lang["label_finished_goods"] = "Finished Goods";
 $lang["label_expense"] = "Expense";
 
@@ -2330,3 +2331,6 @@ $lang["fg"] = "FG";
 $lang["sfg"] = "SFG";
 $lang["group_category"] = "Categories";
 $lang["project_total"] = "Total project";
+$lang["mr_total_raw_material"] = "Summary Raw material";
+$lang["mr_total_semi_finished_goods"] = "Summary Semi-finished goods";
+$lang["mr_total_finished_goods"] = "Summary Finished goods";
