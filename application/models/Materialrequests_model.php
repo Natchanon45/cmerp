@@ -714,7 +714,7 @@ class MaterialRequests_model extends Crud_model
 	{
 		$data = new stdClass();
 
-		$query = $this->db->get_where("materialrequests", ["id" => $id, "mr_type" => 3])->row();
+		$query = $this->db->get_where("materialrequests", ["id" => $id])->row();
 		if (!empty($query)) {
 			$data = $query;
 		}

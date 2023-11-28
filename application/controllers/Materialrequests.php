@@ -1,25 +1,16 @@
 <?php
 
-if (!defined('BASEPATH'))
-	exit('No direct script access allowed');
+if (!defined('BASEPATH')) exit('No direct script access allowed');
 
 class Materialrequests extends MY_Controller
 {
-
 	function __construct()
 	{
 		parent::__construct();
-		// $param['LPAD'] = 4;
-		// $param['column'] = 'doc_no';
-		// $param['table'] = 'materialrequests';
-		// $param['prefix'] = 'PR';
-		// echo $this->dao->genDocNo( $param  );
-		// exit;
 
-		$this->init_permission_checker("order");
+		$this->init_permission_checker('order');
 		$this->className = 'materialrequests';
 		$this->load->helper('notifications');
-
 		$this->load->model('Provetable_model');
 		$this->load->model('Db_model');
 		$this->load->model('Mr_categories_model');
@@ -36,6 +27,7 @@ class Materialrequests extends MY_Controller
 	function approve($mr_id = 0)
 	{
 		if ($mr_id == 0) {
+			// Have no id, show error 404
 			$this->load->view("error/html/error_404");
 			return;
 		}
@@ -94,7 +86,7 @@ class Materialrequests extends MY_Controller
 					$this->Bom_item_stocks_model->dev2_updateStockUsed($item->stock_id, $item->quantity);
 					$this->Bom_project_item_items_model->dev2_updateUsedStatusById($item->bpim_id, 1);
 				}
-			} // save point: เขียน function update สถานะใบเบิกในให้กับแต่ละรายการผลิต
+			}
 
 			// All production id in material request (MR)
 			foreach ($productions as $production) {

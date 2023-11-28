@@ -1917,7 +1917,7 @@ class Projects_model extends Crud_model {
         ]);
     }
 
-    private function dev2_patchProductionMaterialRequestStatus(int $production_id) : void
+    public function dev2_patchProductionMaterialRequestStatus(int $production_id) : void
     {
         $data = $this->dev2_getProductionMaterialRequestStatusByProductionId($production_id);
         $mr_status = $data["production_mr_status"];

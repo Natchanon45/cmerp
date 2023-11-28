@@ -102,13 +102,45 @@
     .w-unit {
         width: 90px;
     }
+
+    .badge-custom {
+        margin: -2px 0 0 10px;
+        padding: 6px 8px;
+        border-radius: 3px;
+    }
+
+    .badge-waiting-approve {
+        background-color: #efc050;
+    }
+
+    .badge-already-approved {
+        background-color: #009b77;
+    }
+
+    .badge-already-rejected {
+        background-color: #ff1a1a;
+    }
 </style>
+
+<?php
+// Load status badge
+$badge_status = '<span class="badge badge-custom badge-waiting-approve">' . lang("status_waiting_for_approve") . '</span>';
+
+if (isset($mr_header->status_id) && !empty($mr_header->status_id)) {
+    if ($mr_header->status_id == 3) {
+        $badge_status = '<span class="badge badge-custom badge-already-approved">' . lang("status_already_approved") . '</span>';
+    }
+    if ($mr_header->status_id == 4) {
+        $badge_status = '<span class="badge badge-custom badge-already-rejected">' . lang("status_already_rejected") . '</span>';
+    }
+}
+?>
 
 <div id="dcontroller" class="clearfix">
     <div class="page-title clearfix mt15 clear">
         <h1>
             <?php echo lang("material_request_no"); ?>
-            <?php echo $mr_header->doc_no; ?>
+            <?php echo $mr_header->doc_no . $badge_status; ?>
         </h1>
         <div class="title-button-group">
             <a href="<?php echo get_uri("materialrequests"); ?>" class="btn btn-default mt0 mb0 back-to-index-btn">
@@ -138,6 +170,8 @@
             <?php endif; ?>
         </div>
     </div>
+
+    <div id="alert-error" class="alert alert-danger mt15 mb0 hide" role="alert"></div>
 </div>
 
 <div id="printd" class="clear page-relative">
@@ -497,17 +531,25 @@
     $(document).ready(function () {
         $(".btn-approved").on("click", async function (e) {
             e.preventDefault();
-
             await approve();
         });
     });
 
     async function approve() {
         let url = '<?php echo get_uri("materialrequests/approve/" . $mr_header->id); ?>';
-        console.log(url);
 
         await axios.get(url).then((result) => {
-            console.log(result.data);
+            let { status, message } = result.data;
+            if (status) {
+                window.location.reload();
+            } else {
+                $("#alert-error").text(message);
+                $("#alert-error").removeClass('hide');
+
+                setTimeout(() => {
+                    $("#alert-error").addClass('hide');
+                }, 5000);
+            }
         }).catch((error) => {
             console.log(error);
         });
