@@ -64,11 +64,14 @@ class Materialrequests extends MY_Controller
 				array_push($usabled, $this->Bom_item_stocks_model->dev2_verifyStockUsabled($item->stock_id, $item->quantity));
 			}
 
-			array_push($productions, $item->project_item_id);
+			if (isset($item->project_item_id) && !empty($item->project_item_id)) {
+				array_push($productions, $item->project_item_id);
+			}
 		}
 
-		$productions = array_unique($productions);
-		// echo json_encode(array("mr_id" => $mr_id, "items" => $items, "usabled" => $usabled, "productions" => $productions)); exit();
+		if (sizeof($productions)) {
+			$productions = array_unique($productions);
+		}
 
 		if (in_array(false, $usabled)) {
 			// Some item have no stock.
@@ -89,9 +92,11 @@ class Materialrequests extends MY_Controller
 			}
 
 			// All production id in material request (MR)
-			foreach ($productions as $production) {
-				// Update [mr_status] production material request status to [bom_project_items]
-				$this->Projects_model->dev2_patchProductionMaterialRequestStatus($production);
+			if (sizeof($productions)) {
+				foreach ($productions as $production) {
+					// Update [mr_status] production material request status to [bom_project_items]
+					$this->Projects_model->dev2_patchProductionMaterialRequestStatus($production);
+				}
 			}
 
 			// Update material request (MR) status to approved
@@ -105,50 +110,63 @@ class Materialrequests extends MY_Controller
 	function disapprove($mr_id = 0)
 	{
 		if ($mr_id == 0) {
+			// Have no id, show error 404
 			$this->load->view("error/html/error_404");
 			return;
 		}
 
-		// Get material request info
+		// Get material request (MR) header
 		$info = $this->Materialrequests_model->get_one($mr_id);
 
-		// Get material request detail
-		$items = $this->Mr_items_model->get_materialrequest_item_by_id($mr_id);
-		$prod_ids = $this->Bom_project_item_materials_model->dev2_getProductionOrderIdByMaterialRequestId($mr_id);
-		if (sizeof($items) == 0) {
-			redirect("materialrequests/view/" . $mr_id . "/nodata");
-			return;
+		if (empty($info)) {
+			// Id was wrong
+			echo json_encode(array("status" => false, "message" => lang("nodata_item_request")));
+			exit();
 		}
 
-		// Update used status
-		if ($info->mr_type == 2) {
-			foreach ($items as $item) {
+		// Get material request (MR) detail
+		$items = $this->Mr_items_model->get_materialrequest_item_by_id($mr_id);
+
+		if (sizeof($items) == 0) {
+			// Material request (MR) have no item
+			echo json_encode(array("status" => false, "message" => lang("nodata_item_request")));
+			exit();
+		}
+
+		// Stored usabled result
+		$productions = array();
+
+		foreach ($items as $item) {
+			if ($item->item_type == "RM") {
+				// RM reject, delete all item from manual add, update all item from production mr_id to null
+				$this->Bom_project_item_materials_model->dev2_rejectMaterialRequestById($item->bpim_id);
+			} else {
+				// FG, SFG reject, delete all item from manual add, update all item from production mr_id to null
 				$this->Bom_project_item_items_model->dev2_rejectMaterialRequestById($item->bpim_id);
 			}
-		} else {
-			foreach ($items as $item) {
-				$this->Bom_project_item_materials_model->dev2_rejectMaterialRequestById($item->bpim_id);
-				
-				if (isset($item->project_item_id) && !empty($item->project_item_id)) {
-					array_push($prod_id, $item->project_item_id);
-				}
-			}
 
-			if (sizeof($prod_ids)) {
-				foreach ($prod_ids as $item) {
-					// release the material request status
-					$this->Bom_project_item_materials_model->dev2_patchProductionMaterialRequestStatus($item->project_item_id);
-				}
+			if (isset($item->project_item_id) && !empty($item->project_item_id)) {
+				array_push($productions, $item->project_item_id);
+			}
+		}
+		
+		if (sizeof($productions)) {
+			$productions = array_unique($productions);
+
+			foreach ($productions as $production) {
+				// Update [mr_status] production material request status to [bom_project_items]
+				$this->Projects_model->dev2_patchProductionMaterialRequestStatus($production);
 			}
 		}
 
-		// Clear project material stock id
+		// Clear [stock_id, bpim_id] to material request items
 		$this->Mr_items_model->dev2_clearProjectMaterialStockId($mr_id);
 
-		// Update material request status 
+		// Update material request status to rejected
 		$this->Materialrequests_model->dev2_updateApprovalStatus($mr_id, 4, $this->login_user->id);
 
-		redirect("materialrequests/view/" . $mr_id . "/reject");
+		echo json_encode(array("status" => true, "message" => lang("rejected_message")));
+		exit();
 	}
 
 	function process_pr($mr_id = 0)
@@ -606,7 +624,7 @@ class Materialrequests extends MY_Controller
 	}
 
 	/* load new order modal */
-	function modal_form() // dev2
+	function modal_form()
 	{
 		if (!$this->check_permission('access_material_request')) {
 			redirect("forbidden");
@@ -2215,7 +2233,7 @@ class Materialrequests extends MY_Controller
 		}
 	}
 
-	function mr_create_save() // dev2
+	function mr_create_save()
 	{
 		$post = $this->input->post();
 

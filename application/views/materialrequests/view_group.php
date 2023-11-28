@@ -155,7 +155,7 @@ if (isset($mr_header->status_id) && !empty($mr_header->status_id)) {
                         <?php echo lang("status_already_approved"); ?>
                     </a>
 
-                    <a class="btn btn-danger mt0 mb0">
+                    <a class="btn btn-danger mt0 mb0 btn-rejected">
                         <i class="fa fa-times-circle" aria-hidden="true"></i>
                         <?php echo lang("status_already_rejected"); ?>
                     </a>
@@ -328,7 +328,13 @@ if (isset($mr_header->status_id) && !empty($mr_header->status_id)) {
                                                     </p>
                                                 </td>
                                                 <td class="w-stockname">
-                                                    <?php echo anchor(get_uri("stock/restock_view/" . $data->stock_info->group_info->id), $data->stock_info->group_info->name, ["target" => "_blank"]); ?>
+                                                    <?php
+                                                        if (isset($data->stock_info->group_info->id) && !empty($data->stock_info->group_info->id)) {
+                                                            echo anchor(get_uri("stock/restock_view/" . $data->stock_info->group_info->id), $data->stock_info->group_info->name, ["target" => "_blank"]);
+                                                        } else {
+                                                            echo "-";
+                                                        }
+                                                    ?>
                                                 </td>
                                                 <td class="text-right w-quantity">
                                                     <?php echo number_format($data->quantity, 6);
@@ -475,7 +481,22 @@ if (isset($mr_header->status_id) && !empty($mr_header->status_id)) {
                         </span>
                     </span>
                     <span class="l2">
-                        <?php echo lang('material_request_person'); ?>
+                        <?php if (isset($mr_header->requester_id) && !empty($mr_header->requester_id)): ?>
+                            <?php
+                                if ($mr_header->status_id != 4) {
+                                    echo (isset($requester_info->first_name) && !empty($requester_info->first_name)) ? $requester_info->first_name : "";
+                                    echo " ";
+                                    echo (isset($requester_info->last_name) && !empty($requester_info->last_name)) ? $requester_info->last_name : "";
+                                } else {
+                                    echo "( " . str_repeat("_", 19) . " )";
+                                }
+                            ?>
+                        <?php else: ?>
+                            <?php echo "( " . str_repeat("_", 19) . " )"; ?>
+                        <?php endif; ?>
+                    </span>
+                    <span class="l3">
+                        <?php echo lang("material_request_person"); ?>
                     </span>
                 </div>
                 <div class="date">
@@ -487,7 +508,7 @@ if (isset($mr_header->status_id) && !empty($mr_header->status_id)) {
                         <?php endif; ?>
                     </span>
                     <span class="l2">
-                        <?php echo lang("date"); ?>
+                        <?php echo lang("material_request_date"); ?>
                     </span>
                 </div>
             </div>
@@ -507,6 +528,17 @@ if (isset($mr_header->status_id) && !empty($mr_header->status_id)) {
                         </span>
                     </span>
                     <span class="l2">
+                        <?php if ($mr_header->status_id == 3): ?>
+                            <?php
+                                echo (isset($approver_info->first_name) && !empty($approver_info->first_name)) ? $approver_info->first_name : "";
+                                echo " ";
+                                echo (isset($approver_info->last_name) && !empty($approver_info->last_name)) ? $approver_info->last_name : "";
+                            ?>
+                        <?php else: ?>
+                            <?php echo "( " . str_repeat("_", 19) . " )"; ?>
+                        <?php endif; ?>
+                    </span>
+                    <span class="l3">
                         <?php echo lang("approver"); ?>
                     </span>
                 </div>
@@ -519,7 +551,7 @@ if (isset($mr_header->status_id) && !empty($mr_header->status_id)) {
                         <?php endif; ?>
                     </span>
                     <span class="l2">
-                        <?php echo lang("date"); ?>
+                        <?php echo lang("day_of_approved"); ?>
                     </span>
                 </div>
             </div>
@@ -533,10 +565,35 @@ if (isset($mr_header->status_id) && !empty($mr_header->status_id)) {
             e.preventDefault();
             await approve();
         });
+
+        $(".btn-rejected").on("click", async function (e) {
+            e.preventDefault();
+            await reject();
+        });
     });
 
     async function approve() {
         let url = '<?php echo get_uri("materialrequests/approve/" . $mr_header->id); ?>';
+
+        await axios.get(url).then((result) => {
+            let { status, message } = result.data;
+            if (status) {
+                window.location.reload();
+            } else {
+                $("#alert-error").text(message);
+                $("#alert-error").removeClass('hide');
+
+                setTimeout(() => {
+                    $("#alert-error").addClass('hide');
+                }, 5000);
+            }
+        }).catch((error) => {
+            console.log(error);
+        });
+    }
+
+    async function reject() {
+        let url = '<?php echo get_uri("materialrequests/disapprove/" . $mr_header->id); ?>';
 
         await axios.get(url).then((result) => {
             let { status, message } = result.data;
