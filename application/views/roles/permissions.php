@@ -181,7 +181,7 @@
                                     "class" => "project_permission toggle_specific",
                                         ), $access_project, ($access_project === "assigned_only") ? true : false);
                                 ?>
-                                <label for="access_project_assigned_only">ใช่ โปรเจคของคุณเท่านั้น</label>
+                                <label for="access_project_assigned_only">ใช่ โปรเจคที่สร้างเท่านั้น</label>
                             </div>
                             <div>
                                 <?php
