@@ -424,7 +424,7 @@
 									<?php echo "( " . str_repeat("_", 19) . " )"; ?>
 								<?php endif; ?>
 							</span>
-							<span class="l3">
+							<span class="l2">
 								<?php echo lang("material_request_person"); ?>
 							</span>
 						</div>
@@ -466,7 +466,7 @@
 									<?php echo "( " . str_repeat("_", 19) . " )"; ?>
 								<?php endif; ?>
 							</span>
-							<span class="l3">
+							<span class="l2">
 								<?php echo lang("approver"); ?>
 							</span>
 						</div>

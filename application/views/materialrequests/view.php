@@ -372,7 +372,7 @@ if (isset($mat_req_info->status_id) && !empty($mat_req_info->status_id)) {
                             <?php echo "( " . str_repeat("_", 19) . " )"; ?>
                         <?php endif; ?>
                     </span>
-                    <span class="l3">
+                    <span class="l2">
                         <?php echo lang("approver"); ?>
                     </span>
                 </div>

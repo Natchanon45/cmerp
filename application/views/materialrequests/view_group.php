@@ -330,7 +330,11 @@ if (isset($mr_header->status_id) && !empty($mr_header->status_id)) {
                                                 <td class="w-stockname">
                                                     <?php
                                                         if (isset($data->stock_info->group_info->id) && !empty($data->stock_info->group_info->id)) {
-                                                            echo anchor(get_uri("stock/restock_view/" . $data->stock_info->group_info->id), $data->stock_info->group_info->name, ["target" => "_blank"]);
+                                                            if ($category->item_type == "RM") {
+                                                                echo anchor(get_uri("stock/restock_view/" . $data->stock_info->group_info->id), $data->stock_info->group_info->name, ["target" => "_blank"]);
+                                                            } else {
+                                                                echo anchor(get_uri("sfg/restock_view/" . $data->stock_info->group_info->id), $data->stock_info->group_info->name, ["target" => "_blank"]);
+                                                            }
                                                         } else {
                                                             echo "-";
                                                         }
@@ -495,7 +499,7 @@ if (isset($mr_header->status_id) && !empty($mr_header->status_id)) {
                             <?php echo "( " . str_repeat("_", 19) . " )"; ?>
                         <?php endif; ?>
                     </span>
-                    <span class="l3">
+                    <span class="l2">
                         <?php echo lang("material_request_person"); ?>
                     </span>
                 </div>
@@ -538,7 +542,7 @@ if (isset($mr_header->status_id) && !empty($mr_header->status_id)) {
                             <?php echo "( " . str_repeat("_", 19) . " )"; ?>
                         <?php endif; ?>
                     </span>
-                    <span class="l3">
+                    <span class="l2">
                         <?php echo lang("approver"); ?>
                     </span>
                 </div>
@@ -557,6 +561,12 @@ if (isset($mr_header->status_id) && !empty($mr_header->status_id)) {
             </div>
         </div>
     </div>
+
+    <?php if ($mr_header->status_id == 4): ?>
+        <div class="page-absolute rejected-logo">
+            <?php echo strtoupper(lang("status_already_rejected")); ?>
+        </div>
+    <?php endif; ?>
 </div>
 
 <script type="text/javascript">

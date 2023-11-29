@@ -204,7 +204,7 @@
 											<?php echo $item->stocks->name; ?>
 										</td>
 										<td>
-											<?php echo $item->quantity; ?>
+											<?php echo number_format($item->quantity, 6); ?>
 										</td>
 										<td>
 											<?php echo $item->unit_type; ?>
@@ -259,7 +259,7 @@
 									<?php echo "( " . str_repeat("_", 19) . " )"; ?>
 								<?php endif; ?>
 							</span>
-							<span class="l3">
+							<span class="l2">
 								<?php echo lang("material_request_person"); ?>
 							</span>
 						</div>
@@ -301,7 +301,7 @@
 									<?php echo "( " . str_repeat("_", 19) . " )"; ?>
 								<?php endif; ?>
 							</span>
-							<span class="l3">
+							<span class="l2">
 								<?php echo lang("approver"); ?>
 							</span>
 						</div>

@@ -424,7 +424,7 @@ class MaterialRequests_model extends Crud_model
 				foreach ($datas as $data) {
 					$data->names = (isset($data->code) && !empty($data->code)) ? $data->code . ' - ' . $data->title : $data->title;
 					$data->description = (isset($data->description) && !empty($data->description)) ? mb_strimwidth($data->description, 1, 50, '...') : $data->title;
-					$data->quantity = number_format($data->quantity, $this->Settings_m->getDecimalPlacesNumber());
+					$data->quantity = number_format($data->quantity, 6);
 					$data->stocks = $this->getStockNameByStockId($data->stock_id, $data->bpim_id, $mr_type);
 					$data->edit = modal_anchor(
 						get_uri("materialrequests/item_edit"),
