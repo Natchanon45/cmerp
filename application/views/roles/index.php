@@ -73,7 +73,7 @@
                         success: function (result) {
                             appLoader.hide();
                             $("#role-details-section").html(result);
-                            setTimeout(function () {
+                            /*setTimeout(function () {
                                 if ($('[name="can_manage_all_projects"]').is(':checked')) {
                                     $('#show_assigned_tasks_only_section').addClass('hide');
                                     $('#can_update_only_assigned_tasks_status_section').addClass('hide');
@@ -81,7 +81,7 @@
                                     $('#show_assigned_tasks_only_section').removeClass('hide');
                                     $('#can_update_only_assigned_tasks_status_section').removeClass('hide');
                                 }
-                            }, 50);
+                            }, 50);*/
                         }
                     });
                 }

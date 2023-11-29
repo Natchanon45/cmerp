@@ -21,12 +21,16 @@
                         "<i class='fa fa-upload'></i> " . lang('stock_item_import'),
                         array("class" => "btn btn-default", "title" => lang('stock_item_import'))
                     );
+                }
+
+                if($this->Permission_m->access_product_category == true){
                     echo modal_anchor(
                         get_uri("stock/item_category_modal"),
                         "<i class='fa fa-tags'></i> " . lang('add_category'),
                         array("class" => "btn btn-default", "title" => lang('add_category'), "data-post-type" => "FG")
                     );
                 }
+
                 if ($can_create) {
                     /*echo modal_anchor(
                         get_uri("item/item_modal"),

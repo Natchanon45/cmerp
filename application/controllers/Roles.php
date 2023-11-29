@@ -648,6 +648,24 @@ class Roles extends MY_Controller {
             $view_data['help_and_knowledge_base'] = get_array_value($permissions, "help_and_knowledge_base");
 
             $view_data['can_manage_all_projects'] = get_array_value($permissions, "can_manage_all_projects");
+            if(get_array_value($permissions, "access_project") === null) $view_data['access_project'] = "assigned_only";
+            else $view_data['access_project'] = get_array_value($permissions, "access_project");
+
+            $view_data['access_project'] = get_array_value($permissions, "access_project");
+
+            if($view_data['access_project'] == null){
+                $view_data['access_project'] = "assigned_only";
+                $view_data['can_manage_all_projects'] = null;
+            }else{
+                if($view_data['access_project'] == "all"){
+                    $view_data['can_manage_all_projects'] = "1";
+                }else{
+                    $view_data['can_manage_all_projects'] = null;
+                }
+            }
+
+            $view_data['access_project_specific'] = get_array_value($permissions, "access_project_specific");
+
             $view_data['can_create_projects'] = get_array_value($permissions, "can_create_projects");
             $view_data['can_edit_projects'] = get_array_value($permissions, "can_edit_projects");
             $view_data['can_delete_projects'] = get_array_value($permissions, "can_delete_projects");
@@ -719,10 +737,6 @@ class Roles extends MY_Controller {
                 $note_types_dropdown[] = array("id" => $ntype->id, "text" => $ntype->title);
             }
             $view_data['note_types_dropdown'] = json_encode($note_types_dropdown);
-
-            if(get_array_value($permissions, "access_project") === null) $view_data['access_project'] = "assigned_only";
-            else $view_data['access_project'] = get_array_value($permissions, "access_project");
-            $view_data['access_project_specific'] = get_array_value($permissions, "access_project_specific");
 
             if(get_array_value($permissions, "access_note") === null) $view_data['access_note'] = "assigned_only";
             else $view_data['access_note'] = get_array_value($permissions, "access_note");
