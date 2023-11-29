@@ -163,7 +163,7 @@ if (isset($mr_header->status_id) && !empty($mr_header->status_id)) {
             <?php endif; ?>
 
             <?php if ($mr_header->status_id != 4): ?>
-                <a class="btn btn-warning mt0 mb0">
+                <a class="btn btn-warning mt0 mb0 btn-printing">
                     <i class="fa fa-print"></i>
                     <?php echo lang("print"); ?>
                 </a>
@@ -241,9 +241,9 @@ if (isset($mr_header->status_id) && !empty($mr_header->status_id)) {
                         </td>
                         <td>
                             <?php
-                            echo (isset($requester_info->first_name) && !empty($requester_info->first_name)) ? $requester_info->first_name : "";
-                            echo " ";
-                            echo (isset($requester_info->last_name) && !empty($requester_info->last_name)) ? $requester_info->last_name : "";
+                                echo (isset($requester_info->first_name) && !empty($requester_info->first_name)) ? $requester_info->first_name : "";
+                                echo " ";
+                                echo (isset($requester_info->last_name) && !empty($requester_info->last_name)) ? $requester_info->last_name : "";
                             ?>
                         </td>
                     </tr>
@@ -570,6 +570,11 @@ if (isset($mr_header->status_id) && !empty($mr_header->status_id)) {
             e.preventDefault();
             await reject();
         });
+
+        $(".btn-printing").on("click", async function (e) {
+            e.preventDefault();
+            await printing();
+        });
     });
 
     async function approve() {
@@ -610,5 +615,12 @@ if (isset($mr_header->status_id) && !empty($mr_header->status_id)) {
         }).catch((error) => {
             console.log(error);
         });
+    }
+
+    async function printing() {
+        let url = '<?php echo get_uri("materialrequests/printing/" . $mr_header->id); ?>';
+        // console.log(url);
+        
+        await window.open(url, '_blank');
     }
 </script>

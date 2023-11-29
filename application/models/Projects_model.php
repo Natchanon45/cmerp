@@ -1620,7 +1620,7 @@ class Projects_model extends Crud_model {
             // create a material request document
             $header_data = [
                 "doc_no" => $this->Db_model->genDocNo($param_docno),
-                "mr_type" => 1,
+                "mr_type" => 3,
                 "project_name" => $project_name,
                 "project_id" => $project_id,
                 "mr_date" => date("Y-m-d"),
