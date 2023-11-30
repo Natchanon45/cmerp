@@ -47,7 +47,15 @@
                             <i class="fa fa-file-text"></i>
                         </div>
                         <div class="widget-details">
-                            <h1><?php echo to_currency($summary["total_invoice_amounts"]); ?></h1>
+                            <h1>
+                            <?php
+                                if($this->Permission_m->accounting["invoice"]["access"] == true){
+                                    echo to_currency($summary["total_invoice_amounts"]); 
+                                }else{
+                                    echo "-";
+                                }
+                            ?>
+                            </h1>
                             <?php echo lang("invoice_value"); ?>
                         </div>
                     </div>

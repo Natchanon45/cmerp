@@ -120,9 +120,9 @@ class Clients_m extends MY_Model {
                     $this->getPrimaryContactName($crow->id),
                     $group_list,
                     $this->getTotalProjects($crow->id),
-                    "0.00",
-                    "0.00",
-                    "0.00",
+                    number_format($this->Clients_m->getTotalInvoiceAmounts($crow->id), 2),
+                    number_format($this->Clients_m->getTotalPaymentReceives($crow->id, true), 2),
+                    number_format($this->Clients_m->getTotalInvoiceAmounts($crow->id, true), 2),
                     isset($crow->currency) ? lang($data->currency) : lang("THB")
                 ];
 
