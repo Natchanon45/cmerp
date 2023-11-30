@@ -7117,8 +7117,11 @@ class Pdf_export extends CI_Controller
 
     public function production_bag_pdf($project_id = 0)
     {
+        $data["project_info"] = $this->Projects_model->dev2_getProjectInfoByProjectId($project_id);
+        $data["client_info"] = $this->Clients_model->get_one($data["project_info"]["client_id"]);
+        $data["user_info"] = $this->Users_model->get_one($data["project_info"]["created_by"]);
         $data["production_items"] = $this->Projects_model->dev2_getMixingCategoryListByProjectId($project_id);
-        // var_dump(arr($data));
+        // var_dump(arr($data)); exit();
 
         $defaultConfig = (new Mpdf\Config\ConfigVariables())->getDefaults();
         $fontDirs = $defaultConfig['fontDir'];
@@ -7142,8 +7145,42 @@ class Pdf_export extends CI_Controller
         $mpdf->SetTitle('Project-' . $project_id);
         $html = '';
 
+        $project_header = '
+        <div style="border: 1px solid rgba(0, 0, 0, 1); margin-bottom: 10px;">
+            <table style="width: 100%;" cellspacing="0" cellpadding="0">
+                <tr>
+                    <td style="width: 45%; text-align: center;">
+                        <div style="font-size: 180%;">' . lang("production_order_all_of_material_used") . '</div>
+                        <span style="font-size: 130%;">(' . lang("group_category") . ')</span>
+                    </td>
+                    <td style="width: 55%; border-left: 1px solid rgba(0, 0, 0, 1);">
+                        <table style="width: 100%; font-size: 130%;" cellspacing="0" cellpadding="0">
+                            <tr>
+                                <td style="border-bottom: 1px solid rgba(0, 0, 0, 1); padding: 2px 10px;">' . lang("project_name") . ':</td>
+                                <td style="border-bottom: 1px solid rgba(0, 0, 0, 1); padding: 2px 10px;">' . $data["project_info"]["title"] . '</td>
+                            </tr>
+                            <tr>
+                                <td style="border-bottom: 1px solid rgba(0, 0, 0, 1); padding: 2px 10px;">' . lang("start_date") . ':</td>
+                                <td style="border-bottom: 1px solid rgba(0, 0, 0, 1); padding: 2px 10px;">' . convertDate($data["project_info"]["start_date"], true) . '</td>
+                            </tr>
+                            <tr>
+                                <td style="border-bottom: 1px solid rgba(0, 0, 0, 1); padding: 2px 10px;">' . lang("deadline") . ':</td>
+                                <td style="border-bottom: 1px solid rgba(0, 0, 0, 1); padding: 2px 10px;">' . convertDate($data["project_info"]["deadline"], true) . '</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 2px 10px;">' . lang("client") . ':</td>
+                                <td style="padding: 2px 10px;">' . $data["client_info"]->company_name . '</td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        ';
+        $html .= $project_header;
+
         $header = '<div style="width: 100%; border: 1px solid rgba(0, 0, 0, 0); text-align: center; font-size: 175%;">' . lang("production_order_all_of_material_used") . '</div>';
-        $html .= $header;
+        // $html .= $header;
 
         $table_open_main = '<table style="width: 100%;" cellpadding="0" cellspacing="0">';
         $html .= $table_open_main;
@@ -7216,11 +7253,44 @@ class Pdf_export extends CI_Controller
 
         $mpdf->AddPage('P');
         $mpdf->WriteHTML($html);
-
         $html = '';
 
+        $project_header = '
+        <div style="border: 1px solid rgba(0, 0, 0, 1); margin-bottom: 10px;">
+            <table style="width: 100%;" cellspacing="0" cellpadding="0">
+                <tr>
+                    <td style="width: 45%; text-align: center;">
+                        <div style="font-size: 180%;">' . lang("production_order_all_of_semi_used") . '</div>
+                        <span style="font-size: 130%;">(' . lang("group_category") . ')</span>
+                    </td>
+                    <td style="width: 55%; border-left: 1px solid rgba(0, 0, 0, 1);">
+                        <table style="width: 100%; font-size: 130%;" cellspacing="0" cellpadding="0">
+                            <tr>
+                                <td style="border-bottom: 1px solid rgba(0, 0, 0, 1); padding: 2px 10px;">' . lang("project_name") . ':</td>
+                                <td style="border-bottom: 1px solid rgba(0, 0, 0, 1); padding: 2px 10px;">' . $data["project_info"]["title"] . '</td>
+                            </tr>
+                            <tr>
+                                <td style="border-bottom: 1px solid rgba(0, 0, 0, 1); padding: 2px 10px;">' . lang("start_date") . ':</td>
+                                <td style="border-bottom: 1px solid rgba(0, 0, 0, 1); padding: 2px 10px;">' . convertDate($data["project_info"]["start_date"], true) . '</td>
+                            </tr>
+                            <tr>
+                                <td style="border-bottom: 1px solid rgba(0, 0, 0, 1); padding: 2px 10px;">' . lang("deadline") . ':</td>
+                                <td style="border-bottom: 1px solid rgba(0, 0, 0, 1); padding: 2px 10px;">' . convertDate($data["project_info"]["deadline"], true) . '</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 2px 10px;">' . lang("client") . ':</td>
+                                <td style="padding: 2px 10px;">' . $data["client_info"]->company_name . '</td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        ';
+        $html .= $project_header;
+
         $header = '<div style="width: 100%; border: 1px solid rgba(0, 0, 0, 0); text-align: center; font-size: 175%;">' . lang("production_order_all_of_semi_used") . '</div>';
-        $html .= $header;
+        // $html .= $header;
 
         $table_open_main = '<table style="width: 100%;" cellpadding="0" cellspacing="0">';
         $html .= $table_open_main;

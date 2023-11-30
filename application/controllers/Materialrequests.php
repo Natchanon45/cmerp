@@ -1,30 +1,22 @@
 <?php
 
-if (!defined('BASEPATH'))
-	exit('No direct script access allowed');
+if (!defined('BASEPATH')) exit('No direct script access allowed');
 
 class Materialrequests extends MY_Controller
 {
-
 	function __construct()
 	{
 		parent::__construct();
-		// $param['LPAD'] = 4;
-		// $param['column'] = 'doc_no';
-		// $param['table'] = 'materialrequests';
-		// $param['prefix'] = 'PR';
-		// echo $this->dao->genDocNo( $param  );
-		// exit;
 
-		$this->init_permission_checker("order");
+		$this->init_permission_checker('order');
 		$this->className = 'materialrequests';
+		$this->load->helper('notifications');
 		$this->load->model('Provetable_model');
 		$this->load->model('Db_model');
-		$this->load->helper('notifications');
 		$this->load->model('Mr_categories_model');
 		$this->load->model('Materialrequests_model');
 		$this->load->model('Mr_items_model');
-		$this->load->model("Mr_status_model");
+		$this->load->model('Mr_status_model');
 		$this->load->model('Items_model');
 		$this->load->model('Permission_m');
 		$this->load->model('Materialrequest_m');
@@ -35,101 +27,146 @@ class Materialrequests extends MY_Controller
 	function approve($mr_id = 0)
 	{
 		if ($mr_id == 0) {
+			// Have no id, show error 404
 			$this->load->view("error/html/error_404");
 			return;
 		}
 
+		// Get material request (MR) header
 		$info = $this->Materialrequests_model->get_one($mr_id);
 
-		// Get material request detail
-		$items = $this->Mr_items_model->get_materialrequest_item_by_id($mr_id);
-		if (sizeof($items) == 0) {
-			redirect("materialrequests/view/" . $mr_id . "/nodata");
-			return;
+		if (empty($info)) {
+			// Id was wrong
+			echo json_encode(array("status" => false, "message" => lang("nodata_item_request")));
+			exit();
 		}
 
-		// Verify stock remaining to usabled
+		// Get material request (MR) detail
+		$items = $this->Mr_items_model->get_materialrequest_item_by_id($mr_id);
+		
+		if (sizeof($items) == 0) {
+			// Material request (MR) have no item
+			echo json_encode(array("status" => false, "message" => lang("nodata_item_request")));
+			exit();
+		}
+
+		// Stored usabled result
 		$usabled = array();
-		if ($info->mr_type == 2) {
-			foreach ($items as $item) {
+		$productions = array();
+
+		// Verify stock remaining to usabled
+		foreach ($items as $item) {
+			if ($item->item_type == "RM") {
+				// Check RM
+				array_push($usabled, $this->Bom_stocks_model->dev2_verifyStockUsabled($item->stock_id, $item->quantity));
+			} else {
+				// Check FG, SFG
 				array_push($usabled, $this->Bom_item_stocks_model->dev2_verifyStockUsabled($item->stock_id, $item->quantity));
 			}
-		} else {
-			foreach ($items as $item) {
-				array_push($usabled, $this->Bom_stocks_model->dev2_verifyStockUsabled($item->stock_id, $item->quantity));
+
+			if (isset($item->project_item_id) && !empty($item->project_item_id)) {
+				array_push($productions, $item->project_item_id);
 			}
+		}
+
+		if (sizeof($productions)) {
+			$productions = array_unique($productions);
 		}
 
 		if (in_array(false, $usabled)) {
-			redirect("materialrequests/view/" . $mr_id . "/error");
-			return;
+			// Some item have no stock.
+			echo json_encode(array("status" => false, "message" => lang("not_enough_stock")));
+			exit();
 		} else {
-			// Update stock remaining to used and update used status
-			if ($info->mr_type == 2) {
-				foreach ($items as $item) {
+			// All items has stock.
+			foreach ($items as $item) {
+				if ($item->item_type == "RM") {
+					// Update RM remaining stock and used status to [bom_stocks, bom_project_item_materials] tables.
+					$this->Bom_stocks_model->dev2_updateStockUsed($item->stock_id, $item->quantity);
+					$this->Bom_project_item_materials_model->dev2_updateUsedStatusById($item->bpim_id, 1);
+				} else {
+					// Update FG or SFG remaining stock and used status to [bom_item_stocks, bom_project_item_items] tables.
 					$this->Bom_item_stocks_model->dev2_updateStockUsed($item->stock_id, $item->quantity);
 					$this->Bom_project_item_items_model->dev2_updateUsedStatusById($item->bpim_id, 1);
 				}
-			} else {
-				foreach ($items as $item) {
-					$this->Bom_stocks_model->dev2_updateStockUsed($item->stock_id, $item->quantity);
-					$this->Bom_project_item_materials_model->dev2_updateUsedStatusById($item->bpim_id, 1);
+			}
+
+			// All production id in material request (MR)
+			if (sizeof($productions)) {
+				foreach ($productions as $production) {
+					// Update [mr_status] production material request status to [bom_project_items]
+					$this->Projects_model->dev2_patchProductionMaterialRequestStatus($production);
 				}
 			}
 
-			// Update material request status
+			// Update material request (MR) status to approved
 			$this->Materialrequests_model->dev2_updateApprovalStatus($mr_id, 3, $this->login_user->id);
-			redirect("materialrequests/view/" . $mr_id . "/success");
+			
+			echo json_encode(array("status" => true, "message" => lang("approved_success")));
+			exit();
 		}
 	}
 
 	function disapprove($mr_id = 0)
 	{
 		if ($mr_id == 0) {
+			// Have no id, show error 404
 			$this->load->view("error/html/error_404");
 			return;
 		}
 
-		// Get material request info
+		// Get material request (MR) header
 		$info = $this->Materialrequests_model->get_one($mr_id);
 
-		// Get material request detail
-		$items = $this->Mr_items_model->get_materialrequest_item_by_id($mr_id);
-		$prod_ids = $this->Bom_project_item_materials_model->dev2_getProductionOrderIdByMaterialRequestId($mr_id);
-		if (sizeof($items) == 0) {
-			redirect("materialrequests/view/" . $mr_id . "/nodata");
-			return;
+		if (empty($info)) {
+			// Id was wrong
+			echo json_encode(array("status" => false, "message" => lang("nodata_item_request")));
+			exit();
 		}
 
-		// Update used status
-		if ($info->mr_type == 2) {
-			foreach ($items as $item) {
+		// Get material request (MR) detail
+		$items = $this->Mr_items_model->get_materialrequest_item_by_id($mr_id);
+
+		if (sizeof($items) == 0) {
+			// Material request (MR) have no item
+			echo json_encode(array("status" => false, "message" => lang("nodata_item_request")));
+			exit();
+		}
+
+		// Stored usabled result
+		$productions = array();
+
+		foreach ($items as $item) {
+			if ($item->item_type == "RM") {
+				// RM reject, delete all item from manual add, update all item from production mr_id to null
+				$this->Bom_project_item_materials_model->dev2_rejectMaterialRequestById($item->bpim_id);
+			} else {
+				// FG, SFG reject, delete all item from manual add, update all item from production mr_id to null
 				$this->Bom_project_item_items_model->dev2_rejectMaterialRequestById($item->bpim_id);
 			}
-		} else {
-			foreach ($items as $item) {
-				$this->Bom_project_item_materials_model->dev2_rejectMaterialRequestById($item->bpim_id);
-				
-				if (isset($item->project_item_id) && !empty($item->project_item_id)) {
-					array_push($prod_id, $item->project_item_id);
-				}
-			}
 
-			if (sizeof($prod_ids)) {
-				foreach ($prod_ids as $item) {
-					// release the material request status
-					$this->Bom_project_item_materials_model->dev2_patchProductionMaterialRequestStatus($item->project_item_id);
-				}
+			if (isset($item->project_item_id) && !empty($item->project_item_id)) {
+				array_push($productions, $item->project_item_id);
+			}
+		}
+		
+		if (sizeof($productions)) {
+			$productions = array_unique($productions);
+
+			foreach ($productions as $production) {
+				// Update [mr_status] production material request status to [bom_project_items]
+				$this->Projects_model->dev2_patchProductionMaterialRequestStatus($production);
 			}
 		}
 
-		// Clear project material stock id
+		// Clear [stock_id, bpim_id] to material request items
 		$this->Mr_items_model->dev2_clearProjectMaterialStockId($mr_id);
 
-		// Update material request status 
+		// Update material request status to rejected
 		$this->Materialrequests_model->dev2_updateApprovalStatus($mr_id, 4, $this->login_user->id);
 
-		redirect("materialrequests/view/" . $mr_id . "/reject");
+		echo json_encode(array("status" => true, "message" => lang("rejected_message")));
+		exit();
 	}
 
 	function process_pr($mr_id = 0)
@@ -587,7 +624,7 @@ class Materialrequests extends MY_Controller
 	}
 
 	/* load new order modal */
-	function modal_form() // dev2
+	function modal_form()
 	{
 		if (!$this->check_permission('access_material_request')) {
 			redirect("forbidden");
@@ -870,12 +907,12 @@ class Materialrequests extends MY_Controller
 	}
 
 	/* load pr details view */
-	function view($mr_id = 0, $message = null)
+	function view($id = 0)
 	{
 		// Get permissions to access, update and approve the material request
-		$view_data["access_material_request"] = $this->check_permission('access_material_request');
-		$view_data["update_material_request"] = $this->check_permission('update_material_request');
-		$view_data["approve_material_request"] = $this->check_permission('approve_material_request');
+		$view_data["access_material_request"] = $this->check_permission("access_material_request");
+		$view_data["update_material_request"] = $this->check_permission("update_material_request");
+		$view_data["approve_material_request"] = $this->check_permission("approve_material_request");
 		
 		// Check permission
 		if (!$view_data["access_material_request"]) {
@@ -883,15 +920,24 @@ class Materialrequests extends MY_Controller
 		}
 
 		// Check material request id.
-		if ($mr_id == 0) {
+		if ($id == 0) {
 			$this->load->view("error/html/error_404");
 			return;
 		}
+		
+		// Get material request (MR) header information
+		$data["id"] = $id;
+		$data["mr_header"] = $this->Materialrequests_model->dev2_getMaterialRequestProjectHeaderById($id);
+
+		if ($data["mr_header"]->mr_type == 3) {
+			// MR type isn't request from project, redirect to view
+			redirect("materialrequests/view_group/" . $id);
+		}
 
 		// Retrieve the components of the requisition of raw materials. Retrieve the components of the requisition of raw materials.
-		$view_data["mr_id"] = $mr_id;
-		$view_data["mat_req_info"] = $this->Materialrequests_model->get_materialrequest_by_id($mr_id);
-		$view_data["mat_items_info"] = $this->Mr_items_model->get_materialrequest_item_by_id($mr_id);
+		$view_data["mr_id"] = $id;
+		$view_data["mat_req_info"] = $this->Materialrequests_model->get_materialrequest_by_id($id);
+		$view_data["mat_items_info"] = $this->Mr_items_model->get_materialrequest_item_by_id($id);
 		
 		if (isset($view_data["mat_req_info"]->project_id) && !empty($view_data["mat_req_info"]->project_id)) {
 			$view_data["mat_project_info"] = $this->Projects_model->get_project_by_id($view_data["mat_req_info"]->project_id);
@@ -910,27 +956,62 @@ class Materialrequests extends MY_Controller
 		}
 
 		if (isset($view_data["mat_req_info"]->approved_by) && !empty($view_data["mat_req_info"]->approved_by)) {
-			$view_data["mat_req_info"]->approved_by_name = $this->Account_category_model->created_by($view_data["mat_req_info"]->approved_by);
-		}
-
-		if ($message == "nodata") {
-			$view_data["error_message"] = lang('nodata_item_request');
-		}
-
-		if ($message == "error") {
-			$view_data["error_message"] = lang('not_enough_stock');
-		}
-
-		if ($message == "success") {
-			$view_data["success_message"] = lang('approved_success');
-		}
-
-		if ($message == "reject") {
-			$view_data["reject_message"] = lang('rejected_message');
+			$view_data["mat_approver_info"] = $this->Users_m->get_user_by_id($view_data["mat_req_info"]->approved_by);
 		}
 
 		// var_dump(arr($view_data)); exit();
 		$this->template->rander("materialrequests/view", $view_data);
+	}
+
+	function view_group($id = 0)
+	{
+		// Get permissions to access, update and approve the material request
+		$data["access_material_request"] = $this->check_permission("access_material_request");
+		$data["update_material_request"] = $this->check_permission("update_material_request");
+		$data["approve_material_request"] = $this->check_permission("approve_material_request");
+
+		// Check permission
+		if (!$data["access_material_request"]) {
+			redirect("forbidden");
+		}
+
+		// Check material request id.
+		if ($id == 0) {
+			$this->load->view("error/html/error_404");
+			return;
+		}
+
+		// Get material request (MR) header information
+		$data["id"] = $id;
+		$data["mr_header"] = $this->Materialrequests_model->dev2_getMaterialRequestProjectHeaderById($id);
+		
+		if ($data["mr_header"]->mr_type != 3) {
+			// MR type isn't request from project, redirect to view
+			redirect("materialrequests/view/" . $id);
+		}
+
+		if (!empty($data["mr_header"])) {
+			// Get material request (MR) detail information [Group Categories]
+			$data["mr_detail"] = $this->Materialrequests_model->dev2_getMaterialRequestProjectDetailById($id);
+
+			// Get material request (MR) detail information [Group Materials]
+			$data["mr_list"] = $this->Materialrequests_model->dev2_getMaterialRequestProjectListById($id);
+		}
+
+		if (!empty($data["mr_header"]->requester_id)) {
+			// Get requester information
+			$data["requester_info"] = $this->Users_model->get_one($data["mr_header"]->requester_id);
+			$data["requester_sign"] = $this->Users_m->getSignature($data["mr_header"]->requester_id);
+		}
+
+		if (!empty($data["mr_header"]->approved_by)) {
+			// Get approver information
+			$data["approver_info"] = $this->Users_model->get_one($data["mr_header"]->approved_by);
+			$data["approver_sign"] = $this->Users_m->getSignature($data["mr_header"]->approved_by);
+		}
+
+		// var_dump(arr($data)); exit();
+		$this->template->rander("materialrequests/view_group", $data);
 	}
 
 	private function check_access_to_this_mr($mr_data)
@@ -1215,7 +1296,7 @@ class Materialrequests extends MY_Controller
 		$custom_fields = $this->Custom_fields_model->get_available_fields_for_table("materialrequests", $this->login_user->is_admin, $this->login_user->user_type);
 
 		$options = array("id" => $id, "custom_fields" => $custom_fields);
-		$data = $this->MaterialRequests_model->get_details($options)->row();
+		$data = $this->Materialrequests_model->get_details($options)->row();
 		return $this->_make_row($data, $custom_fields);
 	}
 
@@ -2165,7 +2246,7 @@ class Materialrequests extends MY_Controller
 		}
 	}
 
-	function mr_create_save() // dev2
+	function mr_create_save()
 	{
 		$post = $this->input->post();
 
@@ -2432,6 +2513,7 @@ class Materialrequests extends MY_Controller
 				$mri['code'] = $bs->item_code ? $bs->item_code : null;
 				$mri['title'] = $bs->title ? $bs->title : null;
 				$mri['unit_type'] = $bs->unit_type;
+				$mri['item_type'] = 'FG';
 
 				$mri_id = $this->Materialrequests_model->postItemRequestItemFromMaterialRequest($mri);
 			} else {
@@ -2439,6 +2521,7 @@ class Materialrequests extends MY_Controller
 				$mri['code'] = $bs->name;
 				$mri['title'] = $bs->production_name;
 				$mri['unit_type'] = $bs->unit;
+				$mri['item_type'] = 'RM';
 
 				$mri_id = $this->Materialrequests_model->postMaterialRequestItemFromMaterialRequest($mri);
 			}
@@ -2473,16 +2556,70 @@ class Materialrequests extends MY_Controller
 		jout($list);
 	}
 
+	function printing($id = 0)
+	{
+		if (empty($id) || $id == 0) {
+			redirect("materialrequests");
+		}
+
+		$data["id"] = $id;
+		$data["info"] = $this->Materialrequests_model->get_materialrequest_by_id($id);
+		
+		// var_dump(arr($data)); exit();
+		if (isset($data["info"]->mr_type) && !empty($data["info"]->mr_type)) {
+			if ($data["info"]->mr_type == 3) {
+				redirect("materialrequests/print_group/" . $id);
+			} else {
+				redirect("materialrequests/print/" . $id);
+			}
+		}
+	}
+
 	function print($id)
 	{
-		$this->data['mat_req_info'] = $this->Materialrequests_model->get_materialrequest_by_id($id);
-		$this->data['mat_item_info'] = $this->Materialrequests_model->dev2_getItemListForPrintByMaterialRequestId($id, $this->data['mat_req_info']->mr_type);
-		$this->data['mat_requester_info'] = $this->Users_m->get_user_by_id($this->data['mat_req_info']->requester_id);
-		$this->data['mat_project_info'] = $this->Projects_model->get_project_by_id($this->data['mat_req_info']->project_id);
+		$this->data["mat_req_info"] = $this->Materialrequests_model->get_materialrequest_by_id($id);
+		$this->data["mat_item_info"] = $this->Materialrequests_model->dev2_getItemListForPrintByMaterialRequestId($id, $this->data["mat_req_info"]->mr_type);
+		$this->data["mat_requester_info"] = $this->Users_m->get_user_by_id($this->data["mat_req_info"]->requester_id);
+		$this->data["mat_project_info"] = $this->Projects_model->get_project_by_id($this->data["mat_req_info"]->project_id);
 		$this->data["docmode"] = "private_print";
 
+		// Additional information
+		if (isset($this->data["mat_req_info"]->approved_by) && !empty($this->data["mat_req_info"]->approved_by)) {
+			$this->data["mat_approver_info"] = $this->Users_m->get_user_by_id($this->data["mat_req_info"]->approved_by);
+		}
+
 		// var_dump(arr($this->data)); exit();
-		$this->load->view('edocs/material_request', $this->data);
+		$this->load->view("edocs/material_request", $this->data);
+	}
+
+	function print_group($id)
+	{
+		// Get material request (MR) header information
+		$this->data["id"] = $id;
+		$this->data["mr_header"] = $this->Materialrequests_model->dev2_getMaterialRequestProjectHeaderById($id);
+
+		if (!empty($this->data["mr_header"])) {
+			// Get material request (MR) detail information [Group Categories]
+			$this->data["mr_detail"] = $this->Materialrequests_model->dev2_getMaterialRequestProjectDetailById($id);
+
+			// Get material request (MR) detail information [Group Materials]
+			$this->data["mr_list"] = $this->Materialrequests_model->dev2_getMaterialRequestProjectListById($id);
+		}
+
+		if (!empty($this->data["mr_header"]->requester_id)) {
+			// Get requester information
+			$this->data["requester_info"] = $this->Users_model->get_one($this->data["mr_header"]->requester_id);
+			$this->data["requester_sign"] = $this->Users_m->getSignature($this->data["mr_header"]->requester_id);
+		}
+
+		if (!empty($this->data["mr_header"]->approved_by)) {
+			// Get approver information
+			$this->data["approver_info"] = $this->Users_model->get_one($this->data["mr_header"]->approved_by);
+			$this->data["approver_sign"] = $this->Users_m->getSignature($this->data["mr_header"]->approved_by);
+		}
+
+		// var_dump(arr($data)); exit();
+		$this->load->view("edocs/material_group", $this->data);
 	}
 
 }

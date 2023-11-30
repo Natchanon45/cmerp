@@ -424,7 +424,7 @@ class MaterialRequests_model extends Crud_model
 				foreach ($datas as $data) {
 					$data->names = (isset($data->code) && !empty($data->code)) ? $data->code . ' - ' . $data->title : $data->title;
 					$data->description = (isset($data->description) && !empty($data->description)) ? mb_strimwidth($data->description, 1, 50, '...') : $data->title;
-					$data->quantity = number_format($data->quantity, $this->Settings_m->getDecimalPlacesNumber());
+					$data->quantity = number_format($data->quantity, 6);
 					$data->stocks = $this->getStockNameByStockId($data->stock_id, $data->bpim_id, $mr_type);
 					$data->edit = modal_anchor(
 						get_uri("materialrequests/item_edit"),
@@ -709,5 +709,100 @@ class MaterialRequests_model extends Crud_model
 		}
 		return $data;
 	}
+
+	public function dev2_getMaterialRequestProjectHeaderById(int $id) : stdClass
+	{
+		$data = new stdClass();
+
+		$query = $this->db->get_where("materialrequests", ["id" => $id])->row();
+		if (!empty($query)) {
+			$data = $query;
+		}
+		return $data;
+	}
+
+	public function dev2_getMaterialRequestProjectListById(int $id) : array
+	{
+		$data = [
+			"rm_list" => [],
+			"sfg_list" => []
+		];
+
+		$rm_sql = "SELECT material_id, SUM(quantity) AS quantity FROM mr_items WHERE mr_id = " . $id . " AND item_type = 'RM' GROUP BY  material_id";
+		$sfg_sql = "SELECT item_id, SUM(quantity) AS quantity FROM mr_items WHERE mr_id = " . $id . " AND item_type = 'SFG' GROUP BY  item_id";
+
+		$rm_query = $this->db->query($rm_sql)->result();
+		$sfg_query = $this->db->query($sfg_sql)->result();
+
+		if (sizeof($rm_query)) {
+			foreach ($rm_query as $rm) {
+				$rm->material_info = $this->dev2_getRowInfoByRowId($rm->material_id, "bom_materials");
+			}
+
+			$data["rm_list"] = $rm_query;
+		}
+
+		if (sizeof($sfg_query)) {
+			foreach ($sfg_query as $sfg) {
+				$sfg->item_info = $this->dev2_getRowInfoByRowId($sfg->item_id, "items");
+			}
+
+			$data["sfg_list"] = $sfg_query;
+		}
+
+		return $data;
+	}
+
+	public function dev2_getMaterialRequestProjectDetailById(int $id) : array
+	{
+		$data = [
+			"mr_detail" => [],
+			"categories" => []
+		];
+
+		$query = $this->db->get_where("mr_items", ["mr_id" => $id])->result();
+		if (sizeof($query)) {
+			$categories = [];
+			foreach ($query as $item) {
+				if (isset($item->category_in_bom) && !empty($item->category_in_bom)) {
+					array_push($categories, $item->category_in_bom);
+				}
+				
+				if ($item->item_type == "RM") {
+					$item->stock_info = (isset($item->stock_id) && !empty($item->stock_id)) ? $this->dev2_getRowInfoByRowId($item->stock_id, "bom_stocks") : new stdClass();
+					$item->stock_info->group_info = (isset($item->stock_info->group_id) && !empty($item->stock_info->group_id)) ? $this->dev2_getRowInfoByRowId($item->stock_info->group_id, "bom_stock_groups") : new stdClass();
+				}
+
+				if ($item->item_type == "SFG") {
+					$item->stock_info = (isset($item->stock_id) && !empty($item->stock_id)) ? $this->dev2_getRowInfoByRowId($item->stock_id, "bom_item_stocks") : new stdClass();
+					$item->stock_info->group_info = (isset($item->stock_info->group_id) && !empty($item->stock_info->group_id)) ? $this->dev2_getRowInfoByRowId($item->stock_info->group_id, "bom_item_groups") : new stdClass();
+				}
+			}
+			
+			if (sizeof($categories)) {
+				$categories_where = implode(',', array_unique($categories));
+				$categories_sql = "SELECT * FROM material_categories WHERE id IN (" . $categories_where . ") ORDER BY item_type";
+				$categories_query = $this->db->query($categories_sql)->result();
+
+				if (sizeof($categories_query)) {
+					$data["categories"] = $categories_query;
+				}
+			}
+
+			$data["mr_detail"] = $query;
+		}
+		return $data;
+	}
+
+	private function dev2_getRowInfoByRowId(int $id, string $table): stdClass
+    {
+        $info = new stdClass();
+        $get = $this->db->get_where($table, ["id" => $id])->row();
+
+        if (!empty($get)) {
+            $info = $get;
+        }
+        return $info;
+    }
 
 }

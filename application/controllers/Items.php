@@ -269,7 +269,7 @@ class Items extends MY_Controller
 			// $data->account_id ? $this->Account_category_model->account_by($data->account_id) : "-",
 			$type,
 			@$data->barcode ? '<div style="text-align:center"><a href="' . $src . '" class="barcode_img" download><img src="' . $src . '" /><div class="text">Click to download</div></a></div>' : '-',
-			$data->rate,
+			to_decimal_format3($data->rate, 3),
 			implode('', $buttons)
 		);
 	}

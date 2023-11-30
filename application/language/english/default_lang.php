@@ -1906,7 +1906,6 @@ $lang["stock_material_category_title"] = "Category title";
 $lang["stock_material_edit"] = "Edit Material";
 $lang["stock_material_delete"] = "Delete Material";
 $lang["stock_material_description"] = "Description";
-$lang["stock_material_unit"] = "Unit";
 $lang["stock_material_details"] = "Material details";
 $lang["stock_material_info"] = "Material info";
 $lang["stock_material_mixing"] = "Formula info";
@@ -2124,6 +2123,7 @@ $lang["btn_edit_finished_goods"] = "Edit Finished Goods";
 $lang["btn_edit_expense"] = "Edit Expense";
 
 $lang["label_raw_material"] = "Raw Material";
+$lang["label_semifinished_goods"] = "Semi-Finished Goods";
 $lang["label_finished_goods"] = "Finished Goods";
 $lang["label_expense"] = "Expense";
 
@@ -2286,6 +2286,17 @@ $lang["production_order_form_data_incorrect"] = "Please enter form data correctl
 $lang["production_order_quantity_data_incorrect"] = "Please enter the quantity each records correctly.";
 $lang["production_order_all_of_material_used"] = "All the required materials.";
 $lang["production_order_all_of_semi_used"] = "All the required semi-finished goods.";
+$lang["production_order_create_mr_all_both"] = "All production order";
+$lang["production_order_create_mr_all_fg"] = "FG production order";
+$lang["production_order_create_mr_all_sfg"] = "SFG production otder";
+
+$lang["mr_creation_rm_will_created"] = "RM that will be used to create the requisition.";
+$lang["mr_creation_sfg_will_created"] = "SFG that will be used to create the requisition.";
+$lang["mr_creation_all_question"] = "Would you like to create an MR for these materials?";
+$lang["mr_creation_all_production"] = "Create MR for all production.";
+$lang["mr_creation_fg_production"] = "Create MR for FG production only.";
+$lang["mr_creation_sfg_production"] = "Create MR for SFG production only.";
+$lang["mr_preview"] = "Preview MR";
 
 // Setting Access Rights for Account Management
 $lang["setting_account_management"] = "Setting access rights for Account management";
@@ -2319,3 +2330,8 @@ $lang["sfg_column_header"] = "Semi-Finished Goods";
 $lang["item_type"] = "Item type";
 $lang["fg"] = "FG";
 $lang["sfg"] = "SFG";
+$lang["group_category"] = "Categories";
+$lang["project_total"] = "Total project";
+$lang["mr_total_raw_material"] = "Summary Raw material";
+$lang["mr_total_semi_finished_goods"] = "Summary Semi-finished goods";
+$lang["mr_total_finished_goods"] = "Summary Finished goods";
