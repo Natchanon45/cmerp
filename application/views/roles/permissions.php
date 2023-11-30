@@ -155,9 +155,9 @@
                                 echo form_radio(array(
                                     "id" => "access_project_no",
                                     "name" => "access_project",
-                                    "value" => false,
+                                    "value" => "noaccess",
                                     "class" => "project_permission toggle_specific",
-                                        ), $access_project, ($access_project == "") ? true : false);
+                                        ), $access_project, ($access_project == "noaccess") ? true : false);
                                 ?>
                                 <label for="access_project_no">ไม่ใช่</label>
                             </div>
@@ -181,7 +181,7 @@
                                     "class" => "project_permission toggle_specific",
                                         ), $access_project, ($access_project === "assigned_only") ? true : false);
                                 ?>
-                                <label for="access_project_assigned_only">ใช่ โปรเจคของคุณเท่านั้น</label>
+                                <label for="access_project_assigned_only">ใช่ โปรเจคที่สร้างเท่านั้น</label>
                             </div>
                             <div>
                                 <?php
@@ -991,91 +991,117 @@
 </div>
 
 <script type="text/javascript">
-    $(document).ready(function () {
-        $("#permissions-form").appForm({
-            isModal: false,
-            onSuccess: function (result) {
-                appAlert.success(result.message, {duration: 10000});
-            }
-        });
-
-        $("#leave_specific_dropdown, #attendance_specific_dropdown, #timesheet_manage_permission_specific_dropdown,  #team_member_update_permission_specific_dropdown, #message_permission_specific_dropdown").select2({
-            multiple: true,
-            formatResult: teamAndMemberSelect2Format,
-            formatSelection: teamAndMemberSelect2Format,
-            data: <?php echo ($members_and_teams_dropdown); ?>
-        });
-
-        $("#project_types_specific_dropdown").select2({
-            multiple: true,
-            data: <?php echo ($project_types_dropdown); ?>
-        });
-
-        $("#note_types_specific_dropdown").select2({
-            multiple: true,
-            data: <?php echo ($note_types_dropdown); ?>
-        });
-
-        $("#ticket_types_specific_dropdown").select2({
-            multiple: true,
-            data: <?php echo ($ticket_types_dropdown); ?>
-        });
-
-        $('[data-toggle="tooltip"]').tooltip();
-
-        $(".toggle_specific").click(function () {
-            toggle_specific_dropdown();
-        });
-
-        toggle_specific_dropdown();
-
-        function toggle_specific_dropdown() {
-            var selectors = [".project_permission", ".note_permission", ".leave_permission", ".attendance_permission", ".timesheet_manage_permission", ".team_member_update_permission", ".ticket_permission", ".message_permission_specific"];
-            $.each(selectors, function (index, element) {
-                var $element = $(element + ":checked");
-                if ((element !== ".message_permission_specific" && $element.val() === "specific") || (element === ".message_permission_specific" && $element.is(":checked") && !$("#message_permission_specific_area").hasClass("hide"))) {
-                    $element.closest("li").find(".specific_dropdown").show().find("input").addClass("validate-hidden");
-                } else {
-                    //console.log($element.closest("li").find(".specific_dropdown"));
-                    $(element).closest("li").find(".specific_dropdown").hide().find("input").removeClass("validate-hidden");
-                }
-            });
-
+$(document).ready(function () {
+    $("#permissions-form").appForm({
+        isModal: false,
+        onSuccess: function (result) {
+            appAlert.success(result.message, {duration: 10000});
         }
-
-        //show/hide message permission checkbox
-        $("#message_permission_no").click(function () {
-            if ($(this).is(":checked")) {
-                $("#message_permission_specific_area").addClass("hide");
-            } else {
-                $("#message_permission_specific_area").removeClass("hide");
-            }
-            toggle_specific_dropdown();
-        });
-
-        var manageProjectSection = "#can_manage_all_projects, #can_create_projects, #can_edit_projects, #can_delete_projects, #can_add_remove_project_members, #can_create_tasks";
-        var manageAssignedTasks = "#show_assigned_tasks_only, #can_update_only_assigned_tasks_status";
-        var manageAssignedTasksSection = "#show_assigned_tasks_only_section, #can_update_only_assigned_tasks_status_section";
-
-        if ($(manageProjectSection).is(':checked')) {
-            $(manageAssignedTasksSection).addClass("hide");
-        }
-
-        $(manageProjectSection).click(function () {
-            if ($(this).is(":checked")) {
-                $(manageAssignedTasks).prop("checked", false);
-                $(manageAssignedTasksSection).addClass("hide");
-            } else {
-                $(manageAssignedTasksSection).removeClass("hide");
-            }
-        });
-
-        $('.manage_project_section').change(function () {
-            var checkedStatus = $('.manage_project_section:checkbox:checked').length > 0;
-            if (!checkedStatus) {
-                $(manageAssignedTasksSection).removeClass("hide");
-            }
-        }).change();
-
     });
+
+    $("#leave_specific_dropdown, #attendance_specific_dropdown, #timesheet_manage_permission_specific_dropdown,  #team_member_update_permission_specific_dropdown, #message_permission_specific_dropdown").select2({
+        multiple: true,
+        formatResult: teamAndMemberSelect2Format,
+        formatSelection: teamAndMemberSelect2Format,
+        data: <?php echo ($members_and_teams_dropdown); ?>
+    });
+
+    $("#project_types_specific_dropdown").select2({
+        multiple: true,
+        data: <?php echo ($project_types_dropdown); ?>
+    });
+
+    $("#note_types_specific_dropdown").select2({
+        multiple: true,
+        data: <?php echo ($note_types_dropdown); ?>
+    });
+
+    $("#ticket_types_specific_dropdown").select2({
+        multiple: true,
+        data: <?php echo ($ticket_types_dropdown); ?>
+    });
+
+    $('[data-toggle="tooltip"]').tooltip();
+
+    $(".toggle_specific").click(function () {
+        toggle_specific_dropdown();
+    });
+
+    toggle_specific_dropdown();
+
+    function toggle_specific_dropdown() {
+        var selectors = [".project_permission", ".note_permission", ".leave_permission", ".attendance_permission", ".timesheet_manage_permission", ".team_member_update_permission", ".ticket_permission", ".message_permission_specific"];
+        $.each(selectors, function (index, element) {
+            var $element = $(element + ":checked");
+            if ((element !== ".message_permission_specific" && $element.val() === "specific") || (element === ".message_permission_specific" && $element.is(":checked") && !$("#message_permission_specific_area").hasClass("hide"))) {
+                $element.closest("li").find(".specific_dropdown").show().find("input").addClass("validate-hidden");
+            } else {
+                //console.log($element.closest("li").find(".specific_dropdown"));
+                $(element).closest("li").find(".specific_dropdown").hide().find("input").removeClass("validate-hidden");
+            }
+        });
+
+    }
+
+    //show/hide message permission checkbox
+/*$("#message_permission_no").click(function () {
+        if ($(this).is(":checked")) {
+            $("#message_permission_specific_area").addClass("hide");
+        } else {
+            $("#message_permission_specific_area").removeClass("hide");
+        }
+        toggle_specific_dropdown();
+    });
+
+    var manageProjectSection = "#can_manage_all_projects, #can_create_projects, #can_edit_projects, #can_delete_projects, #can_add_remove_project_members, #can_create_tasks";
+    var manageAssignedTasks = "#show_assigned_tasks_only, #can_update_only_assigned_tasks_status";
+    var manageAssignedTasksSection = "#show_assigned_tasks_only_section, #can_update_only_assigned_tasks_status_section";
+
+    if ($(manageProjectSection).is(':checked')) {
+        $(manageAssignedTasksSection).addClass("hide");
+    }
+
+    $(manageProjectSection).click(function () {
+        if ($(this).is(":checked")) {
+            $(manageAssignedTasks).prop("checked", false);
+            $(manageAssignedTasksSection).addClass("hide");
+        } else {
+            $(manageAssignedTasksSection).removeClass("hide");
+        }
+    });*/
+
+    /*$('.manage_project_section').change(function () {
+        var checkedStatus = $('.manage_project_section:checkbox:checked').length > 0;
+        if (!checkedStatus) {
+            $(manageAssignedTasksSection).removeClass("hide");
+        }
+    }).change();*/
+
+    //var manageProjectSection = "#can_manage_all_projects";
+    //var manageAssignedTasks = "#show_assigned_tasks_only, #can_update_only_assigned_tasks_status";
+    //var manageAssignedTasksSection = "#show_assigned_tasks_only_section, #can_update_only_assigned_tasks_status_section";
+
+    $("#can_manage_all_projects, input[name='access_project']").click(function () {
+        projectSetting($(this));
+    });
+});
+
+function projectSetting(ele){
+    eleId = ele.prop("id");
+    eleVal = ele.val();
+
+    if(eleId == "can_manage_all_projects"){
+        if(ele.is(":checked") == true){
+            $("#access_project_all").prop("checked", true);
+        }else{
+            $("#access_project_assigned_only").prop("checked", true);
+        }
+    }else{
+        if(eleVal == "all"){
+            $("#can_manage_all_projects").prop("checked", true);
+        }else{
+            $("#can_manage_all_projects").prop("checked", false);
+        }
+    }
+}
 </script>

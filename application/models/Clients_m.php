@@ -120,9 +120,9 @@ class Clients_m extends MY_Model {
                     $this->getPrimaryContactName($crow->id),
                     $group_list,
                     $this->getTotalProjects($crow->id),
-                    "0.00",
-                    "0.00",
-                    "0.00",
+                    number_format($this->Clients_m->getTotalInvoiceAmounts($crow->id), 2),
+                    number_format($this->Clients_m->getTotalPaymentReceives($crow->id, true), 2),
+                    number_format($this->Clients_m->getTotalInvoiceAmounts($crow->id, true), 2),
                     isset($crow->currency) ? lang($data->currency) : lang("THB")
                 ];
 
@@ -319,6 +319,7 @@ class Clients_m extends MY_Model {
                     ->join("invoice_payment", "invoice.id = invoice_payment.invoice_id")
                     ->where("billing_type", $company_setting["company_billing_type"])
                     ->where("deleted", 0)
+                    ->where_in("status", ["O", "P"])
                     ->where("client_id", $client_id);
 
         if($overdue_checking == true) $this->db->where("DATE(due_date) >", date("Y-m-d"));
