@@ -137,12 +137,12 @@ class Sfg_m extends MY_Model {
     function indexDataSet() {
         $db = $this->db;
         $company_setting = $this->Settings_m->getCompany();
-
+//->join("material_categories", "material_categories.id = items.category_id", "left")
+//->where("material_categories.item_type", $this->item_type)
         $db->select("items.*")
             ->from("items")
-            ->join("material_categories", "material_categories.id = items.category_id", "left")
             ->join("bom_item_stocks", "bom_item_stocks.item_id = items.id", "left")
-            ->where("material_categories.item_type", $this->item_type)
+            ->where("item_type", $this->item_type)
             ->where("items.deleted", 0);
 
         if($this->input->post("category_id") != null){
@@ -960,7 +960,7 @@ class Sfg_m extends MY_Model {
         }
 
         $display_item = '<span>
-            <span style="display: block;"><b>' . lang("stock_product_name") . '</b>: ' . anchor(get_uri('items/detail/' . $data->item_id), $item_name) . '</span>
+            <span style="display: block;"><b>' . lang("stock_product_name") . '</b>: ' . anchor(get_uri('sfg/detail/' . $data->item_id), $item_name) . '</span>
         </span>';
 
         $mixing_name = null;
@@ -968,7 +968,7 @@ class Sfg_m extends MY_Model {
             $mixing_name = $this->Bom_item_groups_model->dev2_getMixingNameByMixingGroupId($data->mixing_group_id);
 
             $display_item = '<span>
-                <span style="display: block;"><b>' . lang("stock_product_name") . '</b>: ' . anchor(get_uri('items/detail/' . $data->item_id), $item_name) . '</span>
+                <span style="display: block;"><b>' . lang("stock_product_name") . '</b>: ' . anchor(get_uri('sfg/detail/' . $data->item_id), $item_name) . '</span>
                 <span style="display: block;"><b>' . lang("production_order_bom_name") . '</b>: ' . $mixing_name . '</span>
             </span>';
         }
