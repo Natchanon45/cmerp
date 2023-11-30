@@ -21,7 +21,7 @@
 		<div class="page-title clearfix">
 			<h1>
 				<a class="title-back" href="<?php echo_uri("stock"); ?>"><i class="fa fa-chevron-left" aria-hidden="true"></i></a>
-				<span><?php echo lang("stock_item_report"); ?></span>
+				<span>รายงานสินค้ากึ่งสำเร็จ</span>
 			</h1>
 		</div>
 		<div class="table-responsive">
@@ -31,7 +31,7 @@
 </div>
 
 <script type="text/javascript">
-const source = '<?php echo_uri("stock/item_report_list"); ?>';
+const source = '<?php echo current_url(); ?>';
 const isZero = {
 	name: 'is_zero',
 	class: 'w150',
@@ -44,11 +44,11 @@ const isZero = {
 const dateCreated = [{
 	startDate: {
 		name: 'start_date'
-		//value: '<?php echo date('Y-m-01'); ?>'
+		// value: '<?php echo date('Y-m-01'); ?>'
 	},
 	endDate: {
 		name: 'end_date'
-		//value: '<?php echo date("Y-m-d", strtotime('last day of this month', time())); ?>'
+		// value: '<?php echo date("Y-m-d", strtotime('last day of this month', time())); ?>'
 	}
 }];
 

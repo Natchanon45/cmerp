@@ -46,12 +46,12 @@ const warehouseId = {
 
 const dateCreated = [{
 	startDate: {
-		name: 'start_date',
-		value: '<?php  echo date('Y-m-01'); ?>'
+		name: 'start_date'
+		//value: '<?php  echo date('Y-m-01'); ?>'
 	},
 	endDate: {
-		name: 'end_date',
-		value: '<?php echo date("Y-m-d", strtotime('last day of this month', time())); ?>'
+		name: 'end_date'
+		//value: '<?php echo date("Y-m-d", strtotime('last day of this month', time())); ?>'
 	}
 }];
 

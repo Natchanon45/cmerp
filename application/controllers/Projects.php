@@ -5998,17 +5998,17 @@ class Projects extends MY_Controller
         if (isset($post["item_id"]) && !empty($post["item_id"])) {
             for ($i = 0; $i < count($post["item_id"]); $i++) {
                 if ($post["item_id"][$i] == "") {
-                    echo json_encode(array("success" => false, "post" => $post, "message" => "กรุณาระบุข้อมูลให้ครบถ้วน"));
+                    echo json_encode(array("success" => false, "post" => $post, "message" => lang("production_order_form_data_incorrect")));
                     return;
                 }
 
                 if ($post["item_mixing"][$i] == "") {
-                    echo json_encode(array("success" => false, "post" => $post, "message" => "กรุณาระบุข้อมูลให้ครบถ้วน"));
+                    echo json_encode(array("success" => false, "post" => $post, "message" => lang("production_order_form_data_incorrect")));
                     return;
                 }
 
                 if ($post["quantity"][$i] == "" || $post["quantity"][$i] <= 0 || $post["quantity"][$i] == "0") {
-                    echo json_encode(array("success" => false, "post" => $post, "message" => "กรุณาระบุจำนวนให้ถูกต้อง"));
+                    echo json_encode(array("success" => false, "post" => $post, "message" => lang("production_order_quantity_data_incorrect")));
                     return;
                 }
 
@@ -6072,12 +6072,21 @@ class Projects extends MY_Controller
     {
         $post = $this->json;
 
-        $bom_recalc = $this->Projects_model->dev2_postProductionBomRecalculation(
+        $sfg_recalc = $this->Projects_model->dev2_postProductionBomRecalculation(
             $post->projectId,
             $post->projectName,
-            $post->projectBomId
+            $post->projectBomId,
+            "SFG"
         );
-        echo json_encode($bom_recalc);
+
+        $rm_recalc = $this->Projects_model->dev2_postProductionBomRecalculation(
+            $post->projectId,
+            $post->projectName,
+            $post->projectBomId,
+            "RM"
+        );
+        
+        echo json_encode(array("sfg" => $sfg_recalc, "rm" => $rm_recalc));
     }
 
     function production_order_mr_creation()
@@ -6094,10 +6103,15 @@ class Projects extends MY_Controller
 
     function production_order_mr_creation_all()
     {
-        $data = $this->input->post();
+        $post = $this->input->post();
+        $mr_creation = $this->Projects_model->dev2_postProductionMaterialRequestCreationPreview(
+            $post["project_id"],
+            $post["project_name"],
+            $post["item_type"]
+        );
         
-        // var_dump(arr($data)); exit();
-        $this->load->view("projects/production_orders/mr_creation_all", $data);
+        // var_dump(arr($mr_creation)); exit();
+        $this->load->view("projects/production_orders/mr_creation_all", $mr_creation);
     }
 
     function production_order_mr_creation_all_post()
@@ -6107,7 +6121,8 @@ class Projects extends MY_Controller
         // var_dump(arr($post)); exit();
         $mr_creation_all = $this->Projects_model->dev2_postProductionMaterialRequestCreationAll(
             $post->projectId,
-            $post->projectName
+            $post->projectName,
+            $post->productionIds
         );
         echo json_encode($mr_creation_all);
     }
@@ -6156,6 +6171,17 @@ class Projects extends MY_Controller
 
         // var_dump(arr($data)); exit();
         $this->load->view("projects/production_orders/modal_error", $data);
+    }
+
+    public function production_order_all_bag_modal()
+    {
+        $data = $this->input->post();
+
+        $data["auth_read_cost"] = $this->check_permission("bom_restock_read_price");
+        $data["production_items"] = $this->Projects_model->dev2_getMixingCategoryListByProjectId($data["project_id"]);
+
+        // var_dump(arr($data)); exit();
+        $this->load->view("projects/production_orders/modal_all_bag", $data);
     }
 
     private function production_order_count_no_mr($production_id) // Integration testing 
@@ -6318,12 +6344,24 @@ class Projects extends MY_Controller
             $mr = '<select class="pill pill-success pointer-none">
             <option>' . lang("production_order_completed_withdrawal") . '</option>
             </select>';
+        } elseif ($item->mr_status == 4) {
+            $mr = '<select class="pill pill-warning-dark pointer-none">
+            <option>' . lang("production_order_created_withdrawn") . '</option>
+            </select>';
+        }
+
+        // set color class
+        $product_name = '<span class="text-color-fg">' . $item->item_info->title . '</span>';
+        if (isset($item->item_info->item_type) && !empty($item->item_info->item_type)) {
+            if ($item->item_info->item_type == 'SFG') {
+                $product_name = '<span class="text-color-sfg">' . $item->item_info->title . '</span>';
+            }
         }
 
         if ($item->auth_cost) {
             $result = [
                 $item->id,
-                $item->item_info->title,
+                $product_name,
                 $item->mixing_group_info->name,
                 number_format($item->quantity, 2),
                 mb_strtoupper($item->item_info->unit_type),
@@ -6349,6 +6387,16 @@ class Projects extends MY_Controller
         }
 
         return $result;
+    }
+
+    public function dev2_TestCaseMaterialRequestStatusForProductionOrder($production_id = 0)
+    {
+        $result = [];
+
+        $result["production_id"] = $production_id;
+        $result["mr_data"] = $this->Projects_model->dev2_getProductionMaterialRequestStatusByProductionId($production_id);
+
+        var_dump(arr($result)); exit();
     }
 
 }

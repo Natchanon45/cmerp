@@ -45,9 +45,31 @@
         background-color: #ffc107;
     }
 
+    .pill-warning-dark {
+        color: #fff;
+        background-color: rgba(255, 165, 0, 1);
+    }
+
     .pill-info {
         color: #fff;
         background-color: #17a2b8;
+    }
+
+    .text-color-fg {
+        color: rgba(0, 83, 156, .83);
+        font-weight: bolder;
+    }
+
+    .text-color-sfg {
+        color: rgba(255, 165, 0, .83);
+        font-weight: bolder;
+    }
+
+    .btn-custom-bag {
+        border: 1px solid #148f77;
+        border-radius: 100%;
+        padding: 5px 8px;
+        font-size: 120%;
     }
 </style>
 
@@ -80,20 +102,67 @@
                     "data-post-project_id" => $project_info["id"]
                 )
             );
-
-            echo modal_anchor(
-                get_uri("projects/production_order_mr_creation_all"),
-                "<i class='fa fa-plus-circle'></i> " . lang("production_order_create_mr_all"),
-                array(
-                    "class" => "btn btn-info",
-                    "title" => lang("production_order_create_mr_all"),
-                    "data-title" => lang("production_order_create_mr_all"),
-                    "data-post-project_id" => $project_info["id"],
-                    "data-post-project_name" => $project_info["title"]
-                )
-            );
             ?>
+            
+            <!-- btn-create-material-request -->
+            <span class="dropdown inline-block">
+                <button class="btn btn-info dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <i class="fa fa-plus-circle"></i>
+                    <?php echo lang("production_order_create_mr_all"); ?>
+                </button>
+                <ul class="dropdown-menu dropdown-left rounded" role="menu" aria-labelledby="dropdownMenuButton">
+                    <li role="presentation">
+                        <?php
+                            echo modal_anchor(
+                                get_uri("projects/production_order_mr_creation_all"),
+                                "<i class='fa fa-plus-circle'></i> " . lang("production_order_create_mr_all_both"),
+                                array(
+                                    "class" => "dropdown-item",
+                                    "title" => lang("mr_creation_all_production"),
+                                    "data-title" => lang("mr_creation_all_production"),
+                                    "data-post-project_id" => $project_info["id"],
+                                    "data-post-project_name" => $project_info["title"],
+                                    "data-post-item_type" => "BOTH"
+                                )
+                            );
+                        ?>
+                    </li>
+                    <li role="presentation">
+                        <?php
+                            echo modal_anchor(
+                                get_uri("projects/production_order_mr_creation_all"),
+                                "<i class='fa fa-plus-circle'></i> " . lang("production_order_create_mr_all_fg"),
+                                array(
+                                    "class" => "dropdown-item",
+                                    "title" => lang("mr_creation_fg_production"),
+                                    "data-title" => lang("mr_creation_fg_production"),
+                                    "data-post-project_id" => $project_info["id"],
+                                    "data-post-project_name" => $project_info["title"],
+                                    "data-post-item_type" => "FG"
+                                )
+                            );
+                        ?>
+                    </li>
+                    <li role="presentation">
+                        <?php
+                            echo modal_anchor(
+                                get_uri("projects/production_order_mr_creation_all"),
+                                "<i class='fa fa-plus-circle'></i> " . lang("production_order_create_mr_all_sfg"),
+                                array(
+                                    "class" => "dropdown-item",
+                                    "title" => lang("mr_creation_sfg_production"),
+                                    "data-title" => lang("mr_creation_sfg_production"),
+                                    "data-post-project_id" => $project_info["id"],
+                                    "data-post-project_name" => $project_info["title"],
+                                    "data-post-item_type" => "SFG"
+                                )
+                            );
+                        ?>
+                    </li>
+                </ul>
+            </span>
 
+            <!-- btn-create-production -->
             <span class="dropdown inline-block">
                 <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                     <i class="fa fa-info-circle"></i>
@@ -104,7 +173,7 @@
                         <?php
                             echo modal_anchor(
                                 get_uri("projects/production_order_modal_form"),
-                                "<i class='fa fa-plus-circle'></i> " . lang("fg"),
+                                "<i class='fa fa-info-circle'></i> " . lang("fg"),
                                 array(
                                     "class" => "dropdown-item",
                                     "title" => lang("production_order_add") . lang("fg"),
@@ -119,7 +188,7 @@
                         <?php
                             echo modal_anchor(
                                 get_uri("projects/production_order_modal_form"),
-                                "<i class='fa fa-plus-circle'></i> " . lang("sfg"),
+                                "<i class='fa fa-info-circle'></i> " . lang("sfg"),
                                 array(
                                     "class" => "dropdown-item",
                                     "title" => lang("production_order_add") . lang("sfg"),
@@ -131,6 +200,22 @@
                         ?>
                     </li>
                 </ul>
+            </span>
+
+            <span>
+                <?php
+                echo modal_anchor(
+                    get_uri("projects/production_order_all_bag_modal"),
+                    "<i class='fa fa-shopping-bag'></i> ",
+                    array(
+                        "class" => "btn btn-custom-bag",
+                        "title" => lang("production_order_all_of_material_used"),
+                        "data-title" => lang("production_order_all_of_material_used"),
+                        "data-post-project_id" => $project_info["id"],
+                        "data-post-project_name" => $project_info["title"]
+                    )
+                );
+                ?>
             </span>
         </div>
     </div>
@@ -162,6 +247,7 @@ const mrStatus = {
         { id: 0, text: '<?php echo "-- " . lang("production_order_mr_status_select") . " --"; ?>' },
         { id: 1, text: '<?php echo lang("production_order_not_yet_withdrawn"); ?>' },
         { id: 2, text: '<?php echo lang("production_order_partially_withdrawn"); ?>' },
+        { id: 4, text: '<?php echo lang("production_order_created_withdrawn"); ?>' },
         { id: 3, text: '<?php echo lang("production_order_completed_withdrawal"); ?>' }
     ]
 };
@@ -182,7 +268,7 @@ let xlsColumns = [0, 1, 2, 3, 5, 6, 7];
 let summation = [];
 let columns = [
     { title: '<?php echo lang("id"); ?>', class: 'text-center' },
-    { title: '<?php echo lang("item"); ?>' },
+    { title: '<?php echo lang("item") . "/" . lang("sfg"); ?>' },
     { title: '<?php echo lang("item_mixing_name"); ?>' },
     { title: '<?php echo lang("quantity"); ?>', class: 'text-right' },
     { title: '<?php echo lang("stock_material_unit"); ?>', class: 'text-left' },
@@ -195,7 +281,7 @@ let columns = [
 if (authReadCostAmount.value) {
     columns = [
         { title: '<?php echo lang("id"); ?>', class: 'text-center' },
-        { title: '<?php echo lang("item") . "/" . lang("sfg"); ?>' },
+        { title: '<span class="text-color-fg"><?php echo lang("item"); ?></span>/<span class="text-color-sfg"><?php echo lang("sfg"); ?></span>' },
         { title: '<?php echo lang("item_mixing_name"); ?>' },
         { title: '<?php echo lang("quantity"); ?>', class: 'text-right' },
         { title: '<?php echo lang("stock_material_unit"); ?>', class: 'text-left' },
@@ -215,7 +301,7 @@ async function loadProductionOrderList() {
     let ajaxTable = '<table id="production-order-table" class="display" width="100%"></table>';
     let ajaxApp = {
         source: source,
-        order: [[0, 'desc']],
+        order: [[0, 'asc']],
         filterDropdown: [mrStatus, produceStatus],
         destroy: true,
         columns: columns,
