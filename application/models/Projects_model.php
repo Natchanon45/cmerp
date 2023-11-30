@@ -1973,6 +1973,17 @@ class Projects_model extends Crud_model {
         $this->db->update("bom_project_items", ["mr_status" => $mr_status]);
     }
 
+    public function dev2_getProductionMaterialRequestPercentageByProductionId(int $production_id) : float
+    {
+        $percentage = 0.00;
+
+        $rm = $this->db->where("project_item_id", $production_id)->from("bom_project_item_materials")->count_all_results();
+        $sfg = $this->db->where("project_item_id", $production_id)->from("bom_project_item_items")->count_all_results();
+        // save point calc percent of material request
+
+        return $percentage;
+    }
+
     public function dev2_getProductionMaterialRequestStatusByProductionId(int $production_id) : array
     {
         $data = [

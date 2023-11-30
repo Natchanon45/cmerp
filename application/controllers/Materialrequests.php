@@ -69,10 +69,6 @@ class Materialrequests extends MY_Controller
 			}
 		}
 
-		if (sizeof($productions)) {
-			$productions = array_unique($productions);
-		}
-
 		if (in_array(false, $usabled)) {
 			// Some item have no stock.
 			echo json_encode(array("status" => false, "message" => lang("not_enough_stock")));
@@ -91,16 +87,18 @@ class Materialrequests extends MY_Controller
 				}
 			}
 
-			// All production id in material request (MR)
-			if (sizeof($productions)) {
-				foreach ($productions as $production) {
-					// Update [mr_status] production material request status to [bom_project_items]
-					$this->Projects_model->dev2_patchProductionMaterialRequestStatus($production);
-				}
-			}
-
 			// Update material request (MR) status to approved
 			$this->Materialrequests_model->dev2_updateApprovalStatus($mr_id, 3, $this->login_user->id);
+
+			// All production id in material request (MR)
+			if (sizeof($productions)) {
+				$productions = array_unique($productions);
+
+				foreach ($productions as $production) {
+					// Update [mr_status] production material request status to [bom_project_items]
+					$this->Materialrequests_model->dev2_patchProductionMaterialRequestStatus($production);
+				}
+			}
 			
 			echo json_encode(array("status" => true, "message" => lang("approved_success")));
 			exit();
@@ -149,21 +147,21 @@ class Materialrequests extends MY_Controller
 				array_push($productions, $item->project_item_id);
 			}
 		}
-		
-		if (sizeof($productions)) {
-			$productions = array_unique($productions);
-
-			foreach ($productions as $production) {
-				// Update [mr_status] production material request status to [bom_project_items]
-				$this->Projects_model->dev2_patchProductionMaterialRequestStatus($production);
-			}
-		}
 
 		// Clear [stock_id, bpim_id] to material request items
 		$this->Mr_items_model->dev2_clearProjectMaterialStockId($mr_id);
 
 		// Update material request status to rejected
 		$this->Materialrequests_model->dev2_updateApprovalStatus($mr_id, 4, $this->login_user->id);
+
+		if (sizeof($productions)) {
+			$productions = array_unique($productions);
+
+			foreach ($productions as $production) {
+				// Update [mr_status] production material request status to [bom_project_items]
+				$this->Materialrequests_model->dev2_patchProductionMaterialRequestStatus($production);
+			}
+		}
 
 		echo json_encode(array("status" => true, "message" => lang("rejected_message")));
 		exit();

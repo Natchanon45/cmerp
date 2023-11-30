@@ -591,6 +591,8 @@ if (isset($mr_header->status_id) && !empty($mr_header->status_id)) {
         let url = '<?php echo get_uri("materialrequests/approve/" . $mr_header->id); ?>';
 
         await axios.get(url).then((result) => {
+            // console.log(result);
+
             let { status, message } = result.data;
             if (status) {
                 window.location.reload();

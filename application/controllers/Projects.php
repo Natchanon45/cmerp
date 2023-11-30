@@ -6393,10 +6393,12 @@ class Projects extends MY_Controller
     {
         $result = [];
 
-        $result["production_id"] = $production_id;
-        $result["mr_data"] = $this->Projects_model->dev2_getProductionMaterialRequestStatusByProductionId($production_id);
+        // $result["production_id"] = $production_id;
+        // $result["mr_data"] = $this->Projects_model->dev2_getProductionMaterialRequestStatusByProductionId($production_id);
+        // $result["mr_percentage"] = $this->Projects_model->dev2_getProductionMaterialRequestPercentageByProductionId($production_id);
+        $data = $this->Projects_model->dev2_getProductionMaterialRequestStatusByProductionId($production_id);
 
-        var_dump(arr($result)); exit();
+        var_dump(arr($data["production_mr_status"])); exit();
     }
 
 }

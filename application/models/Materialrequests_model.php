@@ -805,4 +805,116 @@ class MaterialRequests_model extends Crud_model
         return $info;
     }
 
+	public function dev2_patchProductionMaterialRequestStatus(int $production_id) : void
+	{
+		$data = $this->dev2_getProductionMaterialRequestStatusByProductionId($production_id);
+        $mr_status = $data["production_mr_status"];
+
+        $this->db->where("id", $production_id);
+        $this->db->update("bom_project_items", ["mr_status" => $mr_status]);
+	}
+
+	private function dev2_getProductionMaterialRequestStatusByProductionId(int $production_id) : array
+	{
+		$data = [
+            "rm" => [],
+            "sfg" => [],
+            "mr_id" => [],
+            "mr_unique" => [],
+            "mr_unique_size" => 0,
+            "find_null" => null,
+            "mr_null" => 'N',
+            "mr_where" => null,
+            "mr_where_status" => null,
+            "status" => [],
+            "find_awaiting" => null,
+            "production_mr_status" => 0
+        ];
+        
+        // Get all sfg items
+        $get_sfg = $this->db->get_where("bom_project_item_items", ["project_item_id" => $production_id])->result();
+        if (sizeof($get_sfg)) {
+            $data["sfg"] = $get_sfg;
+
+            foreach ($get_sfg as $item) {
+                $data["mr_id"][] = $item->mr_id;
+            }
+        }
+
+        // Get all sfg items
+        $get_rm = $this->db->get_where("bom_project_item_materials", ["project_item_id" => $production_id])->result();
+        if (sizeof($get_rm)) {
+            $data["rm"] = $get_rm;
+
+            foreach ($get_rm as $item) {
+                $data["mr_id"][] = $item->mr_id;
+            }
+        }
+
+        if (sizeof($data["mr_id"])) {
+            $data["mr_unique"] = array_unique($data["mr_id"]);
+        }
+
+        $data["mr_unique_size"] = sizeof($data["mr_unique"]);
+
+        if ($data["mr_unique_size"] === 1) {
+            // Size of unique material request equals to 1
+            $data["find_null"] = array_search('', $data["mr_unique"]);
+
+            if ($data["find_null"] === 0) {
+                // Case null in array index 0 : have no material request
+                $data["production_mr_status"] = 1;
+            } else {
+                // Case not null in array index 0 : have only 1 material request in this production
+                $data["mr_where"] = implode(",", $data["mr_unique"]);
+
+                $query = $this->db->get_where("materialrequests", ["id" => $data["mr_where"]])->row();
+                if (!empty($query)) {
+                    $data["mr_where_status"] = $query->status_id;
+
+                    // Material request status is [Pending] :: Production [mr_status] is [Created withdraw]
+                    if ($data["mr_where_status"] == 1) {
+                        $data["production_mr_status"] = 4;
+                    }
+
+                    // Material request status is [Approved] :: Production [mr_status] is [Completed withdrawal]
+                    if ($data["mr_where_status"] == 3) {
+                        $data["production_mr_status"] = 3;
+                    }
+                }
+            }
+        } else {
+            // Size of unique material request not equals to 1
+            $data["find_null"] = array_search('', $data["mr_unique"]);
+
+            if ($data["find_null"] == null) {
+                // Case have no null any index in array : Let get material request list
+                $data["mr_where"] = implode(",", $data["mr_unique"]);
+
+                $sql = "SELECT `status_id` FROM `materialrequests` WHERE `id` IN (" . $data["mr_where"] . ")";
+                $query = $this->db->query($sql)->result();
+
+                if (sizeof($query)) {
+                    foreach ($query as $item) {
+                        $data["status"][] = $item->status_id;
+                    }
+
+                    $data["find_awaiting"] = array_search(1, $data["status"]);
+                    if ($data["find_awaiting"] == null) {
+                        // Case have no awaiting material request : Production [mr_status] is [Completed withdrawal]
+                        $data["production_mr_status"] = 3;
+                    } else {
+                        // Case have awaiting material request : Production [mr_status] is [Created withdraw]
+                        $data["production_mr_status"] = 4;
+                    }
+                }
+            } else {
+                // Case have null any index in array : Production [mr_status] is [Partially withdrawn]
+                $data["production_mr_status"] = 2;
+            }
+        }
+
+        return $data;
+	}
+
 }
