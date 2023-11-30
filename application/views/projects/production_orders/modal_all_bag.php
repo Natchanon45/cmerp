@@ -149,7 +149,7 @@
                                     </th>
                                 </tr>
                             </thead>
-                            <?php $total_group = 0.000000; $total_group_cost = 0.000000; ?>
+                            <?php $total_group = 0.000000; $total_group_cost = 0.000000; $total_unit = lang("stock_material_unit"); ?>
                             <tbody>
                                 <?php foreach ($production_items["rm_list"] as $rm): ?>
                                     <?php if ($category["id"] == $rm->category_in_bom): ?>
@@ -192,13 +192,14 @@
                                                 <?php echo (isset($rm->mr_info->doc_no) && !empty($rm->mr_info->doc_no)) ? $rm->mr_info->doc_no : '-'; ?>
                                             </td>
                                         </tr>
+                                        <?php $total_unit = $rm->material_info->unit; ?>
                                     <?php endif; ?>
                                 <?php endforeach; ?>
                             </tbody>
                             <tfoot>
                                 <tr>
                                     <th class="text-center"><?php echo lang("total"); ?></th>
-                                    <th class="text-right rm-quantity"><?php echo number_format($total_group, 6) . ' ' . $rm->material_info->unit; ?></th>
+                                    <th class="text-right rm-quantity"><?php echo number_format($total_group, 6) . ' ' . $total_unit; ?></th>
                                     <th class="text-right rm-quantity"><?php echo number_format($total_group_cost, 3) . ' ' . lang("THB"); ?></th>
                                     <th class="text-center"><?php echo ''; ?></th>
                                     <?php $grand_total_group += $total_group; $grand_total_group_cost += $total_group_cost; ?>

@@ -6277,7 +6277,7 @@ class Projects extends MY_Controller
         $buttons = "";
 
         // get cost of each production order
-        $item->costs = $this->Projects_model->dev2_getRawMatCostOfProductionOrderByProductionOrderId($item->id, $item->quantity);
+        $item->costs = $this->Projects_model->dev2_getRawMatCostOfProductionOrderByProductionOrderIdNew($item->id);
         $item->can_delete = $this->production_order_can_delete($item->id);
         $item->auth_cost = $this->check_permission("bom_restock_read_price");
 
@@ -6393,10 +6393,12 @@ class Projects extends MY_Controller
     {
         $result = [];
 
-        $result["production_id"] = $production_id;
-        $result["mr_data"] = $this->Projects_model->dev2_getProductionMaterialRequestStatusByProductionId($production_id);
+        // $result["production_id"] = $production_id;
+        // $result["mr_data"] = $this->Projects_model->dev2_getProductionMaterialRequestStatusByProductionId($production_id);
+        // $result["mr_percentage"] = $this->Projects_model->dev2_getProductionMaterialRequestPercentageByProductionId($production_id);
+        $data = $this->Projects_model->dev2_getProductionMaterialRequestStatusByProductionId($production_id);
 
-        var_dump(arr($result)); exit();
+        var_dump(arr($data["production_mr_status"])); exit();
     }
 
 }

@@ -457,12 +457,14 @@ class Tasks_model extends Crud_model {
     function get_projects_dropdown_list($user_id = 0) {
         $project_members_table = $this->db->dbprefix('project_members');
         $projects_table = $this->db->dbprefix('projects');
+        $tasks_table = $this->db->dbprefix('tasks');
 
-        $where = " AND $project_members_table.user_id=$user_id AND $projects_table.status='open'";
+        $where = " AND $project_members_table.user_id=$user_id AND $projects_table.status='open' AND FIND_IN_SET('".$this->login_user->id."', collaborators)";
 
         $sql = "SELECT $project_members_table.project_id, $projects_table.title AS project_title
         FROM $project_members_table
-        LEFT JOIN $projects_table ON $projects_table.id= $project_members_table.project_id
+        LEFT JOIN $projects_table ON $projects_table.id = $project_members_table.project_id
+        LEFT JOIN $tasks_table ON $tasks_table.project_id = $projects_table.id
         WHERE $project_members_table.deleted=0 AND $projects_table.deleted=0 $where 
         GROUP BY $project_members_table.project_id";
         return $this->db->query($sql);

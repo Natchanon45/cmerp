@@ -329,7 +329,7 @@
                                     <table border="1" class="table-category">
                                         <thead>
                                             <tr style="height: 38px;">
-                                                <th colspan="4">
+                                                <th colspan="4" class="text-left">
                                                     <?php echo lang("mr_total_semi_finished_goods"); ?>
                                                 </th>
                                             </tr>

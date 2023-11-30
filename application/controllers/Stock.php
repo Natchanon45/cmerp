@@ -5447,8 +5447,8 @@ class Stock extends MY_Controller
     // END: Material Files
 
     // START: Material Category
-    function item_category_modal() 
-    {
+    function item_category_modal(){
+        if($this->Permission_m->access_product_category != true) redirect("forbidden");
         $post = $this->input->post();
 
         if (isset($post["type"]) && !empty($post["type"])) {

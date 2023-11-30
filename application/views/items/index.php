@@ -5,7 +5,15 @@
                 <?php echo lang('items'); ?>
             </h1>
             <div class="title-button-group">
-                <?php echo $buttonTop ?>
+                <?php
+                    if($this->Permission_m->access_product_category == true){
+                        echo modal_anchor(
+                            get_uri("stock/item_category_modal"),
+                            "<i class='fa fa-tags'></i> " . lang('add_category'),
+                            array("class" => "btn btn-default", "title" => lang('add_category'), "data-post-type" => "FG")
+                        );
+                    }
+                ?>
             </div>
         </div>
         <div class="table-responsive">
