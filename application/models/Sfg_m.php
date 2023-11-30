@@ -126,7 +126,7 @@ class Sfg_m extends MY_Model {
                     $category_title != null ? $category_title : "-",
                     $irow->unit_type ? $irow->unit_type : "",
                     @$irow->barcode ? '<div style="text-align:center"><a href="' . $src . '" class="barcode_img" download><img src="' . $src . '" /><div class="text">Click to download</div></a></div>' : '-',
-                    $irow->rate,
+                    to_decimal_format3($irow->rate, 3),
                     modal_anchor(get_uri("sfg/addedit"), "<i class='fa fa-pencil'></i>", array("class" => "edit", "title" => lang('edit_item'), "data-post-id" => $irow->id))."<a class='delete' data-id='".$irow->id."' data-action-url='".get_uri("sfg/addedit/delete")."' data-action='delete-confirmation'><i class='fa fa-times fa-fw'></i></a>"
 
                 ];
@@ -655,14 +655,14 @@ class Sfg_m extends MY_Model {
             anchor(get_uri('team_members/view/' . $data->user_id), $user_name),
             format_to_date($data->created_date),
             is_date_exists($data->expiration_date) ? format_to_date($data->expiration_date, false) : '-',
-            $data->stock ? to_decimal_format2($data->stock) : 0,
-            $data->remaining ? to_decimal_format2($data->remaining) : 0,
+            $data->stock ? to_decimal_format3($data->stock, 6) : to_decimal_format3(0, 6),
+            $data->remaining ? to_decimal_format3($data->remaining, 6) : to_decimal_format3(0, 6),
             $data->item_unit ? mb_strtoupper($data->item_unit) : '-'
         );
 
         if ($this->Permission_m->bom_restock_read_price) {
-            $row_data[] = to_decimal_format3($data->price);
-            $row_data[] = to_decimal_format3($remaining_value);
+            $row_data[] = to_decimal_format3($data->price, 3);
+            $row_data[] = to_decimal_format3($remaining_value, 3);
             $row_data[] = lang('THB');
         }
 
@@ -749,12 +749,12 @@ class Sfg_m extends MY_Model {
             is_date_exists($data->created_at) ? format_to_date($data->created_at, false) : '-',
             !empty($data->created_by) ? $this->Account_category_model->created_by($data->created_by) : '-',
             !empty($data->note) ? $data->note : '-',
-            to_decimal_format3($data->ratio),
+            to_decimal_format3($data->ratio, 6),
             mb_strtoupper($data->item_unit)
         );
 
         if ($this->Permission_m->bom_restock_read_price) {
-            $row_data[] = to_decimal_format3($used_value);
+            $row_data[] = to_decimal_format3($used_value, 3);
             $row_data[] = !empty($data->currency_symbol) ? lang($data->currency_symbol) : lang('THB');
         } 
 
@@ -804,8 +804,8 @@ class Sfg_m extends MY_Model {
             anchor(get_uri('sfg/restock_view/' . $item->group_id), $item->group_name),
             $item->sern ? $item->sern : '-',
             $display_item,
-            to_decimal_format3($item->stock_qty),
-            to_decimal_format3($item->remain_qty),
+            to_decimal_format3($item->stock_qty, 6),
+            to_decimal_format3($item->remain_qty, 6),
             mb_strtoupper($item->item_unit),
             $item->create_by ? anchor(get_uri('team_members/view/' . $item->create_by), $this->Account_category_model->created_by($item->create_by)) : '',
             format_to_date($item->create_date),
@@ -979,14 +979,14 @@ class Sfg_m extends MY_Model {
             $data->serial_number ? $data->serial_number : '-',
             $files_link ? $files_link : '-',
             is_date_exists($data->expiration_date) ? format_to_date($data->expiration_date, false) : '-',
-            to_decimal_format3($data->stock),
-            to_decimal_format3($data->remaining),
+            to_decimal_format3($data->stock, 6),
+            to_decimal_format3($data->remaining, 6),
             mb_strtoupper($data->item_unit)
         );
 
         if ($this->Permission_m->bom_restock_read_price) { 
-            $row_data[] = to_decimal_format3($data->price);
-            $row_data[] = to_decimal_format3($remaining_value);
+            $row_data[] = to_decimal_format3($data->price, 3);
+            $row_data[] = to_decimal_format3($remaining_value, 3);
             $row_data[] = !empty($data->currency_symbol) ? lang($data->currency_symbol) : lang('THB');
         }
 
