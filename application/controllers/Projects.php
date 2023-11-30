@@ -6277,7 +6277,7 @@ class Projects extends MY_Controller
         $buttons = "";
 
         // get cost of each production order
-        $item->costs = $this->Projects_model->dev2_getRawMatCostOfProductionOrderByProductionOrderId($item->id, $item->quantity);
+        $item->costs = $this->Projects_model->dev2_getRawMatCostOfProductionOrderByProductionOrderIdNew($item->id);
         $item->can_delete = $this->production_order_can_delete($item->id);
         $item->auth_cost = $this->check_permission("bom_restock_read_price");
 
