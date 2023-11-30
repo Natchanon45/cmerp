@@ -62,7 +62,15 @@
                             <i class="fa fa-check-square"></i>
                         </div>
                         <div class="widget-details">
-                            <h1><?php echo to_currency($summary["total_payment_receives"]); ?></h1>
+                            <h1>
+                            <?php
+                                if($this->Permission_m->accounting["receipt"]["access"] == true){
+                                    echo to_currency($summary["total_payment_receives"]); 
+                                }else{
+                                    echo "-";
+                                }
+                            ?>
+                            </h1>
                             <?php echo lang("payments"); ?>
                         </div>
                     </div>
@@ -77,7 +85,15 @@
                             <i class="fa fa-money"></i>
                         </div>
                         <div class="widget-details">
-                            <h1><?php echo to_currency($summary["total_due_date_invoice_amount"]); ?></h1>
+                            <h1>
+                            <?php
+                                if($this->Permission_m->accounting["invoice"]["access"] == true){
+                                    echo to_currency($summary["total_due_date_invoice_amount"]); 
+                                }else{
+                                    echo "-";
+                                }
+                            ?>
+                            </h1>
                             <?php echo lang("due"); ?>
                         </div>
                     </div>
