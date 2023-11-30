@@ -680,6 +680,44 @@ class Projects_model extends Crud_model {
         return array_sum($cost);
     }
 
+    public function dev2_getRawMatCostOfProductionOrderByProductionOrderIdNew(int $production_id) : float
+    {
+        $cost = array();
+
+        $get_sfg = $this->db->get_where("bom_project_item_items", ["project_item_id" => $production_id])->result();
+        $get_rm = $this->db->get_where("bom_project_item_materials", ["project_item_id" => $production_id])->result();
+
+        if (sizeof($get_sfg)) {
+            foreach ($get_sfg as $sfg) {
+                if (isset($sfg->stock_id) && !empty($sfg->stock_id)) {
+                    $sfg->stock_info = $this->dev2_getRowInfoByRowId($sfg->stock_id, "bom_item_stocks");
+                }
+                $sfg->cost = 0;
+
+                if (isset($sfg->stock_info->price) && $sfg->stock_info->price != 0) {
+                    $sfg->cost = ($sfg->stock_info->price / $sfg->stock_info->stock) * $sfg->ratio;
+                }
+                array_push($cost, $sfg->cost);
+            }
+        }
+
+        if (sizeof($get_rm)) {
+            foreach ($get_rm as $rm) {
+                if (isset($rm->stock_id) && !empty($rm->stock_id)) {
+                    $rm->stock_info = $this->dev2_getRowInfoByRowId($rm->stock_id, "bom_stocks");
+                }
+                $rm->cost = 0;
+
+                if (isset($rm->stock_info->price) && $rm->stock_info->price != 0) {
+                    $rm->cost = ($rm->stock_info->price / $rm->stock_info->stock) * $rm->ratio;
+                }
+                array_push($cost, $rm->cost);
+            }
+        }
+
+        return array_sum($cost);
+    }
+
     public function dev2_postProduceStateById(int $id, $status): array
     {
         $info = $this->dev2_getRowInfoByRowId($id, "bom_project_items");
@@ -715,6 +753,12 @@ class Projects_model extends Crud_model {
                         if ($item_info->rate > 0) {
                             $instcok_price = $item_info->rate * $info->quantity;
                         }
+                    }
+
+                    // get production cost from rm and sfg used
+                    $production_cost = $this->dev2_getRawMatCostOfProductionOrderByProductionOrderIdNew($id);
+                    if (!empty($production_cost) && $production_cost > 0) {
+                        $instcok_price = $production_cost;
                     }
 
                     if (isset($stock_info->id) && !empty($stock_info->id)) {
@@ -1927,6 +1971,17 @@ class Projects_model extends Crud_model {
 
         $this->db->where("id", $production_id);
         $this->db->update("bom_project_items", ["mr_status" => $mr_status]);
+    }
+
+    public function dev2_getProductionMaterialRequestPercentageByProductionId(int $production_id) : float
+    {
+        $percentage = 0.00;
+
+        $rm = $this->db->where("project_item_id", $production_id)->from("bom_project_item_materials")->count_all_results();
+        $sfg = $this->db->where("project_item_id", $production_id)->from("bom_project_item_items")->count_all_results();
+        // save point calc percent of material request
+
+        return $percentage;
     }
 
     public function dev2_getProductionMaterialRequestStatusByProductionId(int $production_id) : array
