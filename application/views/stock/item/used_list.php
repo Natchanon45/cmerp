@@ -23,6 +23,7 @@
         { title: '<?php echo lang("id"); ?>', "class": "text-center w50" },
         { title: '<?php echo lang("stock_restock_item_name"); ?>' },
         { title: '<?php echo lang("project_name"); ?>' },
+        { title: 'เลขที่ใบเบิก' },
         { title: '<?php echo lang("used_date"); ?>', class: 'w125' },
         { title: '<?php echo lang("used_by"); ?>' },
         { title: '<?php echo lang("note_real"); ?>' },

@@ -5220,10 +5220,13 @@ class Stock extends MY_Controller
             $used_value = $data->price * $data->ratio / $data->stock;
         }
 
+        $mr_doc_number = $this->Materialrequest_m->getDocNumber($data->mr_id);
+
         $row_data = array(
             $data->id,
             !empty($data->stock_name) ? anchor(get_uri('stock/restock_item_view/' . $data->group_id), $data->stock_name) : '-',
             !empty($data->project_title) ? anchor(get_uri('projects/view/' . $data->project_id), $data->project_title) : '-',
+            $mr_doc_number != null ? $mr_doc_number:"-",
             is_date_exists($data->created_at) ? format_to_date($data->created_at, false) : '-',
             $data->created_by ? $this->Account_category_model->created_by($data->created_by) : '-',
             !empty($data->note) ? $data->note : '-',

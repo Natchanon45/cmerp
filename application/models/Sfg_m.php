@@ -740,12 +740,15 @@ class Sfg_m extends MY_Model {
         $item_name = $data->item_code;
         if ($this->Permission_m->bom_material_read_production_name) {
             $item_name .= " - " . $data->item_name;
-        } 
+        }
+
+        $mr_doc_number = $this->Materialrequest_m->getDocNumber($data->mr_id);
 
         $row_data = array(
             $data->id,
             anchor(get_uri('sfg/detail/' . $data->item_id), $item_name),
             !empty($data->project_title) ? anchor(get_uri('projects/view/' . $data->project_id), $data->project_title) : '-',
+            $mr_doc_number != null ?$mr_doc_number:"-",
             is_date_exists($data->created_at) ? format_to_date($data->created_at, false) : '-',
             !empty($data->created_by) ? $this->Account_category_model->created_by($data->created_by) : '-',
             !empty($data->note) ? $data->note : '-',
