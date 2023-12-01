@@ -172,9 +172,12 @@ $(document).ready(function() {
         $("#btnSubmit").click(function() {
             sales_order_items = [];
             $(".sales_order_items").each(function(i, obj) {
+                let sales_order_item_id = $(obj).data("id");
+                if(sales_order_item_id === undefined) return;
+
                 supplier_id = $(obj).find(".suppliers").val();
                 if(supplier_id === undefined) supplier_id = null;
-                sales_order_items.push({sales_order_item_id:$(obj).data("id"), supplier_id:supplier_id});
+                sales_order_items.push({sales_order_item_id:sales_order_item_id, supplier_id:supplier_id});
             });
 
             axios.post('<?php echo current_url(); ?>', {
