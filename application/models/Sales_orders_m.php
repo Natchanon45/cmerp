@@ -822,10 +822,16 @@ class Sales_orders_m extends MY_Model {
 
                 if($soirow->pr_header_id == null){
                     $product_remaining = $ci->Bom_item_m->getTotalRemainingItems($soirow->product_id);
-                    if($product_remaining >= $soirow->quantity) continue;
+                    //if($product_remaining >= $soirow->quantity) continue;
                     
                 }else{
                     $product_remaining = $soirow->product_remaining;
+                }
+
+                $product_to_pr = 0;
+
+                if($soirow->mr_header_id == null){
+                    $product_to_pr = $soirow->quantity - $product_remaining;    
                 }
 
                 $biprows = $db->select("*")
@@ -833,7 +839,7 @@ class Sales_orders_m extends MY_Model {
                                 ->where("item_id", $soirow->product_id)
                                 ->get()->result();
 
-                $html .= "<tr class='sales_order_items' data-id='".$soirow->id."'>";
+                $html .= "<tr class='sales_order_items' ".($product_to_pr > 0 ? "data-id='".$soirow->id."'":"").">";
                     $html .= "<td class='product_name'>".$soirow->product_name."</td>";
                     $html .= "<td class='product_supplier'>";
 
@@ -859,8 +865,20 @@ class Sales_orders_m extends MY_Model {
                     $html .= "</td>";
                     $html .= "<td class='unit'>".$soirow->unit."</td>";
                     $html .= "<td class='instock'>".($soirow->pr_header_id == null ? number_format($product_remaining, 2):'-')."</td>";
-                    $html .= "<td class='quantity'>".number_format($soirow->quantity, DEC)."</td>";
-                    $html .= "<td class='topurchase'>".number_format(abs($product_remaining - $soirow->quantity), 2)."</td>";
+
+                    if($soirow->mr_header_id == null){
+                        $html .= "<td class='quantity'>".number_format($soirow->quantity, DEC)."</td>";
+                    }else{
+                        $html .= "<td class='quantity'>0.00</td>";
+                    }
+                    
+
+                    if($product_to_pr <= 0){
+                        $html .= "<td class='topurchase'>0.00</td>";
+                    }else{
+                        $html .= "<td class='topurchase'>".number_format(abs($product_remaining - $soirow->quantity), 2)."</td>";
+                    }
+                    
                     $html .= "<td class='reference_number'>";
 
                     if($soirow->pr_header_id != null){
@@ -1042,7 +1060,6 @@ class Sales_orders_m extends MY_Model {
 
     function productsToMR($sales_order_id){
         $db = $this->db;
-        $ci = get_instance();
 
         $sorow = $db->select("*")
                         ->from("sales_order")
@@ -1070,10 +1087,10 @@ class Sales_orders_m extends MY_Model {
 
                 if($soirow->mr_header_id != null){
                     $product_remaining = $soirow->product_remaining;
-                    $total_submit_quantity = $ci->Bom_item_m->getRatioByMaterialRequestId($soirow->mr_header_id);
+                    $total_submit_quantity = $this->Bom_item_m->getRatioByMaterialRequestId($soirow->mr_header_id);
                 }else{
-                    $product_remaining = $ci->Bom_item_m->getTotalRemainingItems($soirow->product_id);
-                    if($product_remaining <= 0) continue;
+                    $product_remaining = $this->Bom_item_m->getTotalRemainingItems($soirow->product_id);
+                    //if($product_remaining <= 0) continue;
 
                     if($product_remaining < $soirow->quantity){
                         $total_submit_quantity = $product_remaining;
@@ -1091,7 +1108,7 @@ class Sales_orders_m extends MY_Model {
                     $html .= "<td class='reference_number'>";
 
                     if($soirow->mr_header_id != null){
-                        $reference_number = $ci->Materialrequest_m->getDocNumber($soirow->mr_header_id);
+                        $reference_number = $this->Materialrequest_m->getDocNumber($soirow->mr_header_id);
                         if($reference_number != "") $html .= "<a href='".get_uri("materialrequests/view/".$soirow->mr_header_id)."'>".$reference_number."</a>";
                     }else{
                         $html .= "#";
@@ -1114,7 +1131,6 @@ class Sales_orders_m extends MY_Model {
 
     function makeMR(){
         $db = $this->db;
-        $ci = get_instance();
         $sales_order_id = $this->json->sales_order_id;
 
         $sorow = $db->select("*")
@@ -1168,7 +1184,9 @@ class Sales_orders_m extends MY_Model {
             foreach($soirows as $soirow){
                 if($soirow->mr_header_id != null) continue;
                 $total_submit_quantity = 0;
-                $product_remaining = $ci->Bom_item_m->getTotalRemainingItems($soirow->product_id);
+                $product_remaining = $this->Bom_item_m->getTotalRemainingItems($soirow->product_id);
+
+                if($product_remaining <= 0) continue;
 
                 if($product_remaining < $soirow->quantity){
                     $total_submit_quantity = $product_remaining;
