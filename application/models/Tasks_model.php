@@ -459,7 +459,7 @@ class Tasks_model extends Crud_model {
         $projects_table = $this->db->dbprefix('projects');
         $tasks_table = $this->db->dbprefix('tasks');
 
-        $where = " AND $project_members_table.user_id=$user_id AND $projects_table.status='open' AND FIND_IN_SET('".$this->login_user->id."', collaborators)";
+        $where = " AND $project_members_table.user_id=$user_id AND $projects_table.status='open' AND ($tasks_table.status_id IN (1, 2)) AND (assigned_to='".$this->login_user->id."' OR FIND_IN_SET('".$this->login_user->id."', collaborators)) AND $tasks_table.deleted=0";
 
         $sql = "SELECT $project_members_table.project_id, $projects_table.title AS project_title
         FROM $project_members_table

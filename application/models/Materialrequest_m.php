@@ -7,7 +7,7 @@ class Materialrequest_m extends MY_Model{
                             ->where("id", $doc_id)
                             ->get()->row();
 
-        if(empty($mrhrow)) return "";
+        if(empty($mrhrow)) return null;
         return $mrhrow->doc_no;
     }
 
