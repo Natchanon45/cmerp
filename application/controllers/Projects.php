@@ -6332,21 +6332,13 @@ class Projects extends MY_Controller
 
         // prepare material request status
         $mr = "";
-        if ($item->mr_status == 1) {
-            $mr = '<select class="pill pill-danger pointer-none">
-            <option>' . lang("production_order_not_yet_withdrawn") . '</option>
-            </select>';
-        } elseif ($item->mr_status == 2) {
-            $mr = '<select class="pill pill-warning pointer-none">
-            <option>' . lang("production_order_partially_withdrawn") . '</option>
-            </select>';
-        } elseif ($item->mr_status == 3) {
+        if ($item->mr_status == 3) {
             $mr = '<select class="pill pill-success pointer-none">
-            <option>' . lang("production_order_completed_withdrawal") . '</option>
+            <option>' . $item->mr_percentage . '</option>
             </select>';
-        } elseif ($item->mr_status == 4) {
-            $mr = '<select class="pill pill-warning-dark pointer-none">
-            <option>' . lang("production_order_created_withdrawn") . '</option>
+        } else {
+            $mr = '<select class="pill pill-danger pointer-none">
+            <option>' . $item->mr_percentage . '%</option>
             </select>';
         }
 
@@ -6393,12 +6385,12 @@ class Projects extends MY_Controller
     {
         $result = [];
 
-        // $result["production_id"] = $production_id;
-        // $result["mr_data"] = $this->Projects_model->dev2_getProductionMaterialRequestStatusByProductionId($production_id);
-        // $result["mr_percentage"] = $this->Projects_model->dev2_getProductionMaterialRequestPercentageByProductionId($production_id);
-        $data = $this->Projects_model->dev2_getProductionMaterialRequestStatusByProductionId($production_id);
+        // prepare source
+        $result["production_id"] = $production_id;
+        $result["mr_data"] = $this->Projects_model->dev2_getProductionMaterialRequestStatusByProductionId($production_id);
+        $result["mr_percentage"] = $this->Projects_model->dev2_getProductionMaterialRequestPercentageByProductionId($production_id);
 
-        var_dump(arr($data["production_mr_status"])); exit();
+        var_dump(arr($result));
     }
 
 }
