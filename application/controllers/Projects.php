@@ -26,9 +26,7 @@ class Projects extends MY_Controller
         $this->load->model('Materialrequest_m');
         $this->load->model('Stock_m');
 
-        if($this->Permission_m->access_project == false){
-            redirect("forbidden");
-        }
+        if($this->Permission_m->access_project == "noaccess" && $this->login_user->is_admin == 0) redirect("forbidden");
     }
 
     function list_Teams($pId = 0)
@@ -389,17 +387,17 @@ class Projects extends MY_Controller
         $view_data["status"] = $status;
 
         $access_project_specific = $project_type_dropdown = [];
-        $prows = $this->Projects_m->getTypeRows();
-        if(!empty($prows)){
+        $ptrows = $this->Projects_m->getTypeRows();
+        if(!empty($ptrows)){
             $project_type_dropdown[] = ["id"=>"", "text"=>"- ประเภทโปรเจค -"];
             if($this->Permission_m->access_project == "specific") $access_project_specific = explode(",", $this->Permission_m->access_project_specific);
 
-            foreach($prows as $prow){
+            foreach($ptrows as $ptrow){
                 if($this->Permission_m->access_project == "specific"){
-                    if (in_array($prow->id, $access_project_specific) == false) continue;
+                    if (in_array($ptrow->id, $access_project_specific) == false) continue;
                 }
 
-                $project_type_dropdown[] = ["id"=>$prow->id, "text"=>$prow->title];
+                $project_type_dropdown[] = ["id"=>$ptrow->id, "text"=>$ptrow->title];
             }
 
             $view_data["project_type_dropdown"] = json_encode($project_type_dropdown);
@@ -958,7 +956,7 @@ class Projects extends MY_Controller
         }
 
         $optoins = "";
-        if (get_array_value($this->login_user->permissions, "can_manage_all_projects") == true || $this->login_user->is_admin == "1") {
+        //if (get_array_value($this->login_user->permissions, "can_manage_all_projects") == true || $this->login_user->is_admin == "1") {
             if (get_array_value($this->login_user->permissions, "can_edit_projects") == true || $this->login_user->is_admin == "1") {
                 $optoins .= modal_anchor(
                     get_uri("projects/modal_form"), 
@@ -996,7 +994,7 @@ class Projects extends MY_Controller
                     )
                 );
             } // btn-delete-project
-        }
+        //}
 
         if ($this->login_user->user_type == "staff" && !$this->can_create_projects()) {
             $price = "-";
@@ -5212,9 +5210,9 @@ class Projects extends MY_Controller
             "deadline" => $this->input->post('deadline'),
         );
 
-        if (!$this->can_manage_all_projects()) {
+        /*if (!$this->can_manage_all_projects()) {
             $options["user_id"] = $this->login_user->id;
-        }
+        }*/
 
         $list_data = $this->Projects_model->get_details($options, $this->getRolePermission)->result();
         $result = array();

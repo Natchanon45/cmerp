@@ -29,6 +29,8 @@ class Projects_model extends Crud_model {
 
         if($this->Permission_m->access_project == "assigned_only"){
             $where .= " AND $projects_table.created_by=".$this->login_user->id;
+        }elseif($this->Permission_m->access_project == "specific"){
+            $where .= " AND (FIND_IN_SET($projects_table.project_type_id, '".$this->Permission_m->access_project_specific."') OR $projects_table.project_type_id IS NULL)";
         }
 
         $client_id = get_array_value($options, "client_id");
@@ -130,15 +132,13 @@ class Projects_model extends Crud_model {
 			ORDER BY $projects_table.start_date DESC
 		";
 		
-		
 		$filters = array();
-		if( isset( $this->getRolePermission['filters'] ) ) {
+		/*if( isset( $this->getRolePermission['filters'] ) ) {
 			$filters = $this->getRolePermission['filters'];
-		}
+		}*/
 		
 		if( !empty( $options['id'] ) ) {
 			$filters['WHERE'][] = $projects_table .".id = ". $options['id'] ."";
-			
 		}
 		
 		if($where) {

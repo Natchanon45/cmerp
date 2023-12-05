@@ -125,6 +125,13 @@ class Tasks_model extends Crud_model {
             $where .= " AND $tasks_table.id=$id";
         }
 
+
+        if($this->Permission_m->access_project == "assigned_only"){
+            $where .= " AND $projects.created_by=".$this->login_user->id;
+        }elseif($this->Permission_m->access_project == "specific"){
+            $where .= " AND (FIND_IN_SET($projects.project_type_id, '".$this->Permission_m->access_project_specific."') OR $projects.project_type_id IS NULL)";
+        }
+
         $project_id = get_array_value($options, "project_id");
         if ($project_id) {
             $where .= " AND $tasks_table.project_id=$project_id AND $tasks_table.parent_task_id='0' ";
@@ -460,6 +467,12 @@ class Tasks_model extends Crud_model {
         $tasks_table = $this->db->dbprefix('tasks');
 
         $where = " AND $project_members_table.user_id=$user_id AND $projects_table.status='open' AND ($tasks_table.status_id IN (1, 2)) AND (assigned_to='".$this->login_user->id."' OR FIND_IN_SET('".$this->login_user->id."', collaborators)) AND $tasks_table.deleted=0";
+
+        if($this->Permission_m->access_project == "assigned_only"){
+            $where .= " AND $projects_table.created_by=".$this->login_user->id;
+        }elseif($this->Permission_m->access_project == "specific"){
+            $where .= " AND (FIND_IN_SET($projects_table.project_type_id, '".$this->Permission_m->access_project_specific."') OR $projects_table.project_type_id IS NULL)";
+        }
 
         $sql = "SELECT $project_members_table.project_id, $projects_table.title AS project_title
         FROM $project_members_table

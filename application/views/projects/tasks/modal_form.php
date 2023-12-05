@@ -81,7 +81,7 @@
         <?php if ($show_assign_to_dropdown) { ?>
             <div class="form-group">
                 <label for="assigned_to" class=" col-md-3"><?php echo lang('assign_to'); ?></label>
-                <div class="col-md-9" id="dropdown-apploader-section">
+                <div class="col-md-9">
                     <?php
                     echo form_input(array(
                         "id" => "assigned_to",
