@@ -2336,3 +2336,4 @@ $lang["project_total"] = "Total project";
 $lang["mr_total_raw_material"] = "Summary Raw material";
 $lang["mr_total_semi_finished_goods"] = "Summary Semi-finished goods";
 $lang["mr_total_finished_goods"] = "Summary Finished goods";
+$lang["mr_percentage"] = "Percentage of material requisition";

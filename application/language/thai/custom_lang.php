@@ -2734,3 +2734,4 @@ $lang["mr_text"] = "ใบขอเบิก";
 $lang["mr_total_raw_material"] = "รวมรายการวัตถุดิบ";
 $lang["mr_total_semi_finished_goods"] = "รวมรายการสินค้ากึ่งสำเร็จ";
 $lang["mr_total_finished_goods"] = "รวมรายการสินค้าสำเร็จ";
+$lang["mr_percentage"] = "เปอร์เซ็นต์เบิกวัตถุดิบ";

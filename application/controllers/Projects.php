@@ -6334,7 +6334,7 @@ class Projects extends MY_Controller
         $mr = "";
         if ($item->mr_status == 3) {
             $mr = '<select class="pill pill-success pointer-none">
-            <option>' . $item->mr_percentage . '</option>
+            <option>' . $item->mr_percentage . '%</option>
             </select>';
         } else {
             $mr = '<select class="pill pill-danger pointer-none">

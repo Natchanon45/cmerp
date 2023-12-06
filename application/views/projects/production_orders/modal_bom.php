@@ -79,9 +79,9 @@
     }
 
     .stock-notice {
-        padding: 0 !important;
+        padding-left: 5px;
         font-size: 120%;
-        color: #ffc107;
+        color: #28a745;
     }
 
     .stock-name-width {
@@ -166,10 +166,10 @@
                     <tr>
                         <td class="rm-name">
                             <span class="font-bold">
-                                <?php echo $detail->material_info->name; ?>
+                                <?php echo mb_strimwidth($detail->material_info->name . ' - ' . $detail->material_info->production_name, 0, 50, "..."); ?>
                             </span>
                             <span>
-                                <?php echo mb_strimwidth($detail->material_info->production_name, 0, 50, '...'); ?>
+                                <?php echo mb_strimwidth($detail->material_info->description, 0, 50, '...'); ?>
                             </span>
                         </td>
                         <td>
@@ -196,7 +196,7 @@
                                             if (!empty($detail->actual_total_remain) && !empty($detail->required_qty)): 
                                                 if ($detail->required_qty <= $detail->actual_total_remain): 
                                     ?>
-                                    <i class="fa fa-database stock-notice"></i>
+                                    <i class="fa fa-check-square stock-notice"></i>
                                     <?php
                                                 endif;
                                             endif;
@@ -284,10 +284,10 @@
                         <tr>
                             <td class="rm-name">
                                 <span class="font-bold">
-                                    <?php echo $detail->material_info->item_code; ?>
+                                    <?php echo mb_strimwidth($detail->material_info->item_code . ' - ' . $detail->material_info->title, 0, 50, "..."); ?>
                                 </span>
                                 <span>
-                                    <?php echo mb_strimwidth($detail->material_info->title, 0, 50, '...'); ?>
+                                    <?php echo mb_strimwidth($detail->material_info->description, 0, 50, '...'); ?>
                                 </span>
                             </td>
                             <td>
@@ -305,7 +305,7 @@
                             </td>
                             <td class="text-right font-bold">
                                 <?php if (isset($detail->ratio) && !empty($detail->ratio)): ?>
-                                    <span class="<?php echo $detail->ratio > 0 ? "color-success" : "color-danger"; ?>">
+                                    <span class="<?php echo $detail->ratio >= 0 ? "color-success" : "color-danger"; ?>">
                                         <?php echo number_format($detail->ratio, 6) . " " . $detail->material_info->unit_type; ?> 
                                     </span>
                                     <span>
@@ -314,7 +314,7 @@
                                                 if (!empty($detail->actual_total_remain) && !empty($detail->required_qty)): 
                                                     if ($detail->required_qty <= $detail->actual_total_remain): 
                                         ?>
-                                        <i class="fa fa-database stock-notice"></i>
+                                        <i class="fa fa-check-square stock-notice"></i>
                                         <?php
                                                     endif;
                                                 endif;

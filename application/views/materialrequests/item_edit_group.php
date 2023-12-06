@@ -1,8 +1,14 @@
 <?php
 // Setting request type
 $type = lang('stock_material');
-if (!empty($mat_req_info->mr_type) && $mat_req_info->mr_type == 2) {
-    $type = lang('stock_item');
+if (isset($post['item_type']) && !empty(isset($post['item_type']))) {
+    if ($post['item_type'] == 'SFG') {
+        $type = lang('sfg');
+    }
+    
+    if ($post['item_type'] == 'FG') {
+        $type = lang('fg');
+    }
 }
 
 // Setting start quantity
@@ -77,6 +83,8 @@ if ($mat_stock_info->stock_remain >= $start_quantity) {
 </div>
 
 <script type="text/javascript">
+const startQuantity = parseFloat(setNumberFormat('<?php echo $start_quantity; ?>'));
+
 $(document).ready(function () {
     $('#material_id').select2();
     $('#stock_id').select2();
@@ -92,31 +100,39 @@ $(document).ready(function () {
     });
 });
 
+function setNumberFormat(originalNumber) {
+    return Number(originalNumber).toLocaleString('en-US', {
+        minimumFractionDigits: 6,
+        maximumFractionDigits: 6
+    });
+}
+
 function postStockMaterialToList() {
-    let url = '<?php echo_uri('materialrequests/item_add_save'); ?>';
+    let url = '<?php echo_uri('materialrequests/item_edit_group_save'); ?>';
     let req = {
-        item_id: '<?php echo (isset($mat_item_info->id) && !empty($mat_item_info->id)) ? $mat_item_info->id : '0'; ?>',
         bpim_id: '<?php echo (isset($mat_item_info->bpim_id) && !empty($mat_item_info->bpim_id)) ? $mat_item_info->bpim_id : '0'; ?>',
+        item_id: '<?php echo (isset($mat_item_info->id) && !empty($mat_item_info->id)) ? $mat_item_info->id : '0'; ?>',
+        item_type: '<?php echo $mat_item_info->item_type; ?>',
+        material_id: $('#material_id').val(),
         mr_id: '<?php echo (isset($mat_req_info->id) && !empty($mat_req_info->id)) ? $mat_req_info->id : '0'; ?>',
         mr_type: '<?php echo (isset($mat_req_info->mr_type) && !empty($mat_req_info->mr_type)) ? $mat_req_info->mr_type : '0'; ?>',
-        project_id: '<?php echo (isset($mat_req_info->project_id) && !empty($mat_req_info->project_id)) ? $mat_req_info->project_id : '0'; ?>',
-        project_name: '<?php echo (isset($mat_req_info->project_name) && !empty($mat_req_info->project_name)) ? $mat_req_info->project_name : '0'; ?>',
-        material_id: $('#material_id').val(),
-        stock_id: $('#stock_id').val(),
         quantity: parseFloat($('#quantity').val()),
-        remaining_quantity: parseFloat($('#remaining_quantity').val())
+        remaining_quantity: parseFloat($('#remaining_quantity').val()),
+        stock_id: $('#stock_id').val()
     };
-    // console.log(url, req);
-    
-    if (req.quantity === 0 || req.quantity > req.remaining_quantity) {
+    // console.log(req);
+
+    if (req.quantity < 0 || req.quantity > req.remaining_quantity) {
         $('#quantity').addClass('alert-failure');
         return;
     } else {
         axios.post(url, req).then((res) => {
             if (res.data) {
-                window.parent.loadItems();
                 $("#ajaxModal").modal("hide");
+                window.location.reload();
             }
+        }).catch((err) => {
+            console.log(err);
         });
     }
 }
