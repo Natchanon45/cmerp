@@ -2337,3 +2337,14 @@ $lang["mr_total_raw_material"] = "Summary Raw material";
 $lang["mr_total_semi_finished_goods"] = "Summary Semi-finished goods";
 $lang["mr_total_finished_goods"] = "Summary Finished goods";
 $lang["mr_percentage"] = "Percentage of material requisition";
+
+// Account Category
+$lang["account_code"] = "Acct #";
+$lang["account_description"] = "Description";
+$lang["account_type"] = "Acct Type";
+$lang["account_sub_type"] = "Sub-Acct Type";
+$lang["account_type_select"] = "Select account type";
+$lang["thai"] = "TH";
+$lang["english"] = "EN";
+$lang["account_code_save_success"] = "Save success.";
+$lang["account_code_save_failure"] = "Save failure. The account code might be duplicate or incorrect.";
