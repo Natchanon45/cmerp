@@ -274,7 +274,7 @@ let columns = [
     { title: '<?php echo lang("stock_material_unit"); ?>', class: 'text-left' },
     { title: '<?php echo lang("production_order_produce_in"); ?>', class: 'text-center' },
     { title: '<?php echo lang("status") . '<br>' . lang("production_order_produce_status"); ?>', class: 'text-center' },
-    { title: '<?php echo lang("mr_percentage"); ?>', class: 'text-center' },
+    { title: '<?php echo lang("mr_percentage") . '<br>' . lang("mr_request_rm"); ?>', class: 'text-center' },
     { title: '<i class="fa fa-bars"></i>', class: 'text-center option' }
 ];
 
@@ -289,7 +289,7 @@ if (authReadCostAmount.value) {
         { title: '<?php echo lang("currency"); ?>', class: 'text-left' },
         { title: '<?php echo lang("production_order_produce_in"); ?>', class: 'text-center' },
         { title: '<?php echo lang("status") . '<br>' . lang("production_order_produce_status"); ?>', class: 'text-center' },
-        { title: '<?php echo lang("mr_percentage"); ?>', class: 'text-center' },
+        { title: '<?php echo lang("mr_percentage") . '<br>' . lang("mr_request_rm"); ?>', class: 'text-center' },
         { title: '<i class="fa fa-bars"></i>', class: 'text-center option' }
     ];
     summation = [

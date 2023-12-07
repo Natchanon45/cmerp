@@ -1011,6 +1011,9 @@ class Projects_model extends Crud_model {
                                 }
                             }
                         }
+                    } else {
+                        $this->db->where("id", $bpi_id);
+                        $this->db->update("bom_project_items", ["mr_status" => 3]);
                     }
                 }
                 $item["bim_list"] = $bim_list;
