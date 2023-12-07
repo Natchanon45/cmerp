@@ -737,7 +737,7 @@ class Sfg_m extends MY_Model {
             $data->id,
             anchor(get_uri('sfg/detail/' . $data->item_id), $item_name),
             !empty($data->project_title) ? anchor(get_uri('projects/view/' . $data->project_id), $data->project_title) : '-',
-            $mr_doc_number != null ?$mr_doc_number:"-",
+            $mr_doc_number != null ? "<a href='".get_uri('materialrequests/view/'.$data->mr_id)."'>".$mr_doc_number."</a>":"-",
             is_date_exists($data->created_at) ? format_to_date($data->created_at, false) : '-',
             !empty($data->created_by) ? $this->Account_category_model->created_by($data->created_by) : '-',
             !empty($data->note) ? $data->note : '-',

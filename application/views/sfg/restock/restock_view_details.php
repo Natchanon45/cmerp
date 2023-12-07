@@ -6,7 +6,7 @@
       if ($can_create) {
         echo modal_anchor(
           get_uri("sfg/restock_item_details_modal_addedit"),
-          "<i class='fa fa-plus-circle'></i> " . lang('stock_restock_item_add'),
+          "<i class='fa fa-plus-circle'></i> " . "เพิ่มการนำเข้าสินค้ากึ่งสำเร็จ",
           array("class" => "btn btn-default", "title" => "เพิ่มการนำเข้าสินค้ากึ่งสำเร็จ", "data-post-group_id" => $restock_id)
         );
       }
