@@ -7,6 +7,11 @@
         pointer-events: none;
     }
 
+    .pointer-none-appearance {
+        pointer-events: none;
+        appearance: none;
+    }
+
     .item-table table {
         width: 100%;
     }
@@ -76,6 +81,44 @@ echo form_open(
     </div>
 
     <div class="form-group">
+        <label for="account_secondary" class="col-md-3">
+            <?php echo lang("account_sub_type"); ?>
+        </label>
+        <div class="col-md-9">
+            <select id="account_secondary" name="account_secondary" class="form-control" required>
+                <option value=""><?php echo "-- " . lang("account_sub_type_select") . " --"; ?></option>
+                <?php if (!empty($account_secondary)): ?>
+                    <?php foreach ($account_secondary as $secondary): ?>
+                        <option value="<?php echo $secondary->id; ?>">
+                            <?php echo $secondary->thai_name . " (" . $secondary->account_code . ")"; ?>
+                        </option>
+                    <?php endforeach; ?>
+                <?php endif; ?>
+            </select>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label for="account_category" class="col-md-3">
+            <?php echo lang("account_expense"); ?>
+        </label>
+        <div class="col-md-9">
+            <select name="account_category" id="account_category" class="form-control pointer-none-appearance" required>
+                <option value=""><?php echo "-- " . lang("account_expense_select") . " --"; ?></option>
+            </select>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label for="internal_reference" class="col-md-3">
+            <?php echo lang("pv_internal_reference"); ?>
+        </label>
+        <div class="col-md-9">
+            <input type="text" name="internal_reference" id="internal_reference" class="form-control" placeholder="<?php echo lang("pv_internal_reference_place_holder"); ?>" maxlength="40">
+        </div>
+    </div>
+
+    <div class="form-group">
         <label for="project-id" class="col-md-3">
             <?php echo lang("project_refer"); ?>
         </label>
@@ -119,7 +162,7 @@ echo form_open(
             <?php echo lang("pv_invoice_refer"); ?>
         </label>
         <div class="col-md-9">
-            <input type="text" name="invoice-refer" id="invoice-refer" class="form-control select-invoice-refer" placeholder="<?php echo lang("pv_invoice_refer_placeholder"); ?>" maxlength="40" required>
+            <input type="text" name="invoice-refer" id="invoice-refer" class="form-control select-invoice-refer" placeholder="<?php echo lang("pv_invoice_refer_placeholder"); ?>" maxlength="40">
         </div>
     </div>
 
@@ -182,6 +225,8 @@ echo form_open(
     const tableBody = $("#tbody-po-select");
     const supplierId = $("#supplier-id");
     const addNewForm = $("#addnew-form");
+    const categoryList = JSON.parse('<?php echo $account_category; ?>');
+    const categoryTopSelect = '<?php echo "-- " . lang("account_expense_select") . " --"; ?>';
 
     let purchaseOrderList = [];
     let purchaseItemList = [];
@@ -402,6 +447,28 @@ echo form_open(
                         }, 1000);
                     }, 100);
                 }
+            }
+        });
+
+        $("#account_secondary").select2();
+        $("#account_secondary").on("change", function (e) {
+            e.preventDefault();
+
+            let self = $(this);
+            let categoryOption = categoryList.filter(i => i.secondary_id == self.val());
+            let categorySelect = $("#account_category");
+
+            if (categoryOption.length) {
+                categorySelect.val('');
+                categorySelect.find('option').remove();
+                categorySelect.append(`<option value="">${categoryTopSelect}</option>`);
+
+                categoryOption.map((i) => {
+                    categorySelect.append(`<option value="${i.id}" data-code="${i.account_code}">${i.account_code} - ${i.thai_name}</option>`);
+                });
+
+                categorySelect.removeClass('pointer-none-appearance');
+                categorySelect.select2();
             }
         });
     });

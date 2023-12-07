@@ -17,6 +17,7 @@ class Payment_voucher extends MY_Controller
         $this->load->model('Payment_voucher_m');
         $this->load->model('Goods_receipt_m');
         $this->load->model('Bom_materials_model');
+        $this->load->model('Account_category_model');
     }
 
     function index()
@@ -238,6 +239,8 @@ class Payment_voucher extends MY_Controller
 
         $view_data["supplier_dropdown"] = $this->Payment_voucher_m->dev2_getSupplieHavePurchaseOrderApproved();
         $view_data["project_dropdown"] = $this->Payment_voucher_m->dev2_getProjectReferByProjectOpen();
+        $view_data["account_secondary"] = $this->Account_category_model->dev2_getExpenseSecondaryList();
+        $view_data["account_category"] = json_encode($this->Account_category_model->dev2_getExpenseCategoryList());
 
         $view_data["bom_supplier_read"] = false;
         if (isset($this->Permission_m->bom_supplier_read) && $this->Permission_m->bom_supplier_read) {
@@ -278,12 +281,29 @@ class Payment_voucher extends MY_Controller
             $view_data["bom_supplier_read"] = true;
         }
 
+        $view_data["account_secondary"] = $this->Account_category_model->dev2_getExpenseSecondaryList();
+        $view_data["account_category"] = json_encode($this->Account_category_model->dev2_getExpenseCategoryList());
+
+        if ($view_data["header_data"]->account_category_id) {
+            $view_data["account_category_info"] = $this->Account_category_model->dev2_selectDataListByColumnIndex("account_category", "id", $view_data["header_data"]->account_category_id)[0];
+            $view_data["account_secondary_info"] = $this->Account_category_model->dev2_selectDataListByColumnIndex("account_secondary", "id", $view_data["account_category_info"]->secondary_id)[0];
+        }
+
         // var_dump(arr($view_data)); exit();
         $this->load->view("payment_voucher/editnew", $view_data);
     }
 
     function addnew_save()
     {
+        validate_submitted_data(
+            array(
+                "doc-date" => "required",
+                "account_secondary" => "required",
+                "account_category" => "required",
+                "supplier-id" => "required"
+            )
+        );
+
         $post = $this->input->post();
         $result = [
             "success" => true,
@@ -342,6 +362,15 @@ class Payment_voucher extends MY_Controller
 
     function editnew_save()
     {
+        validate_submitted_data(
+            array(
+                "doc-date" => "required",
+                "account_secondary" => "required",
+                "account_category" => "required",
+                "supplier-id" => "required"
+            )
+        );
+
         $post = $this->input->post();
         $result = [
             "success" => true,
@@ -354,7 +383,6 @@ class Payment_voucher extends MY_Controller
             $result["success"] = false;
             $result["message"] = lang("pv_no_item_select");
             echo json_encode($result);
-
             return;
         }
 
@@ -363,7 +391,6 @@ class Payment_voucher extends MY_Controller
                 $result["success"] = false;
                 $result["message"] = lang("pv_incomplete_info");
                 echo json_encode($result);
-
                 return;
             }
         }
@@ -375,7 +402,6 @@ class Payment_voucher extends MY_Controller
             $result["success"] = false;
             $result["message"] = lang("pv_item_duplicated");
             echo json_encode($result);
-
             return;
         }
 
@@ -386,7 +412,6 @@ class Payment_voucher extends MY_Controller
                     $result["success"] = false;
                     $result["message"] = lang("pv_incorrect_qty");
                     echo json_encode($result);
-
                     return;
                 }
             }

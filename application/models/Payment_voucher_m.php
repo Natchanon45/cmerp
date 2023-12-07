@@ -1126,11 +1126,13 @@ class Payment_voucher_m extends MY_Model
             "doc_number" => $pv_info->doc_number,
             "po_type" => $pv_info->po_type,
             "doc_date" => $data["doc-date"],
+            "account_category_id" => $data["account_category"],
             "credit" => "0",
             "due_date" => $data["doc-date"],
             "project_id" => $data["project-id"],
             "supplier_id" => $pv_info->supplier_id,
             "supplier_invoice" => $data["invoice-refer"],
+            "internal_reference" => $data["internal_reference"],
             "remark" => $data["remark-text"],
             "created_by" => $pv_info->created_by,
             "created_datetime" => $pv_info->created_datetime
@@ -1140,9 +1142,11 @@ class Payment_voucher_m extends MY_Model
         $this->db->where("id", $header_data["id"]);
         $this->db->update("pv_header", array(
             "doc_date" => $data["doc-date"],
+            "account_category_id" => $data["account_category"],
             "due_date" => $data["doc-date"],
             "project_id" => $data["project-id"],
             "supplier_invoice" => $data["invoice-refer"],
+            "internal_reference" => $data["internal_reference"],
             "remark" => $data["remark-text"]
         ));
 
@@ -1265,11 +1269,13 @@ class Payment_voucher_m extends MY_Model
             "doc_number" => $pv_doc_number,
             "po_type" => "0",
             "doc_date" => $data["doc-date"],
+            "account_category_id" => $data["account_category"],
             "credit" => "0",
             "due_date" => $data["doc-date"],
             "project_id" => $data["project-id"],
             "supplier_id" => $data["supplier-id"],
             "supplier_invoice" => $data["invoice-refer"],
+            "internal_reference" => $data["internal_reference"],
             "remark" => $data["remark-text"],
             "created_by" => $this->login_user->id,
             "created_datetime" => date("Y-m-d H:i:s")

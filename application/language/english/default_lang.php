@@ -2216,6 +2216,8 @@ $lang["pv_item_duplicated"] = "Found duplicate items.";
 $lang["pv_no_item_select"] = "No items selected.";
 $lang["pv_incomplete_info"] = "Incomplete information.";
 $lang["pv_incorrect_qty"] = "Incorrect quantity specified.";
+$lang["pv_internal_reference"] = "Internal reference.";
+$lang["pv_internal_reference_place_holder"] = "Reference to an internal document number.";
 
 $lang["material_request_type"] = "Request type";
 $lang["project_refer"] = "Project reference";

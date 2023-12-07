@@ -408,7 +408,7 @@
 
         $("#expense_secondary").select2();
         $("#expense_secondary").on("change", function (e) {
-            // console.log($(this).val());
+            e.preventDefault();
 
             let self = $(this);
             let categoryOption = categoryList.filter(i => i.secondary_id == self.val());
