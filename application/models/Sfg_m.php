@@ -137,8 +137,8 @@ class Sfg_m extends MY_Model {
     function indexDataSet() {
         $db = $this->db;
         $company_setting = $this->Settings_m->getCompany();
-//->join("material_categories", "material_categories.id = items.category_id", "left")
-//->where("material_categories.item_type", $this->item_type)
+        if($this->Permission_m->access_semi_product_item == false) return [];
+
         $db->select("items.*")
             ->from("items")
             ->join("bom_item_stocks", "bom_item_stocks.item_id = items.id", "left")
@@ -669,28 +669,17 @@ class Sfg_m extends MY_Model {
         $options = '';
         if ($this->Permission_m->bom_restock_update && $data->remaining > 0) {
             $options .= modal_anchor(
-                get_uri("stock/restock_item_view_modal"), 
-                "<i class='fa fa-pencil'></i>", 
-                array(
-                    "class" => "edit", 
-                    "title" => lang('stock_restock_item_edit'), 
-                    "data-post-id" => $data->id, 
-                    "data-post-view" => "item"
-                )
-            ); // btn-edit
-                
+                get_uri("sfg/restock_item_details_modal_addedit"),
+                "<i class='fa fa-pencil'></i>",
+                array("class" => "edit", "title" => "แก้ไขการนำเข้าสินค้ากึ่งสำเร็จ", "data-post-id" => $data->id)
+            ); // btn-update
             $options .= modal_anchor(
-                get_uri("stock/restock_item_withdraw_modal"), 
-                "<i class='fa fa-share-square-o'></i>", 
-                array(
-                    "class" => "edit", 
-                    "title" => lang('stock_restock_item_withdraw'), 
-                    "data-post-id" => $data->id, 
-                    "data-post-view" => "item"
-                )
+                get_uri("sfg/restock_item_details_modal_withdraw"),
+                "<i class='fa fa-share-square-o'></i>",
+                array("class" => "edit", "title" => "เพิ่มการนำออกสินค้ากึ่งสำเร็จ", "data-post-id" => $data->id, "data-post-view" => "restock")
             ); // btn-withdraw
         } else {
-            $options .= modal_anchor(
+            /*$options .= modal_anchor(
                 get_uri("stock/restock_item_view_modal"), 
                 "<i class='fa fa-eye'></i>", 
                 array(
@@ -699,17 +688,17 @@ class Sfg_m extends MY_Model {
                     "data-post-id" => $data->id, 
                     "data-post-view" => "item"
                 )
-            ); // btn-view
+            );*/
         }
 
         if ($can_delete && $this->Permission_m->bom_restock_delete) {
             $options .= js_anchor(
-                "<i class='fa fa-times fa-fw'></i>", 
+                "<i class='fa fa-times fa-fw'></i>",
                 array(
-                    'title' => lang('stock_restock_item_delete'), 
-                    "class" => "delete", 
-                    "data-id" => $data->id, 
-                    "data-action-url" => get_uri("stock/restock_item_view_delete"), 
+                    "title" => lang('stock_restock_item_delete'),
+                    "class" => "delete",
+                    "data-id" => $data->id,
+                    "data-action-url" => get_uri('sfg/restock_item_details_modal_withdraw/delete'),
                     "data-action" => "delete-confirmation"
                 )
             ); // btn-delete
@@ -748,7 +737,7 @@ class Sfg_m extends MY_Model {
             $data->id,
             anchor(get_uri('sfg/detail/' . $data->item_id), $item_name),
             !empty($data->project_title) ? anchor(get_uri('projects/view/' . $data->project_id), $data->project_title) : '-',
-            $mr_doc_number != null ?$mr_doc_number:"-",
+            $mr_doc_number != null ? "<a href='".get_uri('materialrequests/view/'.$data->mr_id)."'>".$mr_doc_number."</a>":"-",
             is_date_exists($data->created_at) ? format_to_date($data->created_at, false) : '-',
             !empty($data->created_by) ? $this->Account_category_model->created_by($data->created_by) : '-',
             !empty($data->note) ? $data->note : '-',
@@ -789,7 +778,7 @@ class Sfg_m extends MY_Model {
         }
 
         $display_item = '<span>
-            <span style="display: block;"><b>' . lang("stock_product_name") . '</b>: ' . anchor(get_uri('items/detail/' . $item->item_id), $item_name) . '</span>
+            <span style="display: block;"><b>' . lang("stock_product_name") . '</b>: ' . anchor(get_uri('sfg/detail/' . $item->item_id), $item_name) . '</span>
         </span>';
 
         $mixing_name = null;
@@ -821,12 +810,11 @@ class Sfg_m extends MY_Model {
         $result = $this->Bom_item_groups_model->dev2_getRestockingItemList($post, "SFG");
         
         $data = array();
-        // var_dump(arr($result)); exit();
+        
         foreach ($result as $item) {
             $data[] = $this->getIndexRestockDataSetHTML($item);
         }
 
-        // var_dump(arr($data)); exit();
         return $data;
     }
 
@@ -1006,11 +994,11 @@ class Sfg_m extends MY_Model {
                 array("class" => "edit", "title" => "เพิ่มการนำออกสินค้ากึ่งสำเร็จ", "data-post-id" => $data->id, "data-post-view" => "restock")
             ); // btn-withdraw
         } else { 
-            $options .= modal_anchor(
+            /*$options .= modal_anchor(
                 get_uri("stock/restock_item_view_modal"),
                 "<i class='fa fa-eye'></i>",
                 array("class" => "edit", "title" => lang('stock_restock_item_edit'), "data-post-id" => $data->id)
-            ); // btn-view
+            );*/
         }
 
         if ($this->Permission_m->bom_restock_delete) { 

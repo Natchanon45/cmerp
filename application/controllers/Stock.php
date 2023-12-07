@@ -18,6 +18,7 @@ class Stock extends MY_Controller
         $this->load->model("Account_category_model");
         $this->load->model("Warehouse_category_model");
         $this->load->model("Bom_item_pricings_model");
+
     }
 
     function index()
@@ -4426,16 +4427,20 @@ class Stock extends MY_Controller
         $view_data['can_read_production_name'] = $this->check_permission('bom_material_read_production_name');
 
         $view_data["category_dropdown"] = $this->Bom_item_model->get_category_dropdown(["type" => "FG"]);
-
         $view_data['is_admin'] = $this->login_user->is_admin;
         $this->template->rander("stock/item/index", $view_data);
     }
 
     function item_list()
     {
-        $this->check_module_availability("module_stock");
+        /*$this->check_module_availability("module_stock");
         if (!$this->bom_can_access_material())
-            redirect("forbidden");
+            redirect("forbidden");*/
+
+        if($this->Permission_m->access_product_item == false){
+            echo json_encode(array("data" => []));
+            return;
+        }
 
         $options = array(
             "category_id" => $this->input->post("category_id")
@@ -5226,7 +5231,7 @@ class Stock extends MY_Controller
             $data->id,
             !empty($data->stock_name) ? anchor(get_uri('stock/restock_item_view/' . $data->group_id), $data->stock_name) : '-',
             !empty($data->project_title) ? anchor(get_uri('projects/view/' . $data->project_id), $data->project_title) : '-',
-            $mr_doc_number != null ? $mr_doc_number:"-",
+            $mr_doc_number != null ? "<a href='".get_uri('materialrequests/view/'.$data->mr_id)."'>".$mr_doc_number."</a>":"-",
             is_date_exists($data->created_at) ? format_to_date($data->created_at, false) : '-',
             $data->created_by ? $this->Account_category_model->created_by($data->created_by) : '-',
             !empty($data->note) ? $data->note : '-',
