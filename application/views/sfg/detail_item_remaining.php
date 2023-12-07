@@ -15,17 +15,17 @@
       source: '<?php echo_uri("sfg/detail_item_remaining/" . $item_id) ?>',
       columns: [
         { title: '<?php echo lang("id"); ?>', "class": "text-center w50" },
-        { title: '<?php echo lang("stock_restock_item_name"); ?>' },
+        { title: 'ชื่อการนำเข้าสินค้ากึ่งสำเร็จ' },
         { title: '<?php echo lang("serial_number"); ?>' },
         { title: '<?php echo lang("created_by"); ?>' },
         { title: '<?php echo lang("created_date"); ?>', class: 'w90' },
         { title: '<?php echo lang("expiration_date"); ?>', class: 'w90' },
-        { title: '<?php echo lang("stock_restock_quantity"); ?>', class: 'w125 text-right' },
-        { title: '<?php echo lang("stock_item_remaining"); ?>', class: 'w125 text-right' },
+        { title: '<?php echo lang("stock_restock_quantity"); ?>', class: 'text-right' },
+        { title: '<?php echo lang("stock_item_remaining"); ?>', class: 'text-right' },
         { title: '<?php echo lang("stock_item_unit"); ?>', class: 'w50 text-right' },
         <?php if ($can_read_price) { ?>
-          { title: '<?php echo lang("stock_restock_price"); ?>', class: 'w125 text-right' },
-          { title: '<?php echo lang("stock_restock_remining_value"); ?>', class: 'w125 text-right' },
+          { title: '<?php echo lang("stock_restock_price"); ?>', class: 'text-right' },
+          { title: '<?php echo lang("stock_restock_remining_value"); ?>', class: 'text-right' },
           { title: '<?php echo lang("currency"); ?>', class: 'w50 text-right' },
         <?php } ?>
         { title: '<i class="fa fa-bars"></i>', "class": "text-center option" }

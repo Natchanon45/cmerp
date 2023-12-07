@@ -21,15 +21,15 @@
       source: '<?php echo current_url(); ?>',
       columns: [
         { title: "<?php echo lang("id"); ?>", "class": "text-center w50" },
-        { title: '<?php echo lang("stock_item"); ?>' },
+        { title: 'สินค้ากึ่งสำเร็จ' },
         { title: '<?php echo lang("project"); ?>' },
-        { title: '<?php echo lang("date"); ?>', class: 'w150' },
+        { title: '<?php echo lang("date"); ?>'},
         { title: '<?php echo lang('created_by'); ?>' },
         { title: '<?php echo lang("note_real"); ?>' },
-        { title: '<?php echo lang("stock_restock_used_quantity"); ?>', class: 'w125 text-right' },
-        { title: '<?php echo lang("stock_material_unit"); ?>', class: 'w125 text-right <?php if (!$can_read_price) { echo 'pr-25px'; } ?>' },
+        { title: '<?php echo lang("stock_restock_used_quantity"); ?>', class: 'text-right' },
+        { title: '<?php echo lang("stock_material_unit"); ?>', class: 'text-right <?php if (!$can_read_price) { echo 'pr-25px'; } ?>' },
         <?php if ($can_read_price) { ?>
-          { title: '<?php echo lang("stock_restock_used_value"); ?>', class: 'w125 text-right' },
+          { title: '<?php echo lang("stock_restock_used_value"); ?>', class: 'text-right' },
           { title: '<?php echo lang("currency"); ?>', class: 'w125 text-right pr-25px' }
         <?php } ?>
       ],
