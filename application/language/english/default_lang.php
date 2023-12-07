@@ -2348,3 +2348,5 @@ $lang["thai"] = "TH";
 $lang["english"] = "EN";
 $lang["account_code_save_success"] = "Save success.";
 $lang["account_code_save_failure"] = "Save failure. The account code might be duplicate or incorrect.";
+$lang["account_expense"] = "Expense category";
+$lang["account_expense_select"] = "select expense category";

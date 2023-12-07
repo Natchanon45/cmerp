@@ -2747,3 +2747,5 @@ $lang["thai"] = "ไทย";
 $lang["english"] = "อังกฤษ";
 $lang["account_code_save_success"] = "บันทึกข้อมูลเรียบร้อยแล้ว";
 $lang["account_code_save_failure"] = "ไม่สามารถบันทึกข้อมูลได้ รหัสบัญชีอาจซ้ำหรือไม่ถูกต้อง";
+$lang["account_expense"] = "หมวดบัญชีค่าใช้จ่าย";
+$lang["account_expense_select"] = "เลือกหมวดบัญชีค่าใช้จ่าย";

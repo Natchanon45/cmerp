@@ -9,8 +9,8 @@ class Expenses extends MY_Controller {
         parent::__construct();
 
         $this->init_permission_checker("expense");
-
         $this->access_only_allowed_members();
+        $this->load->model("Account_category_model");
     }
 
     //load the expenses list view
@@ -127,19 +127,34 @@ $view_data["buttonTop"] = implode( '', $buttonTop );
         $view_data['can_access_expenses'] = $this->can_access_expenses();
         $view_data['can_access_clients'] = $this->can_access_clients();
 
-        $view_data["custom_fields"] = $this->Custom_fields_model->get_combined_details("expenses", $view_data['model_info']->id, $this->login_user->is_admin, $this->login_user->user_type)->result();
+        $view_data['custom_fields'] = $this->Custom_fields_model->get_combined_details("expenses", $view_data['model_info']->id, $this->login_user->is_admin, $this->login_user->user_type)->result();
+
+        // account category new
+        $view_data["expense_secondary"] = $this->Account_category_model->dev2_getExpenseSecondaryList();
+        $view_data["expense_category"] = json_encode($this->Account_category_model->dev2_getExpenseCategoryList());
+        
+        if (isset($view_data["model_info"]->account_category_id) && !empty($view_data["model_info"]->account_category_id)) {
+            $view_data["account_category_info"] = $this->Account_category_model->dev2_selectDataListByColumnIndex("account_category", "id", $view_data["model_info"]->account_category_id)[0];
+            $view_data["account_secondary_info"] = $this->Account_category_model->dev2_selectDataListByColumnIndex("account_secondary", "id", $view_data["account_category_info"]->secondary_id)[0];
+        }
+        
+        // var_dump(arr($view_data)); exit();
         $this->load->view('expenses/modal_form', $view_data);
     }
 
     //save an expense
-    function save() {
-		
-        validate_submitted_data(array(
-            "id" => "numeric",
-            "expense_date" => "required",
-            "category_id" => "required",
-            "amount" => "required"
-        ));
+    function save()
+    {	
+        validate_submitted_data(
+            array(
+                "id" => "numeric",
+                "expense_date" => "required",
+                "expense_secondary" => "required",
+                "expense_category" => "required",
+                "category_id" => "required",
+                "amount" => "required"
+            )
+        );
 
         $id = $this->input->post('id');
 
@@ -155,15 +170,16 @@ $view_data["buttonTop"] = implode( '', $buttonTop );
 
         $data = array(
             "expense_date" => $expense_date,
-            "title" => $this->input->post('title'),
-            "description" => $this->input->post('description'),
+            "account_category_id" => $this->input->post('expense_category'),
             "category_id" => $this->input->post('category_id'),
+            "description" => $this->input->post('description'),
             "amount" => unformat_currency($this->input->post('amount')),
-            "client_id" => $this->input->post('expense_client_id')? $this->input->post('expense_client_id'): 0,
+            "title" => $this->input->post('title'),
             "project_id" => $this->input->post('expense_project_id'),
             "user_id" => $this->input->post('expense_user_id'),
             "tax_id" => $this->input->post('tax_id') ? $this->input->post('tax_id') : 0,
             "tax_id2" => $this->input->post('tax_id2') ? $this->input->post('tax_id2') : 0,
+            "client_id" => $this->input->post('expense_client_id') ? $this->input->post('expense_client_id') : 0,
             "recurring" => $recurring,
             "repeat_every" => $repeat_every ? $repeat_every : 0,
             "repeat_type" => $repeat_type ? $repeat_type : NULL,
@@ -172,7 +188,7 @@ $view_data["buttonTop"] = implode( '', $buttonTop );
 
         $expense_info = $this->Expenses_model->get_one($id);
 
-        //is editing? update the files if required
+        // is editing? update the files if required
         if ($id) {
             $timeline_file_path = get_setting("timeline_file_path");
             $new_files = update_saved_files($timeline_file_path, $expense_info->files, $new_files);
@@ -181,25 +197,24 @@ $view_data["buttonTop"] = implode( '', $buttonTop );
         $data["files"] = serialize($new_files);
 
         if ($recurring) {
-            //set next recurring date for recurring expenses
-
+            // set next recurring date for recurring expenses
             if ($id) {
-                //update
-                if ($this->input->post('next_recurring_date')) { //submitted any recurring date? set it.
+                // update
+                if ($this->input->post('next_recurring_date')) { 
+                    // submitted any recurring date? set it.
                     $data['next_recurring_date'] = $this->input->post('next_recurring_date');
                 } else {
-                    //re-calculate the next recurring date, if any recurring fields has changed.
+                    // re-calculate the next recurring date, if any recurring fields has changed.
                     if ($expense_info->recurring != $data['recurring'] || $expense_info->repeat_every != $data['repeat_every'] || $expense_info->repeat_type != $data['repeat_type'] || $expense_info->expense_date != $data['expense_date']) {
                         $data['next_recurring_date'] = add_period_to_date($expense_date, $repeat_every, $repeat_type);
                     }
                 }
             } else {
-                //insert new
+                // insert new
                 $data['next_recurring_date'] = add_period_to_date($expense_date, $repeat_every, $repeat_type);
             }
 
-
-            //recurring date must have to set a future date
+            // recurring date must have to set a future date
             if (get_array_value($data, "next_recurring_date") && get_today_date() >= $data['next_recurring_date']) {
                 echo json_encode(array("success" => false, 'message' => lang('past_recurring_date_error_message_title'), 'next_recurring_date_error' => lang('past_recurring_date_error_message'), "next_recurring_date_value" => $data['next_recurring_date']));
                 return false;
@@ -209,7 +224,6 @@ $view_data["buttonTop"] = implode( '', $buttonTop );
         $save_id = $this->Expenses_model->save($data, $id);
         if ($save_id) {
             save_custom_fields("expenses", $save_id, $this->login_user->is_admin, $this->login_user->user_type);
-
             echo json_encode(array("success" => true, "data" => $this->_row_data($save_id), 'id' => $save_id, 'message' => lang('record_saved')));
         } else {
             echo json_encode(array("success" => false, 'message' => lang('error_occurred')));

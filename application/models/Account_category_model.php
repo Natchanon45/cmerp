@@ -169,4 +169,26 @@ class Account_category_model extends Crud_model
         return $data;
     }
 
+    public function dev2_getExpenseSecondaryList() : array
+    {
+        $data = [];
+        $query = $this->db->get_where("account_secondary", ["primary_id" => 5])->result();
+
+        if (sizeof($query)) {
+            $data = $query;
+        }
+        return $data;
+    }
+
+    public function dev2_getExpenseCategoryList() : array
+    {
+        $data = [];
+        $query = $this->db->get_where("account_category", ["primary_id" => 5])->result();
+
+        if (sizeof($query)) {
+            $data = $query;
+        }
+        return $data;
+    }
+
 }
