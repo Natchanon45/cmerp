@@ -27,10 +27,17 @@ class Projects_model extends Crud_model {
             $where .= " AND $projects_table.project_type_id=$project_type";
         }
 
-        if($this->Permission_m->access_project == "assigned_only"){
-            $where .= " AND $projects_table.created_by=".$this->login_user->id;
-        }elseif($this->Permission_m->access_project == "specific"){
-            $where .= " AND (FIND_IN_SET($projects_table.project_type_id, '".$this->Permission_m->access_project_specific."') OR $projects_table.project_type_id IS NULL)";
+        $tasks_join = "";
+        if($this->login_user->is_admin != 1){
+            if($this->Permission_m->access_project == "assigned_only"){
+                $where .= " AND $projects_table.created_by=".$this->login_user->id;
+            }elseif($this->Permission_m->access_project == "specific"){
+                $where .= " AND (FIND_IN_SET($projects_table.project_type_id, '".$this->Permission_m->access_project_specific."') OR $projects_table.project_type_id IS NULL)";
+
+                $where .= " AND ($tasks_table.assigned_to=".$this->login_user->id." OR FIND_IN_SET('".$this->login_user->id."', $tasks_table.collaborators))";
+
+                $tasks_join = "LEFT JOIN $tasks_table ON $projects_table.id = $tasks_table.project_id";
+            }
         }
 
         $client_id = get_array_value($options, "client_id");
@@ -73,6 +80,7 @@ class Projects_model extends Crud_model {
                 $where .= " AND ($projects_table.deadline BETWEEN '$start_date' AND '$deadline') ";
             }
         }
+        
 
 
         $extra_join = "";
@@ -112,7 +120,7 @@ class Projects_model extends Crud_model {
 			LEFT JOIN $clients_table ON $clients_table.id = $projects_table.client_id
 			LEFT JOIN (
 				SELECT 
-					project_id, 
+					project_id,
 					SUM( points ) AS total_points 
 				FROM $tasks_table 
 				WHERE deleted = 0 GROUP BY project_id 
@@ -126,16 +134,21 @@ class Projects_model extends Crud_model {
 				AND status_id = 3 
 				GROUP BY project_id 
 			) AS  completed_points_table ON completed_points_table.project_id = $projects_table.id
+            $tasks_join
 			$extra_join   
 			$join_custom_fieds    
 			[WHERE]
 			ORDER BY $projects_table.start_date DESC
 		";
 		
+//LEFT JOIN $tasks_table ON $projects_table.id = $tasks_table.project_id
+
 		$filters = array();
 		/*if( isset( $this->getRolePermission['filters'] ) ) {
 			$filters = $this->getRolePermission['filters'];
 		}*/
+
+        $where .= " AND $projects_table.deleted=0";
 		
 		if( !empty( $options['id'] ) ) {
 			$filters['WHERE'][] = $projects_table .".id = ". $options['id'] ."";

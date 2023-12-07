@@ -137,8 +137,8 @@ class Sfg_m extends MY_Model {
     function indexDataSet() {
         $db = $this->db;
         $company_setting = $this->Settings_m->getCompany();
-//->join("material_categories", "material_categories.id = items.category_id", "left")
-//->where("material_categories.item_type", $this->item_type)
+        if($this->Permission_m->access_semi_product_item == false) return [];
+
         $db->select("items.*")
             ->from("items")
             ->join("bom_item_stocks", "bom_item_stocks.item_id = items.id", "left")

@@ -719,39 +719,6 @@
                     <?php }?>
                 </li>
                 <li>
-                    <h5><?php echo lang("stock_material_permissions"); ?>:</h5>
-                    <?php
-                        foreach([
-                            [
-                                'name' => 'bom_material_read',
-                                'value' => $bom_material_read,
-                                'text' => 'stock_material_can_read'
-                            ], [
-                                'name' => 'bom_material_read_production_name',
-                                'value' => $bom_material_read_production_name,
-                                'text' => 'stock_material_can_read_production_name'
-                            ], [
-                                'name' => 'bom_material_create',
-                                'value' => $bom_material_create,
-                                'text' => 'stock_material_can_create'
-                            ], [
-                                'name' => 'bom_material_update',
-                                'value' => $bom_material_update,
-                                'text' => 'stock_material_can_update'
-                            ], [
-                                'name' => 'bom_material_delete',
-                                'value' => $bom_material_delete,
-                                'text' => 'stock_material_can_delete'
-                            ]
-                        ] as $i=>$d){
-                    ?>
-                        <div>
-                            <?php echo form_checkbox($d['name'], "1", $d['value']? true: false, "id='".$d['name']."' class='".$d['name']."'"); ?>
-                            <label for="<?= $d['name'] ?>"><?php echo lang($d['text']); ?></label>
-                        </div>
-                    <?php }?>
-                </li>
-                <li>
                     <h5><?php echo lang("stock_restock_permissions"); ?>:</h5>
                     <?php
                         foreach([
@@ -779,6 +746,39 @@
                                 'name' => 'bom_restock_delete',
                                 'value' => $bom_restock_delete,
                                 'text' => 'stock_restock_can_delete'
+                            ]
+                        ] as $i=>$d){
+                    ?>
+                        <div>
+                            <?php echo form_checkbox($d['name'], "1", $d['value']? true: false, "id='".$d['name']."' class='".$d['name']."'"); ?>
+                            <label for="<?= $d['name'] ?>"><?php echo lang($d['text']); ?></label>
+                        </div>
+                    <?php }?>
+                </li>
+                <li>
+                    <h5><?php echo lang("stock_material_permissions"); ?>:</h5>
+                    <?php
+                        foreach([
+                            [
+                                'name' => 'bom_material_read',
+                                'value' => $bom_material_read,
+                                'text' => 'stock_material_can_read'
+                            ], [
+                                'name' => 'bom_material_read_production_name',
+                                'value' => $bom_material_read_production_name,
+                                'text' => 'stock_material_can_read_production_name'
+                            ], [
+                                'name' => 'bom_material_create',
+                                'value' => $bom_material_create,
+                                'text' => 'stock_material_can_create'
+                            ], [
+                                'name' => 'bom_material_update',
+                                'value' => $bom_material_update,
+                                'text' => 'stock_material_can_update'
+                            ], [
+                                'name' => 'bom_material_delete',
+                                'value' => $bom_material_delete,
+                                'text' => 'stock_material_can_delete'
                             ]
                         ] as $i=>$d){
                     ?>

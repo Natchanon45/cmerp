@@ -17,7 +17,6 @@ class Items extends MY_Controller
 		$this->load->model("Account_category_model");
 		$this->className = "items";
 
-		if($this->Permission_m->access_product_item == false) redirect(get_uri());
 	}
 
 	protected function validate_access_to_items()
@@ -1365,24 +1364,21 @@ class Items extends MY_Controller
 		$options = array("category_id" => $category_id);
 		$result = array();
 
-		// $fs = $this->getRolePermission["filters"]["WHERE"];
-		// $this->db->select("*, title AS category_title")->from("items");
+		if($this->Permission_m->access_product_item == false){
+			echo json_encode(array("data" =>[]));
+			return;
+		}
 
 		$this->db->select("items.*, material_categories.title AS category_title")
-			->from("items")
-			->join("material_categories", "items.category_id = material_categories.id AND items.item_type = material_categories.item_type", "left")
-			->where("items.item_type", $this->item_type)
-			->where("items.deleted", "0");
+				->from("items")
+				->join("material_categories", "items.category_id = material_categories.id AND items.item_type = material_categories.item_type", "left")
+				->where("items.item_type", $this->item_type)
+				->where("items.deleted", "0");
 
 		if($category_id) $this->db->where("items.category_id", $category_id);
 
 		if($this->Permission_m->access_product_item == "own") $this->db->where("items.created_by", $this->login_user->id);
 
-		// if(!empty($fs)){
-		// 	foreach($fs as $f){
-		// 		$this->db->where($f);
-		// 	}
-		// }
 
 		$list_data = $this->db->get()->result();
 

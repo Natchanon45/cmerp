@@ -125,7 +125,6 @@ class Tasks_model extends Crud_model {
             $where .= " AND $tasks_table.id=$id";
         }
 
-
         if($this->Permission_m->access_project == "assigned_only"){
             $where .= " AND $projects.created_by=".$this->login_user->id;
         }elseif($this->Permission_m->access_project == "specific"){
