@@ -64,6 +64,7 @@ $lang["account_so_in_stock"] = "คงเหลือ";
 $lang["account_so_order_qty"] = "ต้องใช้";
 $lang["account_so_pr_qty"] = "ต้องขอซื้อ";
 $lang["account_so_pr_no"] = "ใบขอซื้อ";
+$lang["account_so_mr_used"] = "จำนวนที่ขอเบิก";
 $lang["account_so_mr_qty"] = "เบิกได้";
 $lang["account_so_mr_no"] = "ใบขอเบิก";
 

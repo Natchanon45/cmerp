@@ -23,23 +23,27 @@
 
 <script type="text/javascript">
 $(document).ready(function () {
-	$("#item-pricing-table").appTable({
-		source: '<?php echo current_url(); ?>',
-		order: [[0, 'desc']],
-		columns: [
-			{ title: '<?php echo lang('id'); ?>', class: 'text-center w50' },
-			{ title: '<?php echo lang('stock_supplier_name'); ?>' },
-			{ title: '<?php echo lang('stock_supplier_contact_name'); ?>' },
-			{ title: '<?php echo lang('stock_supplier_contact_phone'); ?>' },
-			{ title: '<?php echo lang('stock_supplier_contact_email'); ?>' },
-			{ title: '<?php echo lang('stock_material_quantity'); ?>', class: 'w125 text-right' },
-			{ title: '<?php echo lang('stock_material_unit'); ?>', class: 'w70' },
-			{ title: '<?php echo lang('price'); ?>', class: 'w125 text-right' },
-			{ title: '<?php echo lang('currency'); ?>', class: 'w70' },
-			{ title: '<i class="fa fa-bars"></i>', class: 'text-center option w100' }
-		],
-		printColumns: combineCustomFieldsColumns([0, 1, 2, 3, 4, 5, 6, 7]),
-		xlsColumns: combineCustomFieldsColumns([0, 1, 2, 3, 4, 5, 6, 7])
-    });
+	<?php if($this->Permission_m->bom_supplier_read == true): ?>
+		$("#item-pricing-table").appTable({
+			source: '<?php echo current_url(); ?>',
+			order: [[0, 'desc']],
+			columns: [
+				{ title: '<?php echo lang('id'); ?>', class: 'text-center w50' },
+				{ title: '<?php echo lang('stock_supplier_name'); ?>' },
+				{ title: '<?php echo lang('stock_supplier_contact_name'); ?>' },
+				{ title: '<?php echo lang('stock_supplier_contact_phone'); ?>' },
+				{ title: '<?php echo lang('stock_supplier_contact_email'); ?>' },
+				{ title: '<?php echo lang('stock_material_quantity'); ?>', class: 'w125 text-right' },
+				{ title: '<?php echo lang('stock_material_unit'); ?>', class: 'w70' },
+				{ title: '<?php echo lang('price'); ?>', class: 'w125 text-right' },
+				{ title: '<?php echo lang('currency'); ?>', class: 'w70' },
+				{ title: '<i class="fa fa-bars"></i>', class: 'text-center option w100' }
+			],
+			printColumns: combineCustomFieldsColumns([0, 1, 2, 3, 4, 5, 6, 7]),
+			xlsColumns: combineCustomFieldsColumns([0, 1, 2, 3, 4, 5, 6, 7])
+	    });
+    <?php else: ?>
+     	location.href = "<?php echo get_uri(); ?>";
+    <?php endif; ?>
 });
 </script>

@@ -20,13 +20,17 @@
                         "<i class='fa fa-upload'></i> " . lang('stock_item_import'),
                         array("class" => "btn btn-default", "title" => lang('stock_item_import'))
                     );*/
-                    echo modal_anchor(
-                        get_uri("sfg/category_modal"),
-                        "<i class='fa fa-tags'></i> " . lang('add_category'),
-                        array("class" => "btn btn-default", "title" => lang('add_category'), "data-post-type" => "item")
-                    );
-                
-                    echo modal_anchor(get_uri("sfg/addedit"), "<i class='fa fa-plus-circle'></i> " . lang('add_item'), array("class" => "btn btn-default", "title" => lang('add_item')));
+                    if($this->Permission_m->access_semi_product_category == true){
+                        echo modal_anchor(
+                            get_uri("sfg/category_modal"),
+                            "<i class='fa fa-tags'></i> " . lang('add_category'),
+                            array("class" => "btn btn-default", "title" => lang('add_category'), "data-post-type" => "item")
+                        );
+                    }
+
+                    if($this->Permission_m->create_semi_product_item == true){
+                        echo modal_anchor(get_uri("sfg/addedit"), "<i class='fa fa-plus-circle'></i> " . lang('add_item'), array("class" => "btn btn-default", "title" => lang('add_item')));
+                    }
                 ?>
             </div>
         </div>
@@ -39,7 +43,7 @@
 <script type="text/javascript">
     $(document).ready(function () {
         $("#item-table").appTable({
-            source: '<?php echo_uri("sfg"); ?>',
+            source: '<?php echo current_url(); ?>',
             filterDropdown: [
                 { name: "category_id", class: "w200", options: <?php echo $categories_dropdown; ?> }
             ],

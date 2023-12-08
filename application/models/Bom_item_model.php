@@ -25,6 +25,12 @@ class Bom_item_model extends Crud_model {
             $where .= " AND bm.id != $exceptId";
         }
 
+        
+        if($this->Permission_m->access_product_item == "own"){
+            $where .= " AND bm.created_by = '".$this->login_user->id."'";
+        }
+        
+
         return $this->db->query("
             SELECT bm.*, 
             bmc.title category, 

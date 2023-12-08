@@ -589,11 +589,11 @@ class Stock extends MY_Controller
 
     function item_pricings($item_id = 0)
     {
-        $this->check_module_availability("module_stock");
+        /*$this->check_module_availability("module_stock");
         
         if (!$this->check_permission('bom_can_access_supplier') || !$this->check_permission('bom_can_access_material')) {
             redirect("forbidden");
-        }
+        }*/
 
         $view_data['item_id'] = $item_id;
         $view_data['can_update_supplier'] = $this->check_permission('bom_supplier_update');
@@ -4417,6 +4417,8 @@ class Stock extends MY_Controller
     // START: Items
     function items()
     {
+        if ($this->Permission_m->access_product_item == false) redirect(get_uri());
+
         $this->check_module_availability("module_stock");
         if (!$this->bom_can_access_material())
             redirect("forbidden"); 
@@ -4436,11 +4438,6 @@ class Stock extends MY_Controller
         /*$this->check_module_availability("module_stock");
         if (!$this->bom_can_access_material())
             redirect("forbidden");*/
-
-        if($this->Permission_m->access_product_item == false){
-            echo json_encode(array("data" => []));
-            return;
-        }
 
         $options = array(
             "category_id" => $this->input->post("category_id")
@@ -5052,10 +5049,10 @@ class Stock extends MY_Controller
     // START:item Remaining
     function item_remainings($item_id = 0)
     {
-        $this->check_module_availability("module_stock");
+        /*$this->check_module_availability("module_stock");
         if (!$this->bom_can_access_material() || !$this->bom_can_access_restock()) {
             redirect("forbidden");
-        }
+        }*/
 
         $view_data['can_read_price'] = $this->check_permission('bom_restock_read_price');
 

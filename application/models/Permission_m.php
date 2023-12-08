@@ -12,15 +12,15 @@ class Permission_m extends MY_Model
 	public $add_note = false;
 	public $update_note = false;
 
-	public $access_product_item = false;
-	public $access_product_item_formula = false;
-	public $create_product_item = false;
-	public $access_product_category = false;
-
 	public $access_semi_product_item = false;
 	public $access_semi_product_item_formula = false;
 	public $create_semi_product_item = false;
 	public $access_semi_product_category = false;
+
+	public $access_product_item = false;
+	public $access_product_item_formula = false;
+	public $create_product_item = false;
+	public $access_product_category = false;
 
 	public $access_expense = false;
 
@@ -50,7 +50,7 @@ class Permission_m extends MY_Model
 	public $update_purchase_request = false;
 	public $delete_purchase_request = false;
 	public $approve_purchase_request = false;
-
+	
 	public $bom_supplier_read = false;
 
 	public $bom_material_read = false;
@@ -98,15 +98,15 @@ class Permission_m extends MY_Model
 		$permissions["add_note"] = $this->add_note = true;
 		$permissions["update_note"] = $this->update_note = true;
 
-		$permissions["access_product_item"] = $this->access_product_item = "all";
-		$permissions["access_product_item_formula"] = $this->access_product_item_formula = true;
-		$permissions["create_product_item"] = $this->create_product_item = true;
-		$permissions["access_product_category"] = $this->access_product_category = true;
-
 		$permissions["access_semi_product_item"] = $this->access_semi_product_item = "all";
 		$permissions["access_semi_product_item_formula"] = $this->access_semi_product_item_formula = true;
 		$permissions["create_semi_product_item"] = $this->create_semi_product_item = true;
 		$permissions["access_semi_product_category"] = $this->access_semi_product_category = true;
+
+		$permissions["access_product_item"] = $this->access_product_item = "all";
+		$permissions["access_product_item_formula"] = $this->access_product_item_formula = true;
+		$permissions["create_product_item"] = $this->create_product_item = true;
+		$permissions["access_product_category"] = $this->access_product_category = true;
 
 		$permissions["access_expense"] = $this->access_expense = "all";
 
@@ -168,17 +168,17 @@ class Permission_m extends MY_Model
 		if(isset($permissions->add_note)) $this->add_note = $permissions->add_note;
 		if(isset($permissions->update_note)) $this->update_note = $permissions->update_note;
 
-		//Product Item
-		if(isset($permissions->access_product_item)) $this->access_product_item = $permissions->access_product_item;
-		if(isset($permissions->access_product_item_formula)) $this->access_product_item_formula = $permissions->access_product_item_formula;
-		if(isset($permissions->create_product_item)) $this->create_product_item = $permissions->create_product_item;
-		if(isset($permissions->access_product_category)) $this->access_product_category = $permissions->access_product_category;
-
 		//Semi Product Item
 		if(isset($permissions->access_semi_product_item)) $this->access_semi_product_item = $permissions->access_semi_product_item;
 		if(isset($permissions->access_semi_product_item_formula)) $this->access_semi_product_item_formula = $permissions->access_semi_product_item_formula;
 		if(isset($permissions->create_semi_product_item)) $this->create_semi_product_item = $permissions->create_semi_product_item;
 		if(isset($permissions->access_semi_product_category)) $this->access_semi_product_category = $permissions->access_semi_product_category;
+		
+		//Product Item
+		if(isset($permissions->access_product_item)) $this->access_product_item = $permissions->access_product_item;
+		if(isset($permissions->access_product_item_formula)) $this->access_product_item_formula = $permissions->access_product_item_formula;
+		if(isset($permissions->create_product_item)) $this->create_product_item = $permissions->create_product_item;
+		if(isset($permissions->access_product_category)) $this->access_product_category = $permissions->access_product_category;
 
 		//Expenses
 		if(isset($permissions->access_expenses)) $this->access_expenses = $permissions->access_expenses;

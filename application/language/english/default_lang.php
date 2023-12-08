@@ -2301,6 +2301,7 @@ $lang["mr_preview"] = "Preview MR";
 
 // Setting Access Rights for Account Management
 $lang["setting_account_management"] = "Setting access rights for Account management";
+$lang["setting_work_order"] = "Work order";
 $lang["setting_sale_order"] = "Sale order";
 $lang["setting_sale_order_access"] = "Can access sale orders";
 $lang["setting_quotation"] = "Quotation";

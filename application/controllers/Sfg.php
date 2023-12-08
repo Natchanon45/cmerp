@@ -9,6 +9,8 @@ class Sfg extends MY_Controller {
         parent::__construct();
         $this->load->model("Account_category_model");
         $this->load->model("Bom_item_pricings_model");
+
+        if ($this->Permission_m->access_semi_product_item == false) redirect(get_uri());
     }
 
     function barcode($barcode){
@@ -72,8 +74,8 @@ class Sfg extends MY_Controller {
     function detail(){
         $model_info = $this->Sfg_m->getRow($this->uri->segment(3));
 
-        if(empty($model_info)){
-            show_404();
+        if($model_info == null){
+            redirect(get_uri());
             return;
         }
 

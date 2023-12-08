@@ -13,6 +13,10 @@
                             array("class" => "btn btn-default", "title" => lang('add_category'), "data-post-type" => "FG")
                         );
                     }
+
+                    if ($this->Permission_m->create_product_item == true) {
+                        echo modal_anchor(get_uri("items/modal_form"), "<i class='fa fa-plus-circle'></i> " . lang('add_item'), array("class" => "btn btn-default", "title" => lang('add_item')));
+                    }
                 ?>
             </div>
         </div>

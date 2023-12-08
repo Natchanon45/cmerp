@@ -4,10 +4,20 @@
 <div id="page-content" class="clearfix">
     <ul id="client-tabs" data-toggle="ajax-tab" class="nav nav-tabs" role="tablist" style="background:#ffffff;">
         <li><a role="presentation" href="<?php echo_uri("sfg/detail_info/".$model_info->id); ?>" data-target="#sfg-info"><?php echo lang('item_details'); ?></a></li>
-        <li><a role="presentation" href="<?php echo_uri("sfg/detail_pricing/" . $model_info->id); ?>" data-target="#sfg-pricings"><?php echo lang('stock_item_pricings'); ?></a></li>
-        <li><a role="presentation" href="<?php echo_uri("sfg/detail_mixings/".$model_info->id); ?>" data-target="#sfg-mixing"><?php echo lang('item_mixings'); ?></a></li>
+        <?php if($this->Permission_m->bom_supplier_read == true): ?>
+            <li><a role="presentation" href="<?php echo_uri("sfg/detail_pricing/" . $model_info->id); ?>" data-target="#sfg-pricings"><?php echo lang('stock_item_pricings'); ?></a></li>
+        <?php endif; ?>
+
+        <?php if($this->Permission_m->access_semi_product_item_formula == true): ?>
+            <li><a role="presentation" href="<?php echo_uri("sfg/detail_mixings/".$model_info->id); ?>" data-target="#sfg-mixing"><?php echo lang('item_mixings'); ?></a></li>
+        <?php endif; ?>
+
         <li><a role="presentation" href="<?php echo_uri("sfg/detail_files/" . $model_info->id); ?>" data-target="#sfg-files"><?php echo lang('files'); ?></a></li>
-        <li><a role="presentation" href="<?php echo_uri("sfg/detail_item_remaining/" . $model_info->id); ?>" data-target="#sfg-remaining"><?php echo lang('stock_restock_list'); ?></a></li>
+
+        <?php if($this->Permission_m->bom_restock_read_self == true || $this->Permission_m->bom_restock_read == true): ?>
+            <li><a role="presentation" href="<?php echo_uri("sfg/detail_item_remaining/" . $model_info->id); ?>" data-target="#sfg-remaining"><?php echo lang('stock_restock_list'); ?></a></li>
+        <?php endif; ?>
+
         <li><a role="presentation" href="<?php echo_uri("sfg/detail_item_used/" . $model_info->id); ?>" data-target="#sfg-used"><?php echo lang('stock_restock_used_list'); ?></a></li>
     </ul>
     <div class="tab-content">

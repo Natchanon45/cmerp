@@ -24,19 +24,23 @@
 
 <script type="text/javascript">
   $(document).ready(function () {
-    $("#mixing-table").appTable({
-      source: '<?php echo current_url(); ?>',
-      columns: [
-        {title: "<?php echo lang("id") ?>", "class": "text-center w50"},
-        {title: '<?php echo lang("item_mixing_name"); ?>'},
-        //{title: '<?php echo lang("category_name"); ?>'},
-        {title: '<?php echo lang("item_mixing_ratio"); ?>', "class": "text-center w150"},
-        {title: '<?php echo lang("item_mixing_is_public"); ?>', "class": "text-center w100"},
-        {title: '<?php echo lang("item_mixing_for_client"); ?>', "class": "text-center w300"},
-        {title: '<i class="fa fa-bars"></i>', "class": "text-center option w100"}
-      ],
-      printColumns: combineCustomFieldsColumns([0, 1, 2, 3, 4]),
-      xlsColumns: combineCustomFieldsColumns([0, 1, 2, 3, 4])
-    });
+    <?php if($this->Permission_m->access_semi_product_item_formula == true): ?>
+      $("#mixing-table").appTable({
+        source: '<?php echo current_url(); ?>',
+        columns: [
+          {title: "<?php echo lang("id") ?>", "class": "text-center w50"},
+          {title: '<?php echo lang("item_mixing_name"); ?>'},
+          //{title: '<?php echo lang("category_name"); ?>'},
+          {title: '<?php echo lang("item_mixing_ratio"); ?>', "class": "text-center w150"},
+          {title: '<?php echo lang("item_mixing_is_public"); ?>', "class": "text-center w100"},
+          {title: '<?php echo lang("item_mixing_for_client"); ?>', "class": "text-center w300"},
+          {title: '<i class="fa fa-bars"></i>', "class": "text-center option w100"}
+        ],
+        printColumns: combineCustomFieldsColumns([0, 1, 2, 3, 4]),
+        xlsColumns: combineCustomFieldsColumns([0, 1, 2, 3, 4])
+      });
+    <?php else: ?>
+      location.href = "<?php echo get_uri(); ?>";
+    <?php endif; ?>
   });
 </script>
