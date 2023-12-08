@@ -17,6 +17,7 @@ class Items extends MY_Controller
 		$this->load->model("Account_category_model");
 		$this->className = "items";
 
+		if ($this->Permission_m->access_product_item == false) redirect(get_uri());
 	}
 
 	protected function validate_access_to_items()

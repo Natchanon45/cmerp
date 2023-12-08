@@ -2698,6 +2698,7 @@ $lang["mr_preview"] = "ตัวอย่างใบเบิก";
 
 // ตั้งค่าสิทธิ์การเข้าถึงการจัดการบัญชี
 $lang["setting_account_management"] = "ตั้งค่าสิทธิ์การเข้าถึงการจัดการบัญชี";
+$lang["setting_work_order"] = "ใบสั่งงาน";
 $lang["setting_sale_order"] = "ใบสั่งขาย";
 $lang["setting_sale_order_access"] = "สามารถเห็นใบสั่งขาย";
 $lang["setting_quotation"] = "ใบเสนอราคา";

@@ -64,6 +64,7 @@ $lang["account_so_in_stock"] = "In Stock";
 $lang["account_so_order_qty"] = "Order Qty";
 $lang["account_so_pr_qty"] = "PR Qty";
 $lang["account_so_pr_no"] = "PR No.";
+$lang["account_so_mr_used"] = "Order Qty";
 $lang["account_so_mr_qty"] = "MR Qty";
 $lang["account_so_mr_no"] = "MR No.";
 

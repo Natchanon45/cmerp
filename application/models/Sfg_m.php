@@ -9,13 +9,22 @@ class Sfg_m extends MY_Model {
     function getRow($docId){
         $db = $this->db;
 
-        $irow = $db->select("*")
+        $q = $db->select("*")
                     ->from("items")
                     ->where("id", $docId)
-                    ->where("item_type", $this->item_type)
-                    ->get()->row();
+                    ->where("item_type", $this->item_type);
+
         
+        if($this->Permission_m->access_semi_product_item == "own"){
+            $q->where("created_by", $this->login_user->id);
+        }
+
+        $irow = $q->get()->row();
+
+        if(empty($irow)) return null;
+
         return $irow;
+        
     }
 
     function deleteRow(){
@@ -144,6 +153,12 @@ class Sfg_m extends MY_Model {
             ->join("bom_item_stocks", "bom_item_stocks.item_id = items.id", "left")
             ->where("item_type", $this->item_type)
             ->where("items.deleted", 0);
+
+        if($this->login_user->is_admin != 1){
+            if($this->Permission_m->access_semi_product_item == "own"){
+                $db->where("created_by", $this->login_user->id);
+            }
+        }
 
         if($this->input->post("category_id") != null){
             $db->where("category_id", $this->input->post("category_id"));

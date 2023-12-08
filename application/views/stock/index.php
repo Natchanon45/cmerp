@@ -36,7 +36,7 @@
       </div>
     <?php }?>
 
-    <?php if($access_material){?>
+    <?php if($this->Permission_m->access_semi_product_item != false){?>
       <div class="grid xl-20 lg-30 md-1-3">
         <a class="box-card-01 box-shadow" href="<?php echo_uri('sfg'); ?>">
           <div class="icon">
@@ -47,7 +47,7 @@
       </div>
     <?php }?>
 
-    <?php if($access_restock){?>
+    <?php if($this->Permission_m->bom_restock_read != false || $this->Permission_m->bom_restock_read_self != false){?>
       <div class="grid xl-20 lg-30 md-1-3">
         <a class="box-card-01 box-shadow" href="<?php echo_uri('sfg/restock'); ?>">
           <div class="icon">
@@ -58,7 +58,7 @@
       </div>
     <?php }?>
 
-    <?php if($access_material){?>
+    <?php if($this->Permission_m->access_product_item != false){?>
       <div class="grid xl-20 lg-30 md-1-3">
         <a class="box-card-01 box-shadow" href="<?php echo_uri('stock/items'); ?>">
           <div class="icon">
@@ -69,7 +69,7 @@
       </div>
     <?php }?>
 
-    <?php if($access_restock){?>
+    <?php if($this->Permission_m->bom_restock_read != false || $this->Permission_m->bom_restock_read_self != false){?>
       <div class="grid xl-20 lg-30 md-1-3">
         <a class="box-card-01 box-shadow" href="<?php echo_uri('stock/restocks_item'); ?>">
           <div class="icon">

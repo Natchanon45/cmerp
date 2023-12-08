@@ -132,7 +132,7 @@
                         <td class="custom-bg product_name"><?php echo lang("account_so_product"); ?></td>
                         <td class="custom-bg unit"><?php echo lang("account_so_unit"); ?></td>
                         <td class="custom-bg instock"><?php echo lang("account_so_in_stock"); ?></td>
-                        <td class="custom-bg total_used"><?php echo lang("account_so_order_qty"); ?></td>
+                        <td class="custom-bg total_used"><?php echo lang("account_so_mr_used"); ?></td>
                         <td class="custom-bg total_submit"><?php echo lang("account_so_mr_qty"); ?></td>
                         <td class="custom-bg reference_number"><?php echo lang("account_so_mr_no"); ?></td>
                     </tr>

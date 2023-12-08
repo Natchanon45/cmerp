@@ -25,11 +25,13 @@
       </a>
     </li>
     
-    <li>
-      <a role="presentation" href="<?php echo_uri("stock/item_remainings/" . $item_info->id); ?>" data-target="#item-remaining">
-        <?php echo lang('stock_restock_list'); ?>
-      </a>
-    </li>
+    <?php if($this->Permission_m->bom_restock_read_self == true || $this->Permission_m->bom_restock_read == true): ?>
+      <li>
+        <a role="presentation" href="<?php echo_uri("stock/item_remainings/" . $item_info->id); ?>" data-target="#item-remaining">
+          <?php echo lang('stock_restock_list'); ?>
+        </a>
+      </li>
+    <?php endif; ?>
     
     <li>
       <a role="presentation" href="<?php echo_uri("stock/item_used/" . $item_info->id); ?>" data-target="#item-used">
