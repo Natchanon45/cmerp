@@ -57,7 +57,7 @@
 <script type="text/javascript">
     loadExpensesTable = function (selector, dateRange) {
         var customDatePicker = "", recurring = "0";
-        
+
         if (dateRange === "custom" || dateRange === "recurring") {
             customDatePicker = [
                 {
@@ -77,6 +77,8 @@
             source: '<?php echo_uri("expenses/list_data") ?>/' + recurring,
             dateRangeType: dateRange,
             filterDropdown: [
+                { name: "acct_category_id", class: "w200", options: <?php echo $account_category_dropdown; ?> },
+                { name: "acct_secondary_id", class: "w200", options: <?php echo $account_secondary_dropdown; ?> },
                 { name: "category_id", class: "w200", options: <?php echo $categories_dropdown; ?> },
                 { name: "user_id", class: "w200", options: <?php echo $members_dropdown; ?> },
                 <?php if ($projects_dropdown): ?>
@@ -92,8 +94,8 @@
                 { title: '<?php echo lang("description") ?>' },
                 { title: '<?php echo lang("account_sub_type") ?>' },
                 { title: '<?php echo lang("account_expense") ?>' },
-                { title: '<?php echo lang("amount") ?>', "class": "text-right" },
                 { title: '<?php echo lang("files") ?>' },
+                { title: '<?php echo lang("amount") ?>', "class": "text-right" },
                 { title: '<?php echo lang("total") ?>', "class": "text-right" },
                 { title: '<?php echo lang("currency") ?>', "class": "text-right" }
                 <?php echo $custom_field_headers; ?>,
@@ -102,8 +104,8 @@
             printColumns: [1, 2, 3, 4, 6, 7, 8],
             xlsColumns: [1, 2, 3, 4, 6, 7, 8],
             summation: [
-                { column: 5, dataType: 'number' },
-                { column: 7, dataType: 'number' }
+                { column: 7, dataType: 'number' },
+                { column: 8, dataType: 'number' }
             ]
         });
     };

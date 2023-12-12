@@ -237,7 +237,7 @@ class Payment_voucher extends MY_Controller
     {
         $view_data = [];
 
-        $view_data["supplier_dropdown"] = $this->Payment_voucher_m->dev2_getSupplieHavePurchaseOrderApproved();
+        $view_data["supplier_dropdown"] = $this->Payment_voucher_m->dev2_getSupplierList();
         $view_data["project_dropdown"] = $this->Payment_voucher_m->dev2_getProjectReferByProjectOpen();
         $view_data["account_secondary"] = $this->Account_category_model->dev2_getExpenseSecondaryList();
         $view_data["account_category"] = json_encode($this->Account_category_model->dev2_getExpenseCategoryList());

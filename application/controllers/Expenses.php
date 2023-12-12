@@ -22,11 +22,46 @@ class Expenses extends MY_Controller {
         $view_data["members_dropdown"] = $this->_get_team_members_dropdown();
         $view_data["projects_dropdown"] = $this->_get_projects_dropdown_for_income_and_epxenses("expenses");
         
+        $view_data["account_secondary_dropdown"] = $this->_get_account_secondary_dropdown();
+        $view_data["account_category_dropdown"] = $this->_get_account_category_dropdown();
+        
         $buttonTop[] = modal_anchor(get_uri("labels/modal_form"), "<i class='fa fa-tags'></i> " . lang('manage_labels'), array("class" => "btn btn-default mb0", "title" => lang('manage_labels'), "data-post-type" => $_SESSION['table_name'] ));
         $view_data["buttonTop"] = implode( '', $buttonTop );
         
         // var_dump(arr($view_data)); exit();
         $this->template->rander("expenses/index", $view_data);
+    }
+
+    private function _get_account_secondary_dropdown()
+    {
+        $account_secondary = $this->Account_category_model->dev2_getExpenseSecondaryList();
+        $secondary_dropdown = array(
+            array("id" => "", "text" => "- " . lang("account_expense") . " -")
+        );
+
+        if (sizeof($account_secondary)) {
+            foreach ($account_secondary as $secondary) {
+                $secondary_dropdown[] = array("id" => $secondary->id, "text" => $secondary->thai_name . " (" . $secondary->account_code . ")");
+            }
+        }
+
+        return json_encode($secondary_dropdown);
+    }
+
+    private function _get_account_category_dropdown()
+    {
+        $account_category = $this->Account_category_model->dev2_getExpenseCategoryList();
+        $categories_dropdown = array(
+            array("id" => "", "text" => "- " . lang("account_expense") . " -")
+        );
+
+        if (sizeof($account_category)) {
+            foreach ($account_category as $category) {
+                $categories_dropdown[] = array("id" => $category->id, "text" => $category->account_code . " - " . $category->thai_name);
+            }
+        }
+
+        return json_encode($categories_dropdown);
     }
 
     //get categories dropdown
@@ -171,6 +206,7 @@ class Expenses extends MY_Controller {
 
         $data = array(
             "expense_date" => $expense_date,
+            "account_secondary_id" => $this->input->post('expense_secondary'),
             "account_category_id" => $this->input->post('expense_category'),
             "category_id" => $this->input->post('category_id'),
             "description" => $this->input->post('description'),
@@ -400,8 +436,8 @@ class Expenses extends MY_Controller {
             $description,
             $sub_account,
             $expense_account,
-            to_decimal_format3($data->amount, 3),
             $files_link,
+            to_decimal_format3($data->amount, 3),
             to_decimal_format3($data->amount + $tax + $tax2, 3),
             !empty($data->currency) ? lang($data->currency) : lang("THB")
         );
@@ -662,10 +698,23 @@ class Expenses extends MY_Controller {
         $category_id = $this->input->post('category_id');
         $project_id = $this->input->post('project_id');
         $user_id = $this->input->post('user_id');
+        $account_secondary_id = $this->input->post('acct_secondary_id');
+        $account_category_id = $this->input->post('acct_category_id');
 
         $custom_fields = $this->Custom_fields_model->get_available_fields_for_table("expenses", $this->login_user->is_admin, $this->login_user->user_type);
 
-        $options = array("start_date" => $start_date, "end_date" => $end_date, "category_id" => $category_id, "project_id" => $project_id, "user_id" => $user_id, "custom_fields" => $custom_fields, "recurring" => $recurring);
+        $options = array(
+            "start_date" => $start_date,
+            "end_date" => $end_date,
+            "category_id" => $category_id,
+            "project_id" => $project_id,
+            "user_id" => $user_id,
+            "custom_fields" => $custom_fields,
+            "recurring" => $recurring,
+            "account_secondary_id" => $account_secondary_id,
+            "account_category_id" => $account_category_id
+        );
+
         $list_data = $this->Expenses_model->get_details( $options, $this->getRolePermission )->result();
 
         $result = array();

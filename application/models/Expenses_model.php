@@ -22,7 +22,7 @@ class Expenses_model extends Crud_model
         $where = "";
         $id = get_array_value($options, "id");
         if ($id) {
-            $where = " AND $expenses_table.id=$id";
+            $where = " AND $expenses_table.id = $id";
         }
 
         $start_date = get_array_value($options, "start_date");
@@ -33,27 +33,37 @@ class Expenses_model extends Crud_model
 
         $category_id = get_array_value($options, "category_id");
         if ($category_id) {
-            $where .= " AND $expenses_table.category_id=$category_id";
+            $where .= " AND $expenses_table.category_id = $category_id";
         }
 
         $project_id = get_array_value($options, "project_id");
         if ($project_id) {
-            $where .= " AND $expenses_table.project_id=$project_id";
+            $where .= " AND $expenses_table.project_id = $project_id";
         }
 
         $user_id = get_array_value($options, "user_id");
         if ($user_id) {
-            $where .= " AND $expenses_table.user_id=$user_id";
+            $where .= " AND $expenses_table.user_id = $user_id";
         }
 
         $client_id = get_array_value($options, "client_id");
         if ($client_id) {
-            $where .= " AND $expenses_table.client_id=$client_id";
+            $where .= " AND $expenses_table.client_id = $client_id";
+        }
+
+        $account_secondary_id = get_array_value($options, "account_secondary_id");
+        if ($account_secondary_id) {
+            $where .= " AND $expenses_table.account_secondary_id = $account_secondary_id";
+        }
+
+        $account_category_id = get_array_value($options, "account_category_id");
+        if ($account_category_id) {
+            $where .= " AND $expenses_table.account_category_id = $account_category_id";
         }
 
         $recurring = get_array_value($options, "recurring");
         if ($recurring) {
-            $where .= " AND $expenses_table.recurring=1";
+            $where .= " AND $expenses_table.recurring = 1";
         }
 
         // prepare custom fild binding query

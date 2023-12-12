@@ -957,6 +957,26 @@ class Payment_voucher_m extends MY_Model
         return $result;
     }
 
+    public function dev2_getSupplierList() : array
+    {
+        $result = array();
+
+        $query = $this->db->get("bom_suppliers")->result();
+        if (sizeof($query)) {
+            $supplier_dropdown = array();
+            foreach ($query as $item) {
+                $supplier_dropdown[] = array(
+                    "supplier_id" => $item->id,
+                    "supplier_name" => $item->company_name
+                );
+            }
+
+            $result = $supplier_dropdown;
+        }
+        
+        return $result;
+    }
+
     public function dev2_getSupplieHavePurchaseOrderApproved() : array
     {
         $result = array();
