@@ -2583,6 +2583,8 @@ $lang["gr_remark_placeholder"] = "ระบุหมายเหตุหรื�
 
 $lang["payment_voucher"] = "ใบสำคัญจ่าย (PV)";
 $lang["payment_voucher_add"] = "สร้างใบสำคัญจ่าย (PV)";
+$lang["payment_voucher_add_with_po"] = "สร้างแบบระบุ PO";
+$lang["payment_voucher_add_without_po"] = "สร้างแบบไม่ระบุ PO";
 $lang["payment_voucher_approve"] = "อนุมัติจ่าย";
 $lang["payment_voucher_print"] = "พิมพ์ใบสำคัญจ่าย";
 $lang["payment_voucher_edit"] = "แก้ไขใบสำคัญจ่าย (PV)";

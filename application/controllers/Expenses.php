@@ -18,13 +18,14 @@ class Expenses extends MY_Controller {
         $this->check_module_availability("module_expense");
 
         $view_data["custom_field_headers"] = $this->Custom_fields_model->get_custom_field_headers_for_table("expenses", $this->login_user->is_admin, $this->login_user->user_type);
-
-        $view_data['categories_dropdown'] = $this->_get_categories_dropdown();
-        $view_data['members_dropdown'] = $this->_get_team_members_dropdown();
+        $view_data["categories_dropdown"] = $this->_get_categories_dropdown();
+        $view_data["members_dropdown"] = $this->_get_team_members_dropdown();
         $view_data["projects_dropdown"] = $this->_get_projects_dropdown_for_income_and_epxenses("expenses");
-$buttonTop[] = modal_anchor(get_uri("labels/modal_form"), "<i class='fa fa-tags'></i> " . lang('manage_labels'), array("class" => "btn btn-default mb0", "title" => lang('manage_labels'), "data-post-type" => $_SESSION['table_name'] ));
-
-$view_data["buttonTop"] = implode( '', $buttonTop );
+        
+        $buttonTop[] = modal_anchor(get_uri("labels/modal_form"), "<i class='fa fa-tags'></i> " . lang('manage_labels'), array("class" => "btn btn-default mb0", "title" => lang('manage_labels'), "data-post-type" => $_SESSION['table_name'] ));
+        $view_data["buttonTop"] = implode( '', $buttonTop );
+        
+        // var_dump(arr($view_data)); exit();
         $this->template->rander("expenses/index", $view_data);
     }
 
@@ -298,6 +299,22 @@ $view_data["buttonTop"] = implode( '', $buttonTop );
             }
         }
 
+        // $data->account_category_id;
+        $sub_account = "-";
+        $expense_account = "-";
+
+        if ($data->account_category_id) {
+            $account_category_info = $this->Account_category_model->dev2_selectDataListByColumnIndex("account_category", "id", $data->account_category_id)[0];
+            if (!empty($account_category_info)) {
+                $expense_account = $account_category_info->account_code . " - " . $account_category_info->thai_name;
+
+                $account_sub_type_info = $this->Account_category_model->dev2_selectDataListByColumnIndex("account_secondary", "id", $account_category_info->secondary_id)[0];
+                if (!empty($account_sub_type_info)) {
+                    $sub_account = $account_sub_type_info->thai_name . " (" . $account_sub_type_info->account_code . ")";
+                }
+            }
+        }
+
         $description = $data->description;
         if ($data->linked_client_name) {
             if ($description) {
@@ -321,7 +338,7 @@ $view_data["buttonTop"] = implode( '', $buttonTop );
         }
 
         if ($data->recurring) {
-            //show recurring information
+            // show recurring information
             $recurring_stopped = false;
             $recurring_cycle_class = "";
             if ($data->no_of_cycles_completed > 0 && $data->no_of_cycles_completed == $data->no_of_cycles) {
@@ -330,7 +347,7 @@ $view_data["buttonTop"] = implode( '', $buttonTop );
             }
 
             $cycles = $data->no_of_cycles_completed . "/" . $data->no_of_cycles;
-            if (!$data->no_of_cycles) { //if not no of cycles, so it's infinity
+            if (!$data->no_of_cycles) { // if not no of cycles, so it's infinity
                 $cycles = $data->no_of_cycles_completed . "/&#8734;";
             }
 
@@ -375,19 +392,18 @@ $view_data["buttonTop"] = implode( '', $buttonTop );
         if ($data->tax_percentage2) {
             $tax2 = $data->amount * ($data->tax_percentage2 / 100);
         }
-
+        
         $row_data = array(
             $data->expense_date,
             modal_anchor(get_uri("expenses/expense_details"), format_to_date($data->expense_date, false), array("title" => lang("expense_details"), "data-post-id" => $data->id)),
-            $data->category_title."<br>".$labels,
             $data->title,
             $description,
+            $sub_account,
+            $expense_account,
+            to_decimal_format3($data->amount, 3),
             $files_link,
-            to_decimal_format3($data->amount),
-            to_decimal_format3($tax),
-            to_decimal_format3($tax2),
-            to_decimal_format3($data->amount + $tax + $tax2),
-            !empty($data->currency) ? lang($data->currency) : lang('THB')
+            to_decimal_format3($data->amount + $tax + $tax2, 3),
+            !empty($data->currency) ? lang($data->currency) : lang("THB")
         );
 
         foreach ($custom_fields as $field) {
@@ -395,8 +411,21 @@ $view_data["buttonTop"] = implode( '', $buttonTop );
             $row_data[] = $this->load->view("custom_fields/output_" . $field->field_type, array("value" => $data->$cf_id), true);
         }
 
-        $row_data[] = modal_anchor(get_uri("expenses/modal_form"), "<i class='fa fa-pencil'></i>", array("class" => "edit", "title" => lang('edit_expense'), "data-post-id" => $data->id))
-                . js_anchor("<i class='fa fa-times fa-fw'></i>", array('title' => lang('delete_expense'), "class" => "delete", "data-id" => $data->id, "data-action-url" => get_uri("expenses/delete"), "data-action" => "delete-confirmation"));
+        $row_data[] = modal_anchor(
+            get_uri("expenses/modal_form"),
+            "<i class='fa fa-pencil'></i>",
+            array("class" => "edit", "title" => lang("edit_expense"),
+            "data-post-id" => $data->id)
+        ) . js_anchor(
+            "<i class='fa fa-times fa-fw'></i>",
+            array(
+                "title" => lang("delete_expense"),
+                "class" => "delete",
+                "data-id" => $data->id,
+                "data-action-url" => get_uri("expenses/delete"),
+                "data-action" => "delete-confirmation"
+            )
+        );
 
         return $row_data;
     }
@@ -643,7 +672,8 @@ $view_data["buttonTop"] = implode( '', $buttonTop );
         foreach ($list_data as $data) {
             $result[] = $this->_make_row($data, $custom_fields);
         }
-        // var_dump(arr($result)); exit;
+
+        // var_dump(arr($list_data)); exit();
         echo json_encode(array("data" => $result));
     }
 

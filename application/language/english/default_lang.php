@@ -2184,6 +2184,8 @@ $lang["gr_delivery_refer_placeholder"] = "Delivery Note number that will be rece
 
 $lang["payment_voucher"] = "Payment Voucher";
 $lang["payment_voucher_add"] = "Create new PV";
+$lang["payment_voucher_add_with_po"] = "Create PV with PO";
+$lang["payment_voucher_add_without_po"] = "Create PV without PO";
 $lang["payment_voucher_approve"] = "Payment approve";
 $lang["payment_voucher_print"] = "Print (PV)";
 $lang["payment_voucher_edit"] = "Edit (PV)";

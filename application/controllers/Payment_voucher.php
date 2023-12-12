@@ -233,6 +233,24 @@ class Payment_voucher extends MY_Controller
         echo json_encode($result);
     }
 
+    function addnew_without_po()
+    {
+        $view_data = [];
+
+        $view_data["supplier_dropdown"] = $this->Payment_voucher_m->dev2_getSupplieHavePurchaseOrderApproved();
+        $view_data["project_dropdown"] = $this->Payment_voucher_m->dev2_getProjectReferByProjectOpen();
+        $view_data["account_secondary"] = $this->Account_category_model->dev2_getExpenseSecondaryList();
+        $view_data["account_category"] = json_encode($this->Account_category_model->dev2_getExpenseCategoryList());
+
+        $view_data["bom_supplier_read"] = false;
+        if (isset($this->Permission_m->bom_supplier_read) && $this->Permission_m->bom_supplier_read) {
+            $view_data["bom_supplier_read"] = true;
+        }
+        
+        var_dump(arr($view_data)); exit();
+        $this->load->view("payment_voucher/addnew", $view_data);
+    }
+
     function addnew()
     {
         $view_data = [];
