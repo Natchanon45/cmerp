@@ -431,11 +431,33 @@ class Tasks_model extends Crud_model {
     }
 
     function count_my_open_tasks($user_id) {
-        $tasks_table = $this->db->dbprefix('tasks');
-        $sql = "SELECT COUNT($tasks_table.id) AS total
-        FROM $tasks_table
-        WHERE $tasks_table.deleted=0  AND ($tasks_table.assigned_to=$user_id OR FIND_IN_SET('$user_id', $tasks_table.collaborators)) AND $tasks_table.status_id !=3";
-        return $this->db->query($sql)->row()->total;
+        $db = $this->db;
+
+        $q = $db->select("COUNT(tasks.id) AS TOTAL_TASKS")
+                ->from("projects")
+                ->join("tasks", "tasks.project_id = projects.id")
+                ->join("project_members", "project_members.project_id = tasks.project_id")
+                ->where("projects.deleted", 0)
+                ->where("tasks.deleted", 0)
+                ->where("project_members.deleted", 0)
+                ->where("projects.status", "open")
+                ->where_in("tasks.status_id", [1,2]);
+                
+        if($this->Permission_m->access_project == "assigned_only"){
+            $q->where("projects.created_by", $this->login_user->id);
+        }elseif($this->Permission_m->access_project == "specific"){
+            $q->where_in("(projects.project_type_id", explode(",", $this->Permission_m->access_project_specific));
+            $q->or_where("projects.project_type_id IS NULL)");
+        }
+
+        $q->where("project_members.user_id", $this->login_user->id);
+        $q->where_in("(tasks.collaborators", [$this->login_user->id]);
+        $q->or_where("tasks.assigned_to = '".$this->login_user->id."')");
+
+        $total_tasks = $q->get()->row()->TOTAL_TASKS;
+
+        if($total_tasks == null) return 0;
+        return $total_tasks;
     }
 
     function get_label_suggestions($project_id) {

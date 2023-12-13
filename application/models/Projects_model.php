@@ -34,9 +34,9 @@ class Projects_model extends Crud_model {
             }elseif($this->Permission_m->access_project == "specific"){
                 $where .= " AND (FIND_IN_SET($projects_table.project_type_id, '".$this->Permission_m->access_project_specific."') OR $projects_table.project_type_id IS NULL)";
 
-                $where .= " AND ($tasks_table.assigned_to=".$this->login_user->id." OR FIND_IN_SET('".$this->login_user->id."', $tasks_table.collaborators))";
+                /*$where .= " AND ($tasks_table.assigned_to=".$this->login_user->id." OR FIND_IN_SET('".$this->login_user->id."', $tasks_table.collaborators))";
 
-                $tasks_join = "LEFT JOIN $tasks_table ON $projects_table.id = $tasks_table.project_id";
+                $tasks_join = "LEFT JOIN $tasks_table ON $projects_table.id = $tasks_table.project_id";*/
             }
         }
 
