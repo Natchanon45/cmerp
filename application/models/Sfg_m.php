@@ -1263,7 +1263,7 @@ class Sfg_m extends MY_Model {
         }
 
         $display_item = '<span>
-            <span style="display: block;"><b>' . lang("stock_product_name") . '</b>: ' . anchor(get_uri('items/detail/' . $data->item_id), $item_name) . '</span>
+            <span style="display: block;"><b>' . lang("stock_product_name") . '</b>: ' . anchor(get_uri('sfg/detail/' . $data->item_id), $item_name) . '</span>
         </span>';
 
         $mixing_name = null;
