@@ -481,7 +481,8 @@ class Projects extends MY_Controller
 
         validate_submitted_data(
             array(
-                "title" => "required"
+                "title" => "required",
+                "project_type_id" => "required"
             )
         );
 

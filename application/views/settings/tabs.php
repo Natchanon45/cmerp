@@ -94,6 +94,7 @@ if (get_setting("module_lead") == "1") {
 }
 
 $settings_menu["setup"][] = array("name" => "projects", "url" => "settings/projects");
+$settings_menu["setup"][] = array("name" => "set_task_list", "url" => "settings/task_list");
 
 if (get_setting("module_project_timesheet") == "1") {
     $settings_menu["setup"][] = array("name" => "timesheets", "url" => "settings/timesheets");

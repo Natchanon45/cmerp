@@ -1622,6 +1622,7 @@ $lang["pusher"] = "Pusher";
 $lang["enable_chat_via_pusher"] = "Enable chat via pusher";
 
 $lang["tasks_list"] = "Tasks List";
+$lang["set_task_list"] = "Task List";
 $lang["tasks_kanban"] = "Tasks Kanban";
 $lang["set_project_tab_order"] = "Set project tab order";
 $lang["project_tab_order"] = "Project tab order";
