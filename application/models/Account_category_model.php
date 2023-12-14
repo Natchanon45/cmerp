@@ -191,4 +191,84 @@ class Account_category_model extends Crud_model
         return $data;
     }
 
+    public function dev2_getIncomeSecondaryList() : array
+    {
+        $data = [];
+        $query = $this->db->get_where("account_secondary", ["primary_id" => 4])->result();
+
+        if (sizeof($query)) {
+            $data = $query;
+        }
+        return $data;
+    }
+
+    public function dev2_getIncomeCategoryList() : array
+    {
+        $data = [];
+        $query = $this->db->get_where("account_category", ["primary_id" => 4])->result();
+
+        if (sizeof($query)) {
+            $data = $query;
+        }
+        return $data;
+    }
+
+    public function dev2_getAccountServiceById(int $id) : stdClass
+    {
+        $data = new stdClass();
+        $query = $this->db->get_where("services", ["id" => $id])->row();
+
+        if (!empty($query)) {
+            $query->expense_acct_cate_name = $this->dev2_getCategoryTextById($query->expense_acct_cate_id);
+            $query->income_acct_cate_name = $this->dev2_getCategoryTextById($query->income_acct_cate_id);
+
+            $data = $query;
+        }
+        return $data;
+    }
+
+    public function dev2_getAccountServicesList() : array
+    {
+        $data = [];
+        $query = $this->db->get("services")->result();
+        
+        if (sizeof($query)) {
+            $data = $query;
+        }
+        return $data;
+    }
+
+    public function dev2_postAccountService(array $data, int $id = 0) : int
+    {
+        $insert_id = 0;
+
+        if (!empty($id) && $id != 0) {
+            // Update existing item
+            $this->db->where("id", $id);
+            $this->db->update("services", $data);
+            $insert_id = $id;
+        } else {
+            // Insert new item
+            $this->db->insert("services", $data);
+            $insert_id = $this->db->insert_id();
+        }
+        return $insert_id;
+    }
+
+    private function dev2_getCategoryTextById(int $id, string $lang = "TH") : string
+    {
+        $text = "-";
+        $query = $this->db->get_where("account_category", ["id" => $id])->row();
+
+        if (!empty($query)) {
+            $text = $query->account_code . " - ";
+            if ($lang == "EN") {
+                $text .= $query->english_name;
+            } else {
+                $text .= $query->thai_name;
+            }
+        }
+        return $text;
+    }
+
 }

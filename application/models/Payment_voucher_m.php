@@ -1525,4 +1525,37 @@ class Payment_voucher_m extends MY_Model
         return $id;
     }
 
+    public function dev2_getRawMaterialMasterDataList() : array
+    {
+        $list = array();
+        $query = $this->db->get("bom_materials")->result();
+        if (sizeof($query)) {
+            $list = $query;
+        }
+
+        return $list;
+    }
+
+    public function dev2_getFinishedGoodsMasterDataList() : array
+    {
+        $list = array();
+        $query = $this->db->get_where("items", array("item_type" => "FG", "deleted" => 0))->result();
+        if (sizeof($query)) {
+            $list = $query;
+        }
+
+        return $list;
+    }
+
+    public function dev2_getSemiFinishedGoodsMasterDataList() : array
+    {
+        $list = array();
+        $query = $this->db->get_where("items", array("item_type" => "SFG", "deleted" => 0))->result();
+        if (sizeof($query)) {
+            $list = $query;
+        }
+
+        return $list;
+    }
+
 }

@@ -36,7 +36,7 @@ class Expenses extends MY_Controller {
     {
         $account_secondary = $this->Account_category_model->dev2_getExpenseSecondaryList();
         $secondary_dropdown = array(
-            array("id" => "", "text" => "- " . lang("account_expense") . " -")
+            array("id" => "", "text" => "- " . lang("account_sub_type") . " -")
         );
 
         if (sizeof($account_secondary)) {

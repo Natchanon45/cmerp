@@ -233,7 +233,7 @@ class Payment_voucher extends MY_Controller
         echo json_encode($result);
     }
 
-    function addnew_without_po()
+    function addnew_no_po()
     {
         $view_data = [];
 
@@ -242,13 +242,18 @@ class Payment_voucher extends MY_Controller
         $view_data["account_secondary"] = $this->Account_category_model->dev2_getExpenseSecondaryList();
         $view_data["account_category"] = json_encode($this->Account_category_model->dev2_getExpenseCategoryList());
 
+        // Get rm, fg, sfg list
+        $view_data["rm_dropdown"] = $this->get_rm_dropdown();
+        $view_data["fg_dropdown"] = $this->get_fg_dropdown();
+        $view_data["sfg_dropdown"] = $this->get_sfg_dropdown();
+
         $view_data["bom_supplier_read"] = false;
         if (isset($this->Permission_m->bom_supplier_read) && $this->Permission_m->bom_supplier_read) {
             $view_data["bom_supplier_read"] = true;
         }
         
-        var_dump(arr($view_data)); exit();
-        $this->load->view("payment_voucher/addnew", $view_data);
+        // var_dump(arr($view_data)); exit();
+        $this->load->view("payment_voucher/addnew_no_po", $view_data);
     }
 
     function addnew()
@@ -489,6 +494,57 @@ class Payment_voucher extends MY_Controller
         }
 
         echo json_encode($result);
+    }
+
+    private function get_rm_dropdown()
+    {
+        $dropdown = array();
+        $lists = $this->Payment_voucher_m->dev2_getRawMaterialMasterDataList();
+
+        if (sizeof($lists)) {
+            foreach ($lists as $list) {
+                $dropdown[] = array(
+                    "id" => $list->id,
+                    "text" => $list->name . " - " . $list->production_name
+                );
+            }
+        }
+
+        return json_encode($dropdown);
+    }
+
+    private function get_fg_dropdown()
+    {
+        $dropdown = array();
+        $lists = $this->Payment_voucher_m->dev2_getFinishedGoodsMasterDataList();
+
+        if (sizeof($lists)) {
+            foreach ($lists as $list) {
+                $dropdown[] = array(
+                    "id" => $list->id,
+                    "text" => $list->title
+                );
+            }
+        }
+
+        return json_encode($dropdown);
+    }
+
+    private function get_sfg_dropdown()
+    {
+        $dropdown = array();
+        $lists = $this->Payment_voucher_m->dev2_getSemiFinishedGoodsMasterDataList();
+
+        if (sizeof($lists)) {
+            foreach ($lists as $list) {
+                $dropdown[] = array(
+                    "id" => $list->id,
+                    "text" => $list->title
+                );
+            }
+        }
+
+        return json_encode($dropdown);
     }
 
     private function DateCaseConvert(string $dateInput): string
