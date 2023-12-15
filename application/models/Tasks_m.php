@@ -4,23 +4,31 @@ class Tasks_m extends MY_Model {
         parent::__construct();
     }
 
-    function getMasterIndexHTML($rows = null){
+    function getMasterIndexHTML($row = null, $rows = null){
         $html = [];
 
-        if($rows == null) return $html;
+        if($row != null){
+            return [
+                        $row->title,
+                        $row->assigned_to,
+                        $row->collaborators,
+                        $edit_button." ".$delete_button
+                    ]; 
+        }elseif($rows != null){
+            if(!empty($rows)){
+                foreach($rows as $row){
+                    $edit_button = "<a href='settings/task_list_manage' class='edit' data-post-id=''><i class='fa fa-pencil'></i></a>";
+                    $delete_button = "<a href='project_types/modal_form' class='delete' data-id='' data-action-url='".get_uri("project_types/delete")."' data-action='delete'><i class='fa fa-times fa-fw'></i></a>";
 
-        foreach($rows as $row){
-            $edit_button = "<a href='settings/task_list_manage' class='edit' data-post-id=''><i class='fa fa-pencil'></i></a>";
-            $delete_button = "<a href='project_types/modal_form' class='delete' data-id='' data-action-url='".get_uri("project_types/delete")."' data-action='delete'><i class='fa fa-times fa-fw'></i></a>";
-
-            $html[] = [
-                    $row->title,
-                    $row->assigned_to,
-                    $row->collaborators,
-                    $edit_button." ".$delete_button
-                ];    
+                    $html[] = [
+                            $row->title,
+                            $row->assigned_to,
+                            $row->collaborators,
+                            $edit_button." ".$delete_button
+                        ];    
+                }    
+            }
         }
-
 
         return $html;
     }
@@ -35,25 +43,16 @@ class Tasks_m extends MY_Model {
         return $rows;
     }
 
-    function getMasterRow($docId){
+    function getMasterRow($row_id){
         $db = $this->db;
 
-        $q = $db->select("*")
-                    ->from("items")
-                    ->where("id", $docId)
-                    ->where("item_type", $this->item_type);
+        $row = $db->select("*")
+                    ->from("project_tasks")
+                    ->where("id", $row_id)
+                    ->get()->row();
 
-        
-        if($this->Permission_m->access_semi_product_item == "own"){
-            $q->where("created_by", $this->login_user->id);
-        }
-
-        $irow = $q->get()->row();
-
-        if(empty($irow)) return null;
-
-        return $irow;
-        
+        if(empty($row)) return null;
+        return $row;        
     }
 
     function saveMasterRow(){
@@ -64,7 +63,7 @@ class Tasks_m extends MY_Model {
         $assigned_to = $this->input->post("assigned_to");
         $collaborators = $this->input->post("collaborators");
 
-        log_message("error", "Hello");
+        log_message("error", json_encode($collaborators));
         return;
         //return json_encode(array("success" => true, "data" => $this->_row_data($save_id), 'id' => $save_id, 'message' => lang('record_saved')));
 
@@ -77,9 +76,26 @@ class Tasks_m extends MY_Model {
                                             "collaborators"=>$collaborators
                                         ]);
         }else{
-            $db->insert("project_types", ["title"=>$title]);
+            $db->insert("project_tasks", [
+                                            "title"=>$title,
+                                            "description"=>$description,
+                                            "assigned_to"=>$assigned_to,
+                                            "collaborators"=>$collaborators
+                                        ]);
+
             $id = $this->db->insert_id();
         }
+
+        $trow = $this->getMasterRow($id);
+        if($trow == null) return ["success"=>false, "message"=>lang('error_occurred')];
+
+        return [
+                    "success"=>true,
+
+                ];
+
+        
+        echo json_encode(array("success" => true, "data" => $this->_row_data($save_id), 'id' => $save_id, 'message' => lang('record_saved')));
 
         return $id;
 
