@@ -227,14 +227,28 @@ class Account_category_model extends Crud_model
         return $data;
     }
 
-    public function dev2_getAccountServicesList() : array
+    public function dev2_getAccountServicesList($options) : array
     {
-        $data = [];
-        $query = $this->db->get("services")->result();
-        
+        $data = array();
+
+        $this->db->select("*");
+        $this->db->from("services");
+
+        // where income account category
+        if (isset($options["income_acct_cate_id"]) && !empty($options["income_acct_cate_id"])) {
+            $this->db->where("income_acct_cate_id", $options["income_acct_cate_id"]);
+        }
+
+        // where expense account category
+        if (isset($options["expense_acct_cate_id"]) && !empty($options["expense_acct_cate_id"])) {
+            $this->db->where("expense_acct_cate_id", $options["expense_acct_cate_id"]);
+        }
+
+        $query = $this->db->get()->result();
         if (sizeof($query)) {
             $data = $query;
         }
+        
         return $data;
     }
 
@@ -269,6 +283,50 @@ class Account_category_model extends Crud_model
             }
         }
         return $text;
+    }
+
+    public function get_expense_dropdown()
+    {
+        $this->db->select("*");
+        $this->db->from("account_category");
+        $this->db->where("primary_id", 5);
+
+        $result = $this->db->get()->result();
+        $data[] = array(
+            "id" => "",
+            "text" => "-- " . lang("expense_account_category") . " --"
+        );
+
+        foreach ($result as $item) {
+            $data[] = array(
+                "id" => $item->id,
+                "text" => $item->thai_name . " (" . $item->account_code . ")"
+            );
+        }
+
+        return $data;
+    }
+
+    public function get_income_dropdown()
+    {
+        $this->db->select("*");
+        $this->db->from("account_category");
+        $this->db->where("primary_id", 4);
+
+        $result = $this->db->get()->result();
+        $data[] = array(
+            "id" => "",
+            "text" => "-- " . lang("income_account_category") . " --"
+        );
+
+        foreach ($result as $item) {
+            $data[] = array(
+                "id" => $item->id,
+                "text" => $item->thai_name . " (" . $item->account_code . ")"
+            );
+        }
+
+        return $data;
     }
 
 }

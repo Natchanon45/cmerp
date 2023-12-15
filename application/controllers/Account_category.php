@@ -145,10 +145,13 @@ class Account_category extends MY_Controller
     }
 
     // Service/Wage
-    public function sevices()
+    public function services()
     {
         $view_data["primary_dropdown"] = json_encode($this->Account_category_model->get_primary_dropdown());
         $view_data["secondary_dropdown"] = json_encode($this->Account_category_model->get_secondary_dropdown());
+
+        $view_data["expense_dropdown"] = json_encode($this->Account_category_model->get_expense_dropdown());
+        $view_data["income_dropdown"] = json_encode($this->Account_category_model->get_income_dropdown());
 
         // var_dump(arr($view_data)); exit();
         $this->template->rander("account_category/services", $view_data);
@@ -195,9 +198,19 @@ class Account_category extends MY_Controller
 
     public function display_services_list()
     {
-        $data = [];
+        $options = array();
+        $post = $this->input->post();
 
-        $list = $this->Account_category_model->dev2_getAccountServicesList();
+        if (!empty($post["income_acct_cate_id"])) {
+            $options["income_acct_cate_id"] = $post["income_acct_cate_id"];
+        }
+
+        if (!empty($post["expense_acct_cate_id"])) {
+            $options["expense_acct_cate_id"] = $post["expense_acct_cate_id"];
+        }
+
+        $data = array();
+        $list = $this->Account_category_model->dev2_getAccountServicesList($options);
         if (sizeof($list)) {
             foreach ($list as $li) {
                 $data[] = $this->prepare_services_display($li);

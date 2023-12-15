@@ -40,8 +40,8 @@
         $("#services-table").appTable({
             source: '<?php echo_uri("account_category/display_services_list"); ?>',
             filterDropdown: [
-                { name: 'secondary_id', class: 'w200', options: JSON.parse('<?php echo $secondary_dropdown; ?>') },
-                { name: 'primary_id', class: 'w200', options: JSON.parse('<?php echo $primary_dropdown; ?>') }
+                { name: 'income_acct_cate_id', class: 'w250', options: JSON.parse('<?php echo $income_dropdown; ?>') },
+                { name: 'expense_acct_cate_id', class: 'w250', options: JSON.parse('<?php echo $expense_dropdown; ?>') }
             ],
             columns: [
                 { title: '<?php echo lang("id"); ?>', class: 'w50 text-center' },

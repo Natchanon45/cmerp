@@ -174,7 +174,7 @@
         
         $("#services-form").appForm({
             onSuccess: function (result) {
-                console.log(result);
+                // console.log(result);
 
                 if (result.id != 0) {
                     $("#services-table").appTable(

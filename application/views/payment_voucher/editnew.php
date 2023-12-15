@@ -86,46 +86,46 @@ echo form_open(
         </div>
     </div>
 
-    <div class="form-group">
+    <!-- <div class="form-group">
         <label for="account_secondary" class="col-md-3">
-            <?php echo lang("account_sub_type"); ?>
+            <?php // echo lang("account_sub_type"); ?>
         </label>
         <div class="col-md-9">
-            <select id="account_secondary" name="account_secondary" class="form-control <?php if ($header_data->status == "A") { echo "pointer-none"; } ?>" required>
-                <option value=""><?php echo "-- " . lang("account_sub_type_select") . " --"; ?></option>
-                <?php if (!empty($account_secondary)): ?>
-                    <?php if (isset($account_secondary_info->id) && !empty($account_secondary_info->id)): ?>
-                        <?php foreach ($account_secondary as $secondary): ?>
-                            <option value="<?php echo $secondary->id; ?>" <?php if ($account_secondary_info->id == $secondary->id) { echo "selected"; } ?>>
-                                <?php echo $secondary->thai_name . " (" . $secondary->account_code . ")"; ?>
+            <select id="account_secondary" name="account_secondary" class="form-control <?php // if ($header_data->status == "A") { echo "pointer-none"; } ?>" required>
+                <option value=""><?php // echo "-- " . lang("account_sub_type_select") . " --"; ?></option>
+                <?php // if (!empty($account_secondary)): ?>
+                    <?php // if (isset($account_secondary_info->id) && !empty($account_secondary_info->id)): ?>
+                        <?php // foreach ($account_secondary as $secondary): ?>
+                            <option value="<?php // echo $secondary->id; ?>" <?php // if ($account_secondary_info->id == $secondary->id) { echo "selected"; } ?>>
+                                <?php // echo $secondary->thai_name . " (" . $secondary->account_code . ")"; ?>
                             </option>
-                        <?php endforeach; ?>
-                    <?php else: ?>
-                        <?php foreach ($account_secondary as $secondary): ?>
-                            <option value="<?php echo $secondary->id; ?>">
-                                <?php echo $secondary->thai_name . " (" . $secondary->account_code . ")"; ?>
+                        <?php // endforeach; ?>
+                    <?php // else: ?>
+                        <?php // foreach ($account_secondary as $secondary): ?>
+                            <option value="<?php // echo $secondary->id; ?>">
+                                <?php // echo $secondary->thai_name . " (" . $secondary->account_code . ")"; ?>
                             </option>
-                        <?php endforeach; ?>
-                    <?php endif; ?>
-                <?php endif; ?>
+                        <?php // endforeach; ?>
+                    <?php // endif; ?>
+                <?php // endif; ?>
             </select>
         </div>
-    </div>
+    </div> -->
 
-    <div class="form-group">
+    <!-- <div class="form-group">
         <label for="account_category" class="col-md-3">
-            <?php echo lang("account_expense"); ?>
+            <?php // echo lang("account_expense"); ?>
         </label>
         <div class="col-md-9">
-            <select name="account_category" id="account_category" class="form-control pointer-none-appearance <?php if ($header_data->status == "A") { echo "pointer-none"; } ?>" required>
-                <?php if (isset($account_category_info->id) && !empty($account_category_info->id)): ?>
-                    <option value="<?php echo $account_category_info->id; ?>"><?php echo $account_category_info->account_code . ' - ' . $account_category_info->thai_name; ?></option>
-                <?php else: ?>
-                    <option value=""><?php echo "-- " . lang("account_expense_select") . " --"; ?></option>
-                <?php endif; ?>
+            <select name="account_category" id="account_category" class="form-control pointer-none-appearance <?php // if ($header_data->status == "A") { echo "pointer-none"; } ?>" required>
+                <?php // if (isset($account_category_info->id) && !empty($account_category_info->id)): ?>
+                    <option value="<?php // echo $account_category_info->id; ?>"><?php // echo $account_category_info->account_code . ' - ' . $account_category_info->thai_name; ?></option>
+                <?php // else: ?>
+                    <option value=""><?php // echo "-- " . lang("account_expense_select") . " --"; ?></option>
+                <?php // endif; ?>
             </select>
         </div>
-    </div>
+    </div> -->
 
     <div class="form-group">
         <label for="internal_reference" class="col-md-3">
@@ -539,26 +539,26 @@ echo form_open(
             }
         });
 
-        $("#account_secondary").select2();
-        $("#account_secondary").on("change", function (e) {
-            e.preventDefault();
+        // $("#account_secondary").select2();
+        // $("#account_secondary").on("change", function (e) {
+        //     e.preventDefault();
 
-            let self = $(this);
-            let categoryOption = categoryList.filter(i => i.secondary_id == self.val());
-            let categorySelect = $("#account_category");
+        //     let self = $(this);
+        //     let categoryOption = categoryList.filter(i => i.secondary_id == self.val());
+        //     let categorySelect = $("#account_category");
 
-            if (categoryOption.length) {
-                categorySelect.val('');
-                categorySelect.find('option').remove();
-                categorySelect.append(`<option value="">${categoryTopSelect}</option>`);
+        //     if (categoryOption.length) {
+        //         categorySelect.val('');
+        //         categorySelect.find('option').remove();
+        //         categorySelect.append(`<option value="">${categoryTopSelect}</option>`);
 
-                categoryOption.map((i) => {
-                    categorySelect.append(`<option value="${i.id}" data-code="${i.account_code}">${i.account_code} - ${i.thai_name}</option>`);
-                });
+        //         categoryOption.map((i) => {
+        //             categorySelect.append(`<option value="${i.id}" data-code="${i.account_code}">${i.account_code} - ${i.thai_name}</option>`);
+        //         });
 
-                categorySelect.removeClass('pointer-none-appearance');
-                categorySelect.select2();
-            }
-        });
+        //         categorySelect.removeClass('pointer-none-appearance');
+        //         categorySelect.select2();
+        //     }
+        // });
     });
 </script>

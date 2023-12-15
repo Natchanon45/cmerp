@@ -321,8 +321,6 @@ class Payment_voucher extends MY_Controller
         validate_submitted_data(
             array(
                 "doc-date" => "required",
-                "account_secondary" => "required",
-                "account_category" => "required",
                 "supplier-id" => "required"
             )
         );
@@ -388,8 +386,6 @@ class Payment_voucher extends MY_Controller
         validate_submitted_data(
             array(
                 "doc-date" => "required",
-                "account_secondary" => "required",
-                "account_category" => "required",
                 "supplier-id" => "required"
             )
         );

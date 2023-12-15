@@ -1,3 +1,5 @@
+<?php // var_dump(arr($doc)); exit(); ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -515,6 +517,15 @@
 										<img src="<?php echo str_replace("./", "/", $requester_sign); ?>">
 									<?php endif; ?>
 								</span>
+								<?php
+									$issuer_name = "( " . str_repeat("_", 18) . " )";
+									if ($doc["created_by"]["last_name"] == "") {
+										$issuer_name = "( " . $doc["created_by"]["first_name"] . " )";
+									} else {
+										$issuer_name = "( " . $doc["created_by"]["first_name"] . " " . $doc["created_by"]["last_name"] . " )";
+									}
+								?>
+								<span class="l2"><?php echo $issuer_name; ?></span>
 								<span class="l2">
 									<?php echo lang("issuer_of_document"); ?>
 								</span>
@@ -549,6 +560,17 @@
 										<img src="<?php echo str_replace("./", "/", $signature); ?>">
 									<?php endif; ?>
 								</span>
+								<?php
+									$approver_name = "( " . str_repeat("_", 18) . " )";
+									if ($doc["doc_status"] == "A") {
+										if ($doc["approved_by"]["last_name"] == "") {
+											$approver_name = "( " . $doc["approved_by"]["first_name"] . " )";
+										} else {
+											$approver_name = "( " . $doc["approved_by"]["first_name"] . " " . $doc["approved_by"]["last_name"] . " )";
+										}
+									}
+								?>
+								<span class="l2"><?php echo $approver_name; ?></span>
 								<span class="l2">
 									<?php echo lang("approver"); ?>
 								</span>

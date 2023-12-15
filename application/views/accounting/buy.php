@@ -288,11 +288,13 @@
                 $(".buttons li.add1 a").attr('data-title', '<?php echo lang("payment_voucher_add"); ?>');
                 $(".buttons li.add1 span").append('<?php echo lang("payment_voucher_add_with_po"); ?>');
 
-                $(".buttons li.add2").removeClass('hide');
-                $(".buttons li.add2 a").attr('data-action-url', '<?php echo get_uri("payment_voucher/addnew_no_po"); ?>');
-                $(".buttons li.add2 a").attr('data-title', '<?php echo lang("payment_voucher_add"); ?>');
-                $(".buttons li.add2 span").append('<?php echo lang("payment_voucher_add_without_po"); ?>');
+                // $(".buttons li.add2").removeClass('hide');
+                // $(".buttons li.add2 a").attr('data-action-url', '<?php // echo get_uri("payment_voucher/addnew_no_po"); ?>');
+                // $(".buttons li.add2 a").attr('data-title', '<?php // echo lang("payment_voucher_add"); ?>');
+                // $(".buttons li.add2 span").append('<?php // echo lang("payment_voucher_add_without_po"); ?>');
             <?php endif; ?>
+
+            $(".buttons li.add2").addClass('hide');
 
             status_dropdown = '<?php echo $pv_status_dropdown; ?>';
             supplier_dropdown = '<?php echo $supplier_dropdown; ?>';
