@@ -8,10 +8,9 @@
     overflow-y: scroll;
 }
 </style>
-<?php echo form_open(current_url(), array("id" => "mainform", "class" => "general-form", "role" => "form")); ?>
-    <input type="hidden" name="task" value="save">
+<?php echo form_open(get_uri("settings/task_list_manage/save"), array("id" => "mainform", "class" => "general-form", "role" => "form")); ?>
     <?php if(isset($row)): ?>
-        <input type="hidden" name="id" value="<?php echo $prow->id; ?>" />
+        <input type="hidden" name="id" value="<?php echo $row->id; ?>" />
     <?php endif; ?>
     <div class="modal-body clearfix">
         <div class="form-group">
@@ -28,7 +27,19 @@
         <div class="form-group">
             <label for="assigned_to" class="col-md-3"><?php echo lang('assign_to'); ?></label>
             <div class="col-md-9">
-                <input type="text" id="assigned_to" name="assigned_to" class="form-control" value="<?php echo isset($row)?$row->assigned_to:''?>">
+                <!--<input type="text" id="assigned_to" name="assigned_to" class="form-control" value="<?php //echo isset($row)?$row->assigned_to:''?>">-->
+                <select id="assigned_to" name="assigned_to" class="select2 validate-hidden" data-msg-required="<?php echo lang('field_required'); ?>" data-rule-required='true'>
+                    <!--<option value="">- เลือกประเภทโปรเจค -</option>-->
+                    <?php 
+                        if(!empty($dropdown_assigned_to)){
+                            foreach($dropdown_assigned_to as $dat){
+                                $is_selected = "";
+                                if(isset($row)) if($dat["id"] == $row->id) $is_selected = "selected";
+                                echo sprintf("<option value='%s' %s>%s</option>", $dat["id"], $is_selected, $dat["text"]);
+                            }
+                        }
+                    ?>
+                </select>
             </div>
         </div>
 
@@ -50,15 +61,12 @@
     $(document).ready(function() {
         $("#mainform").appForm({
             onSuccess: function(result) {
-                $("#project-type-table").appTable({newData: result.data, dataId: result.id});
+                $("#task_list").appTable({newData: result.data, dataId: result.id});
             }
         });
-        
-
-        //$('#assigned_to').select2({data: <?php //echo json_encode($assign_to_dropdown); ?>});
 
         $("#collaborators").select2({multiple: true, data: <?php echo json_encode($dropdown_collaborators); ?>});
-        $("#assigned_to").select2({data: <?php echo json_encode($dropdown_assigned_to); ?>});
+        $("#assigned_to").select2();
 
        
     });

@@ -1,3 +1,15 @@
+<style type="text/css">
+#s2id_task_list, #s2id_task_list .select2-choices{
+    min-height: 80px !important;
+    height: 80px !important;word-wrap: break-word;
+}
+
+#s2id_task_list .select2-choices{
+    overflow-y: scroll;
+}
+
+
+</style>
 <div class="general-form modal-body clearfix">
     <div class="form-group">
         <label for="doc_date" class=" col-md-3"><?php echo lang('account_issue_date'); ?></label>
@@ -24,6 +36,27 @@
     <div class="form-group objective project">
         <label for="project_title" class=" col-md-3"><?php echo lang('title'); ?></label>
         <div class="col-md-9"><input type="text" id="project_title" value="<?php echo $project_title; ?>" placeholder="<?php echo lang('title'); ?>" class="form-control" <?php if($doc_status != "W" && isset($doc_id)) echo "disabled";?>></div>
+    </div>
+
+    <div class="form-group objective project">
+        <label for="type" class=" col-md-3">ประเภทโปรเจค</label>
+        <div class=" col-md-9">
+            <select id="project_type_id" name="project_type_id" class="select2 validate-hidden" data-msg-required="<?php echo lang('field_required'); ?>" data-rule-required='true'>
+                <option value="">- เลือกประเภทโปรเจค -</option>
+                <?php if(!empty($dropdown_project_types)): ?>
+                    <?php foreach($dropdown_project_types as $project_type): ?>
+                        <option value="<?php echo $project_type->id; ?>" <?php if($project_type->id == $project_type_id) echo "selected"; ?>><?php echo $project_type->title; ?></option>
+                    <?php endforeach; ?>
+                <?php endif; ?>
+            </select>
+        </div>
+    </div>
+
+    <div class="form-group objective project">
+        <label for="type" class=" col-md-3">รายการงาน</label>
+        <div class="col-md-9">
+            <input type="text" id="task_list" name="task_list" value="" class="form-control">
+        </div>
     </div>
 
     <div class="form-group">
@@ -99,6 +132,11 @@ $(document).ready(function() {
     setPopupSize($("#purpose").val());
 
     <?php if($doc_status == "W" || !isset($doc_id)): ?>
+        $("#project_type_id").select2();
+        $("#task_list").select2({
+            multiple: true,
+            data: <?php echo json_encode($dropdown_task_list); ?>
+        });
         
         $("#client_id").select2().on("change", function (e) {
             $("#lead_id").select2("val", "");
@@ -113,6 +151,8 @@ $(document).ready(function() {
         });
 
         $("#btnSubmit").click(function() {
+            alert($("#project_type_id").val());
+            return;
             data = {
                 task: 'save_doc',
                 doc_id : "<?php if(isset($doc_id)) echo $doc_id; ?>",

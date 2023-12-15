@@ -10,7 +10,7 @@
                     </div>
                 </div>
                 <div class="table-responsive">
-                    <table id="leave-type-table" class="display" cellspacing="0" width="100%">            
+                    <table id="task_list" class="display" cellspacing="0" width="100%">            
                     </table>
                 </div>
             </div>
@@ -19,15 +19,15 @@
 </div>
 <script type="text/javascript">
     $(document).ready(function () {
-        $("#leave-type-table").appTable({
+        $("#task_list").appTable({
             source: '<?php echo current_url(); ?>',
             columns: [
-                {title: 'ชื่องาน'},
-                {title: 'ผู้ได้รับมอบหมาย'},
-                {title: 'ผู้ร่วมงาน'},
-                {title: '<i class="fa fa-bars"></i>', "class": "text-center option w100"}
-            ],
-            printColumns: [0, 1, 2]
+                {title: 'ชื่องาน', "class":"w30p"},
+                {title: 'ผู้ได้รับมอบหมาย', "class":"w25p"},
+                {title: 'ผู้ร่วมงาน', "class":"w30p"},
+                {title: '<i class="fa fa-bars"></i>', "class": "text-center option w15p"}
+            ]
+
         });
     });
 </script>

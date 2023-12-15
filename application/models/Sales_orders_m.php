@@ -132,6 +132,7 @@ class Sales_orders_m extends MY_Model {
         $this->data["client_id"] = null;
         $this->data["lead_id"] = null;
         $this->data["project_title"] = null;
+        $this->data["project_type_id"] = null;
         $this->data["project_description"] = null;
         $this->data["project_start_date"] = null;
         $this->data["project_deadline"] = null;
@@ -172,6 +173,7 @@ class Sales_orders_m extends MY_Model {
             $this->data["reference_number"] = $sorow->reference_number;;
             $this->data["project_id"] = null;
             $this->data["project_title"] = $sorow->project_title;
+            $this->data["project_type_id"] = $sorow->project_type_id;
             $this->data["client_id"] = $client_id;
             $this->data["lead_id"] = $lead_id;
             $this->data["project_description"] = $sorow->project_description;

@@ -1465,8 +1465,7 @@ class Settings extends MY_Controller {
 
     function task_list(){
         if($this->input->post("datatable") == true){
-            //jout(["data"=>$this->Sales_orders_m->indexDataSet()]);
-            jout(["data"=>$this->Tasks_m->getMasterIndexHTML($this->Tasks_m->getMasterRows())]);
+            jout(["data"=>$this->Tasks_m->getIndexDataset()]);
             return;
         }
 
@@ -1477,25 +1476,15 @@ class Settings extends MY_Controller {
     function task_list_manage(){
         $data = [];
         $row_id = $this->input->post("id");
-        $task = $this->input->post("task");
+        $task = $this->uri->segment(3);
 
-        log_message("error", "hello->".$task);
-        if($task == "save"){
-            //jout();
-            jout($this->Tasks_m->saveMasterRow());
+        if($task != false){
+            if($task == "save") jout($this->Tasks_m->saveRow());
+            if($task == "delete") jout($this->Tasks_m->deleteRow());
             return;
-
-
-            /*if ($save_id) {
-                echo json_encode(array("success" => true, "data" => $this->_row_data($save_id), 'id' => $save_id, 'message' => lang('record_saved')));
-            } else {
-                echo json_encode(array("success" => false, 'message' => lang('error_occurred')));
-            }*/
-
-            
         }
 
-        $data["dropdown_assign_to"][] = ["id"=>"", "text"=>"-"];
+        $data["dropdown_assigned_to"][] = ["id"=>"", "text"=>"-"];
         $data["dropdown_collaborators"] = [];
         $urows = $this->Users_m->getRows(["id", "first_name", "last_name"]);
         if(!empty($urows)){

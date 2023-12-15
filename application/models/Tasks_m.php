@@ -4,36 +4,50 @@ class Tasks_m extends MY_Model {
         parent::__construct();
     }
 
-    function getMasterIndexHTML($row = null, $rows = null){
-        $html = [];
+    function getIndexHTML($row){
+        $assigned_to = "";
+        $collaborators = "";
 
-        if($row != null){
-            return [
-                        $row->title,
-                        $row->assigned_to,
-                        $row->collaborators,
-                        $edit_button." ".$delete_button
-                    ]; 
-        }elseif($rows != null){
-            if(!empty($rows)){
-                foreach($rows as $row){
-                    $edit_button = "<a href='settings/task_list_manage' class='edit' data-post-id=''><i class='fa fa-pencil'></i></a>";
-                    $delete_button = "<a href='project_types/modal_form' class='delete' data-id='' data-action-url='".get_uri("project_types/delete")."' data-action='delete'><i class='fa fa-times fa-fw'></i></a>";
+        $edit_button = "<a class='edit' data-post-id='".$row->id."' data-act='ajax-modal' data-title='แก้ไขรายการงาน' data-action-url='".get_uri("settings/task_list_manage")."' ><i class='fa fa-pencil'></i></a>";
+        $delete_button = "<a class='delete' data-id='".$row->id."' data-action-url='".get_uri("settings/task_list_manage/delete")."' data-action='delete'><i class='fa fa-times fa-fw'></i></a>";
 
-                    $html[] = [
-                            $row->title,
-                            $row->assigned_to,
-                            $row->collaborators,
-                            $edit_button." ".$delete_button
-                        ];    
-                }    
+        $urow = $this->Users_m->getRow($row->id, ["first_name", "last_name"]);
+        if($urow != null) $assigned_to = $urow->first_name." ".$urow->last_name;
+
+        $cuids = explode(",", $row->collaborators);
+        if(count($cuids) >= 0){
+            foreach($cuids as $cuid){
+                $urow = $this->Users_m->getRow($cuid, ["first_name", "last_name"]);
+                if($urow == null) continue;
+                $collaborators .= $urow->first_name." ".$urow->last_name.", ";
+
+            }
+            
+            $collaborators = substr($collaborators, 0, -2);
+        }
+
+        return [
+                    $row->title,
+                    $assigned_to,
+                    $collaborators,
+                    $edit_button." ".$delete_button
+                ]; 
+    }
+
+    function getIndexDataset(){
+        $rows = $this->Tasks_m->getRows();
+        $data_set = [];
+
+        if($rows != null){
+            foreach($rows as $row){
+                $data_set[] = $this->getIndexHTML($row);
             }
         }
 
-        return $html;
+        return $data_set;
     }
 
-    function getMasterRows(){
+    function getRows(){
         $rows = $this->db->select()
                             ->from("project_tasks")
                             ->get()->result();
@@ -43,7 +57,7 @@ class Tasks_m extends MY_Model {
         return $rows;
     }
 
-    function getMasterRow($row_id){
+    function getRow($row_id){
         $db = $this->db;
 
         $row = $db->select("*")
@@ -55,7 +69,7 @@ class Tasks_m extends MY_Model {
         return $row;        
     }
 
-    function saveMasterRow(){
+    function saveRow(){
         $db = $this->db;
         $id = $this->input->post("id");
         $title = $this->input->post("title");
@@ -63,9 +77,7 @@ class Tasks_m extends MY_Model {
         $assigned_to = $this->input->post("assigned_to");
         $collaborators = $this->input->post("collaborators");
 
-        log_message("error", json_encode($collaborators));
-        return;
-        //return json_encode(array("success" => true, "data" => $this->_row_data($save_id), 'id' => $save_id, 'message' => lang('record_saved')));
+        validate_submitted_data(["assigned_to" => "required"]);
 
         if($id != null){
             $db->where("id", $id);
@@ -86,36 +98,16 @@ class Tasks_m extends MY_Model {
             $id = $this->db->insert_id();
         }
 
-        $trow = $this->getMasterRow($id);
-        if($trow == null) return ["success"=>false, "message"=>lang('error_occurred')];
+        $row = $this->getRow($id);
+        if($row == null) return ["success"=>false, "message"=>lang('error_occurred')];
+        return ["success"=>true, "data"=>$this->getIndexHTML($row), "id"=>$id, "message"=>lang('record_saved')];
 
-        return [
-                    "success"=>true,
+    }
 
-                ];
-
+    function deleteRow(){
+        $this->db->where("id", $this->input->post("id"))->delete("project_tasks");
         
-        echo json_encode(array("success" => true, "data" => $this->_row_data($save_id), 'id' => $save_id, 'message' => lang('record_saved')));
-
-        return $id;
-
-
+        if($this->db->affected_rows() < 1) return ["success" => false, 'message' => lang('record_cannot_be_deleted')];
+        return ["success" => true, 'message' => lang('record_deleted')];   
     }
-
-    function deleteMasterRow(){
-        $id = $this->input->post('id');
-        validate_submitted_data(
-            array(
-                "id" => "required|numeric"
-            )
-        );
-
-        if ($this->Bom_item_model->delete_material_and_sub_items($id)) {
-            return array("success" => true, 'message' => lang('record_deleted'));
-        } else {
-            return array("success" => false, 'message' => lang('record_cannot_be_deleted'));
-        }   
-    }
-
-    
 }
