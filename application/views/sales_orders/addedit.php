@@ -41,7 +41,7 @@
     <div class="form-group objective project">
         <label for="type" class=" col-md-3">ประเภทโปรเจค</label>
         <div class=" col-md-9">
-            <select id="project_type_id" name="project_type_id" class="select2 validate-hidden" data-msg-required="<?php echo lang('field_required'); ?>" data-rule-required='true'>
+            <select id="project_type_id" name="project_type_id" class="form-control" data-msg-required="<?php echo lang('field_required'); ?>" data-rule-required='true' <?php if($doc_status != "W" && isset($doc_id)) echo "disabled";?>>
                 <option value="">- เลือกประเภทโปรเจค -</option>
                 <?php if(!empty($dropdown_project_types)): ?>
                     <?php foreach($dropdown_project_types as $project_type): ?>
@@ -55,7 +55,7 @@
     <div class="form-group objective project">
         <label for="type" class=" col-md-3">รายการงาน</label>
         <div class="col-md-9">
-            <input type="text" id="task_list" name="task_list" value="<?php echo $project_task_ids; ?>" class="form-control">
+            <input type="text" id="task_list" name="task_list" value="<?php echo $project_task_ids; ?>" class="form-control" <?php if($doc_status != "W" && isset($doc_id)) echo "disabled";?>>
         </div>
     </div>
 
@@ -133,10 +133,6 @@ $(document).ready(function() {
 
     <?php if($doc_status == "W" || !isset($doc_id)): ?>
         $("#project_type_id").select2();
-        $("#task_list").select2({
-            multiple: true,
-            data: <?php echo json_encode($dropdown_task_list); ?>
-        });
         
         $("#client_id").select2().on("change", function (e) {
             $("#lead_id").select2("val", "");
@@ -238,6 +234,11 @@ $(document).ready(function() {
         $("#project_deadline").val("<?php echo date('d/m/Y', strtotime($project_deadline)); ?>");
         <?php endif;?>
     <?php endif; ?>
+
+    $("#task_list").select2({
+        multiple: true,
+        data: <?php echo json_encode($dropdown_task_list); ?>
+    });
 
     $(".numb").blur(function(){
         let price = tonum($("#project_price").val(), <?php echo $this->Settings_m->getDecimalPlacesNumber(); ?>);

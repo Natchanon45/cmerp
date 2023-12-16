@@ -120,8 +120,37 @@ class Sales_orders_m extends MY_Model {
 
     function getDoc($docId){
         $db = $this->db;
-        $ci = get_instance();
         $company_setting = $this->Settings_m->getCompany();
+
+        $this->data["dropdown_task_list"] = [];
+        $this->data["dropdown_project_types"] = $this->Projects_m->getTypeRows();
+
+        $trows = $this->Tasks_m->getRows();
+        foreach($trows as $trow){
+            $assigned_to = "";
+            $collaborators = "";
+
+            $urow = $this->Users_m->getRow($trow->assigned_to, ["first_name", "last_name"]);
+            if($urow == null) continue;
+            $assigned_to = $urow->first_name." ".$urow->last_name;
+
+            $cuids = explode(",", $trow->collaborators);
+            if(count($cuids) >= 0){
+                foreach($cuids as $cuid){
+                    $urow = $this->Users_m->getRow($cuid, ["first_name", "last_name"]);
+                    if($urow == null) continue;
+                    $collaborators .= $urow->first_name." ".$urow->last_name.", ";
+
+                }
+                
+                $collaborators = substr($collaborators, 0, -2);
+            }
+
+            $dtl_text = $trow->title.", ".$assigned_to;
+            if($collaborators != "") $dtl_text .= ", ". $collaborators;
+            $this->data["dropdown_task_list"][] = ["id"=>$trow->id, "text"=>$dtl_text];
+        }//endforeach
+
 
         $this->data["doc_id"] = null;
         $this->data["purpose"] = null;
@@ -145,6 +174,7 @@ class Sales_orders_m extends MY_Model {
         $this->data["approved_datetime"] = null;
         $this->data["company_stamp"] = null;
         $this->data["doc_status"] = null;
+     
 
         if(!empty($docId)){
             $sorow = $db->select("*")
@@ -171,10 +201,11 @@ class Sales_orders_m extends MY_Model {
             $this->data["doc_number"] = $sorow->doc_number;
             $this->data["share_link"] = $sorow->sharekey != null ? get_uri($this->shareHtmlAddress."th/".$sorow->sharekey) : null;
 
-            $this->data["reference_number"] = $sorow->reference_number;;
+            $this->data["reference_number"] = $sorow->reference_number;
             $this->data["project_id"] = null;
             $this->data["project_title"] = $sorow->project_title;
             $this->data["project_type_id"] = $sorow->project_type_id;
+            $this->data["project_task_ids"] = $this->getTaskIds($sorow->id);
             $this->data["client_id"] = $client_id;
             $this->data["lead_id"] = $lead_id;
             $this->data["project_description"] = $sorow->project_description;
@@ -184,11 +215,11 @@ class Sales_orders_m extends MY_Model {
             
             $this->data["remark"] = $sorow->remark;
 
-            if($sorow->created_by != null) $this->data["created"] = $ci->Users_m->getInfo($sorow->created_by);
+            if($sorow->created_by != null) $this->data["created"] = $this->Users_m->getInfo($sorow->created_by);
             $this->data["created_by"] = $sorow->created_by;
             $this->data["created_datetime"] = $sorow->created_datetime;
 
-            if($sorow->approved_by != null) $this->data["approved"] = $ci->Users_m->getInfo($sorow->approved_by);
+            if($sorow->approved_by != null) $this->data["approved"] = $this->Users_m->getInfo($sorow->approved_by);
             $this->data["approved_by"] = $sorow->approved_by;
             $this->data["approved_datetime"] = $sorow->approved_datetime;
             if($sorow->approved_by != null) if(file_exists($_SERVER['DOCUMENT_ROOT']."/".$company_setting["company_stamp"])) $this->data["company_stamp"] = $company_setting["company_stamp"];
@@ -268,8 +299,6 @@ class Sales_orders_m extends MY_Model {
         return $this->data;
     }
 
-    function updateDoc($docId = null){}
-
     function validateDoc($purpose){
         $_POST = json_decode(file_get_contents('php://input'), true);
 
@@ -317,11 +346,11 @@ class Sales_orders_m extends MY_Model {
         $doc_date = convertDate($this->json->doc_date);
         $purpose = $this->json->purpose;
         $reference_number = $this->json->reference_number;
-        $project_title = isset($this->json->project_title)?$this->json->project_title:null;
-        $project_type_id = isset($this->json->project_type_id)?$this->json->project_type_id:null;
-        $project_task_ids = isset($this->json->project_task_ids)?$this->json->project_task_ids:null;
         $client_id = $this->json->client_id;
         $lead_id = $this->json->lead_id;
+        $project_type_id = isset($this->json->project_type_id)?$this->json->project_type_id:null;
+        $project_title = isset($this->json->project_title)?$this->json->project_title:null;
+        $project_task_ids = isset($this->json->project_task_ids)?$this->json->project_task_ids:null;
         $project_description = isset($this->json->project_description)?$this->json->project_description:null;
         $project_start_date = isset($this->json->project_start_date)?convertDate($this->json->project_start_date):null;
         $project_deadline = isset($this->json->project_deadline)?convertDate($this->json->project_deadline):null;
@@ -344,17 +373,14 @@ class Sales_orders_m extends MY_Model {
             $sorow = $db->select("status")
                         ->from("sales_order")
                         ->where("id", $docId)
-                        ->where("deleted", 0)
                         ->get()->row();
 
             if(empty($sorow)){
-                $this->data["success"] = false;
                 $this->data["message"] = "ขออภัย เกิดข้อผิดพลาดระหว่างดำเนินการ! โปรดลองใหม่อีกครั้งในภายหลัง";
                 return $this->data;
             }
 
             if($sorow->status != "W"){
-                $this->data["success"] = false;
                 $this->data["message"] = "ไม่สามารถบันทึกเอกสารได้เนื่องจากเอกสารมีการเปลี่ยนแปลงสถานะแล้ว";
                 return $this->data;
             }
@@ -366,6 +392,7 @@ class Sales_orders_m extends MY_Model {
                                         "doc_date"=>$doc_date,
                                         "reference_number"=>$reference_number,
                                         "client_id"=>$customer_id,
+                                        "project_type_id"=>$project_type_id,
                                         "project_title"=>$project_title,
                                         "project_description"=>$project_description,
                                         "project_start_date"=>$project_start_date,
@@ -373,6 +400,10 @@ class Sales_orders_m extends MY_Model {
                                         "project_price"=>getNumber($project_price),
                                         "remark"=>$remark
                                     ]);
+
+            $db->where("sales_order_id", $docId)->delete("sales_order_tasks");
+
+
         }else{
             $doc_number = $this->getNewDocNumber();
         
@@ -382,6 +413,7 @@ class Sales_orders_m extends MY_Model {
                                         "doc_date"=>$doc_date,
                                         "reference_number"=>$reference_number,
                                         "client_id"=>$customer_id,
+                                        "project_type_id"=>$project_type_id,
                                         "project_title"=>$project_title,
                                         "project_description"=>$project_description,
                                         "project_start_date"=>$project_start_date,
@@ -394,39 +426,36 @@ class Sales_orders_m extends MY_Model {
                                     ]);
 
             $docId = $db->insert_id();
+        }
 
-            $ptids = explode(",", $project_task_ids);
-            if(count($ptids) > 0){
-                foreach($ptids as $ptid){
-                    $trow = $this->Tasks_m->getRow($ptid);
-                    if($ptid == null) continue;
+        $ptids = explode(",", $project_task_ids);
+        if(count($ptids) > 0){
+            foreach($ptids as $ptid){
+                $trow = $this->Tasks_m->getRow($ptid);
+                if($ptid == null) continue;
 
-                    $db->insert("sales_order_tasks", [
-                                                        "sales_order_id"=>$docId,
-                                                        "task_id"=>$ptid,
-                                                        "task_title"=>$trow->title,
-                                                        "task_description"=>$trow->description,
-                                                        "task_assigned_to"=>$trow->assigned_to,
-                                                        "task_collaborators"=>$trow->collaborators
-                                                    ]);
+                $db->insert("sales_order_tasks", [
+                                                    "sales_order_id"=>$docId,
+                                                    "task_id"=>$ptid,
+                                                    "task_title"=>$trow->title,
+                                                    "task_description"=>$trow->description,
+                                                    "task_assigned_to"=>$trow->assigned_to,
+                                                    "task_collaborators"=>$trow->collaborators
+                                                ]);
 
-                }
             }
         }
 
-
-        $db->trans_rollback();
-        $this->data["success"] = false;
-        return $this->data;
-
         if($db->trans_status() === FALSE){
             $db->trans_rollback();
+            return $this->data;
         }
 
         $db->trans_commit();
         
         $this->data["target"] = get_uri("sales-orders/view/". $docId);
         $this->data["status"] = "success";
+        $this->data["success"] = true;
 
         return $this->data;
     }
@@ -690,6 +719,33 @@ class Sales_orders_m extends MY_Model {
         $this->data["status"] = "success";
 
         return $this->data;
+    }
+
+    function getTaskRows($sales_order_id){
+        $db = $this->db;
+
+        $sotrows = $db->select("*")
+                        ->from("sales_order_tasks")
+                        ->where("sales_order_id", $sales_order_id)
+                        ->get()->result();
+
+        if(empty($sotrows)) return null;
+
+        return $sotrows;
+    }
+
+    function getTaskIds($sales_order_id){
+        $sotids = [];
+        $sotrows = $this->getTaskRows($sales_order_id);
+
+        if($sotrows != null){
+            foreach($sotrows as $sotrow){
+                $sotids[] = $sotrow->task_id;
+            }
+        }
+
+        if(count($sotids) < 1) return null;
+        return implode(",", $sotids);
     }
 
     function updateStatus(){

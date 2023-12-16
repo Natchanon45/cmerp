@@ -35,32 +35,8 @@ class Sales_orders extends MY_Controller {
         }
 
         $data = $this->Sales_orders_m->getDoc($this->input->post("id"));
-        $data["dropdown_task_list"] = [];
-        $data["dropdown_project_types"] = $this->Projects_m->getTypeRows();
 
-        $tlrows = $this->Tasks_m->getRows();
-        foreach($tlrows as $tlrow){
-            $assigned_to = "";
-            $collaborators = "";
-
-            $urow = $this->Users_m->getRow($tlrow->assigned_to, ["first_name", "last_name"]);
-            if($urow == null) continue;
-            $assigned_to = $urow->first_name." ".$urow->last_name;
-
-            $cuids = explode(",", $tlrow->collaborators);
-            if(count($cuids) >= 0){
-                foreach($cuids as $cuid){
-                    $urow = $this->Users_m->getRow($cuid, ["first_name", "last_name"]);
-                    if($urow == null) continue;
-                    $collaborators .= $urow->first_name." ".$urow->last_name.", ";
-
-                }
-                
-                $collaborators = substr($collaborators, 0, -2);
-            }
-
-            $data["dropdown_task_list"][] = ["id"=>$tlrow->id, "text"=>$tlrow->title.", ".$assigned_to.", ".$collaborators];
-        }
+        
 
         $this->load->view('sales_orders/addedit', $data);
     }
@@ -133,7 +109,10 @@ class Sales_orders extends MY_Controller {
                 $sprows = $this->Products_m->getRows();
                 if(!empty($sprows)){
                     foreach($sprows as $sprow){
+
+                        //check if has bom
                         if($this->input->get("purpose") == "P") if(count($this->Products_m->getFomulasByItemId($sprow->id)) < 1) continue;
+                        
                         $suggestion[] = ["id" => $sprow->id, "text" => $sprow->title, "description"=>$sprow->description, "unit"=>$sprow->unit_type, "price"=>$sprow->rate];
                     }
                 }

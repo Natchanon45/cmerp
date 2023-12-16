@@ -13,6 +13,7 @@ class Products_m extends MY_Model
 
         $db->select("*")
             ->from("items")
+            ->where("item_type", "FG")
             ->where("deleted", 0);
 
         if ($this->input->post("keyword")) {
@@ -27,9 +28,9 @@ class Products_m extends MY_Model
             $db->or_like("barcode", $keyword);
         }
 
-        //$db->limit(20);
+        $irows = $db->get()->result();
 
-        return $db->get()->result();
+        return $irows;
     }
 
     function getFomulasByItemId($item_id)
@@ -77,5 +78,4 @@ class Products_m extends MY_Model
 
         return $db->get()->result();
     }
-
 }

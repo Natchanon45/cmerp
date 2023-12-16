@@ -7,6 +7,7 @@ class MY_Model extends CI_Model{
 	
     function __construct(){
         parent::__construct();
+        $this->data["success"] = false;
         $this->data["status"] = "fail";
         $this->data["message"] = "ขออภัย เกิดข้อผิดพลาดระหว่างดำเนินการ!";
         $this->json = json_decode(file_get_contents('php://input'));
