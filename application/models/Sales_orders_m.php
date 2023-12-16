@@ -133,6 +133,7 @@ class Sales_orders_m extends MY_Model {
         $this->data["lead_id"] = null;
         $this->data["project_title"] = null;
         $this->data["project_type_id"] = null;
+        $this->data["project_task_ids"] = null;
         $this->data["project_description"] = null;
         $this->data["project_start_date"] = null;
         $this->data["project_deadline"] = null;
@@ -269,20 +270,38 @@ class Sales_orders_m extends MY_Model {
 
     function updateDoc($docId = null){}
 
-    function validateDoc(){
+    function validateDoc($purpose){
         $_POST = json_decode(file_get_contents('php://input'), true);
 
-        $this->form_validation->set_rules([
-                                            [
-                                                "field"=>"doc_date",
-                                                'label' => '',
-                                                'rules' => 'required'
-                                            ]
-                                        ]);
+        $vrules[] = [
+                        "field"=>"doc_date",
+                        'label' => '',
+                        'rules' => 'required'
+                    ];
+
+        if($purpose == "P"){
+            $vrules[] = [
+                        "field"=>"project_title",
+                        'label' => '',
+                        'rules' => 'required'
+                    ];
+
+            $vrules[] = [
+                        "field"=>"project_type_id",
+                        'label' => '',
+                        'rules' => 'required'
+                    ];
+        }
+
+        
+
+        $this->form_validation->set_rules($vrules);
 
         if ($this->form_validation->run() == FALSE){
             $this->data["status"] = "validate";
             if(form_error('doc_date') != null) $this->data["messages"]["doc_date"] = form_error('doc_date');
+            if(form_error('project_title') != null) $this->data["messages"]["project_title"] = form_error('project_title');
+            if(form_error('project_type_id') != null) $this->data["messages"]["project_type_id"] = "โปรดเลือกประเภทโปรเจค";
         }
 
     }
@@ -291,7 +310,7 @@ class Sales_orders_m extends MY_Model {
         $db = $this->db;
         $company_setting = $this->Settings_m->getCompany();
 
-        $this->validateDoc();
+        $this->validateDoc($this->json->purpose);
         if($this->data["status"] == "validate") return $this->data;
 
         $docId = $this->json->doc_id;
@@ -299,6 +318,8 @@ class Sales_orders_m extends MY_Model {
         $purpose = $this->json->purpose;
         $reference_number = $this->json->reference_number;
         $project_title = isset($this->json->project_title)?$this->json->project_title:null;
+        $project_type_id = isset($this->json->project_type_id)?$this->json->project_type_id:null;
+        $project_task_ids = isset($this->json->project_task_ids)?$this->json->project_task_ids:null;
         $client_id = $this->json->client_id;
         $lead_id = $this->json->lead_id;
         $project_description = isset($this->json->project_description)?$this->json->project_description:null;
@@ -316,6 +337,8 @@ class Sales_orders_m extends MY_Model {
         $customer_id = null;
         if($client_id != "") $customer_id = $client_id;
         if($lead_id != "") $customer_id = $lead_id;
+
+        $db->trans_begin();
 
         if($docId != ""){
             $sorow = $db->select("status")
@@ -371,7 +394,36 @@ class Sales_orders_m extends MY_Model {
                                     ]);
 
             $docId = $db->insert_id();
+
+            $ptids = explode(",", $project_task_ids);
+            if(count($ptids) > 0){
+                foreach($ptids as $ptid){
+                    $trow = $this->Tasks_m->getRow($ptid);
+                    if($ptid == null) continue;
+
+                    $db->insert("sales_order_tasks", [
+                                                        "sales_order_id"=>$docId,
+                                                        "task_id"=>$ptid,
+                                                        "task_title"=>$trow->title,
+                                                        "task_description"=>$trow->description,
+                                                        "task_assigned_to"=>$trow->assigned_to,
+                                                        "task_collaborators"=>$trow->collaborators
+                                                    ]);
+
+                }
+            }
         }
+
+
+        $db->trans_rollback();
+        $this->data["success"] = false;
+        return $this->data;
+
+        if($db->trans_status() === FALSE){
+            $db->trans_rollback();
+        }
+
+        $db->trans_commit();
         
         $this->data["target"] = get_uri("sales-orders/view/". $docId);
         $this->data["status"] = "success";

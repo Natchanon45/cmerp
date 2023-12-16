@@ -55,7 +55,7 @@
     <div class="form-group objective project">
         <label for="type" class=" col-md-3">รายการงาน</label>
         <div class="col-md-9">
-            <input type="text" id="task_list" name="task_list" value="" class="form-control">
+            <input type="text" id="task_list" name="task_list" value="<?php echo $project_task_ids; ?>" class="form-control">
         </div>
     </div>
 
@@ -151,8 +151,6 @@ $(document).ready(function() {
         });
 
         $("#btnSubmit").click(function() {
-            alert($("#project_type_id").val());
-            return;
             data = {
                 task: 'save_doc',
                 doc_id : "<?php if(isset($doc_id)) echo $doc_id; ?>",
@@ -166,6 +164,8 @@ $(document).ready(function() {
 
             if($("#purpose").val() == "P"){
                 data.project_title = $("#project_title").val();
+                data.project_type_id = $("#project_type_id").val();
+                data.project_task_ids = $("#task_list").val();
                 data.project_description = $("#project_description").val();
                 data.project_start_date = $("#project_start_date").val();
                 data.project_deadline = $("#project_deadline").val();
@@ -246,6 +246,7 @@ $(document).ready(function() {
 });
 
 function setPopupSize(purpose){
+    $(".fnotvalid").remove();
     if(purpose == "P"){
         $(".objective.project").css("display", "block");
         $(".modal-content").css("height", "610px");
@@ -254,7 +255,8 @@ function setPopupSize(purpose){
     }else{
         $(".objective.project").css("display", "none");
         $(".modal-content").css("height", "488px");
-        $(".general-form").css("height", "auto");
+        $(".general-form").css("height", "366px");
+        $(".general-form").css("overflow-y", "scroll");
     }
 }
 </script>

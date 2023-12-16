@@ -50,6 +50,7 @@ class Tasks_m extends MY_Model {
     function getRows(){
         $rows = $this->db->select()
                             ->from("project_tasks")
+                            ->where("deleted", 0)
                             ->get()->result();
 
         if(empty($rows)) return null;
@@ -105,7 +106,7 @@ class Tasks_m extends MY_Model {
     }
 
     function deleteRow(){
-        $this->db->where("id", $this->input->post("id"))->delete("project_tasks");
+        $this->db->where("id", $this->input->post("id"))->update("project_tasks", ["deleted"=>1]);
         
         if($this->db->affected_rows() < 1) return ["success" => false, 'message' => lang('record_cannot_be_deleted')];
         return ["success" => true, 'message' => lang('record_deleted')];   
