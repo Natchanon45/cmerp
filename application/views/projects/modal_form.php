@@ -23,7 +23,7 @@
     <div class="form-group">
         <label for="type" class=" col-md-3">ประเภทโปรเจค</label>
         <div class=" col-md-9">
-            <select name="project_type_id" class="form-control">
+            <select id="project_type_id" name="project_type_id" class="select2 validate-hidden" data-msg-required="<?php echo lang('field_required'); ?>" data-rule-required='true'>
                 <option value="">- เลือกประเภทโปรเจค -</option>
                 <?php if(!empty($project_types)): ?>
                     <?php foreach($project_types as $project_type): ?>
@@ -45,6 +45,7 @@
                 <?php
                 echo form_dropdown("client_id", $clients_dropdown_new, array($model_info->client_id), "class='select2 validate-hidden client_key' data-rule-required='true', data-msg-required='" . lang('field_required') . "'");
                 ?>
+
             </div>
         </div>
     <?php } ?>

@@ -76,6 +76,7 @@ $lang["account_document_no"] = "Document No.";
 $lang["account_short_document_no"] = "Doc No.";
 $lang["account_customer"] = "Customer";
 $lang["account_customer_group"] = "Customer Group";
+$lang["account_request_production"] = "Order Qty";
 $lang["account_made_to_order"] = "Made To Order";
 $lang["account_refernce_no"] = "Reference No";
 $lang["account_contact"] = "Contact";

@@ -1463,6 +1463,42 @@ class Settings extends MY_Controller {
         echo json_encode(array("success" => true, 'message' => lang('settings_updated')));
     }
 
+    function task_list(){
+        if($this->input->post("datatable") == true){
+            jout(["data"=>$this->Tasks_m->getIndexDataset()]);
+            return;
+        }
+
+        $view_data = ["active_tab"=>"set_task_list"];
+        $this->template->rander("settings/task_list", $view_data);
+    }
+
+    function task_list_manage(){
+        $data = [];
+        $row_id = $this->input->post("id");
+        $task = $this->uri->segment(3);
+
+        if($task != false){
+            if($task == "save") jout($this->Tasks_m->saveRow());
+            if($task == "delete") jout($this->Tasks_m->deleteRow());
+            return;
+        }
+
+        $data["dropdown_assigned_to"][] = ["id"=>"", "text"=>"-"];
+        $data["dropdown_collaborators"] = [];
+        $urows = $this->Users_m->getRows(["id", "first_name", "last_name"]);
+        if(!empty($urows)){
+            foreach($urows as $urow){
+                $data["dropdown_assigned_to"][] = ["id"=>$urow->id, "text"=>$urow->first_name." ".$urow->last_name];
+                $data["dropdown_collaborators"][] = ["id"=>$urow->id, "text"=>$urow->first_name." ".$urow->last_name];
+            }
+        }
+
+        if($row_id != null) $data["row"] = $this->Tasks_m->getRow($row_id);
+
+        $this->load->view('settings/task_list_manage', $data);
+    }
+
     function slack() {
         $this->load->view("settings/integration/slack");
     }

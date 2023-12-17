@@ -17,6 +17,21 @@ class Users_m extends CI_Model {
                     ->get()->result();
     }
 
+    function getRow($row_id, $field_names = null){
+        $db = $this->db;
+        if(!is_array($field_names)) $field_names = "*";
+
+        $row = $db->select($field_names)
+                    ->from("users")
+                    ->where("id", $row_id)
+                    ->where("deleted", 0)
+                    ->get()->row();
+
+        if(empty($row)) return null;
+
+        return $row;
+    }
+
     function getInfo($user_id){
         $db = $this->db;
         

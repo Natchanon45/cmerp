@@ -36,6 +36,8 @@ class Sales_orders extends MY_Controller {
 
         $data = $this->Sales_orders_m->getDoc($this->input->post("id"));
 
+        
+
         $this->load->view('sales_orders/addedit', $data);
     }
 
@@ -107,7 +109,10 @@ class Sales_orders extends MY_Controller {
                 $sprows = $this->Products_m->getRows();
                 if(!empty($sprows)){
                     foreach($sprows as $sprow){
+
+                        //check if has bom
                         if($this->input->get("purpose") == "P") if(count($this->Products_m->getFomulasByItemId($sprow->id)) < 1) continue;
+                        
                         $suggestion[] = ["id" => $sprow->id, "text" => $sprow->title, "description"=>$sprow->description, "unit"=>$sprow->unit_type, "price"=>$sprow->rate];
                     }
                 }

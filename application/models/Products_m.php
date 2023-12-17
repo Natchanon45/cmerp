@@ -1,18 +1,16 @@
 <?php
 
-class Products_m extends MY_Model
-{
-    function __construct()
-    {
+class Products_m extends MY_Model{
+    function __construct(){
         parent::__construct();
     }
 
-    function getRows()
-    {
+    function getRows(){
         $db = $this->db;
 
         $db->select("*")
             ->from("items")
+            ->where("item_type", "FG")
             ->where("deleted", 0);
 
         if ($this->input->post("keyword")) {
@@ -27,13 +25,12 @@ class Products_m extends MY_Model
             $db->or_like("barcode", $keyword);
         }
 
-        //$db->limit(20);
+        $irows = $db->get()->result();
 
-        return $db->get()->result();
+        return $irows;
     }
 
-    function getFomulasByItemId($item_id)
-    {
+    function getFomulasByItemId($item_id){
         $db = $this->db;
 
         $bimgrows = $db->select("*")
@@ -55,8 +52,7 @@ class Products_m extends MY_Model
         return $formulas;
     }
 
-    function dev2_getItemsDropdownByKeyword()
-    {
+    function dev2_getItemsDropdownByKeyword(){
         $db = $this->db;
         $getKeyword = $this->input->get("keyword");
         $postKeyword = $this->input->post("keyword");
@@ -78,4 +74,14 @@ class Products_m extends MY_Model
         return $db->get()->result();
     }
 
+    function getItemType($item_id){
+        $irow = $this->db->select("item_type")
+                            ->from("items")
+                            ->where("id", $item_id)
+                            ->get()->row();
+
+        if(empty($irow)) return null;
+
+        return $irow->item_type;
+    }
 }

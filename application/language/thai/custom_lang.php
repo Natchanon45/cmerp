@@ -1745,6 +1745,7 @@ $lang["pusher"] = "Pusher";
 $lang["enable_chat_via_pusher"] = "เปิดใช้งานการส่งข้อความผ่าน Pusher";
 
 $lang["tasks_list"] = "รายการงาน";
+$lang["set_task_list"] = "รายการงาน";
 $lang["tasks_kanban"] = "งาน Kanban";
 $lang["set_project_tab_order"] = "ตั้งค่าลำดับแท็บของโปรเจค";
 $lang["project_tab_order"] = "ลำดับแท็บของโปรเจค";

@@ -146,7 +146,7 @@
                         <td class="custom-bg product_name"><?php echo lang("account_so_product"); ?></td>
                         <td class="custom-bg unit"><?php echo lang("account_so_unit"); ?></td>
                         <td class="custom-bg instock"><?php echo lang("account_so_in_stock"); ?></td>
-                        <td class="custom-bg total_used"><?php echo lang("account_so_order_qty"); ?></td>
+                        <td class="custom-bg total_used"><?php echo lang("account_request_production"); ?></td>
                         <td class="custom-bg total_submit"><?php echo lang("account_made_to_order"); ?></td>
                     </tr>
                 </thead>

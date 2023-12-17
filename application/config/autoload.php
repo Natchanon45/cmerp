@@ -239,5 +239,6 @@ $autoload['model'] = array(
     'Purchase_request_m',
     'Materialrequest_m',
     'Sfg_m',
-    'Material_categories_m'
+    'Material_categories_m',
+    'Tasks_m'
 );
