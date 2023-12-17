@@ -811,14 +811,6 @@ class Sales_orders_m extends MY_Model {
             $this->data["task"] = "popup";
             $this->data["status"] = "success";
             return $this->data;
-            /*if($this->createProject($sorow) != true){
-                $db->trans_rollback();
-                $this->data["message"] = lang("account_so_message_component_required");
-                return $this->data;
-            }
-            $this->data["message"] = sprintf(lang("account_so_message_project_was_created"), $sorow->project_title);
-            $this->data["status"] = "success";*/
-
         }elseif($updateStatusTo == "V"){
             $db->where("id", $docId);
             $db->where("deleted", 0);
@@ -1490,6 +1482,7 @@ class Sales_orders_m extends MY_Model {
         $db->trans_begin();
         
         $db->insert("projects", [
+                                    "project_type_id"=>$sorow->project_type_id,
                                     "title"=>$sorow->project_title,
                                     "description"=>$sorow->project_description,
                                     "start_date"=>$sorow->project_start_date,
@@ -1536,6 +1529,7 @@ class Sales_orders_m extends MY_Model {
 
             $production_bom_data[] = [
                                     "project_id"=>$project_id,
+                                    "item_type"=>$this->Products_m->getItemType($soirow->product_id),
                                     "item_id"=>$soirow->product_id,
                                     "item_mixing"=>$soirow->item_mixing_groups_id,
                                     "quantity" =>$submit_num,
@@ -1545,8 +1539,47 @@ class Sales_orders_m extends MY_Model {
 
         $this->Projects_model->dev2_postProductionBomDataProcessing($production_bom_data);
 
+        $sotrows = $db->select("*")
+                        ->from("sales_order_tasks")
+                        ->where("sales_order_id", $sales_order_id)
+                        ->order_by("id", "asc")
+                        ->get()->result();
+
+        if(!empty($sotrows)){
+            $member_ids = [];
+
+            foreach($sotrows as $sotrow){
+                if (!in_array($sotrow->task_assigned_to, $member_ids)) $member_ids[] = $sotrow->task_assigned_to;
+
+                if(trim($sotrow->task_collaborators) != ""){
+                    $uids = explode(",", $sotrow->task_collaborators);
+                    foreach($uids as $uid){
+                        if (!in_array($uid, $member_ids)) $member_ids[] = $uid;
+                    }
+                }
+                
+                $db->insert("tasks", [
+                                        "title"=>$sotrow->task_title,
+                                        "description"=>$sotrow->task_description,
+                                        "project_id"=>$project_id,
+                                        "assigned_to"=>$sotrow->task_assigned_to,
+                                        "status_id"=>1,
+                                        "collaborators"=>$sotrow->task_collaborators,
+                                        "created_date"=>date("Y-m-d H:i:s")
+                                    ]);
+            }
+
+            foreach($member_ids as $member_id){
+                $db->insert("project_members", ["user_id"=>$member_id, "project_id"=>$project_id]);
+            }
+        }
+
+
         $db->where("id", $sales_order_id);
         $db->update("sales_order", ["project_id"=>$project_id]);
+
+        //$db->trans_rollback();
+        //return $this->data;
 
         if ($db->trans_status() === FALSE){
             $db->trans_rollback();
@@ -1587,56 +1620,4 @@ class Sales_orders_m extends MY_Model {
     }
 
 
-
-    /**** end project *****/
-
-    function createProject($sorow){
-        $db = $this->db;
-        $ci = get_instance();
-        
-        $db->insert("projects", [
-                                    "title"=>$sorow->project_title,
-                                    "description"=>$sorow->project_description,
-                                    "start_date"=>$sorow->project_start_date,
-                                    "deadline"=>$sorow->project_deadline,
-                                    "client_id"=>$sorow->client_id,
-                                    "client_type"=>$this->Customers_m->isLead($sorow->client_id) == true ? 1:0,
-                                    "created_date"=>date("Y-m-d"),
-                                    "created_by"=>$this->login_user->id,
-                                    "status"=>"open",
-                                    "price"=>$sorow->project_price,
-                                    "starred_by"=>"",
-                                    "estimate_id"=>0,
-                                ]);
-
-        $project_id = $db->insert_id();
-
-        $soirows = $db->select("*")
-                        ->from("sales_order_items")
-                        ->where("sales_order_id", $sorow->id)
-                        ->order_by("sort", "asc")
-                        ->get()->result();
-        
-        if(!empty($soirows)){
-            $production_bom_data = [];
-
-            foreach($soirows as $soirow){
-                if($soirow->item_mixing_groups_id == null) return false;
-                $production_bom_data[] = [
-                                        "project_id"=>$project_id,
-                                        "item_id"=>$soirow->product_id,
-                                        "item_mixing"=>$soirow->item_mixing_groups_id,
-                                        "quantity" =>$soirow->quantity,
-                                        "produce_in"=>$soirow->add_stock == "Y" ? 1 : 0,
-                                    ];
-            }
-
-            $ci->Projects_model->dev2_postProductionBomDataProcessing($production_bom_data);
-        }
-        
-        $db->where("id", $sorow->id);
-        $db->update("sales_order", ["project_id"=>$project_id]);
-
-        return true;
-    }
 }

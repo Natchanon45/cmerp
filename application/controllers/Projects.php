@@ -433,9 +433,9 @@ class Projects extends MY_Controller
             }
         }
 
-
         $view_data["client_id"] = $client_id;
         $view_data['model_info'] = $this->Projects_model->get_one($project_id);
+
         if ($client_id) {
             $view_data['model_info']->client_id = $client_id;
         }
