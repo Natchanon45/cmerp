@@ -74,8 +74,7 @@ class Sales_orders_m extends MY_Model {
                     "<a href='".get_uri("sales-orders/view/".$sorow->id)."'>".convertDate($sorow->doc_date, true)."</a>",
                     "<a href='".get_uri("sales-orders/view/".$sorow->id)."'>".$sorow->doc_number."</a>",
                     $sorow->reference_number, $this->getPurposeInfo($sorow->purpose),
-                    $customer_group_names,
-                    $this->Clients_m->getCompanyName($sorow->client_id), $doc_status,
+                    $this->Clients_m->getCompanyName($sorow->client_id), $customer_group_names, $doc_status,
                     "<a data-post-id='".$sorow->id."' data-action-url='".get_uri("sales-orders/addedit")."' data-act='ajax-modal' class='edit'><i class='fa fa-pencil'></i></a>"
                 ];
 
@@ -146,11 +145,10 @@ class Sales_orders_m extends MY_Model {
                 $collaborators = substr($collaborators, 0, -2);
             }
 
-            $dtl_text = $trow->title.", ".$assigned_to;
+            $dtl_text = $trow->title.", <b>".$assigned_to."</b>";
             if($collaborators != "") $dtl_text .= ", ". $collaborators;
             $this->data["dropdown_task_list"][] = ["id"=>$trow->id, "text"=>$dtl_text];
         }//endforeach
-
 
         $this->data["doc_id"] = null;
         $this->data["purpose"] = null;
@@ -174,7 +172,7 @@ class Sales_orders_m extends MY_Model {
         $this->data["approved_datetime"] = null;
         $this->data["company_stamp"] = null;
         $this->data["doc_status"] = null;
-     
+        $this->data["sotrow"] = null;
 
         if(!empty($docId)){
             $sorow = $db->select("*")
@@ -224,7 +222,11 @@ class Sales_orders_m extends MY_Model {
             $this->data["approved_datetime"] = $sorow->approved_datetime;
             if($sorow->approved_by != null) if(file_exists($_SERVER['DOCUMENT_ROOT']."/".$company_setting["company_stamp"])) $this->data["company_stamp"] = $company_setting["company_stamp"];
             $this->data["doc_status"] = $sorow->status;
-            
+            $this->data["sotrows"] = $db->select("*")
+                                        ->from("sales_order_tasks")
+                                        ->where("sales_order_id", $docId)
+                                        ->order_by("id", "asc")
+                                        ->get()->result();
         }
 
         $this->data["status"] = "success";
@@ -289,6 +291,11 @@ class Sales_orders_m extends MY_Model {
         
         if($sorow->approved_by != null) if(file_exists($_SERVER['DOCUMENT_ROOT']."/".$company_setting["company_stamp"])) $this->data["company_stamp"] = $company_setting["company_stamp"];
         $this->data["doc_status"] = $sorow->status;
+        $this->data["sotrows"] = $db->select("*")
+                                        ->from("sales_order_tasks")
+                                        ->where("sales_order_id", $docId)
+                                        ->order_by("id", "asc")
+                                        ->get()->result();
 
         $this->data["doc"] = $sorow;
         $this->data["items"] = $soirows;

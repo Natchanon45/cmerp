@@ -237,7 +237,10 @@ $(document).ready(function() {
 
     $("#task_list").select2({
         multiple: true,
-        data: <?php echo json_encode($dropdown_task_list); ?>
+        data: <?php echo json_encode($dropdown_task_list); ?>,
+        escapeMarkup: function(markup) {
+            return markup;
+        }
     });
 
     $(".numb").blur(function(){

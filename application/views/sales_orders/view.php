@@ -132,6 +132,50 @@
             </div>
         <?php endif; ?>
     </div><!--.docitem-->
+    <div class="task_list">
+        <h6 class="custom-color">ข้อมูลรายการงาน</h6>
+        <?php if(!empty($sotrows)): ?>
+            <table>
+                <thead>
+                    <tr>
+                        <td class="task_number">#</td>
+                        <td class="task_title">รายการงาน</td>
+                        <td class="task_assigned_to">ผู้ได้รับมอบหมาย</td>
+                        <td class="task_collaborators">ผู้ร่วมงาน</td>
+                    </tr>
+                </thead>
+                <?php $tnumber = 0; ?>
+                <?php foreach($sotrows as $sotrow): ?>
+                    <?php
+                        $task_assigned_to = "";
+                        $task_collaborators = "";
+                        $urow = $this->Users_m->getRow($sotrow->task_assigned_to, ["first_name", "last_name"]);
+                        if($urow != null){
+                            $task_assigned_to = $urow->first_name." ".$urow->last_name;
+                        }
+
+                        if($sotrow->task_collaborators != ""){
+                            $uids = explode(",", $sotrow->task_collaborators);
+                            foreach($uids as $uid){
+                                $urow = $this->Users_m->getRow($uid, ["first_name", "last_name"]);
+                                if($urow != null){
+                                    $task_collaborators .= $urow->first_name." ".$urow->last_name.", ";
+                                }
+                            }
+                        }
+
+                        $task_collaborators = substr($task_collaborators, 0, -2);
+                    ?>
+                    <tr>
+                        <td class="task_number"><?php echo ++$tnumber; ?></td>
+                        <td class="task_title"><?php echo $sotrow->task_title; ?></td>
+                        <td class="task_assigned_to"><?php echo $task_assigned_to; ?></td>
+                        <td class="task_collaborators"><?php echo $task_collaborators; ?></td>
+                    </tr>
+                <?php endforeach;?>
+            </table>
+        <?php endif; ?>
+    </div><!--.task_list-->
     <div class="docsignature clear">
         <div class="customer">
             <div class="company_stamp"></div>
@@ -187,6 +231,45 @@
         </div><!--.company-->
     </div><!--.docsignature-->
 </div><!--#printd-->
+<style type="text/css">
+#printd .docitem{
+    min-height: auto;
+    padding-bottom: 0;
+}
+
+.task_list table{
+    width: 100%;
+}
+
+.task_list thead td{
+    font-weight: bold;
+}
+
+.task_list td{
+    border-bottom: 1px solid #cecece;
+    /*border: 1px solid #cecece;*/
+    vertical-align: top;
+    padding-top: 6px;
+    padding-bottom: 6px;
+}
+
+.task_list td.task_number{
+    width: 4%;
+    text-align: center;
+}
+
+.task_list td.task_title{
+    width: 40%;
+}
+
+.task_list td.task_collaborators{
+    width: 26%;
+}
+
+.task_list td.task_collaborators{
+    width: 30%;
+}
+</style>
 <script type="text/javascript">
 window.addEventListener('keydown', function(event) {
     if (event.keyCode === 80 && (event.ctrlKey || event.metaKey) && !event.altKey && (!event.shiftKey || window.chrome || window.opera)) {
