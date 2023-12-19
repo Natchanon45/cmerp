@@ -34,7 +34,7 @@
                         if(!empty($dropdown_assigned_to)){
                             foreach($dropdown_assigned_to as $dat){
                                 $is_selected = "";
-                                if(isset($row)) if($dat["id"] == $row->id) $is_selected = "selected";
+                                if(isset($row)) if($dat["id"] == $row->assigned_to) $is_selected = "selected";
                                 echo sprintf("<option value='%s' %s>%s</option>", $dat["id"], $is_selected, $dat["text"]);
                             }
                         }

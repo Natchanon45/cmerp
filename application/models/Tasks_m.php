@@ -11,7 +11,7 @@ class Tasks_m extends MY_Model {
         $edit_button = "<a class='edit' data-post-id='".$row->id."' data-act='ajax-modal' data-title='แก้ไขรายการงาน' data-action-url='".get_uri("settings/task_list_manage")."' ><i class='fa fa-pencil'></i></a>";
         $delete_button = "<a class='delete' data-id='".$row->id."' data-action-url='".get_uri("settings/task_list_manage/delete")."' data-action='delete'><i class='fa fa-times fa-fw'></i></a>";
 
-        $urow = $this->Users_m->getRow($row->id, ["first_name", "last_name"]);
+        $urow = $this->Users_m->getRow($row->assigned_to, ["first_name", "last_name"]);
         if($urow != null) $assigned_to = $urow->first_name." ".$urow->last_name;
 
         $cuids = explode(",", $row->collaborators);
@@ -48,7 +48,7 @@ class Tasks_m extends MY_Model {
     }
 
     function getRows(){
-        $rows = $this->db->select()
+        $rows = $this->db->select("*")
                             ->from("project_tasks")
                             ->where("deleted", 0)
                             ->get()->result();
@@ -78,6 +78,8 @@ class Tasks_m extends MY_Model {
         $assigned_to = $this->input->post("assigned_to");
         $collaborators = $this->input->post("collaborators");
 
+        log_message("error", $assigned_to);
+
         validate_submitted_data(["assigned_to" => "required"]);
 
         if($id != null){
@@ -88,6 +90,8 @@ class Tasks_m extends MY_Model {
                                             "assigned_to"=>$assigned_to,
                                             "collaborators"=>$collaborators
                                         ]);
+
+            log_message("error", $db->last_query());
         }else{
             $db->insert("project_tasks", [
                                             "title"=>$title,
