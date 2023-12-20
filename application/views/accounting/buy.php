@@ -132,6 +132,12 @@
                         </li>
                     <?php endif; ?>
 
+                    <?php if (true): $number_of_enable_module++; ?>
+                        <li data-module="withholding_tax" class="<?php if($module == "withholding_tax") echo 'active custom-bg01'; ?>">
+                            <a class="<?php if($module == "withholding_tax") echo 'custom-color'; ?>"><?php echo lang("withholding_tax"); ?></a>
+                        </li>
+                    <?php endif; ?>
+
                     <?php if ($user_permissions->goods_receipt["access"]): $number_of_enable_module++; ?>
                         <li data-module="goods_receipt" class="<?php if ($module == "goods_receipt") echo 'active custom-bg01'; ?>">
                             <a class="<?php if ($module == "goods_receipt") echo 'custom-color'; ?>"><?php echo lang("goods_receipt"); ?></a>
@@ -145,6 +151,9 @@
                     </li>
                     <li class="add add2 hide">
                         <a data-act="ajax-modal" class="btn btn-default"><i class="fa fa-plus-circle"></i><span></span></a>
+                    </li>
+                    <li class="add add3 hide">
+                        <a class="btn btn-default"><i class="fa fa-plus-circle"></i><span></span></a>
                     </li>
                 </ul>
             </div>
@@ -205,6 +214,7 @@
             <?php endif; ?>
 
             $(".buttons li.add2").addClass('hide');
+            $(".buttons li.add3").addClass('hide');
 
             status_dropdown = '<?php echo $pr_status_dropdown; ?>';
             supplier_dropdown = '<?php echo $supplier_dropdown; ?>';
@@ -247,6 +257,7 @@
             <?php endif; ?>
 
             $(".buttons li.add2").addClass('hide');
+            $(".buttons li.add3").addClass('hide');
 
             status_dropdown = '<?php echo $po_status_dropdown; ?>';
             supplier_dropdown = '<?php echo $supplier_dropdown; ?>';
@@ -295,6 +306,7 @@
             <?php endif; ?>
 
             $(".buttons li.add2").addClass('hide');
+            $(".buttons li.add3").addClass('hide');
 
             status_dropdown = '<?php echo $pv_status_dropdown; ?>';
             supplier_dropdown = '<?php echo $supplier_dropdown; ?>';
@@ -339,6 +351,8 @@
                 $(".buttons li.add2 span").append('<?php echo lang("goods_receipt_add_nopo"); ?>');
             <?php endif; ?>
 
+            $(".buttons li.add3").addClass('hide');
+
             status_dropdown = '<?php echo $gr_status_dropdown; ?>';
             supplier_dropdown = '<?php echo $supplier_dropdown; ?>';
 
@@ -357,6 +371,42 @@
                 { title: '<?php echo lang("issuer_of_document"); ?>', class: 'w10p' },
                 { title: '<?php echo lang("total_amount"); ?>', class: 'text-right w10p' },
                 { title: '<?php echo lang("status"); ?>', class: 'w10p' },
+                { title: '<i class="fa fa-bars"></i>', class: 'text-center option w5p' }
+            ];
+
+            grid_print = combineCustomFieldsColumns([0, 1, 2, 3, 4, 5, 6]);
+            grid_excel = combineCustomFieldsColumns([0, 1, 2, 3, 4, 5, 6]);
+
+            grid_summation = [
+                { column: 5, dataType: 'currency' }
+            ];
+        } 
+        else if (active_module == 'withholding_tax') 
+        {
+            $(".buttons").removeClass('hide');
+            $(".buttons li.add3").removeClass('hide');
+            $(".buttons li.add3 a").attr('href', '<?php echo get_uri("withholding_tax/wht_form"); ?>');
+            $(".buttons li.add3 span").append('<?php echo lang("withholding_tax_add"); ?>');
+
+            $(".buttons li.add1").addClass('hide');
+            $(".buttons li.add2").addClass('hide');
+
+            status_dropdown = '<?php echo $pv_status_dropdown; ?>';
+            supplier_dropdown = '<?php echo $supplier_dropdown; ?>';
+
+            grid_filters = [
+                { name: 'status', class: 'w150', options: JSON.parse(status_dropdown) },
+                { name: 'supplier_id', class: 'w250', options: JSON.parse(supplier_dropdown) }
+            ];
+
+            grid_columns = [
+                { title: '<?php echo lang("id"); ?>', class: 'w10p' },
+                { title: '<?php echo lang("number_of_document"); ?>' },
+                { title: '<?php echo lang("payee_withholding_tax_name"); ?>' },
+                { title: '<?php echo lang("pnd_type"); ?>' },
+                { title: '<?php echo lang("pay_type"); ?>' },
+                { title: '<?php echo lang("date_of_certificate"); ?>' },
+                { title: '<?php echo lang("status"); ?>' },
                 { title: '<i class="fa fa-bars"></i>', class: 'text-center option w5p' }
             ];
 

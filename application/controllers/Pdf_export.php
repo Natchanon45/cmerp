@@ -7184,7 +7184,7 @@ class Pdf_export extends CI_Controller
 
         $table_open_main = '<table style="width: 100%;" cellpadding="0" cellspacing="0">';
         $html .= $table_open_main;
-
+        
         if (isset($data["production_items"]["rm_cate"]) && !empty($data["production_items"]["rm_cate"])) {
             foreach ($data["production_items"]["rm_cate"] as $category) {
                 $total_group = 0.000000;
@@ -7294,7 +7294,7 @@ class Pdf_export extends CI_Controller
 
         $table_open_main = '<table style="width: 100%;" cellpadding="0" cellspacing="0">';
         $html .= $table_open_main;
-
+        
         if (isset($data["production_items"]["sfg_cate"]) && !empty($data["production_items"]["sfg_cate"])) {
             foreach ($data["production_items"]["sfg_cate"] as $category) {
                 $total_group = 0.000000;
@@ -7364,6 +7364,1036 @@ class Pdf_export extends CI_Controller
         $mpdf->AddPage('P');
         $mpdf->WriteHTML($html);
         
+        $mpdf->Output();
+    }
+
+    public function wht_document($id = 0)
+    {
+        // Get company info
+        $company_vat_number = get_setting("company_vat_number");
+        $company_name = get_setting("company_name");
+        $company_address = nl2br(get_setting("company_address"));
+        
+        // Load mpdf default config
+        $defaultConfig = (new Mpdf\Config\ConfigVariables())->getDefaults();
+        $fontDirs = $defaultConfig["fontDir"];
+        
+        $defaultFontConfig = (new Mpdf\Config\FontVariables())->getDefaults();
+        $fontData = $defaultFontConfig["fontdata"];
+
+        $mpdf = new \Mpdf\Mpdf([
+            'fontDir' => array_merge($fontDirs, [
+                __DIR__ . '/fonts',
+            ]),
+            'fontdata' => $fontData + [
+                'def' => [
+                    'R' => 'THSarabun_Bold.ttf'
+                ]
+            ],
+            'default_font' => 'def',
+            'tempDir' => '/tmp'
+        ]);
+        $mpdf->charset_in = 'UTF-8';
+        $mpdf->SetTitle('WHT');
+        $mpdf->SetSourceFile('pdf_Template/wht.pdf');
+
+        // $html = 'DEVELOPMENT_ENV_WHT_BY_DEV2';
+        $html = '';
+        $html .= '<br>';
+
+        // Ref - 1
+        $ref_1 = "REF#1";
+        $div_ref_1 = '<div style="position: absolute; width: 150px; font-size: 80%; text-align: right; top: 33; right: 38; border: 1px solid rgba(0, 0, 0, 0);"><i>' . $ref_1 . '</i></div>';
+        if (isset($ref_1) && !empty($ref_1)) {
+            $html .= $div_ref_1;
+        }
+        
+        // Ref - 2
+        $ref_2 = "REF#2";
+        $div_ref_2 = '<div style="position: absolute; width: 150px; font-size: 80%; text-align: right; top: 43; right: 38; border: 1px solid rgba(0, 0, 0, 0);"><i>' . $ref_2 . '</i></div>';
+        if (isset($ref_2) && !empty($ref_2)) {
+            $html .= $div_ref_2;
+        }
+
+        // WHT Number
+        $wht_doc = "WHT2023120001";
+        $div_wht_doc = '<div style="position: absolute; width: 150px; font-size: 76%; text-align: right; top: 87; right: 40; border: 1px solid rgba(0, 0, 0, 0);">' . $wht_doc . '</div>';
+        if (isset($wht_doc) && !empty($wht_doc)) {
+            $html .= $div_wht_doc;
+        }
+
+        // Start - Payer
+        $div_payer_name = '<div style="position: absolute; top: 132; left: 90;">' . $company_name . '</div>';
+        if (isset($company_name) && !empty($company_name)) {
+            $html .= $div_payer_name;
+        }
+
+        $div_payer_address = '<div style="position: absolute; top: 164; left: 90;">' . $company_address . '</div>';
+        if (isset($company_address) && !empty($company_address)) {
+            $html .= $div_payer_address;
+        }
+
+        $payer_taxno = trim($company_vat_number);
+        $border_check = "0";
+        $border_red = "0";
+        $payer_taxno_digit = 0;
+        $payer_taxno_top = "110";
+        
+        // 1
+        $div_payer_taxno[$payer_taxno_digit] = '<div style="position: absolute; top: ';
+        ($payer_taxno[$payer_taxno_digit] == 0 || $payer_taxno[$payer_taxno_digit] == "0") ? $div_payer_taxno[$payer_taxno_digit] .= $payer_taxno_top - 2 : $div_payer_taxno[$payer_taxno_digit] .= $payer_taxno_top;
+        $div_payer_taxno[$payer_taxno_digit] .= '; right: 278; width: 14.5px; text-align: center; border: 1px solid rgba(' . $border_red . ', 0, 0, ' . $border_check . ');">' . $payer_taxno[$payer_taxno_digit] . '</div>';
+        if (isset($div_payer_taxno[$payer_taxno_digit]) && !empty($div_payer_taxno[$payer_taxno_digit])) {
+            $html .= $div_payer_taxno[$payer_taxno_digit];
+        }
+        $payer_taxno_digit++;
+
+        // 2
+        $div_payer_taxno[$payer_taxno_digit] = '<div style="position: absolute; top: ';
+        ($payer_taxno[$payer_taxno_digit] == 0 || $payer_taxno[$payer_taxno_digit] == "0") ? $div_payer_taxno[$payer_taxno_digit] .= $payer_taxno_top - 2 : $div_payer_taxno[$payer_taxno_digit] .= $payer_taxno_top;
+        $div_payer_taxno[$payer_taxno_digit] .= '; right: 254; width: 14.5px; text-align: center; border: 1px solid rgba(' . $border_red . ', 0, 0, ' . $border_check . ');">' . $payer_taxno[$payer_taxno_digit] . '</div>';
+        if (isset($div_payer_taxno[$payer_taxno_digit]) && !empty($div_payer_taxno[$payer_taxno_digit])) {
+            $html .= $div_payer_taxno[$payer_taxno_digit];
+        }
+        $payer_taxno_digit++;
+
+        // 3
+        $div_payer_taxno[$payer_taxno_digit] = '<div style="position: absolute; top: ';
+        ($payer_taxno[$payer_taxno_digit] == 0 || $payer_taxno[$payer_taxno_digit] == "0") ? $div_payer_taxno[$payer_taxno_digit] .= $payer_taxno_top - 2 : $div_payer_taxno[$payer_taxno_digit] .= $payer_taxno_top;
+        $div_payer_taxno[$payer_taxno_digit] .= '; right: 238; width: 14.5px; text-align: center; border: 1px solid rgba(' . $border_red . ', 0, 0, ' . $border_check . ');">' . $payer_taxno[$payer_taxno_digit] . '</div>';
+        if (isset($div_payer_taxno[$payer_taxno_digit]) && !empty($div_payer_taxno[$payer_taxno_digit])) {
+            $html .= $div_payer_taxno[$payer_taxno_digit];
+        }
+        $payer_taxno_digit++;
+
+        // 4
+        $div_payer_taxno[$payer_taxno_digit] = '<div style="position: absolute; top: ';
+        ($payer_taxno[$payer_taxno_digit] == 0 || $payer_taxno[$payer_taxno_digit] == "0") ? $div_payer_taxno[$payer_taxno_digit] .= $payer_taxno_top - 2 : $div_payer_taxno[$payer_taxno_digit] .= $payer_taxno_top;
+        $div_payer_taxno[$payer_taxno_digit] .= '; right: 222; width: 14.5px; text-align: center; border: 1px solid rgba(' . $border_red . ', 0, 0, ' . $border_check . ');">' . $payer_taxno[$payer_taxno_digit] . '</div>';
+        if (isset($div_payer_taxno[$payer_taxno_digit]) && !empty($div_payer_taxno[$payer_taxno_digit])) {
+            $html .= $div_payer_taxno[$payer_taxno_digit];
+        }
+        $payer_taxno_digit++;
+
+        // 5
+        $div_payer_taxno[$payer_taxno_digit] = '<div style="position: absolute; top: ';
+        ($payer_taxno[$payer_taxno_digit] == 0 || $payer_taxno[$payer_taxno_digit] == "0") ? $div_payer_taxno[$payer_taxno_digit] .= $payer_taxno_top - 2 : $div_payer_taxno[$payer_taxno_digit] .= $payer_taxno_top;
+        $div_payer_taxno[$payer_taxno_digit] .= '; right: 206; width: 14.5px; text-align: center; border: 1px solid rgba(' . $border_red . ', 0, 0, ' . $border_check . ');">' . $payer_taxno[$payer_taxno_digit] . '</div>';
+        if (isset($div_payer_taxno[$payer_taxno_digit]) && !empty($div_payer_taxno[$payer_taxno_digit])) {
+            $html .= $div_payer_taxno[$payer_taxno_digit];
+        }
+        $payer_taxno_digit++;
+
+        // 6
+        $div_payer_taxno[$payer_taxno_digit] = '<div style="position: absolute; top: ';
+        ($payer_taxno[$payer_taxno_digit] == 0 || $payer_taxno[$payer_taxno_digit] == "0") ? $div_payer_taxno[$payer_taxno_digit] .= $payer_taxno_top - 2 : $div_payer_taxno[$payer_taxno_digit] .= $payer_taxno_top;
+        $div_payer_taxno[$payer_taxno_digit] .= '; right: 181; width: 14.5px; text-align: center; border: 1px solid rgba(' . $border_red . ', 0, 0, ' . $border_check . ');">' . $payer_taxno[$payer_taxno_digit] . '</div>';
+        if (isset($div_payer_taxno[$payer_taxno_digit]) && !empty($div_payer_taxno[$payer_taxno_digit])) {
+            $html .= $div_payer_taxno[$payer_taxno_digit];
+        }
+        $payer_taxno_digit++;
+
+        // 7
+        $div_payer_taxno[$payer_taxno_digit] = '<div style="position: absolute; top: ';
+        ($payer_taxno[$payer_taxno_digit] == 0 || $payer_taxno[$payer_taxno_digit] == "0") ? $div_payer_taxno[$payer_taxno_digit] .= $payer_taxno_top - 2 : $div_payer_taxno[$payer_taxno_digit] .= $payer_taxno_top;
+        $div_payer_taxno[$payer_taxno_digit] .= '; right: 165; width: 14.5px; text-align: center; border: 1px solid rgba(' . $border_red . ', 0, 0, ' . $border_check . ');">' . $payer_taxno[$payer_taxno_digit] . '</div>';
+        if (isset($div_payer_taxno[$payer_taxno_digit]) && !empty($div_payer_taxno[$payer_taxno_digit])) {
+            $html .= $div_payer_taxno[$payer_taxno_digit];
+        }
+        $payer_taxno_digit++;
+
+        // 8
+        $div_payer_taxno[$payer_taxno_digit] = '<div style="position: absolute; top: ';
+        ($payer_taxno[$payer_taxno_digit] == 0 || $payer_taxno[$payer_taxno_digit] == "0") ? $div_payer_taxno[$payer_taxno_digit] .= $payer_taxno_top - 2 : $div_payer_taxno[$payer_taxno_digit] .= $payer_taxno_top;
+        $div_payer_taxno[$payer_taxno_digit] .= '; right: 149; width: 14.5px; text-align: center; border: 1px solid rgba(' . $border_red . ', 0, 0, ' . $border_check . ');">' . $payer_taxno[$payer_taxno_digit] . '</div>';
+        if (isset($div_payer_taxno[$payer_taxno_digit]) && !empty($div_payer_taxno[$payer_taxno_digit])) {
+            $html .= $div_payer_taxno[$payer_taxno_digit];
+        }
+        $payer_taxno_digit++;
+
+        // 9
+        $div_payer_taxno[$payer_taxno_digit] = '<div style="position: absolute; top: ';
+        ($payer_taxno[$payer_taxno_digit] == 0 || $payer_taxno[$payer_taxno_digit] == "0") ? $div_payer_taxno[$payer_taxno_digit] .= $payer_taxno_top - 2 : $div_payer_taxno[$payer_taxno_digit] .= $payer_taxno_top;
+        $div_payer_taxno[$payer_taxno_digit] .= '; right: 133; width: 14.5px; text-align: center; border: 1px solid rgba(' . $border_red . ', 0, 0, ' . $border_check . ');">' . $payer_taxno[$payer_taxno_digit] . '</div>';
+        if (isset($div_payer_taxno[$payer_taxno_digit]) && !empty($div_payer_taxno[$payer_taxno_digit])) {
+            $html .= $div_payer_taxno[$payer_taxno_digit];
+        }
+        $payer_taxno_digit++;
+
+        // 10
+        $div_payer_taxno[$payer_taxno_digit] = '<div style="position: absolute; top: ';
+        ($payer_taxno[$payer_taxno_digit] == 0 || $payer_taxno[$payer_taxno_digit] == "0") ? $div_payer_taxno[$payer_taxno_digit] .= $payer_taxno_top - 2 : $div_payer_taxno[$payer_taxno_digit] .= $payer_taxno_top;
+        $div_payer_taxno[$payer_taxno_digit] .= '; right: 117; width: 14.5px; text-align: center; border: 1px solid rgba(' . $border_red . ', 0, 0, ' . $border_check . ');">' . $payer_taxno[$payer_taxno_digit] . '</div>';
+        if (isset($div_payer_taxno[$payer_taxno_digit]) && !empty($div_payer_taxno[$payer_taxno_digit])) {
+            $html .= $div_payer_taxno[$payer_taxno_digit];
+        }
+        $payer_taxno_digit++;
+
+        // 11
+        $div_payer_taxno[$payer_taxno_digit] = '<div style="position: absolute; top: ';
+        ($payer_taxno[$payer_taxno_digit] == 0 || $payer_taxno[$payer_taxno_digit] == "0") ? $div_payer_taxno[$payer_taxno_digit] .= $payer_taxno_top - 2 : $div_payer_taxno[$payer_taxno_digit] .= $payer_taxno_top;
+        $div_payer_taxno[$payer_taxno_digit] .= '; right: 92.5; width: 14.5px; text-align: center; border: 1px solid rgba(' . $border_red . ', 0, 0, ' . $border_check . ');">' . $payer_taxno[$payer_taxno_digit] . '</div>';
+        if (isset($div_payer_taxno[$payer_taxno_digit]) && !empty($div_payer_taxno[$payer_taxno_digit])) {
+            $html .= $div_payer_taxno[$payer_taxno_digit];
+        }
+        $payer_taxno_digit++;
+
+        // 12
+        $div_payer_taxno[$payer_taxno_digit] = '<div style="position: absolute; top: ';
+        ($payer_taxno[$payer_taxno_digit] == 0 || $payer_taxno[$payer_taxno_digit] == "0") ? $div_payer_taxno[$payer_taxno_digit] .= $payer_taxno_top - 2 : $div_payer_taxno[$payer_taxno_digit] .= $payer_taxno_top;
+        $div_payer_taxno[$payer_taxno_digit] .= '; right: 77; width: 14.5px; text-align: center; border: 1px solid rgba(' . $border_red . ', 0, 0, ' . $border_check . ');">' . $payer_taxno[$payer_taxno_digit] . '</div>';
+        if (isset($div_payer_taxno[$payer_taxno_digit]) && !empty($div_payer_taxno[$payer_taxno_digit])) {
+            $html .= $div_payer_taxno[$payer_taxno_digit];
+        }
+        $payer_taxno_digit++;
+
+        // 13
+        $div_payer_taxno[$payer_taxno_digit] = '<div style="position: absolute; top: ';
+        ($payer_taxno[$payer_taxno_digit] == 0 || $payer_taxno[$payer_taxno_digit] == "0") ? $div_payer_taxno[$payer_taxno_digit] .= $payer_taxno_top - 2 : $div_payer_taxno[$payer_taxno_digit] .= $payer_taxno_top;
+        $div_payer_taxno[$payer_taxno_digit] .= '; right: 52; width: 14.5px; text-align: center; border: 1px solid rgba(' . $border_red . ', 0, 0, ' . $border_check . ');">' . $payer_taxno[$payer_taxno_digit] . '</div>';
+        if (isset($div_payer_taxno[$payer_taxno_digit]) && !empty($div_payer_taxno[$payer_taxno_digit])) {
+            $html .= $div_payer_taxno[$payer_taxno_digit];
+        }
+        // End - Payer
+
+        // Start - Payee
+        $div_payee_name = '<div style="position: absolute; top: 230; left: 90;">' . $company_name . '</div>';
+        if (isset($company_name) && !empty($company_name)) {
+            $html .= $div_payee_name;
+        }
+
+        $div_payee_address = '<div style="position: absolute; top: 264; left: 90;">' . $company_address . '</div>';
+        if (isset($company_address) && !empty($company_address)) {
+            $html .= $div_payee_address;
+        }
+
+        $payee_taxno = trim($company_vat_number);
+        $payee_taxno_digit = 0;
+        $payee_taxno_top = "202";
+
+        // 1
+        $div_payee_taxno[$payee_taxno_digit] = '<div style="position: absolute; top: ';
+        ($payee_taxno[$payer_taxno_digit] == 0 || $payee_taxno[$payee_taxno_digit] == "0") ? $div_payee_taxno[$payee_taxno_digit] .= $payee_taxno_top - 2 : $div_payee_taxno[$payee_taxno_digit] .= $payee_taxno_top;
+        $div_payee_taxno[$payee_taxno_digit] .= '; right: 278; width: 14.5px; text-align: center; border: 1px solid rgba(' . $border_red . ', 0, 0, ' . $border_check . ');">' . $payee_taxno[$payee_taxno_digit] . '</div>';
+        if (isset($div_payee_taxno[$payee_taxno_digit]) && !empty($div_payee_taxno[$payee_taxno_digit])) {
+            $html .= $div_payee_taxno[$payee_taxno_digit];
+        }
+        $payee_taxno_digit++;
+
+        // 2
+        $div_payee_taxno[$payee_taxno_digit] = '<div style="position: absolute; top: ';
+        ($payee_taxno[$payer_taxno_digit] == 0 || $payee_taxno[$payee_taxno_digit] == "0") ? $div_payee_taxno[$payee_taxno_digit] .= $payee_taxno_top - 2 : $div_payee_taxno[$payee_taxno_digit] .= $payee_taxno_top;
+        $div_payee_taxno[$payee_taxno_digit] .= '; right: 254; width: 14.5px; text-align: center; border: 1px solid rgba(' . $border_red . ', 0, 0, ' . $border_check . ');">' . $payee_taxno[$payee_taxno_digit] . '</div>';
+        if (isset($div_payee_taxno[$payee_taxno_digit]) && !empty($div_payee_taxno[$payee_taxno_digit])) {
+            $html .= $div_payee_taxno[$payee_taxno_digit];
+        }
+        $payee_taxno_digit++;
+
+        // 3
+        $div_payee_taxno[$payee_taxno_digit] = '<div style="position: absolute; top: ';
+        ($payee_taxno[$payer_taxno_digit] == 0 || $payee_taxno[$payee_taxno_digit] == "0") ? $div_payee_taxno[$payee_taxno_digit] .= $payee_taxno_top - 2 : $div_payee_taxno[$payee_taxno_digit] .= $payee_taxno_top;
+        $div_payee_taxno[$payee_taxno_digit] .= '; right: 238; width: 14.5px; text-align: center; border: 1px solid rgba(' . $border_red . ', 0, 0, ' . $border_check . ');">' . $payee_taxno[$payee_taxno_digit] . '</div>';
+        if (isset($div_payee_taxno[$payee_taxno_digit]) && !empty($div_payee_taxno[$payee_taxno_digit])) {
+            $html .= $div_payee_taxno[$payee_taxno_digit];
+        }
+        $payee_taxno_digit++;
+
+        // 4
+        $div_payee_taxno[$payee_taxno_digit] = '<div style="position: absolute; top: ';
+        ($payee_taxno[$payer_taxno_digit] == 0 || $payee_taxno[$payee_taxno_digit] == "0") ? $div_payee_taxno[$payee_taxno_digit] .= $payee_taxno_top - 2 : $div_payee_taxno[$payee_taxno_digit] .= $payee_taxno_top;
+        $div_payee_taxno[$payee_taxno_digit] .= '; right: 222; width: 14.5px; text-align: center; border: 1px solid rgba(' . $border_red . ', 0, 0, ' . $border_check . ');">' . $payee_taxno[$payee_taxno_digit] . '</div>';
+        if (isset($div_payee_taxno[$payee_taxno_digit]) && !empty($div_payee_taxno[$payee_taxno_digit])) {
+            $html .= $div_payee_taxno[$payee_taxno_digit];
+        }
+        $payee_taxno_digit++;
+
+        // 5
+        $div_payee_taxno[$payee_taxno_digit] = '<div style="position: absolute; top: ';
+        ($payee_taxno[$payer_taxno_digit] == 0 || $payee_taxno[$payee_taxno_digit] == "0") ? $div_payee_taxno[$payee_taxno_digit] .= $payee_taxno_top - 2 : $div_payee_taxno[$payee_taxno_digit] .= $payee_taxno_top;
+        $div_payee_taxno[$payee_taxno_digit] .= '; right: 206; width: 14.5px; text-align: center; border: 1px solid rgba(' . $border_red . ', 0, 0, ' . $border_check . ');">' . $payee_taxno[$payee_taxno_digit] . '</div>';
+        if (isset($div_payee_taxno[$payee_taxno_digit]) && !empty($div_payee_taxno[$payee_taxno_digit])) {
+            $html .= $div_payee_taxno[$payee_taxno_digit];
+        }
+        $payee_taxno_digit++;
+
+        // 6
+        $div_payee_taxno[$payee_taxno_digit] = '<div style="position: absolute; top: ';
+        ($payee_taxno[$payer_taxno_digit] == 0 || $payee_taxno[$payee_taxno_digit] == "0") ? $div_payee_taxno[$payee_taxno_digit] .= $payee_taxno_top - 2 : $div_payee_taxno[$payee_taxno_digit] .= $payee_taxno_top;
+        $div_payee_taxno[$payee_taxno_digit] .= '; right: 181; width: 14.5px; text-align: center; border: 1px solid rgba(' . $border_red . ', 0, 0, ' . $border_check . ');">' . $payee_taxno[$payee_taxno_digit] . '</div>';
+        if (isset($div_payee_taxno[$payee_taxno_digit]) && !empty($div_payee_taxno[$payee_taxno_digit])) {
+            $html .= $div_payee_taxno[$payee_taxno_digit];
+        }
+        $payee_taxno_digit++;
+
+        // 7
+        $div_payee_taxno[$payee_taxno_digit] = '<div style="position: absolute; top: ';
+        ($payee_taxno[$payer_taxno_digit] == 0 || $payee_taxno[$payee_taxno_digit] == "0") ? $div_payee_taxno[$payee_taxno_digit] .= $payee_taxno_top - 2 : $div_payee_taxno[$payee_taxno_digit] .= $payee_taxno_top;
+        $div_payee_taxno[$payee_taxno_digit] .= '; right: 165; width: 14.5px; text-align: center; border: 1px solid rgba(' . $border_red . ', 0, 0, ' . $border_check . ');">' . $payee_taxno[$payee_taxno_digit] . '</div>';
+        if (isset($div_payee_taxno[$payee_taxno_digit]) && !empty($div_payee_taxno[$payee_taxno_digit])) {
+            $html .= $div_payee_taxno[$payee_taxno_digit];
+        }
+        $payee_taxno_digit++;
+
+        // 8
+        $div_payee_taxno[$payee_taxno_digit] = '<div style="position: absolute; top: ';
+        ($payee_taxno[$payer_taxno_digit] == 0 || $payee_taxno[$payee_taxno_digit] == "0") ? $div_payee_taxno[$payee_taxno_digit] .= $payee_taxno_top - 2 : $div_payee_taxno[$payee_taxno_digit] .= $payee_taxno_top;
+        $div_payee_taxno[$payee_taxno_digit] .= '; right: 149; width: 14.5px; text-align: center; border: 1px solid rgba(' . $border_red . ', 0, 0, ' . $border_check . ');">' . $payee_taxno[$payee_taxno_digit] . '</div>';
+        if (isset($div_payee_taxno[$payee_taxno_digit]) && !empty($div_payee_taxno[$payee_taxno_digit])) {
+            $html .= $div_payee_taxno[$payee_taxno_digit];
+        }
+        $payee_taxno_digit++;
+
+        // 9
+        $div_payee_taxno[$payee_taxno_digit] = '<div style="position: absolute; top: ';
+        ($payee_taxno[$payer_taxno_digit] == 0 || $payee_taxno[$payee_taxno_digit] == "0") ? $div_payee_taxno[$payee_taxno_digit] .= $payee_taxno_top - 2 : $div_payee_taxno[$payee_taxno_digit] .= $payee_taxno_top;
+        $div_payee_taxno[$payee_taxno_digit] .= '; right: 133; width: 14.5px; text-align: center; border: 1px solid rgba(' . $border_red . ', 0, 0, ' . $border_check . ');">' . $payee_taxno[$payee_taxno_digit] . '</div>';
+        if (isset($div_payee_taxno[$payee_taxno_digit]) && !empty($div_payee_taxno[$payee_taxno_digit])) {
+            $html .= $div_payee_taxno[$payee_taxno_digit];
+        }
+        $payee_taxno_digit++;
+
+        // 10
+        $div_payee_taxno[$payee_taxno_digit] = '<div style="position: absolute; top: ';
+        ($payee_taxno[$payer_taxno_digit] == 0 || $payee_taxno[$payee_taxno_digit] == "0") ? $div_payee_taxno[$payee_taxno_digit] .= $payee_taxno_top - 2 : $div_payee_taxno[$payee_taxno_digit] .= $payee_taxno_top;
+        $div_payee_taxno[$payee_taxno_digit] .= '; right: 117; width: 14.5px; text-align: center; border: 1px solid rgba(' . $border_red . ', 0, 0, ' . $border_check . ');">' . $payee_taxno[$payee_taxno_digit] . '</div>';
+        if (isset($div_payee_taxno[$payee_taxno_digit]) && !empty($div_payee_taxno[$payee_taxno_digit])) {
+            $html .= $div_payee_taxno[$payee_taxno_digit];
+        }
+        $payee_taxno_digit++;
+
+        // 11
+        $div_payee_taxno[$payee_taxno_digit] = '<div style="position: absolute; top: ';
+        ($payee_taxno[$payer_taxno_digit] == 0 || $payee_taxno[$payee_taxno_digit] == "0") ? $div_payee_taxno[$payee_taxno_digit] .= $payee_taxno_top - 2 : $div_payee_taxno[$payee_taxno_digit] .= $payee_taxno_top;
+        $div_payee_taxno[$payee_taxno_digit] .= '; right: 92.5; width: 14.5px; text-align: center; border: 1px solid rgba(' . $border_red . ', 0, 0, ' . $border_check . ');">' . $payee_taxno[$payee_taxno_digit] . '</div>';
+        if (isset($div_payee_taxno[$payee_taxno_digit]) && !empty($div_payee_taxno[$payee_taxno_digit])) {
+            $html .= $div_payee_taxno[$payee_taxno_digit];
+        }
+        $payee_taxno_digit++;
+
+        // 12
+        $div_payee_taxno[$payee_taxno_digit] = '<div style="position: absolute; top: ';
+        ($payee_taxno[$payer_taxno_digit] == 0 || $payee_taxno[$payee_taxno_digit] == "0") ? $div_payee_taxno[$payee_taxno_digit] .= $payee_taxno_top - 2 : $div_payee_taxno[$payee_taxno_digit] .= $payee_taxno_top;
+        $div_payee_taxno[$payee_taxno_digit] .= '; right: 76.5; width: 14.5px; text-align: center; border: 1px solid rgba(' . $border_red . ', 0, 0, ' . $border_check . ');">' . $payee_taxno[$payee_taxno_digit] . '</div>';
+        if (isset($div_payee_taxno[$payee_taxno_digit]) && !empty($div_payee_taxno[$payee_taxno_digit])) {
+            $html .= $div_payee_taxno[$payee_taxno_digit];
+        }
+        $payee_taxno_digit++;
+
+        // 13
+        $div_payee_taxno[$payee_taxno_digit] = '<div style="position: absolute; top: ';
+        ($payee_taxno[$payer_taxno_digit] == 0 || $payee_taxno[$payee_taxno_digit] == "0") ? $div_payee_taxno[$payee_taxno_digit] .= $payee_taxno_top - 2 : $div_payee_taxno[$payee_taxno_digit] .= $payee_taxno_top;
+        $div_payee_taxno[$payee_taxno_digit] .= '; right: 51; width: 14.5px; text-align: center; border: 1px solid rgba(' . $border_red . ', 0, 0, ' . $border_check . ');">' . $payee_taxno[$payee_taxno_digit] . '</div>';
+        if (isset($div_payee_taxno[$payee_taxno_digit]) && !empty($div_payee_taxno[$payee_taxno_digit])) {
+            $html .= $div_payee_taxno[$payee_taxno_digit];
+        }
+        // End - Payee
+
+        // Start - Income detail
+        $income_40_1_period = '';
+        $div_income_40_1_period = '<div style="position: absolute; width: 98px; top: 394; left: 438; text-align: center; border: 1px solid rgba(0, 0, 0, 0);">' . $income_40_1_period . '</div>';
+        if (isset($income_40_1_period) && !empty($income_40_1_period)) {
+            $html .= $div_income_40_1_period;
+        }
+
+        $income_40_1_value = 0;
+        $income_40_1_value_number = '0';
+        $income_40_1_value_decimal = '00';
+        if (isset($income_40_1_value) && !empty($income_40_1_value)) {
+            if ($income_40_1_value > 0) {
+                list($income_40_1_value_number, $income_40_1_value_decimal) = explode('.', $income_40_1_value);
+            }
+        }
+
+        $div_income_40_1_value_number = '<div style="position: absolute; width: 88px; top: 394; left: 542; text-align: right; border: 1px solid rgba(0, 0, 0, 0);">' . number_format($income_40_1_value_number, 0) . '</div>';
+        $div_income_40_1_value_decimal = '<div style="position: absolute; width: 20px; top: 394; left: 629; text-align: right; border: 1px solid rgba(0, 0, 0, 0);">' . $income_40_1_value_decimal . '</div>';
+        if (isset($income_40_1_value) && !empty($income_40_1_value) && $income_40_1_value > 0) {
+            $html .= $div_income_40_1_value_number;
+            $html .= $div_income_40_1_value_decimal;
+        }
+
+        $income_40_1_tax = 0;
+        $income_40_1_tax_number = '0';
+        $income_40_1_tax_decimal = '00';
+        if (isset($income_40_1_tax) && !empty($income_40_1_tax)) {
+            if ($income_40_1_tax > 0) {
+                list($income_40_1_tax_number, $income_40_1_tax_decimal) = explode('.', $income_40_1_tax);
+            }
+        }
+        
+        $div_income_40_1_tax_number = '<div style="position: absolute; width: 70px; top: 394; left: 655; text-align: right; border: 1px solid rgba(0, 0, 0, 0);">' . number_format($income_40_1_tax_number, 0) . '</div>';
+        $div_income_40_1_tax_decimal = '<div style="position: absolute; width: 20px; top: 394; left: 723; text-align: right; border: 1px solid rgba(0, 0, 0, 0);">' . $income_40_1_tax_decimal . '</div>';
+        if (isset($income_40_1_tax) && !empty($income_40_1_tax) && $income_40_1_tax > 0) {
+            $html .= $div_income_40_1_tax_number;
+            $html .= $div_income_40_1_tax_decimal;
+        }
+        // 40 (1)
+
+        $income_40_2_period = '';
+        $div_income_40_2_period = '<div style="position: absolute; width: 98px; top: 414; left: 438; text-align: center; border: 1px solid rgba(0, 0, 0, 0);">' . $income_40_2_period . '</div>';
+        if (isset($income_40_2_period) && !empty($income_40_2_period)) {
+            $html .= $div_income_40_2_period;
+        }
+
+        $income_40_2_value = 0;
+        $income_40_2_value_number = '0';
+        $income_40_2_value_decimal = '00';
+        if (isset($income_40_2_value) && !empty($income_40_2_value)) {
+            if ($income_40_2_value > 0) {
+                list($income_40_2_value_number, $income_40_2_value_decimal) = explode('.', $income_40_2_value);
+            }
+        }
+        
+        $div_income_40_2_value_number = '<div style="position: absolute; width: 88px; top: 414; left: 542; text-align: right; border: 1px solid rgba(0, 0, 0, 0);">' . number_format($income_40_2_value_number, 0) . '</div>';
+        $div_income_40_2_value_decimal = '<div style="position: absolute; width: 20px; top: 414; left: 629; text-align: right; border: 1px solid rgba(0, 0, 0, 0);">' . $income_40_2_value_decimal . '</div>';
+        if (isset($income_40_2_value) && !empty($income_40_2_value) && $income_40_2_value > 0) {
+            $html .= $div_income_40_2_value_number;
+            $html .= $div_income_40_2_value_decimal;
+        }
+
+        $income_40_2_tax = 0;
+        $income_40_2_tax_number = '0';
+        $income_40_2_tax_decimal = '00';
+        if (isset($income_40_2_tax) && !empty($income_40_2_tax)) {
+            if ($income_40_2_tax > 0) {
+                list($income_40_2_tax_number, $income_40_2_tax_decimal) = explode('.', $income_40_2_tax);
+            }
+        }
+        
+        $div_income_40_2_tax_number = '<div style="position: absolute; width: 70px; top: 414; left: 655; text-align: right; border: 1px solid rgba(0, 0, 0, 0);">' . number_format($income_40_2_tax_number, 0) . '</div>';
+        $div_income_40_2_tax_decimal = '<div style="position: absolute; width: 20px; top: 414; left: 723; text-align: right; border: 1px solid rgba(0, 0, 0, 0);">' . $income_40_2_tax_decimal . '</div>';
+        if (isset($income_40_2_tax) && !empty($income_40_2_tax) && $income_40_2_tax > 0) {
+            $html .= $div_income_40_2_tax_number;
+            $html .= $div_income_40_2_tax_decimal;
+        }
+        // 40 (2)
+
+        $income_40_3_period = '';
+        $div_income_40_3_period = '<div style="position: absolute; width: 98px; top: 433; left: 438; text-align: center; border: 1px solid rgba(0, 0, 0, 0);">' . $income_40_3_period . '</div>';
+        if (isset($income_40_3_period) && !empty($income_40_3_period)) {
+            $html .= $div_income_40_3_period;
+        }
+
+        $income_40_3_value = 0;
+        $income_40_3_value_number = '0';
+        $income_40_3_value_decimal = '00';
+        if (isset($income_40_3_value) && !empty($income_40_3_value)) {
+            if ($income_40_3_value > 0) {
+                list($income_40_3_value_number, $income_40_3_value_decimal) = explode('.', $income_40_3_value);
+            }
+        }
+        
+        $div_income_40_3_value_number = '<div style="position: absolute; width: 88px; top: 433; left: 542; text-align: right; border: 1px solid rgba(0, 0, 0, 0);">' . number_format($income_40_3_value_number, 0) . '</div>';
+        $div_income_40_3_value_decimal = '<div style="position: absolute; width: 20px; top: 433; left: 629; text-align: right; border: 1px solid rgba(0, 0, 0, 0);">' . $income_40_3_value_decimal . '</div>';
+        if (isset($income_40_3_value) && !empty($income_40_3_value) && $income_40_3_value > 0) {
+            $html .= $div_income_40_3_value_number;
+            $html .= $div_income_40_3_value_decimal;
+        }
+
+        $income_40_3_tax = 0;
+        $income_40_3_tax_number = '0';
+        $income_40_3_tax_decimal = '00';
+        if (isset($income_40_3_tax) && !empty($income_40_3_tax)) {
+            if ($income_40_3_tax > 0) {
+                list($income_40_3_tax_number, $income_40_3_tax_decimal) = explode('.', $income_40_3_tax);
+            }
+        }
+        
+        $div_income_40_3_tax_number = '<div style="position: absolute; width: 70px; top: 433; left: 655; text-align: right; border: 1px solid rgba(0, 0, 0, 0);">' . number_format($income_40_3_tax_number, 0) . '</div>';
+        $div_income_40_3_tax_decimal = '<div style="position: absolute; width: 20px; top: 433; left: 723; text-align: right; border: 1px solid rgba(0, 0, 0, 0);">' . $income_40_3_tax_decimal . '</div>';
+        if (isset($income_40_3_tax) && !empty($income_40_3_tax) && $income_40_3_tax > 0) {
+            $html .= $div_income_40_3_tax_number;
+            $html .= $div_income_40_3_tax_decimal;
+        }
+        // 40 (3)
+
+        $income_40_4A_period = '';
+        $div_income_40_4A_period = '<div style="position: absolute; width: 98px; top: 452; left: 438; text-align: center; border: 1px solid rgba(0, 0, 0, 0);">' . $income_40_4A_period . '</div>';
+        if (isset($income_40_4A_period) && !empty($income_40_4A_period)) {
+            $html .= $div_income_40_4A_period;
+        }
+
+        $income_40_4A_value = 0;
+        $income_40_4A_value_number = '0';
+        $income_40_4A_value_decimal = '00';
+        if (isset($income_40_4A_value) && !empty($income_40_4A_value)) {
+            if ($income_40_4A_value > 0) {
+                list($income_40_4A_value_number, $income_40_4A_value_decimal) = explode('.', $income_40_4A_value);
+            }
+        }
+        
+        $div_income_40_4A_value_number = '<div style="position: absolute; width: 88px; top: 452; left: 542; text-align: right; border: 1px solid rgba(0, 0, 0, 0);">' . number_format($income_40_4A_value_number, 0) . '</div>';
+        $div_income_40_4A_value_decimal = '<div style="position: absolute; width: 20px; top: 452; left: 629; text-align: right; border: 1px solid rgba(0, 0, 0, 0);">' . $income_40_4A_value_decimal . '</div>';
+        if (isset($income_40_4A_value) && !empty($income_40_4A_value) && $income_40_4A_value > 0) {
+            $html .= $div_income_40_4A_value_number;
+            $html .= $div_income_40_4A_value_decimal;
+        }
+
+        $income_40_4A_tax = 0;
+        $income_40_4A_tax_number = '0';
+        $income_40_4A_tax_decimal = '00';
+        if (isset($income_40_4A_tax) && !empty($income_40_4A_tax)) {
+            if ($income_40_4A_tax > 0) {
+                list($income_40_4A_tax_number, $income_40_4A_tax_decimal) = explode('.', $income_40_4A_tax);
+            }
+        }
+        
+        $div_income_40_4A_tax_number = '<div style="position: absolute; width: 70px; top: 452; left: 655; text-align: right; border: 1px solid rgba(0, 0, 0, 0);">' . number_format($income_40_4A_tax_number, 0) . '</div>';
+        $div_income_40_4A_tax_decimal = '<div style="position: absolute; width: 20px; top: 452; left: 723; text-align: right; border: 1px solid rgba(0, 0, 0, 0);">' . $income_40_4A_tax_decimal . '</div>';
+        if (isset($income_40_4A_tax) && !empty($income_40_4A_tax) && $income_40_4A_tax > 0) {
+            $html .= $div_income_40_4A_tax_number;
+            $html .= $div_income_40_4A_tax_decimal;
+        }
+        // 40 (4) (ก)
+
+        $income_40_4B_period["1-1"] = '';
+        $div_income_40_4B_period["1-1"] = '<div style="position: absolute; width: 98px; top: 529.5; left: 438; text-align: center; border: 1px solid rgba(0, 0, 0, 0);">' . $income_40_4B_period["1-1"] . '</div>';
+        if (isset($income_40_4B_period["1-1"]) && !empty($income_40_4B_period["1-1"])) {
+            $html .= $div_income_40_4B_period["1-1"];
+        }
+
+        $income_40_4B_value["1-1"] = 0;
+        $income_40_4B_value_number["1-1"] = '0';
+        $income_40_4B_value_decimal["1-1"] = '00';
+        if (isset($income_40_4B_value["1-1"]) && !empty($income_40_4B_value["1-1"])) {
+            if ($income_40_4B_value["1-1"] > 0) {
+                list($income_40_4B_value_number["1-1"], $income_40_4B_value_decimal["1-1"]) = explode('.', $income_40_4B_value["1-1"]);
+            }
+        }
+        
+        $div_income_40_4B_value_number["1-1"] = '<div style="position: absolute; width: 88px; top: 529.5; left: 542; text-align: right; border: 1px solid rgba(0, 0, 0, 0);">' . number_format($income_40_4B_value_number["1-1"], 0) . '</div>';
+        $div_income_40_4B_value_decimal["1-1"] = '<div style="position: absolute; width: 20px; top: 529.5; left: 629; text-align: right; border: 1px solid rgba(0, 0, 0, 0);">' . $income_40_4B_value_decimal["1-1"] . '</div>';
+        if (isset($income_40_4B_value["1-1"]) && !empty($income_40_4B_value["1-1"]) && $income_40_4B_value["1-1"] > 0) {
+            $html .= $div_income_40_4B_value_number["1-1"];
+            $html .= $div_income_40_4B_value_decimal["1-1"];
+        }
+
+        $income_40_4B_tax["1-1"] = 0;
+        $income_40_4B_tax_number["1-1"] = '0';
+        $income_40_4B_tax_decimal["1-1"] = '00';
+        if (isset($income_40_4B_tax["1-1"]) && !empty($income_40_4B_tax["1-1"])) {
+            if ($income_40_4B_tax["1-1"] > 0) {
+                list($income_40_4B_tax_number["1-1"], $income_40_4B_tax_decimal["1-1"]) = explode('.', $income_40_4B_tax["1-1"]);
+            }
+        }
+
+        $div_income_40_4B_tax_number["1-1"] = '<div style="position: absolute; width: 70px; top: 529.5; left: 655; text-align: right; border: 1px solid rgba(0, 0, 0, 0);">' . number_format($income_40_4B_tax_number["1-1"], 0) . '</div>';
+        $div_income_40_4B_tax_decimal["1-1"] = '<div style="position: absolute; width: 20px; top: 529.5; left: 723; text-align: right; border: 1px solid rgba(0, 0, 0, 0);">' . $income_40_4B_tax_decimal["1-1"] . '</div>';
+        if (isset($income_40_4B_tax["1-1"]) && !empty($income_40_4B_tax["1-1"]) && $income_40_4B_tax["1-1"] > 0) {
+            $html .= $div_income_40_4B_tax_number["1-1"];
+            $html .= $div_income_40_4B_tax_decimal["1-1"];
+        }
+        // 40 (4) (ข) 1.1
+
+        $income_40_4B_period["1-2"] = '';
+        $div_income_40_4B_period["1-2"] = '<div style="position: absolute; width: 98px; top: 549; left: 438; text-align: center; border: 1px solid rgba(0, 0, 0, 0);">' . $income_40_4B_period["1-2"] . '</div>';
+        if (isset($income_40_4B_period["1-2"]) && !empty($income_40_4B_period["1-2"])) {
+            $html .= $div_income_40_4B_period["1-2"];
+        }
+
+        $income_40_4B_value["1-2"] = 0;
+        $income_40_4B_value_number["1-2"] = '0';
+        $income_40_4B_value_decimal["1-2"] = '00';
+        if (isset($income_40_4B_value["1-2"]) && !empty($income_40_4B_value["1-2"])) {
+            if ($income_40_4B_value["1-2"] > 0) {
+                list($income_40_4B_value_number["1-2"], $income_40_4B_value_decimal["1-2"]) = explode('.', $income_40_4B_value["1-2"]);
+            }
+        }
+        
+        $div_income_40_4B_value_number["1-2"] = '<div style="position: absolute; width: 88px; top: 549; left: 542; text-align: right; border: 1px solid rgba(0, 0, 0, 0);">' . number_format($income_40_4B_value_number["1-2"], 0) . '</div>';
+        $div_income_40_4B_value_decimal["1-2"] = '<div style="position: absolute; width: 20px; top: 549; left: 629; text-align: right; border: 1px solid rgba(0, 0, 0, 0);">' . $income_40_4B_value_decimal["1-2"] . '</div>';
+        if (isset($income_40_4B_value["1-2"]) && !empty($income_40_4B_value["1-2"]) && $income_40_4B_value["1-2"] > 0) {
+            $html .= $div_income_40_4B_value_number["1-2"];
+            $html .= $div_income_40_4B_value_decimal["1-2"];
+        }
+
+        $income_40_4B_tax["1-2"] = 0;
+        $income_40_4B_tax_number["1-2"] = '0';
+        $income_40_4B_tax_decimal["1-2"] = '00';
+        if (isset($income_40_4B_tax["1-2"]) && !empty($income_40_4B_tax["1-2"])) {
+            if ($income_40_4B_tax["1-2"] > 0) {
+                list($income_40_4B_tax_number["1-2"], $income_40_4B_tax_decimal["1-2"]) = explode('.', $income_40_4B_tax["1-2"]);
+            }
+        }
+        
+        $div_income_40_4B_tax_number["1-2"] = '<div style="position: absolute; width: 70px; top: 549; left: 655; text-align: right; border: 1px solid rgba(0, 0, 0, 0);">' . number_format($income_40_4B_tax_number["1-2"], 0) . '</div>';
+        $div_income_40_4B_tax_decimal["1-2"] = '<div style="position: absolute; width: 20px; top: 549; left: 723; text-align: right; border: 1px solid rgba(0, 0, 0, 0);">' . $income_40_4B_tax_decimal["1-2"] . '</div>';
+        if (isset($income_40_4B_tax["1-2"]) && !empty($income_40_4B_tax["1-2"]) && $income_40_4B_tax["1-2"] > 0) {
+            $html .= $div_income_40_4B_tax_number["1-2"];
+            $html .= $div_income_40_4B_tax_decimal["1-2"];
+        }
+        // 40 (4) (ข) 1.2
+
+        $income_40_4B_period["1-3"] = '';
+        $div_income_40_4B_period["1-3"] = '<div style="position: absolute; width: 98px; top: 568.5; left: 438; text-align: center; border: 1px solid rgba(0, 0, 0, 0);">' . $income_40_4B_period["1-3"] . '</div>';
+        if (isset($income_40_4B_period["1-3"]) && !empty($income_40_4B_period["1-3"])) {
+            $html .= $div_income_40_4B_period["1-3"];
+        }
+
+        $income_40_4B_value["1-3"] = 0;
+        $income_40_4B_value_number["1-3"] = '0';
+        $income_40_4B_value_decimal["1-3"] = '00';
+        if (isset($income_40_4B_value["1-3"]) && !empty($income_40_4B_value["1-3"])) {
+            if ($income_40_4B_value["1-3"] > 0) {
+                list($income_40_4B_value_number["1-3"], $income_40_4B_value_decimal["1-3"]) = explode('.', $income_40_4B_value["1-3"]);
+            }
+        }
+        
+        $div_income_40_4B_value_number["1-3"] = '<div style="position: absolute; width: 88px; top: 568.5; left: 542; text-align: right; border: 1px solid rgba(0, 0, 0, 0);">' . number_format($income_40_4B_value_number["1-3"], 0) . '</div>';
+        $div_income_40_4B_value_decimal["1-3"] = '<div style="position: absolute; width: 20px; top: 568.5; left: 629; text-align: right; border: 1px solid rgba(0, 0, 0, 0);">' . $income_40_4B_value_decimal["1-3"] . '</div>';
+        if (isset($income_40_4B_value["1-3"]) && !empty($income_40_4B_value["1-3"]) && $income_40_4B_value["1-3"] > 0) {
+            $html .= $div_income_40_4B_value_number["1-3"];
+            $html .= $div_income_40_4B_value_decimal["1-3"];
+        }
+
+        $income_40_4B_tax["1-3"] = 0;
+        $income_40_4B_tax_number["1-3"] = '0';
+        $income_40_4B_tax_decimal["1-3"] = '00';
+        if (isset($income_40_4B_tax["1-3"]) && !empty($income_40_4B_tax["1-3"])) {
+            if ($income_40_4B_tax["1-3"] > 0) {
+                list($income_40_4B_tax_number["1-3"], $income_40_4B_tax_decimal["1-3"]) = explode('.', $income_40_4B_tax["1-3"]);
+            }
+        }
+        
+        $div_income_40_4B_tax_number["1-3"] = '<div style="position: absolute; width: 70px; top: 568.5; left: 655; text-align: right; border: 1px solid rgba(0, 0, 0, 0);">' . number_format($income_40_4B_tax_number["1-3"], 0) . '</div>';
+        $div_income_40_4B_tax_decimal["1-3"] = '<div style="position: absolute; width: 20px; top: 568.5; left: 723; text-align: right; border: 1px solid rgba(0, 0, 0, 0);">' . $income_40_4B_tax_decimal["1-3"] . '</div>';
+        if (isset($income_40_4B_tax["1-3"]) && !empty($income_40_4B_tax["1-3"]) && $income_40_4B_tax["1-3"] > 0) {
+            $html .= $div_income_40_4B_tax_number["1-3"];
+            $html .= $div_income_40_4B_tax_decimal["1-3"];
+        }
+        // 40 (4) (ข) 1.3
+
+        $income_40_4B_percentage["1-4"] = 0;
+        $div_income_40_4B_percentage["1-4"] = '<div style="position: absolute; width: 40px; top: 589; left: 219; text-align: center; border: 1px solid rgba(0, 0, 0, 0);">' . $income_40_4B_percentage["1-4"] . '</div>';
+        if (isset($income_40_4B_percentage["1-4"]) && !empty($income_40_4B_percentage["1-4"]) && $income_40_4B_percentage["1-4"] > 0) {
+            $html .= $div_income_40_4B_percentage["1-4"];
+        }
+
+        $income_40_4B_period["1-4"] = '';
+        $div_income_40_4B_period["1-4"] = '<div style="position: absolute; width: 98px; top: 588; left: 438; text-align: center; border: 1px solid rgba(0, 0, 0, 0);">' . $income_40_4B_period["1-4"] . '</div>';
+        if (isset($income_40_4B_period["1-4"]) && !empty($income_40_4B_period["1-4"])) {
+            $html .= $div_income_40_4B_period["1-4"];
+        }
+
+        $income_40_4B_value["1-4"] = 0;
+        $income_40_4B_value_number["1-4"] = '0';
+        $income_40_4B_value_decimal["1-4"] = '00';
+        if (isset($income_40_4B_value["1-4"]) && !empty($income_40_4B_value["1-4"])) {
+            if ($income_40_4B_value["1-4"] > 0) {
+                list($income_40_4B_value_number["1-4"], $income_40_4B_value_decimal["1-4"]) = explode('.', $income_40_4B_value["1-4"]);
+            }
+        }
+        
+        $div_income_40_4B_value_number["1-4"] = '<div style="position: absolute; width: 88px; top: 588; left: 542; text-align: right; border: 1px solid rgba(0, 0, 0, 0);">' . number_format($income_40_4B_value_number["1-4"], 0) . '</div>';
+        $div_income_40_4B_value_decimal["1-4"] = '<div style="position: absolute; width: 20px; top: 588; left: 629; text-align: right; border: 1px solid rgba(0, 0, 0, 0);">' . $income_40_4B_value_decimal["1-4"] . '</div>';
+        if (isset($income_40_4B_value["1-4"]) && !empty($income_40_4B_value["1-4"]) && $income_40_4B_value["1-4"] > 0) {
+            $html .= $div_income_40_4B_value_number["1-4"];
+            $html .= $div_income_40_4B_value_decimal["1-4"];
+        }
+
+        $income_40_4B_tax["1-4"] = 0;
+        $income_40_4B_tax_number["1-4"] = '0';
+        $income_40_4B_tax_decimal["1-4"] = '00';
+        if (isset($income_40_4B_tax["1-4"]) && !empty($income_40_4B_tax["1-4"])) {
+            if ($income_40_4B_tax["1-4"] > 0) {
+                list($income_40_4B_tax_number["1-4"], $income_40_4B_tax_decimal["1-4"]) = explode('.', $income_40_4B_tax["1-4"]);
+            }
+        }
+        
+        $div_income_40_4B_tax_number["1-4"] = '<div style="position: absolute; width: 70px; top: 588; left: 655; text-align: right; border: 1px solid rgba(0, 0, 0, 0);">' . number_format($income_40_4B_tax_number["1-4"], 0) . '</div>';
+        $div_income_40_4B_tax_decimal["1-4"] = '<div style="position: absolute; width: 20px; top: 588; left: 723; text-align: right; border: 1px solid rgba(0, 0, 0, 0);">' . $income_40_4B_tax_decimal["1-4"] . '</div>';
+        if (isset($income_40_4B_tax["1-4"]) && !empty($income_40_4B_tax["1-4"]) && $income_40_4B_tax["1-4"] > 0) {
+            $html .= $div_income_40_4B_tax_number["1-4"];
+            $html .= $div_income_40_4B_tax_decimal["1-4"];
+        }
+        // 40 (4) (ข) 1.4
+
+        $income_40_4B_period["2-1"] = '';
+        $div_income_40_4B_period["2-1"] = '<div style="position: absolute; width: 98px; top: 626.5; left: 438; text-align: center; border: 1px solid rgba(0, 0, 0, 0);">' . $income_40_4B_period["2-1"] . '</div>';
+        if (isset($income_40_4B_period["2-1"]) && !empty($income_40_4B_period["2-1"])) {
+            $html .= $div_income_40_4B_period["2-1"];
+        }
+
+        $income_40_4B_value["2-1"] = 0;
+        $income_40_4B_value_number["2-1"] = '0';
+        $income_40_4B_value_decimal["2-1"] = '00';
+        if (isset($income_40_4B_value["2-1"]) && !empty($income_40_4B_value["2-1"])) {
+            if ($income_40_4B_value["2-1"] > 0) {
+                list($income_40_4B_value_number["2-1"], $income_40_4B_value_decimal["2-1"]) = explode('.', $income_40_4B_value["2-1"]);
+            }
+        }
+        
+        $div_income_40_4B_value_number["2-1"] = '<div style="position: absolute; width: 88px; top: 626.5; left: 542; text-align: right; border: 1px solid rgba(0, 0, 0, 0);">' . number_format($income_40_4B_value_number["2-1"], 0) . '</div>';
+        $div_income_40_4B_value_decimal["2-1"] = '<div style="position: absolute; width: 20px; top: 626.5; left: 629; text-align: right; border: 1px solid rgba(0, 0, 0, 0);">' . $income_40_4B_value_decimal["2-1"] . '</div>';
+        if (isset($income_40_4B_value["2-1"]) && !empty($income_40_4B_value["2-1"]) && $income_40_4B_value["2-1"] > 0) {
+            $html .= $div_income_40_4B_value_number["2-1"];
+            $html .= $div_income_40_4B_value_decimal["2-1"];
+        }
+
+        $income_40_4B_tax["2-1"] = 0;
+        $income_40_4B_tax_number["2-1"] = '0';
+        $income_40_4B_tax_decimal["2-1"] = '00';
+        if (isset($income_40_4B_tax["2-1"]) && !empty($income_40_4B_tax["2-1"])) {
+            if ($income_40_4B_tax["2-1"] > 0) {
+                list($income_40_4B_tax_number["2-1"], $income_40_4B_tax_decimal["2-1"]) = explode('.', $income_40_4B_tax["2-1"]);
+            }
+        }
+        
+        $div_income_40_4B_tax_number["2-1"] = '<div style="position: absolute; width: 70px; top: 626.5; left: 655; text-align: right; border: 1px solid rgba(0, 0, 0, 0);">' . number_format($income_40_4B_tax_number["2-1"], 0) . '</div>';
+        $div_income_40_4B_tax_decimal["2-1"] = '<div style="position: absolute; width: 20px; top: 626.5; left: 723; text-align: right; border: 1px solid rgba(0, 0, 0, 0);">' . $income_40_4B_tax_decimal["2-1"] . '</div>';
+        if (isset($income_40_4B_tax["2-1"]) && !empty($income_40_4B_tax["2-1"]) && $income_40_4B_tax["2-1"] > 0) {
+            $html .= $div_income_40_4B_tax_number["2-1"];
+            $html .= $div_income_40_4B_tax_decimal["2-1"];
+        }
+        // 40 (4) (ข) 2.1
+
+        $income_40_4B_period["2-2"] = '';
+        $div_income_40_4B_period["2-2"] = '<div style="position: absolute; width: 98px; top: 665.5; left: 438; text-align: center; border: 1px solid rgba(0, 0, 0, 0);">' . $income_40_4B_period["2-2"] . '</div>';
+        if (isset($income_40_4B_period["2-2"]) && !empty($income_40_4B_period["2-2"]) && $income_40_4B_period["2-2"] > 0) {
+            $html .= $div_income_40_4B_period["2-2"];
+        }
+
+        $income_40_4B_value["2-2"] = 0;
+        $income_40_4B_value_number["2-2"] = '0';
+        $income_40_4B_value_decimal["2-2"] = '00';
+        if (isset($income_40_4B_value["2-2"]) && !empty($income_40_4B_value["2-2"])) {
+            if ($income_40_4B_value["2-2"] > 0) {
+                list($income_40_4B_value_number["2-2"], $income_40_4B_value_decimal["2-2"]) = explode('.', $income_40_4B_value["2-2"]);
+            }
+        }
+        
+        $div_income_40_4B_value_number["2-2"] = '<div style="position: absolute; width: 88px; top: 665.5; left: 542; text-align: right; border: 1px solid rgba(0, 0, 0, 0);">' . number_format($income_40_4B_value_number["2-2"], 0) . '</div>';
+        $div_income_40_4B_value_decimal["2-2"] = '<div style="position: absolute; width: 20px; top: 665.5; left: 629; text-align: right; border: 1px solid rgba(0, 0, 0, 0);">' . $income_40_4B_value_decimal["2-2"] . '</div>';
+        if (isset($income_40_4B_value["2-2"]) && !empty($income_40_4B_value["2-2"]) && $income_40_4B_value["2-2"] > 0) {
+            $html .= $div_income_40_4B_value_number["2-2"];
+            $html .= $div_income_40_4B_value_decimal["2-2"];
+        }
+
+        $income_40_4B_tax["2-2"] = 0;
+        $income_40_4B_tax_number["2-2"] = '0';
+        $income_40_4B_tax_decimal["2-2"] = '00';
+        if (isset($income_40_4B_tax["2-2"]) && !empty($income_40_4B_tax["2-2"])) {
+            if ($income_40_4B_tax["2-2"] > 0) {
+                list($income_40_4B_tax_number["2-2"], $income_40_4B_tax_decimal["2-2"]) = explode('.', $income_40_4B_tax["2-2"]);
+            }
+        }
+        
+        $div_income_40_4B_tax_number["2-2"] = '<div style="position: absolute; width: 70px; top: 665.5; left: 655; text-align: right; border: 1px solid rgba(0, 0, 0, 0);">' . number_format($income_40_4B_tax_number["2-2"], 0) . '</div>';
+        $div_income_40_4B_tax_decimal["2-2"] = '<div style="position: absolute; width: 20px; top: 665.5; left: 723; text-align: right; border: 1px solid rgba(0, 0, 0, 0);">' . $income_40_4B_tax_decimal["2-2"] . '</div>';
+        if (isset($income_40_4B_tax["2-2"]) && !empty($income_40_4B_tax["2-2"]) && $income_40_4B_tax["2-2"] > 0) {
+            $html .= $div_income_40_4B_tax_number["2-2"];
+            $html .= $div_income_40_4B_tax_decimal["2-2"];
+        }
+        // 40 (4) (ข) 2.2
+
+        $income_40_4B_period["2-3"] = '';
+        $div_income_40_4B_period["2-3"] = '<div style="position: absolute; width: 98px; top: 704; left: 438; text-align: center; border: 1px solid rgba(0, 0, 0, 0);">' . $income_40_4B_period["2-3"] . '</div>';
+        if (isset($income_40_4B_period["2-3"]) && !empty($income_40_4B_period["2-3"])) {
+            $html .= $div_income_40_4B_period["2-3"];
+        }
+
+        $income_40_4B_value["2-3"] = 0;
+        $income_40_4B_value_number["2-3"] = '0';
+        $income_40_4B_value_decimal["2-3"] = '00';
+        if (isset($income_40_4B_value["2-3"]) && !empty($income_40_4B_value["2-3"])) {
+            if ($income_40_4B_value["2-3"] > 0) {
+                list($income_40_4B_value_number["2-3"], $income_40_4B_value_decimal["2-3"]) = explode('.', $income_40_4B_value["2-3"]);
+            }
+        }
+        
+        $div_income_40_4B_value_number["2-3"] = '<div style="position: absolute; width: 88px; top: 704; left: 542; text-align: right; border: 1px solid rgba(0, 0, 0, 0);">' . number_format($income_40_4B_value_number["2-3"], 0) . '</div>';
+        $div_income_40_4B_value_decimal["2-3"] = '<div style="position: absolute; width: 20px; top: 704; left: 629; text-align: right; border: 1px solid rgba(0, 0, 0, 0);">' . $income_40_4B_value_decimal["2-3"] . '</div>';
+        if (isset($income_40_4B_value["2-3"]) && !empty($income_40_4B_value["2-3"]) && $income_40_4B_value["2-3"] > 0) {
+            $html .= $div_income_40_4B_value_number["2-3"];
+            $html .= $div_income_40_4B_value_decimal["2-3"];
+        }
+
+        $income_40_4B_tax["2-3"] = 0;
+        $income_40_4B_tax_number["2-3"] = '0';
+        $income_40_4B_tax_decimal["2-3"] = '00';
+        if (isset($income_40_4B_tax["2-3"]) && !empty($income_40_4B_tax["2-3"])) {
+            if ($income_40_4B_tax["2-3"] > 0) {
+                list($income_40_4B_tax_number["2-3"], $income_40_4B_tax_decimal["2-3"]) = explode('.', $income_40_4B_tax["2-3"]);
+            }
+        }
+        
+        $div_income_40_4B_tax_number["2-3"] = '<div style="position: absolute; width: 70px; top: 704; left: 655; text-align: right; border: 1px solid rgba(0, 0, 0, 0);">' . number_format($income_40_4B_tax_number["2-3"], 0) . '</div>';
+        $div_income_40_4B_tax_decimal["2-3"] = '<div style="position: absolute; width: 20px; top: 704; left: 723; text-align: right; border: 1px solid rgba(0, 0, 0, 0);">' . $income_40_4B_tax_decimal["2-3"] . '</div>';
+        if (isset($income_40_4B_tax["2-3"]) && !empty($income_40_4B_tax["2-3"]) && $income_40_4B_tax["2-3"] > 0) {
+            $html .= $div_income_40_4B_tax_number["2-3"];
+            $html .= $div_income_40_4B_tax_decimal["2-3"];
+        }
+        // 40 (4) (ข) 2.3
+
+        $income_40_4B_period["2-4"] = '';
+        $div_income_40_4B_period["2-4"] = '<div style="position: absolute; width: 98px; top: 730; left: 438; text-align: center; border: 1px solid rgba(0, 0, 0, 0);">' . $income_40_4B_period["2-4"] . '</div>';
+        if (isset($income_40_4B_period["2-4"]) && !empty($income_40_4B_period["2-4"])) {
+            $html .= $div_income_40_4B_period["2-4"];
+        }
+
+        $income_40_4B_value["2-4"] = 0;
+        $income_40_4B_value_number["2-4"] = '0';
+        $income_40_4B_value_decimal["2-4"] = '00';
+        if (isset($income_40_4B_value["2-4"]) && !empty($income_40_4B_value["2-4"])) {
+            if ($income_40_4B_value["2-4"] > 0) {
+                list($income_40_4B_value_number["2-4"], $income_40_4B_value_decimal["2-4"]) = explode('.', $income_40_4B_value["2-4"]);
+            }
+        }
+        
+        $div_income_40_4B_value_number["2-4"] = '<div style="position: absolute; width: 88px; top: 730; left: 542; text-align: right; border: 1px solid rgba(0, 0, 0, 0);">' . number_format($income_40_4B_value_number["2-4"], 0) . '</div>';
+        $div_income_40_4B_value_decimal["2-4"] = '<div style="position: absolute; width: 20px; top: 730; left: 629; text-align: right; border: 1px solid rgba(0, 0, 0, 0);">' . $income_40_4B_value_decimal["2-4"] . '</div>';
+        if (isset($income_40_4B_value["2-4"]) && !empty($income_40_4B_value["2-4"]) && $income_40_4B_value["2-4"] > 0) {
+            $html .= $div_income_40_4B_value_number["2-4"];
+            $html .= $div_income_40_4B_value_decimal["2-4"];
+        }
+
+        $income_40_4B_tax["2-4"] = 0;
+        $income_40_4B_tax_number["2-4"] = '0';
+        $income_40_4B_tax_decimal["2-4"] = '00';
+        if (isset($income_40_4B_tax["2-4"]) && !empty($income_40_4B_tax["2-4"])) {
+            if ($income_40_4B_tax["2-4"] > 0) {
+                list($income_40_4B_tax_number["2-4"], $income_40_4B_tax_decimal["2-4"]) = explode('.', $income_40_4B_tax["2-4"]);
+            }
+        }
+        
+        $div_income_40_4B_tax_number["2-4"] = '<div style="position: absolute; width: 70px; top: 730; left: 655; text-align: right; border: 1px solid rgba(0, 0, 0, 0);">' . number_format($income_40_4B_tax_number["2-4"], 0) . '</div>';
+        $div_income_40_4B_tax_decimal["2-4"] = '<div style="position: absolute; width: 20px; top: 730; left: 723; text-align: right; border: 1px solid rgba(0, 0, 0, 0);">' . $income_40_4B_tax_decimal["2-4"] . '</div>';
+        if (isset($income_40_4B_tax["2-4"]) && !empty($income_40_4B_tax["2-4"]) && $income_40_4B_tax["2-4"] > 0) {
+            $html .= $div_income_40_4B_tax_number["2-4"];
+            $html .= $div_income_40_4B_tax_decimal["2-4"];
+        }
+        // 40 (4) (ข) 2.4
+
+        $income_40_4B_text["2-5"] = '';
+        $div_income_40_4B_text["2-5"] = '<div style="position: absolute; width: 200px; top: 743.5; left: 198; text-align: left; border: 1px solid rgba(0, 0, 0, 0);">' . $income_40_4B_text["2-5"] . '</div>';
+        if (isset($income_40_4B_text["2-5"]) && !empty($income_40_4B_text["2-5"])) {
+            $html .= $div_income_40_4B_text["2-5"];
+        }
+
+        $income_40_4B_period["2-5"] = '';
+        $div_income_40_4B_period["2-5"] = '<div style="position: absolute; width: 98px; top: 742.5; left: 438; text-align: center; border: 1px solid rgba(0, 0, 0, 0);">' . $income_40_4B_period["2-5"] . '</div>';
+        if (isset($income_40_4B_period["2-5"]) && !empty($income_40_4B_period["2-5"])) {
+            $html .= $div_income_40_4B_period["2-5"];
+        }
+
+        $income_40_4B_value["2-5"] = 0;
+        $income_40_4B_value_number["2-5"] = '0';
+        $income_40_4B_value_decimal["2-5"] = '00';
+        if (isset($income_40_4B_value["2-5"]) && !empty($income_40_4B_value["2-5"])) {
+            if ($income_40_4B_value["2-5"] > 0) {
+                list($income_40_4B_value_number["2-5"], $income_40_4B_value_decimal["2-5"]) = explode('.', $income_40_4B_value["2-5"]);
+            }
+        }
+        
+        $div_income_40_4B_value_number["2-5"] = '<div style="position: absolute; width: 88px; top: 742.5; left: 542; text-align: right; border: 1px solid rgba(0, 0, 0, 0);">' . number_format($income_40_4B_value_number["2-5"], 0) . '</div>';
+        $div_income_40_4B_value_decimal["2-5"] = '<div style="position: absolute; width: 20px; top: 742.5; left: 629; text-align: right; border: 1px solid rgba(0, 0, 0, 0);">' . $income_40_4B_value_decimal["2-5"] . '</div>';
+        if (isset($income_40_4B_value["2-5"]) && !empty($income_40_4B_value["2-5"]) && $income_40_4B_value["2-5"] > 0) {
+            $html .= $div_income_40_4B_value_number["2-5"];
+            $html .= $div_income_40_4B_value_decimal["2-5"];
+        }
+
+        $income_40_4B_tax["2-5"] = 0;
+        $income_40_4B_tax_number["2-5"] = '0';
+        $income_40_4B_tax_decimal["2-5"] = '00';
+        if (isset($income_40_4B_tax["2-5"]) && !empty($income_40_4B_tax["2-5"])) {
+            if ($income_40_4B_tax["2-5"] > 0) {
+                list($income_40_4B_tax_number["2-5"], $income_40_4B_tax_decimal["2-5"]) = explode('.', $income_40_4B_tax["2-5"]);
+            }
+        }
+        
+        $div_income_40_4B_tax_number["2-5"] = '<div style="position: absolute; width: 70px; top: 742.5; left: 655; text-align: right; border: 1px solid rgba(0, 0, 0, 0);">' . number_format($income_40_4B_tax_number["2-5"], 0) . '</div>';
+        $div_income_40_4B_tax_decimal["2-5"] = '<div style="position: absolute; width: 20px; top: 742.5; left: 723; text-align: right; border: 1px solid rgba(0, 0, 0, 0);">' . $income_40_4B_tax_decimal["2-5"] . '</div>';
+        if (isset($income_40_4B_tax["2-5"]) && !empty($income_40_4B_tax["2-5"]) && $income_40_4B_tax["2-5"] > 0) {
+            $html .= $div_income_40_4B_tax_number["2-5"];
+            $html .= $div_income_40_4B_tax_decimal["2-5"];
+        }
+        // 40 (4) (ข) 2.5
+
+        $income_40_8_period = '';
+        $div_income_40_8_period = '<div style="position: absolute; width: 98px; top: 819.5; left: 438; text-align: center; border: 1px solid rgba(0, 0, 0, 0);">' . $income_40_8_period . '</div>';
+        if (isset($income_40_8_period) && !empty($income_40_8_period)) {
+            $html .= $div_income_40_8_period;
+        }
+
+        $income_40_8_value = 0;
+        $income_40_8_value_number = '0';
+        $income_40_8_value_decimal = '00';
+        if (isset($income_40_8_value) && !empty($income_40_8_value)) {
+            if ($income_40_8_value > 0) {
+                list($income_40_8_value_number, $income_40_8_value_decimal) = explode('.', $income_40_8_value);
+            }
+        }
+        
+        $div_income_40_8_value_number = '<div style="position: absolute; width: 88px; top: 819.5; left: 542; text-align: right; border: 1px solid rgba(0, 0, 0, 0);">' . number_format($income_40_8_value_number, 0) . '</div>';
+        $div_income_40_8_value_decimal = '<div style="position: absolute; width: 20px; top: 819.5; left: 629; text-align: right; border: 1px solid rgba(0, 0, 0, 0);">' . $income_40_8_value_decimal . '</div>';
+        if (isset($income_40_8_value) && !empty($income_40_8_value) && $income_40_8_value > 0) {
+            $html .= $div_income_40_8_value_number;
+            $html .= $div_income_40_8_value_decimal;
+        }
+
+        $income_40_8_tax = 0;
+        $income_40_8_tax_number = '0';
+        $income_40_8_tax_decimal = '00';
+        if (isset($income_40_8_tax) && !empty($income_40_8_tax)) {
+            if ($income_40_8_tax > 0) {
+                list($income_40_8_tax_number, $income_40_8_tax_decimal) = explode('.', $income_40_8_tax);
+            }
+        }
+        
+        $div_income_40_8_tax_number = '<div style="position: absolute; width: 70px; top: 819.5; left: 655; text-align: right; border: 1px solid rgba(0, 0, 0, 0);">' . number_format($income_40_8_tax_number, 0) . '</div>';
+        $div_income_40_8_tax_decimal = '<div style="position: absolute; width: 20px; top: 819.5; left: 723; text-align: right; border: 1px solid rgba(0, 0, 0, 0);">' . $income_40_8_tax_decimal . '</div>';
+        if (isset($income_40_8_tax) && !empty($income_40_8_tax)) {
+            $html .= $div_income_40_8_tax_number;
+            $html .= $div_income_40_8_tax_decimal;
+        }
+        // 40 (8) (A)
+
+        $income_40_other_text = '';
+        $div_income_40_other_text = '<div style="position: absolute; width: 280px; top: 840; left: 128; text-align: left; border: 1px solid rgba(0, 0, 0, 0);">' . $income_40_other_text . '</div>';
+        if (isset($income_40_other_text) && !empty($income_40_other_text)) {
+            $html .= $div_income_40_other_text;
+        }
+
+        $income_40_other_period = '';
+        $div_income_40_other_period = '<div style="position: absolute; width: 98px; top: 839; left: 438; text-align: center; border: 1px solid rgba(0, 0, 0, 0);">' . $income_40_other_period . '</div>';
+        if (isset($income_40_other_period) && !empty($income_40_other_period)) {
+            $html .= $div_income_40_other_period;
+        }
+
+        $income_40_other_value = 0;
+        $income_40_other_value_number = '0';
+        $income_40_other_value_decimal = '00';
+        if (isset($income_40_other_value) && !empty($income_40_other_value)) {
+            if ($income_40_other_value > 0) {
+                list($income_40_other_value_number, $income_40_other_value_decimal) = explode('.', $income_40_other_value);
+            }
+        }
+        
+        $div_income_40_other_value_number = '<div style="position: absolute; width: 88px; top: 839; left: 542; text-align: right; border: 1px solid rgba(0, 0, 0, 0);">' . number_format($income_40_other_value_number, 0) . '</div>';
+        $div_income_40_other_value_decimal = '<div style="position: absolute; width: 20px; top: 839; left: 629; text-align: right; border: 1px solid rgba(0, 0, 0, 0);">' . $income_40_other_value_decimal . '</div>';
+        if (isset($income_40_other_value) && !empty($income_40_other_value) && $income_40_other_value > 0) {
+            $html .= $div_income_40_other_value_number;
+            $html .= $div_income_40_other_value_decimal;
+        }
+
+        $income_40_other_tax = 0;
+        $income_40_other_tax_number = '0';
+        $income_40_other_tax_decimal = '00';
+        if (isset($income_40_other_tax) && !empty($income_40_other_tax)) {
+            if ($income_40_other_tax > 0) {
+                list($income_40_other_tax_number, $income_40_other_tax_decimal) = explode('.', $income_40_other_tax);
+            }
+        }
+        
+        $div_income_40_other_tax_number = '<div style="position: absolute; width: 70px; top: 839; left: 655; text-align: right; border: 1px solid rgba(0, 0, 0, 0);">' . number_format($income_40_other_tax_number, 0) . '</div>';
+        $div_income_40_other_tax_decimal = '<div style="position: absolute; width: 20px; top: 839; left: 723; text-align: right; border: 1px solid rgba(0, 0, 0, 0);">' . $income_40_other_tax_decimal . '</div>';
+        if (isset($income_40_other_tax) && !empty($income_40_other_tax) && $income_40_other_tax > 0) {
+            $html .= $div_income_40_other_tax_number;
+            $html .= $div_income_40_other_tax_decimal;
+        }
+        // 40 (OTHER)
+        // End - Income detail
+
+        // Start - Total income
+        $total_income = 0;
+        $total_income_number = '0';
+        $total_income_decimal = '00';
+        if (isset($total_income) && !empty($total_income)) {
+            if ($total_income > 0) {
+                list($total_income_number, $total_income_decimal) = explode('.', $total_income);
+            }
+        }
+        
+        $div_total_income_number = '<div style="position: absolute; width: 88px; text-align: right; bottom: 233; left: 542; font-size: 112%; border: 1px solid rgba(0, 0, 0, 0);">' . number_format($total_income_number, 0) . '</div>';
+        $div_total_income_decimal = '<div style="position: absolute; width: 20px; text-align: right; bottom: 233; left: 629; font-size: 112%; border: 1px solid rgba(0, 0, 0, 0);">' . $total_income_decimal . '</div>';
+        $div_total_income_text = '<div style="position: absolute; width: 480px; text-align: left; bottom: 207; left: 250; font-size: 112%; border: 1px solid rgba(0, 0, 0, 0);"><i>' . numberToText($total_income) . '</i></div>';
+        if (isset($total_income) && !empty($total_income) && $total_income > 0) {
+            $html .= $div_total_income_number;
+            $html .= $div_total_income_decimal;
+            $html .= $div_total_income_text;
+        }
+        
+        // Start - Total with holding tax
+        $total_wht = 0;
+        $total_wht_number = '0';
+        $total_wht_decimal = '00';
+        if (isset($total_wht) && !empty($total_wht)) {
+            if ($total_wht > 0) {
+                list($total_wht_number, $total_wht_decimal) = explode('.', $total_wht);
+            }
+        }
+        
+        $div_total_wht_number = '<div style="position: absolute; width: 70px; text-align: right; bottom: 233; left: 655; font-size: 112%; border: 1px solid rgba(0, 0, 0, 0);">' . number_format($total_wht_number, 0) . '</div>';
+        $div_total_wht_decimal = '<div style="position: absolute; width: 20px; text-align: right; bottom: 233; left: 722; font-size: 112%; border: 1px solid rgba(0, 0, 0, 0);">' . $total_wht_decimal . '</div>';
+        if (isset($total_wht) && !empty($total_wht) && $total_wht > 0) {
+            $html .= $div_total_wht_number;
+            $html .= $div_total_wht_decimal;
+        }
+
+        // Start - PND Type
+        $div_check_type[1] = '<div style="position: absolute; top: 301; left: 283; font-size: 120%;"><i><b>/</b></i></div>';
+        $div_check_type[2] = '<div style="position: absolute; top: 301; left: 387; font-size: 120%;"><i><b>/</b></i></div>';
+        $div_check_type[3] = '<div style="position: absolute; top: 301; left: 531; font-size: 120%;"><i><b>/</b></i></div>';
+        $div_check_type[4] = '<div style="position: absolute; top: 301; left: 633; font-size: 120%;"><i><b>/</b></i></div>';
+        $div_check_type[5] = '<div style="position: absolute; top: 325.5; left: 283; font-size: 120%;"><i><b>/</b></i></div>';
+        $div_check_type[6] = '<div style="position: absolute; top: 325.5; left: 387; font-size: 120%;"><i><b>/</b></i></div>';
+        $div_check_type[7] = '<div style="position: absolute; top: 325.5; left: 531; font-size: 120%;"><i><b>/</b></i></div>';
+        
+        $pnd_type = 0;
+        if (isset($pnd_type) && !empty($pnd_type)) {
+            if ($pnd_type > 0) {
+                $html .= $div_check_type[$pnd_type];
+            }
+        }
+        // End - PND Type
+
+        // Start - Voluntary Contribution
+        $voluntary_value[1] = 0;
+        $div_voluntary_cont[1] = '<div style="position: absolute; width: 50px; text-align: right; bottom: 185; left: 318; border: 1px solid rgba(0, 0, 0, 0);">' . number_format($voluntary_value[1], 2) . '</div>';
+        if (isset($voluntary_value[1]) && !empty($voluntary_value[1]) && $voluntary_value[1] > 0) {
+            $html .= $div_voluntary_cont[1];
+        }
+
+        $voluntary_value[2] = 0;
+        $div_voluntary_cont[2] = '<div style="position: absolute; width: 50px; text-align: right; bottom: 185; left: 488; border: 1px solid rgba(0, 0, 0, 0);">' . number_format($voluntary_value[2], 2) . '</div>';
+        if (isset($voluntary_value[2]) && !empty($voluntary_value[2]) && $voluntary_value[2] > 0) {
+            $html .= $div_voluntary_cont[2];
+        }
+
+        $voluntary_value[3] = 0;
+        $div_voluntary_cont[3] = '<div style="position: absolute; width: 53px; text-align: right; bottom: 185; left: 665; border: 1px solid rgba(0, 0, 0, 0);">' . number_format($voluntary_value[3], 2) . '</div>';
+        if (isset($voluntary_value[3]) && !empty($voluntary_value[3]) && $voluntary_value[3] > 0) {
+            $html .= $div_voluntary_cont[3];
+        }
+        // End - Voluntary Contribution
+
+        // Start - Payer Condition
+        $payer_condition_specify = '';
+        $div_payer_condition[1] = '<div style="position: absolute; bottom: 155; left: 114; font-size: 120%;"><i><b>/</b></i></div>';
+        $div_payer_condition[2] = '<div style="position: absolute; bottom: 155; left: 238; font-size: 120%;"><i><b>/</b></i></div>';
+        $div_payer_condition[3] = '<div style="position: absolute; bottom: 155; left: 382; font-size: 120%;"><i><b>/</b></i></div>';
+        $div_payer_condition[4] = '<div style="position: absolute; bottom: 155; left: 529; font-size: 120%;"><i><b>/</b></i></div>';
+        $div_payer_condition_specify = '<div style="position: absolute; bottom: 155; left: 629;">' . $payer_condition_specify . '</div>';
+        $div_payer_condition_specify_dash = '<div style="position: absolute; bottom: 155; left: 629;">-</div>';
+
+        $payer_condition = 0;
+        if (isset($payer_condition) && !empty($payer_condition)) {
+            if ($payer_condition > 0) {
+                $html .= $div_payer_condition[$payer_condition];
+            }
+
+            if ($payer_condition == 4 || $payer_condition == '4') {
+                if (isset($payer_condition_specify) && !empty($payer_condition_specify)) {
+                    $html .= $div_payer_condition_specify;
+                } else {
+                    $html .= $div_payer_condition_specify_dash;
+                }
+            }
+        }
+        // End - Payer Condition
+        
+        $page = $mpdf->importPage(1);
+        $mpdf->useTemplate($page);
+        $mpdf->WriteHTML($html);
         $mpdf->Output();
     }
 

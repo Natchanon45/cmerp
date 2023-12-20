@@ -2365,3 +2365,10 @@ $lang["income_account_category"] = "Income acct. category";
 $lang["account_income_select"] = "select income category";
 $lang["service_saved_sucess"] = "Service have been saved.";
 $lang["service_saved_failure"] = "Service haven't been saved.";
+
+$lang["withholding_tax"] = "WHT Certificate";
+$lang["payee_withholding_tax_name"] = "ผู้ถูกหักภาษี ณ ที่จ่าย";
+$lang["pnd_type"] = "ประเภทแบบ";
+$lang["pay_type"] = "ประเภทผู้จ่ายเงิน";
+$lang["date_of_certificate"] = "วันที่ออกหนังสือรับรอง";
+$lang["withholding_tax_add"] = "สร้างใบหัก ณ ที่จ่าย (WHT)";
