@@ -259,13 +259,15 @@ class Items extends MY_Controller
 				js_anchor("<i class='fa fa-times fa-fw'></i>", array('title' => lang('delete'), "class" => "delete", "data-id" => $data->id, "data-action-url" => get_uri("" . $this->className . "/delete"), "data-action" => "delete"));
 		}
 
+		$category_title = $this->Products_m->getCategoryName($data->category_id);
+
 		return array(
 			anchor(get_uri('' . $this->className . '/detail/' . $data->id), $data->id),
 			$preview,
 			($data->item_code != "" ? $data->item_code:"-"),
 			anchor(get_uri('' . $this->className . '/detail/' . $data->id), $data->title),
 			nl2br($data->description),
-			$data->category_title ? "$data->category_title" : "-",
+			$category_title != null?$category_title: "-",
 			// $data->account_id ? $this->Account_category_model->account_by($data->account_id) : "-",
 			$type,
 			@$data->barcode ? '<div style="text-align:center"><a href="' . $src . '" class="barcode_img" download><img src="' . $src . '" /><div class="text">Click to download</div></a></div>' : '-',
@@ -1370,11 +1372,16 @@ class Items extends MY_Controller
 			return;
 		}
 
-		$this->db->select("items.*, material_categories.title AS category_title")
+		/*$this->db->select("items.*, material_categories.title AS category_title")
 				->from("items")
 				->join("material_categories", "items.category_id = material_categories.id AND items.item_type = material_categories.item_type", "left")
 				->where("items.item_type", $this->item_type)
-				->where("items.deleted", "0");
+				->where("items.deleted", "0");*/
+
+		$this->db->select("*")
+					->from("items")
+					->where("items.item_type", $this->item_type)
+					->where("items.deleted", "0");
 
 		if($category_id) $this->db->where("items.category_id", $category_id);
 

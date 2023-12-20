@@ -84,4 +84,15 @@ class Products_m extends MY_Model{
 
         return $irow->item_type;
     }
+
+    function getCategoryName($category_id){
+        $mcrow = $this->db->select("title")
+                            ->from("material_categories")
+                            ->where("id", $category_id)
+                            ->get()->row();
+
+        if(empty($mcrow)) return null;
+
+        return $mcrow->title;
+    }
 }
