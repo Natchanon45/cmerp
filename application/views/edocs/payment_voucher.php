@@ -137,10 +137,10 @@
 						</div>
 						<div class="buyer">
 							<p class="custom-color"><?php echo lang("payment_voucher_payee"); ?></p>
-							<?php if (isset($bom_supplier_read) && $bom_supplier_read): ?>
+							<?php if ($print_mode == "public"): ?>
 								<?php if ($doc["seller"] != null): ?>
 									<p class="customer_name">
-										<?php echo $doc["seller"]["company_name"] ?>
+										<?php echo $doc["seller"]["company_name"]; ?>
 									</p>
 									<p>
 										<?php if ($doc["seller"] != null) echo nl2br($doc["seller"]["address"]); ?>
@@ -169,6 +169,42 @@
 										<p>
 											<?php echo lang("vat_number") . ": " . $doc["seller"]["vat_number"]; ?>
 										</p>
+									<?php endif; ?>
+								<?php endif; ?>
+							<?php else: ?>
+								<?php if (isset($bom_supplier_read) && $bom_supplier_read): ?>
+									<?php if ($doc["seller"] != null): ?>
+										<p class="customer_name">
+											<?php echo $doc["seller"]["company_name"]; ?>
+										</p>
+										<p>
+											<?php if ($doc["seller"] != null) echo nl2br($doc["seller"]["address"]); ?>
+										</p>
+										<p>
+											<?php
+												$client_address = $doc["seller"]["city"];
+												
+												if ($client_address != "" && $doc["seller"]["state"] != "") {
+													$client_address .= ", " . $doc["seller"]["state"];
+												} elseif ($client_address == "" && $doc["seller"]["state"] != "") {
+													$client_address .= $doc["seller"]["state"];
+												}
+													
+												if ($client_address != "" && $doc["seller"]["zip"] != "") {
+													$client_address .= " " . $doc["seller"]["zip"];
+												} elseif ($client_address == "" && $doc["seller"]["zip"] != "") {
+													$client_address .= $doc["seller"]["zip"];
+												}
+												
+												echo $client_address;
+											?>
+										</p>
+										
+										<?php if (trim($doc["seller"]["vat_number"]) != ""): ?>
+											<p>
+												<?php echo lang("vat_number") . ": " . $doc["seller"]["vat_number"]; ?>
+											</p>
+										<?php endif; ?>
 									<?php endif; ?>
 								<?php endif; ?>
 							<?php endif; ?>
