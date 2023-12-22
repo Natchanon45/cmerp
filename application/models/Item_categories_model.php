@@ -52,7 +52,7 @@ class Item_categories_model extends Crud_model
     function dev2_getCountItemCateById($id)
     {
         $rows = 0;
-        $sql = "SELECT `id` FROM `items` WHERE `category_id` = '" . $id . "'";
+        $sql = "SELECT `id` FROM `items` WHERE `category_id` = '" . $id . "' AND deleted=0";
 
         if (isset($id) && $id != "0") {
             $query = $this->db->query($sql);
