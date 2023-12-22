@@ -123,6 +123,17 @@
         </a>
       </div>
     <?php }?>
+
+    <?php if (true): ?> <!-- ระบุเงื่อนไขสิทธิการมองเห็นที่นี่ -->
+      <div class="grid xl-20 lg-30 md-1-3">
+        <a class="box-card-01 box-shadow" href="<?php echo_uri("stock/used_report"); ?>">
+          <div class="icon">
+            <i class="fa fa-bar-chart" aria-hidden="true"></i>
+          </div>
+          <h4 class="fw-500"><?php echo lang("stock_used_report"); ?></h4>
+        </a>
+      </div>
+    <?php endif; ?>
     
     <?php if($this->Permission_m->access_material_request == TRUE){?>
       <div class="grid xl-20 lg-30 md-1-3">

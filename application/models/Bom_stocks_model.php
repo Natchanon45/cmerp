@@ -262,4 +262,109 @@ class Bom_stocks_model extends Crud_model {
         $this->db->update('bom_stocks', array('remaining' => $actual_remain));
     }
 
+    public function dev2_getRowTableFromId(string $table, int $id) : stdClass
+    {
+        $data = new stdClass();
+
+        $query = $this->db->get_where($table, array("id" => $id))->row();
+        if (!empty($query)) {
+            $data = $query;
+        }
+
+        return $data;
+    }
+
+    public function dev2_getStockUsedReportRM(array $options) : array
+    {
+        $data = array();
+        $where = "";
+
+        $start_date = get_array_value($options, "start_date");
+        $end_date = get_array_value($options, "end_date");
+        if (is_date_exists($start_date) && is_date_exists($end_date)) {
+            $where .= " AND created_at BETWEEN '$start_date' AND '$end_date'";
+        }
+
+        $sql = "SELECT * FROM bom_project_item_materials WHERE used_status = 1 $where";
+
+        $query = $this->db->query($sql)->result();
+        
+        if (sizeof($query)) {
+            foreach ($query as $row) {
+                $row->material_info = $this->dev2_getRowTableFromId("bom_materials", $row->material_id);
+                $row->stock_info = $this->dev2_getRowTableFromId("bom_stocks", $row->stock_id);
+
+                if (isset($row->stock_info->group_id) && !empty($row->stock_info->group_id)) {
+                    $row->stock_info->group_info = $this->dev2_getRowTableFromId("bom_stock_groups", $row->stock_info->group_id);
+                }
+            }
+
+            $data = $query;
+        }
+
+        return $data;
+    }
+
+    public function dev2_getStockUsedReportFG(array $options) : array
+    {
+        $data = array();
+        $where = "";
+
+        $start_date = get_array_value($options, "start_date");
+        $end_date = get_array_value($options, "end_date");
+        if (is_date_exists($start_date) && is_date_exists($end_date)) {
+            $where .= " AND created_at BETWEEN '$start_date' AND '$end_date'";
+        }
+
+        $sql = "SELECT bpii.* FROM bom_project_item_items AS bpii LEFT JOIN items AS i ON bpii.item_id = i.id WHERE i.item_type = 'FG' AND bpii.used_status = 1 $where";
+
+        $query = $this->db->query($sql)->result();
+
+        if (sizeof($query)) {
+            foreach ($query as $row) {
+                $row->item_info = $this->dev2_getRowTableFromId("items", $row->item_id);
+                $row->stock_info = $this->dev2_getRowTableFromId("bom_item_stocks", $row->stock_id);
+
+                if (isset($row->stock_info->group_id) && !empty($row->stock_info->group_id)) {
+                    $row->stock_info->group_info = $this->dev2_getRowTableFromId("bom_item_groups", $row->stock_info->group_id);
+                }
+            }
+
+            $data = $query;
+        }
+
+        return $data;
+    }
+
+    public function dev2_getStockUsedReportSFG(array $options) : array
+    {
+        $data = array();
+        $where = "";
+
+        $start_date = get_array_value($options, "start_date");
+        $end_date = get_array_value($options, "end_date");
+        if (is_date_exists($start_date) && is_date_exists($end_date)) {
+            $where .= " AND created_at BETWEEN '$start_date' AND '$end_date'";
+        }
+
+        $sql = "SELECT bpii.* FROM bom_project_item_items AS bpii LEFT JOIN items AS i ON bpii.item_id = i.id WHERE i.item_type = 'SFG' AND bpii.used_status = 1 $where";
+
+        $query = $this->db->query($sql)->result();
+
+        if (sizeof($query)) {
+            foreach ($query as $row) {
+                $row->item_info = $this->dev2_getRowTableFromId("items", $row->item_id);
+                $row->stock_info = $this->dev2_getRowTableFromId("bom_item_stocks", $row->stock_id);
+
+                if (isset($row->stock_info->group_id) && !empty($row->stock_info->group_id)) {
+                    $row->stock_info->group_info = $this->dev2_getRowTableFromId("bom_item_groups", $row->stock_info->group_id);
+                }
+            }
+
+            $data = $query;
+        }
+
+        return $data;
+    }
+
 }

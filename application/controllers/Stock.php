@@ -6214,4 +6214,195 @@ class Stock extends MY_Controller
         var_dump(arr($data)); exit();
     }
 
+    public function used_report()
+    {
+        $view_data = array();
+
+        $this->template->rander("stock/used/report", $view_data);
+    }
+
+    public function used_report_list()
+    {
+        $sourceType = 1;
+        if ($this->input->post("source_type")) {
+            $sourceType = $this->input->post("source_type");
+        }
+
+        $startDate = $this->input->post("start_date");
+        $endDate = $this->input->post("end_date");
+
+        $options = array();
+        if ((isset($startDate) && !empty($startDate)) && (isset($endDate) && !empty($endDate))) {
+            $options["start_date"] = $startDate;
+            $options["end_date"] = $endDate;
+        }
+
+        $result = array();
+
+        if ($sourceType == 1 || $sourceType == 2) {
+            $rm = $this->Bom_stocks_model->dev2_getStockUsedReportRM($options);
+            if (sizeof($rm)) {
+                foreach ($rm as $row) {
+                    $result[] = $this->prepare_used_rm($row);
+                }
+            }
+        }
+
+        if ($sourceType == 1 || $sourceType == 3) {
+            $fg = $this->Bom_stocks_model->dev2_getStockUsedReportFG($options);
+            if (sizeof($fg)) {
+                foreach ($fg as $row) {
+                    $result[] = $this->prepare_used_fg($row);
+                }
+            }
+        }
+
+        if ($sourceType == 1 || $sourceType == 4) {
+            $sfg = $this->Bom_stocks_model->dev2_getStockUsedReportSFG($options);
+            if (sizeof($sfg)) {
+                foreach ($sfg as $row) {
+                    $result[] = $this->prepare_used_sfg($row);
+                }
+            }
+        }
+
+        // var_dump(arr($fg)); exit();
+        echo json_encode(array("data" => $result));
+    }
+
+    public function prepare_used_rm($row)
+    {
+        $unit_price = 0;
+        if ($row->stock_info->price > 0) {
+            $unit_price = $row->stock_info->price / $row->stock_info->stock;
+        }
+
+        $used_price = 0;
+        if ($unit_price > 0) {
+            $used_price = $unit_price * $row->ratio;
+        }
+
+        $stock_name = anchor(
+            get_uri("stock/restock_view/" . $row->stock_info->group_id),
+            $row->stock_info->group_info->name,
+            array("target" => "_blank")
+        );
+
+        $material_name = $row->material_info->name;
+        if (!empty($row->material_info->production_name) && $row->material_info->production_name != "") {
+            $material_name = $row->material_info->name . " - " . $row->material_info->production_name;
+        }
+
+        $material_link = anchor(
+            get_uri("stock/material_view/" . $row->material_id),
+            $material_name,
+            array("target" => "_blank")
+        );
+
+        $data = array(
+            $row->id,
+            $stock_name,
+            $material_link,
+            mb_strimwidth($row->material_info->description, 0, 50, '...'),
+            convertDate($row->created_at, true),
+            to_decimal_format3($row->ratio, 6),
+            $row->material_info->unit,
+            to_decimal_format3($row->stock_info->price, 3),
+            to_decimal_format3($unit_price, 3),
+            to_decimal_format3($used_price, 3),
+            lang("THB")
+        );
+        return $data;
+    }
+
+    public function prepare_used_fg($row)
+    {
+        $unit_price = 0;
+        if ($row->stock_info->price > 0) {
+            $unit_price = $row->stock_info->price / $row->stock_info->stock;
+        }
+
+        $used_price = 0;
+        if ($unit_price > 0) {
+            $used_price = $unit_price * $row->ratio;
+        }
+
+        $stock_name = anchor(
+            get_uri("stock/restock_item_view/" . $row->stock_info->group_id),
+            $row->stock_info->group_info->name,
+            array("target" => "_blank")
+        );
+
+        $item_name = $row->item_info->title;
+        if (!empty($row->item_info->item_code) && $row->item_info->item_code != "") {
+            $item_name = $row->item_info->item_code . " - " . $row->item_info->title;
+        }
+
+        $item_link = anchor(
+            get_uri("items/detail/" . $row->item_id),
+            $item_name,
+            array("target" => "_blank")
+        );
+
+        $data = array(
+            $row->id,
+            $stock_name,
+            $item_link,
+            mb_strimwidth($row->item_info->description, 0, 50, '...'),
+            convertDate($row->created_at, true),
+            to_decimal_format3($row->ratio, 6),
+            $row->item_info->unit_type,
+            to_decimal_format3($row->stock_info->price, 3),
+            to_decimal_format3($unit_price, 3),
+            to_decimal_format3($used_price, 3),
+            lang("THB")
+        );
+        return $data;
+    }
+
+    public function prepare_used_sfg($row)
+    {
+        $unit_price = 0;
+        if ($row->stock_info->price > 0) {
+            $unit_price = $row->stock_info->price / $row->stock_info->stock;
+        }
+
+        $used_price = 0;
+        if ($unit_price > 0) {
+            $used_price = $unit_price * $row->ratio;
+        }
+
+        $stock_name = anchor(
+            get_uri("stock/restock_item_view/" . $row->stock_info->group_id),
+            $row->stock_info->group_info->name,
+            array("target" => "_blank")
+        );
+
+        $item_name = $row->item_info->title;
+        if (!empty($row->item_info->item_code) && $row->item_info->item_code != "") {
+            $item_name = $row->item_info->item_code . " - " . $row->item_info->title;
+        }
+
+        $item_link = anchor(
+            get_uri("sfg/detail/" . $row->item_id),
+            $item_name,
+            array("target" => "_blank")
+        );
+
+        $data = array(
+            $row->id,
+            $stock_name,
+            $item_link,
+            mb_strimwidth($row->item_info->description, 0, 50, '...'),
+            convertDate($row->created_at, true),
+            to_decimal_format3($row->ratio, 6),
+            $row->item_info->unit_type,
+            to_decimal_format3($row->stock_info->price, 3),
+            to_decimal_format3($unit_price, 3),
+            to_decimal_format3($used_price, 3),
+            lang("THB")
+        );
+        return $data;
+    }
+
 }
