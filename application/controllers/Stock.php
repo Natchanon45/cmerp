@@ -2685,6 +2685,11 @@ class Stock extends MY_Controller
         }
         $material_name = $data->material_name;
 
+        $instock_date = convertDate($data->bsg_created_date, true);
+        if (isset($data->created_date) && is_date_exists($data->created_date)) {
+            $instock_date = convertDate($data->created_date, true);
+        }
+
         if ($this->check_permission("bom_material_read_production_name") == true) {
             $material_name .= " - " . $data->production_name;
             $lack = $data->noti_threshold - $data->remaining;
@@ -2693,7 +2698,7 @@ class Stock extends MY_Controller
                 $data->id,
                 anchor(get_uri('stock/restock_view/' . $data->group_id), $data->group_name),
                 anchor(get_uri('stock/material_view/' . $data->material_id), $material_name),
-                format_to_date($data->created_date),
+                $instock_date,
                 is_date_exists($data->expiration_date) ? format_to_date($data->expiration_date, false) : '-',
                 to_decimal_format2($data->stock),
                 '<span class="' . ($is_lack ? 'lacked_material' : '') . '" data-material-id="' . $data->id . '" data-lacked-amount="' . ($is_lack ? $lack : 0) . '" data-unit="' . strtoupper($data->material_unit) . '" data-supplier-id="' . $data->supplier_id . '" data-supplier-name="' . $data->supplier_name . '" data-price="' . $data->price . '" data-currency="' . $data->currency . '" data-currency-symbol="' . $data->currency_symbol . '">' . to_decimal_format2($data->remaining) . '</span>',
@@ -2712,20 +2717,6 @@ class Stock extends MY_Controller
             $row_data[] = to_decimal_format3($remaining_value, 2);
             $row_data[] = !empty($data->currency) && isset($data->currency) ? lang($data->currency) : lang("THB");
         }
-
-        // $options = '';
-        // if($this->bom_can_access_restock() && $this->check_permission('bom_restock_update')) 
-        //   $options .= modal_anchor(get_uri("stock/restock_view_modal"), "<i class='fa fa-pencil'></i>", array("class" => "edit", "title" => lang('stock_restock_edit'), "data-post-id" => $data->id, "data-post-view" => "material"))
-        //     . modal_anchor(get_uri("stock/restock_withdraw_modal"), "<i class='fa fa-share-square-o'></i>", array("class" => "edit", "title" => lang('stock_restock_withdraw'), "data-post-id" => $data->id, "data-post-view" => "material"));
-        // } else {
-        //   $options .= modal_anchor(get_uri("stock/restock_view_modal"), "<i class='fa fa-eye'></i>", array("class" => "edit", "title" => lang('stock_restock_edit'), "data-post-id" => $data->id, "data-post-view" => "material"));
-        // }
-        // if($this->bom_can_access_restock() && $this->check_permission('bom_restock_delete')) {
-        //   $options .= js_anchor("<i class='fa fa-times fa-fw'></i>", array('title' => lang('stock_restock_delete'), "class" => "delete", "data-id" => $data->id, "data-action-url" => get_uri("stock/restock_view_delete"), "data-action" => "delete-confirmation"));
-        // }
-        // $row_data[] = $options;
-
-        // var_dump(arr($row_data)); exit;
 
         return $row_data;
     }
@@ -5649,6 +5640,11 @@ class Stock extends MY_Controller
             </span>';
         }
 
+        $instock_date = convertDate($data->bsg_created_date, true);
+        if (isset($data->created_date) && is_date_exists($data->created_date)) {
+            $instock_date = convertDate($data->created_date, true);
+        }
+
         $lack = $data->noti_threshold - $data->remaining;
         $is_lack = $lack > 0 ? true : false;
         $row_data = array(
@@ -5656,7 +5652,7 @@ class Stock extends MY_Controller
             anchor(get_uri('stock/restock_item_view/' . $data->group_id), $data->group_name),
             $display_item,
             $data->item_desc,
-            format_to_date($data->created_date),
+            $instock_date,
             is_date_exists($data->expiration_date) ? format_to_date($data->expiration_date, false) : '-',
             to_decimal_format3($data->stock),
             '<span class="' . ($is_lack ? 'lacked_material' : '') . '" data-item-id="' . $data->item_id . '" data-lacked-amount="' . ($is_lack ? $lack : 0) . '" data-unit="' . mb_strtoupper($data->item_unit) . '" data-supplier-id="' . $data->supplier_id . '" data-supplier-name="' . $data->supplier_name . '" data-price="' . $data->price . '" data-currency="' . $data->currency . '" data-currency-symbol="' . $data->currency_symbol . '">' . to_decimal_format3($data->remaining) . '</span>',
