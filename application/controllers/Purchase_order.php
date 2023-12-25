@@ -79,6 +79,16 @@ class Purchase_order extends MY_Controller
             $data["bom_supplier_read"] = true;
         }
 
+        // get creater info
+        if (isset($data["created_by"]) && !empty($data["created_by"])) {
+            $data["creater_info"] = $this->Users_m->getInfo($data["created_by"]);
+        }
+
+        // get approver info
+        if (isset($data["approved_by"]) && !empty($data["approved_by"])) {
+            $data["approver_info"] = $this->Users_m->getInfo($data["approved_by"]);
+        }
+
         // var_dump(arr($data)); exit();
         $this->template->rander('purchase_order/view', $data);
     }
@@ -97,6 +107,8 @@ class Purchase_order extends MY_Controller
         }
 
         $this->data['docmode'] = 'private_print';
+
+        // var_dump(arr($this->data)); exit();
         $this->load->view('edocs/purchase_order', $this->data);
     }
 

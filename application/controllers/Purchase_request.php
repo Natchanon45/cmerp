@@ -78,7 +78,7 @@ class Purchase_request extends MY_Controller
 
         $data['active_module'] = 'purchase_request';
         $data['modal_header'] = $this->Purchase_request_m->modal_header();
-        $data['created'] = $this->Users_m->getInfo($data['created_by']);
+        
         $data['supplier'] = $this->Bom_suppliers_model->getInfo($data['supplier_id']);
         $data['supplier_contact'] = $this->Bom_suppliers_model->getContactInfo($data['supplier_id']);
         $data['print_url'] = get_uri('purchase_request/print/' . str_replace('=', '', base64_encode($data['doc_id'] . ':' . $data['doc_number'])));
@@ -88,8 +88,20 @@ class Purchase_request extends MY_Controller
             $data["bom_supplier_read"] = true;
         }
 
+        // get creater info
+        $data["created_by_info"] = array();
+        if (isset($data["created_by"]) && !empty($data["created_by"])) {
+            $data["created_by_info"] = $this->Users_m->getInfo($data["created_by"]);
+        }
+
+        // get approver info
+        $data["approver_info"] = array();
+        if (isset($data["approved_by"]) && !empty($data["approved_by"])) {
+            $data["approver_info"] = $this->Users_m->getInfo($data["approved_by"]);
+        }
+
         // var_dump(arr($data)); exit();
-        $this->template->rander('purchase_request/view', $data);
+        $this->template->rander("purchase_request/view", $data);
     }
 
     function print()
