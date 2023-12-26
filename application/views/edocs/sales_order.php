@@ -34,9 +34,16 @@
     text-align: right;
 }
 
-#printd .docitem{
-    min-height: auto;
-    padding-bottom: 0;
+.body .items table td img{
+	display: inline-block;
+	width: 80px;
+	height: auto;
+	vertical-align: top;
+}
+
+.body .items table td .txt{
+	display: inline-block;
+	vertical-align: top;
 }
 
 .task_list{
@@ -193,13 +200,19 @@
 				            	<tr>
 				                    <td><?php echo $i++; ?></td>
 				                    <td>
-				                    	<span class="product_name"><?php echo $item->product_name; ?></span>
-				                    	<?php if(trim($item->product_description) != ""): ?>
-				                    		<span class="product_description"><?php echo trim($item->product_description); ?></span>
-				                    	<?php endif;?>
-				                    	<?php if(trim($item->item_mixing_groups_id) != ""): ?>
-				                    		<span class="product_description"><?php echo $this->Bom_item_m->getMixingGroupsInfoById($item->item_mixing_groups_id)["name"]; ?></span>
-				                    	<?php endif;?>
+				                    	<?php
+				                    		$product_image_file = $this->Products_m->getImage($item->product_id);
+				                    		if($product_image_file != null) echo "<img src='".$product_image_file."'>";
+				                    	?>
+				                    	<span class="txt">
+					                    	<span class="product_name"><?php echo $item->product_name; ?></span>
+					                    	<?php if(trim($item->product_description) != ""): ?>
+					                    		<span class="product_description"><?php echo trim($item->product_description); ?></span>
+					                    	<?php endif;?>
+					                    	<?php if(trim($item->item_mixing_groups_id) != ""): ?>
+					                    		<span class="product_description"><?php echo $this->Bom_item_m->getMixingGroupsInfoById($item->item_mixing_groups_id)["name"]; ?></span>
+					                    	<?php endif;?>
+				                    	</span>
 				                    </td>
 				                    <td><?php echo $item->quantity; ?></td>
 				                    <td><?php echo $item->unit; ?></td>

@@ -78,8 +78,6 @@ class Tasks_m extends MY_Model {
         $assigned_to = $this->input->post("assigned_to");
         $collaborators = $this->input->post("collaborators");
 
-        log_message("error", $assigned_to);
-
         validate_submitted_data(["assigned_to" => "required"]);
 
         if($id != null){

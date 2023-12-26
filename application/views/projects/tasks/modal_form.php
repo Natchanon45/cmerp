@@ -328,7 +328,37 @@
 <?php echo form_close(); ?>
 
 <script type="text/javascript">
-    $(document).ready(function () {
+$(document).ready(function () {
+    <?php if(!$model_info->id): ?>
+        $("#title").select2({
+            showSearchBox: true,
+            ajax: {
+                url: "<?php echo current_url(); ?>",
+                dataType: 'json',
+                quietMillis: 250,
+                data: function (keyword, page) {
+                    return {
+                        keyword: keyword,
+                        task: "suggest_tasks"
+                    };
+                },
+                results: function (data, page) {
+                    return {results: data};
+                }
+            }
+        }).change(function (e) {
+            if (e.val === "+") {
+                $("#title").select2("destroy").val("").focus();
+            } else if (e.val) {
+                $("#title").val(e.added.title);
+                $("#description").val(e.added.description);
+                $("#assigned_to").val(e.added.assigned_to).trigger("change");
+                $("#collaborators").val(e.added.collaborators).trigger("change");
+            }
+        });
+    <?php endif; ?>
+
+
     $('#collaborators').click(function (){
         $('#collaboratorsTeam').val(null).trigger('change');
         // document.getElementById("collaboratorsTeam").value ="";
@@ -336,103 +366,102 @@
     });
 
     $('#collaboratorsTeam').click(function (){
-        $('#collaborators').val(null).trigger('change');
-        
-        
+        $('#collaborators').val(null).trigger('change'); 
     });
 
-<?php if (!$model_info->id || $add_type == "multiple") { ?>
-            var uploadUrl = "<?php echo get_uri('projects/upload_file'); ?>";
-            var validationUri = "<?php echo get_uri('projects/validate_project_file'); ?>";
+    <?php if (!$model_info->id || $add_type == "multiple") { ?>
+        var uploadUrl = "<?php echo get_uri('projects/upload_file'); ?>";
+        var validationUri = "<?php echo get_uri('projects/validate_project_file'); ?>";
 
-            var dropzone = attachDropzoneWithForm("#tasks-dropzone", uploadUrl, validationUri);
-<?php } ?>
-        //send data to show the task after save
-        window.showAddNewModal = false;
+        var dropzone = attachDropzoneWithForm("#tasks-dropzone", uploadUrl, validationUri);
+    <?php } ?>
+    //send data to show the task after save
+    window.showAddNewModal = false;
 
-        $("#save-and-show-button, #save-and-add-button").click(function () {
-            window.showAddNewModal = true;
-            $(this).trigger("submit");
-        });
+    $("#save-and-show-button, #save-and-add-button").click(function () {
+        window.showAddNewModal = true;
+        $(this).trigger("submit");
+    });
 
-        var taskShowText = "<?php echo lang('task_info') ?>",
-                multipleTaskAddText = "<?php echo lang('add_multiple_tasks') ?>",
-                addType = "<?php echo $add_type; ?>";
+    var taskShowText = "<?php echo lang('task_info') ?>",
+            multipleTaskAddText = "<?php echo lang('add_multiple_tasks') ?>",
+            addType = "<?php echo $add_type; ?>";
 
-        window.taskForm = $("#task-form").appForm({
-            closeModalOnSuccess: false,
-            onSuccess: function (result) {
-                $("#task-table").appTable({newData: result.data, dataId: result.id});
-                $("#reload-kanban-button:visible").trigger("click");
+    window.taskForm = $("#task-form").appForm({
+        closeModalOnSuccess: false,
+        onSuccess: function (result) {
+            $("#task-table").appTable({newData: result.data, dataId: result.id});
+            $("#reload-kanban-button:visible").trigger("click");
 
-                $("#save_and_show_value").append(result.save_and_show_link);
+            $("#save_and_show_value").append(result.save_and_show_link);
 
-                if (window.showAddNewModal) {
-                    var $taskViewLink = $("#link-of-new-view").find("a");
+            if (window.showAddNewModal) {
+                var $taskViewLink = $("#link-of-new-view").find("a");
 
-                    if (addType === "multiple") {
-                        //add multiple tasks
-                        $taskViewLink.attr("data-action-url", "<?php echo get_uri("projects/task_modal_form"); ?>");
-                        $taskViewLink.attr("data-title", multipleTaskAddText);
-                        $taskViewLink.attr("data-post-last_id", result.id);
-                        $taskViewLink.attr("data-post-project_id", "<?php echo $project_id; ?>");
-                        $taskViewLink.attr("data-post-add_type", "multiple");
-                    } else {
-                        //save and show
-                        $taskViewLink.attr("data-action-url", "<?php echo get_uri("projects/task_view"); ?>");
-                        $taskViewLink.attr("data-title", taskShowText + "#" + result.id);
-                        $taskViewLink.attr("data-post-id", result.id);
-                    }
-
-                    $taskViewLink.trigger("click");
+                if (addType === "multiple") {
+                    //add multiple tasks
+                    $taskViewLink.attr("data-action-url", "<?php echo get_uri("projects/task_modal_form"); ?>");
+                    $taskViewLink.attr("data-title", multipleTaskAddText);
+                    $taskViewLink.attr("data-post-last_id", result.id);
+                    $taskViewLink.attr("data-post-project_id", "<?php echo $project_id; ?>");
+                    $taskViewLink.attr("data-post-add_type", "multiple");
                 } else {
-                    window.taskForm.closeModal();
-
-                    if (window.refreshAfterAddTask) {
-                        window.refreshAfterAddTask = false;
-                        location.reload();
-                    }
+                    //save and show
+                    $taskViewLink.attr("data-action-url", "<?php echo get_uri("projects/task_view"); ?>");
+                    $taskViewLink.attr("data-title", taskShowText + "#" + result.id);
+                    $taskViewLink.attr("data-post-id", result.id);
                 }
 
-                if (typeof window.reloadGantt === "function") {
-                    window.reloadGantt(true);
-                }
-            },
-            onAjaxSuccess: function (result) {
-                if (!result.success && result.next_recurring_date_error) {
-                    $("#next_recurring_date").val(result.next_recurring_date_value);
-                    $("#next_recurring_date_container").removeClass("hide");
-
-                    $("#task-form").data("validator").showErrors({
-                        "next_recurring_date": result.next_recurring_date_error
-                    });
-                }
-            }
-        });
-        $("#task-form .select2").select2();
-        $("#title").focus();
-
-        setDatePicker("#start_date");
-
-        setDatePicker("#deadline", {
-            endDate: "<?php echo $project_deadline; ?>"
-        });
-
-        $('[data-toggle="tooltip"]').tooltip();
-
-        //show/hide recurring fields
-        $("#recurring").click(function () {
-            if ($(this).is(":checked")) {
-                $("#recurring_fields").removeClass("hide");
+                $taskViewLink.trigger("click");
             } else {
-                $("#recurring_fields").addClass("hide");
-            }
-        });
+                window.taskForm.closeModal();
 
-        setDatePicker("#next_recurring_date", {
-            startDate: moment().add(1, 'days').format("YYYY-MM-DD") //set min date = tomorrow
-        });
+                if (window.refreshAfterAddTask) {
+                    window.refreshAfterAddTask = false;
+                    location.reload();
+                }
+            }
+
+            if (typeof window.reloadGantt === "function") {
+                window.reloadGantt(true);
+            }
+        },
+        onAjaxSuccess: function (result) {
+            if (!result.success && result.next_recurring_date_error) {
+                $("#next_recurring_date").val(result.next_recurring_date_value);
+                $("#next_recurring_date_container").removeClass("hide");
+
+                $("#task-form").data("validator").showErrors({
+                    "next_recurring_date": result.next_recurring_date_error
+                });
+            }
+        }
     });
+
+    $("#task-form .select2").select2();
+    $("#title").focus();
+
+    setDatePicker("#start_date");
+
+    setDatePicker("#deadline", {
+        endDate: "<?php echo $project_deadline; ?>"
+    });
+
+    $('[data-toggle="tooltip"]').tooltip();
+
+    //show/hide recurring fields
+    $("#recurring").click(function () {
+        if ($(this).is(":checked")) {
+            $("#recurring_fields").removeClass("hide");
+        } else {
+            $("#recurring_fields").addClass("hide");
+        }
+    });
+
+    setDatePicker("#next_recurring_date", {
+        startDate: moment().add(1, 'days').format("YYYY-MM-DD") //set min date = tomorrow
+    });
+});
 </script>    
 
 <?php $this->load->view("projects/tasks/get_related_data_of_project_script"); ?>

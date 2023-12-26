@@ -2659,6 +2659,22 @@ class Projects extends MY_Controller
     /* task add/edit modal */
     function task_modal_form()
     {
+        if($this->input->get("task") != null){
+            if($this->input->get("task") == "suggest_tasks"){
+                $suggested_tasks = [];
+                $trows = $this->Tasks_m->getRows();
+                if(!empty($trows)){
+                    foreach($trows as $trow){
+                        $suggested_tasks[] = ["id" => $trow->id, "text" => $trow->title, "title"=>$trow->title, "description"=>$trow->description, "assigned_to"=>$trow->assigned_to, "collaborators"=>$trow->collaborators];
+                    }
+                }
+                $suggested_tasks[] = ["id" => "+", "text" => "+ สร้างรายการแบบกำหนดเอง"];
+                jout($suggested_tasks);
+            }
+            return;
+        }
+
+
         $id = $this->input->post('id');
         $add_type = $this->input->post('add_type');
         $last_id = $this->input->post('last_id');

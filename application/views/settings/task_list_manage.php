@@ -27,7 +27,6 @@
         <div class="form-group">
             <label for="assigned_to" class="col-md-3"><?php echo lang('assign_to'); ?></label>
             <div class="col-md-9">
-                <!--<input type="text" id="assigned_to" name="assigned_to" class="form-control" value="<?php //echo isset($row)?$row->assigned_to:''?>">-->
                 <select id="assigned_to" name="assigned_to" class="select2 validate-hidden" data-msg-required="<?php echo lang('field_required'); ?>" data-rule-required='true'>
                     <!--<option value="">- เลือกประเภทโปรเจค -</option>-->
                     <?php 
