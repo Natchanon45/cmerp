@@ -508,7 +508,6 @@ class Sales_orders_m extends MY_Model {
 
     function items(){
         $db = $this->db;
-        $ci = get_instance();
         
         $sorow = $db->select("id, status")
                         ->from("sales_order")
@@ -533,7 +532,11 @@ class Sales_orders_m extends MY_Model {
         $items = [];
 
         foreach($soirows as $soirow){
-            $product_formula = $ci->Bom_item_m->getMixingGroupsInfoById($soirow->item_mixing_groups_id) == null ? "":$ci->Bom_item_m->getMixingGroupsInfoById($soirow->item_mixing_groups_id);
+            $product_formula = $this->Bom_item_m->getMixingGroupsInfoById($soirow->item_mixing_groups_id) == null ? "":$this->Bom_item_m->getMixingGroupsInfoById($soirow->item_mixing_groups_id);
+
+            $product_image_file = $this->Products_m->getImage($soirow->product_id);
+            if($product_image_file != null) $item["product_image_file"] = $product_image_file;
+
             $item["id"] = $soirow->id;
             $item["product_id"] = $soirow->product_id;
             $item["product_name"] = $soirow->product_name;

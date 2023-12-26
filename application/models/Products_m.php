@@ -95,4 +95,20 @@ class Products_m extends MY_Model{
 
         return $mcrow->title;
     }
+
+    function getImage($item_id){
+        $ivrow = $this->db->select("files")
+                            ->from("items")
+                            ->where("id", $item_id)
+                            ->get()->row();
+
+        if(empty($ivrow)) return null;
+        $files = @unserialize($ivrow->files);
+        if(count($files) < 1) return null;
+
+        $file_name = $files[sizeof($files) - 1]['file_name'];
+        $file_path = "files/timeline_files/";
+        return base_url($file_path.$file_name);
+
+    }
 }

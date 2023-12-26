@@ -237,6 +237,20 @@
     padding-bottom: 0;
 }
 
+#printd .docitem td img{
+    display: inline-block;
+    width: 80px;
+    height: auto;
+    vertical-align: top;
+    margin-right: 8px;
+}
+
+#printd .docitem .txt{
+    display: inline-block;
+    position: relative;
+    top: 0;
+}
+
 .task_list table{
     width: 100%;
 }
@@ -300,9 +314,12 @@ function loadItems(){
                 tbody += "<tr>"; 
                     tbody += "<td>"+(i+1)+"</td>";
                     tbody += "<td>";
-                        tbody += "<p class='desc1'>"+items[i]["product_name"]+"</p>";
-                        tbody += "<p class='desc2'>"+items[i]["product_description"]+"</p>";
-                        tbody += "<p class='desc3'>"+items[i]["product_formula_name"]+"</p>";
+                        if(items[i]["product_image_file"] != undefined) tbody += "<img src='"+items[i]["product_image_file"]+"'>";    
+                        tbody += "<span class='txt'>";
+                            tbody += "<p class='desc1'>"+items[i]["product_name"]+"</p>";
+                            tbody += "<p class='desc2'>"+items[i]["product_description"]+"</p>";
+                            tbody += "<p class='desc3'>"+items[i]["product_formula_name"]+"</p>";
+                        tbody += "</span>";
                     tbody += "</td>";
                     tbody += "<td>"+items[i]["quantity"]+"</td>"; 
                     tbody += "<td>"+items[i]["unit"]+"</td>"; 
