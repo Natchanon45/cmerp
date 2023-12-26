@@ -190,5 +190,17 @@ class Projects_m extends MY_Model {
         return $id;
     }
 
+    function getTaskRow($task_id){
+        $db = $this->db;
+
+        $trow = $db->select("*")
+                    ->from("tasks")
+                    ->where("id", $task_id)
+                    ->get()->row();
+
+        if(empty($trow)) return null;
+        return $trow;        
+    }
+
 
 }
