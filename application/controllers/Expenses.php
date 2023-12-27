@@ -688,6 +688,7 @@ class Expenses extends MY_Controller {
         $view_data["expense_info"] = $info;
         $view_data['custom_fields_list'] = $this->Custom_fields_model->get_combined_details("expenses", $expense_id, $this->login_user->is_admin, $this->login_user->user_type)->result();
 
+        // var_dump(arr($view_data)); exit();
         $this->load->view("expenses/expense_details", $view_data);
     }
 	

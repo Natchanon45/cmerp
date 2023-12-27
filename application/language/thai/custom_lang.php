@@ -2624,6 +2624,8 @@ $lang["pv_incorrect_qty"] = "ระบุจำนวนไม่ถูกต้
 $lang["pv_internal_reference"] = "เลขที่เอกสารอ้างอิง";
 $lang["pv_internal_reference_place_holder"] = "ระบุเลขที่เอกสารอ้างอิงสำหรับภายในบริษัท";
 
+$lang["pv_expense_button"] = "สร้างใบสำคัญจ่าย";
+
 $lang["material_request_type"] = "ประเภทการเบิก";
 $lang["project_refer"] = "โปรเจคอ้างอิง";
 $lang["material_request_no"] = "เลขที่ใบเบิก";

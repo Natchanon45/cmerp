@@ -38,7 +38,7 @@
         name: 'source_type',
         class: 'w150',
         options: [
-            { 'id': 1, 'text': '<?php echo lang("stock_used_all"); ?>' },
+            { 'id': 1, 'text': '<?php echo "- " . lang("entries") . " -"; ?>' },
             { 'id': 2, 'text': '<?php echo lang("stock_used_rm"); ?>' },
             { 'id': 3, 'text': '<?php echo lang("stock_used_fg"); ?>' },
             { 'id': 4, 'text': '<?php echo lang("stock_used_sfg"); ?>' }
@@ -58,20 +58,20 @@
 
     let columns = [
         { title: '<?php echo lang("id"); ?>', class: 'text-center w10' },
-        { title: '<?php echo lang("used_name"); ?>', class: 'w150' },
+        { title: '<?php echo lang("stock_restock_name"); ?>', class: 'w150' },
         { title: '<?php echo lang("entries"); ?>', class: 'mw250' },
         { title: '<?php echo lang("stock_item_description"); ?>', class: 'w200' },
         { title: '<?php echo lang("used_date"); ?>', class: '' },
         { title: '<?php echo lang("used_quantity"); ?>', class: 'w100 text-right' },
         { title: '<?php echo lang("stock_item_unit"); ?>', class: 'w10' },
-        { title: '<?php echo lang("used_price"); ?>', class: 'w90 text-right' },
+        // { title: '<?php // echo lang("used_price"); ?>', class: 'w90 text-right' },
         { title: '<?php echo lang("rate"); ?>', class: 'w90 text-right' },
         { title: '<?php echo lang("used_value"); ?>', class: 'w90 text-right' },
         { title: '<?php echo lang("currency"); ?>', class: 'w100 text-right' }
     ];
 
-    let printColumns = combineCustomFieldsColumns([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
-    let xlsColumns = combineCustomFieldsColumns([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+    let printColumns = combineCustomFieldsColumns([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
+    let xlsColumns = combineCustomFieldsColumns([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
     let summation = [
         { column: 5, dataType: 'number' },
         { column: 9, dataType: 'number' }

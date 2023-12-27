@@ -1,3 +1,9 @@
+<style>
+    .modal-dialog {
+        width: 800px;
+    }
+</style>
+
 <div class="modal-body clearfix general-form">
 
     <div class="form-group clearfix">
@@ -123,12 +129,19 @@
         <?php } ?>
 
     </div>
-
 </div>
 
 <div class="modal-footer">
-
-<?php echo $proveButton ?>
+    <?php echo $proveButton ?>
+    <?php
+        echo modal_anchor(
+            get_uri("expenses/modal_pv"),
+            lang("pv_expense_button"),
+            array(
+                "class" => "btn btn-success"
+            )
+        );
+    ?>
     <?php echo modal_anchor(get_uri("expenses/modal_form"), "<i class='fa fa-pencil'></i> " . lang('edit_expense'), array("class" => "btn btn-default", "data-post-id" => $expense_info->id, "title" => lang('edit_expense'))); ?>
     <button type="button" class="btn btn-default" data-dismiss="modal"><span class="fa fa-close"></span> <?php echo lang('close'); ?></button>
 </div>

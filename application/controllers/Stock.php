@@ -6303,7 +6303,7 @@ class Stock extends MY_Controller
             convertDate($row->created_at, true),
             to_decimal_format3($row->ratio, 6),
             $row->material_info->unit,
-            to_decimal_format3($row->stock_info->price, 3),
+            // to_decimal_format3($row->stock_info->price, 3),
             to_decimal_format3($unit_price, 3),
             to_decimal_format3($used_price, 3),
             lang("THB")
@@ -6348,7 +6348,7 @@ class Stock extends MY_Controller
             convertDate($row->created_at, true),
             to_decimal_format3($row->ratio, 6),
             $row->item_info->unit_type,
-            to_decimal_format3($row->stock_info->price, 3),
+            // to_decimal_format3($row->stock_info->price, 3),
             to_decimal_format3($unit_price, 3),
             to_decimal_format3($used_price, 3),
             lang("THB")
@@ -6393,7 +6393,7 @@ class Stock extends MY_Controller
             convertDate($row->created_at, true),
             to_decimal_format3($row->ratio, 6),
             $row->item_info->unit_type,
-            to_decimal_format3($row->stock_info->price, 3),
+            // to_decimal_format3($row->stock_info->price, 3),
             to_decimal_format3($unit_price, 3),
             to_decimal_format3($used_price, 3),
             lang("THB")
