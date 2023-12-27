@@ -173,6 +173,9 @@ class Expenses extends MY_Controller {
             $view_data["account_category_info"] = $this->Account_category_model->dev2_selectDataListByColumnIndex("account_category", "id", $view_data["model_info"]->account_category_id)[0];
             $view_data["account_secondary_info"] = $this->Account_category_model->dev2_selectDataListByColumnIndex("account_secondary", "id", $view_data["account_category_info"]->secondary_id)[0];
         }
+
+        // supplier dropdown
+        $view_data["supplier_dropdown"] = array("0" => "-") + $this->Bom_suppliers_model->dev2_get_dropdown_list();
         
         // var_dump(arr($view_data)); exit();
         $this->load->view('expenses/modal_form', $view_data);
@@ -212,6 +215,7 @@ class Expenses extends MY_Controller {
             "description" => $this->input->post('description'),
             "amount" => unformat_currency($this->input->post('amount')),
             "title" => $this->input->post('title'),
+            "supplier_id" => $this->input->post('supplier_id'),
             "project_id" => $this->input->post('expense_project_id'),
             "user_id" => $this->input->post('expense_user_id'),
             "tax_id" => $this->input->post('tax_id') ? $this->input->post('tax_id') : 0,
@@ -351,7 +355,19 @@ class Expenses extends MY_Controller {
             }
         }
 
+        $supplier_name = 0;
+        if ($data->supplier_id) {
+            $supplier_name = $this->Expenses_model->dev2_getSupplierNameById($data->supplier_id);
+        }
+
         $description = $data->description;
+        if ($supplier_name) {
+            if ($description) {
+                $description .= "<br />";
+            }
+            $description .= lang("suppliers") . ": " . $supplier_name;
+        }
+
         if ($data->linked_client_name) {
             if ($description) {
                 $description .= "<br />";
@@ -701,6 +717,7 @@ class Expenses extends MY_Controller {
         $user_id = $this->input->post('user_id');
         $account_secondary_id = $this->input->post('acct_secondary_id');
         $account_category_id = $this->input->post('acct_category_id');
+        $supplier_id = $this->input->post("supplier_id");
 
         $custom_fields = $this->Custom_fields_model->get_available_fields_for_table("expenses", $this->login_user->is_admin, $this->login_user->user_type);
 
@@ -713,7 +730,8 @@ class Expenses extends MY_Controller {
             "custom_fields" => $custom_fields,
             "recurring" => $recurring,
             "account_secondary_id" => $account_secondary_id,
-            "account_category_id" => $account_category_id
+            "account_category_id" => $account_category_id,
+            "supplier_id" => $supplier_id
         );
 
         $list_data = $this->Expenses_model->get_details( $options, $this->getRolePermission )->result();

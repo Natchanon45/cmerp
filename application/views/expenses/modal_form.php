@@ -143,6 +143,22 @@
             </div>
         </div>
 
+        <div class="form-group">
+            <label for="supplier_id" class="col-md-3">
+                <?php echo lang("suppliers"); ?>
+            </label>
+            <div class="col-md-9">
+                <?php
+                echo form_dropdown(
+                    'supplier_id',
+                    $supplier_dropdown,
+                    $model_info->supplier_id,
+                    'class="select2" id="supplier_id"'
+                );
+                ?>
+            </div>
+        </div>
+
         <?php if ($this->login_user->is_admin || $can_access_clients && $can_access_expenses): ?>
             <?php if ($client_id): ?>
                 <input type="hidden" name="expense_client_id" value="<?php echo $client_id; ?>" />
@@ -199,7 +215,7 @@
 
         <div class="form-group">
             <label for="tax_id" class=" col-md-3">
-                <?php echo lang("tax"); ?>
+                <?php echo lang("value_add_tax"); ?>
             </label>
             <div class="col-md-9">
                 <?php
@@ -215,7 +231,7 @@
 
         <div class="form-group">
             <label for="tax_id" class="col-md-3">
-                <?php echo lang("second_tax"); ?>
+                <?php echo lang("with_holding_tax"); ?>
             </label>
             <div class="col-md-9">
                 <?php

@@ -66,6 +66,11 @@ class Expenses_model extends Crud_model
             $where .= " AND $expenses_table.recurring = 1";
         }
 
+        $supplier = get_array_value($options, "supplier_id");
+        if ($supplier) {
+            $where .= " AND $expenses_table.supplier_id = $supplier";
+        }
+
         // prepare custom fild binding query
         $custom_fields = get_array_value($options, "custom_fields");
         $custom_field_query_info = $this->prepare_custom_field_query_string("expenses", $custom_fields, $expenses_table);
@@ -187,6 +192,21 @@ class Expenses_model extends Crud_model
         ";
 
         return $this->db->query($sql);
+    }
+
+    public function dev2_getSupplierNameById(int $supplier_id) : string
+    {
+        $supplier_name = "-";
+
+        if ($supplier_id) {
+            $query = $this->db->get_where("bom_suppliers", array("id" => $supplier_id))->row();
+
+            if (!empty($query)) {
+                $supplier_name = $query->company_name;
+            }
+        }
+
+        return $supplier_name;
     }
 
 }
