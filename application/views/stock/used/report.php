@@ -59,9 +59,10 @@
     let columns = [
         { title: '<?php echo lang("id"); ?>', class: 'text-center w10' },
         { title: '<?php echo lang("stock_restock_name"); ?>', class: 'w150' },
-        { title: '<?php echo lang("entries"); ?>', class: 'mw250' },
+        { title: '<?php echo lang("entries"); ?>', class: '' },
         { title: '<?php echo lang("stock_item_description"); ?>', class: 'w200' },
-        { title: '<?php echo lang("used_date"); ?>', class: '' },
+        { title: '<?php echo lang("reference_number"); ?>', class: 'w100' },
+        { title: '<?php echo lang("used_date"); ?>', class: 'w100' },
         { title: '<?php echo lang("used_quantity"); ?>', class: 'w100 text-right' },
         { title: '<?php echo lang("stock_item_unit"); ?>', class: 'w10' },
         // { title: '<?php // echo lang("used_price"); ?>', class: 'w90 text-right' },
@@ -73,7 +74,7 @@
     let printColumns = combineCustomFieldsColumns([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
     let xlsColumns = combineCustomFieldsColumns([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
     let summation = [
-        { column: 5, dataType: 'number' },
+        { column: 6, dataType: 'number' },
         { column: 9, dataType: 'number' }
     ];
 

@@ -2332,6 +2332,8 @@ class Stock extends MY_Controller
         }
 
         $list_data = $this->Bom_stock_groups_model->get_restocks2($options)->result();
+        // var_dump(arr($list_data)); exit();
+
         $result = array();
         foreach ($list_data as $data) {
             $result[] = $this->_material_remaining_make_row($data);
@@ -2367,12 +2369,17 @@ class Stock extends MY_Controller
         $user_image = get_avatar($data->user_image);
         $user_name = "<span class='avatar avatar-xs mr10'><img src='$user_image' alt='...'></span> $user_name";
 
+        $instock_date = convertDate($data->bsg_created_date, true);
+        if (isset($data->created_date) && is_date_exists($data->created_date)) {
+            $instock_date = convertDate($data->created_date, true);
+        }
+
         $row_data = array(
             $data->id,
             anchor(get_uri('stock/restock_view/' . $data->group_id), $data->group_name),
             $data->serial_number ? $data->serial_number : '-',
             anchor(get_uri('team_members/view/' . $data->user_id), $user_name),
-            $data->created_date ? format_to_date($data->created_date) : '-',
+            $instock_date,
             is_date_exists($data->expiration_date) ? format_to_date($data->expiration_date, false) : '-',
             $data->stock ? to_decimal_format3($data->stock, 6) : to_decimal_format3(0, 4),
             $data->remaining ? to_decimal_format3($data->remaining, 6) : to_decimal_format3(0, 4),
@@ -2668,7 +2675,7 @@ class Stock extends MY_Controller
         }
 
         $list_data = $this->Bom_stock_groups_model->get_restocks2($options)->result();
-        // var_dump(arr($list_data)); exit;
+        var_dump(arr($list_data)); exit;
         
         $result = array();
         foreach ($list_data as $data) {
@@ -5065,6 +5072,8 @@ class Stock extends MY_Controller
             $options['created_by'] = $this->login_user->id;
         }
         $list_data = $this->Bom_item_groups_model->get_restocks($options)->result();
+        // var_dump(arr($list_data)); exit();
+
         $result = array();
         foreach ($list_data as $data) {
             $result[] = $this->_item_remaining_make_row($data);
@@ -5085,12 +5094,17 @@ class Stock extends MY_Controller
         $user_image = get_avatar($data->user_image);
         $user_name = "<span class='avatar avatar-xs mr10'><img src='$user_image' alt='...'></span> $user_name";
 
+        $instock_date = convertDate($data->bsg_created_date, true);
+        if (isset($data->created_date) && is_date_exists($data->created_date)) {
+            $instock_date = convertDate($data->created_date, true);
+        }
+
         $row_data = array(
             $data->id,
             anchor(get_uri('stock/restock_item_view/' . $data->group_id), $data->group_name),
             $data->serial_number ? $data->serial_number : '-',
             anchor(get_uri('team_members/view/' . $data->user_id), $user_name),
-            format_to_date($data->created_date),
+            $instock_date,
             is_date_exists($data->expiration_date) ? format_to_date($data->expiration_date, false) : '-',
             $data->stock ? to_decimal_format3($data->stock, 6) : 0,
             $data->remaining ? to_decimal_format3($data->remaining, 6) : 0,
@@ -5707,6 +5721,7 @@ class Stock extends MY_Controller
                 $result = $this->Bom_stocks_model->dev2_getRestockingList($post);
             }
         }
+        // var_dump(arr($result)); exit();
 
         $data = array();
         foreach ($result as $item) {
@@ -5730,9 +5745,9 @@ class Stock extends MY_Controller
                 $result = $this->Bom_item_groups_model->dev2_getRestockingItemList($post);
             }
         }
+        // var_dump(arr($result)); exit();
 
         $data = array();
-        // var_dump(arr($result)); exit();
         foreach ($result as $item) {
             $data[] = $this->dev2_rowDataItemList($item);
         }
@@ -5756,6 +5771,11 @@ class Stock extends MY_Controller
             $button .= js_anchor("<i class='fa fa-times fa-fw'></i>", array('title' => lang('stock_restock_delete'), "class" => "delete", "data-id" => $item->stock_id, "data-action-url" => get_uri("stock/dev2_restock_material_delete"), "data-action" => "delete-confirmation"));
         }
 
+        $instock_date = convertDate($item->bsg_create_date, true);
+        if (isset($item->created_date) && is_date_exists($item->created_date)) {
+            $instock_date = convertDate($item->created_date, true);
+        }
+
         return array(
             $item->stock_id,
             anchor(get_uri('stock/restock_view/' . $item->group_id), $item->stock_name),
@@ -5767,7 +5787,7 @@ class Stock extends MY_Controller
             to_decimal_format3($item->stock_remain, 6),
             mb_strtoupper($item->material_unit),
             $item->create_by ? anchor(get_uri('team_members/view/' . $item->create_by), $this->Account_category_model->created_by($item->create_by)) : '',
-            format_to_date($item->create_date),
+            $instock_date,
             $button
         );
     }
@@ -5807,6 +5827,11 @@ class Stock extends MY_Controller
             </span>';
         }
 
+        $instock_date = convertDate($item->big_create_date, true);
+        if (isset($item->created_date) && is_date_exists($item->created_date)) {
+            $instock_date = convertDate($item->created_date, true);
+        }
+
         return array(
             $item->id,
             anchor(get_uri('stock/restock_item_view/' . $item->group_id), $item->group_name),
@@ -5816,7 +5841,7 @@ class Stock extends MY_Controller
             to_decimal_format3($item->remain_qty),
             mb_strtoupper($item->item_unit),
             $item->create_by ? anchor(get_uri('team_members/view/' . $item->create_by), $this->Account_category_model->created_by($item->create_by)) : '',
-            format_to_date($item->create_date),
+            $instock_date,
             $button
         );
     }
@@ -6295,11 +6320,21 @@ class Stock extends MY_Controller
             array("target" => "_blank")
         );
 
+        $mr_refer = "-";
+        if (isset($row->mr_id) && !empty($row->mr_id)) {
+            $mr_refer = anchor(
+                get_uri("materialrequests/view/" . $row->mr_info->id),
+                $row->mr_info->doc_no,
+                array("target" => "_blank")
+            );
+        }
+
         $data = array(
             $row->id,
             $stock_name,
             $material_link,
             mb_strimwidth($row->material_info->description, 0, 50, '...'),
+            $mr_refer,
             convertDate($row->created_at, true),
             to_decimal_format3($row->ratio, 6),
             $row->material_info->unit,
@@ -6340,11 +6375,21 @@ class Stock extends MY_Controller
             array("target" => "_blank")
         );
 
+        $mr_refer = "-";
+        if (isset($row->mr_id) && !empty($row->mr_id)) {
+            $mr_refer = anchor(
+                get_uri("materialrequests/view/" . $row->mr_info->id),
+                $row->mr_info->doc_no,
+                array("target" => "_blank")
+            );
+        }
+
         $data = array(
             $row->id,
             $stock_name,
             $item_link,
             mb_strimwidth($row->item_info->description, 0, 50, '...'),
+            $mr_refer,
             convertDate($row->created_at, true),
             to_decimal_format3($row->ratio, 6),
             $row->item_info->unit_type,
@@ -6385,11 +6430,21 @@ class Stock extends MY_Controller
             array("target" => "_blank")
         );
 
+        $mr_refer = "-";
+        if (isset($row->mr_id) && !empty($row->mr_id)) {
+            $mr_refer = anchor(
+                get_uri("materialrequests/view/" . $row->mr_info->id),
+                $row->mr_info->doc_no,
+                array("target" => "_blank")
+            );
+        }
+
         $data = array(
             $row->id,
             $stock_name,
             $item_link,
             mb_strimwidth($row->item_info->description, 0, 50, '...'),
+            $mr_refer,
             convertDate($row->created_at, true),
             to_decimal_format3($row->ratio, 6),
             $row->item_info->unit_type,

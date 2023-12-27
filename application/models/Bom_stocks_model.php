@@ -107,7 +107,7 @@ class Bom_stocks_model extends Crud_model {
             $where_create_by = "AND `bsg`.`created_by` = " . $post;
         }
 
-        $sql = "SELECT `bs`.`id` AS 'stock_id', `bsg`.`id` AS 'group_id', `bsg`.`name` AS 'stock_name', `bs`.`serial_number` AS 'serial_number', `bm`.`id` AS 'material_id', `bm`.`name` AS 'material_code', `bm`.`production_name` AS 'material_name', `bm`.`unit` AS 'material_unit', `bs`.`stock` AS 'stock_qty', `bs`.`remaining` AS 'stock_remain', `bsg`.`created_by` AS 'create_by', `bsg`.`created_date` AS 'create_date' 
+        $sql = "SELECT `bs`.`id` AS 'stock_id', `bsg`.`id` AS 'group_id', `bsg`.`name` AS 'stock_name', `bs`.`serial_number` AS 'serial_number', `bm`.`id` AS 'material_id', `bm`.`name` AS 'material_code', `bm`.`production_name` AS 'material_name', `bm`.`unit` AS 'material_unit', `bs`.`stock` AS 'stock_qty', `bs`.`remaining` AS 'stock_remain', `bsg`.`created_by` AS 'create_by', `bs`.`created_date`, `bsg`.`created_date` AS 'bsg_create_date' 
         FROM `bom_stocks` AS `bs` 
         LEFT JOIN `bom_stock_groups` AS `bsg` ON `bs`.`group_id` = `bsg`.`id` 
         INNER JOIN `bom_materials` AS `bm` ON `bs`.`material_id` = `bm`.`id` 
@@ -119,7 +119,7 @@ class Bom_stocks_model extends Crud_model {
 
     public function dev2_getRestockingById(&$id)
     {
-        $sql = "SELECT `bs`.`id` AS 'stock_id', `bsg`.`id` AS 'group_id', `bsg`.`name` AS 'stock_name', `bs`.`serial_number` AS 'serial_number', `bm`.`id` AS 'material_id', `bm`.`name` AS 'material_code', `bm`.`production_name` AS 'material_name', `bm`.`unit` AS 'material_unit', `bs`.`stock` AS 'stock_qty', `bs`.`remaining` AS 'stock_remain', `bsg`.`created_by` AS 'create_by', `bsg`.`created_date` AS 'create_date' 
+        $sql = "SELECT `bs`.`id` AS 'stock_id', `bsg`.`id` AS 'group_id', `bsg`.`name` AS 'stock_name', `bs`.`serial_number` AS 'serial_number', `bm`.`id` AS 'material_id', `bm`.`name` AS 'material_code', `bm`.`production_name` AS 'material_name', `bm`.`unit` AS 'material_unit', `bs`.`stock` AS 'stock_qty', `bs`.`remaining` AS 'stock_remain', `bsg`.`created_by` AS 'create_by', `bs`.`created_date`, `bsg`.`created_date` AS 'bsg_create_date' 
         FROM `bom_stocks` AS `bs` 
         LEFT JOIN `bom_stock_groups` AS `bsg` ON `bs`.`group_id` = `bsg`.`id` 
         LEFT JOIN `bom_materials` AS `bm` ON `bs`.`material_id` = `bm`.`id` 
@@ -297,6 +297,10 @@ class Bom_stocks_model extends Crud_model {
                 if (isset($row->stock_info->group_id) && !empty($row->stock_info->group_id)) {
                     $row->stock_info->group_info = $this->dev2_getRowTableFromId("bom_stock_groups", $row->stock_info->group_id);
                 }
+
+                if (isset($row->mr_id) && !empty($row->mr_id)) {
+                    $row->mr_info = $this->dev2_getRowTableFromId("materialrequests", $row->mr_id);
+                }
             }
 
             $data = $query;
@@ -328,6 +332,10 @@ class Bom_stocks_model extends Crud_model {
                 if (isset($row->stock_info->group_id) && !empty($row->stock_info->group_id)) {
                     $row->stock_info->group_info = $this->dev2_getRowTableFromId("bom_item_groups", $row->stock_info->group_id);
                 }
+
+                if (isset($row->mr_id) && !empty($row->mr_id)) {
+                    $row->mr_info = $this->dev2_getRowTableFromId("materialrequests", $row->mr_id);
+                }
             }
 
             $data = $query;
@@ -358,6 +366,10 @@ class Bom_stocks_model extends Crud_model {
 
                 if (isset($row->stock_info->group_id) && !empty($row->stock_info->group_id)) {
                     $row->stock_info->group_info = $this->dev2_getRowTableFromId("bom_item_groups", $row->stock_info->group_id);
+                }
+
+                if (isset($row->mr_id) && !empty($row->mr_id)) {
+                    $row->mr_info = $this->dev2_getRowTableFromId("materialrequests", $row->mr_id);
                 }
             }
 
