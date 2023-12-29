@@ -368,4 +368,16 @@ class Bom_suppliers_model extends Crud_model
         return $list;
     }
 
+    function dev2_getSuppliersList()
+    {
+        $list = array();
+
+        $query = $this->db->get("bom_suppliers")->result();
+        if (sizeof($query)) {
+            $list = $query;
+        }
+
+        return $list;
+    }
+
 }

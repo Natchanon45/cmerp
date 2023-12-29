@@ -209,4 +209,16 @@ class Expenses_model extends Crud_model
         return $supplier_name;
     }
 
+    public function dev2_getExpenseInfoById(int $expense_id) : stdClass
+    {
+        $info = new stdClass();
+
+        $query = $this->db->get_where("expenses", array("id" => $expense_id))->row();
+        if ($query !== null || !empty((array) $query)) {
+            $info = $query;
+        }
+
+        return $info;
+    }
+
 }

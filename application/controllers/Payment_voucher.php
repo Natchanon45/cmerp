@@ -93,11 +93,15 @@ class Payment_voucher extends MY_Controller
 
             $data["pv_info"]->references_links = implode(", ", $data["pv_info"]->references_link);
         } else {
-            $data["pv_info"]->references_links = anchor(
-                get_uri("purchase_order/view/" . $this->Goods_receipt_m->dev2_getPurchaseOrderIdByPurchaseOrderNo($data["pv_info"]->reference_number)),
-                $data["pv_info"]->reference_number,
-                array("target" => "_blank")
-            );
+            $data["pv_info"]->references_links = "";
+            
+            if (isset($data["pv_info"]->reference_number) && !empty($data["pv_info"]->reference_number)) {
+                $data["pv_info"]->references_links = anchor(
+                    get_uri("purchase_order/view/" . $this->Goods_receipt_m->dev2_getPurchaseOrderIdByPurchaseOrderNo($data["pv_info"]->reference_number)),
+                    $data["pv_info"]->reference_number,
+                    array("target" => "_blank")
+                );
+            }
         }
         
         $data["pv_detail"] = $this->Payment_voucher_m->dev2_getPaymentVoucherDetailByHeaderId($data["pv_id"]);

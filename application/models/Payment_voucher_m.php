@@ -12,6 +12,7 @@ class Payment_voucher_m extends MY_Model
     function __construct()
     {
         parent::__construct();
+        $this->load->model("Expenses_model");
     }
 
     function getCode()
@@ -1175,7 +1176,7 @@ class Payment_voucher_m extends MY_Model
         $detail_data = array();
         $refer_list = array();
 
-        if ($pv_info->po_id == 0) {
+        if ($pv_info->po_id == 0 && $pv_info->po_type != 8) {
             // clear old detail
             $this->db->where("pv_id", $header_data["id"]);
             $this->db->delete("pv_detail");
@@ -1195,9 +1196,9 @@ class Payment_voucher_m extends MY_Model
                     $total_price = $po_item_info->price * $data["quantity"][$key];
                     $detail_data[$key] = array(
                         "pv_id" => $header_data["id"],
-                        "po_id" => $po_item_info->po_id,
-                        "po_item_id" => $po_item_info->id,
-                        "product_id" => $po_item_info->product_id,
+                        "po_id" => $po_item_info->po_id ? $po_item_info->po_id : 0,
+                        "po_item_id" => $po_item_info->id ? $po_item_info->id : 0,
+                        "product_id" => $po_item_info->product_id ? $po_item_info->product_id : null,
                         "product_name" => $po_item_info->product_name,
                         "product_description" => $po_item_info->product_description,
                         "quantity" => $data["quantity"][$key],
@@ -1559,6 +1560,134 @@ class Payment_voucher_m extends MY_Model
         }
 
         return $list;
+    }
+
+    public function dev2_postPaymentVoucherHeaderFromExpense(int $expense_id) : array
+    {
+        $result = array(
+            "success" => false,
+            "header" => array(),
+            "detail" => array(),
+            "target" => "",
+            "message" => ""
+        );
+
+        $this->db->trans_start();
+
+        $expense = $this->Expenses_model->dev2_getExpenseInfoById($expense_id);
+
+        // validate required information
+        if (!$expense->account_secondary_id || !$expense->account_category_id) {
+            $result["message"] = lang("have_no_expense_account");
+            return $result;
+        }
+
+        if (!$expense->supplier_id) {
+            $result["message"] = lang("have_no_supplier");
+            return $result;
+        }
+
+        // prepare document number
+        $param_docno = [
+            "prefix" => "PV",
+            "LPAD" => 4,
+            "column" => "doc_number",
+            "table" => "pv_header"
+        ];
+        $pv_doc_number = $this->Db_model->genDocNo($param_docno);
+
+        // calc vat
+        $vat_inc = "N";
+        $vat_value = 0;
+        if ($expense->tax_id) {
+            $vat_inc = "Y";
+            $vat_value = ($expense->amount * 7) / 100;
+        }
+
+        // calc wht
+        $wht_inc = "N";
+        $wht_value = 0;
+        if ($expense->tax_id2) {
+            $wht_inc = "Y";
+            $wht_value = ($expense->amount * 3) / 100;
+        }
+
+        $total_amount = $expense->amount + $vat_value;
+        $payment_amount = $total_amount - $wht_value;
+
+        $header_data = array(
+            "po_id" => 0,
+            "doc_number" => $pv_doc_number,
+            "po_type" => 8,
+            "doc_date" => date("Y-m-d"),
+            "account_secondary_id" => $expense->account_secondary_id,
+            "account_category_id" => $expense->account_category_id,
+            "due_date" => date("Y-m-d"),
+            "project_id" => $expense->project_id,
+            "client_id" => $expense->client_id,
+            "supplier_id" => $expense->supplier_id,
+            "sub_total_before_discount" => $expense->amount,
+            "sub_total" => $expense->amount,
+            "vat_inc" => $vat_inc,
+            "vat_percent" => 7,
+            "vat_value" => $vat_value,
+            "total" => $total_amount,
+            "wht_inc" => $wht_inc,
+            "wht_percent" => 3,
+            "wht_value" => $wht_value,
+            "payment_amount" => $payment_amount,
+            "pay_amount" => 0,
+            "pay_status" => "N",
+            "is_partials" => "N",
+            "created_by" => $this->login_user->id,
+            "created_datetime" => date("Y-m-d H:i:s"),
+            "status" => "W",
+            "deleted" => 0
+        );
+
+        // create a pv header
+        $this->db->insert("pv_header", $header_data);
+        $header_data["id"] = $this->db->insert_id();
+        if (!empty($header_data["id"])) {
+            $result["header"] = $header_data;
+            $result["target"] = get_uri("payment_voucher/view/" . $header_data["id"]);
+
+            $this->db->set("pv_id", $header_data["id"]);
+            $this->db->where("id", $expense->id);
+            $this->db->update("expenses");
+        }
+
+        // prepare pv detail
+        $detail_data = array(
+            "item_type" => "EX",
+            "pv_id" => $header_data["id"],
+            "po_id" => 0,
+            "po_item_id" => 0,
+            "product_name" => $expense->title,
+            "product_description" => $expense->description,
+            "quantity" => 1,
+            "unit" => "หน่วย",
+            "price" => $expense->amount,
+            "total_price" => $expense->amount,
+            "sort" => 1
+        );
+
+        // create a pv detail
+        $this->db->insert("pv_detail", $detail_data);
+        $detail_data["id"] = $this->db->insert_id();
+        if (!empty($detail_data["id"])) {
+            $result["detail"] = $detail_data;
+        }
+
+        if ($this->db->trans_status() === FALSE) {
+            $this->db->trans_rollback();
+            $result["success"] = false;
+        } else {
+            $this->db->trans_commit();
+            $result["success"] = true;
+        }
+
+        return $result;
     }
 
 }

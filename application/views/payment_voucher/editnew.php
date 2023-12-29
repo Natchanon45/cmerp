@@ -194,19 +194,30 @@ echo form_open(
         <table>
             <thead>
                 <tr>
-                    <th width="25%"><?php echo lang("purchase_order"); ?></th>
+                    <th width="25%">
+                        <?php
+                        $st_column = lang("purchase_order");
+                        if ($header_data->po_type == 8) {
+                            $st_column = lang("title");
+                        }
+
+                        echo $st_column;
+                        ?>
+                    </th>
                     <th width="38%"><?php echo lang("details"); ?></th>
                     <th width="17%"><?php echo lang("quantity"); ?></th>
                     <th width="10%"><?php echo lang("stock_material_unit"); ?></th>
                     
                     <?php if (isset($bom_supplier_read) && $bom_supplier_read): ?>
                         <?php if ($header_data->status == "W" && $header_data->po_id == 0): ?>
-                            <th>
-                                <button id="btn-add-item" class="btn btn-primary right-control hide">
-                                    <span class="fa fa-plus-circle"></span> 
-                                    <?php  echo lang("add"); ?>
-                                </button>
-                            </th>
+                            <?php if ($header_data->po_type != 8): ?>
+                                <th>
+                                    <button id="btn-add-item" class="btn btn-primary right-control hide">
+                                        <span class="fa fa-plus-circle"></span> 
+                                        <?php  echo lang("add"); ?>
+                                    </button>
+                                </th>
+                            <?php endif; ?>
                         <?php endif; ?>
                     <?php endif; ?>
                 </tr>
@@ -218,12 +229,20 @@ echo form_open(
                         <tr>
                             <td>
                                 <select name="po_id[]" class="form-control select-order pointer-none" required>
-                                    <option value="<?php echo $item->po_info->id; ?>"><?php echo $item->po_info->doc_number; ?></option>
+                                    <?php if ($item->po_id): ?>
+                                        <option value="<?php echo $item->po_info->id; ?>"><?php echo $item->po_info->doc_number; ?></option>
+                                    <?php else: ?>
+                                        <option value="0"><?php echo $item->product_name; ?></option>
+                                    <?php endif; ?>
                                 </select>
                             </td>
                             <td>
                                 <select name="po_item_id[]" class="form-control select-item pointer-none">
-                                    <option value="<?php echo $item->po_item_info->id; ?>"><?php echo $item->po_item_info->product_name; ?></option>
+                                    <?php if ($item->po_item_id): ?>
+                                        <option value="<?php echo $item->po_item_info->id; ?>"><?php echo $item->po_item_info->product_name; ?></option>
+                                    <?php else: ?>
+                                        <option value="0"><?php echo $item->product_description; ?></option>
+                                    <?php endif; ?>
                                 </select>
                             </td>
                             <td>
@@ -236,12 +255,14 @@ echo form_open(
 
                             <?php if (isset($bom_supplier_read) && $bom_supplier_read): ?>
                                 <?php if ($header_data->status == "W" && $header_data->po_id == 0): ?>
-                                    <td>
-                                        <button class="btn btn-danger button-delete-edit right-control" data-item_id="<?php echo $item->id; ?>">
-                                            <span class="fa fa-trash"></span> 
-                                            <?php echo lang("delete"); ?>
-                                        </button>
-                                    </td>
+                                    <?php if ($header_data->po_type != 8): ?>
+                                        <td>
+                                            <button class="btn btn-danger button-delete-edit right-control" data-item_id="<?php echo $item->id; ?>">
+                                                <span class="fa fa-trash"></span> 
+                                                <?php echo lang("delete"); ?>
+                                            </button>
+                                        </td>
+                                    <?php endif; ?>
                                 <?php endif; ?>
                             <?php endif; ?>
                         </tr>

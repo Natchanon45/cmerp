@@ -2783,3 +2783,6 @@ $lang["stock_used_all"] = "ทั้งหมด";
 $lang["stock_used_rm"] = "วัตถุดิบ";
 $lang["stock_used_fg"] = "สินค้าสำเร็จ";
 $lang["stock_used_sfg"] = "สินค้ากึ่งสำเร็จ";
+$lang["verify_id"] = "ตรวจสอบไอดี";
+$lang["have_no_expense_account"] = "ยังไม่ได้เลือกหมวดบัญชีค่าใช้จ่าย";
+$lang["have_no_supplier"] = "ยังไม่ได้เลือกผู้จัดจำหน่าย";

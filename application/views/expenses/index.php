@@ -81,6 +81,7 @@
                 { name: "acct_secondary_id", class: "w200", options: <?php echo $account_secondary_dropdown; ?> },
                 { name: "category_id", class: "w200", options: <?php echo $categories_dropdown; ?> },
                 { name: "user_id", class: "w200", options: <?php echo $members_dropdown; ?> },
+                { name: "supplier_id", class: "w200", options: <?php echo $supplier_dropdown; ?> },
                 <?php if ($projects_dropdown): ?>
                         { name: "project_id", class: "w200", options: <?php echo $projects_dropdown; ?> }
                 <?php endif; ?>

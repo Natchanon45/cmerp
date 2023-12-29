@@ -3,14 +3,17 @@
 if (!defined('BASEPATH'))
     exit('No direct script access allowed');
 
-class Expenses extends MY_Controller {
-
-    function __construct() {
+class Expenses extends MY_Controller 
+{
+    function __construct()
+    {
         parent::__construct();
 
         $this->init_permission_checker("expense");
         $this->access_only_allowed_members();
+
         $this->load->model("Account_category_model");
+        $this->load->model("Payment_voucher_m");
     }
 
     //load the expenses list view
@@ -22,6 +25,7 @@ class Expenses extends MY_Controller {
         $view_data["members_dropdown"] = $this->_get_team_members_dropdown();
         $view_data["projects_dropdown"] = $this->_get_projects_dropdown_for_income_and_epxenses("expenses");
         
+        $view_data["supplier_dropdown"] = $this->_get_expenses_supplier_dropdown();
         $view_data["account_secondary_dropdown"] = $this->_get_account_secondary_dropdown();
         $view_data["account_category_dropdown"] = $this->_get_account_category_dropdown();
         
@@ -30,6 +34,22 @@ class Expenses extends MY_Controller {
         
         // var_dump(arr($view_data)); exit();
         $this->template->rander("expenses/index", $view_data);
+    }
+
+    private function _get_expenses_supplier_dropdown()
+    {
+        $suppliers = $this->Bom_suppliers_model->dev2_getSuppliersList();
+        $supplier_dropdown = array(
+            array("id" => "0", "text" => "- " . lang("suppliers") . " -")
+        );
+
+        if (sizeof($suppliers)) {
+            foreach ($suppliers as $supplier) {
+                $supplier_dropdown[] = array("id" => $supplier->id, "text" => $supplier->company_name);
+            }
+        }
+
+        return json_encode($supplier_dropdown);
     }
 
     private function _get_account_secondary_dropdown()
@@ -463,12 +483,29 @@ class Expenses extends MY_Controller {
             $row_data[] = $this->load->view("custom_fields/output_" . $field->field_type, array("value" => $data->$cf_id), true);
         }
 
-        $row_data[] = modal_anchor(
+        $buttons = modal_anchor(
             get_uri("expenses/modal_form"),
             "<i class='fa fa-pencil'></i>",
-            array("class" => "edit", "title" => lang("edit_expense"),
-            "data-post-id" => $data->id)
-        ) . js_anchor(
+            array(
+                "class" => "edit",
+                "title" => lang("edit_expense"),
+                "data-post-id" => $data->id
+            )
+        );
+
+        if (!$data->pv_id) {
+            $buttons .= modal_anchor(
+                get_uri("expenses/pv_creation"),
+                "<i class='fa fa-file-o'></i>",
+                array(
+                    "class" => "edit",
+                    "title" => lang("payment_voucher_add"),
+                    "data-post-id" => $data->id
+                )
+            );
+        }
+
+        $buttons .= js_anchor(
             "<i class='fa fa-times fa-fw'></i>",
             array(
                 "title" => lang("delete_expense"),
@@ -478,6 +515,8 @@ class Expenses extends MY_Controller {
                 "data-action" => "delete-confirmation"
             )
         );
+
+        $row_data[] = $buttons;
 
         return $row_data;
     }
@@ -626,8 +665,8 @@ class Expenses extends MY_Controller {
             for ($i = 1; $i <= 12; $i++) {
                 $result[] = $this->_row_data_of_summary($i, $payments[$i], $expenses[$i]);
             }
+
             // var_dump(arr($result)); exit;
-            
             echo json_encode(array("data" => $result));
         }
     }
@@ -679,30 +718,30 @@ class Expenses extends MY_Controller {
         }
     }
 
-    function expense_details() {
-        validate_submitted_data(array(
-            "id" => "required|numeric"
-        ));
+    function expense_details()
+    {
+        validate_submitted_data(
+            array(
+                "id" => "required|numeric"
+            )
+        );
 
         $expense_id = $this->input->post('id');
         $options = array("id" => $expense_id);
+        
         $info = $this->Expenses_model->get_details($options)->row();
         if (!$info) {
             show_404();
         }
 		
-		
 		$param['id'] = $expense_id;
 		$param['tbName'] = $_SESSION['table_name'];
-
-		//	exit;
-
-
-		$view_data["proveButton"] = $this->dao->getProveButton( $param );
-
+        // exit;
+        
+        $view_data["proveButton"] = $this->dao->getProveButton($param);
 
         $view_data["expense_info"] = $info;
-        $view_data['custom_fields_list'] = $this->Custom_fields_model->get_combined_details("expenses", $expense_id, $this->login_user->is_admin, $this->login_user->user_type)->result();
+        $view_data["custom_fields_list"] = $this->Custom_fields_model->get_combined_details("expenses", $expense_id, $this->login_user->is_admin, $this->login_user->user_type)->result();
 
         // var_dump(arr($view_data)); exit();
         $this->load->view("expenses/expense_details", $view_data);
@@ -743,6 +782,27 @@ class Expenses extends MY_Controller {
 
         // var_dump(arr($list_data)); exit();
         echo json_encode(array("data" => $result));
+    }
+
+    function pv_creation()
+    {
+        $view_data = $this->input->post();
+
+        // var_dump(arr($view_data)); exit();
+        $this->load->view("expenses/pv_creation", $view_data);
+    }
+
+    function pv_creation_save()
+    {
+        $post = $this->input->post();
+
+        $result = array();
+
+        if ($post["expenseId"]) {
+            $result = $this->Payment_voucher_m->dev2_postPaymentVoucherHeaderFromExpense($post["expenseId"]);
+        }
+
+        echo json_encode($result);
     }
 
 }

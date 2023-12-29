@@ -2386,3 +2386,6 @@ $lang["stock_used_all"] = "ทั้งหมด";
 $lang["stock_used_rm"] = "วัตถุดิบ";
 $lang["stock_used_fg"] = "สินค้าสำเร็จ";
 $lang["stock_used_sfg"] = "สินค้ากึ่งสำเร็จ";
+$lang["verify_id"] = "Verify Id.";
+$lang["have_no_expense_account"] = "Expenses account category not selected yet.";
+$lang["have_no_supplier"] = "Supplier not selected yet.";
