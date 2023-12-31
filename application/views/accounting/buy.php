@@ -132,11 +132,11 @@
                         </li>
                     <?php endif; ?>
 
-                    <?php if (true): $number_of_enable_module++; ?>
-                        <li data-module="withholding_tax" class="<?php if($module == "withholding_tax") echo 'active custom-bg01'; ?>">
-                            <a class="<?php if($module == "withholding_tax") echo 'custom-color'; ?>"><?php echo lang("withholding_tax"); ?></a>
-                        </li>
-                    <?php endif; ?>
+                    <?php // if (true): $number_of_enable_module++; ?>
+                        <!-- <li data-module="withholding_tax" class="<?php // if($module == "withholding_tax") echo 'active custom-bg01'; ?>">
+                            <a class="<?php // if($module == "withholding_tax") echo 'custom-color'; ?>"><?php // echo lang("withholding_tax"); ?></a>
+                        </li> -->
+                    <?php // endif; ?>
 
                     <?php if ($user_permissions->goods_receipt["access"]): $number_of_enable_module++; ?>
                         <li data-module="goods_receipt" class="<?php if ($module == "goods_receipt") echo 'active custom-bg01'; ?>">
@@ -299,13 +299,12 @@
                 $(".buttons li.add1 a").attr('data-title', '<?php echo lang("payment_voucher_add"); ?>');
                 $(".buttons li.add1 span").append('<?php echo lang("payment_voucher_add_with_po"); ?>');
 
-                // $(".buttons li.add2").removeClass('hide');
-                // $(".buttons li.add2 a").attr('data-action-url', '<?php // echo get_uri("payment_voucher/addnew_no_po"); ?>');
-                // $(".buttons li.add2 a").attr('data-title', '<?php // echo lang("payment_voucher_add"); ?>');
-                // $(".buttons li.add2 span").append('<?php // echo lang("payment_voucher_add_without_po"); ?>');
+                $(".buttons li.add2").removeClass('hide');
+                $(".buttons li.add2 a").attr('data-action-url', '<?php echo get_uri("payment_voucher/addnew_no_po"); ?>');
+                $(".buttons li.add2 a").attr('data-title', '<?php echo lang("payment_voucher_add"); ?>');
+                $(".buttons li.add2 span").append('<?php echo lang("payment_voucher_add_without_po"); ?>');
             <?php endif; ?>
 
-            $(".buttons li.add2").addClass('hide');
             $(".buttons li.add3").addClass('hide');
 
             status_dropdown = '<?php echo $pv_status_dropdown; ?>';

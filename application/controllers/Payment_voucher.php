@@ -94,7 +94,7 @@ class Payment_voucher extends MY_Controller
             $data["pv_info"]->references_links = implode(", ", $data["pv_info"]->references_link);
         } else {
             $data["pv_info"]->references_links = "";
-            
+
             if (isset($data["pv_info"]->reference_number) && !empty($data["pv_info"]->reference_number)) {
                 $data["pv_info"]->references_links = anchor(
                     get_uri("purchase_order/view/" . $this->Goods_receipt_m->dev2_getPurchaseOrderIdByPurchaseOrderNo($data["pv_info"]->reference_number)),
@@ -250,6 +250,7 @@ class Payment_voucher extends MY_Controller
         $view_data["rm_dropdown"] = $this->get_rm_dropdown();
         $view_data["fg_dropdown"] = $this->get_fg_dropdown();
         $view_data["sfg_dropdown"] = $this->get_sfg_dropdown();
+        $view_data["sv_dropdown"] = $this->get_sv_dropdown();
 
         $view_data["bom_supplier_read"] = false;
         if (isset($this->Permission_m->bom_supplier_read) && $this->Permission_m->bom_supplier_read) {
@@ -258,6 +259,36 @@ class Payment_voucher extends MY_Controller
         
         // var_dump(arr($view_data)); exit();
         $this->load->view("payment_voucher/addnew_no_po", $view_data);
+    }
+
+    function editnew_no_po()
+    {
+        $view_data = [];
+
+        $view_data["supplier_dropdown"] = $this->Payment_voucher_m->dev2_getSupplierList();
+        $view_data["project_dropdown"] = $this->Payment_voucher_m->dev2_getProjectReferByProjectOpen();
+        $view_data["account_secondary"] = $this->Account_category_model->dev2_getExpenseSecondaryList();
+        $view_data["account_category"] = json_encode($this->Account_category_model->dev2_getExpenseCategoryList());
+
+        // Get rm, fg, sfg list
+        $view_data["rm_dropdown"] = $this->get_rm_dropdown();
+        $view_data["fg_dropdown"] = $this->get_fg_dropdown();
+        $view_data["sfg_dropdown"] = $this->get_sfg_dropdown();
+        $view_data["sv_dropdown"] = $this->get_sv_dropdown();
+
+        $view_data["bom_supplier_read"] = false;
+        if (isset($this->Permission_m->bom_supplier_read) && $this->Permission_m->bom_supplier_read) {
+            $view_data["bom_supplier_read"] = true;
+        }
+
+        $id = $this->input->post("id");
+        if ($id) {
+            $view_data["header_data"] = $this->Payment_voucher_m->dev2_getPaymentVoucherHeaderById($id);
+            $view_data["detail_data"] = $this->Payment_voucher_m->dev2_getPaymentVoucherDetailByHeaderId($id);
+        }
+
+        // var_dump(arr($view_data)); exit();
+        $this->load->view("payment_voucher/editnew_no_po", $view_data);
     }
 
     function addnew()
@@ -318,6 +349,39 @@ class Payment_voucher extends MY_Controller
 
         // var_dump(arr($view_data)); exit();
         $this->load->view("payment_voucher/editnew", $view_data);
+    }
+
+    function addnew_no_po_save()
+    {
+        validate_submitted_data(
+            array(
+                "doc-date" => "required",
+                "supplier-id" => "required"
+            )
+        );
+
+        $post = $this->input->post();
+        $post["doc-date"] = $this->DateCaseConvert($post["doc-date"]);
+        $result = $this->Payment_voucher_m->dev2_postPaymentVoucherNonPurchaseOrder($post);
+
+        echo json_encode($result);
+    }
+
+    function editnew_no_po_save()
+    {
+        validate_submitted_data(
+            array(
+                "document-id" => "required",
+                "doc-date" => "required",
+                "supplier-id" => "required"
+            )
+        );
+
+        $post = $this->input->post();
+        $post["doc-date"] = $this->DateCaseConvert($post["doc-date"]);
+        $result = $this->Payment_voucher_m->dev2_postPaymentVoucherNonPurchaseOrderEdit($post);
+
+        echo json_encode($result);
     }
 
     function addnew_save()
@@ -540,6 +604,24 @@ class Payment_voucher extends MY_Controller
                 $dropdown[] = array(
                     "id" => $list->id,
                     "text" => $list->title
+                );
+            }
+        }
+
+        return json_encode($dropdown);
+    }
+
+    private function get_sv_dropdown()
+    {
+        $dropdown = array();
+        $lists = $this->Payment_voucher_m->dev2_getServicesMasterDataList();
+
+        if (sizeof($lists)) {
+            foreach ($lists as $list) {
+                $dropdown[] = array(
+                    "id" => $list->id,
+                    "text" => $list->service_name,
+                    "description" => ""
                 );
             }
         }
