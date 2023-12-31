@@ -17,6 +17,7 @@ class Payment_voucher extends MY_Controller
         $this->load->model('Payment_voucher_m');
         $this->load->model('Goods_receipt_m');
         $this->load->model('Bom_materials_model');
+        $this->load->model('Account_category_model');
     }
 
     function index()
@@ -92,11 +93,15 @@ class Payment_voucher extends MY_Controller
 
             $data["pv_info"]->references_links = implode(", ", $data["pv_info"]->references_link);
         } else {
-            $data["pv_info"]->references_links = anchor(
-                get_uri("purchase_order/view/" . $this->Goods_receipt_m->dev2_getPurchaseOrderIdByPurchaseOrderNo($data["pv_info"]->reference_number)),
-                $data["pv_info"]->reference_number,
-                array("target" => "_blank")
-            );
+            $data["pv_info"]->references_links = "";
+
+            if (isset($data["pv_info"]->reference_number) && !empty($data["pv_info"]->reference_number)) {
+                $data["pv_info"]->references_links = anchor(
+                    get_uri("purchase_order/view/" . $this->Goods_receipt_m->dev2_getPurchaseOrderIdByPurchaseOrderNo($data["pv_info"]->reference_number)),
+                    $data["pv_info"]->reference_number,
+                    array("target" => "_blank")
+                );
+            }
         }
         
         $data["pv_detail"] = $this->Payment_voucher_m->dev2_getPaymentVoucherDetailByHeaderId($data["pv_id"]);
@@ -232,12 +237,68 @@ class Payment_voucher extends MY_Controller
         echo json_encode($result);
     }
 
+    function addnew_no_po()
+    {
+        $view_data = [];
+
+        $view_data["supplier_dropdown"] = $this->Payment_voucher_m->dev2_getSupplierList();
+        $view_data["project_dropdown"] = $this->Payment_voucher_m->dev2_getProjectReferByProjectOpen();
+        $view_data["account_secondary"] = $this->Account_category_model->dev2_getExpenseSecondaryList();
+        $view_data["account_category"] = json_encode($this->Account_category_model->dev2_getExpenseCategoryList());
+
+        // Get rm, fg, sfg list
+        $view_data["rm_dropdown"] = $this->get_rm_dropdown();
+        $view_data["fg_dropdown"] = $this->get_fg_dropdown();
+        $view_data["sfg_dropdown"] = $this->get_sfg_dropdown();
+        $view_data["sv_dropdown"] = $this->get_sv_dropdown();
+
+        $view_data["bom_supplier_read"] = false;
+        if (isset($this->Permission_m->bom_supplier_read) && $this->Permission_m->bom_supplier_read) {
+            $view_data["bom_supplier_read"] = true;
+        }
+        
+        // var_dump(arr($view_data)); exit();
+        $this->load->view("payment_voucher/addnew_no_po", $view_data);
+    }
+
+    function editnew_no_po()
+    {
+        $view_data = [];
+
+        $view_data["supplier_dropdown"] = $this->Payment_voucher_m->dev2_getSupplierList();
+        $view_data["project_dropdown"] = $this->Payment_voucher_m->dev2_getProjectReferByProjectOpen();
+        $view_data["account_secondary"] = $this->Account_category_model->dev2_getExpenseSecondaryList();
+        $view_data["account_category"] = json_encode($this->Account_category_model->dev2_getExpenseCategoryList());
+
+        // Get rm, fg, sfg list
+        $view_data["rm_dropdown"] = $this->get_rm_dropdown();
+        $view_data["fg_dropdown"] = $this->get_fg_dropdown();
+        $view_data["sfg_dropdown"] = $this->get_sfg_dropdown();
+        $view_data["sv_dropdown"] = $this->get_sv_dropdown();
+
+        $view_data["bom_supplier_read"] = false;
+        if (isset($this->Permission_m->bom_supplier_read) && $this->Permission_m->bom_supplier_read) {
+            $view_data["bom_supplier_read"] = true;
+        }
+
+        $id = $this->input->post("id");
+        if ($id) {
+            $view_data["header_data"] = $this->Payment_voucher_m->dev2_getPaymentVoucherHeaderById($id);
+            $view_data["detail_data"] = $this->Payment_voucher_m->dev2_getPaymentVoucherDetailByHeaderId($id);
+        }
+
+        // var_dump(arr($view_data)); exit();
+        $this->load->view("payment_voucher/editnew_no_po", $view_data);
+    }
+
     function addnew()
     {
         $view_data = [];
 
         $view_data["supplier_dropdown"] = $this->Payment_voucher_m->dev2_getSupplieHavePurchaseOrderApproved();
         $view_data["project_dropdown"] = $this->Payment_voucher_m->dev2_getProjectReferByProjectOpen();
+        $view_data["account_secondary"] = $this->Account_category_model->dev2_getExpenseSecondaryList();
+        $view_data["account_category"] = json_encode($this->Account_category_model->dev2_getExpenseCategoryList());
 
         $view_data["bom_supplier_read"] = false;
         if (isset($this->Permission_m->bom_supplier_read) && $this->Permission_m->bom_supplier_read) {
@@ -278,12 +339,60 @@ class Payment_voucher extends MY_Controller
             $view_data["bom_supplier_read"] = true;
         }
 
+        $view_data["account_secondary"] = $this->Account_category_model->dev2_getExpenseSecondaryList();
+        $view_data["account_category"] = json_encode($this->Account_category_model->dev2_getExpenseCategoryList());
+
+        if ($view_data["header_data"]->account_category_id) {
+            $view_data["account_category_info"] = $this->Account_category_model->dev2_selectDataListByColumnIndex("account_category", "id", $view_data["header_data"]->account_category_id)[0];
+            $view_data["account_secondary_info"] = $this->Account_category_model->dev2_selectDataListByColumnIndex("account_secondary", "id", $view_data["account_category_info"]->secondary_id)[0];
+        }
+
         // var_dump(arr($view_data)); exit();
         $this->load->view("payment_voucher/editnew", $view_data);
     }
 
+    function addnew_no_po_save()
+    {
+        validate_submitted_data(
+            array(
+                "doc-date" => "required",
+                "supplier-id" => "required"
+            )
+        );
+
+        $post = $this->input->post();
+        $post["doc-date"] = $this->DateCaseConvert($post["doc-date"]);
+        $result = $this->Payment_voucher_m->dev2_postPaymentVoucherNonPurchaseOrder($post);
+
+        echo json_encode($result);
+    }
+
+    function editnew_no_po_save()
+    {
+        validate_submitted_data(
+            array(
+                "document-id" => "required",
+                "doc-date" => "required",
+                "supplier-id" => "required"
+            )
+        );
+
+        $post = $this->input->post();
+        $post["doc-date"] = $this->DateCaseConvert($post["doc-date"]);
+        $result = $this->Payment_voucher_m->dev2_postPaymentVoucherNonPurchaseOrderEdit($post);
+
+        echo json_encode($result);
+    }
+
     function addnew_save()
     {
+        validate_submitted_data(
+            array(
+                "doc-date" => "required",
+                "supplier-id" => "required"
+            )
+        );
+
         $post = $this->input->post();
         $result = [
             "success" => true,
@@ -342,6 +451,13 @@ class Payment_voucher extends MY_Controller
 
     function editnew_save()
     {
+        validate_submitted_data(
+            array(
+                "doc-date" => "required",
+                "supplier-id" => "required"
+            )
+        );
+
         $post = $this->input->post();
         $result = [
             "success" => true,
@@ -354,7 +470,6 @@ class Payment_voucher extends MY_Controller
             $result["success"] = false;
             $result["message"] = lang("pv_no_item_select");
             echo json_encode($result);
-
             return;
         }
 
@@ -363,7 +478,6 @@ class Payment_voucher extends MY_Controller
                 $result["success"] = false;
                 $result["message"] = lang("pv_incomplete_info");
                 echo json_encode($result);
-
                 return;
             }
         }
@@ -375,7 +489,6 @@ class Payment_voucher extends MY_Controller
             $result["success"] = false;
             $result["message"] = lang("pv_item_duplicated");
             echo json_encode($result);
-
             return;
         }
 
@@ -386,7 +499,6 @@ class Payment_voucher extends MY_Controller
                     $result["success"] = false;
                     $result["message"] = lang("pv_incorrect_qty");
                     echo json_encode($result);
-
                     return;
                 }
             }
@@ -446,6 +558,75 @@ class Payment_voucher extends MY_Controller
         }
 
         echo json_encode($result);
+    }
+
+    private function get_rm_dropdown()
+    {
+        $dropdown = array();
+        $lists = $this->Payment_voucher_m->dev2_getRawMaterialMasterDataList();
+
+        if (sizeof($lists)) {
+            foreach ($lists as $list) {
+                $dropdown[] = array(
+                    "id" => $list->id,
+                    "text" => $list->name . " - " . $list->production_name
+                );
+            }
+        }
+
+        return json_encode($dropdown);
+    }
+
+    private function get_fg_dropdown()
+    {
+        $dropdown = array();
+        $lists = $this->Payment_voucher_m->dev2_getFinishedGoodsMasterDataList();
+
+        if (sizeof($lists)) {
+            foreach ($lists as $list) {
+                $dropdown[] = array(
+                    "id" => $list->id,
+                    "text" => $list->title
+                );
+            }
+        }
+
+        return json_encode($dropdown);
+    }
+
+    private function get_sfg_dropdown()
+    {
+        $dropdown = array();
+        $lists = $this->Payment_voucher_m->dev2_getSemiFinishedGoodsMasterDataList();
+
+        if (sizeof($lists)) {
+            foreach ($lists as $list) {
+                $dropdown[] = array(
+                    "id" => $list->id,
+                    "text" => $list->title
+                );
+            }
+        }
+
+        return json_encode($dropdown);
+    }
+
+    private function get_sv_dropdown()
+    {
+        $dropdown = array();
+        $lists = $this->Payment_voucher_m->dev2_getServicesMasterDataList();
+
+        if (sizeof($lists)) {
+            foreach ($lists as $list) {
+                $dropdown[] = array(
+                    "id" => $list->id,
+                    "text" => $list->service_name,
+                    "description" => ""
+                );
+            }
+        }
+
+        return json_encode($dropdown);
     }
 
     private function DateCaseConvert(string $dateInput): string

@@ -362,7 +362,7 @@
 					</div>
 					<?php if (trim($doc["remark"]) != ""): ?>
 						<div class="remark clear">
-							<div class="l1 custom-color"><?php echo lang('remark') . ' / ' . lang('payment_condition'); ?></div>
+							<div class="l1 custom-color"><?php echo lang("remark") . ' / ' . lang("payment_condition"); ?></div>
 							<div class="l2 clear">
 								<?php echo nl2br($doc["remark"]); ?>
 							</div>
@@ -371,9 +371,7 @@
 				</div><!--.body-->
 				<div class="footer clear">
 					<div class="c1">
-						<div class="on_behalf_of">
-							<?php // echo $doc["seller"]["company_name"]; ?>
-						</div>
+						<div class="on_behalf_of"><?php // echo $doc["seller"]["company_name"]; ?></div>
 						<div class="signature clear">
 							<div class="name">
 								<span class="l1">
@@ -382,37 +380,55 @@
 										<img src='<?php echo str_replace("./", "/", $requester_sign); ?>'>
 									<?php endif; ?>
 								</span>
+								<?php
+									$issuer_name = "( " . str_repeat("_", 18) . " )";
+									if ($doc["created_by"]["last_name"] == "") {
+										$issuer_name = "( " . $doc["created_by"]["first_name"] . " )";
+									} else {
+										$issuer_name = "( " . $doc["created_by"]["first_name"] . " " . $doc["created_by"]["last_name"] . " )";
+									}
+								?>
+								<span class="l2"><?php echo $issuer_name; ?></span>
 								<span class="l2">
-									<?php echo lang('purchase_by'); ?>
+									<?php echo lang("issuer_of_document"); ?>
 								</span>
 							</div>
 							<div class="date">
 								<span class="l1">
-									<?php if ($doc["doc_date"] != null && $doc["doc_status"] != 'R'): ?>
+									<?php if ($doc["doc_date"] != null && $doc["doc_status"] != "R"): ?>
 										<span class="approved_date">
 											<?php echo convertDate($doc["doc_date"], true); ?>
 										</span>
 									<?php endif; ?>
 								</span>
 								<span class="l2">
-									<?php echo lang('date'); ?>
+									<?php echo lang("date_of_issued"); ?>
 								</span>
 							</div>
 						</div>
 					</div>
 					<div class="c2">
-						<div class="on_behalf_of">
-							<?php // echo get_setting("company_name"); ?>
-						</div>
+						<div class="on_behalf_of"><?php // echo get_setting("company_name"); ?></div>
 						<div class="signature clear">
 							<div class="name">
 								<span class="l1">
-									<?php $signature = $this->Users_m->getSignature($doc["approved_by"]); ?>
+									<?php $signature = $this->Users_m->getSignature($doc["approved_by"]["id"]); ?>
 									<?php if ($doc["doc_status"] == "A" && $signature != null): ?>
 										<img src='<?php echo str_replace("./", "/", $signature); ?>'>
 									<?php endif; ?>
 								</span>
-								<span class="l2"><?php echo lang('approver'); ?></span>
+								<?php
+									$approver_name = "( " . str_repeat("_", 18) . " )";
+									if ($doc["doc_status"] == "A") {
+										if ($doc["approved_by"]["last_name"] == "") {
+											$approver_name = "( " . $doc["approved_by"]["first_name"] . " )";
+										} else {
+											$approver_name = "( " . $doc["approved_by"]["first_name"] . " " . $doc["approved_by"]["last_name"] . " )";
+										}
+									}
+								?>
+								<span class="l2"><?php echo $approver_name; ?></span>
+								<span class="l2"><?php echo lang("approver"); ?></span>
 							</div>
 							<div class="date">
 								<span class="l1">
@@ -422,7 +438,7 @@
 										</span>
 									<?php endif; ?>
 								</span>
-								<span class="l2"><?php echo lang('day_of_approved'); ?></span>
+								<span class="l2"><?php echo lang("day_of_approved"); ?></span>
 							</div>
 						</div>
 					</div>

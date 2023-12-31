@@ -118,6 +118,18 @@
     }
 </style>
 
+<?php
+
+if (!function_exists("dev2_arrayIsAllValueSame")) {
+    function dev2_arrayIsAllValueSame(array $list) : bool
+    {
+        $countValue = array_count_values($list);
+        return count($countValue) === 1;
+    }
+}
+
+?>
+
 <div class="modal-body clearfix">
     <table>
         <?php $project_total = 0.000000; $project_total_cost = 0.000000; ?>
@@ -149,7 +161,7 @@
                                     </th>
                                 </tr>
                             </thead>
-                            <?php $total_group = 0.000000; $total_group_cost = 0.000000; $total_unit = lang("stock_material_unit"); ?>
+                            <?php $total_group = 0.000000; $total_group_cost = 0.000000; $total_unit = array(); ?>
                             <tbody>
                                 <?php foreach ($production_items["rm_list"] as $rm): ?>
                                     <?php if ($category["id"] == $rm->category_in_bom): ?>
@@ -192,14 +204,22 @@
                                                 <?php echo (isset($rm->mr_info->doc_no) && !empty($rm->mr_info->doc_no)) ? $rm->mr_info->doc_no : '-'; ?>
                                             </td>
                                         </tr>
-                                        <?php $total_unit = $rm->material_info->unit; ?>
+                                        <?php array_push($total_unit, $rm->material_info->unit); ?>
                                     <?php endif; ?>
                                 <?php endforeach; ?>
                             </tbody>
+                            <?php
+                                // var_dump(arr(dev2_arrayIsAllValueSame($total_unit))); exit();
+                                $total_unit_display = lang("stock_material_unit");
+
+                                if (dev2_arrayIsAllValueSame($total_unit)) {
+                                    $total_unit_display = $total_unit[0];
+                                }
+                            ?>
                             <tfoot>
                                 <tr>
                                     <th class="text-center"><?php echo lang("total"); ?></th>
-                                    <th class="text-right rm-quantity"><?php echo number_format($total_group, 6) . ' ' . $total_unit; ?></th>
+                                    <th class="text-right rm-quantity"><?php echo number_format($total_group, 6) . ' ' . $total_unit_display; ?></th>
                                     <th class="text-right rm-quantity"><?php echo number_format($total_group_cost, 3) . ' ' . lang("THB"); ?></th>
                                     <th class="text-center"><?php echo ''; ?></th>
                                     <?php $grand_total_group += $total_group; $grand_total_group_cost += $total_group_cost; ?>
@@ -259,7 +279,7 @@
                                     </th>
                                 </tr>
                             </thead>
-                            <?php $total_group = 0.000000; $total_group_cost = 0.000000; ?>
+                            <?php $total_group = 0.000000; $total_group_cost = 0.000000; $total_unit = array(); ?>
                             <tbody>
                                 <?php foreach ($production_items["sfg_list"] as $sfg): ?>
                                     <?php if ($category["id"] == $sfg->category_in_bom): ?>
@@ -305,10 +325,18 @@
                                     <?php endif; ?>
                                 <?php endforeach; ?>
                             </tbody>
+                            <?php
+                                // var_dump(arr(dev2_arrayIsAllValueSame($total_unit))); exit();
+                                $total_unit_display = lang("stock_material_unit");
+
+                                if (dev2_arrayIsAllValueSame($total_unit)) {
+                                    $total_unit_display = $total_unit[0];
+                                }
+                            ?>
                             <tfoot>
                                 <tr>
                                     <th class="text-center"><?php echo lang("total"); ?></th>
-                                    <th class="text-right rm-quantity"><?php echo number_format($total_group, 6) . ' ' . $sfg->item_info->unit_type; ?></th>
+                                    <th class="text-right rm-quantity"><?php echo number_format($total_group, 6) . ' ' . $total_unit_display; ?></th>
                                     <th class="text-right rm-quantity"><?php echo number_format($total_group_cost, 3) . ' ' . lang("THB"); ?></th>
                                     <th class="text-center"><?php echo ''; ?></th>
                                     <?php $grand_total_group += $total_group; $grand_total_group_cost += $total_group_cost; ?>

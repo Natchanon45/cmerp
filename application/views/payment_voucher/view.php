@@ -77,8 +77,7 @@
                     <?php echo lang("share"); ?>
                 </a>
 
-                <a href="javascript:void(0);" class="btn btn-warning" 
-                    onclick="window.open('<?php echo $print_url; ?>', '_blank');"> 
+                <a href="javascript:void(0);" class="btn btn-warning" onclick="window.open('<?php echo $print_url; ?>', '_blank');"> 
                     <i class="fa fa-print" aria-hidden="true"></i>
                     <?php echo lang("payment_voucher_print"); ?>
                 </a>

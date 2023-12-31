@@ -66,7 +66,7 @@ class Bom_item_groups_model extends Crud_model {
         $sql = "
             SELECT bs.*, 
             it.title `item_name`, it.unit_type `item_unit`, it.item_code, it.noti_threshold, 
-            bsg.name `group_name`, bsg.created_date, 
+            bsg.name `group_name`, bsg.created_date as bsg_created_date, 
             bs.price,
             u.id `user_id`, 
             u.first_name `user_first_name`, 
@@ -124,7 +124,7 @@ class Bom_item_groups_model extends Crud_model {
         $sql = "
             SELECT bs.*, 
             bm.title `item_name`, bm.description `item_desc`, bm.unit_type `item_unit`, bm.noti_threshold, 
-            bsg.name `group_name`, bsg.created_date, 
+            bsg.name `group_name`, bsg.created_date as bsg_created_date, 
             IF(bmp.price IS NULL,'0',bmp.price) as bmpprice,
             IF(sup.id IS NULL,0, sup.id) as supplier_id,
             IF(sup.company_name IS NULL,'', sup.company_name) as supplier_name,
@@ -191,7 +191,7 @@ class Bom_item_groups_model extends Crud_model {
             $where_create_by = "AND `big`.`created_by` = " . $post;
         }
 
-        $sql = "SELECT bis.id AS id, big.id AS group_id, big.name AS group_name, bis.serial_number AS sern, bis.mixing_group_id, i.id AS item_id, i.title AS item_name, i.item_code AS item_code, bis.stock AS stock_qty, bis.remaining AS remain_qty, i.unit_type AS item_unit, big.created_by AS create_by, big.created_date AS create_date 
+        $sql = "SELECT bis.id AS id, big.id AS group_id, big.name AS group_name, bis.serial_number AS sern, bis.mixing_group_id, i.id AS item_id, i.title AS item_name, i.item_code AS item_code, bis.stock AS stock_qty, bis.remaining AS remain_qty, i.unit_type AS item_unit, big.created_by AS create_by, bis.created_date, big.created_date AS big_create_date 
         FROM bom_item_stocks bis 
         LEFT JOIN bom_item_groups big ON bis.group_id = big.id 
         INNER JOIN items i ON bis.item_id = i.id 

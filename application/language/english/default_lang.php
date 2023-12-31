@@ -1875,6 +1875,7 @@ $lang["stock_minimum_notice"] = "Stock minimum notice";
 
 $lang["stock_supplier"] = "Supplier";
 $lang["stock_suppliers"] = "Suppliers";
+$lang["suppliers"] = "Supplier";
 $lang["stock_supplier_add"] = "Add Supplier";
 $lang["stock_supplier_name"] = "Supplier Name";
 $lang["stock_supplier_address"] = "Supplier Address";
@@ -2044,6 +2045,10 @@ $lang["item_name_duplicate"] = "Item code must be unique.";
 $lang["item_cate_duplicate"] = "Item category name must be unique.";
 $lang["used_by"] = "Used by";
 $lang["used_date"] = "Used date";
+$lang["used_quantity"] = "Used quantity";
+$lang["used_price"] = "Used price";
+$lang["used_value"] = "Used value";
+$lang["used_name"] = "Used name";
 $lang["status_material_request"] = "MR Doc.";
 $lang["nodata_item_request"] = "The requested item was not found.";
 $lang["not_enough_stock"] = "Due to insufficient raw materials, documents cannot be approved.";
@@ -2185,6 +2190,8 @@ $lang["gr_delivery_refer_placeholder"] = "Delivery Note number that will be rece
 
 $lang["payment_voucher"] = "Payment Voucher";
 $lang["payment_voucher_add"] = "Create new PV";
+$lang["payment_voucher_add_with_po"] = "Create PV with PO";
+$lang["payment_voucher_add_without_po"] = "Create PV without PO";
 $lang["payment_voucher_approve"] = "Payment approve";
 $lang["payment_voucher_print"] = "Print (PV)";
 $lang["payment_voucher_edit"] = "Edit (PV)";
@@ -2217,6 +2224,10 @@ $lang["pv_item_duplicated"] = "Found duplicate items.";
 $lang["pv_no_item_select"] = "No items selected.";
 $lang["pv_incomplete_info"] = "Incomplete information.";
 $lang["pv_incorrect_qty"] = "Incorrect quantity specified.";
+$lang["pv_internal_reference"] = "Internal reference.";
+$lang["pv_internal_reference_place_holder"] = "Reference to an internal document number.";
+
+$lang["pv_expense_button"] = "Create a payment voucher";
 
 $lang["material_request_type"] = "Request type";
 $lang["project_refer"] = "Project reference";
@@ -2331,6 +2342,7 @@ $lang["setting_goods_receipt_access"] = "Can access goods receipt";
 // Semi-Finished Goods
 $lang["sfg_column_header"] = "Semi-Finished Goods";
 $lang["item_type"] = "Item type";
+$lang["item_type_dropdown"] = "Select item type";
 $lang["fg"] = "FG";
 $lang["sfg"] = "SFG";
 $lang["group_category"] = "Categories";
@@ -2338,3 +2350,44 @@ $lang["project_total"] = "Total project";
 $lang["mr_total_raw_material"] = "Summary Raw material";
 $lang["mr_total_semi_finished_goods"] = "Summary Semi-finished goods";
 $lang["mr_total_finished_goods"] = "Summary Finished goods";
+$lang["mr_percentage"] = "Percentage of";
+$lang["mr_request_rm"] = "material requisition";
+
+// Account Category
+$lang["account_code"] = "Acct #";
+$lang["account_description"] = "Description";
+$lang["account_type"] = "Acct Type";
+$lang["account_sub_type"] = "Sub-Acct Type";
+$lang["account_type_select"] = "Select account type";
+$lang["account_sub_type_select"] = "Select sub-account type";
+$lang["thai"] = "TH";
+$lang["english"] = "EN";
+$lang["account_code_save_success"] = "Save success.";
+$lang["account_code_save_failure"] = "Save failure. The account code might be duplicate or incorrect.";
+$lang["account_expense"] = "Expense category";
+$lang["account_expense_select"] = "select expense category";
+$lang["service_wage"] = "Service/Wage";
+$lang["service_wage_name"] = "Service/Wage Name";
+$lang["expense_account_category"] = "Expense acct. category";
+$lang["income_account_category"] = "Income acct. category";
+$lang["account_income_select"] = "select income category";
+$lang["service_saved_sucess"] = "Service have been saved.";
+$lang["service_saved_failure"] = "Service haven't been saved.";
+
+$lang["withholding_tax"] = "WHT Certificate";
+$lang["payee_withholding_tax_name"] = "ผู้ถูกหักภาษี ณ ที่จ่าย";
+$lang["pnd_type"] = "ประเภทแบบ";
+$lang["pay_type"] = "ประเภทผู้จ่ายเงิน";
+$lang["date_of_certificate"] = "วันที่ออกหนังสือรับรอง";
+$lang["withholding_tax_add"] = "สร้างใบหัก ณ ที่จ่าย (WHT)";
+$lang["withholding_tax_print"] = "พิมพ์สร้างใบหัก ณ ที่จ่าย";
+$lang["withholding_tax_approve"] = "อนุมัติใบหัก ณ ที่จ่าย";
+
+$lang["stock_used_report"] = "Stock used Report";
+$lang["stock_used_all"] = "ทั้งหมด";
+$lang["stock_used_rm"] = "วัตถุดิบ";
+$lang["stock_used_fg"] = "สินค้าสำเร็จ";
+$lang["stock_used_sfg"] = "สินค้ากึ่งสำเร็จ";
+$lang["verify_id"] = "Verify Id.";
+$lang["have_no_expense_account"] = "Expenses account category not selected yet.";
+$lang["have_no_supplier"] = "Supplier not selected yet.";

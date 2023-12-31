@@ -107,7 +107,7 @@ class Bom_stocks_model extends Crud_model {
             $where_create_by = "AND `bsg`.`created_by` = " . $post;
         }
 
-        $sql = "SELECT `bs`.`id` AS 'stock_id', `bsg`.`id` AS 'group_id', `bsg`.`name` AS 'stock_name', `bs`.`serial_number` AS 'serial_number', `bm`.`id` AS 'material_id', `bm`.`name` AS 'material_code', `bm`.`production_name` AS 'material_name', `bm`.`unit` AS 'material_unit', `bs`.`stock` AS 'stock_qty', `bs`.`remaining` AS 'stock_remain', `bsg`.`created_by` AS 'create_by', `bsg`.`created_date` AS 'create_date' 
+        $sql = "SELECT `bs`.`id` AS 'stock_id', `bsg`.`id` AS 'group_id', `bsg`.`name` AS 'stock_name', `bs`.`serial_number` AS 'serial_number', `bm`.`id` AS 'material_id', `bm`.`name` AS 'material_code', `bm`.`production_name` AS 'material_name', `bm`.`unit` AS 'material_unit', `bs`.`stock` AS 'stock_qty', `bs`.`remaining` AS 'stock_remain', `bsg`.`created_by` AS 'create_by', `bs`.`created_date`, `bsg`.`created_date` AS 'bsg_create_date' 
         FROM `bom_stocks` AS `bs` 
         LEFT JOIN `bom_stock_groups` AS `bsg` ON `bs`.`group_id` = `bsg`.`id` 
         INNER JOIN `bom_materials` AS `bm` ON `bs`.`material_id` = `bm`.`id` 
@@ -119,7 +119,7 @@ class Bom_stocks_model extends Crud_model {
 
     public function dev2_getRestockingById(&$id)
     {
-        $sql = "SELECT `bs`.`id` AS 'stock_id', `bsg`.`id` AS 'group_id', `bsg`.`name` AS 'stock_name', `bs`.`serial_number` AS 'serial_number', `bm`.`id` AS 'material_id', `bm`.`name` AS 'material_code', `bm`.`production_name` AS 'material_name', `bm`.`unit` AS 'material_unit', `bs`.`stock` AS 'stock_qty', `bs`.`remaining` AS 'stock_remain', `bsg`.`created_by` AS 'create_by', `bsg`.`created_date` AS 'create_date' 
+        $sql = "SELECT `bs`.`id` AS 'stock_id', `bsg`.`id` AS 'group_id', `bsg`.`name` AS 'stock_name', `bs`.`serial_number` AS 'serial_number', `bm`.`id` AS 'material_id', `bm`.`name` AS 'material_code', `bm`.`production_name` AS 'material_name', `bm`.`unit` AS 'material_unit', `bs`.`stock` AS 'stock_qty', `bs`.`remaining` AS 'stock_remain', `bsg`.`created_by` AS 'create_by', `bs`.`created_date`, `bsg`.`created_date` AS 'bsg_create_date' 
         FROM `bom_stocks` AS `bs` 
         LEFT JOIN `bom_stock_groups` AS `bsg` ON `bs`.`group_id` = `bsg`.`id` 
         LEFT JOIN `bom_materials` AS `bm` ON `bs`.`material_id` = `bm`.`id` 
@@ -260,6 +260,123 @@ class Bom_stocks_model extends Crud_model {
     {
         $this->db->where('id', $stock_id);
         $this->db->update('bom_stocks', array('remaining' => $actual_remain));
+    }
+
+    public function dev2_getRowTableFromId(string $table, int $id) : stdClass
+    {
+        $data = new stdClass();
+
+        $query = $this->db->get_where($table, array("id" => $id))->row();
+        if (!empty($query)) {
+            $data = $query;
+        }
+
+        return $data;
+    }
+
+    public function dev2_getStockUsedReportRM(array $options) : array
+    {
+        $data = array();
+        $where = "";
+
+        $start_date = get_array_value($options, "start_date");
+        $end_date = get_array_value($options, "end_date");
+        if (is_date_exists($start_date) && is_date_exists($end_date)) {
+            $where .= " AND created_at BETWEEN '$start_date' AND '$end_date'";
+        }
+
+        $sql = "SELECT * FROM bom_project_item_materials WHERE used_status = 1 $where";
+
+        $query = $this->db->query($sql)->result();
+        
+        if (sizeof($query)) {
+            foreach ($query as $row) {
+                $row->material_info = $this->dev2_getRowTableFromId("bom_materials", $row->material_id);
+                $row->stock_info = $this->dev2_getRowTableFromId("bom_stocks", $row->stock_id);
+
+                if (isset($row->stock_info->group_id) && !empty($row->stock_info->group_id)) {
+                    $row->stock_info->group_info = $this->dev2_getRowTableFromId("bom_stock_groups", $row->stock_info->group_id);
+                }
+
+                if (isset($row->mr_id) && !empty($row->mr_id)) {
+                    $row->mr_info = $this->dev2_getRowTableFromId("materialrequests", $row->mr_id);
+                }
+            }
+
+            $data = $query;
+        }
+
+        return $data;
+    }
+
+    public function dev2_getStockUsedReportFG(array $options) : array
+    {
+        $data = array();
+        $where = "";
+
+        $start_date = get_array_value($options, "start_date");
+        $end_date = get_array_value($options, "end_date");
+        if (is_date_exists($start_date) && is_date_exists($end_date)) {
+            $where .= " AND created_at BETWEEN '$start_date' AND '$end_date'";
+        }
+
+        $sql = "SELECT bpii.* FROM bom_project_item_items AS bpii LEFT JOIN items AS i ON bpii.item_id = i.id WHERE i.item_type = 'FG' AND bpii.used_status = 1 $where";
+
+        $query = $this->db->query($sql)->result();
+
+        if (sizeof($query)) {
+            foreach ($query as $row) {
+                $row->item_info = $this->dev2_getRowTableFromId("items", $row->item_id);
+                $row->stock_info = $this->dev2_getRowTableFromId("bom_item_stocks", $row->stock_id);
+
+                if (isset($row->stock_info->group_id) && !empty($row->stock_info->group_id)) {
+                    $row->stock_info->group_info = $this->dev2_getRowTableFromId("bom_item_groups", $row->stock_info->group_id);
+                }
+
+                if (isset($row->mr_id) && !empty($row->mr_id)) {
+                    $row->mr_info = $this->dev2_getRowTableFromId("materialrequests", $row->mr_id);
+                }
+            }
+
+            $data = $query;
+        }
+
+        return $data;
+    }
+
+    public function dev2_getStockUsedReportSFG(array $options) : array
+    {
+        $data = array();
+        $where = "";
+
+        $start_date = get_array_value($options, "start_date");
+        $end_date = get_array_value($options, "end_date");
+        if (is_date_exists($start_date) && is_date_exists($end_date)) {
+            $where .= " AND created_at BETWEEN '$start_date' AND '$end_date'";
+        }
+
+        $sql = "SELECT bpii.* FROM bom_project_item_items AS bpii LEFT JOIN items AS i ON bpii.item_id = i.id WHERE i.item_type = 'SFG' AND bpii.used_status = 1 $where";
+
+        $query = $this->db->query($sql)->result();
+
+        if (sizeof($query)) {
+            foreach ($query as $row) {
+                $row->item_info = $this->dev2_getRowTableFromId("items", $row->item_id);
+                $row->stock_info = $this->dev2_getRowTableFromId("bom_item_stocks", $row->stock_id);
+
+                if (isset($row->stock_info->group_id) && !empty($row->stock_info->group_id)) {
+                    $row->stock_info->group_info = $this->dev2_getRowTableFromId("bom_item_groups", $row->stock_info->group_id);
+                }
+
+                if (isset($row->mr_id) && !empty($row->mr_id)) {
+                    $row->mr_info = $this->dev2_getRowTableFromId("materialrequests", $row->mr_id);
+                }
+            }
+
+            $data = $query;
+        }
+
+        return $data;
     }
 
 }

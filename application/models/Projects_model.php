@@ -1024,6 +1024,9 @@ class Projects_model extends Crud_model {
                                 }
                             }
                         }
+                    } else {
+                        $this->db->where("id", $bpi_id);
+                        $this->db->update("bom_project_items", ["mr_status" => 3]);
                     }
                 }
                 $item["bim_list"] = $bim_list;
@@ -1979,22 +1982,52 @@ class Projects_model extends Crud_model {
 
     public function dev2_patchProductionMaterialRequestStatus(int $production_id) : void
     {
-        $data = $this->dev2_getProductionMaterialRequestStatusByProductionId($production_id);
-        $mr_status = $data["production_mr_status"];
+        $data_status = $this->dev2_getProductionMaterialRequestStatusByProductionId($production_id);
+        $mr_status = $data_status["production_mr_status"];
+
+        $data_percentage = $this->dev2_getProductionMaterialRequestPercentageByProductionId($production_id);
+        $mr_percentage = $data_percentage["production_mr_percentage"];
 
         $this->db->where("id", $production_id);
-        $this->db->update("bom_project_items", ["mr_status" => $mr_status]);
+        $this->db->update("bom_project_items", [
+            "mr_status" => $mr_status,
+            "mr_percentage" => $mr_percentage
+        ]);
     }
 
-    public function dev2_getProductionMaterialRequestPercentageByProductionId(int $production_id) : float
+    public function dev2_getProductionMaterialRequestPercentageByProductionId(int $production_id) : array
     {
-        $percentage = 0.00;
+        $data = [
+            "rm" => null,
+            "sfg" => null,
+            "total_items" => null,
+            "mr_rm" => null,
+            "mr_sfg" => null,
+            "total_mr" => null,
+            "production_mr_percentage" => 0
+        ];
 
+        // select count all items of production
         $rm = $this->db->where("project_item_id", $production_id)->from("bom_project_item_materials")->count_all_results();
         $sfg = $this->db->where("project_item_id", $production_id)->from("bom_project_item_items")->count_all_results();
-        // save point calc percent of material request
+        
+        $data["rm"] = $rm;
+        $data["sfg"] = $sfg;
+        $data["total_items"] = $rm + $sfg;
 
-        return $percentage;
+        // select count the created mr items of production
+        $mr_rm = $this->db->where("project_item_id", $production_id)->where("mr_id IS NOT NULL", null, false)->from("bom_project_item_materials")->count_all_results();
+        $mr_sfg = $this->db->where("project_item_id", $production_id)->where("mr_id IS NOT NULL", null, false)->from("bom_project_item_items")->count_all_results();
+
+        $data["mr_rm"] = $mr_rm;
+        $data["mr_sfg"] = $mr_sfg;
+        $data["total_mr"] = $mr_rm + $mr_sfg;
+
+        if ($data["total_items"] > 0 && $data["total_mr"] > 0) {
+            $data["production_mr_percentage"] = round(($data["total_mr"] / $data["total_items"]) * 100, 2);
+        }
+
+        return $data;
     }
 
     public function dev2_getProductionMaterialRequestStatusByProductionId(int $production_id) : array

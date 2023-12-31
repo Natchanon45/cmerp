@@ -103,6 +103,10 @@
         width: 90px;
     }
 
+    .w-option {
+        width: 60px;
+    }
+
     .badge-custom {
         margin: -2px 0 0 10px;
         padding: 6px 8px;
@@ -287,7 +291,7 @@ if (isset($mr_header->status_id) && !empty($mr_header->status_id)) {
                             <table border="1" class="table-category">
                                 <thead>
                                     <tr style="height: 38px;">
-                                        <th colspan="5">
+                                        <th colspan="<?php echo ($mr_header->status_id == 1) ? 6 : 5; ?>">
                                             <?php echo lang("category"); ?>
                                             <span>
                                                 <?php echo $category->item_type . ': ' . $category->title; ?>
@@ -310,6 +314,11 @@ if (isset($mr_header->status_id) && !empty($mr_header->status_id)) {
                                         <th>
                                             <?php echo lang("stock_material_unit"); ?>
                                         </th>
+                                        <?php if ($mr_header->status_id == 1): ?>
+                                            <th>
+                                                <i class="fa fa-bars"></i>
+                                            </th>
+                                        <?php endif; ?>
                                     </tr>
                                     <?php $sub_total = 0;
                                     $index = 0;
@@ -340,13 +349,31 @@ if (isset($mr_header->status_id) && !empty($mr_header->status_id)) {
                                                         }
                                                     ?>
                                                 </td>
-                                                <td class="text-right w-quantity">
+                                                <td class="text-right w-quantity" id="<?php echo $category->item_type . $data->id; ?>">
                                                     <?php echo number_format($data->quantity, 6);
                                                     $sub_total += $data->quantity; ?>
                                                 </td>
                                                 <td class="text-center w-unit">
                                                     <?php echo $data->unit_type; ?>
                                                 </td>
+                                                <?php if ($mr_header->status_id == 1): ?>
+                                                    <td class="text-center w-option option">
+                                                        <?php
+                                                            echo modal_anchor(
+                                                                get_uri("materialrequests/item_edit_group"),
+                                                                '<i class="fa fa-pencil"></i>',
+                                                                array(
+                                                                    "title" => lang("edit_item"),
+                                                                    "class" => "edit",
+                                                                    "data-act" => "ajax-modal",
+                                                                    "data-post-doc_id" => $mr_header->id,
+                                                                    "data-post-item_id" => $data->id,
+                                                                    "data-post-item_type" => $category->item_type
+                                                                )
+                                                            );
+                                                        ?>
+                                                    </td>
+                                                <?php endif; ?>
                                             </tr>
                                         <?php endif; ?>
                                     <?php endforeach; ?>
@@ -354,10 +381,13 @@ if (isset($mr_header->status_id) && !empty($mr_header->status_id)) {
                                 <tfoot>
                                     <tr>
                                         <th colspan="3"></th>
-                                        <th class="text-right">
+                                        <th class="text-right" id="<?php echo $category->item_type . $category->id; ?>">
                                             <?php echo number_format($sub_total, 6); ?>
                                         </th>
                                         <th></th>
+                                        <?php if ($mr_header->status_id == 1): ?>
+                                            <th></th>
+                                        <?php endif; ?>
                                     </tr>
                                 </tfoot>
                             </table>

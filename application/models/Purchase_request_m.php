@@ -272,6 +272,11 @@ class Purchase_request_m extends MY_Model
         $this->data["discount_percent"] = $qrow->discount_percent;
         $this->data["discount_amount"] = $qrow->discount_amount;
 
+        $this->data["project_id"] = $qrow->project_id;
+        if ($qrow->project_id) {
+            $this->data["project_info"] = $ci->Projects_model->get_one($qrow->project_id);
+        }
+
         $this->data["sub_total"] = $qrow->sub_total;
         $this->data["vat_inc"] = $qrow->vat_inc;
         $this->data["vat_percent"] = $qrow->vat_percent;
@@ -284,13 +289,12 @@ class Purchase_request_m extends MY_Model
         $this->data["payment_amount"] = $qrow->payment_amount;
 
         $this->data["sharekey_by"] = $qrow->sharekey_by;
-        $this->data["approved_by"] = $qrow->approved_by;
+        $this->data["created_by"] = $ci->Users_m->getInfo($qrow->created_by);
+        $this->data["created_datetime"] = $qrow->created_datetime;
+        $this->data["approved_by"] = $ci->Users_m->getInfo($qrow->approved_by);
         $this->data["approved_datetime"] = $qrow->approved_datetime;
         $this->data["doc_status"] = $qrow->status;
-
-        $this->data["doc"] = $qrow;
         $this->data["items"] = $qirows;
-
         $this->data["status"] = "success";
         $this->data["message"] = "ok";
 

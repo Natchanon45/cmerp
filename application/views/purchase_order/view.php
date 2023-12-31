@@ -331,7 +331,20 @@ $btn_edit = lang("btn_edit_raw_material");
                             <?php endif; endif; endif; ?>
                         </span>
                     </span>
-                    <span class="l2"><?php echo lang('purchase_by'); ?></span>
+                    <span class="l2">
+                        <?php
+                        $issuer_name = "( " . str_repeat("_", 18) . " )";
+                        if ($creater_info["last_name"] == "") {
+                            $issuer_name = "( " . $creater_info["first_name"] . " )";
+                        } else {
+                            $issuer_name = "( " . $creater_info["first_name"] . " " . $creater_info["last_name"] . " )";
+                        }
+                        ?>
+                        <p>
+                            <?php echo $issuer_name; ?>
+                        </p>
+                        <?php echo lang("issuer_of_document"); ?>
+                    </span>
                 </div>
                 <div class="date">
                     <span class="l1">
@@ -341,7 +354,7 @@ $btn_edit = lang("btn_edit_raw_material");
                             </span>
                         <?php endif; ?>
                     </span>
-                    <span class="l2"><?php echo lang('date'); ?></span>
+                    <span class="l2"><?php echo lang('date_of_issued'); ?></span>
                 </div>
             </div>
         </div><!--.customer -->
@@ -356,6 +369,19 @@ $btn_edit = lang("btn_edit_raw_material");
                             <?php endif; endif; ?>
                         </span>
                     </span>
+                    <span class="l2">
+                        <?php
+                        $approver_name = "( " . str_repeat("_", 18) . " )";
+                        if ($doc_status == 'A') {
+                            if ($approver_info["last_name"] == "") {
+                                $approver_name = "( " . $approver_info["first_name"] . " )";
+                            } else {
+                                $approver_name = "( " . $approver_info["first_name"] . " " . $approver_info["last_name"] . " )";
+                            }
+                        }
+                        ?>
+                        <p><?php echo $approver_name; ?></p>
+                    </span>
                     <span class="l2"><?php echo lang('approver'); ?></span>
                 </div>
                 <div class="date">
@@ -366,7 +392,7 @@ $btn_edit = lang("btn_edit_raw_material");
                             </span>
                         <?php endif; ?>
                     </span>
-                    <span class="l2"><?php echo lang('date'); ?></span>
+                    <span class="l2"><?php echo lang('day_of_approved'); ?></span>
                 </div>
             </div>
         </div><!--.company-->
