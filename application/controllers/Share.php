@@ -69,7 +69,9 @@ class Share extends PublicController
 
         if ($doc["status"] != "success") redirect("forbidden");
         $this->data["bom_supplier_read"] = $this->get_bom_supplier_read();
-        $this->load->view('edocs/purchase_request', $this->data);
+
+        // var_dump(arr($this->data)); exit();
+        $this->load->view("edocs/purchase_request", $this->data);
     }
 
     function credit_note()
@@ -103,6 +105,8 @@ class Share extends PublicController
         $this->data["bom_supplier_read"] = $this->get_bom_supplier_read();
         
         if ($doc["status"] != "success") redirect("forbidden");
+
+        // var_dump(arr($this->data)); exit();
         $this->load->view("edocs/purchase_order", $this->data);
     }
 

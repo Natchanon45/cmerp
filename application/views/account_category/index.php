@@ -2,7 +2,7 @@
     <div class="row">
         <div class="col-sm-3 col-lg-2">
             <?php
-            $tab_view['active_tab'] = "account_category";
+            $tab_view["active_tab"] = "account_category";
             $this->load->view("settings/tabs", $tab_view);
             ?>
         </div>
@@ -14,7 +14,7 @@
                         <?php echo lang('account_category'); ?>
                     </h4>
                     <div class="title-button-group">
-                        <?php echo modal_anchor(get_uri("account_category/modal_form"), "<i class='fa fa-plus-circle'></i> " . lang('add_category'), array("class" => "btn btn-default", "title" => lang('add_category'))); ?>
+                        <?php echo modal_anchor(get_uri("account_category/modal_form"), "<i class='fa fa-plus-circle'></i> ".lang('add_category'), array("class" => "btn btn-default", "title" => lang('add_category'))); ?>
                     </div>
                 </div>
                 <div class="table-responsive">
@@ -29,13 +29,17 @@
 <script type="text/javascript">
     $(document).ready(function () {
         $("#category-table").appTable({
-            source: '<?php echo_uri("account_category/get_category_list"); ?>',
+            source: '<?php echo_uri("account_category/display_category_list"); ?>',
+            filterDropdown: [
+                { name: 'secondary_id', class: 'w200', options: JSON.parse('<?php echo $secondary_dropdown; ?>') },
+                { name: 'primary_id', class: 'w200', options: JSON.parse('<?php echo $primary_dropdown; ?>') }
+            ],
             columns: [
                 { title: '<?php echo lang("id"); ?>', class: 'w50 text-center' },
-                { title: '<?php echo lang("code"); ?>', class: 'w100 text-center' },
-                { title: '<?php echo lang("title"); ?>' },
-                { title: '<?php echo lang("created_by"); ?>', class: 'w150 text-center' },
-                { title: '<?php echo lang("created_date"); ?>', class: 'w150 text-center' }
+                { title: '<?php echo lang("account_code"); ?>', class: 'w100 text-center' },
+                { title: '<?php echo lang("account_description"); ?>' },
+                { title: '<?php echo lang("account_type"); ?>' },
+                { title: '<?php echo lang("account_sub_type"); ?>' }
             ]
         });
     });

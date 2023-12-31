@@ -3,14 +3,17 @@
 if (!defined('BASEPATH'))
     exit('No direct script access allowed');
 
-class Expenses extends MY_Controller {
-
-    function __construct() {
+class Expenses extends MY_Controller 
+{
+    function __construct()
+    {
         parent::__construct();
 
         $this->init_permission_checker("expense");
-
         $this->access_only_allowed_members();
+
+        $this->load->model("Account_category_model");
+        $this->load->model("Payment_voucher_m");
     }
 
     //load the expenses list view
@@ -18,14 +21,67 @@ class Expenses extends MY_Controller {
         $this->check_module_availability("module_expense");
 
         $view_data["custom_field_headers"] = $this->Custom_fields_model->get_custom_field_headers_for_table("expenses", $this->login_user->is_admin, $this->login_user->user_type);
-
-        $view_data['categories_dropdown'] = $this->_get_categories_dropdown();
-        $view_data['members_dropdown'] = $this->_get_team_members_dropdown();
+        $view_data["categories_dropdown"] = $this->_get_categories_dropdown();
+        $view_data["members_dropdown"] = $this->_get_team_members_dropdown();
         $view_data["projects_dropdown"] = $this->_get_projects_dropdown_for_income_and_epxenses("expenses");
-$buttonTop[] = modal_anchor(get_uri("labels/modal_form"), "<i class='fa fa-tags'></i> " . lang('manage_labels'), array("class" => "btn btn-default mb0", "title" => lang('manage_labels'), "data-post-type" => $_SESSION['table_name'] ));
-
-$view_data["buttonTop"] = implode( '', $buttonTop );
+        
+        $view_data["supplier_dropdown"] = $this->_get_expenses_supplier_dropdown();
+        $view_data["account_secondary_dropdown"] = $this->_get_account_secondary_dropdown();
+        $view_data["account_category_dropdown"] = $this->_get_account_category_dropdown();
+        
+        $buttonTop[] = modal_anchor(get_uri("labels/modal_form"), "<i class='fa fa-tags'></i> " . lang('manage_labels'), array("class" => "btn btn-default mb0", "title" => lang('manage_labels'), "data-post-type" => $_SESSION['table_name'] ));
+        $view_data["buttonTop"] = implode( '', $buttonTop );
+        
+        // var_dump(arr($view_data)); exit();
         $this->template->rander("expenses/index", $view_data);
+    }
+
+    private function _get_expenses_supplier_dropdown()
+    {
+        $suppliers = $this->Bom_suppliers_model->dev2_getSuppliersList();
+        $supplier_dropdown = array(
+            array("id" => "0", "text" => "- " . lang("suppliers") . " -")
+        );
+
+        if (sizeof($suppliers)) {
+            foreach ($suppliers as $supplier) {
+                $supplier_dropdown[] = array("id" => $supplier->id, "text" => $supplier->company_name);
+            }
+        }
+
+        return json_encode($supplier_dropdown);
+    }
+
+    private function _get_account_secondary_dropdown()
+    {
+        $account_secondary = $this->Account_category_model->dev2_getExpenseSecondaryList();
+        $secondary_dropdown = array(
+            array("id" => "", "text" => "- " . lang("account_sub_type") . " -")
+        );
+
+        if (sizeof($account_secondary)) {
+            foreach ($account_secondary as $secondary) {
+                $secondary_dropdown[] = array("id" => $secondary->id, "text" => $secondary->thai_name . " (" . $secondary->account_code . ")");
+            }
+        }
+
+        return json_encode($secondary_dropdown);
+    }
+
+    private function _get_account_category_dropdown()
+    {
+        $account_category = $this->Account_category_model->dev2_getExpenseCategoryList();
+        $categories_dropdown = array(
+            array("id" => "", "text" => "- " . lang("account_expense") . " -")
+        );
+
+        if (sizeof($account_category)) {
+            foreach ($account_category as $category) {
+                $categories_dropdown[] = array("id" => $category->id, "text" => $category->account_code . " - " . $category->thai_name);
+            }
+        }
+
+        return json_encode($categories_dropdown);
     }
 
     //get categories dropdown
@@ -127,19 +183,37 @@ $view_data["buttonTop"] = implode( '', $buttonTop );
         $view_data['can_access_expenses'] = $this->can_access_expenses();
         $view_data['can_access_clients'] = $this->can_access_clients();
 
-        $view_data["custom_fields"] = $this->Custom_fields_model->get_combined_details("expenses", $view_data['model_info']->id, $this->login_user->is_admin, $this->login_user->user_type)->result();
+        $view_data['custom_fields'] = $this->Custom_fields_model->get_combined_details("expenses", $view_data['model_info']->id, $this->login_user->is_admin, $this->login_user->user_type)->result();
+
+        // account category new
+        $view_data["expense_secondary"] = $this->Account_category_model->dev2_getExpenseSecondaryList();
+        $view_data["expense_category"] = json_encode($this->Account_category_model->dev2_getExpenseCategoryList());
+        
+        if (isset($view_data["model_info"]->account_category_id) && !empty($view_data["model_info"]->account_category_id)) {
+            $view_data["account_category_info"] = $this->Account_category_model->dev2_selectDataListByColumnIndex("account_category", "id", $view_data["model_info"]->account_category_id)[0];
+            $view_data["account_secondary_info"] = $this->Account_category_model->dev2_selectDataListByColumnIndex("account_secondary", "id", $view_data["account_category_info"]->secondary_id)[0];
+        }
+
+        // supplier dropdown
+        $view_data["supplier_dropdown"] = array("0" => "-") + $this->Bom_suppliers_model->dev2_get_dropdown_list();
+        
+        // var_dump(arr($view_data)); exit();
         $this->load->view('expenses/modal_form', $view_data);
     }
 
     //save an expense
-    function save() {
-		
-        validate_submitted_data(array(
-            "id" => "numeric",
-            "expense_date" => "required",
-            "category_id" => "required",
-            "amount" => "required"
-        ));
+    function save()
+    {	
+        validate_submitted_data(
+            array(
+                "id" => "numeric",
+                "expense_date" => "required",
+                "expense_secondary" => "required",
+                "expense_category" => "required",
+                "category_id" => "required",
+                "amount" => "required"
+            )
+        );
 
         $id = $this->input->post('id');
 
@@ -155,15 +229,18 @@ $view_data["buttonTop"] = implode( '', $buttonTop );
 
         $data = array(
             "expense_date" => $expense_date,
-            "title" => $this->input->post('title'),
-            "description" => $this->input->post('description'),
+            "account_secondary_id" => $this->input->post('expense_secondary'),
+            "account_category_id" => $this->input->post('expense_category'),
             "category_id" => $this->input->post('category_id'),
+            "description" => $this->input->post('description'),
             "amount" => unformat_currency($this->input->post('amount')),
-            "client_id" => $this->input->post('expense_client_id')? $this->input->post('expense_client_id'): 0,
+            "title" => $this->input->post('title'),
+            "supplier_id" => $this->input->post('supplier_id'),
             "project_id" => $this->input->post('expense_project_id'),
             "user_id" => $this->input->post('expense_user_id'),
             "tax_id" => $this->input->post('tax_id') ? $this->input->post('tax_id') : 0,
             "tax_id2" => $this->input->post('tax_id2') ? $this->input->post('tax_id2') : 0,
+            "client_id" => $this->input->post('expense_client_id') ? $this->input->post('expense_client_id') : 0,
             "recurring" => $recurring,
             "repeat_every" => $repeat_every ? $repeat_every : 0,
             "repeat_type" => $repeat_type ? $repeat_type : NULL,
@@ -172,7 +249,7 @@ $view_data["buttonTop"] = implode( '', $buttonTop );
 
         $expense_info = $this->Expenses_model->get_one($id);
 
-        //is editing? update the files if required
+        // is editing? update the files if required
         if ($id) {
             $timeline_file_path = get_setting("timeline_file_path");
             $new_files = update_saved_files($timeline_file_path, $expense_info->files, $new_files);
@@ -181,25 +258,24 @@ $view_data["buttonTop"] = implode( '', $buttonTop );
         $data["files"] = serialize($new_files);
 
         if ($recurring) {
-            //set next recurring date for recurring expenses
-
+            // set next recurring date for recurring expenses
             if ($id) {
-                //update
-                if ($this->input->post('next_recurring_date')) { //submitted any recurring date? set it.
+                // update
+                if ($this->input->post('next_recurring_date')) { 
+                    // submitted any recurring date? set it.
                     $data['next_recurring_date'] = $this->input->post('next_recurring_date');
                 } else {
-                    //re-calculate the next recurring date, if any recurring fields has changed.
+                    // re-calculate the next recurring date, if any recurring fields has changed.
                     if ($expense_info->recurring != $data['recurring'] || $expense_info->repeat_every != $data['repeat_every'] || $expense_info->repeat_type != $data['repeat_type'] || $expense_info->expense_date != $data['expense_date']) {
                         $data['next_recurring_date'] = add_period_to_date($expense_date, $repeat_every, $repeat_type);
                     }
                 }
             } else {
-                //insert new
+                // insert new
                 $data['next_recurring_date'] = add_period_to_date($expense_date, $repeat_every, $repeat_type);
             }
 
-
-            //recurring date must have to set a future date
+            // recurring date must have to set a future date
             if (get_array_value($data, "next_recurring_date") && get_today_date() >= $data['next_recurring_date']) {
                 echo json_encode(array("success" => false, 'message' => lang('past_recurring_date_error_message_title'), 'next_recurring_date_error' => lang('past_recurring_date_error_message'), "next_recurring_date_value" => $data['next_recurring_date']));
                 return false;
@@ -209,7 +285,6 @@ $view_data["buttonTop"] = implode( '', $buttonTop );
         $save_id = $this->Expenses_model->save($data, $id);
         if ($save_id) {
             save_custom_fields("expenses", $save_id, $this->login_user->is_admin, $this->login_user->user_type);
-
             echo json_encode(array("success" => true, "data" => $this->_row_data($save_id), 'id' => $save_id, 'message' => lang('record_saved')));
         } else {
             echo json_encode(array("success" => false, 'message' => lang('error_occurred')));
@@ -284,7 +359,35 @@ $view_data["buttonTop"] = implode( '', $buttonTop );
             }
         }
 
+        // $data->account_category_id;
+        $sub_account = "-";
+        $expense_account = "-";
+
+        if ($data->account_category_id) {
+            $account_category_info = $this->Account_category_model->dev2_selectDataListByColumnIndex("account_category", "id", $data->account_category_id)[0];
+            if (!empty($account_category_info)) {
+                $expense_account = $account_category_info->account_code . " - " . $account_category_info->thai_name;
+
+                $account_sub_type_info = $this->Account_category_model->dev2_selectDataListByColumnIndex("account_secondary", "id", $account_category_info->secondary_id)[0];
+                if (!empty($account_sub_type_info)) {
+                    $sub_account = $account_sub_type_info->thai_name . " (" . $account_sub_type_info->account_code . ")";
+                }
+            }
+        }
+
+        $supplier_name = 0;
+        if ($data->supplier_id) {
+            $supplier_name = $this->Expenses_model->dev2_getSupplierNameById($data->supplier_id);
+        }
+
         $description = $data->description;
+        if ($supplier_name) {
+            if ($description) {
+                $description .= "<br />";
+            }
+            $description .= lang("suppliers") . ": " . $supplier_name;
+        }
+
         if ($data->linked_client_name) {
             if ($description) {
                 $description .= "<br />";
@@ -307,7 +410,7 @@ $view_data["buttonTop"] = implode( '', $buttonTop );
         }
 
         if ($data->recurring) {
-            //show recurring information
+            // show recurring information
             $recurring_stopped = false;
             $recurring_cycle_class = "";
             if ($data->no_of_cycles_completed > 0 && $data->no_of_cycles_completed == $data->no_of_cycles) {
@@ -316,7 +419,7 @@ $view_data["buttonTop"] = implode( '', $buttonTop );
             }
 
             $cycles = $data->no_of_cycles_completed . "/" . $data->no_of_cycles;
-            if (!$data->no_of_cycles) { //if not no of cycles, so it's infinity
+            if (!$data->no_of_cycles) { // if not no of cycles, so it's infinity
                 $cycles = $data->no_of_cycles_completed . "/&#8734;";
             }
 
@@ -361,19 +464,18 @@ $view_data["buttonTop"] = implode( '', $buttonTop );
         if ($data->tax_percentage2) {
             $tax2 = $data->amount * ($data->tax_percentage2 / 100);
         }
-
+        
         $row_data = array(
             $data->expense_date,
             modal_anchor(get_uri("expenses/expense_details"), format_to_date($data->expense_date, false), array("title" => lang("expense_details"), "data-post-id" => $data->id)),
-            $data->category_title."<br>".$labels,
             $data->title,
             $description,
+            $sub_account,
+            $expense_account,
             $files_link,
-            to_decimal_format3($data->amount),
-            to_decimal_format3($tax),
-            to_decimal_format3($tax2),
-            to_decimal_format3($data->amount + $tax + $tax2),
-            !empty($data->currency) ? lang($data->currency) : lang('THB')
+            to_decimal_format3($data->amount, 3),
+            to_decimal_format3($data->amount + $tax + $tax2, 3),
+            !empty($data->currency) ? lang($data->currency) : lang("THB")
         );
 
         foreach ($custom_fields as $field) {
@@ -381,8 +483,40 @@ $view_data["buttonTop"] = implode( '', $buttonTop );
             $row_data[] = $this->load->view("custom_fields/output_" . $field->field_type, array("value" => $data->$cf_id), true);
         }
 
-        $row_data[] = modal_anchor(get_uri("expenses/modal_form"), "<i class='fa fa-pencil'></i>", array("class" => "edit", "title" => lang('edit_expense'), "data-post-id" => $data->id))
-                . js_anchor("<i class='fa fa-times fa-fw'></i>", array('title' => lang('delete_expense'), "class" => "delete", "data-id" => $data->id, "data-action-url" => get_uri("expenses/delete"), "data-action" => "delete-confirmation"));
+        $buttons = modal_anchor(
+            get_uri("expenses/modal_form"),
+            "<i class='fa fa-pencil'></i>",
+            array(
+                "class" => "edit",
+                "title" => lang("edit_expense"),
+                "data-post-id" => $data->id
+            )
+        );
+
+        if (!$data->pv_id) {
+            $buttons .= modal_anchor(
+                get_uri("expenses/pv_creation"),
+                "<i class='fa fa-file-o'></i>",
+                array(
+                    "class" => "edit",
+                    "title" => lang("payment_voucher_add"),
+                    "data-post-id" => $data->id
+                )
+            );
+        }
+
+        $buttons .= js_anchor(
+            "<i class='fa fa-times fa-fw'></i>",
+            array(
+                "title" => lang("delete_expense"),
+                "class" => "delete",
+                "data-id" => $data->id,
+                "data-action-url" => get_uri("expenses/delete"),
+                "data-action" => "delete-confirmation"
+            )
+        );
+
+        $row_data[] = $buttons;
 
         return $row_data;
     }
@@ -531,8 +665,8 @@ $view_data["buttonTop"] = implode( '', $buttonTop );
             for ($i = 1; $i <= 12; $i++) {
                 $result[] = $this->_row_data_of_summary($i, $payments[$i], $expenses[$i]);
             }
+
             // var_dump(arr($result)); exit;
-            
             echo json_encode(array("data" => $result));
         }
     }
@@ -584,31 +718,32 @@ $view_data["buttonTop"] = implode( '', $buttonTop );
         }
     }
 
-    function expense_details() {
-        validate_submitted_data(array(
-            "id" => "required|numeric"
-        ));
+    function expense_details()
+    {
+        validate_submitted_data(
+            array(
+                "id" => "required|numeric"
+            )
+        );
 
         $expense_id = $this->input->post('id');
         $options = array("id" => $expense_id);
+        
         $info = $this->Expenses_model->get_details($options)->row();
         if (!$info) {
             show_404();
         }
 		
-		
 		$param['id'] = $expense_id;
 		$param['tbName'] = $_SESSION['table_name'];
-
-		//	exit;
-
-
-		$view_data["proveButton"] = $this->dao->getProveButton( $param );
-
+        // exit;
+        
+        $view_data["proveButton"] = $this->dao->getProveButton($param);
 
         $view_data["expense_info"] = $info;
-        $view_data['custom_fields_list'] = $this->Custom_fields_model->get_combined_details("expenses", $expense_id, $this->login_user->is_admin, $this->login_user->user_type)->result();
+        $view_data["custom_fields_list"] = $this->Custom_fields_model->get_combined_details("expenses", $expense_id, $this->login_user->is_admin, $this->login_user->user_type)->result();
 
+        // var_dump(arr($view_data)); exit();
         $this->load->view("expenses/expense_details", $view_data);
     }
 	
@@ -619,18 +754,55 @@ $view_data["buttonTop"] = implode( '', $buttonTop );
         $category_id = $this->input->post('category_id');
         $project_id = $this->input->post('project_id');
         $user_id = $this->input->post('user_id');
+        $account_secondary_id = $this->input->post('acct_secondary_id');
+        $account_category_id = $this->input->post('acct_category_id');
+        $supplier_id = $this->input->post("supplier_id");
 
         $custom_fields = $this->Custom_fields_model->get_available_fields_for_table("expenses", $this->login_user->is_admin, $this->login_user->user_type);
 
-        $options = array("start_date" => $start_date, "end_date" => $end_date, "category_id" => $category_id, "project_id" => $project_id, "user_id" => $user_id, "custom_fields" => $custom_fields, "recurring" => $recurring);
+        $options = array(
+            "start_date" => $start_date,
+            "end_date" => $end_date,
+            "category_id" => $category_id,
+            "project_id" => $project_id,
+            "user_id" => $user_id,
+            "custom_fields" => $custom_fields,
+            "recurring" => $recurring,
+            "account_secondary_id" => $account_secondary_id,
+            "account_category_id" => $account_category_id,
+            "supplier_id" => $supplier_id
+        );
+
         $list_data = $this->Expenses_model->get_details( $options, $this->getRolePermission )->result();
 
         $result = array();
         foreach ($list_data as $data) {
             $result[] = $this->_make_row($data, $custom_fields);
         }
-        // var_dump(arr($result)); exit;
+
+        // var_dump(arr($list_data)); exit();
         echo json_encode(array("data" => $result));
+    }
+
+    function pv_creation()
+    {
+        $view_data = $this->input->post();
+
+        // var_dump(arr($view_data)); exit();
+        $this->load->view("expenses/pv_creation", $view_data);
+    }
+
+    function pv_creation_save()
+    {
+        $post = $this->input->post();
+
+        $result = array();
+
+        if ($post["expenseId"]) {
+            $result = $this->Payment_voucher_m->dev2_postPaymentVoucherHeaderFromExpense($post["expenseId"]);
+        }
+
+        echo json_encode($result);
     }
 
 }

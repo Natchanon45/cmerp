@@ -14,7 +14,7 @@
                 <i class="fa fa-hand-o-left" aria-hidden="true"></i>
                 <?php echo lang("back_to_table"); ?>
             </a>
-            <a id="add_item_button" class="btn btn-default" data-post-doc_id="<?php echo $doc_id; ?>" data-act="ajax-modal" data-title="<?php echo lang('share_doc') . ' ' . $doc_number; ?>" data-action-url="<?php echo get_uri("purchase_request/share"); ?>">
+            <a id="add_item_button" class="btn btn-default" data-post-doc_id="<?php echo $doc_id; ?>" data-act="ajax-modal" data-title="<?php echo lang("share_doc") . " " . $doc_number; ?>" data-action-url="<?php echo get_uri("purchase_request/share"); ?>">
                 <?php echo lang("share"); ?>
             </a>
             <a onclick="window.open('<?php echo $print_url; ?>', '' ,'width=980,height=720');" class="btn btn-default">
@@ -96,7 +96,7 @@
 
                     <tr>
                         <td class="custom-color top-vertical"><?php echo lang("issuer_of_document"); ?></td>
-                        <td><?php if ($created != null) echo $created["first_name"] . " " . $created["last_name"]; ?></td>
+                        <td><?php if ($created_by_info != null) echo $created_by_info["first_name"] . " " . $created_by_info["last_name"]; ?></td>
                     </tr>
                     <tr>
                         <td class="custom-color top-vertical"><?php echo lang("project_refer"); ?></td>
@@ -207,8 +207,8 @@
                                 <input type="checkbox" id="wht_inc" <?php if ($wht_inc == "Y") echo "checked" ?> <?php if ($doc_status != "W") echo "disabled"; ?> <?php if ($pr_type != "5") echo "disabled"; ?>>
                                 <span><?php echo lang("with_holding_tax"); ?></span>
                                 <select id="wht_percent" class="wht custom-color <?php echo $wht_inc == "Y" ? "v" : "h"; ?>" <?php if ($doc_status != "W") echo "disabled"; ?>>
-                                    <?php if ($wht_inc == 'Y' && isset($wht_percent) && !empty($wht_percent)): ?>
-                                        <option value="<?php echo $wht_percent; ?>" selected><?php echo $wht_percent . '%'; ?></option>
+                                    <?php if ($wht_inc == "Y" && isset($wht_percent) && !empty($wht_percent)): ?>
+                                        <option value="<?php echo $wht_percent; ?>" selected><?php echo $wht_percent . "%"; ?></option>
                                     <?php endif; ?>
                                     <option value="3">3%</option>
                                     <option value="5">5%</option>
@@ -224,7 +224,6 @@
                             <span class="c2 wht <?php echo $wht_inc == "Y" ? "v" : "h"; ?>"><input type="text" id="wht_value" readonly></span>
                             <span class="c3 wht <?php echo $wht_inc == "Y" ? "v" : "h"; ?>"><span class="currency"><?php echo lang("THB"); ?></span></span>
                         </p>
-
                         <p id="s-payment-amount">
                             <span class="c1 custom-color wht <?php echo $wht_inc == "Y" ? "v" : "h"; ?>"><?php echo lang("payment_amount"); ?></span>
                             <span class="c2 wht <?php echo $wht_inc == "Y" ? "v" : "h"; ?>"><input type="text" id="payment_amount" readonly></span>
@@ -249,16 +248,31 @@
                 <div class="name">
                     <span class="l1">
                         <span class="signature">
-                            <?php if ($doc_status != 'R'): if ($created_by != null): if (null != $requester_sign = $this->Users_m->getSignature($created_by)): ?>
+                            <?php if ($doc_status != "R"): if ($created_by != null): if (null != $requester_sign = $this->Users_m->getSignature($created_by)): ?>
                                 <img src="<?php echo '/' . $requester_sign; ?>">
                             <?php endif; endif; endif; ?>
                         </span>
                     </span>
-                    <span class="l2"><?php echo lang("issuer_of_document"); ?></span>
+                    <span class="l2">
+                        <?php
+                        $issuer_name = "( " . str_repeat("_", 18) . " )";
+                        if (sizeof($created_by_info)) {
+                            if (isset($created_by_info["last_name"]) && !empty($created_by_info["last_name"])) {
+                                $issuer_name = $created_by_info["first_name"] . " " . $created_by_info["last_name"];
+                            } else {
+                                $issuer_name = $created_by_info["first_name"];
+                            }
+                        }
+                        ?>
+                        <p>
+                            <?php echo $issuer_name; ?>
+                        </p>
+                        <?php echo lang("issuer_of_document"); ?>
+                    </span>
                 </div>
                 <div class="date">
                     <span class="l1">
-                        <?php if ($doc_date != null && $doc_status != 'R'): ?>
+                        <?php if ($doc_date != null && $doc_status != "R"): ?>
                             <span class="approved_date"><?php echo convertDate($doc_date, true); ?></span>
                         <?php endif; ?>
                     </span>
@@ -272,16 +286,29 @@
                 <div class="name">
                     <span class="l1">
                         <span class="signature">
-                            <?php if ($approved_by != null && $doc_status == 'A'): if (null != $signature = $this->Users_m->getSignature($approved_by)): ?>
+                            <?php if ($approved_by != null && $doc_status == "A"): if (null != $signature = $this->Users_m->getSignature($approved_by)): ?>
                                 <img src="<?php echo '/' . $signature; ?>">
                             <?php endif; endif; ?>
                         </span>
+                    </span>
+                    <span class="l2">
+                        <?php
+                        $approver_name = "( " . str_repeat("_", 18) . " )";
+                        if ($doc_status == 'A') {
+                            if ($approver_info["last_name"] == "") {
+                                $approver_name = "( " . $approver_info["first_name"] . " )";
+                            } else {
+                                $approver_name = "( " . $approver_info["first_name"] . " " . $approver_info["last_name"] . " )";
+                            }
+                        }
+                        ?>
+                        <p><?php echo $approver_name; ?></p>
                     </span>
                     <span class="l2"><?php echo lang("approver"); ?></span>
                 </div>
                 <div class="date">
                     <span class="l1">
-                        <?php if ($approved_datetime != null && $doc_status == 'A'): ?>
+                        <?php if ($approved_datetime != null && $doc_status == "A"): ?>
                             <span class="approved_date"><?php echo convertDate($approved_datetime, true); ?></span>
                         <?php endif; ?>
                     </span>

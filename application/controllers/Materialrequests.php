@@ -2411,6 +2411,84 @@ class Materialrequests extends MY_Controller
 		$this->load->view("materialrequests/item_add", $view_data);
 	}
 
+	function item_edit_group()
+	{
+		$view_data['post'] = $this->input->post();
+
+		if (isset($view_data['post']['doc_id']) && !empty($view_data['post']['doc_id'])) {
+			$view_data['mat_req_info'] = $this->Materialrequests_model->get_materialrequest_by_id($view_data['post']['doc_id']);
+		}
+
+		if (isset($view_data['post']['item_id']) && !empty($view_data['post']['item_id'])) {
+			$view_data['mat_item_info'] = $this->Materialrequests_model->get_materialrequest_item_by_id($view_data['post']['item_id']);
+		}
+
+		if (isset($view_data['mat_item_info']->stock_id) && !empty($view_data['mat_item_info']->stock_id)) {
+			if ($view_data['post']['item_type'] == 'SFG') {
+				$view_data['mat_stock_info'] = $this->Bom_item_stocks_model->dev2_getRestockingByStockId($view_data['mat_item_info']->stock_id);	
+			} else {
+				$view_data['mat_stock_info'] = $this->Bom_stocks_model->dev2_getRestockingByStockId($view_data['mat_item_info']->stock_id);
+			}
+		}
+
+		// var_dump(arr($view_data)); exit();
+		$this->load->view("materialrequests/item_edit_group", $view_data);
+	}
+
+	function item_edit_group_save()
+	{
+		$data = array(
+			'bpim_id' => $this->json->bpim_id,
+			'item_id' => $this->json->item_id,
+			'item_type' => $this->json->item_type,
+			'material_id' => $this->json->material_id,
+			'mr_id' => $this->json->mr_id,
+			'mr_type' => $this->json->mr_type,
+			'quantity' => $this->json->quantity,
+			'stock_id' => $this->json->stock_id
+		);
+		
+		// check item type
+		if (isset($data['item_type']) && !empty($data['item_type'])) {
+			// prepare data update to bom project item
+			$bpim = array(
+				'id' => $data['bpim_id'],
+				'stock_id' => $data['stock_id'],
+				'ratio' => $data['quantity']
+			);
+
+			// prepare data update to material request item
+			$mri = array(
+				'id' => $data['item_id'],
+				'stock_id' => $data['stock_id'],
+				'quantity' => $data['quantity']
+			);
+			
+			// update bom project item
+			if ($data['item_type'] == 'RM') {
+				// RM Case
+				$this->Bom_project_item_materials_model->patchProjectItemMaterialFromMaterialRequest($bpim);
+			} else {
+				// FG, SFG Case
+				$this->Bom_project_item_items_model->patchProjectItemItemFromMaterialRequest($bpim);
+			}
+
+			// update material request item
+			$this->Materialrequests_model->patchMaterialRequestItemFromMaterialRequest($mri);
+
+			$bpim_id = $data['bpim_id'];
+			$mri_id = $data['item_id'];
+		}
+		
+		$result = array(
+			'bpim_id' => $bpim_id,
+			'mri_id' => $mri_id,
+			'message' => lang('record_updated')
+		);
+
+		jout($result);
+	}
+
 	function item_edit()
 	{
 		$view_data['post'] = $this->input->post();

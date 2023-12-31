@@ -7,6 +7,11 @@
         pointer-events: none;
     }
 
+    .pointer-none-appearance {
+        pointer-events: none;
+        appearance: none;
+    }
+
     .item-table table {
         width: 100%;
     }
@@ -81,6 +86,56 @@ echo form_open(
         </div>
     </div>
 
+    <!-- <div class="form-group">
+        <label for="account_secondary" class="col-md-3">
+            <?php // echo lang("account_sub_type"); ?>
+        </label>
+        <div class="col-md-9">
+            <select id="account_secondary" name="account_secondary" class="form-control <?php // if ($header_data->status == "A") { echo "pointer-none"; } ?>" required>
+                <option value=""><?php // echo "-- " . lang("account_sub_type_select") . " --"; ?></option>
+                <?php // if (!empty($account_secondary)): ?>
+                    <?php // if (isset($account_secondary_info->id) && !empty($account_secondary_info->id)): ?>
+                        <?php // foreach ($account_secondary as $secondary): ?>
+                            <option value="<?php // echo $secondary->id; ?>" <?php // if ($account_secondary_info->id == $secondary->id) { echo "selected"; } ?>>
+                                <?php // echo $secondary->thai_name . " (" . $secondary->account_code . ")"; ?>
+                            </option>
+                        <?php // endforeach; ?>
+                    <?php // else: ?>
+                        <?php // foreach ($account_secondary as $secondary): ?>
+                            <option value="<?php // echo $secondary->id; ?>">
+                                <?php // echo $secondary->thai_name . " (" . $secondary->account_code . ")"; ?>
+                            </option>
+                        <?php // endforeach; ?>
+                    <?php // endif; ?>
+                <?php // endif; ?>
+            </select>
+        </div>
+    </div> -->
+
+    <!-- <div class="form-group">
+        <label for="account_category" class="col-md-3">
+            <?php // echo lang("account_expense"); ?>
+        </label>
+        <div class="col-md-9">
+            <select name="account_category" id="account_category" class="form-control pointer-none-appearance <?php // if ($header_data->status == "A") { echo "pointer-none"; } ?>" required>
+                <?php // if (isset($account_category_info->id) && !empty($account_category_info->id)): ?>
+                    <option value="<?php // echo $account_category_info->id; ?>"><?php // echo $account_category_info->account_code . ' - ' . $account_category_info->thai_name; ?></option>
+                <?php // else: ?>
+                    <option value=""><?php // echo "-- " . lang("account_expense_select") . " --"; ?></option>
+                <?php // endif; ?>
+            </select>
+        </div>
+    </div> -->
+
+    <div class="form-group">
+        <label for="internal_reference" class="col-md-3">
+            <?php echo lang("pv_internal_reference"); ?>
+        </label>
+        <div class="col-md-9">
+            <input type="text" value="<?php echo $header_data->internal_reference; ?>" name="internal_reference" id="internal_reference" class="form-control <?php if ($header_data->status == "A") { echo "pointer-none"; } ?>" placeholder="<?php echo lang("pv_internal_reference_place_holder"); ?>" maxlength="40">
+        </div>
+    </div>
+
     <div class="form-group">
         <label for="project-id" class="col-md-3">
             <?php echo lang("project_refer"); ?>
@@ -122,7 +177,7 @@ echo form_open(
             <?php echo lang("pv_invoice_refer"); ?>
         </label>
         <div class="col-md-9">
-            <input <?php if (isset($header_data->supplier_invoice) && !empty($header_data->supplier_invoice)) { echo 'value="' . $header_data->supplier_invoice . '"'; } ?> type="text" name="invoice-refer" id="invoice-refer" class="form-control select-invoice-refer <?php if ($header_data->status == "A") { echo "pointer-none"; } ?>" placeholder="<?php echo lang("pv_invoice_refer_placeholder"); ?>" maxlength="40" required>
+            <input <?php if (isset($header_data->supplier_invoice) && !empty($header_data->supplier_invoice)) { echo 'value="' . $header_data->supplier_invoice . '"'; } ?> type="text" name="invoice-refer" id="invoice-refer" class="form-control select-invoice-refer <?php if ($header_data->status == "A") { echo "pointer-none"; } ?>" placeholder="<?php echo lang("pv_invoice_refer_placeholder"); ?>" maxlength="40">
         </div>
     </div>
 
@@ -139,19 +194,30 @@ echo form_open(
         <table>
             <thead>
                 <tr>
-                    <th width="25%"><?php echo lang("purchase_order"); ?></th>
+                    <th width="25%">
+                        <?php
+                        $st_column = lang("purchase_order");
+                        if ($header_data->po_type == 8) {
+                            $st_column = lang("title");
+                        }
+
+                        echo $st_column;
+                        ?>
+                    </th>
                     <th width="38%"><?php echo lang("details"); ?></th>
                     <th width="17%"><?php echo lang("quantity"); ?></th>
                     <th width="10%"><?php echo lang("stock_material_unit"); ?></th>
                     
                     <?php if (isset($bom_supplier_read) && $bom_supplier_read): ?>
                         <?php if ($header_data->status == "W" && $header_data->po_id == 0): ?>
-                            <th>
-                                <button id="btn-add-item" class="btn btn-primary right-control hide">
-                                    <span class="fa fa-plus-circle"></span> 
-                                    <?php  echo lang("add"); ?>
-                                </button>
-                            </th>
+                            <?php if ($header_data->po_type != 8): ?>
+                                <th>
+                                    <button id="btn-add-item" class="btn btn-primary right-control hide">
+                                        <span class="fa fa-plus-circle"></span> 
+                                        <?php  echo lang("add"); ?>
+                                    </button>
+                                </th>
+                            <?php endif; ?>
                         <?php endif; ?>
                     <?php endif; ?>
                 </tr>
@@ -163,16 +229,24 @@ echo form_open(
                         <tr>
                             <td>
                                 <select name="po_id[]" class="form-control select-order pointer-none" required>
-                                    <option value="<?php echo $item->po_info->id; ?>"><?php echo $item->po_info->doc_number; ?></option>
+                                    <?php if ($item->po_id): ?>
+                                        <option value="<?php echo $item->po_info->id; ?>"><?php echo $item->po_info->doc_number; ?></option>
+                                    <?php else: ?>
+                                        <option value="0"><?php echo $item->product_name; ?></option>
+                                    <?php endif; ?>
                                 </select>
                             </td>
                             <td>
                                 <select name="po_item_id[]" class="form-control select-item pointer-none">
-                                    <option value="<?php echo $item->po_item_info->id; ?>"><?php echo $item->po_item_info->product_name; ?></option>
+                                    <?php if ($item->po_item_id): ?>
+                                        <option value="<?php echo $item->po_item_info->id; ?>"><?php echo $item->po_item_info->product_name; ?></option>
+                                    <?php else: ?>
+                                        <option value="0"><?php echo $item->product_description; ?></option>
+                                    <?php endif; ?>
                                 </select>
                             </td>
                             <td>
-                                <input name="quantity[]" class="form-control select-quantity" value="<?php echo $item->quantity; ?>" readonly required>
+                                <input name="quantity[]" class="form-control select-quantity <?php if ($header_data->status == "A") { echo "pointer-none"; } ?>" value="<?php echo $item->quantity; ?>" readonly required>
                                 <input name="status_qty[]" type="hidden" class="select-status_qty" value="Y">
                             </td>
                             <td>
@@ -181,12 +255,14 @@ echo form_open(
 
                             <?php if (isset($bom_supplier_read) && $bom_supplier_read): ?>
                                 <?php if ($header_data->status == "W" && $header_data->po_id == 0): ?>
-                                    <td>
-                                        <button class="btn btn-danger button-delete-edit right-control" data-item_id="<?php echo $item->id; ?>">
-                                            <span class="fa fa-trash"></span> 
-                                            <?php echo lang("delete"); ?>
-                                        </button>
-                                    </td>
+                                    <?php if ($header_data->po_type != 8): ?>
+                                        <td>
+                                            <button class="btn btn-danger button-delete-edit right-control" data-item_id="<?php echo $item->id; ?>">
+                                                <span class="fa fa-trash"></span> 
+                                                <?php echo lang("delete"); ?>
+                                            </button>
+                                        </td>
+                                    <?php endif; ?>
                                 <?php endif; ?>
                             <?php endif; ?>
                         </tr>
@@ -217,6 +293,8 @@ echo form_open(
     const tableBody = $("#tbody-po-select");
     const supplierId = $("#supplier-id");
     const addNewForm = $("#addnew-form");
+    const categoryList = JSON.parse('<?php echo $account_category; ?>');
+    const categoryTopSelect = '<?php echo "-- " . lang("account_expense_select") . " --"; ?>';
 
     let purchaseOrderList = [];
     let purchaseItemList = [];
@@ -481,5 +559,27 @@ echo form_open(
                 }
             }
         });
+
+        // $("#account_secondary").select2();
+        // $("#account_secondary").on("change", function (e) {
+        //     e.preventDefault();
+
+        //     let self = $(this);
+        //     let categoryOption = categoryList.filter(i => i.secondary_id == self.val());
+        //     let categorySelect = $("#account_category");
+
+        //     if (categoryOption.length) {
+        //         categorySelect.val('');
+        //         categorySelect.find('option').remove();
+        //         categorySelect.append(`<option value="">${categoryTopSelect}</option>`);
+
+        //         categoryOption.map((i) => {
+        //             categorySelect.append(`<option value="${i.id}" data-code="${i.account_code}">${i.account_code} - ${i.thai_name}</option>`);
+        //         });
+
+        //         categorySelect.removeClass('pointer-none-appearance');
+        //         categorySelect.select2();
+        //     }
+        // });
     });
 </script>
