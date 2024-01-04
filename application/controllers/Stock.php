@@ -2676,7 +2676,7 @@ class Stock extends MY_Controller
         }
 
         $list_data = $this->Bom_stock_groups_model->get_restocks2($options)->result();
-        var_dump(arr($list_data)); exit;
+        //var_dump(arr($list_data)); exit;
         
         $result = array();
         foreach ($list_data as $data) {
