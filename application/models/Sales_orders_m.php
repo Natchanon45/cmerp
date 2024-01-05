@@ -125,30 +125,33 @@ class Sales_orders_m extends MY_Model {
         $this->data["dropdown_project_types"] = $this->Projects_m->getTypeRows();
 
         $trows = $this->Tasks_m->getRows();
-        foreach($trows as $trow){
-            $assigned_to = "";
-            $collaborators = "";
 
-            $urow = $this->Users_m->getRow($trow->assigned_to, ["first_name", "last_name"]);
-            if($urow == null) continue;
-            $assigned_to = $urow->first_name." ".$urow->last_name;
+        if(!empty($trows)){
+            foreach($trows as $trow){
+                $assigned_to = "";
+                $collaborators = "";
 
-            $cuids = explode(",", $trow->collaborators);
-            if(count($cuids) >= 0){
-                foreach($cuids as $cuid){
-                    $urow = $this->Users_m->getRow($cuid, ["first_name", "last_name"]);
-                    if($urow == null) continue;
-                    $collaborators .= $urow->first_name." ".$urow->last_name.", ";
+                $urow = $this->Users_m->getRow($trow->assigned_to, ["first_name", "last_name"]);
+                if($urow == null) continue;
+                $assigned_to = $urow->first_name." ".$urow->last_name;
 
+                $cuids = explode(",", $trow->collaborators);
+                if(count($cuids) >= 0){
+                    foreach($cuids as $cuid){
+                        $urow = $this->Users_m->getRow($cuid, ["first_name", "last_name"]);
+                        if($urow == null) continue;
+                        $collaborators .= $urow->first_name." ".$urow->last_name.", ";
+
+                    }
+                    
+                    $collaborators = substr($collaborators, 0, -2);
                 }
-                
-                $collaborators = substr($collaborators, 0, -2);
-            }
 
-            $dtl_text = $trow->title.", <b>".$assigned_to."</b>";
-            if($collaborators != "") $dtl_text .= ", ". $collaborators;
-            $this->data["dropdown_task_list"][] = ["id"=>$trow->id, "text"=>$dtl_text];
-        }//endforeach
+                $dtl_text = $trow->title.", <b>".$assigned_to."</b>";
+                if($collaborators != "") $dtl_text .= ", ". $collaborators;
+                $this->data["dropdown_task_list"][] = ["id"=>$trow->id, "text"=>$dtl_text];
+            }//endforeach
+        }
 
         $this->data["doc_id"] = null;
         $this->data["purpose"] = null;
