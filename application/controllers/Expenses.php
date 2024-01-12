@@ -503,18 +503,18 @@ class Expenses extends MY_Controller
                     "data-post-id" => $data->id
                 )
             );
-        }
 
-        $buttons .= js_anchor(
-            "<i class='fa fa-times fa-fw'></i>",
-            array(
-                "title" => lang("delete_expense"),
-                "class" => "delete",
-                "data-id" => $data->id,
-                "data-action-url" => get_uri("expenses/delete"),
-                "data-action" => "delete-confirmation"
-            )
-        );
+            $buttons .= js_anchor(
+                "<i class='fa fa-times fa-fw'></i>",
+                array(
+                    "title" => lang("delete_expense"),
+                    "class" => "delete",
+                    "data-id" => $data->id,
+                    "data-action-url" => get_uri("expenses/delete"),
+                    "data-action" => "delete-confirmation"
+                )
+            );
+        }
 
         $row_data[] = $buttons;
 
