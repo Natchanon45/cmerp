@@ -507,23 +507,17 @@ if (isset($mr_header->status_id) && !empty($mr_header->status_id)) {
                 <div class="name">
                     <span class="l1">
                         <span class="signature">
-                            <?php if ($mr_header->status_id != 4): ?>
-                                <?php if (isset($requester_sign) && !empty($requester_sign)): ?>
-                                    <img src="<?php echo "/" . $requester_sign; ?>" alt="requester-sign">
-                                <?php endif; ?>
+                            <?php if (isset($requester_sign) && !empty($requester_sign)): ?>
+                                <img src="<?php echo "/" . $requester_sign; ?>" alt="requester-sign">
                             <?php endif; ?>
                         </span>
                     </span>
                     <span class="l2">
                         <?php if (isset($mr_header->requester_id) && !empty($mr_header->requester_id)): ?>
                             <?php
-                                if ($mr_header->status_id != 4) {
-                                    echo (isset($requester_info->first_name) && !empty($requester_info->first_name)) ? $requester_info->first_name : "";
-                                    echo " ";
-                                    echo (isset($requester_info->last_name) && !empty($requester_info->last_name)) ? $requester_info->last_name : "";
-                                } else {
-                                    echo "( " . str_repeat("_", 19) . " )";
-                                }
+                                echo (isset($requester_info->first_name) && !empty($requester_info->first_name)) ? $requester_info->first_name : "";
+                                echo " ";
+                                echo (isset($requester_info->last_name) && !empty($requester_info->last_name)) ? $requester_info->last_name : "";
                             ?>
                         <?php else: ?>
                             <?php echo "( " . str_repeat("_", 19) . " )"; ?>
@@ -535,11 +529,9 @@ if (isset($mr_header->status_id) && !empty($mr_header->status_id)) {
                 </div>
                 <div class="date">
                     <span class="l1">
-                        <?php if (!empty($mr_header->mr_date) && $mr_header->status_id != 4): ?>
-                            <span class="approved_date">
-                                <?php echo convertDate($mr_header->mr_date, true); ?>
-                            </span>
-                        <?php endif; ?>
+                        <span class="approved_date">
+                            <?php echo convertDate($mr_header->mr_date, true); ?>
+                        </span>
                     </span>
                     <span class="l2">
                         <?php echo lang("material_request_date"); ?>
