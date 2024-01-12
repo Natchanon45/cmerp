@@ -267,6 +267,7 @@ class Bom_stocks_model extends Crud_model {
         $data = new stdClass();
 
         $query = $this->db->get_where($table, array("id" => $id))->row();
+
         if (!empty($query)) {
             $data = $query;
         }
@@ -328,6 +329,7 @@ class Bom_stocks_model extends Crud_model {
             foreach ($query as $row) {
                 $row->item_info = $this->dev2_getRowTableFromId("items", $row->item_id);
                 $row->stock_info = $this->dev2_getRowTableFromId("bom_item_stocks", $row->stock_id);
+
 
                 if (isset($row->stock_info->group_id) && !empty($row->stock_info->group_id)) {
                     $row->stock_info->group_info = $this->dev2_getRowTableFromId("bom_item_groups", $row->stock_info->group_id);

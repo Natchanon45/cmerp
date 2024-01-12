@@ -118,6 +118,11 @@ class Payment_voucher_m extends MY_Model
             }
         }
 
+        if($item->internal_reference != null){
+            if($extract_refer == "-") $extract_refer = $item->internal_reference;
+            else $extract_refer .= ", ".$item->internal_reference;
+        }
+
         $data[] = $document_date;
         $data[] = $document_number;
         $data[] = $extract_refer;

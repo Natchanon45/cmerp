@@ -1836,26 +1836,32 @@ class Projects_model extends Crud_model {
 
     public function dev2_getCountNoMrForProductionOrderById(int $id): int
     {
-        $count = 0;
+        $count_rm = 0;
         $sql = "SELECT COUNT(id) AS rows_num FROM bom_project_item_materials WHERE mr_id IS NULL AND project_item_id = ?";
         $get = $this->db->query($sql, $id)->row();
+        if (isset($get->rows_num) && !empty($get->rows_num)) $count_rm = $get->rows_num;
 
-        if (isset($get->rows_num) && !empty($get->rows_num)) {
-            $count = $get->rows_num;
-        }
-        return $count;
+        $count_sfg = 0;
+        $sql = "SELECT COUNT(id) AS rows_num FROM bom_project_item_items WHERE mr_id IS NULL AND project_item_id = ?";
+        $get = $this->db->query($sql, $id)->row();
+        if (isset($get->rows_num) && !empty($get->rows_num)) $count_sfg = $get->rows_num;
+        
+        return $count_rm + $count_sfg;
     }
 
     public function dev2_getCountNoStockForProductionOrderById(int $id): int
     {
-        $count = 0;
+        $count_rm = 0;
         $sql = "SELECT COUNT(id) AS rows_num FROM bom_project_item_materials WHERE stock_id IS NULL AND project_item_id = ?";
         $get = $this->db->query($sql, $id)->row();
+        if (isset($get->rows_num) && !empty($get->rows_num))  $count_rm = $get->rows_num;
 
-        if (isset($get->rows_num) && !empty($get->rows_num)) {
-            $count = $get->rows_num;
-        }
-        return $count;
+        $count_sfg = 0;
+        $sql = "SELECT COUNT(id) AS rows_num FROM bom_project_item_items WHERE stock_id IS NULL AND project_item_id = ?";
+        $get = $this->db->query($sql, $id)->row();
+        if (isset($get->rows_num) && !empty($get->rows_num))  $count_sfg = $get->rows_num;
+
+        return $count_rm + $count_sfg;
     }
 
     private function dev2_getMaterialCategoryTitleByCategoryId(int $id) : stdClass
