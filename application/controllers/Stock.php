@@ -6362,7 +6362,7 @@ class Stock extends MY_Controller
 
         $stock_name = anchor(
             get_uri("stock/restock_item_view/" . $row->stock_info->group_id),
-            $row->stock_info->group_info->name,
+            isset($row->stock_info->group_info->name)?$row->stock_info->group_info->name:'-',
             array("target" => "_blank")
         );
 

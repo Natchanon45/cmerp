@@ -815,7 +815,7 @@ class Sfg_m extends MY_Model {
             to_decimal_format3($item->remain_qty, 6),
             mb_strtoupper($item->item_unit),
             $item->create_by ? anchor(get_uri('team_members/view/' . $item->create_by), $this->Account_category_model->created_by($item->create_by)) : '',
-            format_to_date($item->create_date),
+            format_to_date($item->created_date),
             $button
         );
     }
