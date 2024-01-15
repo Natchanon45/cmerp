@@ -810,8 +810,14 @@ class MaterialRequests_model extends Crud_model
 		$data = $this->dev2_getProductionMaterialRequestStatusByProductionId($production_id);
         $mr_status = $data["production_mr_status"];
 
+		$bpidata = ["mr_status" => $mr_status];
+
+		if($mr_status == 1){
+			$bpidata["mr_percentage"] = 0;
+		}
+
         $this->db->where("id", $production_id);
-        $this->db->update("bom_project_items", ["mr_status" => $mr_status]);
+        $this->db->update("bom_project_items", $bpidata);
 	}
 
 	private function dev2_getProductionMaterialRequestStatusByProductionId(int $production_id) : array
