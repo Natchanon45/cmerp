@@ -188,6 +188,8 @@ class Crud_model extends CI_Model {
     }
 	
 	function insertLabels( $doc_id = NULL, $datas = array(), $tbName = NULL ) {
+        $no_labels = ["expenses"];
+        if(in_array("expenses", $no_labels)) return;
 		
 		if( !empty( $tbName ) ) {
 			

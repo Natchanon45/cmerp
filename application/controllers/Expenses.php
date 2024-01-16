@@ -211,7 +211,7 @@ class Expenses extends MY_Controller
                 "expense_secondary" => "required",
                 "expense_category" => "required",
                 "category_id" => "required",
-                "amount" => "required"
+                "sub_total" => "required"
             )
         );
 
@@ -227,19 +227,34 @@ class Expenses extends MY_Controller
         $repeat_type = $this->input->post('repeat_type');
         $no_of_cycles = $this->input->post('no_of_cycles');
 
+        $sub_total = round(getNumber($this->input->post('sub_total')), 2);
+        $vat_percent = round(getNumber($this->input->post('vat_percent')), 2);
+        $wht_percent = round(getNumber($this->input->post('wht_percent')), 2);
+        $vat_value = $wht_value = 0;
+
+        if($wht_percent > 0) $wht_value = ($sub_total * $wht_percent) / 100;
+        if($vat_percent > 0) $vat_value = ($sub_total * $vat_percent) / 100;
+
+        $total = ($sub_total + $vat_value);
+        $payment_amount = $total - $wht_value;
+
         $data = array(
             "expense_date" => $expense_date,
             "account_secondary_id" => $this->input->post('expense_secondary'),
             "account_category_id" => $this->input->post('expense_category'),
             "category_id" => $this->input->post('category_id'),
             "description" => $this->input->post('description'),
-            "amount" => unformat_currency($this->input->post('amount')),
+            "sub_total"=>$sub_total,
+            "vat_percent"=>$vat_percent,
+            "vat_value" => $vat_value,
+            "total" => $total,
+            "wht_percent" => $wht_percent,
+            "wht_value" => $wht_value,
+            "payment_amount" => $payment_amount,
             "title" => $this->input->post('title'),
             "supplier_id" => $this->input->post('supplier_id'),
             "project_id" => $this->input->post('expense_project_id'),
             "user_id" => $this->input->post('expense_user_id'),
-            "tax_id" => $this->input->post('tax_id') ? $this->input->post('tax_id') : 0,
-            "tax_id2" => $this->input->post('tax_id2') ? $this->input->post('tax_id2') : 0,
             "client_id" => $this->input->post('expense_client_id') ? $this->input->post('expense_client_id') : 0,
             "recurring" => $recurring,
             "repeat_every" => $repeat_every ? $repeat_every : 0,
@@ -283,7 +298,8 @@ class Expenses extends MY_Controller
         }
 
         $save_id = $this->Expenses_model->save($data, $id);
-        if ($save_id) {
+
+        if ($save_id) {            
             save_custom_fields("expenses", $save_id, $this->login_user->is_admin, $this->login_user->user_type);
             echo json_encode(array("success" => true, "data" => $this->_row_data($save_id), 'id' => $save_id, 'message' => lang('record_saved')));
         } else {
@@ -336,29 +352,6 @@ class Expenses extends MY_Controller
 
     //prepare a row of expnese list
     private function _make_row($data, $custom_fields) {
-        $labels = "";
-        $ltrows = $this->db->select("label_id")
-                            ->from("label_table")
-                            ->where("doc_id", $data->id)
-                            ->where("tbName", "expenses")
-                            ->get()->result();
-
-        if(!empty($ltrows)){
-            foreach($ltrows as $ltrow){
-                $label_id = $ltrow->label_id;
-
-                $lrow = $this->db->select("color, title")
-                                    ->from("labels")
-                                    ->where("id", $label_id)
-                                    ->where("deleted", 0)
-                                    ->get()->row();
-
-                if(!empty($lrow)){
-                    $labels .= "<span class='mt0 label clickable' style='background-color:$lrow->color;' title=" . lang("label") . ">" . $lrow->title . "</span> ";
-                }
-            }
-        }
-
         // $data->account_category_id;
         $sub_account = "-";
         $expense_account = "-";
@@ -455,27 +448,20 @@ class Expenses extends MY_Controller
                 }
             }
         }
-
-        $tax = 0;
-        $tax2 = 0;
-        if ($data->tax_percentage) {
-            $tax = $data->amount * ($data->tax_percentage / 100);
-        }
-        if ($data->tax_percentage2) {
-            $tax2 = $data->amount * ($data->tax_percentage2 / 100);
-        }
         
         $row_data = array(
             $data->expense_date,
             modal_anchor(get_uri("expenses/expense_details"), format_to_date($data->expense_date, false), array("title" => lang("expense_details"), "data-post-id" => $data->id)),
             $data->title,
-            $description,
+            $supplier_name,
+            $data->description,
+            $data->linked_client_name,
             $sub_account,
             $expense_account,
             $files_link,
-            to_decimal_format3($data->amount, 3),
-            to_decimal_format3($data->amount + $tax + $tax2, 3),
-            !empty($data->currency) ? lang($data->currency) : lang("THB")
+            to_decimal_format3($data->sub_total, 3),
+            to_decimal_format3($data->payment_amount, 3),
+            lang("THB")
         );
 
         foreach ($custom_fields as $field) {
@@ -483,17 +469,19 @@ class Expenses extends MY_Controller
             $row_data[] = $this->load->view("custom_fields/output_" . $field->field_type, array("value" => $data->$cf_id), true);
         }
 
-        $buttons = modal_anchor(
-            get_uri("expenses/modal_form"),
-            "<i class='fa fa-pencil'></i>",
-            array(
-                "class" => "edit",
-                "title" => lang("edit_expense"),
-                "data-post-id" => $data->id
-            )
-        );
+        $buttons = "";
 
         if (!$data->pv_id) {
+            $buttons = modal_anchor(
+                get_uri("expenses/modal_form"),
+                "<i class='fa fa-pencil'></i>",
+                array(
+                    "class" => "edit",
+                    "title" => lang("edit_expense"),
+                    "data-post-id" => $data->id
+                )
+            );
+
             $buttons .= modal_anchor(
                 get_uri("expenses/pv_creation"),
                 "<i class='fa fa-file-o'></i>",
