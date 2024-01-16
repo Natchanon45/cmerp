@@ -1619,25 +1619,6 @@ class Payment_voucher_m extends MY_Model
         ];
         $pv_doc_number = $this->Db_model->genDocNo($param_docno);
 
-        // calc vat
-        $vat_inc = "N";
-        $vat_value = 0;
-        if ($expense->tax_id) {
-            $vat_inc = "Y";
-            $vat_value = ($expense->amount * 7) / 100;
-        }
-
-        // calc wht
-        $wht_inc = "N";
-        $wht_value = 0;
-        if ($expense->tax_id2) {
-            $wht_inc = "Y";
-            $wht_value = ($expense->amount * 3) / 100;
-        }
-
-        $total_amount = $expense->amount + $vat_value;
-        $payment_amount = $total_amount - $wht_value;
-
         $header_data = array(
             "po_id" => 0,
             "doc_number" => $pv_doc_number,
@@ -1649,16 +1630,16 @@ class Payment_voucher_m extends MY_Model
             "project_id" => $expense->project_id,
             "client_id" => $expense->client_id,
             "supplier_id" => $expense->supplier_id,
-            "sub_total_before_discount" => $expense->amount,
-            "sub_total" => $expense->amount,
-            "vat_inc" => $vat_inc,
-            "vat_percent" => 7,
-            "vat_value" => $vat_value,
-            "total" => $total_amount,
-            "wht_inc" => $wht_inc,
-            "wht_percent" => 3,
-            "wht_value" => $wht_value,
-            "payment_amount" => $payment_amount,
+            "sub_total_before_discount" => $expense->sub_total,
+            "sub_total" => $expense->sub_total,
+            "vat_inc" => $expense->vat_percent > 0 ? "Y":"N",
+            "vat_percent" => $expense->vat_percent,
+            "vat_value" => $expense->vat_value,
+            "total" => $expense->total,
+            "wht_inc" => $expense->wht_percent > 0 ? "Y":"N",
+            "wht_percent" => $expense->wht_percent,
+            "wht_value" => $expense->wht_value,
+            "payment_amount" => $expense->payment_amount,
             "pay_amount" => 0,
             "pay_status" => "N",
             "is_partials" => "N",
@@ -1690,8 +1671,8 @@ class Payment_voucher_m extends MY_Model
             "product_description" => $expense->description,
             "quantity" => 1,
             "unit" => "หน่วย",
-            "price" => $expense->amount,
-            "total_price" => $expense->amount,
+            "price" => $expense->sub_total,
+            "total_price" => $expense->payment_amount,
             "sort" => 1
         );
 

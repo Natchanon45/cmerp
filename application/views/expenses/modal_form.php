@@ -95,9 +95,9 @@
             <div class=" col-md-9">
                 <?php
                 echo form_input(array(
-                    "id" => "amount",
-                    "name" => "amount",
-                    "value" => $model_info->amount ? to_decimal_format($model_info->amount) : "",
+                    "id" => "sub_total",
+                    "name" => "sub_total",
+                    "value" => $model_info->sub_total ? to_decimal_format($model_info->sub_total) : "",
                     "class" => "form-control",
                     "placeholder" => lang("amount"),
                     "autofocus" => true,
@@ -218,14 +218,10 @@
                 <?php echo lang("value_add_tax"); ?>
             </label>
             <div class="col-md-9">
-                <?php
-                echo form_dropdown(
-                    'tax_id',
-                    $taxes_dropdown,
-                    array($model_info->tax_id),
-                    'class="select2"'
-                );
-                ?>
+                <select id="vat_percent" name="vat_percent" class="form-control">
+                    <option value="0" <?php if(0 == $model_info->vat_percent) echo "selected"; ?>>ไม่มีภาษีมูลค่าเพิ่ม</option>
+                    <option value="7" <?php if(7 == $model_info->vat_percent) echo "selected"; ?>>ภาษีมูลค่าเพิ่ม 7%</option>
+                </select>
             </div>
         </div>
 
@@ -234,14 +230,10 @@
                 <?php echo lang("with_holding_tax"); ?>
             </label>
             <div class="col-md-9">
-                <?php
-                echo form_dropdown(
-                    'tax_id2',
-                    $taxes_dropdown,
-                    array($model_info->tax_id2),
-                    'class="select2"'
-                );
-                ?>
+                <select id="wht_percent" name="wht_percent" class="form-control">
+                    <option value="0" <?php if(0 == $model_info->wht_percent) echo "selected"; ?>>ไม่หัก ณ ที่จ่าย</option>
+                    <option value="3" <?php if(3 == $model_info->wht_percent) echo "selected"; ?>>หัก ณ ที่จ่าย 3%</option>
+                </select>
             </div>
         </div>
 
