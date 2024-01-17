@@ -107,8 +107,8 @@
             printColumns: [1, 2, 3, 4, 6, 7, 8],
             xlsColumns: [1, 2, 3, 4, 6, 7, 8],
             summation: [
-                { column: 7, dataType: 'number' },
-                { column: 8, dataType: 'number' }
+                { column: 9, dataType: 'number' },
+                { column: 10, dataType: 'number' }
             ]
         });
     };
