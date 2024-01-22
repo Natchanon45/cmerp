@@ -83,8 +83,9 @@
 }
 
 #printd .docheader .r table td:nth-child(1){
-    width: 100px;
+    min-width: 100px;
     padding-left: 4px;
+    padding-right: 12px;
 }
 
 #printd .docheader .r table td:nth-child(2){

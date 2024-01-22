@@ -22,12 +22,13 @@ class Receipts_m extends MY_Model {
         return $rerow->doc_number;
     }
 
-    function getNewDocNumber(){
-        $this->db->where("DATE_FORMAT(created_datetime,'%Y-%m')", date("Y-m"));
+    function getNewDocNumber($payment_date){
+    
+        $this->db->where("DATE_FORMAT(payment_date,'%Y-%m')", date("Y-m", strtotime($payment_date)));
         $this->db->where("deleted", 0);
         $running_number = $this->db->get("receipt")->num_rows() + 1;
 
-        $doc_number = $this->getCode().date("Ym").sprintf("%04d", $running_number);
+        $doc_number = $this->getCode().date("Ym", strtotime($payment_date)).sprintf("%04d", $running_number);
 
         return $doc_number;
     }
@@ -145,6 +146,7 @@ class Receipts_m extends MY_Model {
         $this->data["billing_type"] = "";
         $this->data["invoice_id"] = null;
         $this->data["doc_date"] = date("Y-m-d");
+        $this->data["payment_date"] = date("Y-m-d");
         $this->data["reference_number"] = "";
         $this->data["discount_type"] = "P";
         $this->data["discount_percent"] = 0;
@@ -189,6 +191,7 @@ class Receipts_m extends MY_Model {
             $this->data["doc_number"] = $rerow->doc_number;
             $this->data["share_link"] = $rerow->sharekey != null ? get_uri($this->shareHtmlAddress."th/".$rerow->sharekey) : null;
             $this->data["doc_date"] = $rerow->doc_date;
+            $this->data["payment_date"] = $rerow->payment_date;
             $this->data["reference_number"] = $rerow->reference_number;
             $this->data["discount_type"] = $rerow->discount_type;
             $this->data["discount_percent"] = $rerow->discount_percent;
@@ -257,6 +260,7 @@ class Receipts_m extends MY_Model {
         $this->data["billing_type"] = $rerow->billing_type;
         $this->data["doc_number"] = $rerow->doc_number;
         $this->data["doc_date"] = $rerow->doc_date;
+        $this->data["payment_date"] = $rerow->payment_date;
         $this->data["reference_number"] = $rerow->reference_number;
         $this->data["remark"] = $rerow->remark;
 
@@ -472,6 +476,7 @@ class Receipts_m extends MY_Model {
         $task = $this->json->task;
         $docId = $this->json->doc_id;
         $doc_date = convertDate($this->json->doc_date);
+        $payment_date = convertDate($this->json->payment_date);
         $reference_number = $this->json->reference_number;
         $seller_id = $this->json->seller_id;
         $client_id = $this->json->client_id;
@@ -589,13 +594,14 @@ class Receipts_m extends MY_Model {
 
             $docId = $newDocId;
 
-        }else{
-            $doc_number = $this->getNewDocNumber();
+        }else{//new receipt
+            $doc_number = $this->getNewDocNumber($payment_date);
 
             $db->insert("receipt", [
                                         "billing_type"=>$company_setting["company_billing_type"],
                                         "doc_number"=>$doc_number,
                                         "doc_date"=>$doc_date,
+                                        "payment_date"=>$payment_date,
                                         "reference_number"=>$reference_number,
                                         "vat_inc"=>$company_setting["company_vat_registered"],
                                         "seller_id"=>$seller_id,
