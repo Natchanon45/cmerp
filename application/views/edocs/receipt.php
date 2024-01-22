@@ -110,8 +110,12 @@
 	                        <td><?php echo $doc["doc_number"]; ?></td>
 	                    </tr>
 	                    <tr>
-	                        <td class="custom-color">วันที่</td>
+	                        <td class="custom-color">วันที่ออกเอกสาร</td>
 	                        <td><?php echo convertDate($doc["doc_date"], true); ?></td>
+	                    </tr>
+	                    <tr>
+	                        <td class="custom-color">วันที่รับชำระ</td>
+	                        <td><?php echo convertDate($doc["payment_date"], true); ?></td>
 	                    </tr>
 	                    <?php if(isset($doc["seller"])): ?>
 		                    <tr>

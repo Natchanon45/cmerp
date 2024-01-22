@@ -1272,7 +1272,7 @@ class Invoices_m extends MY_Model {
         $billing_type = $ivrow->billing_type;
 
         $invoice_number = $ivrow->doc_number;
-        $receipt_number = $this->Receipts_m->getNewDocNumber();
+        $receipt_number = $this->Receipts_m->getNewDocNumber($ivprow->payment_date);
         $invoice_total = $ivrow->total;
         $invoice_payment_payment_date = $ivprow->payment_date;
         $invoice_payment_amount = $ivprow->payment_amount;
@@ -1298,6 +1298,7 @@ class Invoices_m extends MY_Model {
                                 "invoice_payment_id"=>$payment_id,
                                 "doc_number"=>$receipt_number,
                                 "doc_date"=>$invoice_payment_payment_date,
+                                "payment_date"=>$invoice_payment_payment_date,
                                 "reference_number"=>$invoice_number,
                                 "project_id"=>$ivrow->project_id,
                                 "seller_id"=>$ivrow->seller_id,

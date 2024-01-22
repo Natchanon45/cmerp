@@ -1,8 +1,15 @@
 <div class="general-form modal-body clearfix">
     <div class="form-group">
-        <label for="doc_date" class=" col-md-3">วันที่</label>
+        <label for="doc_date" class=" col-md-3">วันที่ออกเอกสาร</label>
         <div class="col-md-9">
             <input type="text" id="doc_date" class="form-control" autocomplete="off" readonly>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label for="payment_date" class=" col-md-3">วันที่รับชำระ</label>
+        <div class="col-md-9">
+            <input type="text" id="payment_date" class="form-control" autocomplete="off" readonly>
         </div>
     </div>
 
@@ -78,7 +85,8 @@
 
 <script type="text/javascript">
 $(document).ready(function() {
-    <?php if(($doc_status == "W" || !isset($doc_id)) || (isset($doc_id) && $task == "copy_doc")): ?>
+    <?php //if(($doc_status == "W" || !isset($doc_id)) || (isset($doc_id) && $task == "copy_doc")): ?>
+    <?php if((!isset($doc_id))): ?>
         $('#project_id').select2();
 
         $("#client_id").select2().on("change", function (e) {
@@ -94,6 +102,7 @@ $(document).ready(function() {
                 task: "<?php echo $task; ?>",
                 doc_id : "<?php if(isset($doc_id)) echo $doc_id; ?>",
                 doc_date:$("#doc_date").val(),
+                payment_date:$("#payment_date").val(),
                 reference_number: $("#reference_number").val(),
                 seller_id: $("#seller_id").val(),
                 client_id: $("#client_id").val(),
@@ -127,9 +136,22 @@ $(document).ready(function() {
             autoclose: true
         });
 
+        payment_date = $("#payment_date").datepicker({
+            yearRange: "<?php echo date('Y'); ?>",
+            format: "dd/mm/yyyy",
+            endDate: "now",
+            changeMonth: true,
+            changeYear: true,
+            autoclose: true
+        });
+
         doc_date.datepicker("setDate", "<?php echo date('d/m/Y', strtotime($doc_date)); ?>");
+        payment_date.datepicker("setDate", "<?php echo date('d/m/Y', strtotime($payment_date)); ?>");
     <?php else: ?>
         $("#doc_date").val("<?php echo date('d/m/Y', strtotime($doc_date)); ?>");
+        <?php if($payment_date != null): ?>
+            $("#payment_date").val("<?php echo date('d/m/Y', strtotime($payment_date)); ?>");
+        <?php endif; ?>
     <?php endif; ?>
 
     
